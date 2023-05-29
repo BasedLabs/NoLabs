@@ -1,0 +1,6 @@
+Flask
+pandas
+numpy
+transformers
+torch
+setfit
