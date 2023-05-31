@@ -1,4 +1,4 @@
-from .model import LocalisationModel
+from .model import ClassificationModel
 
 def create_model(model_metadata):
     model_name = model_metadata.get('name')
@@ -7,7 +7,7 @@ def create_model(model_metadata):
     if model_type == "classification":
         model_labels = model_metadata.get('labels', [])
 
-        model = LocalisationModel(model_name)
+        model = ClassificationModel(model_name)
         model.load_model()
         model.set_labels(model_labels)
 

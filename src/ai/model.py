@@ -19,7 +19,7 @@ class BaseModel:
     def predict(self, input):
         pass
 
-class LocalisationModel(BaseModel):
+class ClassificationModel(BaseModel):
     def __init__(self, model_name):
         super().__init__(model_name)
     
