@@ -1,7 +1,7 @@
 {
     "models": [
         {"name": "ritakurban/ESM_protein_localization",
-         "type": "localisation",
+         "type": "classification",
          "labels": ["Cytosolic Proteins", "Mitochondrial Proteins", "Nuclear Proteins", "Other Proteins", "Extracellular/Secreted Proteins"]}
     ]
 }

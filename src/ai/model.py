@@ -11,7 +11,7 @@ class BaseModel:
         self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
 
-    #Method to get raw model outputs
+    # Method to get raw model outputs
     def raw_inference(self, input):
         pass
 
@@ -36,7 +36,6 @@ class LocalisationModel(BaseModel):
     def predict(self, sequence):
         probabilities = self.raw_inference(sequence)
         prob_table = list(zip(self.labels, probabilities))
-
         return prob_table
 
         

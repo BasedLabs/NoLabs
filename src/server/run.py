@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import os
 
 from .config_reader import get_models_from_config
-from models.model_factory import create_model
+from src.ai.model_factory import create_model
 
 app = Flask(__name__)
 
