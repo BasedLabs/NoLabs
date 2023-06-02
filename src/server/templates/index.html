@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>NoLabs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand">NoLabs</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <main role="main" class="pb-3">
+        <div class="text-center">
+            <h1 class="display-4"><b>NoLabs</b> - an open source amino-acid inference AI</h1>
+            <form action="/inference" method="post"
+                  enctype="multipart/form-data">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid sequence</label>
+                        <input type="text" class="form-control" id="inputSequence" name="inputSequence">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <label for="inputSequenceFile" class="col-form-label fs-4">Or paste file with amino-acid
+                            sequence</label>
+                        <input type="file" accept="text/x-fasta" class="form-control"
+                               id="inputSequenceFile" name="inputSequenceFile">
+                    </div>
+                </div>
+                <div class="row justify-content-center m-4">
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<footer class="border-top footer text-muted">
+    <div class="container">
+        &copy; 2023 - NoLabs
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+</body>
+</html>
