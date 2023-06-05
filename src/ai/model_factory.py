@@ -1,7 +1,7 @@
 from typing import Dict, Union
 
 from .exceptions.unknown_model_ex import UnknownModelException
-from .model import ClassificationModel, BaseModel
+from .model import ClassificationModel, Folding, BaseModel
 
 
 def create_model(model_metadata: Dict[str, str]) -> Union[BaseModel, None]:
@@ -20,6 +20,12 @@ def create_model(model_metadata: Dict[str, str]) -> Union[BaseModel, None]:
         model.load_model()
         model.set_labels(model_labels)
 
+        return model
+
+    if model_type == "folding":
+        model = Folding(model_name=model_name, gpu=use_gpu)
+        model.load_model()
+        
         return model
 
     raise UnknownModelException()
