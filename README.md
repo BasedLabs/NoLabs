@@ -1,2 +1,2 @@
-# NoLabsServer
+# NoLabs
 Python https server
