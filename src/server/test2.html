@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>3D Cell Model</title>
+    <style>
+      body { margin: 0; }
+      canvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/three@latest"></script>
+    <script>
+      // Set up the scene
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Create the cell geometry and material
+      const cellGeometry = new THREE.SphereGeometry(5, 32, 32);
+      const cellMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+
+      // Create the cell mesh and add it to the scene
+      const cellMesh = new THREE.Mesh(cellGeometry, cellMaterial);
+      scene.add(cellMesh);
+
+      // Create the nucleus geometry and material
+      const nucleusGeometry = new THREE.SphereGeometry(3, 32, 32);
+      const nucleusMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+
+      // Create the nucleus mesh and add it to the scene
+      const nucleusMesh = new THREE.Mesh(nucleusGeometry, nucleusMaterial);
+      nucleusMesh.position.set(0, 0, -7);
+      scene.add(nucleusMesh);
+
+      // Create the mitochondria geometry and material
+      const mitochondriaGeometry = new THREE.CylinderGeometry(1, 1, 6, 32);
+      const mitochondriaMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+
+      // Create the mitochondria mesh and add it to the scene
+      const mitochondriaMesh = new THREE.Mesh(mitochondriaGeometry, mitochondriaMaterial);
+      mitochondriaMesh.position.set(7, 0, 0);
+      scene.add(mitochondriaMesh);
+
+      // Position the camera
+      camera.position.z = 15;
+
+      // Render loop
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Rotate the cell, nucleus, and mitochondria
+        cellMesh.rotation.x += 0.01;
+        cellMesh.rotation.y += 0.01;
+        nucleusMesh.rotation.x += 0.01;
+        nucleusMesh.rotation.y += 0.01;
+        mitochondriaMesh.rotation.y += 0.02;
+
+        renderer.render(scene, camera);
+      }
+
+      // Start the animation
+      animate();
+    </script>
+  </body>
+</html>
