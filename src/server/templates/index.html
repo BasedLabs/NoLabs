@@ -4,33 +4,20 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>NoLabs</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="{{url_for('static', filename='site.js')}}"></script>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet" crossorigin="anonymous">
+    <script src="{{ url_for('static', filename='site.js') }}"></script>
+    <script src="{{ url_for('static', filename='ngl.js') }}"></script>
 </head>
 <body>
 <header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-        <div class="container-fluid">
-            <a class="navbar-brand">NoLabs</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                    aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                    </li>
-                </ul>
-            </div>
-        </div>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-dark border-bottom box-shadow mb-3 ">
     </nav>
 </header>
 <div class="container">
     <main role="main" class="pb-3">
         <div class="text-center">
-            <h1 class="display-4"><b>NoLabs</b> - an open source amino-acid inference AI</h1>
+            <h1 class="display-4"><b>NoLabs</b></h1>
             <form action="/inference" method="post"
                   enctype="multipart/form-data">
                 <div class="row justify-content-center">
@@ -46,7 +33,7 @@
                         <input type="file" accept="text/x-fasta" class="form-control"
                                id="inputSequenceFile" name="inputSequenceFile">
                         <label for="gpu" class="col-form-label fs-4">Enable GPU?</label>
-                        <input  type="checkbox" class="form-check-input" name="gpu" id="gpu">
+                        <input type="checkbox" class="form-check-input" name="gpu" id="gpu">
                     </div>
                 </div>
                 <div class="row justify-content-center m-4">
@@ -55,11 +42,71 @@
                     </div>
                 </div>
             </form>
+            <div class="row" id="resultContainer">
+                <div class="col-md-6"><img id="img" width="600" height="600"></div>
+                <div class="col-md-6 row">
+                    <div class="col-md-10">
+                        <div id="viewport" style="width:500px; height:500px;"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="btn-group-vertical">
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.default)"
+                                    class="btn btn-primary padding-top-button-group">Default
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.cartoon)"
+                                    class="btn btn-primary padding-top-button-group">Cartoon
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.backbone)"
+                                    class="btn btn-primary padding-top-button-group">Backbone
+                            </button>
+                            <button type="button"
+                                    onclick="foldingInstance.setView(foldingInstance.views.ballsAndSticks)"
+                                    class="btn btn-primary padding-top-button-group">Ball+stick
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.helixorient)"
+                                    class="btn btn-primary padding-top-button-group">Helixorient
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.hyperball)"
+                                    class="btn btn-primary padding-top-button-group">Hyperball
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.licorice)"
+                                    class="btn btn-primary padding-top-button-group">Licorice
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.ribbon)"
+                                    class="btn btn-primary padding-top-button-group">Ribbon
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.surface)"
+                                    class="btn btn-primary padding-top-button-group">Surface
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.rope)"
+                                    class="btn btn-primary padding-top-button-group">Rope
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.spacefill)"
+                                    class="btn btn-primary padding-top-button-group">Spacefill
+                            </button>
+                            <button type="button" onclick="foldingInstance.setView(foldingInstance.views.unitcell)"
+                                    class="btn btn-primary padding-top-button-group">Unitcell
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        <script>
+            var inference = {{ 'true' if inference else 'false' }};
+            if (inference) {
+                const inferenceData = JSON.parse({{ inference | default("{}") | tojson | safe  }});
+                var foldingInstance = folding(inferenceData.folding);
+                foldingInstance.render();
+                localisation().render();
+            }else{
+                document.getElementById('resultContainer').style.display = 'none';
+            }
+        </script>
     </main>
 </div>
 
-<footer class="border-top footer text-muted">
+<footer class="border-top footer text-muted fixed-bottom">
     <div class="container">
         &copy; 2023 - NoLabs
     </div>

@@ -1,5 +1,4 @@
 from src.ai import model_factory
-from src.ai.model import BaseModel
 
 
 def get_localisation_output(amino_acid_sequence: str) -> str:
