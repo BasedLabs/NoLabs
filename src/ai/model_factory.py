@@ -6,7 +6,7 @@ from .model import ClassificationModel, Folding, BaseModel
 
 def create_model(model_metadata: Dict[str, str]) -> Union[BaseModel, None]:
     assert 'name' in model_metadata
-    assert 'type' in model_metadata
+    assert 'task' in model_metadata
     assert 'gpu' in model_metadata
 
     model_name = model_metadata.get('name')
@@ -16,7 +16,12 @@ def create_model(model_metadata: Dict[str, str]) -> Union[BaseModel, None]:
     if model_type == "classification":
         model_labels = model_metadata.get('labels', [])
 
-        model = ClassificationModel(model_name=model_name, gpu=use_gpu)
+        model_task = ""
+
+        if 'task' in model_metadata:
+            model_task = model_metadata["task"]
+
+        model = ClassificationModel(model_name=model_name, gpu=use_gpu, task=model_task)
         model.load_model()
         model.set_labels(model_labels)
 

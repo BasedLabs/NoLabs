@@ -27,7 +27,7 @@ class BaseModel:
 
 
 class ClassificationModel(BaseModel):
-    def __init__(self, model_name, gpu):
+    def __init__(self, model_name, gpu, task = ""):
         super().__init__(model_name, gpu)
 
     def set_labels(self, labels):
@@ -55,7 +55,7 @@ class ClassificationModel(BaseModel):
 
 class Folding(BaseModel):
 
-    def __init__(self, model_name, gpu):
+    def __init__(self, model_name, gpu, task = ""):
         super().__init__(model_name, gpu)
 
         self.model_name = model_name
@@ -66,7 +66,7 @@ class Folding(BaseModel):
         self.model = EsmForProteinFolding.from_pretrained(model_name, low_cpu_mem_usage=True)
         if self.gpu:
             self.model = self.model.cuda()
-            
+
         return super().load_model()
 
     def convert_outputs_to_pdb(self, outputs):
@@ -91,9 +91,8 @@ class Folding(BaseModel):
             pdbs.append(to_pdb(pred))
         return pdbs
 
-    def predict(self, sequence: str):
-        if not self.tokenizer or not self.model:
-            raise ModelNotLoadedException()
+
+    def _raw_inference(self, sequence: str):
 
         tokenized_input = tokenizer([sequence], return_tensors="pt", add_special_tokens=False)['input_ids']
         tokenized_input = tokenized_input.cuda()
@@ -103,9 +102,16 @@ class Folding(BaseModel):
         with torch.no_grad():
             output = model(tokenized_input)
 
+        return output
+
+    def predict(self, sequence: str) -> List[str]:
+        if not self.tokenizer or not self.model:
+            raise ModelNotLoadedException()
+        output = self._raw_inference(sequence)
+
         pdbs = self.convert_outputs_to_pdb(output)
 
-        return pdbs
+        return "".join(pdbs)
 
     
 
