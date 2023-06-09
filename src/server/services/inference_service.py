@@ -20,7 +20,7 @@ def get_localisation_output(pipeline, amino_acid_sequence: str) -> Dict:
     model = pipeline.get_model_by_task("localisation")
     return model.predict(amino_acid_sequence)
 
-def get_folding_output(pipeline, amino_acid_input_sequence: str) -> str:
+def get_folding_output(pipeline, amino_acid_sequence: str) -> str:
     assert amino_acid_sequence
     model = pipeline.get_model_by_task("folding")
     return model.predict(amino_acid_sequence)

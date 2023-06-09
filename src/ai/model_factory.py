@@ -33,7 +33,13 @@ def create_model(model_metadata: Dict[str, str]) -> Union[BaseModel, None]:
         return model
 
     if model_type == "folding":
-        model = Folding(model_name=model_name, gpu=use_gpu)
+        
+        model_task = ""
+
+        if 'task' in model_metadata:
+            model_task = model_metadata["task"]
+
+        model = Folding(model_name=model_name, gpu=use_gpu, model_task=model_task)
         model.load_model()
         
         return model

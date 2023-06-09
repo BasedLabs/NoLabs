@@ -59,7 +59,6 @@ class Folding(BaseModel):
 
     def __init__(self, model_name, gpu, model_task = ""):
         super().__init__(model_name, gpu, model_task)
-
         self.model_name = model_name
         self.gpu = gpu
 
@@ -96,13 +95,15 @@ class Folding(BaseModel):
 
     def _raw_inference(self, sequence: str):
 
-        tokenized_input = tokenizer([sequence], return_tensors="pt", add_special_tokens=False)['input_ids']
-        tokenized_input = tokenized_input.cuda()
+        tokenized_input = self.tokenizer([sequence], return_tensors="pt", add_special_tokens=False)['input_ids']
+        
+        if self.gpu:
+            tokenized_input = tokenized_input.cuda()
 
         output = None
 
         with torch.no_grad():
-            output = model(tokenized_input)
+            output = self.model(tokenized_input)
 
         return output
 
