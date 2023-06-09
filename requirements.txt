@@ -6,4 +6,3 @@ torch
 setfit
 git+https://github.com/bp-kelley/descriptastorus 
 DeepPurpose
-sqlite3

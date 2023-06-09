@@ -2,6 +2,7 @@ import json
 
 import torch
 from flask import Flask, render_template, request
+import services.inference_service as inference_service
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -15,20 +16,28 @@ def hello():
 
 @app.route('/inference', methods=['POST'])
 def inference():
-    aminoAcidInputSequence = request.form['inputSequence']
-    aminoAcidInputSequenceFile = request.files.get('inputSequenceFile', None)
+    amino_acid_input_sequence = request.form['inputSequence']
+    amino_acid_input_sequence_file = request.files.get('inputSequenceFile', None)
+    if not amino_acid_input_sequence and not amino_acid_input_sequence_file:
+        raise Exception('Input amino acid sequence')
+    if not amino_acid_input_sequence:
+        amino_acid_input_sequence = amino_acid_input_sequence_file.read().replace('\n', '')
     gpu = request.form.get('gpu', False)
     if gpu and not torch.cuda.is_available():
         return {'result': 'You do not have a gpu installed or CUDA package'}
     # aminoAcidInputSequenceFile = request.files['inputSequenceFile'] # will consider this later
+    pipeline = inference_service.create_pipeline()
+    localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
+                                                                  amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
+    esm_protein_localization = localisation_result["ritakurban/ESM_protein_localization"]
 
     inference_data = json.dumps({
-            'sequence': aminoAcidInputSequence,
-            'localisation': {
-                'mithochondria': 0.95,
-                'nucleus': 0.01,
-                'cytoplasm': 0.01,
-            },
-            'folding': open('src/server/static/1r6a.pdb', 'r').read()
-        })
+        'sequence': amino_acid_input_sequence or amino_acid_input_sequence_file,
+        'localisation': {
+            'mithochondria': esm_protein_localization["Mitochondrial Proteins"],
+            'nucleus': esm_protein_localization["Nuclear Proteins"],
+            'cytoplasm': esm_protein_localization["Cytosolic Proteins"],
+        },
+        'folding': open('src/server/static/1r6a.pdb', 'r').read()
+    })
     return render_template('index.html', inference=inference_data)

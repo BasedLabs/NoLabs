@@ -1,9 +1,10 @@
 import os
 import csv
 from datetime import date
+from typing import List
 
 from .model import BaseModel
-import sqlite3
+
 
 class Pipeline:
     def __init__(self, models: List[BaseModel] = None):
@@ -19,9 +20,9 @@ class Pipeline:
         """
         Gets the first model of the required type from the pipeline (TODO: get all the models of correct type)
         """
-        for model in models:
+        for model in self.models:
             if model.model_task == model_task:
-                return model    
+                return model
 
     def add_model(self, model: BaseModel):
         """
@@ -37,8 +38,8 @@ class Pipeline:
         for model in self.models:
             output[model.model_name] = model.predict(sequence)
         return output
-    
-    def predict_multiple(self, sequences: List[str], save_to_csv = False, custom_filename=""):
+
+    def predict_multiple(self, sequences: List[str], save_to_csv=False, custom_filename=""):
         """
         Make predictions for multiple sequences
         """
@@ -49,24 +50,24 @@ class Pipeline:
 
         if save_to_csv:
             # Currently will save into results/ directory
-            save_directory = str(os.path.dirname(os.path.abspath(__file__)) + "/results/"
-            check_directory_exists(save_directory)
+            save_directory = os.path.dirname(os.path.abspath(__file__)) + "/results/"
+            check_folder_exists(save_directory)
             if custom_filename:
                 final_path = save_directory + custom_filename + ".csv"
-                save_results_to_csv(results, final_path)
-            else: 
+                self.save_results_to_csv(results, final_path)
+            else:
                 final_path = save_directory + str(date.today()) + ".csv"
-                save_results_to_csv(results, final_path)
+                self.save_results_to_csv(results, final_path)
         return results
 
-    def save_results_to_csv(self, results):
+    def save_results_to_csv(self, results, filename):
         if not results:
             print(f"Your predictions are empty")
             return
 
         with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Sequence'] + self.get_model_names())  
+            writer.writerow(['Sequence'] + self.get_model_names())
 
             for result in results:
                 row = [result[0]]
@@ -75,7 +76,8 @@ class Pipeline:
                 for key in outputs.keys():
                     row.append(outputs[key])
 
-                writer.writerow(row)  
+                writer.writerow(row)
+
 
 def check_folder_exists(filename):
     directory = os.path.dirname(filename)
