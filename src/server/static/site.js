@@ -1,4 +1,7 @@
 var localisation = function (probabilities) {
+    window.onmousemove = function (e) {
+        //console.log("mouse location:", e.clientX, e.clientY)
+    };
     if (!document.getElementById('img'))
         throw Error('Declare img tag');
     const _createImage = (src) => {
@@ -6,10 +9,26 @@ var localisation = function (probabilities) {
         image.src = src;
         return image;
     };
+    const img = document.getElementById('img');
     const obj = {
+        hoverControlHighlight: {
+            onmouseover: (el) => {
+                const jqueryEl = $(el.target);
+                jqueryEl.addClass('active');
+                const localisationObjectKey = jqueryEl.data('localisationObjectKey');
+                const highlightElement = obj.highlightData[localisationObjectKey];
+                img.src = highlightElement.image.src;
+            },
+            onmouseleave: (el) => {
+                $(el.target).removeClass('active');
+                img.src = obj.highlightData.original.image.src;
+            },
+        },
         highlightData: {
             mithochondria: {
                 image: _createImage('./static/images/mithochondria.png'),
+                controlElementId: 'mithochondria-list-item',
+                text: 'Mithochondria',
                 polygon: [
                     [
                         [150, 115],
@@ -33,6 +52,8 @@ var localisation = function (probabilities) {
             },
             nucleus: {
                 image: _createImage('./static/images/nucleus.png'),
+                controlElementId: 'nucleus-list-item',
+                text: 'Nucleus',
                 polygon: [
                     [[176, 178],
                         [202, 199],
@@ -46,6 +67,8 @@ var localisation = function (probabilities) {
             },
             cytoplasm: {
                 image: _createImage('./static/images/cytoplasm.png'),
+                controlElementId: 'cytoplasm-list-item',
+                text: 'Cytoplasm',
                 polygon: [
                     [
                         [95, 160],
@@ -96,7 +119,18 @@ var localisation = function (probabilities) {
             return false;
         },
         render: function () {
-            const img = document.getElementById('img');
+            const highlightElements = [];
+            for (const key in obj.highlightData) {
+                const data = obj.highlightData[key];
+                const elId = data.controlElementId;
+                const el = $('#' + elId);
+                el.append(data.text + ' ' + (probabilities[key] * 100) + '%');
+                el.hover(obj.hoverControlHighlight.onmouseover,
+                    obj.hoverControlHighlight.onmouseleave);
+                el.data('localisationObjectKey', key);
+                highlightElements.push(el);
+            }
+
             img.src = obj.highlightData.original.image.src;
             img.addEventListener('mousemove', event => {
                 const rect = img.getBoundingClientRect();
@@ -105,6 +139,10 @@ var localisation = function (probabilities) {
                 for (const key in obj.highlightData) {
                     const data = obj.highlightData[key];
                     if (obj.isInside([x, y], data.polygon)) {
+                        for (const highlightElement of highlightElements) {
+                            highlightElement.removeClass('active');
+                        }
+                        $('#' + data.controlElementId).addClass('active');
                         img.src = data.image.src;
                         return;
                     }
@@ -112,6 +150,9 @@ var localisation = function (probabilities) {
             });
             img.addEventListener('mouseout', function () {
                 img.src = obj.highlightData.original.image.src;
+                for (const highlightElement of highlightElements) {
+                    highlightElement.removeClass('active');
+                }
             });
         }
     }
