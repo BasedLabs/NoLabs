@@ -84,6 +84,32 @@ var localisation = function (probabilities) {
                     ]
                 ]
             },
+            other: {
+                image: _createImage('./static/images/original.png'),
+                controlElementId: 'other-proteins-item',
+                text: 'Other proteins',
+                polygon: [
+                    [
+                        [0, 0],
+                        [500, 0],
+                        [500, 500],
+                        [0, 500]
+                    ]
+                ]
+            },
+            extracellular: {
+                image: _createImage('./static/images/original.png'),
+                controlElementId: 'extracellular-proteins-item',
+                text: 'Extracellular proteins',
+                polygon: [
+                    [
+                        [0, 0],
+                        [500, 0],
+                        [500, 500],
+                        [0, 500]
+                    ]
+                ]
+            },
             original: {
                 image: _createImage('./static/images/original.png'),
                 polygon: [

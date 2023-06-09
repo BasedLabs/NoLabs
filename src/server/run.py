@@ -40,6 +40,8 @@ def inference():
             'mithochondria': esm_protein_localization["Mitochondrial Proteins"],
             'nucleus': esm_protein_localization["Nuclear Proteins"],
             'cytoplasm': esm_protein_localization["Cytosolic Proteins"],
+            'other': esm_protein_localization["Other Proteins"],
+            'extracellular': esm_protein_localization["Extracellular/Secreted Proteins"]
         },
         'folding': open('src/server/static/1r6a.pdb', 'r').read()
     })
