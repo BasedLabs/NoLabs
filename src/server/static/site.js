@@ -150,7 +150,7 @@ var localisation = function (probabilities) {
                 const data = obj.highlightData[key];
                 const elId = data.controlElementId;
                 const el = $('#' + elId);
-                el.append(data.text + ' ' + (probabilities[key] * 100) + '%');
+                el.append(data.text + ' ' + (probabilities[key].toFixed(2) * 100) + '%');
                 el.hover(obj.hoverControlHighlight.onmouseover,
                     obj.hoverControlHighlight.onmouseleave);
                 el.data('localisationObjectKey', key);
