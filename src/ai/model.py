@@ -5,10 +5,12 @@ from transformers.models.esm.openfold_utils.feats import atom14_to_atom37
 
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
 
+from typing import List
 
 class BaseModel:
-    def __init__(self, model_name, gpu):
+    def __init__(self, model_name, gpu, model_task = ""):
         self.model_name = model_name
+        self.model_task = model_task
         self.model = None
         self.tokenizer = None
         self.gpu = gpu
@@ -27,8 +29,8 @@ class BaseModel:
 
 
 class ClassificationModel(BaseModel):
-    def __init__(self, model_name, gpu, task = ""):
-        super().__init__(model_name, gpu)
+    def __init__(self, model_name, gpu, model_task = ""):
+        super().__init__(model_name, gpu, model_task)
 
     def set_labels(self, labels):
         self.labels = labels
@@ -55,8 +57,8 @@ class ClassificationModel(BaseModel):
 
 class Folding(BaseModel):
 
-    def __init__(self, model_name, gpu, task = ""):
-        super().__init__(model_name, gpu)
+    def __init__(self, model_name, gpu, model_task = ""):
+        super().__init__(model_name, gpu, model_task)
 
         self.model_name = model_name
         self.gpu = gpu

@@ -1,8 +1,8 @@
 import json
 
 import torch
-from flask import Flask, render_template, request
-import services.inference_service as inference_service
+from flask import Flask, render_template, request, jsonify
+import src.server.services.inference_service as inference_service
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -29,7 +29,10 @@ def inference():
     pipeline = inference_service.create_pipeline()
     localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
                                                                   amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
-    esm_protein_localization = localisation_result["ritakurban/ESM_protein_localization"]
+    
+    print(localisation_result)
+    
+    esm_protein_localization = {key: value for key, value in localisation_result}
 
     inference_data = json.dumps({
         'sequence': amino_acid_input_sequence or amino_acid_input_sequence_file,

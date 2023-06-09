@@ -7,7 +7,7 @@ from .model import BaseModel
 
 
 class Pipeline:
-    def __init__(self, models: List[BaseModel] = None):
+    def __init__(self, models: List[BaseModel] = []):
         """
         models: pass the list of loaded models which inherit BaseModel class
         """
