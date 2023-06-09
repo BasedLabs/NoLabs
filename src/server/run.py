@@ -32,6 +32,9 @@ def inference():
     
     print(localisation_result)
     
+    folding_result = inference_service.get_folding_output(pipeline=pipeline,
+                                                                amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
+
     esm_protein_localization = {key: value for key, value in localisation_result}
 
     inference_data = json.dumps({
@@ -43,6 +46,6 @@ def inference():
             'other': esm_protein_localization["Other Proteins"],
             'extracellular': esm_protein_localization["Extracellular/Secreted Proteins"]
         },
-        'folding': open('src/server/static/1r6a.pdb', 'r').read()
+        'folding': folding_result
     })
     return render_template('index.html', inference=inference_data)

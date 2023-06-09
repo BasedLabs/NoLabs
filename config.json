@@ -11,6 +11,11 @@
         "Other Proteins",
         "Extracellular/Secreted Proteins"
       ]
+    },
+    {
+        "name": "facebook/esmfold_v1",
+        "type": "folding",
+        "task": "folding"
     }
-  ]
+    ]
 }
