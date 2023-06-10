@@ -11,8 +11,8 @@
 </head>
 <body>
 <img id="img" src="./static/images/original.png"
-     width="500" style="height: auto">
-<canvas id="highlightCanvas" width="500" height="500"></canvas>
+     width="400" style="height: auto">
+<canvas id="highlightCanvas" width="400" style="height: auto"></canvas>
 <script>
     window.onmousemove = function (e) {
         console.log("mouse location:", e.clientX, e.clientY)
@@ -23,7 +23,7 @@
 
     const localisation = function () {
         const _createImage = (src) => {
-            const image = new Image(500, 500);
+            const image = new Image(400, 400);
             image.src = src;
             return image;
         };
@@ -33,60 +33,71 @@
                     image: _createImage('./static/images/mithochondria.png'),
                     polygon: [
                         [
-                            [150, 115],
-                            [182, 112],
-                            [217, 139],
-                            [210, 155],
-                            [180, 143],
-                            [156, 149]
+                            [153,117],
+                            [168,109],
+                            [179,112],
+                            [164,131],
+                            [138,137],
+                            [135,126]
                         ],
                         [
-                            [213, 352],
-                            [234, 345],
-                            [250, 353],
-                            [242, 385],
-                            [200, 390],
-                            [182, 377],
-                            [178, 353],
-                            [192, 345],
+                            [184,239],
+                            [204,239],
+                            [208,247],
+                            [186,258],
+                            [162,248],
+                            [164,233]
+                        ],
+                        [
+                            [220,266],
+                            [246,264],
+                            [249,281],
+                            [228,289],
+                            [201,287],
+                            [204,269]
                         ]
                     ]
                 },
                 nucleus: {
                     image: _createImage('./static/images/nucleus.png'),
                     polygon: [
-                       [ [176, 178],
-                        [202, 199],
-                        [222, 229],
-                        [216, 257],
-                        [170, 271],
-                        [134, 255],
-                        [137, 201],
-                        [169, 177]]
+                       [
+                           [198,106],
+                           [218, 76],
+                           [260,75],
+                           [298,105],
+                           [296,165],
+                           [244,203],
+                           [190,188],
+                           [172,139]
+                       ]
                     ]
                 },
                 cytoplasm: {
                     image: _createImage('./static/images/cytoplasm.png'),
                     polygon: [
-                        [[95, 160],
-                        [190, 99],
-                        [238, 167],
-                        [341, 203],
-                        [400, 313],
-                        [332, 385],
-                        [160, 381],
-                        [88, 315],
-                        [82, 201],
-                        [130, 107]]
+                        [
+                            [128,117],
+                            [227,58],
+                            [279,58],
+                            [349,115],
+                            [378,207],
+                            [331,317],
+                            [214,371],
+                            [134,357],
+                            [63,285],
+                            [36,189],
+                            [72,138]
+                        ]
                     ]
                 },
                 original: {
                     image: _createImage('./static/images/original.png'),
                     polygon: [
                         [[0,0],
-                        [500,0],
-                        [500,500],
-                        [0,500]]
+                        [400,0],
+                        [500,400],
+                        [0,400]]
                     ]
                 },
             },

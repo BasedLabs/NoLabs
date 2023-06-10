@@ -87,8 +87,8 @@ body::-webkit-scrollbar-track {
 }
 
 .localisation-image {
-  width: 400px;
-  height: 400px;
+  width: 500px;
+  height: 500px;
 }
 
 .localisation-probs {
@@ -107,4 +107,8 @@ body::-webkit-scrollbar-track {
     width: 100%;
     height: 100%;
     z-index: -1;
+}
+
+.invisible-spinner {
+    display: none;
 }

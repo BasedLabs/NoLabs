@@ -4,13 +4,12 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>NoLabs</title>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"
-            integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='code.jquery.com_jquery-3.7.0.min.js') }}"></script>
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet" crossorigin="anonymous">
     <script src="{{ url_for('static', filename='site.js') }}"></script>
     <script src="{{ url_for('static', filename='ngl.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="{{ url_for('static', filename='cdn.jsdelivr.net_npm_particles.js@2.0.0_particles.min.js') }}"></script>
 </head>
 <body>
 <header>
@@ -25,7 +24,7 @@
         <div class="text-center">
             <h1 class="display-4"><b>NoLabs</b></h1>
             <form action="/inference" method="post"
-                  enctype="multipart/form-data">
+                  enctype="multipart/form-data" id="inferenceInputForm">
                 <div class="row justify-content-center">
                     <div class="col-md-6">
                         <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid sequence</label>
@@ -44,14 +43,23 @@
                 </div>
                 <div class="row justify-content-center m-4">
                     <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="submit" id="submitInference" class="btn btn-primary">
+                            Submit
+                        </button>
                     </div>
                 </div>
             </form>
+            <div class="text-center invisible-spinner" id="spinner">
+                <p class="inference-components-title">Processing. It can take more than 10 mins depending on your PC</p>
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Processing</span>
+                </div>
+            </div>
             <div class="row" id="resultContainer">
                 <div class="col-md-6">
                     <p class="inference-components-title">Protein localisation probability</p>
                     <img id="img" class="localisation-image">
+                    <p>Hover on list</p>
                     <ul class="list-group localisation-probs ">
                         <li id="mithochondria-list-item" class="list-group-item"></li>
                         <li id="nucleus-list-item" class="list-group-item"></li>
@@ -110,6 +118,7 @@
             </div>
         </div>
         <script>
+            spinner();
             var inference = {{ 'true' if inference else 'false' }};
             if (inference) {
                 const inferenceData = JSON.parse({{ inference | default("{}") | tojson | safe  }});
