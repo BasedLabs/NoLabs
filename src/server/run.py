@@ -1,5 +1,5 @@
 import json
-
+import argparse
 import torch
 from flask import Flask, render_template, request, jsonify
 import src.server.services.inference_service as inference_service
@@ -7,7 +7,9 @@ import src.server.services.inference_service as inference_service
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['FLASK_DEBUG'] = True
-
+parser = argparse.ArgumentParser()
+parser.add_argument('--port', default=5000)
+parser.add_argument('--host', default='127.0.0.1')
 
 @app.route('/')
 def hello():
@@ -49,3 +51,8 @@ def inference():
         'folding': folding_result
     })
     return render_template('index.html', inference=inference_data)
+
+
+if __name__ == '__main__':
+    args = vars(parser.parse_args())
+    app.run(host=args['host'], port=args['port'])
