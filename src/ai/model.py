@@ -63,8 +63,8 @@ class Folding(BaseModel):
         self.gpu = gpu
 
     def load_model(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = EsmForProteinFolding.from_pretrained(model_name, low_cpu_mem_usage=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = EsmForProteinFolding.from_pretrained(self.model_name, low_cpu_mem_usage=True)
         if self.gpu:
             self.model = self.model.cuda()
 
