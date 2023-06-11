@@ -121,7 +121,7 @@ var folding = function (proteinFileContent) {
 var spinner = function() {
     $('#inferenceInputForm').on('submit', function() {
         $('#submitInference').attr('disabled', true);
-        $('#spinner').removeClass('invisible-spinner');
+        $('#spinner').removeClass('invisible');
     })
 }
 

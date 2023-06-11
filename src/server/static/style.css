@@ -109,6 +109,6 @@ body::-webkit-scrollbar-track {
     z-index: -1;
 }
 
-.invisible-spinner {
+.invisible {
     display: none;
 }

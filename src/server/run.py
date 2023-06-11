@@ -1,5 +1,6 @@
 import json
 import argparse
+
 import torch
 from flask import Flask, render_template, request
 import src.server.services.inference_service as inference_service
