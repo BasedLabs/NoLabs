@@ -51,7 +51,7 @@ NoLabs is an open source bioengine with support of web visualisation and hosting
 
 The goal of the project is to accelerate the Research stage of biotechnological processes via leveraging solutions for prediction and simulation.
 
-<video src='media/NoLabs.mp4' width=180/>
+![NoLabs](https://github.com/BasedLabs/NoLabs/assets/44748642/3ea9c1ac-1f8a-4b03-8b31-8b413463e9bf)
 
 ## Features ##
 
