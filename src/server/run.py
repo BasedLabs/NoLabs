@@ -26,7 +26,7 @@ def inference():
         return render_template('error.html', error='You must enter sequence or select a FASTA file')
     if not amino_acid_input_sequence:
         amino_acid_input_sequence = \
-        [seq for seq in get_sequences(amino_acid_input_sequence_files[0].read().replace('\n', ''))][0]
+        [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
     gpu = request.form.get('gpu', False)
     if gpu and not torch.cuda.is_available():
         return render_template('error.html', error="You don't have a CUDA installed or NVIDIA videocard")
