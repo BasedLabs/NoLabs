@@ -5,7 +5,8 @@ from typing import Dict
 from src.ai.model_factory import create_model
 from src.ai.pipeline import Pipeline
 
-def create_pipeline(use_gpu = False):
+
+def create_pipeline(use_gpu=False):
     pipeline = Pipeline()
     models_metadata = get_models_from_config()
 
@@ -15,15 +16,18 @@ def create_pipeline(use_gpu = False):
 
     return pipeline
 
+
 def get_localisation_output(pipeline, amino_acid_sequence: str) -> Dict:
     assert amino_acid_sequence
     model = pipeline.get_model_by_task("localisation")
     return model.predict(amino_acid_sequence)
 
+
 def get_folding_output(pipeline, amino_acid_sequence: str) -> str:
     assert amino_acid_sequence
     model = pipeline.get_model_by_task("folding")
     return model.predict(amino_acid_sequence)
+
 
 def get_pipeline_output(pipeline, amino_acid_sequence: str) -> str:
     assert amino_acid_sequence

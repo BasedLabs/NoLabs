@@ -5,18 +5,15 @@ from .exceptions.unknown_model_ex import UnknownModelException
 from .model import ClassificationModel, Folding, BaseModel
 
 
-def create_model(model_metadata: Dict[str, str, use_gpu = False) -> Union[BaseModel, None]:
+def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union[BaseModel, None]:
     assert 'name' in model_metadata
     assert 'task' in model_metadata
 
     model_name = model_metadata.get('name')
     model_type = model_metadata.get('type')
-    use_gpu = False
 
     if use_gpu:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-
 
     if device == "cuda":
         use_gpu = True

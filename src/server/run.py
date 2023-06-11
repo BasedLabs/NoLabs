@@ -1,8 +1,9 @@
 import json
 import argparse
 import torch
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 import src.server.services.inference_service as inference_service
+from server.services.fasta_reader import get_sequences
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -10,6 +11,7 @@ app.config['FLASK_DEBUG'] = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', default=5000)
 parser.add_argument('--host', default='127.0.0.1')
+
 
 @app.route('/')
 def hello():
@@ -19,28 +21,27 @@ def hello():
 @app.route('/inference', methods=['POST'])
 def inference():
     amino_acid_input_sequence = request.form['inputSequence']
-    amino_acid_input_sequence_file = request.files.get('inputSequenceFile', None)
-    if not amino_acid_input_sequence and not amino_acid_input_sequence_file:
-        raise Exception('Input amino acid sequence')
+    amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
+    if not amino_acid_input_sequence and not amino_acid_input_sequence_files:
+        return render_template('error.html', error='You must enter sequence or select a FASTA file')
     if not amino_acid_input_sequence:
-        amino_acid_input_sequence = amino_acid_input_sequence_file.read().replace('\n', '')
+        amino_acid_input_sequence = \
+        [seq for seq in get_sequences(amino_acid_input_sequence_files[0].read().replace('\n', ''))][0]
     gpu = request.form.get('gpu', False)
     if gpu and not torch.cuda.is_available():
-        return {'result': 'You do not have a gpu installed or CUDA package'}
+        return render_template('error.html', error="You don't have a CUDA installed or NVIDIA videocard")
     # aminoAcidInputSequenceFile = request.files['inputSequenceFile'] # will consider this later
-    pipeline = inference_service.create_pipeline()
+    pipeline = inference_service.create_pipeline(use_gpu=gpu)
     localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
-                                                                  amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
-    
-    print(localisation_result)
-    
+                                                                    amino_acid_sequence=amino_acid_input_sequence)
+
     folding_result = inference_service.get_folding_output(pipeline=pipeline,
-                                                                amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
+                                                          amino_acid_sequence=amino_acid_input_sequence)
 
     esm_protein_localization = {key: value for key, value in localisation_result}
 
     inference_data = json.dumps({
-        'sequence': amino_acid_input_sequence or amino_acid_input_sequence_file,
+        'sequence': amino_acid_input_sequence,
         'localisation': {
             'mithochondria': esm_protein_localization["Mitochondrial Proteins"],
             'nucleus': esm_protein_localization["Nuclear Proteins"],
