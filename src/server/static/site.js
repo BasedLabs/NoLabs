@@ -60,7 +60,7 @@ var localisation = function (probabilities) {
                 const data = obj.highlightData[key];
                 const elId = data.controlElementId;
                 const el = $('#' + elId);
-                if(probabilities[key] === undefined)
+                if (probabilities[key] === undefined)
                     probabilities[key] = 0.000
                 el.append(data.text + ' ' + (probabilities[key].toFixed(2) * 100) + '%');
                 el.hover(obj.hoverControlHighlight.onmouseover,
@@ -118,10 +118,38 @@ var folding = function (proteinFileContent) {
     return obj;
 }
 
-var spinner = function() {
-    $('#inferenceInputForm').on('submit', function() {
+var spinner = function () {
+    const readFile = async () => {
+        const contents = [];
+        for (const file of document.getElementById('inputSequenceFile').files) {
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsText(file, "UTF-8");
+                const fileContent = await new Promise((resolve, reject) => {
+                    reader.onload = function (evt) {
+                        resolve(evt.target.result);
+                    }
+                    reader.onerror = function (evt) {
+                        reject('Error reading file')
+                        document.getElementById("fileContents").innerHTML = "error reading file";
+                    }
+                });
+                contents.push(fileContent);
+            }
+        }
+        return contents;
+    }
+
+    $('#submitInference').on('click', function () {
         $('#submitInference').attr('disabled', true);
         $('#spinner').removeClass('invisible-spinner');
+
+        const inferenceVal = $('#inputSequence').val();
+
+        const socket = io();
+        socket.on('connect', async function () {
+            socket.emit('my event', {data: 'I\'m connected!'});
+        });
     })
 }
 

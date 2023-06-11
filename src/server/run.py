@@ -1,15 +1,20 @@
-import json
 import argparse
+import json
+
 import torch
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
+
 import src.server.services.inference_service as inference_service
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['FLASK_DEBUG'] = True
+socketio = SocketIO(app)
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', default=5000)
 parser.add_argument('--host', default='127.0.0.1')
+
 
 @app.route('/')
 def hello():
@@ -30,12 +35,12 @@ def inference():
     # aminoAcidInputSequenceFile = request.files['inputSequenceFile'] # will consider this later
     pipeline = inference_service.create_pipeline()
     localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
-                                                                  amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
-    
+                                                                    amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
+
     print(localisation_result)
-    
+
     folding_result = inference_service.get_folding_output(pipeline=pipeline,
-                                                                amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
+                                                          amino_acid_sequence=amino_acid_input_sequence or amino_acid_input_sequence_file)
 
     esm_protein_localization = {key: value for key, value in localisation_result}
 
@@ -53,6 +58,11 @@ def inference():
     return render_template('index.html', inference=inference_data)
 
 
+@socketio.on('inference-ws')
+def inference_ws(json):
+
+
+
 if __name__ == '__main__':
     args = vars(parser.parse_args())
-    app.run(host=args['host'], port=args['port'])
+    socketio.run(host=args['host'], port=args['port'])

@@ -10,6 +10,7 @@
     <script src="{{ url_for('static', filename='site.js') }}"></script>
     <script src="{{ url_for('static', filename='ngl.js') }}"></script>
     <script src="{{ url_for('static', filename='cdn.jsdelivr.net_npm_particles.js@2.0.0_particles.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='cdnjs.cloudflare.com_ajax_libs_socket.io_4.0.1_socket.io.js') }}"></script>
 </head>
 <body>
 <header>
@@ -23,8 +24,7 @@
     <main role="main" class="pb-3">
         <div class="text-center">
             <h1 class="display-4"><b>NoLabs</b></h1>
-            <form action="/inference" method="post"
-                  enctype="multipart/form-data" id="inferenceInputForm">
+            <form id="inferenceInputForm">
                 <div class="row justify-content-center">
                     <div class="col-md-6">
                         <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid sequence</label>

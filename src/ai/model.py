@@ -7,8 +7,9 @@ from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
 
 from typing import List
 
+
 class BaseModel:
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name, gpu, model_task=""):
         self.model_name = model_name
         self.model_task = model_task
         self.model = None
@@ -29,7 +30,7 @@ class BaseModel:
 
 
 class ClassificationModel(BaseModel):
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu, model_task)
 
     def set_labels(self, labels):
@@ -55,16 +56,17 @@ class ClassificationModel(BaseModel):
         prob_table = list(zip(self.labels, probabilities))
         return prob_table
 
+
 class Folding(BaseModel):
 
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu, model_task)
         self.model_name = model_name
         self.gpu = gpu
 
     def load_model(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = EsmForProteinFolding.from_pretrained(model_name, low_cpu_mem_usage=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = EsmForProteinFolding.from_pretrained(self.model_name, low_cpu_mem_usage=True)
         if self.gpu:
             self.model = self.model.cuda()
 
@@ -92,11 +94,10 @@ class Folding(BaseModel):
             pdbs.append(to_pdb(pred))
         return pdbs
 
-
     def _raw_inference(self, sequence: str):
 
         tokenized_input = self.tokenizer([sequence], return_tensors="pt", add_special_tokens=False)['input_ids']
-        
+
         if self.gpu:
             tokenized_input = tokenized_input.cuda()
 
@@ -116,7 +117,6 @@ class Folding(BaseModel):
 
         return "".join(pdbs)
 
-    
 
 class FunctionPrediction(BaseModel):
     def __init__(self, model_name, gpu):
