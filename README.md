@@ -1,5 +1,5 @@
 <div align="center" id="top"> 
-  <img src="NoLabs logo.png" alt="NoLabs" />
+  <img src="media/NoLabs logo.png" alt="NoLabs" />
 
   &#xa0;
 
@@ -50,6 +50,8 @@
 NoLabs is an open source bioengine with support of web visualisation and hosting.
 
 The goal of the project is to accelerate the Research stage of biotechnological processes via leveraging solutions for prediction and simulation.
+
+<video src='media/NoLabs.mp4' width=180/>
 
 ## Features ##
 
