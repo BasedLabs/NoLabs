@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
-WORKDIR /app/src
-ENV PYTHONPATH=/app/src
+WORKDIR /app
+ENV PYTHONPATH=/app
 # Run app.py when the container launches
-CMD ["python","server/run.py"]
+CMD ["python","src/server/run.py", "--host=0.0.0.0"]
