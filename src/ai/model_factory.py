@@ -12,6 +12,8 @@ def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union
     model_name = model_metadata.get('name')
     model_type = model_metadata.get('type')
 
+    device = "cpu"
+
     if use_gpu:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

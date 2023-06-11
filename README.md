@@ -57,7 +57,7 @@ The goal of the project is to accelerate the Research stage of biotechnological 
 
 2) Prediction of folded structure via [facebook/esmfold_v1](https://huggingface.co/facebook/esmfold_v1) \
 
-3) Inference of multiple proteins with saving to csv file
+3) Inference of multiple proteins with saving to csv file (next week)
 
 4) Docker containerisation for easy hosting
 
