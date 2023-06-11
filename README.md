@@ -92,7 +92,7 @@ The following tools were used in this project:
 
 ## Requirements ##
 
-- RAM > 32GB
+- RAM > 24GB
 - GPU memory >= 20GB (optional, but REALLY speeds up the folding inference)
 
 
