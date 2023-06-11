@@ -62,7 +62,7 @@ The goal of the project is to accelerate the Research stage of biotechnological 
 
 1) Prediction of subcellular localisation via fine-tuned [ritakurban/ESM_protein_localization](https://huggingface.co/ritakurban/ESM_protein_localization) model (to be updated with a better model)
 
-2) Prediction of folded structure via [facebook/esmfold_v1](https://huggingface.co/facebook/esmfold_v1) \
+2) Prediction of folded structure via [facebook/esmfold_v1](https://huggingface.co/facebook/esmfold_v1)
 
 3) Inference of multiple proteins with saving to csv file (next week)
 
