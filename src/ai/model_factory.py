@@ -5,7 +5,7 @@ from .exceptions.unknown_model_ex import UnknownModelException
 from .model import ClassificationModel, Folding, BaseModel
 
 
-def create_model(model_metadata: Dict[str, str]) -> Union[BaseModel, None]:
+def create_model(model_metadata: Dict[str, str, use_gpu = False) -> Union[BaseModel, None]:
     assert 'name' in model_metadata
     assert 'task' in model_metadata
 
@@ -13,7 +13,10 @@ def create_model(model_metadata: Dict[str, str]) -> Union[BaseModel, None]:
     model_type = model_metadata.get('type')
     use_gpu = False
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if use_gpu:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+
 
     if device == "cuda":
         use_gpu = True

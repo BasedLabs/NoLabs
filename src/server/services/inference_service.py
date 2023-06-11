@@ -5,12 +5,12 @@ from typing import Dict
 from src.ai.model_factory import create_model
 from src.ai.pipeline import Pipeline
 
-def create_pipeline():
+def create_pipeline(use_gpu = False):
     pipeline = Pipeline()
     models_metadata = get_models_from_config()
 
     for model_metadata in models_metadata:
-        model = create_model(model_metadata)
+        model = create_model(model_metadata, use_gpu)
         pipeline.add_model(model)
 
     return pipeline
