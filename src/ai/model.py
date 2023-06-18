@@ -1,4 +1,5 @@
 import torch
+from torch import Tensor
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, EsmForProteinFolding
 from transformers.models.esm.openfold_utils.protein import to_pdb, Protein as OFProtein
 from transformers.models.esm.openfold_utils.feats import atom14_to_atom37
@@ -8,7 +9,7 @@ from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
 from typing import List
 
 class BaseModel:
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name: str, gpu: bool, model_task = ""):
         self.model_name = model_name
         self.model_task = model_task
         self.model = None
@@ -29,10 +30,10 @@ class BaseModel:
 
 
 class ClassificationModel(BaseModel):
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name: str, gpu: bool, model_task = ""):
         super().__init__(model_name, gpu, model_task)
 
-    def set_labels(self, labels):
+    def set_labels(self, labels: List[str]):
         self.labels = labels
 
     def load_model(self):
@@ -40,14 +41,14 @@ class ClassificationModel(BaseModel):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         return super().load_model()
 
-    def _raw_inference(self, sequence: str):
+    def _raw_inference(self, sequence: str) -> Tensor:
         inputs = self.tokenizer(sequence, return_tensors='pt', padding=True, truncation=True)
         with torch.no_grad():
             outputs = self.model(**inputs)
             probabilities = torch.nn.functional.softmax(outputs.logits, dim=-1).tolist()[0]
         return probabilities
 
-    def predict(self, sequence: str):
+    def predict(self, sequence: str) -> List[List[str, int]]:
         if not self.tokenizer or not self.model:
             raise ModelNotLoadedException()
 
@@ -57,7 +58,7 @@ class ClassificationModel(BaseModel):
 
 class Folding(BaseModel):
 
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name: str, gpu: bool, model_task = ""):
         super().__init__(model_name, gpu, model_task)
         self.model_name = model_name
         self.gpu = gpu
@@ -70,7 +71,7 @@ class Folding(BaseModel):
 
         return super().load_model()
 
-    def convert_outputs_to_pdb(self, outputs):
+    def convert_outputs_to_pdb(self, outputs) -> List[str]:
         final_atom_positions = atom14_to_atom37(outputs["positions"][-1], outputs)
         outputs = {k: v.to("cpu").numpy() for k, v in outputs.items()}
         final_atom_positions = final_atom_positions.cpu().numpy()
@@ -119,6 +120,11 @@ class Folding(BaseModel):
     
 
 class FunctionPrediction(BaseModel):
+
+    """
+    Will add after winning https://www.kaggle.com/competitions/cafa-5-protein-function-prediction
+    """
+
     def __init__(self, model_name, gpu):
         super().__init__(model_name, gpu)
 

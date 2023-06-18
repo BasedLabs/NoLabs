@@ -13,7 +13,7 @@ class Pipeline:
         """
         self.models = models
 
-    def get_model_names(self):
+    def get_model_names(self) -> List[str]:
         return [model.model_name for model in self.models]
 
     def get_model_by_task(self, model_task: str):

@@ -6,7 +6,7 @@ from src.ai.model_factory import create_model
 from src.ai.pipeline import Pipeline
 
 
-def create_pipeline(use_gpu=False):
+def create_pipeline(use_gpu=False) -> Pipeline:
     pipeline = Pipeline()
     models_metadata = get_models_from_config()
 

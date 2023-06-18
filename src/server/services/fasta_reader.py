@@ -3,7 +3,7 @@ import io
 from Bio import SeqIO
 
 
-def get_sequences(files):
+def get_sequences(files: List[str]):
     for file in files:
         content = file.read().decode('utf-8')
         fasta_sequences = SeqIO.parse(io.StringIO(content), 'fasta')
