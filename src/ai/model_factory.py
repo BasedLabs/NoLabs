@@ -3,6 +3,7 @@ from typing import Dict, Union
 
 from .exceptions.unknown_model_ex import UnknownModelException
 from .model import ClassificationModel, Folding, BaseModel
+from test.ai.mock_model import FakeFolding
 
 
 def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union[BaseModel, None]:
@@ -44,6 +45,19 @@ def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union
         model = Folding(model_name=model_name, gpu=use_gpu, model_task=model_task)
         model.load_model()
         
+        return model
+
+    # adding for testing purposes (folding is not fast :())
+    if model_type == "fakefolding":
+
+        model_task = ""
+
+        if 'task' in model_metadata:
+            model_task = model_metadata["task"]
+
+        model = FakeFolding(model_name=model_name, gpu=use_gpu, model_task=model_task)
+        model.load_model()
+
         return model
 
     raise UnknownModelException()

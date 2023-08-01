@@ -1,5 +1,5 @@
 import io
-
+from typing import List
 from Bio import SeqIO
 
 

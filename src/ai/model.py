@@ -48,7 +48,7 @@ class ClassificationModel(BaseModel):
             probabilities = torch.nn.functional.softmax(outputs.logits, dim=-1).tolist()[0]
         return probabilities
 
-    def predict(self, sequence: str) -> List[List[str, int]]:
+    def predict(self, sequence: str) -> List[List[tuple[str, int]]]:
         if not self.tokenizer or not self.model:
             raise ModelNotLoadedException()
 
