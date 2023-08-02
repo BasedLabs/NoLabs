@@ -12,5 +12,5 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
-          start: (pip install --no-cache-dir -r requirements.txt) && (python src/server/run.py --host=127.0.0.1 --port=5000)
+          start: (pip install --no-cache-dir -r ../tests/requirements.txt) && (python ../tests/src/server/run.py --host=127.0.0.1 --port=5000)
           working-directory: tests
