@@ -13,9 +13,9 @@
       ]
     },
     {
-        "name": "facebook/esmfold_v1",
-        "type": "folding",
-        "task": "folding"
+      "name": "facebook/esmfold_v1",
+      "type": "folding",
+      "task": "folding"
     }
-    ]
+  ]
 }
