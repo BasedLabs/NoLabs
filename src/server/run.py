@@ -10,9 +10,10 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['FLASK_DEBUG'] = True
 parser = argparse.ArgumentParser()
-parser.add_argument('--port', default=5000)
+parser.add_argument('--port', default=5005)
 parser.add_argument('--host', default='127.0.0.1')
-
+parser.add_argument('--test', default=False)
+is_test = False
 
 @app.route('/')
 def hello():
@@ -32,7 +33,7 @@ def inference():
     if gpu and not torch.cuda.is_available():
         return render_template('error.html', error="You don't have a CUDA installed or NVIDIA videocard")
     # aminoAcidInputSequenceFile = request.files['inputSequenceFile'] # will consider this later
-    pipeline = inference_service.create_pipeline(use_gpu=gpu)
+    pipeline = inference_service.create_pipeline(use_gpu=gpu, is_test=is_test)
     localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
                                                                     amino_acid_sequence=amino_acid_input_sequence)
 
@@ -57,4 +58,5 @@ def inference():
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())
+    is_test = args['test']
     app.run(host=args['host'], port=args['port'])
