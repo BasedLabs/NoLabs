@@ -6,9 +6,9 @@ from src.ai.model_factory import create_model
 from src.ai.pipeline import Pipeline
 
 
-def create_pipeline(use_gpu=False) -> Pipeline:
+def create_pipeline(use_gpu=False, is_test = False) -> Pipeline:
     pipeline = Pipeline()
-    models_metadata = get_models_from_config()
+    models_metadata = get_models_from_config(is_test)
 
     for model_metadata in models_metadata:
         model = create_model(model_metadata, use_gpu)
@@ -47,8 +47,18 @@ def read_config():
     data = read_json_file(file_path)
     return data
 
+def read_test_config():
+    dirname = os.path.dirname
+    root_directory = dirname(dirname(dirname(dirname(os.path.abspath(__file__)))))
+    file_path = os.path.join(root_directory, 'test/ai/mock_resources/config.json')
+    data = read_json_file(file_path)
+    return data
 
-def get_models_from_config():
-    data = read_config()
+def get_models_from_config(is_test):
+    data = None
+    if is_test:
+        data = read_test_config()
+    else:
+        data = read_config()
     models = data.get('models', [])
     return models
