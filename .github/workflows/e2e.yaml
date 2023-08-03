@@ -13,7 +13,7 @@ jobs:
         run: pip install --no-cache-dir -r requirements.txt
       - name: Start backend server
         working-directory: src/server
-        run: PYTHONPATH=`$(pwd)/src` python run.py --host=127.0.0.1 --port=5000
+        run: PYTHONPATH=`$(pwd)/..` python run.py --host=127.0.0.1 --port=5000
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
