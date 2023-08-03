@@ -14,5 +14,5 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
-          start: PYTHONPATH=/home/runner/work/NoLabs/NoLabs python src/server/run.py --host=127.0.0.1 --port=5000
+          start: (PYTHONPATH=/home/runner/work/NoLabs/NoLabs python home/runner/work/NoLabs/NoLabs/src/server/run.py --host=127.0.0.1 --port=5000 --test=True)
           working-directory: tests
