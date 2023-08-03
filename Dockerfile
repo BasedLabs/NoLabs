@@ -12,7 +12,7 @@ RUN apt-get -y install git
 # Install Flask and any other needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 5000 available to the world outside this containera
+# Make port 5000 available to the world outside this container
 EXPOSE 5000
 WORKDIR /app
 ENV PYTHONPATH=/app

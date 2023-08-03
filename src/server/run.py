@@ -57,7 +57,6 @@ def inference():
 
 
 if __name__ == '__main__':
-    pass
-    #args = vars(parser.parse_args())
-    #is_test = args['test']
-    #app.run(host=args['host'], port=args['port'])
+    args = vars(parser.parse_args())
+    is_test = args['test']
+    app.run(host=args['host'], port=args['port'])
