@@ -13,7 +13,6 @@ jobs:
         run: pip install --no-cache-dir -r requirements.txt
       - name: Cypress run
         uses: cypress-io/github-action@v5
-        working-directory: src/server
-        run: PYTHONPATH=/home/runner/work/NoLabs/NoLabs python run.py --host=127.0.0.1 --port=5000
         with:
+          start: PYTHONPATH=/home/runner/work/NoLabs/NoLabs python src/server/run.py --host=127.0.0.1 --port=5000
           working-directory: tests
