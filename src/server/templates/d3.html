@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D3.js Directed Acyclic Graph</title>
+    <script src="{{ url_for('static', filename='code.jquery.com_jquery-3.7.0.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" integrity="sha512-M7nHCiNUOwFt6Us3r8alutZLm9qMt4s9951uo8jqO4UwJ1hziseL6O3ndFyigx6+LREfZqnhHxYjKRJ8ZQ69DQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<script>
+    //const oboGraph = oboData['obo_graph'];
+    //const oboGraph = oboData['obo_graph_light'];
+    //
+    //const data = {nodes: [], links: []};
+    //for (const [key, item] of Object.entries(oboGraph)) {
+    //    data.nodes.push({data: {id: key, group: 1}});
+    //}
+    //
+    //for (const [key, item] of Object.entries(oboGraph)) {
+    //    for (const [linkId, _] of Object.entries(item['edges'])) {
+    //        data.links.push({data: {source: key, target: linkId, value: 10}});
+    //    }
+    //}
+
+    const nodesAfterSecondLevel = [];
+
+    function convertToHierarchy(id, graph) {
+        const links = graph[id].edges;
+
+        const children = [];
+
+        if (links) {
+            for (let link in links) {
+                children.push(convertToHierarchy(link, graph));
+                const child = children[children.length - 1];
+                nodesAfterSecondLevel.push(child.name);
+            }
+        }
+
+        return {
+            name: id,
+            children: children.length ? children : []
+        };
+    }
+
+    function main(oboData) {
+        //const oboGraph = oboData['obo_graph'];
+        //const oboGraph = oboData['obo_graph_light'];
+        const oboGraph = {
+            "GO:0000166": {
+                "edges": {},
+                "name": "nucleotide binding"
+            },
+            "GO:0000724": {
+                "edges": {
+                    "GO:0006281": [
+                        "is_a"
+                    ],
+                    "GO:0006310": [
+                        "is_a"
+                    ]
+                },
+                "name": "double-strand break repair via homologous recombination"
+            },
+            "GO:0005524": {
+                "edges": {
+                    "GO:0000166": [
+                        "is_a"
+                    ]
+                },
+                "name": "ATP binding"
+            },
+            "GO:0006281": {
+                "edges": {
+                    "GO:0006974": [
+                        "is_a"
+                    ]
+                },
+                "name": "DNA repair"
+            },
+            "GO:0006310": {
+                "edges": {},
+                "name": "DNA recombination"
+            },
+            "GO:0006974": {
+                "edges": {},
+                "name": "DNA damage response"
+            },
+            "GO:0009274": {
+                "edges": {},
+                "name": "peptidoglycan-based cell wall"
+            },
+            "GO:0009314": {
+                "edges": {},
+                "name": "response to radiation"
+            },
+            "GO:0009432": {
+                "edges": {
+                    "GO:0006974": [
+                        "is_a"
+                    ]
+                },
+                "name": "SOS response"
+            }
+        }
+        const graph = {name: "*", children: Object.keys(oboGraph).map(key => convertToHierarchy(key, oboGraph))}
+        graph.children = graph.children.filter(x => !nodesAfterSecondLevel.includes(x.name));
+
+        const chart = () => {
+            const width = 928;
+
+            // Compute the tree height; this approach will allow the height of the
+            // SVG to scale according to the breadth (width) of the tree layout.
+            const root = d3.hierarchy(graph);
+            const dx = 15;
+            const dy = width / (root.height + 1);
+
+            // Create a tree layout.
+            const tree = d3.tree().nodeSize([dx, dy]);
+
+            // Sort the tree and apply the layout.
+            root.sort((a, b) => d3.ascending(a.data.name, b.data.name));
+            tree(root);
+
+            // Compute the extent of the tree. Note that x and y are swapped here
+            // because in the tree layout, x is the breadth, but when displayed, the
+            // tree extends right rather than down.
+            let x0 = Infinity;
+            let x1 = -x0;
+            root.each(d => {
+                if (d.x > x1) x1 = d.x;
+                if (d.x < x0) x0 = d.x;
+            });
+
+            // Compute the adjusted height of the tree.
+            const height = x1 - x0 + dx * 2;
+
+            const svg = d3.create("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [-dy / 3, x0 - dx, width, height])
+                .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+
+            const link = svg.append("g")
+                .attr("fill", "none")
+                .attr("stroke", "#555")
+                .attr("stroke-opacity", 0.4)
+                .attr("stroke-width", 3)
+                .selectAll()
+                .data(root.links())
+                .join("path")
+                .attr("d", d3.linkHorizontal()
+                    .x(d => d.y)
+                    .y(d => d.x));
+
+            const node = svg.append("g")
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-width", 6)
+                .selectAll()
+                .data(root.descendants())
+                .join("g")
+                .attr("transform", d => `translate(${d.y},${d.x})`);
+
+            node.append("circle")
+                .attr("fill", d => d.children ? "#555" : "#999")
+                .attr("r", 5);
+
+            node.append("text")
+                .attr("dy", "0.31em")
+                .attr("x", d => d.children ? -6 : 6)
+                .attr("text-anchor", d => d.children ? "end" : "start")
+                .text(d => d.data.name)
+                .clone(true).lower()
+                .attr("stroke", "white");
+
+            return svg.node();
+        };
+
+        const svgNode = chart();
+        document.getElementsByTagName('body')[0].append(svgNode);
+    }
+
+    //$.get('/obo-graph-data', main);
+    main();
+</script>
+</body>
+</html>

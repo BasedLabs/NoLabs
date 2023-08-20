@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <div class="row" id="resultContainer">
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="localisation">
                         <p class="inference-components-title">Protein localisation probability</p>
                         <img id="img" class="localisation-image">
                         <p>Hover on list</p>
@@ -76,7 +76,7 @@
                             <li id="extracellular-proteins-item" class="list-group-item"></li>
                         </ul>
                     </div>
-                    <div class="col-md-6 row">
+                    <div class="col-md-6 row" id="protein-3d-viewer">
                         <p class="inference-components-title">Protein 3D viewer</p>
                         <div class="col-md-10">
                             <div id="viewport" style="width:500px; height:500px;"></div>
@@ -123,6 +123,10 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    <div class="col-md-12 row" id="gene-ontology">
+                        <div class="col-md-6" id="gene-ontology-full-graph"></div>
+                        <div class="col-md-6" id="gene-ontology-shaped-graph"></div>
                     </div>
                 </div>
             </div>

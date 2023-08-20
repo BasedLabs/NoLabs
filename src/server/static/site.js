@@ -117,6 +117,10 @@ var folding = function (proteinFileContent) {
     }
     return obj;
 }
+var geneOntology = function (graph, shapedGraph) {
+    const obj = {};
+    return obj;
+}
 
 var spinner = function() {
     $('#inferenceInputForm').on('submit', function() {
