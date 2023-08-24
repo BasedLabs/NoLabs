@@ -2,7 +2,7 @@ import torch
 from typing import Dict, Union
 
 from .exceptions.unknown_model_ex import UnknownModelException
-from .model import ClassificationModel, Folding, BaseModel
+from .model import ClassificationModel, Folding, SimpleGOMultiLayerPerceptron, BaseModel
 from test.ai.mock_model import FakeFolding
 
 
@@ -47,7 +47,7 @@ def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union
         
         return model
 
-    # adding for testing purposes (folding is not fast :())
+    # adding for testing purposes (folding is not fast :()), will substitute with an api call option
     if model_type == "fakefolding":
 
         model_task = ""
@@ -56,6 +56,18 @@ def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union
             model_task = model_metadata["task"]
 
         model = FakeFolding(model_name=model_name, gpu=use_gpu, model_task=model_task)
+        model.load_model()
+
+        return model
+
+    if model_type == "gene_ontology":
+
+        model_task = ""
+
+        if 'task' in model_metadata:
+            model_task = model_metadata["task"]
+
+        model = SimpleGOMultiLayerPerceptron(model_name=model_name, gpu=use_gpu, model_task=model_task)
         model.load_model()
 
         return model
