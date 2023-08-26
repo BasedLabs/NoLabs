@@ -28,6 +28,9 @@ def get_folding_output(pipeline, amino_acid_sequence: str) -> str:
     model = pipeline.get_model_by_task("folding")
     return model.predict(amino_acid_sequence)
 
+def get_gene_ontology_output(pipeline, protein_id: str) -> Dict:
+    model = pipeline.get_model_by_task("gene_ontology")
+    return model.predict(protein_id)
 
 def get_pipeline_output(pipeline, amino_acid_sequence: str) -> str:
     assert amino_acid_sequence

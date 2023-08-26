@@ -4,7 +4,11 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, EsmF
 from transformers.models.esm.openfold_utils.protein import to_pdb, Protein as OFProtein
 from transformers.models.esm.openfold_utils.feats import atom14_to_atom37
 
+import numpy as np
+import requests
+
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
+from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron
 
 from typing import List
 
@@ -119,15 +123,49 @@ class Folding(BaseModel):
 
     
 
-class FunctionPrediction(BaseModel):
-
+class GeneOntologyPrediction(BaseModel):
     """
-    Will add after winning https://www.kaggle.com/competitions/cafa-5-protein-function-prediction
+    Look for a better model there https://www.kaggle.com/competitions/cafa-5-protein-function-prediction
     """
 
-    def __init__(self, model_name, gpu):
+    def __init__(self, model_name, gpu, model_task = ""):
         super().__init__(model_name, gpu)
+        if gpu:
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
 
-    def predict(self, sequence):
-        # TODO: complete function prediction from https://github.com/kexinhuang12345/DeepPurpose
-        pass
+    def load_model(self):
+        self.model = SimpleGOMultiLayerPerceptron(input_dim=2560, num_classes=500).to(self.device)
+        self._load_model_state_dict()
+        self.labels = np.load("./custom_models/models/gene_ontology/go_labels.npy", allow_pickle=True)
+
+    def _load_model_state_dict(self):
+        # URL of the model's .pth file on Hugging Face Model Hub
+        model_url = "https://huggingface.co/thomasshelby/go_prediction/resolve/main/go_model.pth"
+
+        # Path where you want to save the downloaded .pth file
+        local_path = "./custom_models/models/gene_ontology/go_model.pth"
+
+        response = requests.get(model_url)
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+
+        self.model.load_state_dict(torch.load(local_path, map_location=self.device))
+
+    def predict(self, protein_id: str):
+        embedding = self.get_esm_embedding(protein_id)
+        raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
+        
+        outputs = {label: confidence for label, confidence in zip(self.labels, raw_outputs)}
+        return outputs
+        
+    def get_esm_embedding(self, protein_id: str):
+        url = "https://api.esmatlas.com/fetchEmbedding/ESM2/"+ protein_id +".bin"
+        header = {"Accept": "application/octet-stream"}
+        response = requests.get(url, headers=header)
+        array = np.frombuffer(response.content, dtype=np.float16)
+        vector = torch.from_numpy(array)
+        vector = vector.to(torch.float32).to(self.device)
+        
+        return vector
