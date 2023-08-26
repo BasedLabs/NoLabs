@@ -162,3 +162,8 @@ cython_debug/
 .vscode/
 
 *.DS_STORE
+
+#Cypress
+tests/cypress/screenshots/
+tests/cypress/videos/
+tests/node_modules/

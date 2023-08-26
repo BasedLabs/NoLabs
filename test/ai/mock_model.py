@@ -1,3 +1,4 @@
+import os
 from typing import List
 from src.ai.model import BaseModel
 
@@ -21,6 +22,8 @@ class FakeFolding(BaseModel):
             return None
 
     def predict(self, sequence: str) -> List[str]:
-        mock_outputs = self.read_pdb_file("./mock_resources/1r6a.pdb")
+        dirname = os.path.dirname
+        file_path = root_directory = dirname(os.path.abspath(__file__)) + "/mock_resources/1r6a.pdb"
+        mock_outputs = self.read_pdb_file(file_path)
 
         return mock_outputs
