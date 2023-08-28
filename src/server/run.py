@@ -4,7 +4,7 @@ import argparse
 import torch
 from flask import Flask, render_template, request
 import src.server.services.inference_service as inference_service
-from server.services.oboreader import read_obo
+from src.server.services.oboreader import read_obo
 from src.server.services.fasta_reader import get_sequences
 
 app = Flask(__name__)
