@@ -1,11 +1,13 @@
+import os
+
 import obonet
 import numbers
 
 
 def read_obo():
-    # Or read the xz-compressed taxrank ontology
-    url = 'http://current.geneontology.org/ontology/go.obo'
-    graph = obonet.read_obo(url)
+    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    f = os.path.join(__location__, 'go.obo')
+    graph = obonet.read_obo(f)
 
     ids = {
         "GO:0009274",

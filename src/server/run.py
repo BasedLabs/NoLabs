@@ -37,8 +37,6 @@ def inference():
         amino_acid_input_sequence = \
             [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
     gpu = request.form.get('gpu', False)
-    if gpu and not torch.cuda.is_available():
-        return render_template('error.html', error="You don't have a CUDA installed or NVIDIA videocard")
     pipeline = inference_service.create_pipeline(use_gpu=gpu, is_test=is_test)
     localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
                                                                     amino_acid_sequence=amino_acid_input_sequence)
@@ -47,7 +45,7 @@ def inference():
                                                           amino_acid_sequence=amino_acid_input_sequence)
 
     esm_protein_localization = {key: value for key, value in localisation_result}
-
+    obo_graph = read_obo()
     return {
         'sequence': amino_acid_input_sequence,
         'localisation': {
@@ -57,7 +55,9 @@ def inference():
             'other': esm_protein_localization["Other Proteins"],
             'extracellular': esm_protein_localization["Extracellular/Secreted Proteins"]
         },
-        'folding': folding_result
+        'folding': folding_result,
+        'oboGraph': obo_graph,
+        'solubility': 0.76
     }
 
 
