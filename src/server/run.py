@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['FLASK_DEBUG'] = True
 parser = argparse.ArgumentParser()
-parser.add_argument('--port', default=5005)
+parser.add_argument('--port', default=5000)
 parser.add_argument('--host', default='127.0.0.1')
 parser.add_argument('--test', default=False)
 is_test = False
@@ -43,9 +43,13 @@ def inference():
 
     folding_result = inference_service.get_folding_output(pipeline=pipeline,
                                                           amino_acid_sequence=amino_acid_input_sequence)
+    gene_ontology_result = inference_service.get_gene_ontology_output(pipeline=pipeline,
+                                                                      amino_acid_sequence=amino_acid_input_sequence)
+    solubility = inference_service.get_solubility_output(pipeline=pipeline,
+                                                         amino_acid_sequence=amino_acid_input_sequence)
 
     esm_protein_localization = {key: value for key, value in localisation_result}
-    obo_graph = read_obo()
+    obo_graph = read_obo(gene_ontology_result)
     return {
         'sequence': amino_acid_input_sequence,
         'localisation': {
@@ -57,7 +61,7 @@ def inference():
         },
         'folding': folding_result,
         'oboGraph': obo_graph,
-        'solubility': 0.76
+        'solubility': solubility
     }
 
 

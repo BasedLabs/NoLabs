@@ -12,12 +12,11 @@ describe('Main page', () => {
     cy.get(inputAminoAcidSequenceId).should('exist');
   });
 
-  it('Inference page is opening', () => {
+  it('Inference result is visible', () => {
     cy.visit('http://127.0.0.1:5000');
     cy.get(inputAminoAcidSequenceId).click();
     cy.get(inputAminoAcidSequenceId).type(`MNGTEGPNFYVPFSNATGVVRSPFEYPQYYLAEPWQFSMLAAYMFLLIVLGFPINFLTLYVTVQHKKLRTPLNYILLNLAVADLFMVLGGFTSTLYTSLHGYFVFGPTGCNLEGFFATLGGEIALWSLVVLAIERYVVVCKPMSNFRFGENHAIMGVAFTWVMALACAAPPLAGWSRYIPEGLQCSCGIDYYTLKPEVNNESFVIYMFVVHFTIPMIIIFFCYGQLVFTVKEAAAQQQESATTQKAEKEVTRMVIIMVIAFLICWVPYASVAFYIFTHQGSNFGPIFMTIPAFFAKSAAIYNPVIYIMMNKQFRNCMLTTICCGKNPLGDDEASATVSKTETSQVAPA`);
     cy.get(submitAminoAcidSequenceId).click();
-    cy.location('pathname', {timeout: 120000}).should('include', '/inference');
     cy.get(localisationImageClass).should('exist');
   });
 })

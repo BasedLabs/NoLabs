@@ -1,27 +1,16 @@
 import os
+from typing import Dict
 
 import obonet
 import numbers
 
 
-def read_obo():
+def read_obo(ids: Dict[str, int]):
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     f = os.path.join(__location__, 'go.obo')
     graph = obonet.read_obo(f)
 
-    ids = {
-        "GO:0009274",
-        "GO:0000724",
-        "GO:0009314",
-        "GO:0009432",
-        "GO:0005524",
-        "GO:0006281",
-        "GO:0006310",
-        "GO:0005524",
-        "GO:0006281",
-        "GO:0006974",
-        "GO:0000166"
-    }
+    ids = set(ids.keys())
 
     def get_attributes(edge_data):
         for key in edge_data:

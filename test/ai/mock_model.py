@@ -23,7 +23,7 @@ class FakeFolding(BaseModel):
 
     def predict(self, sequence: str) -> List[str]:
         dirname = os.path.dirname
-        file_path = root_directory = dirname(os.path.abspath(__file__)) + "/mock_resources/1r6a.pdb"
+        file_path = dirname(os.path.abspath(__file__)) + "\\mock_resources\\1r6a.pdb"
         mock_outputs = self.read_pdb_file(file_path)
 
         return mock_outputs
