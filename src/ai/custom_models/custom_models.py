@@ -1,14 +1,14 @@
 import torch
+import torch.nn as nn
 
-class SimpleGOMultiLayerPerceptron(torch.nn.Module):
+class SimpleGOMultiLayerPerceptron(nn.Module):
     def __init__(self, input_dim, num_classes):
-        super(MultiLayerPerceptron, self).__init__()
-        
-        self.linear1 = torch.nn.Linear(input_dim, 1012)
-        self.activation1 = torch.nn.ReLU()
-        self.linear2 = torch.nn.Linear(1012, 840)
-        self.activation2 = torch.nn.ReLU()
-        self.linear3 = torch.nn.Linear(840, num_classes)
+        super(SimpleGOMultiLayerPerceptron, self).__init__()
+        self.linear1 = nn.Linear(input_dim, 500)
+        self.activation1 = nn.ReLU()
+        self.linear2 = nn.Linear(500, 300)
+        self.activation2 = nn.ReLU()
+        self.linear3 = nn.Linear(300, num_classes)
         
     def forward(self, x):
         x = self.linear1(x)
@@ -18,10 +18,10 @@ class SimpleGOMultiLayerPerceptron(torch.nn.Module):
         x = self.linear3(x)
         return x
 
-class SimpleSolubilityMultiLayerPerceptron(torch.nn.Module):
+class SimpleSolubilityMultiLayerPerceptron(nn.Module):
     # Current MLP is build on top of ESM-2 150M
     def __init__(self, input_size = 640, hidden_sizes = [320, 160, 80, 40], output_size = 1, dropout_rate = 0.2):
-        super(MLPClassifier, self).__init__()
+        super(SimpleSolubilityMultiLayerPerceptron, self).__init__()
         layers = []
         prev_size = input_size
         for size in hidden_sizes:

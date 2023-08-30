@@ -8,9 +8,14 @@ import numpy as np
 import requests
 
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
-from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron
+from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron, SimpleSolubilityMultiLayerPerceptron
+
+from esm import Alphabet, FastaBatchedDataset, ProteinBertModel, pretrained, MSATransformer
 
 from typing import List
+import os
+
+dirname = os.path.dirname
 
 class BaseModel:
     def __init__(self, model_name: str, gpu: bool, model_task = ""):
@@ -121,7 +126,39 @@ class Folding(BaseModel):
 
         return "".join(pdbs)
 
-    
+
+class ESM2EmbeddingGenerator(BaseModel):
+    def __init__(self, model_name, gpu, model_task = ""):
+        super().__init__(model_name, gpu)
+        if gpu:
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
+
+    def load_model(self):
+        self.model, self.alphabet = pretrained.load_model_and_alphabet(self.model_name)
+        self.model.eval()
+
+    def predict(self, protein_sequence: str):
+        toks = self.alphabet.encode(protein_sequence)
+        if self.device == torch.device('cuda'):
+            toks = toks.to(device="cuda", non_blocking=True)
+            self.model.to(self.device)
+        repr_layers = [(i + self.model.num_layers + 1) % (self.model.num_layers + 1) for i in [-1]]
+        out = self.model(toks, repr_layers=repr_layers, return_contacts=True)
+        logits = out["logits"].to(device="cpu")
+        representations = {
+            layer: t.to(device="cpu") for layer, t in out["representations"].items()
+        }
+        result = {}
+        result["mean_representations"] = {
+                layer: t[i, 1 : truncate_len + 1].mean(0).clone()
+                for layer, t in representations.items()
+            }
+        # For now it's 30 cus we using 150M ESM2
+        # TODO: refactor on the weekend
+        return result["mean_representations"][30]
+
 
 class GeneOntologyPrediction(BaseModel):
     """
@@ -134,18 +171,60 @@ class GeneOntologyPrediction(BaseModel):
             self.device = torch.device('cuda')
         else:
             self.device = torch.device('cpu')
+        self.embedding_model = None
 
     def load_model(self):
-        self.model = SimpleGOMultiLayerPerceptron(input_dim=2560, num_classes=500).to(self.device)
+        self.model = SimpleGOMultiLayerPerceptron(input_dim=640, num_classes=200).to(self.device)
         self._load_model_state_dict()
-        self.labels = np.load("./custom_models/models/gene_ontology/go_labels.npy", allow_pickle=True)
+        self.labels = np.load(dirname(os.path.abspath(__file__)) + \
+             "/custom_models/models/gene_ontology/go_labels_200.npy", allow_pickle=True)
+
+    def set_embedding_model(self, embedding_model):
+        self.embedding_model = embedding_model
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
-        model_url = "https://huggingface.co/thomasshelby/go_prediction/resolve/main/go_model.pth"
+        model_url = "https://huggingface.co/thomasshelby/go_prediction/resolve/main/go_model_150M.pth"
 
         # Path where you want to save the downloaded .pth file
-        local_path = "./custom_models/models/gene_ontology/go_model.pth"
+        local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/gene_ontology/go_model_150M.pth"
+
+        response = requests.get(model_url)
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+
+        self.model.load_state_dict(torch.load(local_path, map_location=self.device))
+
+    def predict(self, protein_sequence: str):
+        embedding = self.embedding_model.predict(protein_id)
+        raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
+        
+        outputs = {label: confidence for label, confidence in zip(self.labels, raw_outputs)}
+        return outputs
+
+
+class SolubilityPrediction(BaseModel):
+    def __init__(self, model_name, gpu, model_task = ""):
+        super().__init__(model_name, gpu)
+        if gpu:
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
+        self.embedding_model = None
+
+    def load_model(self):
+        self.model = SimpleSolubilityMultiLayerPerceptron().to(self.device)
+        self._load_model_state_dict()
+
+    def set_embedding_model(self, embedding_model):
+        self.embedding_model = embedding_model
+
+    def _load_model_state_dict(self):
+        # URL of the model's .pth file on Hugging Face Model Hub
+        model_url = "https://huggingface.co/thomasshelby/solubility_model/resolve/main/solubility_model.pth"
+
+        # Path where you want to save the downloaded .pth file
+        local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/solubility/solubility_model.pth"
 
         response = requests.get(model_url)
         with open(local_path, 'wb') as f:
@@ -154,18 +233,9 @@ class GeneOntologyPrediction(BaseModel):
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
 
     def predict(self, protein_id: str):
-        embedding = self.get_esm_embedding(protein_id)
-        raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
-        
-        outputs = {label: confidence for label, confidence in zip(self.labels, raw_outputs)}
-        return outputs
-        
-    def get_esm_embedding(self, protein_id: str):
-        url = "https://api.esmatlas.com/fetchEmbedding/ESM2/"+ protein_id +".bin"
-        header = {"Accept": "application/octet-stream"}
-        response = requests.get(url, headers=header)
-        array = np.frombuffer(response.content, dtype=np.float16)
-        vector = torch.from_numpy(array)
-        vector = vector.to(torch.float32).to(self.device)
-        
-        return vector
+        embedding = self.embedding_model.predict(protein_id)
+        embedding = embedding.to(self.device)
+        outputs = model(embedding.float())
+        predicted_labels = (outputs >= 0.5).long()
+
+        return predicted_labels

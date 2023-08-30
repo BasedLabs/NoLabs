@@ -2,7 +2,7 @@ import torch
 from typing import Dict, Union
 
 from .exceptions.unknown_model_ex import UnknownModelException
-from .model import ClassificationModel, Folding, SimpleGOMultiLayerPerceptron, BaseModel
+from .model import ClassificationModel, Folding, SolubilityPrediction, GeneOntologyPrediction, ESM2EmbeddingGenerator, BaseModel
 from test.ai.mock_model import FakeFolding
 
 
@@ -67,8 +67,28 @@ def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union
         if 'task' in model_metadata:
             model_task = model_metadata["task"]
 
-        model = SimpleGOMultiLayerPerceptron(model_name=model_name, gpu=use_gpu, model_task=model_task)
+        model = GeneOntologyPrediction(model_name=model_name, gpu=use_gpu, model_task=model_task)
         model.load_model()
+        if not model.embedding_model:
+            emb_model = ESM2EmbeddingGenerator(model_metadata['embedding_model'], gpu=use_gpu)
+            emb_model.load_model()
+            model.set_embedding_model(emb_model)
+
+        return model
+
+    if model_type == "solubility":
+
+        model_task = ""
+
+        if 'task' in model_metadata:
+            model_task = model_metadata["task"]
+
+        model = SolubilityPrediction(model_name=model_name, gpu=use_gpu, model_task=model_task)
+        model.load_model()
+        if not model.embedding_model:
+            emb_model = ESM2EmbeddingGenerator(model_metadata['embedding_model'], gpu=use_gpu)
+            emb_model.load_model()
+            model.set_embedding_model(emb_model)
 
         return model
 
