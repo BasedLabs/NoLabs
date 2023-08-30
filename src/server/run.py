@@ -1,7 +1,5 @@
-import json
 import argparse
 
-import torch
 from flask import Flask, render_template, request
 import src.server.services.inference_service as inference_service
 from src.server.services.oboreader import read_obo
@@ -20,13 +18,6 @@ is_test = False
 @app.route('/')
 def hello():
     return render_template('index.html')
-
-
-@app.route('/obo-graph-data', methods=['POST'])
-def cytoscape_data():
-    mgnifyId = request.form['mgnifyId']
-    obo_graph = read_obo()
-    return obo_graph
 
 
 @app.route('/inference', methods=['POST'])
