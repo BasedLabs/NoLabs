@@ -14,6 +14,7 @@ from esm import Alphabet, FastaBatchedDataset, ProteinBertModel, pretrained, MSA
 
 from typing import List
 import os
+from argparse import Namespace
 
 dirname = os.path.dirname
 
@@ -140,24 +141,56 @@ class ESM2EmbeddingGenerator(BaseModel):
         self.model.eval()
 
     def predict(self, protein_sequence: str):
-        toks = self.alphabet.encode(protein_sequence)
+        include = "mean"
+        repr_layers = [-1]
+        truncation_seq_length = 1022
+        nogpu = False
+        toks_per_batch = 4096
+
+        args = Namespace(
+            repr_layers = repr_layers,
+            include = include,
+            truncation_seq_length = truncation_seq_length,
+            nogpu = nogpu,
+            toks_per_batch = toks_per_batch
+        )
+
         if self.device == torch.device('cuda'):
-            toks = toks.to(device="cuda", non_blocking=True)
-            self.model.to(self.device)
-        repr_layers = [(i + self.model.num_layers + 1) % (self.model.num_layers + 1) for i in [-1]]
-        out = self.model(toks, repr_layers=repr_layers, return_contacts=True)
-        logits = out["logits"].to(device="cpu")
-        representations = {
-            layer: t.to(device="cpu") for layer, t in out["representations"].items()
-        }
-        result = {}
-        result["mean_representations"] = {
-                layer: t[i, 1 : truncate_len + 1].mean(0).clone()
-                for layer, t in representations.items()
-            }
-        # For now it's 30 cus we using 150M ESM2
-        # TODO: refactor on the weekend
-        return result["mean_representations"][30]
+            self.model = self.model.cuda()
+            print("Transferred model to GPU")
+
+        dataset = FastaBatchedDataset(["mockId"], [protein_sequence])
+        batches = dataset.get_batch_indices(args.toks_per_batch, extra_toks_per_seq=1)
+        data_loader = torch.utils.data.DataLoader(
+            dataset, collate_fn=self.alphabet.get_batch_converter(args.truncation_seq_length), batch_sampler=batches
+        )
+
+        return_contacts = "contacts" in args.include
+
+        repr_layers = [(i + self.model.num_layers + 1) % (self.model.num_layers + 1) for i in args.repr_layers]
+
+        with torch.no_grad():
+            for batch_idx, (labels, strs, toks) in enumerate(data_loader):
+
+                if torch.cuda.is_available() and not args.nogpu:
+                    toks = toks.to(device="cuda", non_blocking=True)
+
+                out = self.model(toks, repr_layers=repr_layers, return_contacts=return_contacts)
+
+                logits = out["logits"].to(device="cpu")
+                representations = {
+                    layer: t.to(device="cpu") for layer, t in out["representations"].items()
+                }
+
+                for i, label in enumerate(labels):
+                    label = label.split()[0]
+                    result = {"label": label}
+                    truncate_len = min(args.truncation_seq_length, len(strs[i]))
+                    result["mean_representations"] = {
+                        layer: t[i, 1 : truncate_len + 1].mean(0).clone() \
+                        for layer, t in representations.items()
+                    }
+                    return result["mean_representations"][30]
 
 
 class GeneOntologyPrediction(BaseModel):
@@ -166,7 +199,7 @@ class GeneOntologyPrediction(BaseModel):
     """
 
     def __init__(self, model_name, gpu, model_task = ""):
-        super().__init__(model_name, gpu)
+        super().__init__(model_name, gpu, model_task)
         if gpu:
             self.device = torch.device('cuda')
         else:
@@ -195,7 +228,7 @@ class GeneOntologyPrediction(BaseModel):
 
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
 
-    def predict(self, protein_sequence: str):
+    def predict(self, protein_id: str):
         embedding = self.embedding_model.predict(protein_id)
         raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
         
@@ -205,7 +238,7 @@ class GeneOntologyPrediction(BaseModel):
 
 class SolubilityPrediction(BaseModel):
     def __init__(self, model_name, gpu, model_task = ""):
-        super().__init__(model_name, gpu)
+        super().__init__(model_name, gpu, model_task)
         if gpu:
             self.device = torch.device('cuda')
         else:
@@ -235,7 +268,6 @@ class SolubilityPrediction(BaseModel):
     def predict(self, protein_id: str):
         embedding = self.embedding_model.predict(protein_id)
         embedding = embedding.to(self.device)
-        outputs = model(embedding.float())
-        predicted_labels = (outputs >= 0.5).long()
+        outputs = self.model(embedding.float())
 
-        return predicted_labels
+        return outputs.item()
