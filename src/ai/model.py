@@ -172,7 +172,7 @@ class ESM2EmbeddingGenerator(BaseModel):
         with torch.no_grad():
             for batch_idx, (labels, strs, toks) in enumerate(data_loader):
 
-                if torch.cuda.is_available() and not args.nogpu:
+                if self.device == torch.device('cuda'):
                     toks = toks.to(device="cuda", non_blocking=True)
 
                 out = self.model(toks, repr_layers=repr_layers, return_contacts=return_contacts)
