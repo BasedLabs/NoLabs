@@ -31,7 +31,6 @@ def get_folding_output(pipeline, amino_acid_sequence: str) -> str:
 def get_gene_ontology_output(pipeline, amino_acid_sequence: str) -> Dict:
     model = pipeline.get_model_by_task("gene_ontology")
     res = model.predict(amino_acid_sequence)
-    print("GO res: ", res)
     return res
     #return {'GO:0005575': 0.95, 'GO:0008150': 0.5, 'GO:0110165': 0.97, 'GO:0003674': 0.01,
     #   'GO:0005622': 0.1, 'GO:0009987': 0.2, 'GO:0043226': 0.001, 'GO:0043229': 0.03}
@@ -39,7 +38,6 @@ def get_gene_ontology_output(pipeline, amino_acid_sequence: str) -> Dict:
 def get_solubility_output(pipeline, amino_acid_sequence: str) -> Dict:
     model = pipeline.get_model_by_task("solubility")
     res = model.predict(amino_acid_sequence)
-    print("Solubility res: ", res)
     return res
     #return 0.76
 

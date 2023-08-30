@@ -78,7 +78,7 @@ var localisation = function (probabilities) {
 var solubility = function(solubility) {
     const obj = {
         render() {
-            $('#solubilityText').text(`This protein is soluble with ${solubility * 100.0}% probability`);
+            $('#solubilityText').text(`This protein is soluble with ${+(Math.round(solubility * 100.0 + "e+2")  + "e-2")}% probability`);
         }
     }
     return obj;

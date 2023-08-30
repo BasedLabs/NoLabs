@@ -6,6 +6,7 @@ import numbers
 
 
 def read_obo(ids: Dict[str, int]):
+    ids = {key:value for key, value in ids.items() if value >= 0.9}
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     f = os.path.join(__location__, 'go.obo')
     graph = obonet.read_obo(f)
@@ -40,10 +41,11 @@ def read_obo(ids: Dict[str, int]):
         if node not in shaped_graph:
             shaped_graph[node] = {'name': graph.nodes[node]['name'], 'namespace': graph.nodes[node]['namespace'],
                                   'edges': {}}
+    for node in graph.nodes:
         for out_edge in graph.out_edges(node):
             out_node = out_edge[1]
             edge_data = get_attributes(graph.get_edge_data(node, out_edge[1]))
-            shaped_graph[node]['edges'][out_node] = edge_data
+            shaped_graph[out_node]['edges'][node] = edge_data
 
     return shaped_graph
 
