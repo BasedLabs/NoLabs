@@ -4,9 +4,19 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, EsmF
 from transformers.models.esm.openfold_utils.protein import to_pdb, Protein as OFProtein
 from transformers.models.esm.openfold_utils.feats import atom14_to_atom37
 
+import numpy as np
+import requests
+
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
+from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron, SimpleSolubilityMultiLayerPerceptron
+
+from esm import Alphabet, FastaBatchedDataset, ProteinBertModel, pretrained, MSATransformer
 
 from typing import List
+import os
+from argparse import Namespace
+
+dirname = os.path.dirname
 
 class BaseModel:
     def __init__(self, model_name: str, gpu: bool, model_task = ""):
@@ -108,7 +118,7 @@ class Folding(BaseModel):
 
         return output
 
-    def predict(self, sequence: str) -> List[str]:
+    def predict(self, sequence: str) -> str:
         if not self.tokenizer or not self.model:
             raise ModelNotLoadedException()
         output = self._raw_inference(sequence)
@@ -117,17 +127,147 @@ class Folding(BaseModel):
 
         return "".join(pdbs)
 
-    
 
-class FunctionPrediction(BaseModel):
-
-    """
-    Will add after winning https://www.kaggle.com/competitions/cafa-5-protein-function-prediction
-    """
-
-    def __init__(self, model_name, gpu):
+class ESM2EmbeddingGenerator(BaseModel):
+    def __init__(self, model_name, gpu, model_task = ""):
         super().__init__(model_name, gpu)
+        if gpu:
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
 
-    def predict(self, sequence):
-        # TODO: complete function prediction from https://github.com/kexinhuang12345/DeepPurpose
-        pass
+    def load_model(self):
+        self.model, self.alphabet = pretrained.load_model_and_alphabet(self.model_name)
+        self.model.eval()
+
+    def predict(self, protein_sequence: str):
+        include = "mean"
+        repr_layers = [-1]
+        truncation_seq_length = 1022
+        nogpu = False
+        toks_per_batch = 4096
+
+        args = Namespace(
+            repr_layers = repr_layers,
+            include = include,
+            truncation_seq_length = truncation_seq_length,
+            nogpu = nogpu,
+            toks_per_batch = toks_per_batch
+        )
+
+        if self.device == torch.device('cuda'):
+            self.model = self.model.cuda()
+            print("Transferred model to GPU")
+
+        dataset = FastaBatchedDataset(["mockId"], [protein_sequence])
+        batches = dataset.get_batch_indices(args.toks_per_batch, extra_toks_per_seq=1)
+        data_loader = torch.utils.data.DataLoader(
+            dataset, collate_fn=self.alphabet.get_batch_converter(args.truncation_seq_length), batch_sampler=batches
+        )
+
+        return_contacts = "contacts" in args.include
+
+        repr_layers = [(i + self.model.num_layers + 1) % (self.model.num_layers + 1) for i in args.repr_layers]
+
+        with torch.no_grad():
+            for batch_idx, (labels, strs, toks) in enumerate(data_loader):
+
+                if self.device == torch.device('cuda'):
+                    toks = toks.to(device="cuda", non_blocking=True)
+
+                out = self.model(toks, repr_layers=repr_layers, return_contacts=return_contacts)
+
+                logits = out["logits"].to(device="cpu")
+                representations = {
+                    layer: t.to(device="cpu") for layer, t in out["representations"].items()
+                }
+
+                for i, label in enumerate(labels):
+                    label = label.split()[0]
+                    result = {"label": label}
+                    truncate_len = min(args.truncation_seq_length, len(strs[i]))
+                    result["mean_representations"] = {
+                        layer: t[i, 1 : truncate_len + 1].mean(0).clone() \
+                        for layer, t in representations.items()
+                    }
+                    return result["mean_representations"][30]
+
+
+class GeneOntologyPrediction(BaseModel):
+    """
+    Look for a better model there https://www.kaggle.com/competitions/cafa-5-protein-function-prediction
+    """
+
+    def __init__(self, model_name, gpu, model_task = ""):
+        super().__init__(model_name, gpu, model_task)
+        if gpu:
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
+        self.embedding_model = None
+
+    def load_model(self):
+        self.model = SimpleGOMultiLayerPerceptron(input_dim=640, num_classes=200).to(self.device)
+        self._load_model_state_dict()
+        self.labels = np.load(dirname(os.path.abspath(__file__)) + \
+             "/custom_models/models/gene_ontology/go_labels_200.npy", allow_pickle=True)
+
+    def set_embedding_model(self, embedding_model):
+        self.embedding_model = embedding_model
+
+    def _load_model_state_dict(self):
+        # URL of the model's .pth file on Hugging Face Model Hub
+        model_url = "https://huggingface.co/thomasshelby/go_prediction/resolve/main/go_model_150M.pth"
+
+        # Path where you want to save the downloaded .pth file
+        local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/gene_ontology/go_model_150M.pth"
+
+        response = requests.get(model_url)
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+
+        self.model.load_state_dict(torch.load(local_path, map_location=self.device))
+
+    def predict(self, protein_id: str):
+        embedding = self.embedding_model.predict(protein_id)
+        raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
+        
+        outputs = {label: confidence for label, confidence in zip(self.labels, raw_outputs)}
+        return outputs
+
+
+class SolubilityPrediction(BaseModel):
+    def __init__(self, model_name, gpu, model_task = ""):
+        super().__init__(model_name, gpu, model_task)
+        if gpu:
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
+        self.embedding_model = None
+
+    def load_model(self):
+        self.model = SimpleSolubilityMultiLayerPerceptron().to(self.device)
+        self._load_model_state_dict()
+
+    def set_embedding_model(self, embedding_model):
+        self.embedding_model = embedding_model
+
+    def _load_model_state_dict(self):
+        # URL of the model's .pth file on Hugging Face Model Hub
+        model_url = "https://huggingface.co/thomasshelby/solubility_model/resolve/main/solubility_model.pth"
+
+        # Path where you want to save the downloaded .pth file
+        local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/solubility/solubility_model.pth"
+
+        response = requests.get(model_url)
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+
+        self.model.load_state_dict(torch.load(local_path, map_location=self.device))
+
+    def predict(self, protein_id: str):
+        embedding = self.embedding_model.predict(protein_id)
+        embedding = embedding.to(self.device)
+        outputs = self.model(embedding.float())
+
+        return outputs.item()

@@ -1,5 +1,8 @@
+import os
 from typing import List
 from src.ai.model import BaseModel
+
+import requests
 
 class FakeFolding(BaseModel):
 
@@ -21,6 +24,9 @@ class FakeFolding(BaseModel):
             return None
 
     def predict(self, sequence: str) -> List[str]:
-        mock_outputs = self.read_pdb_file("./mock_resources/1r6a.pdb")
+        url = "https://api.esmatlas.com/foldSequence/v1/pdb/" 
+        response = requests.post(url, data=sequence)
 
-        return mock_outputs
+        return response.text
+
+

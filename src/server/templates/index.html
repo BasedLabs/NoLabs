@@ -4,18 +4,24 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>NoLabs</title>
-    <script src="{{ url_for('static', filename='code.jquery.com_jquery-3.7.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='jquery-3.7.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='popper.min.js') }}"></script>
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet" crossorigin="anonymous">
+    <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='site.js') }}"></script>
     <script src="{{ url_for('static', filename='ngl.js') }}"></script>
-    <script src="{{ url_for('static', filename='cdn.jsdelivr.net_npm_particles.js@2.0.0_particles.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='d3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='particles.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-table.min.css') }}" crossorigin="anonymous">
+    <script src="{{ url_for('static', filename='bootstrap-table.min.js') }}"></script>
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}">
 </head>
 <body>
 <header>
     <nav id="main" class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow m-2">
         <a class="navbar-brand" href="#">NoLabs</a> <a class="navbar-brand"
-                                                       href="https://github.com/timurishmuratov7/NoLabsServer"
+                                                       href="https://github.com/BasedLabs/NoLabsServer"
                                                        target="_blank">GitHub</a>
     </nav>
 </header>
@@ -24,38 +30,43 @@
         {% block main %}
             <div class="text-center">
                 <h1 class="display-4"><b>NoLabs</b></h1>
-                <form action="/inference" method="post"
-                      enctype="multipart/form-data" id="inferenceInputForm">
-                    <div class="row justify-content-center">
-                        <div class="col-md-6">
-                            <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid sequence</label>
-                            <input type="text" class="form-control" id="inputSequence" name="inputSequence">
-                        </div>
-                    </div>
-                    <div class="row justify-content-center">
-                        <div class="col-md-6">
-                            <label for="inputSequenceFile" class="col-form-label fs-4">Or paste a .FASTA file with
-                                amino-acid
-                                sequence</label>
-                            <input type="file" multiple="multiple" accept="text/x-fasta" class="form-control"
-                                   id="inputSequenceFile" name="inputSequenceFile">
-                            <div class="btn-group mt-4" role="group" aria-label="Basic checkbox toggle button group">
-                                <input type="checkbox" class="btn-check" id="gpu" name="gpu" autocomplete="off">
-                                <label class="btn btn-outline-primary" for="gpu">Enable GPU</label>
-                                {#                            <input type="checkbox" class="btn-check" id="saveToCsv" name="saveToCsv" autocomplete="off">#}
-                                {#                            <label class="btn btn-outline-primary" for="saveToCsv">Save results to csv</label>#}
+                <div class="row">
+                    <div class="col-md-12">
+                        <form enctype="multipart/form-data" id="inferenceInputForm">
+                            <div class="row justify-content-center">
+                                <div class="col-md-6">
+                                    <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid
+                                        sequence</label>
+                                    <input type="text" class="form-control" value="AAACGAGGCAA" id="inputSequence"
+                                           name="inputSequence">
+                                </div>
                             </div>
-                        </div>
+                            <div class="row justify-content-center">
+                                <div class="col-md-6">
+                                    <label for="inputSequenceFile" class="col-form-label fs-4">Or paste a .FASTA file
+                                        with
+                                        amino-acid
+                                        sequence</label>
+                                    <input type="file" multiple="multiple" accept="text/x-fasta" class="form-control"
+                                           id="inputSequenceFile" name="inputSequenceFile">
+                                    <div class="btn-group mt-4" role="group"
+                                         aria-label="Basic checkbox toggle button group">
+                                        <input type="checkbox" class="btn-check" id="gpu" name="gpu" autocomplete="off">
+                                        <label class="btn btn-outline-primary" for="gpu">Enable GPU</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center m-4">
+                                <div class="col-md-4">
+                                    <button type="submit" id="submitInference" class="btn btn-lg btn-primary">
+                                        Submit
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <div class="row justify-content-center m-4">
-                        <div class="col-md-4">
+                </div>
 
-                            <button type="submit" id="submitInference" class="btn btn-lg btn-primary">
-                                Submit
-                            </button>
-                        </div>
-                    </div>
-                </form>
                 <div class="text-center invisible" id="spinner">
                     <p class="inference-components-title">Processing. It can take more than 10 mins depending on your
                         PC</p>
@@ -64,84 +75,199 @@
                     </div>
                 </div>
                 <div class="row" id="resultContainer">
-                    <div class="col-md-6">
-                        <p class="inference-components-title">Protein localisation probability</p>
-                        <img id="img" class="localisation-image">
-                        <p>Hover on list</p>
-                        <ul class="list-group localisation-probs ">
-                            <li id="mithochondria-list-item" class="list-group-item"></li>
-                            <li id="nucleus-list-item" class="list-group-item"></li>
-                            <li id="cytoplasm-list-item" class="list-group-item"></li>
-                            <li id="other-proteins-item" class="list-group-item"></li>
-                            <li id="extracellular-proteins-item" class="list-group-item"></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6 row">
-                        <p class="inference-components-title">Protein 3D viewer</p>
-                        <div class="col-md-10">
-                            <div id="viewport" style="width:500px; height:500px;"></div>
+                    <nav>
+                        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                            <button class="nav-link active" id="navLocalisationTab" data-bs-toggle="tab"
+                                    data-bs-target="#navLocalisation" type="button" role="tab"
+                                    aria-controls="navLocalisation"
+                                    aria-selected="true">Localisation
+                            </button>
+                            <button class="nav-link" id="nav3dViewerTab" data-bs-toggle="tab"
+                                    data-bs-target="#nav3dViewer" type="button" role="tab" aria-controls="nav3dViewer"
+                                    aria-selected="false">Protein 3D viewer
+                            </button>
+                            <button class="nav-link" id="navGeneOntologyTab" data-bs-toggle="tab"
+                                    data-bs-target="#navGeneOntology" type="button" role="tab"
+                                    aria-controls="navGeneOntology"
+                                    aria-selected="false">Gene ontology
+                            </button>
+                            <button class="nav-link" id="navSolubilityTab" data-bs-toggle="tab"
+                                    data-bs-target="#navSolubility" type="button" role="tab"
+                                    aria-controls="navSolubility"
+                                    aria-selected="false">Solubility
+                            </button>
                         </div>
-                        <div class="col-md-2">
-                            <div class="btn-group-vertical">
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.default)"
-                                        class="btn btn-primary padding-top-button-group">Default
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.cartoon)"
-                                        class="btn btn-primary padding-top-button-group">Cartoon
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.backbone)"
-                                        class="btn btn-primary padding-top-button-group">Backbone
-                                </button>
-                                <button type="button"
-                                        onclick="foldingInstance.setView(foldingInstance.views.ballsAndSticks)"
-                                        class="btn btn-primary padding-top-button-group">Ball+stick
-                                </button>
-                                <button type="button"
-                                        onclick="foldingInstance.setView(foldingInstance.views.helixorient)"
-                                        class="btn btn-primary padding-top-button-group">Helixorient
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.hyperball)"
-                                        class="btn btn-primary padding-top-button-group">Hyperball
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.licorice)"
-                                        class="btn btn-primary padding-top-button-group">Licorice
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.ribbon)"
-                                        class="btn btn-primary padding-top-button-group">Ribbon
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.surface)"
-                                        class="btn btn-primary padding-top-button-group">Surface
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.rope)"
-                                        class="btn btn-primary padding-top-button-group">Rope
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.spacefill)"
-                                        class="btn btn-primary padding-top-button-group">Spacefill
-                                </button>
-                                <button type="button" onclick="foldingInstance.setView(foldingInstance.views.unitcell)"
-                                        class="btn btn-primary padding-top-button-group">Unitcell
-                                </button>
+                    </nav>
+                    <div class="tab-content" id="nav-tabContent">
+                        <div class="tab-pane fade show active" id="navLocalisation" role="tabpanel"
+                             aria-labelledby="navLocalisationTab">
+                            <div class="col-md-12" id="localisation">
+                                <p class="inference-components-title">Protein localisation probability</p>
+                                <img id="img" class="localisation-image">
+                                <p>Hover on list</p>
+                                <ul class="list-group localisation-probs ">
+                                    <li id="mithochondria-list-item" class="list-group-item"></li>
+                                    <li id="nucleus-list-item" class="list-group-item"></li>
+                                    <li id="cytoplasm-list-item" class="list-group-item"></li>
+                                    <li id="other-proteins-item" class="list-group-item"></li>
+                                    <li id="extracellular-proteins-item" class="list-group-item"></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="nav3dViewer" role="tabpanel" aria-labelledby="nav3dViewerTab">
+                            <div class="col-md-12 row" id="protein-3d-viewer">
+                                <p class="inference-components-title">Protein 3D viewer</p>
+                                <div class="col-md-10">
+                                    <div id="viewport" style="width:500px; height:500px;"></div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="btn-group-vertical">
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.default)"
+                                                class="btn btn-primary padding-top-button-group">Default
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.cartoon)"
+                                                class="btn btn-primary padding-top-button-group">Cartoon
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.backbone)"
+                                                class="btn btn-primary padding-top-button-group">Backbone
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.ballsAndSticks)"
+                                                class="btn btn-primary padding-top-button-group">Ball+stick
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.helixorient)"
+                                                class="btn btn-primary padding-top-button-group">Helixorient
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.hyperball)"
+                                                class="btn btn-primary padding-top-button-group">Hyperball
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.licorice)"
+                                                class="btn btn-primary padding-top-button-group">Licorice
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.ribbon)"
+                                                class="btn btn-primary padding-top-button-group">Ribbon
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.surface)"
+                                                class="btn btn-primary padding-top-button-group">Surface
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.rope)"
+                                                class="btn btn-primary padding-top-button-group">Rope
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.spacefill)"
+                                                class="btn btn-primary padding-top-button-group">Spacefill
+                                        </button>
+                                        <button type="button"
+                                                onclick="foldingInstance.setView(foldingInstance.views.unitcell)"
+                                                class="btn btn-primary padding-top-button-group">Unitcell
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="navGeneOntology" role="tabpanel"
+                             aria-labelledby="navGeneOntologyTab">
+                            <div class="col-md-12 row" id="geneOntology">
+                                <p class="inference-components-title">Gene ontology</p>
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <svg id="geneOntologyLegend" height="300px">
+                                            <defs>
+                                                <!-- A marker to be used as an arrowhead -->
+                                                <marker
+                                                        id="arrow"
+                                                        viewBox="0 0 10 10"
+                                                        refX="5"
+                                                        refY="5"
+                                                        markerWidth="6"
+                                                        markerHeight="6"
+                                                        orient="auto-start-reverse">
+                                                    <path d="M 0 0 L 10 5 L 0 10 z"/>
+                                                </marker>
+                                            </defs>
+                                        </svg>
+                                    </div>
+                                    <div id="geneOntologyContainer" class="col-md-10"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-2"></div>
+                                    <div class="col-md-8 container">
+                                        <h4>Gene ontology</h4>
+                                        <label for="geneOntologyTableSearch">Search for Gene ID or description, click to
+                                            highlight:</label><input
+                                            class="form-control"
+                                            id="geneOntologyTableSearch"
+                                            type="text" placeholder="Search..">
+                                        <br>
+                                        <table style="max-height: 200px; overflow-y:scroll;"
+                                               class="table table-bordered table-striped"
+                                               id="geneOntologyTable">
+                                            <thead>
+                                            <tr>
+                                                <th data-field="id">Gene ID</th>
+                                                <th data-field="name">Name</th>
+                                                <th data-field="namespace">Namespace</th>
+                                            </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="navSolubility" role="tabpanel"
+                             aria-labelledby="navSolubilityTab">
+                            <div class="col-md-12 row" id="solubility">
+                                <p class="inference-components-title">Protein solubility</p>
+                                <h1 id="solubilityText"></h1>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <script>
-                spinner();
+                hideResultContainer();
 
-                // inference
-                {
-                    var inference = {{ 'true' if inference else 'false' }};
-                    if (inference) {
-                        const inferenceData = JSON.parse({{ inference | default("{}") | tojson | safe  }});
-                        var foldingInstance = folding(inferenceData.folding);
-                        foldingInstance.render();
-                        var localisationInstance = localisation(inferenceData.localisation);
-                        localisationInstance.render();
-                    } else {
-                        document.getElementById('resultContainer').style.display = 'none';
-                    }
-                }
+                $('#inferenceInputForm').on("submit", function (evt) {
+                    evt.preventDefault();
+                    spinnerEnable();
+                    const formData = new FormData($(this)[0]);
+                    $.ajax({
+                        url: 'inference',
+                        type: 'POST',
+                        data: formData,
+                        async: true,
+                        cache: false,
+                        contentType: false,
+                        enctype: 'multipart/form-data',
+                        processData: false,
+                        success: function (inferenceData) {
+                            showResultContainer();
+                            var foldingInstance = folding(inferenceData.folding);
+                            foldingInstance.render();
+
+                            var localisationInstance = localisation(inferenceData.localisation);
+                            localisationInstance.render();
+                            var geneOntologyInstance = geneOntology(inferenceData.oboGraph);
+                            geneOntologyInstance.clear();
+                            geneOntologyInstance.render();
+                            var solubilityInstance = solubility(inferenceData.solubility);
+                            solubilityInstance.render();
+                            spinnerDisable();
+                        }
+                    });
+
+                    return false;
+                });
             </script>
         {% endblock %}
     </main>

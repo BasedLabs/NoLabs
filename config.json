@@ -16,6 +16,18 @@
       "name": "facebook/esmfold_v1",
       "type": "folding",
       "task": "folding"
+    },
+    {
+      "name": "GeneOntology",
+      "type": "gene_ontology",
+      "task": "gene_ontology",
+      "embedding_model": "esm2_t30_150M_UR50D"
+    },
+    {
+      "name": "Solubility",
+      "type": "solubility",
+      "task": "solubility",
+      "embedding_model": "esm2_t30_150M_UR50D"
     }
   ]
 }

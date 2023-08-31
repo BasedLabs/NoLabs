@@ -2,6 +2,7 @@ describe('Main page', () => {
   const inputAminoAcidSequenceId = '#inputSequence';
   const submitAminoAcidSequenceId = '#submitInference';
   const localisationImageClass = '.localisation-image';
+  const foldingSelector = '#viewport div';
 
   it('Opened main page', () => {
     cy.visit('http://127.0.0.1:5000');
@@ -12,12 +13,12 @@ describe('Main page', () => {
     cy.get(inputAminoAcidSequenceId).should('exist');
   });
 
-  it('Inference page is opening', () => {
+  it('Inference result is visible', () => {
     cy.visit('http://127.0.0.1:5000');
     cy.get(inputAminoAcidSequenceId).click();
-    cy.get(inputAminoAcidSequenceId).type(`MNGTEGPNFYVPFSNATGVVRSPFEYPQYYLAEPWQFSMLAAYMFLLIVLGFPINFLTLYVTVQHKKLRTPLNYILLNLAVADLFMVLGGFTSTLYTSLHGYFVFGPTGCNLEGFFATLGGEIALWSLVVLAIERYVVVCKPMSNFRFGENHAIMGVAFTWVMALACAAPPLAGWSRYIPEGLQCSCGIDYYTLKPEVNNESFVIYMFVVHFTIPMIIIFFCYGQLVFTVKEAAAQQQESATTQKAEKEVTRMVIIMVIAFLICWVPYASVAFYIFTHQGSNFGPIFMTIPAFFAKSAAIYNPVIYIMMNKQFRNCMLTTICCGKNPLGDDEASATVSKTETSQVAPA`);
+    cy.get(inputAminoAcidSequenceId).type(`AAACGAGGCAA`);
     cy.get(submitAminoAcidSequenceId).click();
-    cy.location('pathname', {timeout: 120000}).should('include', '/inference');
     cy.get(localisationImageClass).should('exist');
+    cy.get(foldingSelector, { timeout: 90000 }).should('exist');
   });
 })
