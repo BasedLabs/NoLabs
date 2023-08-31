@@ -37,7 +37,7 @@
                                 <div class="col-md-6">
                                     <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid
                                         sequence</label>
-                                    <input type="text" class="form-control" value="AAACGAGGCUAA" id="inputSequence"
+                                    <input type="text" class="form-control" value="AAACGAGGCAA" id="inputSequence"
                                            name="inputSequence">
                                 </div>
                             </div>
@@ -251,8 +251,10 @@
                         enctype: 'multipart/form-data',
                         processData: false,
                         success: function (inferenceData) {
+                            showResultContainer();
                             var foldingInstance = folding(inferenceData.folding);
                             foldingInstance.render();
+
                             var localisationInstance = localisation(inferenceData.localisation);
                             localisationInstance.render();
                             var geneOntologyInstance = geneOntology(inferenceData.oboGraph);
@@ -260,7 +262,6 @@
                             geneOntologyInstance.render();
                             var solubilityInstance = solubility(inferenceData.solubility);
                             solubilityInstance.render();
-                            showResultContainer();
                             spinnerDisable();
                         }
                     });

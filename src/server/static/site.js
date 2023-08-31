@@ -75,15 +75,16 @@ var localisation = function (probabilities) {
     return obj;
 }
 
-var solubility = function(solubility) {
+var solubility = function (solubility) {
     const obj = {
         render() {
-            $('#solubilityText').text(`This protein is soluble with ${+(Math.round(solubility * 100.0 + "e+2")  + "e-2")}% probability`);
+            $('#solubilityText').text(`This protein is soluble with ${+(Math.round(solubility * 100.0 + "e+2") + "e-2")}% probability`);
         }
     }
     return obj;
 }
 var folding = function (proteinFileContent) {
+    $('#nav3dViewerTab').trigger('click');
     const stage = new NGL.Stage("viewport");
     stage.setParameters({backgroundColor: 'white'})
     const obj = {
@@ -119,9 +120,8 @@ var folding = function (proteinFileContent) {
             obj.component.addRepresentation(viewName);
         },
         render: () => {
-            document.addEventListener("DOMContentLoaded", () => {
-                obj.reload();
-            });
+            obj.reload();
+            window.foldingInstance = obj;
         }
     }
     return obj;
@@ -386,11 +386,11 @@ var spinnerDisable = function () {
     $('#spinner').addClass('invisible');
 }
 
-var hideResultContainer = function() {
+var hideResultContainer = function () {
     $('#resultContainer').hide();
 }
 
-var showResultContainer = function() {
+var showResultContainer = function () {
     $('#resultContainer').show();
 }
 
