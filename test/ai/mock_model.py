@@ -2,6 +2,8 @@ import os
 from typing import List
 from src.ai.model import BaseModel
 
+import requests
+
 class FakeFolding(BaseModel):
 
     def __init__(self, model_name: str, gpu: bool, model_task = ""):
@@ -22,8 +24,9 @@ class FakeFolding(BaseModel):
             return None
 
     def predict(self, sequence: str) -> List[str]:
-        dirname = os.path.dirname
-        file_path = dirname(os.path.abspath(__file__)) + "/mock_resources/1r6a.pdb"
-        mock_outputs = self.read_pdb_file(file_path)
+        url = "https://api.esmatlas.com/foldSequence/v1/pdb/" 
+        response = requests.post(url, data=sequence)
 
-        return mock_outputs
+        return response.text
+
+

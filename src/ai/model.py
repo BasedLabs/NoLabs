@@ -118,7 +118,7 @@ class Folding(BaseModel):
 
         return output
 
-    def predict(self, sequence: str) -> List[str]:
+    def predict(self, sequence: str) -> str:
         if not self.tokenizer or not self.model:
             raise ModelNotLoadedException()
         output = self._raw_inference(sequence)
