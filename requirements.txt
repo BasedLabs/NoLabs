@@ -8,3 +8,5 @@ git+https://github.com/bp-kelley/descriptastorus
 accelerate
 biopython
 fair-esm
+requests
+obonet
