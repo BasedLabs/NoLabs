@@ -85,6 +85,7 @@ var solubility = function (solubility) {
 }
 var folding = function (proteinFileContent) {
     $('#nav3dViewerTab').trigger('click');
+    $('#viewport').empty();
     const stage = new NGL.Stage("viewport");
     stage.setParameters({backgroundColor: 'white'})
     const obj = {
