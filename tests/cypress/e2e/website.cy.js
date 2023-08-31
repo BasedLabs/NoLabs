@@ -2,7 +2,7 @@ describe('Main page', () => {
   const inputAminoAcidSequenceId = '#inputSequence';
   const submitAminoAcidSequenceId = '#submitInference';
   const localisationImageClass = '.localisation-image';
-  const geneOntologySvg = '#geneOntologyContainer svg';
+  const foldingSelector = '#viewport div';
 
   it('Opened main page', () => {
     cy.visit('http://127.0.0.1:5000');
@@ -16,9 +16,9 @@ describe('Main page', () => {
   it('Inference result is visible', () => {
     cy.visit('http://127.0.0.1:5000');
     cy.get(inputAminoAcidSequenceId).click();
-    cy.get(inputAminoAcidSequenceId).type(`MNGTEGPNFYVPFSNATGVVRSPFEYPQYYLAEPWQFSMLAAYMFLLIVLGFPINFLTLYVTVQHKKLRTPLNYILLNLAVADLFMVLGGFTSTLYTSLHGYFVFGPTGCNLEGFFATLGGEIALWSLVVLAIERYVVVCKPMSNFRFGENHAIMGVAFTWVMALACAAPPLAGWSRYIPEGLQCSCGIDYYTLKPEVNNESFVIYMFVVHFTIPMIIIFFCYGQLVFTVKEAAAQQQESATTQKAEKEVTRMVIIMVIAFLICWVPYASVAFYIFTHQGSNFGPIFMTIPAFFAKSAAIYNPVIYIMMNKQFRNCMLTTICCGKNPLGDDEASATVSKTETSQVAPA`);
+    cy.get(inputAminoAcidSequenceId).type(`AAACGAGGCAA`);
     cy.get(submitAminoAcidSequenceId).click();
     cy.get(localisationImageClass).should('exist');
-    cy.get(geneOntologySvg, { timeout: 10000 }).should('exist');
+    cy.get(foldingSelector, { timeout: 90000 }).should('exist');
   });
 })
