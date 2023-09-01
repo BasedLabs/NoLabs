@@ -49,6 +49,7 @@ class ClassificationModel(BaseModel):
     def load_model(self):
         self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model.eval()
         return super().load_model()
 
     def _raw_inference(self, sequence: str) -> Tensor:
@@ -78,6 +79,7 @@ class Folding(BaseModel):
         self.model = EsmForProteinFolding.from_pretrained(self.model_name, low_cpu_mem_usage=True)
         if self.gpu:
             self.model = self.model.cuda()
+        self.model.eval()
 
         return super().load_model()
 
@@ -209,6 +211,7 @@ class GeneOntologyPrediction(BaseModel):
     def load_model(self):
         self.model = SimpleGOMultiLayerPerceptron(input_dim=640, num_classes=200).to(self.device)
         self._load_model_state_dict()
+        self.model.eval()
         self.labels = np.load(dirname(os.path.abspath(__file__)) + \
              "/custom_models/models/gene_ontology/go_labels_200.npy", allow_pickle=True)
 
@@ -248,6 +251,7 @@ class SolubilityPrediction(BaseModel):
     def load_model(self):
         self.model = SimpleSolubilityMultiLayerPerceptron().to(self.device)
         self._load_model_state_dict()
+        self.model.eval()
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model

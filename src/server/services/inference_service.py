@@ -10,8 +10,6 @@ def create_pipeline(use_gpu=False, is_test = False) -> Pipeline:
     pipeline = Pipeline()
     models_metadata = get_models_from_config(is_test)
 
-    print(models_metadata)
-
     for model_metadata in models_metadata:
         model = create_model(model_metadata, use_gpu)
         pipeline.add_model(model)
@@ -39,7 +37,6 @@ def get_solubility_output(pipeline, amino_acid_sequence: str) -> Dict:
     model = pipeline.get_model_by_task("solubility")
     res = model.predict(amino_acid_sequence)
     return res
-    #return 0.76
 
 def get_pipeline_output(pipeline, amino_acid_sequence: str) -> str:
     assert amino_acid_sequence
