@@ -1,5 +1,6 @@
 # Use an official PyTorch runtime as a parent image
 FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+ENV TEST=False
 
 # Set the working directory in the container to /app
 WORKDIR /app
@@ -17,4 +18,4 @@ EXPOSE 5000
 WORKDIR /app
 ENV PYTHONPATH=/app
 # Run app.py when the container launches
-CMD ["python","src/server/run.py", "--host=0.0.0.0"]
+CMD ["python","src/server/run.py", "--host=0.0.0.0", "--test=$TEST"]
