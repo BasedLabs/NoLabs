@@ -83,7 +83,7 @@ $ cd nolabs
 $ docker build -t nolabs .
 
 # Run the image and expose the 5002 port
-$ docker run -p 5002:5000 nolabs -e TEST=True
+$ docker run -p 5002:5000 -e TEST=True nolabs
 # Run with TEST=False if you want to run models on GPU
 # check 'Requirements' section for more information
 
