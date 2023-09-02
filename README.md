@@ -64,7 +64,9 @@ The goal of the project is to accelerate the Research stage of biotechnological 
 
 2) Prediction of folded structure via [facebook/esmfold_v1](https://huggingface.co/facebook/esmfold_v1)
 
-3) Inference of multiple proteins with saving to csv file (next week)
+3) Gene ontology prediction for 200 most popular gene ontologies
+
+4) Protein solubility prediction
 
 4) Docker containerisation for easy hosting
 
@@ -81,7 +83,9 @@ $ cd nolabs
 $ docker build -t nolabs .
 
 # Run the image and expose the 5002 port
-$ docker run -p 5002:5000 nolabs
+$ docker run -p 5002:5000 -e TEST=True nolabs
+# Run with TEST=False if you want to run models on GPU
+# check 'Requirements' section for more information
 
 # The website will be available on <http://localhost:5002>
 ```
@@ -97,8 +101,8 @@ The following tools were used in this project:
 
 ## Requirements ##
 
-- RAM > 24GB
-- GPU memory >= 20GB (optional, but REALLY speeds up the folding inference)
+- RAM > 20GB
+- GPU memory >= 16GB (optional, but REALLY speeds up the folding inference)
 
 
 ## :memo: License ##

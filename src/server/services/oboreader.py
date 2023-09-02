@@ -6,7 +6,7 @@ import numbers
 
 
 def read_obo(ids: Dict[str, int]):
-    ids = {key:value for key, value in ids.items() if value >= 0.9}
+    ids = {key:value for key, value in ids.items() if value >= 0.7}
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     f = os.path.join(__location__, 'go.obo')
     graph = obonet.read_obo(f)

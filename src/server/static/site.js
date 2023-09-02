@@ -60,6 +60,7 @@ var localisation = function (probabilities) {
                 const data = obj.highlightData[key];
                 const elId = data.controlElementId;
                 const el = $('#' + elId);
+                el.empty();
                 if (probabilities[key] === undefined)
                     probabilities[key] = 0.000
                 el.append(data.text + ' ' + (probabilities[key].toFixed(2) * 100) + '%');
@@ -84,8 +85,9 @@ var solubility = function (solubility) {
     return obj;
 }
 var folding = function (proteinFileContent) {
-    $('#nav3dViewerTab').trigger('click');
+    window.foldingInstance = undefined;
     $('#viewport').empty();
+    $('#nav3dViewerTab').trigger('click');
     const stage = new NGL.Stage("viewport");
     stage.setParameters({backgroundColor: 'white'})
     const obj = {
