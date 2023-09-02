@@ -60,6 +60,7 @@ var localisation = function (probabilities) {
                 const data = obj.highlightData[key];
                 const elId = data.controlElementId;
                 const el = $('#' + elId);
+                el.empty();
                 if (probabilities[key] === undefined)
                     probabilities[key] = 0.000
                 el.append(data.text + ' ' + (probabilities[key].toFixed(2) * 100) + '%');
