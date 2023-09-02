@@ -37,8 +37,8 @@
                                 <div class="col-md-6">
                                     <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid
                                         sequence</label>
-                                    <input type="text" class="form-control" value="AAACGAGGCAA" id="inputSequence"
-                                           name="inputSequence">
+                                    <input type="text" pattern="[SMIREATZLHJXGWKBDPCFNQYV]*" class="form-control" value="AAACGAGGCAA" id="inputSequence"
+                                           name="inputSequence" title="Sequence is only allowed to have {'S', 'M', 'I', 'R', 'E', 'A', 'T', 'Z', 'L', 'H', 'J', 'X', 'G', 'W', 'K', 'B', 'D', 'P', 'C', 'F', 'N', 'Q', 'Y', 'V'} tokens.">
                                 </div>
                             </div>
                             <div class="row justify-content-center">
