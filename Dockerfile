@@ -1,5 +1,5 @@
 # Use an official PyTorch runtime as a parent image
-FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+FROM pytorch/pytorch:1.13.0-cuda11.6-cudnn8-devel
 ENV TEST=False
 
 # Set the working directory in the container to /app
