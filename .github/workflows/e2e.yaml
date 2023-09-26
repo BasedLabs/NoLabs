@@ -12,7 +12,7 @@ jobs:
       - name: Upgrade pip
         run: pip install --upgrade pip
       - name: Install dependencies
-        run: pip install ---no-deps --no-cache-dir -r requirements.txt
+        run: pip install --no-cache-dir -r requirements.txt
       - name: Start backend server
         working-directory: src/server
         run: PYTHONPATH=/home/runner/work/NoLabs/NoLabs python run.py --host=127.0.0.1 --port=5000 --test=True &
