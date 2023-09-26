@@ -9,6 +9,8 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
+      - name: Upgrade pip
+        run: pip install --upgrade pip
       - name: Install dependencies
         run: pip install --no-cache-dir -r requirements.txt
       - name: Start backend server
