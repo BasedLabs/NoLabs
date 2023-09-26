@@ -7,11 +7,12 @@ torchvision==0.14.1
 torchaudio==0.13.1
 torchdrug==0.1.2
 torchmetrics==1.2.0
-pyg_lib
+pyg-lib
 torch_scatter -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
 torch_sparse -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
 torch_cluster -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
 torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+torch-geometric==2.3.1
 rdkit
 setfit
 git+https://github.com/bp-kelley/descriptastorus 
