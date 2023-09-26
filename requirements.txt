@@ -7,10 +7,6 @@ torchvision==0.14.1
 torchaudio==0.13.1
 torchdrug==0.1.2
 torchmetrics==1.2.0
-torch_scatter -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
-torch_sparse -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
-torch_cluster -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
-torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
 torch-geometric==2.3.1
 rdkit
 setfit
@@ -20,3 +16,13 @@ biopython
 fair-esm
 requests
 obonet
+
+# Additional package source for custom packages
+-f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+
+# Packages to install from the custom source
+pyg_lib
+torch_scatter
+torch_sparse
+torch_cluster
+torch_spline_conv
