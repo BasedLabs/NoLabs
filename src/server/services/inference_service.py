@@ -1,10 +1,12 @@
 import json
 import os
-from typing import Dict
+from typing import Dict, List
+
+from rdkit import Chem
+from rdkit.Chem import SDMolSupplier
 
 from src.ai.model_factory import create_model
 from src.ai.pipeline import Pipeline
-
 
 def create_pipeline(use_gpu=False, is_test = False) -> Pipeline:
     pipeline = Pipeline()
@@ -30,13 +32,46 @@ def get_gene_ontology_output(pipeline, amino_acid_sequence: str) -> Dict:
     model = pipeline.get_model_by_task("gene_ontology")
     res = model.predict(amino_acid_sequence)
     return res
-    #return {'GO:0005575': 0.95, 'GO:0008150': 0.5, 'GO:0110165': 0.97, 'GO:0003674': 0.01,
-    #   'GO:0005622': 0.1, 'GO:0009987': 0.2, 'GO:0043226': 0.001, 'GO:0043229': 0.03}
 
 def get_solubility_output(pipeline, amino_acid_sequence: str) -> Dict:
     model = pipeline.get_model_by_task("solubility")
     res = model.predict(amino_acid_sequence)
     return res
+
+def generate_dti_results(pipeline, ligands_names: List[str], ligands_smiles: List[str], protein_file: str, protein_name: str):
+    model = pipeline.get_model_by_task("dti")
+    model.predict(ligands_names, ligands_smiles, protein_file, protein_name)
+
+def get_dti_results(pipeline, ligand_name: str):
+    model = pipeline.get_model_by_task("dti")
+    result_folder = model.result_folder
+    ligand_file = f'{result_folder}/{ligand_name}_tankbind.sdf'
+    protein_file = model.protein_file
+
+    sdf_supplier = SDMolSupplier(ligand_file)
+    # Initialize an empty string to store the SDF contents
+    sdf_contents = ""
+    # Iterate through the molecules in the SDF file and append their representations to the string
+    for mol in sdf_supplier:
+        if mol is not None:
+            # Convert the molecule to an SDF block and append it to the string
+            sdf_contents += Chem.MolToMolBlock(mol) + "\n"
+
+    pdb_contents = ""
+
+    # Open and read the PDB file
+    with open(protein_file, 'r') as pdb_file:
+        for line in pdb_file:
+            pdb_contents += line
+
+    return pdb_contents, sdf_contents
+
+    
+
+    
+
+
+
 
 def get_pipeline_output(pipeline, amino_acid_sequence: str) -> str:
     assert amino_acid_sequence

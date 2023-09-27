@@ -300,116 +300,120 @@ class DrugTargetInteraction(BaseModel):
         else:
             self.device = torch.device('cpu')
 
-    def prepare_data(self, ligand_name: str, ligand_smiles: str, protein_file: str, protein_name: str):
-        self.ligand_name = ligand_name
-        self.ligand_smiles = ligand_smiles
+    def prepare_data(self, ligands_names: List[str], ligands_smiles: List[str], protein_file: str, protein_name: str):
+        self.ligands_names = ligands_names
+        self.ligands_smiles = ligands_smiles
         self.protein_file = protein_file
         self.protein_name = protein_name
         os.mkdir(dirname(dirname(os.path.abspath(__file__))) + "/experiment")
         self.experiment_folder = dirname(dirname(os.path.abspath(__file__))) + "/experiment/"
         os.mkdir(self.experiment_folder+"/molecules/")
+        self.result_folder = f'{self.experiment_folder}{self.protein_name}_result/'
+        os.system(f'mkdir -p {self.result_folder}')
 
+        self.protein_dict = self._prepare_protein_data()
+
+        self.ligand2compounddict = {}
+        for ligand_name, ligand_smiles in zip(self.ligands_names, self.ligands_smiles):
+            #getting compund feature
+            compound_dict = {}
+            self.rdkitMolFile = f"{self.experiment_folder}/molecules/{self.protein_name}_{ligand_name}_mol_from_rdkit.sdf"
+            shift_dis = 0   # for visual only, could be any number, shift the ligand away from the protein.
+            generate_sdf_from_smiles_using_rdkit(ligand_smiles, self.rdkitMolFile, shift_dis=shift_dis)    
+            mol = Chem.MolFromMolFile(self.rdkitMolFile)
+            compound_dict[self.protein_name+f"{ligand_name}_rdkit"] = extract_torchdrug_feature_from_mol(mol, has_LAS_mask=True)
+            self.ligand2compounddict[ligand_name] = compound_dict
+
+            info = []
+            for compound_name in list(compound_dict.keys()):
+                # use protein center as the block center.
+                com = ",".join([str(a.round(3)) for a in self.protein_dict[self.protein_name][0].mean(axis=0).numpy()])
+                info.append([self.protein_name, compound_name, "protein_center", com])
+
+                p2rankFile = f"{self.experiment_folder}p2rank/{self.protein_name}.pdb_predictions.csv"
+                pocket = pd.read_csv(p2rankFile)
+                pocket.columns = pocket.columns.str.strip()
+                pocket_coms = pocket[['center_x', 'center_y', 'center_z']].values
+                for ith_pocket, com in enumerate(pocket_coms):
+                    com = ",".join([str(a.round(3)) for a in com])
+                    info.append([self.protein_name, compound_name, f"pocket_{ith_pocket+1}", com])
+            info = pd.DataFrame(info, columns=['protein_name', 'compound_name', 'pocket_name', 'pocket_com'])
+            info.to_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
+
+    def _prepare_protein_data(self):
         #p2rank
         ds = f"{self.experiment_folder}/protein_list.ds"
         with open(ds, "w") as out:
             out.write(f"{self.protein_file}\n")
-
         p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/p2rank_2.4.1/prank"
         p2rank = "bash {p2rank_exec}"
         cmd = f"{p2rank} predict {ds} -o {self.experiment_folder}/p2rank -threads 1"
         os.system(cmd)
-
         #getting protein feature
         parser = PDBParser(QUIET=True)
-        s = parser.get_structure("x", protein_file)
+        s = parser.get_structure("x", self.protein_file)
         res_list = list(s.get_residues())
         protein_dict = {}
         protein_dict[self.protein_name] = get_protein_feature(res_list)
-
-        #getting compund feature
-        compound_dict = {}
-        self.rdkitMolFile = f"./temp/molecules/{self.protein_name}_{self.ligand_name}_mol_from_rdkit.sdf"
-        shift_dis = 0   # for visual only, could be any number, shift the ligand away from the protein.
-        generate_sdf_from_smiles_using_rdkit(self.ligand_smiles, self.rdkitMolFile, shift_dis=shift_dis)    
-        mol = Chem.MolFromMolFile(self.rdkitMolFile)
-        compound_dict[self.protein_name+f"{self.ligand_name}_rdkit"] = extract_torchdrug_feature_from_mol(mol, has_LAS_mask=True)
-
-        #prepare final stuff before dataset thingy
-        self.info = []
-        for compound_name in list(compound_dict.keys()):
-            # use protein center as the block center.
-            com = ",".join([str(a.round(3)) for a in protein_dict[self.protein_name][0].mean(axis=0).numpy()])
-            self.info.append([self.protein_name, compound_name, "protein_center", com])
-
-            p2rankFile = f"{self.experiment_folder}p2rank/{self.protein_name}.pdb_predictions.csv"
-            pocket = pd.read_csv(p2rankFile)
-            pocket.columns = pocket.columns.str.strip()
-            pocket_coms = pocket[['center_x', 'center_y', 'center_z']].values
-            for ith_pocket, com in enumerate(pocket_coms):
-                com = ",".join([str(a.round(3)) for a in com])
-                self.nfo.append([self.protein_name, compound_name, f"pocket_{ith_pocket+1}", com])
-        self.info = pd.DataFrame(self.protein_name, columns=['protein_name', 'compound_name', 'pocket_name', 'pocket_com'])
-
-        #constructing dataset
-        dataset_path = f"{self.experiment_folder}/{self.protein_name}_dataset/"
-        os.system(f"rm -r {dataset_path}")
-        os.system(f"mkdir -p {dataset_path}")
-        self.dataset = TankBind_prediction(dataset_path, data=self.info, protein_dict=protein_dict, compound_dict=compound_dict)
+        return protein_dict
 
     def load_model(self):
-        #inference
         logging.basicConfig(level=logging.INFO)
         self.model = get_model(0, logging, self.device)
-        modelFile = "../saved_models/self_dock.pt"
-
+        modelFile = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/models_ckpt/self_dock.pt"
         self.model.load_state_dict(torch.load(modelFile, map_location=self.device))
         self.model.eval()
 
     def _raw_inference(self):
-        batch_size = 1
-        data_loader = DataLoader(self.dataset, batch_size=batch_size, follow_batch=['x', 'y', 'compound_pair'], shuffle=False, num_workers=8)
-        affinity_pred_list = []
-        self.y_pred_list = []
-        for data in tqdm(data_loader):
-            data = data.to(self.device)
-            y_pred, affinity_pred = self.model(data)
-            affinity_pred_list.append(affinity_pred.detach().cpu())
-            for i in range(data.y_batch.max() + 1):
-                self.y_pred_list.append((y_pred[data['y_batch'] == i]).detach().cpu())
-        affinity_pred_list = torch.cat(affinity_pred_list)
-        self.info['affinity'] = affinity_pred_list
-        self.info.to_csv(f"{self.experiment_folder}/info_with_predicted_affinity.csv")
 
-        chosen = self.info.loc[self.info.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
-        return chosen
+        def post_process(chosen, dataset):
+            for i, line in chosen.iterrows():
+                idx = line['index']
+                pocket_name = line['pocket_name']
+                compound_name = line['compound_name']
+                ligandName = compound_name.split("_")[1]
+                coords = dataset[idx].coords.to(self.device)
+                protein_nodes_xyz = dataset[idx].node_xyz.to(self.device)
+                n_compound = coords.shape[0]
+                n_protein = protein_nodes_xyz.shape[0]
+                y_pred = self.y_pred_list[idx].reshape(n_protein, n_compound).to(self.device)
+                y = dataset[idx].dis_map.reshape(n_protein, n_compound).to(self.device)
+                compound_pair_dis_constraint = torch.cdist(coords, coords)
+                mol = Chem.MolFromMolFile(self.rdkitMolFile)
+                LAS_distance_constraint_mask = get_LAS_distance_constraint_mask(mol).bool()
+                info = get_info_pred_distance(coords, y_pred, protein_nodes_xyz, compound_pair_dis_constraint, 
+                                            LAS_distance_constraint_mask=LAS_distance_constraint_mask,
+                                            n_repeat=1, show_progress=False)
+                # toFile = f'{result_folder}/{ligandName}_{pocket_name}_tankbind.sdf'
+                toFile = f'{self.result_folder}/{ligandName}_tankbind.sdf'
+                # print(toFile)
+                new_coords = info.sort_values("loss")['coords'].iloc[0].astype(np.double)
+                write_with_new_coords(mol, new_coords, toFile)
 
-    def post_process(self, chosen):
-        for i, line in chosen.iterrows():
-            idx = line['index']
-            pocket_name = line['pocket_name']
-            compound_name = line['compound_name']
-            ligandName = compound_name.split("_")[1]
-            coords = self.dataset[idx].coords.to(self.device)
-            protein_nodes_xyz = self.dataset[idx].node_xyz.to(self.device)
-            n_compound = coords.shape[0]
-            n_protein = protein_nodes_xyz.shape[0]
-            y_pred = self.y_pred_list[idx].reshape(n_protein, n_compound).to(self.device)
-            y = self.dataset[idx].dis_map.reshape(n_protein, n_compound).to(self.device)
-            compound_pair_dis_constraint = torch.cdist(coords, coords)
-            mol = Chem.MolFromMolFile(self.rdkitMolFile)
-            LAS_distance_constraint_mask = get_LAS_distance_constraint_mask(mol).bool()
-            info = get_info_pred_distance(coords, y_pred, protein_nodes_xyz, compound_pair_dis_constraint, 
-                                        LAS_distance_constraint_mask=LAS_distance_constraint_mask,
-                                        n_repeat=1, show_progress=False)
+        for ligand_name in self.ligands_names:
+            info = pd.read_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
+            compound_dict = self.ligand2compounddict[ligand_name]
+            dataset_path = f"{self.experiment_folder}/{self.protein_name}_dataset/"
+            os.system(f"rm -r {dataset_path}")
+            os.system(f"mkdir -p {dataset_path}")
+            dataset = TankBind_prediction(dataset_path, data=info, protein_dict=self.protein_dict, compound_dict=compound_dict)
+            batch_size = 1
+            data_loader = DataLoader(dataset, batch_size=batch_size, follow_batch=['x', 'y', 'compound_pair'], shuffle=False, num_workers=8)
+            affinity_pred_list = []
+            self.y_pred_list = []
+            for data in tqdm(data_loader):
+                data = data.to(self.device)
+                y_pred, affinity_pred = self.model(data)
+                affinity_pred_list.append(affinity_pred.detach().cpu())
+                for i in range(data.y_batch.max() + 1):
+                    self.y_pred_list.append((y_pred[data['y_batch'] == i]).detach().cpu())
+            affinity_pred_list = torch.cat(affinity_pred_list)
+            info['affinity'] = affinity_pred_list
+            info.to_csv(f"{self.experiment_folder}/{self.result_folder}/info_with_predicted_affinity.csv")
 
-            result_folder = f'{self.experiment_folder}{self.protein_name}_result/'
-            os.system(f'mkdir -p {result_folder}')
-            # toFile = f'{result_folder}/{ligandName}_{pocket_name}_tankbind.sdf'
-            toFile = f'{result_folder}/{ligandName}_tankbind.sdf'
-            # print(toFile)
-            new_coords = info.sort_values("loss")['coords'].iloc[0].astype(np.double)
-            write_with_new_coords(mol, new_coords, toFile)
+            chosen = info.loc[info.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
+            post_process(chosen, dataset=dataset)
 
-    def predict(self):
-        chosen = self._raw_inference()
-        self.post_process(chosen=chosen)
+    def predict(self, ligands_names: List[str], ligands_smiles: List[str], protein_file: str, protein_name: str):
+        self.prepare_data(ligands_names, ligands_smiles, protein_file, protein_name)
+        self._raw_inference()
