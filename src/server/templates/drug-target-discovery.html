@@ -1,0 +1,162 @@
+{% extends 'index.html' %}
+{% block main %}
+    <div class="text-center">
+        <h1 class="display-4"><b>NoLabs</b></h1>
+        <h4>Drug target discovery lab</h4>
+        <div class="row">
+            <div class="col-md-12">
+                <form enctype="multipart/form-data" id="inferenceInputForm">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <label for="smilesFileInput" class="col-form-label fs-4">Molecules (SMILES .smi format)</label>
+                            <input type="file" multiple="multiple" accept="text/x-smi" class="form-control"
+                                   id="smilesFileInput" name="smilesFileInput">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="proteinFileInput" class="col-form-label fs-4">Proteins (.pdb format)</label>
+                            <input type="file" accept="text/x-pdb" class="form-control"
+                                   id="proteinFileInput" name="proteinFileInput">
+                        </div>
+                    </div>
+                    <div class="row justify-content-center m-4">
+                        <div class="col-md-4">
+                            <div class="btn-group mt-4" role="group"
+                                 aria-label="Basic checkbox toggle button group">
+                                <button type="submit" id="submitInference" class="btn btn-lg btn-primary">
+                                    Submit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center invisible" id="spinner">
+            <p class="inference-components-title">Processing. It can take more than 10 mins depending on your
+                PC</p>
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Processing</span>
+            </div>
+        </div>
+        <div class="row" id="resultContainer">
+            <nav>
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <button class="nav-link active" id="drugTargetDiscoveryTab" data-bs-toggle="tab"
+                            data-bs-target="#drugTargetDiscovery" type="button" role="tab"
+                            aria-controls="drugTargetDiscovery"
+                            aria-selected="true">Drug target discovery
+                    </button>
+                </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+                <div class="tab-pane fade show active" id="drugTargetDiscovery" role="tabpanel"
+                     aria-labelledby="drugTargetDiscoveryTab">
+                    <div class="col-md-12 row">
+                        <p class="inference-components-title">Protein 3D viewer</p>
+                        <div class="col-md-10">
+                            <div id="viewport" style="width:500px; height:500px;"></div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="btn-group-vertical">
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.default)"
+                                        class="btn btn-primary padding-top-button-group">Default
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.cartoon)"
+                                        class="btn btn-primary padding-top-button-group">Cartoon
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.backbone)"
+                                        class="btn btn-primary padding-top-button-group">Backbone
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.ballsAndSticks)"
+                                        class="btn btn-primary padding-top-button-group">Ball+stick
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.helixorient)"
+                                        class="btn btn-primary padding-top-button-group">Helixorient
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.hyperball)"
+                                        class="btn btn-primary padding-top-button-group">Hyperball
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.licorice)"
+                                        class="btn btn-primary padding-top-button-group">Licorice
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.ribbon)"
+                                        class="btn btn-primary padding-top-button-group">Ribbon
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.surface)"
+                                        class="btn btn-primary padding-top-button-group">Surface
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.rope)"
+                                        class="btn btn-primary padding-top-button-group">Rope
+                                </button>
+                                <button type="button"
+                                        onclick="drugTargetInstance.setView(drugTargetInstance.views.spacefill)"
+                                        class="btn btn-primary padding-top-button-group">Spacefill
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 container">
+                            <h4>Ligand-protein pairs</h4>
+                            <label for="ligandProteinTableSearch">Search for ligand-protein pair, click to render:</label><input
+                                class="form-control"
+                                id="ligandProteinTableSearch"
+                                type="text" placeholder="Search..">
+                            <br>
+                            <table style="max-height: 200px; overflow-y:scroll;"
+                                   class="table table-bordered table-striped"
+                                   id="ligandProteinTable">
+                                <thead>
+                                <tr>
+                                    <th data-field="ligand">Ligand</th>
+                                    <th data-field="protein">Protein</th>
+                                </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        <div class="col-md-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        hideResultContainer();
+
+        $('#inferenceInputForm').on("submit", function (evt) {
+            evt.preventDefault();
+            spinnerEnable();
+            const formData = new FormData($(this)[0]);
+            $.ajax({
+                url: 'inference-drug-target-discovery',
+                type: 'POST',
+                data: formData,
+                async: true,
+                cache: false,
+                contentType: false,
+                enctype: 'multipart/form-data',
+                processData: false,
+                success: function (inferenceData) {
+                    showResultContainer();
+                    var drugTargetInstance = drugTarget(inferenceData.drugTarget);
+                    drugTargetInstance.render();
+                    spinnerDisable();
+                }
+            });
+
+            return false;
+        });
+    </script>
+{% endblock %}

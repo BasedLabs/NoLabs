@@ -16,19 +16,28 @@ is_test = False
 
 
 @app.route('/')
-def hello():
+def index():
     return render_template('index.html')
 
 
-@app.route('/inference', methods=['POST'])
-def inference():
+@app.route('/amino-acid-page')
+def amino_acid_page():
+    return render_template('amino-acid-page.html')
+
+
+@app.route('/drug-target-discovery')
+def drug_target_discovery():
+    return render_template('drug-target-discovery.html')
+
+
+@app.route('/inference-amino-acid-page', methods=['POST'])
+def inference_amino_acid():
     amino_acid_input_sequence = request.form['inputSequence']
     amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
     if not amino_acid_input_sequence:
         amino_acid_input_sequence = \
             [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
-    gpu = request.form.get('gpu', False)
-    pipeline = inference_service.create_pipeline(use_gpu=gpu, is_test=is_test)
+    pipeline = inference_service.create_pipeline(use_gpu=True, is_test=is_test)
     localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
                                                                     amino_acid_sequence=amino_acid_input_sequence)
 
@@ -54,6 +63,36 @@ def inference():
         'oboGraph': obo_graph,
         'solubility': solubility
     }
+
+
+@app.route('/inference-drug-target-discovery', methods=['POST'])
+def inference_drug_target_discovery():
+    smiles_files = request.files.getlist('smilesFileInput')
+    protein_files = request.files.getlist('proteinFileInput')
+
+    if not smiles_files:
+        return 'You must provide either smiles text or smiles files', 400
+
+    if not protein_files:
+        return 'You must provide a protein .pdb file', 400
+
+    pdb = open('test.pdb').read()
+    sdf = open('test.sdf').read()
+
+    return {'drugTarget': [
+        {
+            'proteinName': 'Protein name 1',
+            'ligandName': 'Ligand name 1',
+            'pdb': pdb,
+            'sdf': sdf
+        },
+        {
+            'proteinName': 'Protein name 2',
+            'ligandName': 'Ligand name 2',
+            'pdb': pdb,
+            'sdf': sdf
+        }
+    ]}
 
 
 if __name__ == '__main__':
