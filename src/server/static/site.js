@@ -184,7 +184,7 @@ var drugTarget = function (drugTargetDiscoveryData) {
 
     const tableData = [];
     for (let [index, val] of drugTargetDiscoveryData.entries()) {
-        tableData.push({id: index, ligand: val.ligandName, protein: val.proteinName});
+        tableData.push({id: index, ligand: val.ligandName, protein: val.proteinName, affinity: val.affinity});
     }
 
     const rowSelect = (rowData) => {

@@ -89,13 +89,15 @@ def inference_drug_target_discovery():
             'proteinName': 'Protein name 1',
             'ligandName': 'Ligand name 1',
             'pdb': protein_files[0],
-            'sdf': ligand_files[0]
+            'sdf': ligand_files[0],
+            'affinity': 0.0
         },
         {
             'proteinName': 'Protein name 2',
             'ligandName': 'Ligand name 2',
             'pdb': protein_files[0],
-            'sdf': ligand_files[0]
+            'sdf': ligand_files[0],
+            'affinity': 0.0
         }
     ]}
 
