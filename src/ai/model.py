@@ -5,6 +5,9 @@ from transformers.models.esm.openfold_utils.protein import to_pdb, Protein as OF
 from transformers.models.esm.openfold_utils.feats import atom14_to_atom37
 from torch_geometric.loader import DataLoader
 
+from rdkit import Chem
+from rdkit.Chem import SDMolSupplier
+
 import numpy as np
 import requests
 from tqdm import tqdm
@@ -299,15 +302,14 @@ class DrugTargetInteraction(BaseModel):
             self.device = torch.device('cuda')
         else:
             self.device = torch.device('cpu')
-
-    def prepare_data(self, ligands_names: List[str], ligands_smiles: List[str], protein_file: str, protein_name: str):
-        self.ligands_names = ligands_names
-        self.ligands_smiles = ligands_smiles
-        self.protein_file = protein_file
-        self.protein_name = protein_name
-        os.mkdir(dirname(dirname(os.path.abspath(__file__))) + "/experiment")
+        os.mkdir(dirname(dirname(os.path.abspath(__file__))) + "/experiment/")
         self.experiment_folder = dirname(dirname(os.path.abspath(__file__))) + "/experiment/"
         os.mkdir(self.experiment_folder+"/molecules/")
+
+    def prepare_data(self, ligands_files: str, protein_files: str):
+        self.ligands_names, self.ligands_smiles = self.read_sdf_files_from_temp(ligands_files)
+        self.protein_file = protein_files[0].filename
+        self.protein_name = os.path.splitext(self.protein_file)[0]
         self.result_folder = f'{self.experiment_folder}{self.protein_name}_result/'
         os.system(f'mkdir -p {self.result_folder}')
 
@@ -340,18 +342,47 @@ class DrugTargetInteraction(BaseModel):
             info = pd.DataFrame(info, columns=['protein_name', 'compound_name', 'pocket_name', 'pocket_com'])
             info.to_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
 
+    def read_sdf_files_from_temp(self, ligand_files):
+        # Initialize lists to store file names and SMILES strings
+        file_names = []
+        smiles_list = []
+
+        # Iterate through files in the 'temp/' folder
+        for file in ligand_files:
+
+            file_name = file.filename
+            
+            file_path = os.path.join(self.experiment_folder, file_name)
+
+            # Extract file name without the '.sdf' extension
+            file_name_without_extension = os.path.splitext(file_name)[0]
+
+            # Initialize an SDMolSupplier to read the SDF file
+            sdf_supplier = SDMolSupplier(file_path)
+
+            # Iterate through molecules in the SDF file and convert to SMILES
+            for mol in sdf_supplier:
+                if mol is not None:
+                    # Convert the molecule to SMILES and append to the list
+                    smiles = Chem.MolToSmiles(mol)
+                    file_names.append(file_name_without_extension)
+                    smiles_list.append(smiles)
+
+        return file_names, smiles_list
+
     def _prepare_protein_data(self):
         #p2rank
         ds = f"{self.experiment_folder}/protein_list.ds"
         with open(ds, "w") as out:
             out.write(f"{self.protein_file}\n")
         p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/p2rank_2.4.1/prank"
-        p2rank = "bash {p2rank_exec}"
+        print("P2RANK_EXEC: "+p2rank_exec)
+        p2rank = f"bash {p2rank_exec}"
         cmd = f"{p2rank} predict {ds} -o {self.experiment_folder}/p2rank -threads 1"
         os.system(cmd)
         #getting protein feature
         parser = PDBParser(QUIET=True)
-        s = parser.get_structure("x", self.protein_file)
+        s = parser.get_structure("x", self.experiment_folder + self.protein_file)
         res_list = list(s.get_residues())
         protein_dict = {}
         protein_dict[self.protein_name] = get_protein_feature(res_list)
@@ -409,11 +440,11 @@ class DrugTargetInteraction(BaseModel):
                     self.y_pred_list.append((y_pred[data['y_batch'] == i]).detach().cpu())
             affinity_pred_list = torch.cat(affinity_pred_list)
             info['affinity'] = affinity_pred_list
-            info.to_csv(f"{self.experiment_folder}/{self.result_folder}/info_with_predicted_affinity.csv")
+            info.to_csv(f"{self.result_folder}/info_with_predicted_affinity.csv")
 
             chosen = info.loc[info.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
             post_process(chosen, dataset=dataset)
 
-    def predict(self, ligands_names: List[str], ligands_smiles: List[str], protein_file: str, protein_name: str):
-        self.prepare_data(ligands_names, ligands_smiles, protein_file, protein_name)
+    def predict(self, ligand_files: List[str], protein_file: str):
+        self.prepare_data(ligand_files, protein_file)
         self._raw_inference()

@@ -67,30 +67,35 @@ def inference_amino_acid():
 
 @app.route('/inference-drug-target-discovery', methods=['POST'])
 def inference_drug_target_discovery():
-    smiles_files = request.files.getlist('smilesFileInput')
+    ligand_files = request.files.getlist('smilesFileInput')
     protein_files = request.files.getlist('proteinFileInput')
 
-    if not smiles_files:
+    pipeline = inference_service.create_pipeline(is_test=is_test)
+
+    inference_service.save_uploaded_files(pipeline, ligand_files)
+    inference_service.save_uploaded_files(pipeline, protein_files)
+
+
+    inference_service.generate_dti_results(pipeline, ligand_files, protein_files)
+
+    if not ligand_files:
         return 'You must provide either smiles text or smiles files', 400
 
     if not protein_files:
         return 'You must provide a protein .pdb file', 400
 
-    pdb = open('test.pdb').read()
-    sdf = open('test.sdf').read()
-
     return {'drugTarget': [
         {
             'proteinName': 'Protein name 1',
             'ligandName': 'Ligand name 1',
-            'pdb': pdb,
-            'sdf': sdf
+            'pdb': protein_files[0],
+            'sdf': ligand_files[0]
         },
         {
             'proteinName': 'Protein name 2',
             'ligandName': 'Ligand name 2',
-            'pdb': pdb,
-            'sdf': sdf
+            'pdb': protein_files[0],
+            'sdf': ligand_files[0]
         }
     ]}
 
