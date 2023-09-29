@@ -323,7 +323,7 @@ class DrugTargetInteraction(BaseModel):
             shift_dis = 0   # for visual only, could be any number, shift the ligand away from the protein.
             generate_sdf_from_smiles_using_rdkit(ligand_smiles, self.rdkitMolFile, shift_dis=shift_dis)    
             mol = Chem.MolFromMolFile(self.rdkitMolFile)
-            compound_dict[self.protein_name+f"{ligand_name}_rdkit"] = extract_torchdrug_feature_from_mol(mol, has_LAS_mask=True)
+            compound_dict[self.protein_name+"_"+f"{ligand_name}_rdkit"] = extract_torchdrug_feature_from_mol(mol, has_LAS_mask=True)
             self.ligand2compounddict[ligand_name] = compound_dict
 
             info = []

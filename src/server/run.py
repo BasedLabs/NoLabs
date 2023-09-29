@@ -77,6 +77,7 @@ def inference_drug_target_discovery():
 
 
     inference_service.generate_dti_results(pipeline, ligand_files, protein_files)
+    pdb_content, protein_name, ligands_sdf_contents, ligand_names = inference_service.get_dti_results(pipeline, ligand_files)
 
     if not ligand_files:
         return 'You must provide either smiles text or smiles files', 400
@@ -84,22 +85,13 @@ def inference_drug_target_discovery():
     if not protein_files:
         return 'You must provide a protein .pdb file', 400
 
-    return {'drugTarget': [
-        {
-            'proteinName': 'Protein name 1',
-            'ligandName': 'Ligand name 1',
-            'pdb': protein_files[0],
-            'sdf': ligand_files[0],
-            'affinity': 0.0
-        },
-        {
-            'proteinName': 'Protein name 2',
-            'ligandName': 'Ligand name 2',
-            'pdb': protein_files[0],
-            'sdf': ligand_files[0],
-            'affinity': 0.0
-        }
-    ]}
+    res = [{'proteinName': protein_name,
+            'ligandName': ligand_name,
+            'pdb': pdb_content,
+            'sdf': ligand_content,
+            'affinity': 0.0} for ligand_name, ligand_content in zip(ligand_names, ligands_sdf_contents)]
+
+    return {'drugTarget': res}
 
 
 if __name__ == '__main__':

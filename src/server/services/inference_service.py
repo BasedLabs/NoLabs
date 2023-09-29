@@ -42,29 +42,40 @@ def generate_dti_results(pipeline, ligand_files: List[str], protein_file: str):
     model = pipeline.get_model_by_task("dti")
     model.predict(ligand_files, protein_file)
 
-def get_dti_results(pipeline, ligand_name: str):
+def get_dti_results(pipeline, ligand_files: str):
     model = pipeline.get_model_by_task("dti")
+    experiment_folder = model.experiment_folder
     result_folder = model.result_folder
-    ligand_file = f'{result_folder}/{ligand_name}_tankbind.sdf'
     protein_file = model.protein_file
+    protein_name = model.protein_name
 
-    sdf_supplier = SDMolSupplier(ligand_file)
-    # Initialize an empty string to store the SDF contents
-    sdf_contents = ""
-    # Iterate through the molecules in the SDF file and append their representations to the string
-    for mol in sdf_supplier:
-        if mol is not None:
-            # Convert the molecule to an SDF block and append it to the string
-            sdf_contents += Chem.MolToMolBlock(mol) + "\n"
-
-    pdb_contents = ""
+    pdb_content = ""
 
     # Open and read the PDB file
-    with open(protein_file, 'r') as pdb_file:
+    with open(f'{experiment_folder}/{protein_file}', 'r') as pdb_file:
         for line in pdb_file:
-            pdb_contents += line
+            pdb_content += line
 
-    return pdb_contents, sdf_contents
+    ligands_sdf_contents = []
+
+    ligand_names = [os.path.splitext(file.filename)[0] for file in ligand_files]
+
+    for ligand_name in ligand_names:
+
+        ligand_file = f'{result_folder}/{ligand_name}_tankbind.sdf'
+
+
+        sdf_supplier = SDMolSupplier(ligand_file)
+        # Initialize an empty string to store the SDF contents
+        sdf_contents = ""
+        # Iterate through the molecules in the SDF file and append their representations to the string
+        for mol in sdf_supplier:
+            if mol is not None:
+                # Convert the molecule to an SDF block and append it to the string
+                sdf_contents += Chem.MolToMolBlock(mol) + "\n"
+        ligands_sdf_contents.append(sdf_contents)
+
+    return pdb_content, protein_name, ligands_sdf_contents, ligand_names
 
 def save_uploaded_files(pipeline, files):
     model = pipeline.get_model_by_task("dti")
