@@ -137,6 +137,8 @@ var drugTarget = function (drugTargetDiscoveryData) {
     const stage = new NGL.Stage("viewport");
     stage.setParameters({backgroundColor: 'white'})
     const obj = {
+        currentPdb: undefined,
+        currentSdf: undefined,
         views: {
             default: 'default',
             cartoon: 'cartoon',
@@ -152,10 +154,10 @@ var drugTarget = function (drugTargetDiscoveryData) {
             spacefill: 'spacefill',
             unitcell: 'unitcell'
         },
-        reload: (proteinFileContent, ligandSdfFile) => {
+        reload: () => {
             stage.removeAllComponents();
-            const proteinFileContentBlob = new Blob([proteinFileContent], {type: 'text/plain'});
-            const ligandFileContentBlob = new Blob([ligandSdfFile], {type: 'text/plain'});
+            const proteinFileContentBlob = new Blob([obj.currentPdb], {type: 'text/plain'});
+            const ligandFileContentBlob = new Blob([obj.currentSdf], {type: 'text/plain'});
             const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', {type: 'text/plain'});
             const sdfFile = new File([ligandFileContentBlob], 'ligand.sdf', {type: 'text/plain'});
             stage.loadFile(proteinFile, {defaultRepresentation: true}).then((component) => {
@@ -176,8 +178,15 @@ var drugTarget = function (drugTargetDiscoveryData) {
             obj.ligandComponent.removeAllRepresentations();
             obj.ligandComponent.addRepresentation(viewName);
         },
-        render: () => {
-            obj.reload(drugTargetDiscoveryData[0].pdb, drugTargetDiscoveryData[0].sdf);
+        render: (pdb, sdf) => {
+            if(!pdb || !sdf){
+                pdb = drugTargetDiscoveryData[0].pdb;
+                sdf = drugTargetDiscoveryData[0].sdf;
+            }
+
+            obj.currentPdb = pdb;
+            obj.currentSdf = sdf;
+            obj.reload();
             window.drugTargetInstance = obj;
         }
     }
