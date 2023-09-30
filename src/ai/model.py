@@ -319,12 +319,12 @@ class DrugTargetInteraction(BaseModel):
         for ligand_name, ligand_smiles in zip(self.ligands_names, self.ligands_smiles):
             #getting compund feature
             compound_dict = {}
-            self.rdkitMolFile = f"{self.experiment_folder}/molecules/{self.protein_name}_{ligand_name}_mol_from_rdkit.sdf"
+            rdkitMolFile = f"{self.experiment_folder}/molecules/{self.protein_name}_{ligand_name}_mol_from_rdkit.sdf"
             shift_dis = 0   # for visual only, could be any number, shift the ligand away from the protein.
-            generate_sdf_from_smiles_using_rdkit(ligand_smiles, self.rdkitMolFile, shift_dis=shift_dis)    
-            mol = Chem.MolFromMolFile(self.rdkitMolFile)
+            generate_sdf_from_smiles_using_rdkit(ligand_smiles, rdkitMolFile, shift_dis=shift_dis)    
+            mol = Chem.MolFromMolFile(rdkitMolFile)
             compound_dict[self.protein_name+"_"+f"{ligand_name}_rdkit"] = extract_torchdrug_feature_from_mol(mol, has_LAS_mask=True)
-            self.ligand2compounddict[ligand_name] = compound_dict
+            self.ligand2compounddict[ligand_name] = [compound_dict, rdkitMolFile]
 
             info = []
             for compound_name in list(compound_dict.keys()):
@@ -397,7 +397,7 @@ class DrugTargetInteraction(BaseModel):
 
     def _raw_inference(self):
 
-        def post_process(chosen, dataset):
+        def post_process(chosen, rdkitMolFile, dataset):
             for i, line in chosen.iterrows():
                 idx = line['index']
                 pocket_name = line['pocket_name']
@@ -410,7 +410,7 @@ class DrugTargetInteraction(BaseModel):
                 y_pred = self.y_pred_list[idx].reshape(n_protein, n_compound).to(self.device)
                 y = dataset[idx].dis_map.reshape(n_protein, n_compound).to(self.device)
                 compound_pair_dis_constraint = torch.cdist(coords, coords)
-                mol = Chem.MolFromMolFile(self.rdkitMolFile)
+                mol = Chem.MolFromMolFile(rdkitMolFile)
                 LAS_distance_constraint_mask = get_LAS_distance_constraint_mask(mol).bool()
                 info = get_info_pred_distance(coords, y_pred, protein_nodes_xyz, compound_pair_dis_constraint, 
                                             LAS_distance_constraint_mask=LAS_distance_constraint_mask,
@@ -421,10 +421,12 @@ class DrugTargetInteraction(BaseModel):
                 new_coords = info.sort_values("loss")['coords'].iloc[0].astype(np.double)
                 write_with_new_coords(mol, new_coords, toFile)
 
+        print(self.ligands_names)
         for ligand_name in self.ligands_names:
             info = pd.read_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
-            compound_dict = self.ligand2compounddict[ligand_name]
-            dataset_path = f"{self.experiment_folder}/{self.protein_name}_dataset/"
+            compound_dict, rdkitMolFile = self.ligand2compounddict[ligand_name]
+            dataset_path = f"{self.experiment_folder}{ligand_name}_dataset/"
+            print("DATASET_PATH: ", dataset_path)
             os.system(f"rm -r {dataset_path}")
             os.system(f"mkdir -p {dataset_path}")
             dataset = TankBind_prediction(dataset_path, data=info, protein_dict=self.protein_dict, compound_dict=compound_dict)
@@ -443,7 +445,7 @@ class DrugTargetInteraction(BaseModel):
             info.to_csv(f"{self.result_folder}/info_with_predicted_affinity.csv")
 
             chosen = info.loc[info.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
-            post_process(chosen, dataset=dataset)
+            post_process(chosen, rdkitMolFile, dataset=dataset)
 
     def predict(self, ligand_files: List[str], protein_file: str):
         self.prepare_data(ligand_files, protein_file)
