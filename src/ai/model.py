@@ -302,8 +302,9 @@ class DrugTargetInteraction(BaseModel):
             self.device = torch.device('cuda')
         else:
             self.device = torch.device('cpu')
-        os.mkdir(dirname(dirname(os.path.abspath(__file__))) + "/experiment/")
         self.experiment_folder = dirname(dirname(os.path.abspath(__file__))) + "/experiment/"
+        os.system(f"rm -r {self.experiment_folder}")
+        os.mkdir(self.experiment_folder)
         os.mkdir(self.experiment_folder+"/molecules/")
 
     def prepare_data(self, ligands_files: str, protein_files: str):
@@ -426,7 +427,6 @@ class DrugTargetInteraction(BaseModel):
             info = pd.read_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
             compound_dict, rdkitMolFile = self.ligand2compounddict[ligand_name]
             dataset_path = f"{self.experiment_folder}{ligand_name}_dataset/"
-            print("DATASET_PATH: ", dataset_path)
             os.system(f"rm -r {dataset_path}")
             os.system(f"mkdir -p {dataset_path}")
             dataset = TankBind_prediction(dataset_path, data=info, protein_dict=self.protein_dict, compound_dict=compound_dict)
@@ -442,7 +442,7 @@ class DrugTargetInteraction(BaseModel):
                     self.y_pred_list.append((y_pred[data['y_batch'] == i]).detach().cpu())
             affinity_pred_list = torch.cat(affinity_pred_list)
             info['affinity'] = affinity_pred_list
-            info.to_csv(f"{self.result_folder}/info_with_predicted_affinity.csv")
+            info.to_csv(f"{self.result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
 
             chosen = info.loc[info.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
             post_process(chosen, rdkitMolFile, dataset=dataset)
