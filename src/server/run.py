@@ -5,6 +5,8 @@ import src.server.services.inference_service as inference_service
 from src.server.services.oboreader import read_obo
 from src.server.services.fasta_reader import get_sequences
 
+import torch
+
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['FLASK_DEBUG'] = True
@@ -13,6 +15,7 @@ parser.add_argument('--port', default=5000)
 parser.add_argument('--host', default='127.0.0.1')
 parser.add_argument('--test', default=False)
 is_test = False
+use_gpu = torch.cuda.is_available()
 
 
 @app.route('/')
@@ -37,7 +40,7 @@ def inference_amino_acid():
     if not amino_acid_input_sequence:
         amino_acid_input_sequence = \
             [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
-    pipeline = inference_service.create_pipeline(use_gpu=True, is_test=is_test)
+    pipeline = inference_service.create_pipeline(use_gpu=use_gpu, is_test=is_test)
     localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
                                                                     amino_acid_sequence=amino_acid_input_sequence)
 
@@ -70,7 +73,7 @@ def inference_drug_target_discovery():
     ligand_files = request.files.getlist('smilesFileInput')
     protein_files = request.files.getlist('proteinFileInput')
 
-    pipeline = inference_service.create_pipeline(is_test=is_test)
+    pipeline = inference_service.create_pipeline(use_gpu=use_gpu, is_test=is_test)
 
     inference_service.save_uploaded_files(pipeline, ligand_files)
     inference_service.save_uploaded_files(pipeline, protein_files)
