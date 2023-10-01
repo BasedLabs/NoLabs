@@ -34,6 +34,9 @@ import os
 import logging
 from argparse import Namespace
 
+import tarfile
+import urllib.request
+
 dirname = os.path.dirname
 
 class BaseModel:
@@ -306,6 +309,7 @@ class DrugTargetInteraction(BaseModel):
         os.system(f"rm -r {self.experiment_folder}")
         os.mkdir(self.experiment_folder)
         os.mkdir(self.experiment_folder+"/molecules/")
+        self.install_p2rank()
 
     def prepare_data(self, ligands_files: str, protein_files: str):
         self.ligands_names, self.ligands_smiles = self.read_sdf_files_from_temp(ligands_files)
@@ -342,6 +346,36 @@ class DrugTargetInteraction(BaseModel):
                     info.append([self.protein_name, compound_name, f"pocket_{ith_pocket+1}", com])
             info = pd.DataFrame(info, columns=['protein_name', 'compound_name', 'pocket_name', 'pocket_com'])
             info.to_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
+
+    def install_p2rank(self):
+        # URL of the p2rank tar.gz file
+        p2rank_url = "https://github.com/rdk/p2rank/releases/download/2.4.1/p2rank_2.4.1.tar.gz"
+
+        # P2Rank folder
+        p2rank_folder = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/p2rank_2.4.1/"
+
+        # Check if the destination folder already exists
+        if os.path.exists(p2rank_folder):
+            return
+
+        destination_folder = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/"        
+
+        # Create the destination folder
+        os.makedirs(destination_folder, exist_ok=True)
+
+        # Download the p2rank tar.gz file
+        p2rank_tar_path = os.path.join(destination_folder, "p2rank.tar.gz")
+        urllib.request.urlretrieve(p2rank_url, p2rank_tar_path)
+
+        # Extract the contents of the tar.gz file
+        with tarfile.open(p2rank_tar_path, "r:gz") as tar:
+            tar.extractall(destination_folder)
+
+        # Remove the downloaded tar.gz file
+        os.remove(p2rank_tar_path)
+
+        print("p2rank successfully installed and extracted to:", destination_folder)
+
 
     def read_sdf_files_from_temp(self, ligand_files):
         # Initialize lists to store file names and SMILES strings
