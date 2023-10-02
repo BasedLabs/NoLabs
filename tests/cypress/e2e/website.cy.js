@@ -23,22 +23,6 @@ describe('Main page', () => {
         cy.get(inputAminoAcidSequenceId).click();
         cy.get(inputAminoAcidSequenceId).type(`AAACGAGGCAA`);
         cy.get(submitAminoAcidSequenceId).click();
-        cy.get(localisationImageClass).should('exist');
         cy.get(foldingSelector, {timeout: 90000}).should('exist');
     });
-
-    //it('Drug target discovery lab opened', () => {
-    //    cy.visit('http://127.0.0.1:5000/drug-target-discovery');
-    //});
-//
-    //it('Pdb input is visible', () => {
-    //    cy.visit('http://127.0.0.1:5000');
-    //});
-//
-    //it('Inference result is visible', () => {
-    //    cy.get('input[id=proteinFileInput]').selectFile('cypress/fixtures/test.pdb');
-    //    cy.get('input[id=smilesFileInput]').selectFile('cypress/fixtures/test.sdf');
-    //    cy.get('#submitInference').click();
-    //    cy.get('#drugTargetDiscovery', {timeout: 90000}).should('exist');
-    //});
 })
