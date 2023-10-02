@@ -167,3 +167,5 @@ cython_debug/
 tests/cypress/screenshots/
 tests/cypress/videos/
 tests/node_modules/
+src/experiment/
+src/ai/custom_models/drug_target/tankbind/p2rank_2.4.1/

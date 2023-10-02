@@ -129,6 +129,97 @@ var folding = function (proteinFileContent) {
     }
     return obj;
 }
+
+var drugTarget = function (drugTargetDiscoveryData) {
+    window.drugTargetInstance = undefined;
+    $('#viewport').empty();
+    $('#nav3dViewerTab').trigger('click');
+    const stage = new NGL.Stage("viewport");
+    stage.setParameters({backgroundColor: 'white'})
+    const obj = {
+        currentPdb: undefined,
+        currentSdf: undefined,
+        views: {
+            default: 'default',
+            cartoon: 'cartoon',
+            backbone: 'backbone',
+            ballsAndSticks: 'ball+stick',
+            contact: 'contact',
+            helixorient: 'helixorient',
+            hyperball: 'hyperball',
+            licorice: 'licorice',
+            ribbon: 'ribbon',
+            rope: 'rope',
+            surface: 'surface',
+            spacefill: 'spacefill',
+            unitcell: 'unitcell'
+        },
+        reload: () => {
+            stage.removeAllComponents();
+            const proteinFileContentBlob = new Blob([obj.currentPdb], {type: 'text/plain'});
+            const ligandFileContentBlob = new Blob([obj.currentSdf], {type: 'text/plain'});
+            const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', {type: 'text/plain'});
+            const sdfFile = new File([ligandFileContentBlob], 'ligand.sdf', {type: 'text/plain'});
+            stage.loadFile(proteinFile, {defaultRepresentation: true}).then((component) => {
+                obj.component = component;
+            });
+
+            stage.loadFile(sdfFile, {defaultRepresentation: true}).then((ligandComponent) => {
+                obj.ligandComponent = ligandComponent;
+            });
+        },
+        setView: (viewName) => {
+            if (viewName === obj.views.default) {
+                obj.reload();
+                return;
+            }
+            obj.component.removeAllRepresentations();
+            obj.component.addRepresentation(viewName);
+            obj.ligandComponent.removeAllRepresentations();
+            obj.ligandComponent.addRepresentation(viewName);
+        },
+        render: (pdb, sdf) => {
+            if(!pdb || !sdf){
+                pdb = drugTargetDiscoveryData[0].pdb;
+                sdf = drugTargetDiscoveryData[0].sdf;
+            }
+
+            obj.currentPdb = pdb;
+            obj.currentSdf = sdf;
+            obj.reload();
+            window.drugTargetInstance = obj;
+        }
+    }
+
+    const tableData = [];
+    for (let [index, val] of drugTargetDiscoveryData.entries()) {
+        tableData.push({id: index, ligand: val.ligandName, protein: val.proteinName, affinity: val.affinity});
+    }
+
+    const rowSelect = (rowData) => {
+        const drugTargetData = drugTargetDiscoveryData[rowData.id];
+        obj.render(drugTargetData.pdb, drugTargetData.sdf);
+    }
+
+    $('#ligandProteinTable').bootstrapTable({
+        data: tableData,
+        onClickRow: (row, el, field) => {
+            $('#ligandProteinTable tr').removeClass('active');
+            $(el).addClass('active');
+            rowSelect(row)
+        }
+    });
+
+    $("#ligandProteinTableSearch").on("keyup", function () {
+        const value = $(this).val().toLowerCase();
+        $("#ligandProteinTable tr").filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
+
+    return obj;
+}
+
 var geneOntology = function (oboGraph) {
     const obj = {
         clear: () => {

@@ -28,6 +28,11 @@
         "type": "solubility",
         "task": "solubility",
         "embedding_model": "esm2_t30_150M_UR50D"
+      },
+      {
+        "name": "DTI",
+        "type": "dti",
+        "task": "dti"
       }
     ]
   }

@@ -2,7 +2,13 @@ Flask
 pandas
 numpy
 transformers
-torch
+torch==1.13.1
+torchvision==0.14.1 
+torchaudio==0.13.1
+torchdrug==0.1.2
+torchmetrics==1.2.0
+torch-geometric==2.3.1
+rdkit
 setfit
 git+https://github.com/bp-kelley/descriptastorus 
 accelerate
@@ -10,3 +16,13 @@ biopython
 fair-esm
 requests
 obonet
+
+# Additional package source for custom packages
+-f https://data.pyg.org/whl/torch-1.13.0+cpu.html
+
+# Packages to install from the custom source
+pyg_lib
+torch_scatter
+torch_sparse
+torch_cluster
+torch_spline_conv
