@@ -68,7 +68,9 @@ The goal of the project is to accelerate the Research stage of biotechnological 
 
 4) Protein solubility prediction
 
-4) Docker containerisation for easy hosting
+5) Drug-target interaction prediction, hight throughput virtual screening (HTVS) based on [TankBind](https://github.com/luwei0917/TankBind)
+
+7) Docker containerisation for easy hosting
 
 ## Starting ##
 
@@ -102,7 +104,7 @@ The following tools were used in this project:
 ## Requirements ##
 
 - RAM > 20GB
-- GPU memory >= 16GB (optional, but REALLY speeds up the folding inference)
+- [Optional] GPU memory >= 16GB (REALLY speeds up the inference)
 
 
 ## :memo: License ##
