@@ -20,8 +20,7 @@ obonet
 # Additional package source for custom packages
 --find-links https://data.pyg.org/whl/torch-1.13.0+cpu.html
 pyg_lib
---find-links https://data.pyg.org/whl/torch-1.13.0+cpu.html
-torch_scatter
+torch_scatter==2.1.1
 torch_sparse
 torch_cluster
 torch_spline_conv
