@@ -302,6 +302,7 @@ class DrugTargetInteraction(BaseModel):
         else:
             self.device = torch.device('cpu')
         install_p2rank()
+        self.prepare_folders()
 
     def prepare_folders(self):
         self.experiment_folder = dirname(dirname(os.path.abspath(__file__))) + "/experiment/"
