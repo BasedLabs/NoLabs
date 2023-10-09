@@ -85,7 +85,11 @@
                             <div class="col-md-12 row" id="protein-3d-viewer">
                                 <p class="inference-components-title">Protein 3D viewer</p>
                                 <div class="col-md-10">
-                                    <div id="viewport" style="width:500px; height:500px;"></div>
+                                    <div id="viewport" style="width:100%; height:80%;"></div>
+                                    <button type="button"
+                                        id="downloadPdbFile"
+                                        class="btn btn-primary padding-top-button-group">Download .pdb
+                                </button>
                                 </div>
                                 <div class="col-md-2">
                                     <div class="btn-group-vertical">
@@ -209,7 +213,7 @@
                     spinnerEnable();
                     const formData = new FormData($(this)[0]);
                     $.ajax({
-                        url: 'inference-amino-acid-page',
+                        url: 'inference',
                         type: 'POST',
                         data: formData,
                         async: true,
@@ -222,6 +226,8 @@
                             var foldingInstance = folding(inferenceData.folding);
                             foldingInstance.render();
 
+                            var downloadPdbFileInstance = downloadPdbFile(inferenceData.folding);
+                            downloadPdbFileInstance.bind();
                             var localisationInstance = localisation(inferenceData.localisation);
                             localisationInstance.render();
                             var geneOntologyInstance = geneOntology(inferenceData.oboGraph);

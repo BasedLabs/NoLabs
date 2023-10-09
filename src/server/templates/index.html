@@ -13,6 +13,7 @@
     <script src="{{ url_for('static', filename='ngl.js') }}"></script>
     <script src="{{ url_for('static', filename='d3.min.js') }}"></script>
     <script src="{{ url_for('static', filename='particles.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vue.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-table.min.css') }}" crossorigin="anonymous">
     <script src="{{ url_for('static', filename='bootstrap-table.min.js') }}"></script>
     <link rel="icon" href="{{ url_for('static', filename='icon.png') }}">
@@ -30,8 +31,8 @@
         {% block main %}
             <div class="text-center">
                 <h1 class="display-4"><b>NoLabs</b></h1>
-                <a type="button" class="btn btn-primary btn-lg" href="amino-acid-page">Amino acid lab</a>
-                <a type="button" class="btn btn-primary btn-lg" href="drug-target-discovery">Drug target discovery lab</a>
+                <a type="button" class="btn btn-primary btn-lg" href="amino-acid">Amino acid lab</a>
+                <a type="button" class="btn btn-primary btn-lg" href="drug-target">Drug target discovery lab</a>
             </div>
         {% endblock %}
     </main>

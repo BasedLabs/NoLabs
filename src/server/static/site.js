@@ -1,7 +1,27 @@
+var downloadPdbFile = function (proteinFileContent) {
+    const obj = {
+        bind: () => {
+            $('#downloadPdbFile').on('click', () => {
+                const filename = 'protein.pdb';
+                const blob = new Blob([proteinFileContent], {type: 'text/plain'});
+                if (window.navigator.msSaveOrOpenBlob) {
+                    window.navigator.msSaveBlob(blob, filename);
+                } else {
+                    const elem = window.document.createElement('a');
+                    elem.href = window.URL.createObjectURL(blob);
+                    elem.download = filename;
+                    document.body.appendChild(elem);
+                    elem.click();
+                    document.body.removeChild(elem);
+                }
+            });
+        }
+    }
+
+    return obj;
+}
+
 var localisation = function (probabilities) {
-    window.onmousemove = function (e) {
-        //console.log("mouse location:", e.clientX, e.clientY)
-    };
     if (!document.getElementById('img'))
         throw Error('Declare img tag');
     const _createImage = (src) => {
@@ -470,14 +490,7 @@ var geneOntology = function (oboGraph) {
 
 var spinnerEnable = function () {
     $('#submitInference').attr('disabled', true);
-    $('#submitInferenceGeneOntology').attr('disabled', true);
     $('#spinner').removeClass('invisible');
-}
-
-var spinnerDisable = function () {
-    $('#submitInference').attr('disabled', false);
-    $('#submitInferenceGeneOntology').attr('disabled', false);
-    $('#spinner').addClass('invisible');
 }
 
 var hideResultContainer = function () {

@@ -1,20 +1,23 @@
 import argparse
 
-from flask import Flask, render_template, request
-import src.server.services.inference_service as inference_service
-from src.server.services.oboreader import read_obo
-from src.server.services.fasta_reader import get_sequences
-
 import torch
+from flask import Flask, render_template, request
+from flask_cors import CORS
+
+from src.server import settings
+from src.server.amino_acid_blueprint import amino_acid_bp
+from src.server.drug_target_blueprint import drug_target_bp
 
 app = Flask(__name__)
+CORS(app)
+app.register_blueprint(drug_target_bp, url_prefix='/drug-target')
+app.register_blueprint(amino_acid_bp, url_prefix='/amino-acid')
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['FLASK_DEBUG'] = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', default=5000)
 parser.add_argument('--host', default='127.0.0.1')
 parser.add_argument('--test', default=False)
-is_test = False
 use_gpu = torch.cuda.is_available()
 
 
@@ -23,83 +26,79 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/amino-acid-page')
-def amino_acid_page():
-    return render_template('amino-acid-page.html')
-
-
-@app.route('/drug-target-discovery')
-def drug_target_discovery():
-    return render_template('drug-target-discovery.html')
-
-
-@app.route('/inference-amino-acid-page', methods=['POST'])
-def inference_amino_acid():
-    amino_acid_input_sequence = request.form['inputSequence']
-    amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
-    if not amino_acid_input_sequence:
-        amino_acid_input_sequence = \
-            [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
-    pipeline = inference_service.create_pipeline(use_gpu=use_gpu, is_test=is_test)
-    localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
-                                                                    amino_acid_sequence=amino_acid_input_sequence)
-
-    folding_result = inference_service.get_folding_output(pipeline=pipeline,
-                                                          amino_acid_sequence=amino_acid_input_sequence)
-    gene_ontology_result = inference_service.get_gene_ontology_output(pipeline=pipeline,
-                                                                      amino_acid_sequence=amino_acid_input_sequence)
-    solubility = inference_service.get_solubility_output(pipeline=pipeline,
-                                                         amino_acid_sequence=amino_acid_input_sequence)
-
-    esm_protein_localization = {key: value for key, value in localisation_result}
-    obo_graph = read_obo(gene_ontology_result)
+# TESTS
+@app.route('/api/amino-acid-inference', methods=['POST'])
+def amino_acid_inference():
     return {
-        'sequence': amino_acid_input_sequence,
+        'sequence': 'AAAAAAAAAA',
         'localisation': {
-            'mithochondria': esm_protein_localization["Mitochondrial Proteins"],
-            'nucleus': esm_protein_localization["Nuclear Proteins"],
-            'cytoplasm': esm_protein_localization["Cytosolic Proteins"],
-            'other': esm_protein_localization["Other Proteins"],
-            'extracellular': esm_protein_localization["Extracellular/Secreted Proteins"]
+            'mithochondria': 0.1,
+            'nucleus': 0.1,
+            'cytoplasm': 0.1,
+            'other': 0.1,
+            'extracellular': 0.1
         },
-        'folding': folding_result,
-        'oboGraph': obo_graph,
-        'solubility': solubility
+        'folding': open('test.pdb').read(),
+        'oboGraph': {
+            'GO:123': {'name': 'GO:123', 'namespace': 'biological_process', 'edges': {}},
+            'GO:234': {'name': 'GO:234', 'namespace': 'biological_process', 'edges': {}}
+        },
+        'solubility': 0.5
     }
 
 
-@app.route('/inference-drug-target-discovery', methods=['POST'])
-def inference_drug_target_discovery():
-    ligand_files = request.files.getlist('smilesFileInput')
-    protein_files = request.files.getlist('proteinFileInput')
+@app.route('/api/drug-target-discovery-inference')
+def drug_target_discovery_inference():
+    return [{
+        'proteinName': "AHAHAHAHAHHAHA",
+        'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
+        'pdb': open('test.pdb').read(),
+        'sdf': open('test.sdf').read(),
+        'affinity': 10
+    }]
 
-    pipeline = inference_service.create_pipeline(use_gpu=use_gpu, is_test=is_test)
 
-    inference_service.save_uploaded_files(pipeline, ligand_files)
-    inference_service.save_uploaded_files(pipeline, protein_files)
+@app.route('/api/drug-target-discovery-experiments')
+def drug_target_discovery_experiments():
+    return [{
+        'id': 'Test1',
+        'name': 'Test1'
+    }, {
+        'id': 'Test2',
+        'name': 'Test2'
+    }]
 
 
-    inference_service.generate_dti_results(pipeline, ligand_files, protein_files)
-    pdb_content, protein_name, ligands_sdf_contents, ligand_names, affinity_list \
-         = inference_service.get_dti_results(pipeline, ligand_files)
+@app.route('/api/drug-target-discovery-load-experiment-data/<id>')
+def drug_target_discovery_get_experiment():
+    experiment_id = request.args.get('id')
+    return {
+        'name': 'Testtt',
+        'id': experiment_id,
+        'data': [{
+            'proteinName': "AHAHAHAHAHHAHA",
+            'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
+            'pdb': open('test.pdb').read(),
+            'sdf': open('test.sdf').read(),
+            'affinity': 10
+        }]}
 
-    if not ligand_files:
-        return 'You must provide either smiles text or smiles files', 400
 
-    if not protein_files:
-        return 'You must provide a protein .pdb file', 400
+@app.route('/api/drug-target-discovery-add-experiment', methods=['POST'])
+def drug_target_discovery_save_experiment():
+    return {
+        'id': 'Test new from server',
+        'name': 'Test new from server'
+    }
 
-    res = [{'proteinName': protein_name,
-            'ligandName': ligand_name,
-            'pdb': pdb_content,
-            'sdf': ligand_content,
-            'affinity': affinity} for ligand_name, ligand_content, affinity \
-            in zip(ligand_names, ligands_sdf_contents, affinity_list)]
 
-    return {'drugTarget': res}
+@app.route('/api/drug-target-discovery-delete-experiment', methods=['DELETE'])
+def drug_target_discovery_delete_experiment():
+    return 200
 
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())
     is_test = args['test']
+    settings.is_test = is_test
     app.run(host=args['host'], port=args['port'])
