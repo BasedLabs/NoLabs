@@ -3,27 +3,26 @@ import DrugTarget from '../components/DrugTargetDiscoveryLab/DrugTarget.vue';
 import { onMounted, reactive, defineEmits, ref } from 'vue';
 import store, {api} from '../storage';
 
-const experiments = store.state.drugTargetData.experiments;
-const experiment = store.state.drugTargetData.experiment;
+const drugTargetData = store.state.drugTargetData;
+console.log('rendered');
 
-const experimentLoaded = Object.keys(experiment).length > 0;
+const experimentLoaded = Object.keys(drugTargetData.experiment).length > 0;
 
 const loadExperiments = async () => {
     await api.drugTargetDiscovery.getAllExperiments();
-    console.log(experiment.length);
+    console.log(drugTargetData.experiments.length);
 }
 
 const selectExperiment = async (experiment) => {
-    await api.drugTargetDiscovery.loadExperiment(experiment.id);
+    await api.drugTargetDiscovery.loadExperiment(experiment.name);
 }
 
 const addExperiment = async () => {
-    await api.drugTargetDiscovery.addExperiment();
-    await loadExperiments();
+    api.drugTargetDiscovery.addExperiment();
 }
 
 const deleteExperiment = async (name) => {
-    await api.drugTargetDiscovery.deleteExperiment();
+    await api.drugTargetDiscovery.deleteExperiment(name);
     await loadExperiments();
 }
 
@@ -40,11 +39,12 @@ onMounted(async () => {
                     <button type="button" @click="addExperiment()"
                         class="btn btn-outline-success add-experiments-button">Add</button>
                 </li>
-                <li v-for="experiment in experiments"
+                <li v-for="experiment in drugTargetData.experiments"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    :class="drugTargetData.experiment === experiment ? 'active' : ''"
                     @click="selectExperiment(experiment)"
                     >
-                    {{ experiment.name }}
+                    {{experiment.name}}
                     <span class="badge bg-danger rounded-pill btn btn-outline-danger btn-sm btn-link text-decoration-none"
                         @click="deleteExperiment(experiment.name)">X</span>
                 </li>

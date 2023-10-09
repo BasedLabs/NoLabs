@@ -6,16 +6,10 @@ from src.server import settings
 from src.server.services.oboreader import read_obo
 from src.server.services.fasta_reader import get_sequences
 
-amino_acid_bp = Blueprint('amino-acid', __name__,
-                          template_folder='templates')
+amino_acid_bp = Blueprint('amino-acid', __name__)
 
 
-@amino_acid_bp.route('/')
-def amino_acid_page():
-    return render_template('amino-acid-page.html')
-
-
-@amino_acid_bp.route('/amino-acid-inference', methods=['POST'])
+@amino_acid_bp.route('/inference', methods=['POST'])
 def inference_amino_acid():
     amino_acid_input_sequence = request.form['inputSequence']
     amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
