@@ -3,7 +3,7 @@ const baseUrl = 'http://127.0.0.1:5000'
 export const apiConstants = {
     aminoAcid: {
         inference: {
-            path: baseUrl + '/api/amino-acid-inference',
+            path: baseUrl + '/api/amino-acid/inference',
             mutation: 'aminoAcidInference',
             action: 'aminoAcidInference'
         }
@@ -17,22 +17,22 @@ export const apiConstants = {
 
     drugTargetDiscovery: {
         experiments: { // response: [{name: 'exp1'}, {name: 'exp2'}]
-            path: baseUrl + '/api/drug-target-discovery-experiments',
+            path: baseUrl + '/api/drug-target/experiments',
             mutation: 'getAllExperiments',
             action: 'getAllExperiments'
         },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
-            path: baseUrl + 'api/drug-target-discovery-inference',
+            path: baseUrl + 'api/drug-target/inference',
             mutation: 'drugTargetInference',
             action: 'drugTargetInference'
         },
         deleteExperiment: { // request: {name: '123'}
-            path: baseUrl + 'api/drug-target-discovery-delete-experiment',
+            path: baseUrl + 'api/drug-target/delete-experiment',
             mutation: 'deleteExperiment',
             action: 'deleteExperiment'
         },
         loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
-            path: baseUrl + 'api/drug-target-discovery-load-experiment',
+            path: baseUrl + 'api/drug-target/load-experiment',
             mutation: 'loadExperiment',
             action: 'loadExperiment'
         }

@@ -36,17 +36,17 @@ onMounted(async () => {
         <div class="col-md-2 experiments-col">
             <ul class="list-group">
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <button type="button" @click="addExperiment()"
+                    <button type="button" @click.stop="addExperiment()"
                         class="btn btn-outline-success add-experiments-button">Add</button>
                 </li>
                 <li v-for="experiment in drugTargetData.experiments"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     :class="drugTargetData.experiment === experiment ? 'active' : ''"
-                    @click="selectExperiment(experiment)"
+                    @click.stop="selectExperiment(experiment)"
                     >
                     {{experiment.name}}
                     <span class="badge bg-danger rounded-pill btn btn-outline-danger btn-sm btn-link text-decoration-none"
-                        @click="deleteExperiment(experiment.name)">X</span>
+                        @click.stop="deleteExperiment(experiment.name)">X</span>
                 </li>
             </ul>
         </div>
