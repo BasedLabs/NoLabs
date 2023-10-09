@@ -53,9 +53,9 @@ const store = createStore({
             state.drugTargetData.experiment = experiment;
         },
         addExperiment(state, experiment){
-            console.log(state.drugTargetData.experiments.length);
-            state.drugTargetData.experiment = experiment;
+            console.log(experiment);
             state.drugTargetData.experiments.push(experiment);
+            //state.drugTargetData.experiment = experiment;
         }
     }
 });
@@ -83,10 +83,10 @@ export const api = {
             let latestExperiment = 1;
             for(const experiment of store.state.drugTargetData.experiments){
                 const experimentNumber = parseInt(experiment.name.split(' ')[1]);
-                if(experimentNumber > latestExperiment)
-                    latestExperiment = experimentNumber
+                if(experimentNumber >= latestExperiment)
+                    latestExperiment = experimentNumber + 1;
             }
-            store.dispatch('addExperiment', {name: `Experiment ${latestExperiment}`});
+            store.dispatch('addExperiment', {experiment: {name: `Experiment ${latestExperiment}`}});
         }
     }
 }
