@@ -138,6 +138,7 @@ body::-webkit-scrollbar-track {
 .experiments-col {
   background: #f7f7f9;
   padding-right: 0;
+  height: 100%;
 }
 
 .add-experiments-button {

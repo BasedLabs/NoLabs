@@ -1,4 +1,7 @@
 {% extends 'index.html' %}
+{% block scripts %}
+    <script src="{{ url_for('static', filename='drugTarget.js') }}"></script>
+{% endblock %}
 {% block main %}
     <div class="text-center">
         <h1 class="display-4"><b>NoLabs</b></h1>
@@ -141,7 +144,7 @@
             spinnerEnable();
             const formData = new FormData($(this)[0]);
             $.ajax({
-                url: 'inference-drug-target-page',
+                url: 'inference',
                 type: 'POST',
                 data: formData,
                 async: true,

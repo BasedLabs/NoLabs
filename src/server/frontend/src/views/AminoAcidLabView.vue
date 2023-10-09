@@ -4,9 +4,10 @@ import ProteinViewer from '../components/AminoAcidLab/ProteinViewer.vue';
 import GeneOntology from '../components/AminoAcidLab/GeneOntology.vue';
 import ProteinSolubility from '../components/AminoAcidLab/ProteinSolubility.vue';
 import { onMounted, reactive, defineEmits, ref } from 'vue';
+import store, {api} from '../storage';
 
 const proteinViewerInstance = ref(null);
-let pulledInference = false;
+let pulledInference = ref(false);
 
 const data = reactive({
     tabId: 'localisation'
@@ -15,11 +16,15 @@ const data = reactive({
 const onTabClick = (tabId) => {
     data.tabId = tabId;
 
-    pulledInference = true;
-
     if (tabId === 'protein3dViewer') {
         proteinViewerInstance.value.render();
     }
+}
+
+const onFormSubmit = async (data) => {
+    console.log('pulled')
+    await api.aminoAcidLab.inference(data);
+    pulledInference.value = true;
 }
 
 </script>
@@ -28,7 +33,7 @@ const onTabClick = (tabId) => {
     <div class="text-center container">
         <div class="row" :class="pulledInference ? 'invisible' : ''">
             <div class="col-md-12">
-                <form enctype="multipart/form-data" id="inferenceInputForm">
+                <form enctype="multipart/form-data" id="inferenceInputForm" v-on:submit.prevent="onFormSubmit">
                     <div class="row justify-content-center">
                         <div class="col-md-6">
                             <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid
@@ -66,7 +71,7 @@ const onTabClick = (tabId) => {
                 <span class="visually-hidden">Processing</span>
             </div>
         </div>
-        <div class="row" id="resultContainer">
+        <div class="row" id="resultContainer" v-if="pulledInference">
             <nav>
                 <div class="nav nav-tabs justify-content-center" id="nav-tab" role="tablist">
                     <button class="nav-link" :class="data.tabId === 'localisation' ? 'active' : ''" type="button"

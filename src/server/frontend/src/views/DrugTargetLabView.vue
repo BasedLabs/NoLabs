@@ -1,30 +1,33 @@
 <script setup>
-import ProteinLigandBinding from '../components/DrugTargetDiscoveryLab/ProteinLigandBinding.vue';
+import DrugTarget from '../components/DrugTargetDiscoveryLab/DrugTarget.vue';
 import { onMounted, reactive, defineEmits, ref } from 'vue';
-import store from '../storage';
-import ExperimentsApi from '../services/experimentsApi';
+import store, {api} from '../storage';
 
 const experiments = store.state.drugTargetData.experiments;
-const data = reactive({});
+const experiment = store.state.drugTargetData.experiment;
+
+const experimentLoaded = Object.keys(experiment).length > 0;
 
 const loadExperiments = async () => {
-    await ExperimentsApi.getAllExperiments();
+    await api.drugTargetDiscovery.getAllExperiments();
+    console.log(experiment.length);
+}
+
+const selectExperiment = async (experiment) => {
+    await api.drugTargetDiscovery.loadExperiment(experiment.id);
 }
 
 const addExperiment = async () => {
-    await ExperimentsApi.addExperiment();
+    await api.drugTargetDiscovery.addExperiment();
+    await loadExperiments();
 }
 
 const deleteExperiment = async (name) => {
-    await ExperimentsApi.deleteExperiment(name);
-}
-
-const saveCurrentExperiment = async () => {
-    
+    await api.drugTargetDiscovery.deleteExperiment();
+    await loadExperiments();
 }
 
 onMounted(async () => {
-    console.log("Loading experiments")
     await loadExperiments();
 })
 </script>
@@ -36,11 +39,11 @@ onMounted(async () => {
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <button type="button" @click="addExperiment()"
                         class="btn btn-outline-success add-experiments-button">Add</button>
-                        <button type="button" @click="saveExperiments()"
-                        class="btn btn-outline-success add-experiments-button">Save</button>
                 </li>
                 <li v-for="experiment in experiments"
-                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    @click="selectExperiment(experiment)"
+                    >
                     {{ experiment.name }}
                     <span class="badge bg-danger rounded-pill btn btn-outline-danger btn-sm btn-link text-decoration-none"
                         @click="deleteExperiment(experiment.name)">X</span>
@@ -87,10 +90,10 @@ onMounted(async () => {
                         <span class="visually-hidden">Processing</span>
                     </div>
                 </div>
-                <div id="resultContainer">
+                <div id="resultContainer" v-if="experimentLoaded">
                     <div class="tab-content" id="nav-tabContent">
                         <div class="tab-pane fade mt-1 show active" role="tabpanel">
-                            <ProteinLigandBinding />
+                            <DrugTarget />
                         </div>
                     </div>
                 </div>
