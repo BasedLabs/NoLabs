@@ -8,9 +8,9 @@
                 <form enctype="multipart/form-data" id="inferenceInputForm">
                     <div class="row justify-content-center">
                         <div class="col-md-6">
-                            <label for="smilesFileInput" class="col-form-label fs-4">Molecules (SMILES .smi format)</label>
+                            <label for="sdfFileInput" class="col-form-label fs-4">Molecules (.sdf format)</label>
                             <input type="file" multiple="multiple" accept="text/x-smi" class="form-control"
-                                   id="smilesFileInput" name="smilesFileInput">
+                                   id="sdfFileInput" name="smilesFileInput">
                         </div>
 
                         <div class="col-md-6">
@@ -141,7 +141,7 @@
             spinnerEnable();
             const formData = new FormData($(this)[0]);
             $.ajax({
-                url: 'inference-drug-target-discovery',
+                url: 'inference-drug-target-page',
                 type: 'POST',
                 data: formData,
                 async: true,
