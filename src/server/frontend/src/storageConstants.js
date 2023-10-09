@@ -8,23 +8,30 @@ export const apiConstants = {
             action: 'aminoAcidInference'
         }
     },
+    // When we click on submit - we trigger server inference, then we save it, and then we return this inference to the UI
+    // inference model is a complete experiment model
+    // getExperiment - get the experiment
+    // experiments - short data with id and name fields
+    // delete experiment - pass id and delete
+    // experiment name - is Experiment # - generated
+
     drugTargetDiscovery: {
-        experiments: {
+        experiments: { // response: [{name: 'exp1'}, {name: 'exp2'}]
             path: baseUrl + '/api/drug-target-discovery-experiments',
             mutation: 'getAllExperiments',
             action: 'getAllExperiments'
         },
-        addExperiment: {
-            path: baseUrl + 'api/drug-target-discovery-add-experiment',
-            mutation: 'addExperiment',
-            action: 'addExperiment'
+        inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
+            path: baseUrl + 'api/drug-target-discovery-inference',
+            mutation: 'drugTargetInference',
+            action: 'drugTargetInference'
         },
-        deleteExperiment: {
+        deleteExperiment: { // request: {name: '123'}
             path: baseUrl + 'api/drug-target-discovery-delete-experiment',
             mutation: 'deleteExperiment',
             action: 'deleteExperiment'
         },
-        loadExperiment: {
+        loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
             path: baseUrl + 'api/drug-target-discovery-load-experiment',
             mutation: 'loadExperiment',
             action: 'loadExperiment'
