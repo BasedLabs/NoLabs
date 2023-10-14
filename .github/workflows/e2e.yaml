@@ -11,8 +11,12 @@ jobs:
           python-version: '3.8'
       - name: Upgrade pip
         run: pip install --upgrade pip
+      - name: Install pytorch
+        run: pip install torch==1.13.1 torchvision torchaudio
+      - name: Install torchgeometric
+        run: pip install --no-index pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
       - name: Install dependencies
-        run: pip install --no-cache-dir -r requirements.txt
+        run: pip install -r requirements.txt
       - name: Start backend server
         working-directory: src/server
         run: PYTHONPATH=/home/runner/work/NoLabs/NoLabs python run.py --host=127.0.0.1 --port=5000 --test=True &
