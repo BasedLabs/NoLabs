@@ -4,7 +4,6 @@ numpy
 transformers
 torchdrug==0.1.2
 torchmetrics==1.2.0
-torch-geometric
 rdkit
 setfit
 accelerate

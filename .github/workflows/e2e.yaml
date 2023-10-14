@@ -14,8 +14,7 @@ jobs:
       - name: Install pytorch
         run: pip install torch==1.13.1 torchvision torchaudio
       - name: Install torchgeometric
-        run: pip install torchgeometric
-      - name: Install torchgeometric deps
+        run: pip install torch-geometric
         run: pip install --no-index pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
       - name: Install dependencies
         run: pip install -r requirements.txt
