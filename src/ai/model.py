@@ -5,15 +5,13 @@ from transformers.models.esm.openfold_utils.protein import to_pdb, Protein as OF
 from transformers.models.esm.openfold_utils.feats import atom14_to_atom37
 from torch_geometric.loader import DataLoader
 
-from rdkit import Chem
-from rdkit.Chem import SDMolSupplier
-
 import numpy as np
 import requests
 from tqdm import tqdm
 
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
 from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron, SimpleSolubilityMultiLayerPerceptron
+from src.ai.custom_models.drug_target.utils import install_p2rank, read_sdf_files
 
 from Bio.PDB import PDBParser
 import rdkit.Chem as Chem
@@ -27,15 +25,13 @@ from src.ai.custom_models.drug_target.tankbind.model import get_model
 from src.ai.custom_models.drug_target.tankbind.data import TankBind_prediction
 
 
-from esm import Alphabet, FastaBatchedDataset, ProteinBertModel, pretrained, MSATransformer
+from esm import FastaBatchedDataset, pretrained
 
 from typing import List, Tuple
 import os
 import logging
 from argparse import Namespace
-
-import tarfile
-import urllib.request
+from werkzeug.datastructures import FileStorage
 
 dirname = os.path.dirname
 
@@ -305,14 +301,18 @@ class DrugTargetInteraction(BaseModel):
             self.device = torch.device('cuda')
         else:
             self.device = torch.device('cpu')
+        install_p2rank()
+        self.prepare_folders()
+
+    def prepare_folders(self):
         self.experiment_folder = dirname(dirname(os.path.abspath(__file__))) + "/experiment/"
         os.system(f"rm -r {self.experiment_folder}")
         os.mkdir(self.experiment_folder)
         os.mkdir(self.experiment_folder+"/molecules/")
-        self.install_p2rank()
 
-    def prepare_data(self, ligands_files: str, protein_files: str):
-        self.ligands_names, self.ligands_smiles = self.read_sdf_files_from_temp(ligands_files)
+
+    def prepare_data(self, ligands_files: List[str], protein_files: List[str]):
+        self.ligands_names, self.ligands_smiles = read_sdf_files(ligands_files)
         self.protein_file = protein_files[0].filename
         self.protein_name = os.path.splitext(self.protein_file)[0]
         self.result_folder = f'{self.experiment_folder}{self.protein_name}_result/'
@@ -324,7 +324,7 @@ class DrugTargetInteraction(BaseModel):
         for ligand_name, ligand_smiles in zip(self.ligands_names, self.ligands_smiles):
             #getting compund feature
             compound_dict = {}
-            rdkitMolFile = f"{self.experiment_folder}/molecules/{self.protein_name}_{ligand_name}_mol_from_rdkit.sdf"
+            rdkitMolFile = f"{self.experiment_folder}molecules/{self.protein_name}_{ligand_name}_mol_from_rdkit.sdf"
             shift_dis = 0   # for visual only, could be any number, shift the ligand away from the protein.
             generate_sdf_from_smiles_using_rdkit(ligand_smiles, rdkitMolFile, shift_dis=shift_dis)    
             mol = Chem.MolFromMolFile(rdkitMolFile)
@@ -346,64 +346,6 @@ class DrugTargetInteraction(BaseModel):
                     info.append([self.protein_name, compound_name, f"pocket_{ith_pocket+1}", com])
             info = pd.DataFrame(info, columns=['protein_name', 'compound_name', 'pocket_name', 'pocket_com'])
             info.to_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
-
-    def install_p2rank(self):
-        # URL of the p2rank tar.gz file
-        p2rank_url = "https://github.com/rdk/p2rank/releases/download/2.4.1/p2rank_2.4.1.tar.gz"
-
-        # P2Rank folder
-        p2rank_folder = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/p2rank_2.4.1/"
-
-        # Check if the destination folder already exists
-        if os.path.exists(p2rank_folder):
-            return
-
-        destination_folder = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/"        
-
-        # Create the destination folder
-        os.makedirs(destination_folder, exist_ok=True)
-
-        # Download the p2rank tar.gz file
-        p2rank_tar_path = os.path.join(destination_folder, "p2rank.tar.gz")
-        urllib.request.urlretrieve(p2rank_url, p2rank_tar_path)
-
-        # Extract the contents of the tar.gz file
-        with tarfile.open(p2rank_tar_path, "r:gz") as tar:
-            tar.extractall(destination_folder)
-
-        # Remove the downloaded tar.gz file
-        os.remove(p2rank_tar_path)
-
-        print("p2rank successfully installed and extracted to:", destination_folder)
-
-
-    def read_sdf_files_from_temp(self, ligand_files):
-        # Initialize lists to store file names and SMILES strings
-        file_names = []
-        smiles_list = []
-
-        # Iterate through files in the 'temp/' folder
-        for file in ligand_files:
-
-            file_name = file.filename
-            
-            file_path = os.path.join(self.experiment_folder, file_name)
-
-            # Extract file name without the '.sdf' extension
-            file_name_without_extension = os.path.splitext(file_name)[0]
-
-            # Initialize an SDMolSupplier to read the SDF file
-            sdf_supplier = SDMolSupplier(file_path)
-
-            # Iterate through molecules in the SDF file and convert to SMILES
-            for mol in sdf_supplier:
-                if mol is not None:
-                    # Convert the molecule to SMILES and append to the list
-                    smiles = Chem.MolToSmiles(mol)
-                    file_names.append(file_name_without_extension)
-                    smiles_list.append(smiles)
-
-        return file_names, smiles_list
 
     def _prepare_protein_data(self):
         #p2rank
@@ -456,7 +398,6 @@ class DrugTargetInteraction(BaseModel):
                 new_coords = info.sort_values("loss")['coords'].iloc[0].astype(np.double)
                 write_with_new_coords(mol, new_coords, toFile)
 
-        print(self.ligands_names)
         for ligand_name in self.ligands_names:
             info = pd.read_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
             compound_dict, rdkitMolFile = self.ligand2compounddict[ligand_name]
@@ -481,6 +422,7 @@ class DrugTargetInteraction(BaseModel):
             chosen = info.loc[info.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
             post_process(chosen, rdkitMolFile, dataset=dataset)
 
-    def predict(self, ligand_files: List[str], protein_file: str):
-        self.prepare_data(ligand_files, protein_file)
+    def predict(self, ligand_files: List[FileStorage], protein_file: str):
+        ligand_files_paths = [self.experiment_folder + file.filename for file in ligand_files]
+        self.prepare_data(ligand_files_paths, protein_file)
         self._raw_inference()

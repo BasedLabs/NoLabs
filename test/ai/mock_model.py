@@ -26,7 +26,7 @@ class FakeFolding(BaseModel):
     def predict(self, sequence: str) -> List[str]:
         url = "https://api.esmatlas.com/foldSequence/v1/pdb/" 
         response = requests.post(url, data=sequence)
-
+        
         return response.text
 
 
