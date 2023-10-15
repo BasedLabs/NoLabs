@@ -1,34 +1,50 @@
-<script setup>
+<script>
 import DrugTarget from '../components/DrugTargetDiscoveryLab/DrugTarget.vue';
-import { onMounted, reactive, defineEmits, ref } from 'vue';
-import store, {api} from '../storage';
+import store, { api } from '../storage';
 
-const drugTargetData = store.state.drugTargetData;
-console.log('rendered');
-
-const experimentLoaded = Object.keys(drugTargetData.experiment).length > 0;
-
-const loadExperiments = async () => {
-    await api.drugTargetDiscovery.getAllExperiments();
-    console.log(drugTargetData.experiments.length);
+export default {
+    data() {
+        return {
+            drugTargetData: store.state.drugTargetData,
+        }
+    },
+    methods: {
+        loadExperiments: async () => {
+            await api.drugTargetDiscovery.getAllExperiments();
+        },
+        async selectExperiment(experiment) {
+            await api.drugTargetDiscovery.loadExperiment(experiment.name);
+        },
+        addExperiment: async () => {
+            api.drugTargetDiscovery.addExperiment();
+        },
+        deleteExperiment: async (experiment) => {
+            await api.drugTargetDiscovery.deleteExperiment(experiment);
+            await loadExperiments();
+        },
+        async onFormSubmit(data) {
+            await api.drugTargetDiscovery.inference(data.target);
+            await this.selectExperiment()
+        },
+        isCurrentExperiment(experiment){
+            return this.drugTargetData.experiment && (this.drugTargetData.experiment.name == experiment.name)
+        }
+    },
+    async mounted() {
+        await this.loadExperiments();
+    },
+    computed: {
+        exprimentNotEmpty() {
+            return !!this.drugTargetData.experiment && this.drugTargetData.experiment.data && this.drugTargetData.experiment.data.length > 0;
+        },
+        experimentSelected() {
+            return !!this.drugTargetData.experiment;
+        }
+    },
+    components: {
+        DrugTarget
+    }
 }
-
-const selectExperiment = async (experiment) => {
-    await api.drugTargetDiscovery.loadExperiment(experiment.name);
-}
-
-const addExperiment = async () => {
-    api.drugTargetDiscovery.addExperiment();
-}
-
-const deleteExperiment = async (name) => {
-    await api.drugTargetDiscovery.deleteExperiment(name);
-    await loadExperiments();
-}
-
-onMounted(async () => {
-    await loadExperiments();
-})
 </script>
 
 <template>
@@ -41,26 +57,26 @@ onMounted(async () => {
                 </li>
                 <li v-for="experiment in drugTargetData.experiments"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                    :class="drugTargetData.experiment === experiment ? 'active' : ''"
-                    @click.stop="selectExperiment(experiment)"
-                    >
-                    {{experiment.name}}
+                    :class="isCurrentExperiment(experiment) ? 'active' : ''"
+                    @click.stop="selectExperiment(experiment)">
+                    {{ experiment.name }}
                     <span class="badge bg-danger rounded-pill btn btn-outline-danger btn-sm btn-link text-decoration-none"
-                        @click.stop="deleteExperiment(experiment.name)">X</span>
+                        @click.stop="deleteExperiment(experiment)">X</span>
                 </li>
             </ul>
         </div>
         <div class="col-md-10">
             <div class="text-center m-5">
-                <h4>Drug target discovery lab</h4>
+                <h4>Drug discovery lab</h4>
                 <div class="row">
                     <div class="col-md-12">
-                        <form enctype="multipart/form-data" id="inferenceInputForm">
+                        <form enctype="multipart/form-data" id="inferenceInputFormDrugDiscovery"
+                            v-on:submit.prevent="onFormSubmit" v-if="experimentSelected">
                             <div class="row justify-content-center">
                                 <div class="col-md-6">
                                     <label for="sdfFileInput" class="col-form-label fs-4">Molecules (.sdf format)</label>
                                     <input type="file" multiple="multiple" accept="text/x-smi" class="form-control"
-                                        id="sdfFileInput" name="smilesFileInput">
+                                        id="sdfFileInput" name="sdfFileInput">
                                 </div>
 
                                 <div class="col-md-6">
@@ -82,18 +98,10 @@ onMounted(async () => {
                         </form>
                     </div>
                 </div>
-
-                <div class="text-center invisible" id="spinner">
-                    <p class="inference-components-title">Processing. It can take more than 10 mins depending on your
-                        PC</p>
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Processing</span>
-                    </div>
-                </div>
-                <div id="resultContainer" v-if="experimentLoaded">
+                <div id="resultContainer" v-if="exprimentNotEmpty">
                     <div class="tab-content" id="nav-tabContent">
                         <div class="tab-pane fade mt-1 show active" role="tabpanel">
-                            <DrugTarget />
+                            <DrugTarget :key="drugTargetData.experiment.name" />
                         </div>
                     </div>
                 </div>
