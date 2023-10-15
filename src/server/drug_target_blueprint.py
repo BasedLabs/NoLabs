@@ -1,80 +1,25 @@
 from flask import Blueprint
+from flask import request
 
-import argparse
+from src.server.api_handlers import DrugTargetApiHandler
 
-from flask import Flask, render_template, request
-import src.server.services.inference_service as inference_service
-from src.server.services.oboreader import read_obo
-from src.server.services.fasta_reader import get_sequences
+def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
+    drug_target_bp = Blueprint('drug-target', __name__)
 
-drug_target_bp = Blueprint('drug-target', __name__)
+    @drug_target_bp.route('/inference', methods=['POST'])
+    def inference():
+        return api_handler.inference(request)
 
+    @drug_target_bp.route('/experiments')
+    def get_experiments():
+        return api_handler.get_experiments()
 
-@drug_target_bp.route('/inference', methods=['POST'])
-def inference():
-    ligand_files = request.files.getlist('sdfFileInput')
-    protein_files = request.files.getlist('proteinFileInput')
+    @drug_target_bp.route('/load-experiment', methods=['GET'])
+    def get_experiment():
+        return api_handler.get_experiment(request)
 
-    # pipeline = inference_service.create_pipeline(use_gpu=use_gpu, is_test=is_test)
+    @drug_target_bp.route('/delete-experiment', methods=['DELETE'])
+    def delete_experiment():
+        return api_handler.delete_experiment()
 
-    # inference_service.save_uploaded_files(pipeline, ligand_files)
-    # inference_service.save_uploaded_files(pipeline, protein_files)
-
-    # inference_service.generate_dti_results(pipeline, ligand_files, protein_files)
-    # pdb_content, protein_name, ligands_sdf_contents, ligand_names, affinity_list \
-    #     = inference_service.get_dti_results(pipeline, ligand_files)
-
-    # if not ligand_files:
-    #    return 'You must provide either smiles text or smiles files', 400
-
-    # if not protein_files:
-    #    return 'You must provide a protein .pdb file', 400
-
-    # res = [{'proteinName': protein_name,
-    #        'ligandName': ligand_name,
-    #        'pdb': pdb_content,
-    #        'sdf': ligand_content,
-    #        'affinity': affinity} for ligand_name, ligand_content, affinity \
-    #        in zip(ligand_names, ligands_sdf_contents, affinity_list)]
-    #
-    # return res
-
-    experiment_name = request.form['experimentName']
-
-    # SAVE inference locally with experiment name
-
-    return {'name': experiment_name, 'data': [{
-        'proteinName': "AHAHAHAHAHHAHA2222222222222222",
-        'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
-        'pdb': open('test.pdb').read(),
-        'sdf': open('test.sdf').read(),
-        'affinity': 10
-    }]}
-
-
-@drug_target_bp.route('/experiments')
-def get_experiments():
-    experiments = [
-        {'name': 'Experiment 10'},
-        {'name': 'Experiment 11'}
-    ]
-    return experiments
-
-@drug_target_bp.route('/load-experiment', methods=['GET'])
-def get_experiment():
-    # get name of the experiment and get EXISTING SAVED data based on this name
-    experiment_name = request.args.get('name')
-
-    return {'name': experiment_name, 'data': [{
-        'proteinName': "AHAHAHAHAHHAHA",
-        'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
-        'pdb': open('test.pdb').read(),
-        'sdf': open('test.sdf').read(),
-        'affinity': 10
-    }]}
-
-
-@drug_target_bp.route('/delete-experiment', methods=['DELETE'])
-def drug_target_discovery_delete_experiment():
-    # Get name of experiment here and delete it based on this name
-    return 200
+    return drug_target_bp
