@@ -12,8 +12,8 @@ drug_target_bp = Blueprint('drug-target', __name__)
 
 @drug_target_bp.route('/inference', methods=['POST'])
 def inference():
-    # ligand_files = request.files.getlist('sdfFileInput')
-    # protein_files = request.files.getlist('proteinFileInput')
+    ligand_files = request.files.getlist('sdfFileInput')
+    protein_files = request.files.getlist('proteinFileInput')
 
     # pipeline = inference_service.create_pipeline(use_gpu=use_gpu, is_test=is_test)
 
@@ -43,8 +43,8 @@ def inference():
 
     # SAVE inference locally with experiment name
 
-    return {'name': 'Experiment 10', 'data': [{
-        'proteinName': "AHAHAHAHAHHAHA",
+    return {'name': experiment_name, 'data': [{
+        'proteinName': "AHAHAHAHAHHAHA2222222222222222",
         'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
         'pdb': open('test.pdb').read(),
         'sdf': open('test.sdf').read(),
@@ -60,11 +60,12 @@ def get_experiments():
     ]
     return experiments
 
-@drug_target_bp.route('/load-experiment/<name>')
+@drug_target_bp.route('/load-experiment', methods=['GET'])
 def get_experiment():
     # get name of the experiment and get EXISTING SAVED data based on this name
+    experiment_name = request.args.get('name')
 
-    return {'name': 'Experiment 10', 'data': [{
+    return {'name': experiment_name, 'data': [{
         'proteinName': "AHAHAHAHAHHAHA",
         'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
         'pdb': open('test.pdb').read(),

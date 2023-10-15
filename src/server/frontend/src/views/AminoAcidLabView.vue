@@ -22,8 +22,7 @@ const onTabClick = (tabId) => {
 }
 
 const onFormSubmit = async (data) => {
-    console.log('pulled')
-    await api.aminoAcidLab.inference(data);
+    await api.aminoAcidLab.inference(data.target);
     pulledInference.value = true;
 }
 
@@ -33,7 +32,7 @@ const onFormSubmit = async (data) => {
     <div class="text-center container">
         <div class="row" :class="pulledInference ? 'invisible' : ''">
             <div class="col-md-12">
-                <form enctype="multipart/form-data" id="inferenceInputForm" v-on:submit.prevent="onFormSubmit">
+                <form enctype="multipart/form-data" id="inferenceInputFormAminoAcid" v-on:submit.prevent="onFormSubmit">
                     <div class="row justify-content-center">
                         <div class="col-md-6">
                             <label for="inputSequence" class="col-form-label fs-4">Paste amino-acid

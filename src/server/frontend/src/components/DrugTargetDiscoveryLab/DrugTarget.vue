@@ -1,108 +1,113 @@
-<script setup>
-
-import { ref, reactive, onMounted } from 'vue';
+<script>
 import store from '../../storage';
 
-const views = {
-    default: { key: 'default', title: 'Default representation' },
-    cartoon: { key: 'cartoon', title: 'Cartoon' },
-    backbone: { key: 'backbone', title: 'Backbone' },
-    ballsAndSticks: { key: 'ball+stick', title: 'Balls and sticks' },
-    contact: { key: 'contact', title: 'Contact' },
-    helixorient: { key: 'helixorient', title: 'Helixorient' },
-    hyperball: { key: 'hyperball', title: 'Hyperball' },
-    licorice: { key: 'licorice', title: 'Licorice' },
-    ribbon: { key: 'ribbon', title: 'Ribbon' },
-    rope: { key: 'rope', title: 'Rope' },
-    surface: { key: 'surface', title: 'Surface' },
-    spacefill: { key: 'spacefill', title: 'Spacefill' },
-    unitcell: { key: 'unitcell', title: 'Unitcell' }
-};
-const viewsItems = Object.keys(views);
-
-let stage;
-let pdbComponent;
-let ligandComponent;
-let selectedView = ref(views.default);
-
-const setView = (viewKey) => {
-    selectedView = views[viewKey];
-    if (selectedView === views.default) {
-        render();
-        return;
-    }
-    pdbComponent.removeAllRepresentations();
-    pdbComponent.addRepresentation(selectedView.key);
-    ligandComponent.removeAllRepresentations();
-    ligandComponent.addRepresentation(selectedView.key);
-}
-
-const cleanStage = () => {
-    if (stage)
-        stage.removeAllComponents();
-}
-
-const render = (experiment, bindingIndex) => {
-    if(bindingIndex >= experiment.data.length){
-        console.log('No experiment data');
-        return;
-    }
-    const drugTargetData = experiment.data[bindingIndex];
-    
-    setTimeout(() => {
-        // Render 3d structure
-        document.getElementById('viewport').innerHTML = '';
-        cleanStage();
-        stage = new NGL.Stage("viewport");
-        stage.setParameters({ backgroundColor: 'white' });
-        const proteinFileContentBlob = new Blob([drugTargetData.pdb], { type: 'text/plain' });
-        const ligandFileContentBlob = new Blob([drugTargetData.sdf], { type: 'text/plain' });
-        const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
-        const sdfFile = new File([ligandFileContentBlob], 'ligand.sdf', { type: 'text/plain' });
-        stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
-            pdbComponent = component;
-        });
-
-        stage.loadFile(sdfFile, { defaultRepresentation: true }).then((component) => {
-            ligandComponent = component;
-        });
-    }, 500);
-}
-
-const renderTable = (experiment) => {
-    const experimentData = experiment.data;
-    // Render table
-    const tableData = [];
-    for (let [index, val] of experimentData.entries()) {
-        tableData.push({ id: index, ligand: val.ligandName, protein: val.proteinName, affinity: val.affinity });
-    }
-
-    const rowSelect = (rowData) => {
-        render(experiment, rowData.id);
-    }
-
-    $('#ligandProteinTable').bootstrapTable({
-        data: tableData,
-        onClickRow: (row, el, field) => {
-            $('#ligandProteinTable tr').removeClass('active');
-            $(el).addClass('active');
-            rowSelect(row)
+export default {
+    data() {
+        const views = {
+            default: { key: 'default', title: 'Default representation' },
+            cartoon: { key: 'cartoon', title: 'Cartoon' },
+            backbone: { key: 'backbone', title: 'Backbone' },
+            ballsAndSticks: { key: 'ball+stick', title: 'Balls and sticks' },
+            contact: { key: 'contact', title: 'Contact' },
+            helixorient: { key: 'helixorient', title: 'Helixorient' },
+            hyperball: { key: 'hyperball', title: 'Hyperball' },
+            licorice: { key: 'licorice', title: 'Licorice' },
+            ribbon: { key: 'ribbon', title: 'Ribbon' },
+            rope: { key: 'rope', title: 'Rope' },
+            surface: { key: 'surface', title: 'Surface' },
+            spacefill: { key: 'spacefill', title: 'Spacefill' },
+            unitcell: { key: 'unitcell', title: 'Unitcell' }
+        };
+        return {
+            views: views,
+            viewsItems: Object.keys(views),
+            selectedView: views.default,
+            stage: null,
+            pdbComponent: null,
+            ligandComponent: null
         }
-    });
+    },
+    methods: {
+        setView(viewKey) {
+            selectedView = this.views[viewKey];
+            if (selectedView === this.views.default) {
+                this.render();
+                return;
+            }
+            this.pdbComponent.removeAllRepresentations();
+            this.pdbComponent.addRepresentation(selectedView.key);
+            this.ligandComponent.removeAllRepresentations();
+            this.ligandComponent.addRepresentation(selectedView.key);
+        },
+        cleanStage() {
+            if (this.stage)
+                this.stage.removeAllComponents();
+        },
+        render(experiment, bindingIndex) {
+            if (bindingIndex >= experiment.data.length) {
+                console.log('No experiment data');
+                return;
+            }
+            const drugTargetData = experiment.data[bindingIndex];
 
-    $("#ligandProteinTableSearch").on("keyup", function () {
-        const value = $(this).val().toLowerCase();
-        $("#ligandProteinTable tr").filter(function () {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-        });
-    });
+            setTimeout(() => {
+                // Render 3d structure
+                document.getElementById('viewport').innerHTML = '';
+                this.cleanStage();
+                this.stage = new NGL.Stage("viewport");
+                this.stage.setParameters({ backgroundColor: 'white' });
+                const proteinFileContentBlob = new Blob([drugTargetData.pdb], { type: 'text/plain' });
+                const ligandFileContentBlob = new Blob([drugTargetData.sdf], { type: 'text/plain' });
+                const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
+                const sdfFile = new File([ligandFileContentBlob], 'ligand.sdf', { type: 'text/plain' });
+                this.stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
+                    this.pdbComponent = component;
+                });
+
+                this.stage.loadFile(sdfFile, { defaultRepresentation: true }).then((component) => {
+                    this.ligandComponent = component;
+                });
+            }, 500);
+        },
+        renderTable(experiment) {
+            const experimentData = experiment.data;
+            // Render table
+            const tableData = [];
+            for (let [index, val] of experimentData.entries()) {
+                tableData.push({ id: index, ligand: val.ligandName, protein: val.proteinName, affinity: val.affinity });
+            }
+
+            const rowSelect = (rowData) => {
+                this.render(experiment, rowData.id);
+            }
+
+            $('#ligandProteinTable').bootstrapTable({
+                data: tableData,
+                onClickRow: (row, el, field) => {
+                    $('#ligandProteinTable tr').removeClass('active');
+                    $(el).addClass('active');
+                    rowSelect(row)
+                }
+            });
+
+            $("#ligandProteinTableSearch").on("keyup", function () {
+                const value = $(this).val().toLowerCase();
+                $("#ligandProteinTable tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        }
+    },
+    mounted() {
+        this.renderTable(this.experiment);
+        this.render(this.experiment, 0);
+    },
+    computed: {
+        experiment() {
+            return store.state.drugTargetData.experiment;
+        }
+    }
 }
-
-onMounted(() => {
-    renderTable(store.state.drugTargetData.experiment);
-    render(store.drugTargetData.experiment, 0);
-});
-
 </script>
 
 <template>

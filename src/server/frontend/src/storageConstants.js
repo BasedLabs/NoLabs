@@ -22,17 +22,17 @@ export const apiConstants = {
             action: 'getAllExperiments'
         },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
-            path: baseUrl + 'api/drug-target/inference',
+            path: baseUrl + '/api/drug-target/inference',
             mutation: 'drugTargetInference',
             action: 'drugTargetInference'
         },
         deleteExperiment: { // request: {name: '123'}
-            path: baseUrl + 'api/drug-target/delete-experiment',
+            path: baseUrl + '/api/drug-target/delete-experiment',
             mutation: 'deleteExperiment',
             action: 'deleteExperiment'
         },
         loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
-            path: baseUrl + 'api/drug-target/load-experiment',
+            path: baseUrl + '/api/drug-target/load-experiment',
             mutation: 'loadExperiment',
             action: 'loadExperiment'
         }
