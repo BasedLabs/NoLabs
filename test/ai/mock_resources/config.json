@@ -14,7 +14,7 @@
       },
       {
           "name": "facebook/esmfold_v1",
-          "type": "fakefolding",
+          "type": "apifolding",
           "task": "folding"
       },
       {
