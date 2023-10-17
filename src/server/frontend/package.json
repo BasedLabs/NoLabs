@@ -13,6 +13,7 @@
     "bootstrap": "^5.3.2",
     "bootswatch": "^5.3.2",
     "vue": "^3.3.4",
+    "vue-loading-overlay": "^6.0.3",
     "vue-router": "^4.2.4",
     "vuex": "^4.0.2"
   },

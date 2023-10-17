@@ -3,6 +3,7 @@ from flask import request
 
 from src.server.api_handlers import DrugTargetApiHandler
 
+
 def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     drug_target_bp = Blueprint('drug-target', __name__)
 

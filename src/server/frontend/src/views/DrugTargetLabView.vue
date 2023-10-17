@@ -13,7 +13,9 @@ export default {
             await api.drugTargetDiscovery.getAllExperiments();
         },
         async selectExperiment(experiment) {
+            this.$loading.show();
             await api.drugTargetDiscovery.loadExperiment(experiment.name);
+            this.$loading.hide();
         },
         addExperiment: async () => {
             api.drugTargetDiscovery.addExperiment();

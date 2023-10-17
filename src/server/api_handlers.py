@@ -1,3 +1,5 @@
+import time
+
 from flask import Request
 import src.server.services.inference_service as inference_service
 from src.server import settings
@@ -44,7 +46,7 @@ class AminoAcidLabApiHandler(ApiHandler):
         }
 
 
-class AminoAcidLabApiMockHandler(ApiHandler):
+class AminoAcidLabApiMockHandler(AminoAcidLabApiHandler):
     def inference(self, request: Request) -> dict:
         amino_acid_input_sequence = request.form['inputSequence']
         amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
@@ -132,6 +134,7 @@ class DrugTargetApiMockHandler(DrugTargetApiHandler):
         return experiments
 
     def get_experiment(self, request):
+        time.sleep(10)
         # get name of the experiment and get EXISTING SAVED data based on this name
         experiment_name = request.args.get('name')
 
