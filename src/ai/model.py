@@ -31,6 +31,7 @@ from typing import List, Tuple
 import os
 import logging
 from argparse import Namespace
+import uuid
 from werkzeug.datastructures import FileStorage
 
 dirname = os.path.dirname
@@ -81,7 +82,7 @@ class ClassificationModel(BaseModel):
             raise ModelNotLoadedException()
 
         probabilities = self._raw_inference(sequence)
-        prob_table = list(zip(self.labels, probabilities))
+        prob_table = {key: value for key, value in list(zip(self.labels, probabilities))}
         return prob_table
 
 class Folding(BaseModel):
@@ -302,16 +303,19 @@ class DrugTargetInteraction(BaseModel):
         else:
             self.device = torch.device('cpu')
         install_p2rank()
-        self.prepare_folders()
 
-    def prepare_folders(self):
-        self.experiment_folder = dirname(dirname(os.path.abspath(__file__))) + "/experiment/"
-        os.system(f"rm -r {self.experiment_folder}")
-        os.mkdir(self.experiment_folder)
+    def prepare_folders(self, experiment_folder: str):
+        if not experiment_folder:
+            self.experiment_folder = dirname(dirname(os.path.abspath(__file__))) + \
+                 "/dti_model_" + str(uuid.uuid4()) + "/"
+            os.system(f"rm -r {self.experiment_folder}")
+            os.mkdir(self.experiment_folder)
+        else:
+            self.experiment_folder = experiment_folder
         os.mkdir(self.experiment_folder+"/molecules/")
 
-
-    def prepare_data(self, ligands_files: List[str], protein_files: List[str]):
+    def prepare_data(self, ligands_files: List[str], protein_files: List[str], experiment_folder: str):
+        self.prepare_folders(experiment_folder)
         self.ligands_names, self.ligands_smiles = read_sdf_files(ligands_files)
         self.protein_file = protein_files[0].filename
         self.protein_name = os.path.splitext(self.protein_file)[0]
@@ -422,7 +426,7 @@ class DrugTargetInteraction(BaseModel):
             chosen = info.loc[info.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
             post_process(chosen, rdkitMolFile, dataset=dataset)
 
-    def predict(self, ligand_files: List[FileStorage], protein_file: str):
+    def predict(self, ligand_files: List[FileStorage], protein_file: str, experiment_folder: str = None):
         ligand_files_paths = [self.experiment_folder + file.filename for file in ligand_files]
-        self.prepare_data(ligand_files_paths, protein_file)
+        self.prepare_data(ligand_files_paths, protein_file, experiment_folder)
         self._raw_inference()

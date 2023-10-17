@@ -4,7 +4,7 @@ from src.ai.model import BaseModel
 
 import requests
 
-class FakeFolding(BaseModel):
+class APIFolding(BaseModel):
 
     def __init__(self, model_name: str, gpu: bool, model_task = ""):
         super().__init__(model_name, gpu, model_task)
