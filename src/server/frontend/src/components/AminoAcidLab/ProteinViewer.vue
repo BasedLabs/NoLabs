@@ -5,7 +5,7 @@ import { ref, onMounted } from 'vue'
 
 const downloadPdbFile = () => {
     const filename = 'protein.pdb';
-    const blob = new Blob([store.state.aminoAcidData.inference.folding], { type: 'text/plain' });
+    const blob = new Blob([store.state.aminoAcid.inference.folding], { type: 'text/plain' });
     if (window.navigator.msSaveOrOpenBlob) {
         window.navigator.msSaveBlob(blob, filename);
     } else {
@@ -60,7 +60,7 @@ const render = () => {
         cleanStage();
         stage = new NGL.Stage("viewport");
         stage.setParameters({ backgroundColor: 'white' });
-        const proteinFileContentBlob = new Blob([store.state.aminoAcidData.inference.folding], { type: 'text/plain' });
+        const proteinFileContentBlob = new Blob([store.state.aminoAcid.inference.folding], { type: 'text/plain' });
         const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
         stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
             nglComponent = component;

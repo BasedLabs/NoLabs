@@ -3,7 +3,7 @@ import store from '../../storage.js';
 import { reactive } from 'vue';
 
 
-const localisation = store.state.aminoAcidData.inference.localisation;
+const localisation = store.state.aminoAcid.inference.localisation;
 
 
 const formatText = (prob) => {

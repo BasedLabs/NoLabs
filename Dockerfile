@@ -1,31 +1,33 @@
 # Use an official PyTorch runtime as a parent image
-FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-devel
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel
 
-# Set the working directory in the container to /app
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get -y update && \
+    apt-get install -y wget software-properties-common python3.8 python3.8-distutils curl libxrender1 libxext6 && \
+    wget https://bootstrap.pypa.io/get-pip.py && \
+    python3.8 get-pip.py
+
+# Install Node.js 18
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y nodejs
+
+# Continue with your setup...
 WORKDIR /app
-
-# Add the current directory contents into the container at /app
 ADD . /app
 
-RUN apt-get -y update
-RUN apt-get -y install git
-# Install Flask and any other needed packages specified in requirements.txt
-# RUN pip install --no-cache-dir -r requirements.txt
-RUN install_deps.sh
+RUN python3.8 -m pip install --upgrade pip && \
+    python3.8 -m pip install torch==1.13.1 torchvision torchaudio && \
+    python3.8 -m pip install torch-geometric && \
+    python3.8 -m pip install --no-index pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cu116.html && \
+    python3.8 -m pip install -r requirements.txt
 
-# Install NVM
-RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-RUN export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" \
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-RUN nvm install --lts
 WORKDIR /app/src/server/frontend
+RUN rm -rf node_modules
 RUN npm install
 WORKDIR /app
-
-# Make port 5000 available to the world outside this container
 EXPOSE 5000
-WORKDIR /app
+EXPOSE 5137
 ENV PYTHONPATH=/app
-# Run app.py when the container launches
-ENTRYPOINT ["dockerfile_entrypoint.sh"]
+RUN chmod +x ./dockerfile_entrypoint.sh
+ENTRYPOINT ["sh", "./dockerfile_entrypoint.sh"]

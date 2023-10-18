@@ -1,5 +1,5 @@
 <script>
-import store from '../../storage';
+import store from '../storage';
 
 export default {
     data() {

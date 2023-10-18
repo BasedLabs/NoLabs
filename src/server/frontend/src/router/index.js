@@ -7,7 +7,7 @@ const router = createRouter({
   routes: [
     {
       path: '/amino-acid-lab',
-      name: 'aminoAcidLab',
+      name: 'aminoAcid',
       component: AminoAcidLabView
     },
     {

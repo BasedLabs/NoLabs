@@ -4,7 +4,7 @@ import store from '../../storage';
 import { ref, reactive, onMounted } from 'vue'
 
 onMounted(() => {
-    const oboGraph = store.state.aminoAcidData.inference.oboGraph;
+    const oboGraph = store.state.aminoAcid.inference.oboGraph;
     const nodesAfterSecondLevel = [];
 
     function convertToHierarchy(id, graph, relation) {
