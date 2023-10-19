@@ -3,28 +3,28 @@ const baseUrl = 'http://127.0.0.1:5000'
 export const apiConstants = {
     aminoAcid: {
         addExperiment: {
-            mutation: 'aminoAcid.addExperiment',
-            action: 'aminoAcid.addExperiment'
+            mutation: 'aminoAcid_addExperiment',
+            action: 'aminoAcid_addExperiment'
         },
         experiments: { // response: [{name: 'exp1'}, {name: 'exp2'}]
             path: baseUrl + '/api/amino-acid/experiments',
-            mutation: 'aminoAcid.getAllExperiments',
-            action: 'aminoAcid.getAllExperiments'
+            mutation: 'aminoAcid_getAllExperiments',
+            action: 'aminoAcid_getAllExperiments'
         },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
             path: baseUrl + '/api/amino-acid/inference',
-            mutation: 'aminoAcid.inference',
-            action: 'aminoAcid.inference'
+            mutation: 'aminoAcid_inference',
+            action: 'aminoAcid_inference'
         },
         deleteExperiment: { // request: {name: '123'}
             path: baseUrl + '/api/amino-acid/delete-experiment',
-            mutation: 'daminoAcid.eleteExperiment',
-            action: 'aminoAcid.deleteExperiment'
+            mutation: 'aminoAcid_eleteExperiment',
+            action: 'aminoAcid_deleteExperiment'
         },
         loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
             path: baseUrl + '/api/amino-acid/load-experiment',
-            mutation: 'aminoAcid.loadExperiment',
-            action: 'aminoAcid.loadExperiment'
+            mutation: 'aminoAcid_loadExperiment',
+            action: 'aminoAcid_loadExperiment'
         }
     },
     // When we click on submit - we trigger server inference, then we save it, and then we return this inference to the UI
@@ -36,28 +36,28 @@ export const apiConstants = {
 
     drugTarget: {
         addExperiment: {
-            mutation: 'drugTarget.addExperiment',
-            action: 'drugTarget.addExperiment'
+            mutation: 'drugTarget_addExperiment',
+            action: 'drugTarget_addExperiment'
         },
         experiments: { // response: [{name: 'exp1'}, {name: 'exp2'}]
             path: baseUrl + '/api/drug-target/experiments',
-            mutation: 'drugTarget.getAllExperiments',
-            action: 'drugTarget.getAllExperiments'
+            mutation: 'drugTarget_getAllExperiments',
+            action: 'drugTarget_getAllExperiments'
         },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
             path: baseUrl + '/api/drug-target/inference',
-            mutation: 'drugTarget.inference',
-            action: 'drugTarget.inference'
+            mutation: 'drugTarget_inference',
+            action: 'drugTarget_inference'
         },
         deleteExperiment: { // request: {name: '123'}
             path: baseUrl + '/api/drug-target/delete-experiment',
-            mutation: 'drugTarget.deleteExperiment',
-            action: 'drugTarget.deleteExperiment'
+            mutation: 'drugTarget_deleteExperiment',
+            action: 'drugTarget_deleteExperiment'
         },
         loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
             path: baseUrl + '/api/drug-target/load-experiment',
-            mutation: 'drugTarget.loadExperiment',
-            action: 'drugTarget.loadExperiment'
+            mutation: 'drugTarget_loadExperiment',
+            action: 'drugTarget_loadExperiment'
         }
     }
 }

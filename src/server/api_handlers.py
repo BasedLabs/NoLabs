@@ -15,6 +15,7 @@ class AminoAcidLabApiHandler(ApiHandler):
     def inference(self, request: Request) -> dict:
         amino_acid_input_sequence = request.form['inputSequence']
         amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
+        experiment_id = request.form['experimentId']
         if not amino_acid_input_sequence:
             amino_acid_input_sequence = \
                 [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
@@ -31,7 +32,7 @@ class AminoAcidLabApiHandler(ApiHandler):
 
         esm_protein_localization = {key: value for key, value in localisation_result}
         obo_graph = read_obo(gene_ontology_result)
-        return {
+        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data':{
             'sequence': amino_acid_input_sequence,
             'localisation': {
                 'mithochondria': esm_protein_localization["Mitochondrial Proteins"],
@@ -43,15 +44,32 @@ class AminoAcidLabApiHandler(ApiHandler):
             'folding': folding_result,
             'oboGraph': obo_graph,
             'solubility': solubility
-        }
+        }}
+
+    def get_experiments(self):
+        return []
+
+    def get_experiment(self, request):
+        # get name of the experiment and get EXISTING SAVED data based on this name
+        experiment_id = int(request.args.get('id'))
+
+        return {'id': experiment_id, 'name': 'test', 'data': []}
+
+    def delete_experiment(self):
+        # Get name of experiment here and delete it based on this name
+        return 200
 
 
 class AminoAcidLabApiMockHandler(AminoAcidLabApiHandler):
     def inference(self, request: Request) -> dict:
         amino_acid_input_sequence = request.form['inputSequence']
         amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
+        if request.form['experimentId']:
+            experiment_id = int(request.form['experimentId'])
+        else:
+            experiment_id = None
 
-        return {
+        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
             'sequence': 'AAAAAAAAAA',
             'localisation': {
                 'mithochondria': 0.2,
@@ -66,13 +84,46 @@ class AminoAcidLabApiMockHandler(AminoAcidLabApiHandler):
                 'GO:234': {'name': 'GO:234', 'namespace': 'biological_process', 'edges': {}}
             },
             'solubility': 0.5
-        }
+        }}
+
+    def get_experiments(self):
+        experiments = [
+            {'id': 1, 'name': 'Experiment 13'},
+            {'id': 2, 'name': 'Experiment 14'}
+        ]
+        return experiments
+
+    def get_experiment(self, request):
+        # get name of the experiment and get EXISTING SAVED data based on this name
+        experiment_id = int(request.args.get('id'))
+
+        return {'id': experiment_id, 'name': 'Test', 'data': {
+            'sequence': 'AAAAAAAAAA',
+            'localisation': {
+                'mithochondria': 0.2,
+                'nucleus': 0.5,
+                'cytoplasm': 0.1,
+                'other': 0.4,
+                'extracellular': 0.3,
+            },
+            'folding': open('mock_data/test.pdb').read(),
+            'oboGraph': {
+                'GO:123': {'name': 'GO:123', 'namespace': 'biological_process', 'edges': {}},
+                'GO:234': {'name': 'GO:234', 'namespace': 'biological_process', 'edges': {}}
+            },
+            'solubility': 0.5
+        }}
+
+    def delete_experiment(self):
+        # Get name of experiment here and delete it based on this name
+        return 200
 
 
 class DrugTargetApiHandler(ApiHandler):
     def inference(self, request):
         ligand_files = request.files.getlist('sdfFileInput')
         protein_files = request.files.getlist('proteinFileInput')
+        experiment_id = request.form['experimentId']
 
         pipeline = inference_service.create_pipeline(use_gpu=settings.use_gpu, is_test=settings.is_test)
 
@@ -89,7 +140,7 @@ class DrugTargetApiHandler(ApiHandler):
         if not protein_files:
            return 'You must provide a protein .pdb file', 400
 
-        res = {'name': request.form['experimentName'], 'data': [{'proteinName': protein_name,
+        res = {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': [{'proteinName': protein_name,
                'ligandName': ligand_name,
                'pdb': pdb_content,
                'sdf': ligand_content,
@@ -103,9 +154,9 @@ class DrugTargetApiHandler(ApiHandler):
 
     def get_experiment(self, request):
         # get name of the experiment and get EXISTING SAVED data based on this name
-        experiment_name = request.args.get('name')
+        experiment_id = int(request.args.get('id'))
 
-        return {'name': experiment_name, 'data': []}
+        return {'id': experiment_id, 'name': 'to be populated from back', 'data': []}
 
     def delete_experiment(self):
         # Get name of experiment here and delete it based on this name
@@ -116,9 +167,9 @@ class DrugTargetApiMockHandler(DrugTargetApiHandler):
     def inference(self, request):
         ligand_files = request.files.getlist('sdfFileInput')
         protein_files = request.files.getlist('proteinFileInput')
-        experiment_name = request.form['experimentName']
+        experiment_id = request.form['experimentId']
 
-        return {'name': experiment_name, 'data': [{
+        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': [{
             'proteinName': "AHAHAHAHAHHAHA2222222222222222",
             'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
             'pdb': open('mock_data/test.pdb').read(),
@@ -128,18 +179,18 @@ class DrugTargetApiMockHandler(DrugTargetApiHandler):
 
     def get_experiments(self):
         experiments = [
-            {'name': 'Experiment 10'},
-            {'name': 'Experiment 11'}
+            {'id': 1, 'name': 'Experiment 10'},
+            {'id': 2, 'name': 'Experiment 11'}
         ]
         return experiments
 
     def get_experiment(self, request):
         time.sleep(10)
         # get name of the experiment and get EXISTING SAVED data based on this name
-        experiment_name = request.args.get('name')
+        experiment_id = int(request.args.get('id'))
 
-        return {'name': experiment_name, 'data': [{
-            'proteinName': "AHAHAHAHAHHAHA",
+        return {'id': experiment_id, 'name': 'Experiment 10', 'data': [{
+            'proteinName': "AHAHAHAHAHHAHA2222222222222222",
             'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
             'pdb': open('mock_data/test.pdb').read(),
             'sdf': open('mock_data/test.sdf').read(),

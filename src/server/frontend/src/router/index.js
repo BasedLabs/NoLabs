@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AminoAcidLabView from '../views/AminoAcidLabView.vue';
-import DrugTargetLabView from '../views/DrugTargetLabView.vue';
+import AminoAcidLabView from '../views/AminoAcidLab.vue';
+import DrugTargetLabView from '../views/DrugTargetLab.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

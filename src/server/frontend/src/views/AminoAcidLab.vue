@@ -1,5 +1,4 @@
 <script>
-import factory from '../services/experimentsViewDataFactory';
 import store from '../storage';
 import { api } from '../storage';
 import ExperimentsView from './ExperimentsView.vue';
@@ -14,21 +13,23 @@ export default {
         }
     },
     components: {
-        ExperimentsView
+        ExperimentsView,
+        AminoAcidLabFormView,
+        AminoAcidLabInferenceView
     }
 }
 </script>
 
 <template>
-    <ExperimentsView experimentsState="experimentsState" experimentsApi="experimentsApi">
+    <ExperimentsView :state="experimentsState" :api="experimentsApi">
         <template v-slot:labTitle>
             <h4>Protein lab</h4>
         </template>
-        <template v-slot:labForm>
-            <AminoAcidLabFormView/>
+        <template v-slot:labForm="labForm">
+            <AminoAcidLabFormView :onFormSubmit="labForm.onFormSubmit"/>
         </template>
-        <template v-slot:lab>
-            <AminoAcidLabInferenceView/>
+        <template v-slot:lab="lab">
+            <AminoAcidLabInferenceView :experiment="lab.experiment"/>
         </template>
     </ExperimentsView >
 </template>

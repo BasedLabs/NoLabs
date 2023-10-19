@@ -1,5 +1,11 @@
 <script>
+import ProteinLocalisation from '../components/AminoAcidLab/ProteinLocalisation.vue';
+import ProteinViewer from '../components/AminoAcidLab/ProteinViewer.vue';
+import GeneOntology from '../components/AminoAcidLab/GeneOntology.vue';
+import ProteinSolubility from '../components/AminoAcidLab/ProteinSolubility.vue';
+
 export default {
+    props: ['experiment'],
     data() {
         return {
             tabId: 'localisation'
@@ -8,11 +14,13 @@ export default {
     methods: {
         onTabClick (tabId) {
             this.tabId = tabId;
-
-            if (this.tabId === 'protein3dViewer') {
-                this.$refs.proteinViewerInstance.value.render();
-            }
         }
+    },
+    components: {
+        ProteinLocalisation,
+        ProteinViewer,
+        GeneOntology,
+        ProteinSolubility
     }
 }
 </script>
@@ -43,16 +51,16 @@ export default {
     </nav>
     <div class="tab-content" id="nav-tabContent">
         <div class="tab-pane fade mt-1" :class="tabId === 'localisation' ? 'show active' : ''" role="tabpanel">
-            <ProteinLocalisation />
+            <ProteinLocalisation :experiment="experiment" />
         </div>
         <div class="tab-pane fade mt-1" :class="tabId === 'protein3dViewer' ? 'show active' : ''" role="tabpanel">
-            <ProteinViewer ref="proteinViewerInstance" />
+            <ProteinViewer ref="proteinViewerInstance" :experiment="experiment" :key="tabId"/>
         </div>
         <div class="tab-pane fade mt-1" :class="tabId === 'geneOntology' ? 'show active' : ''" role="tabpanel">
-            <GeneOntology />
+            <GeneOntology :experiment="experiment"/>
         </div>
         <div class="tab-pane fade mt-1" :class="tabId === 'solubility' ? 'show active' : ''" role="tabpanel">
-            <ProteinSolubility />
+            <ProteinSolubility :experiment="experiment"/>
         </div>
     </div>
 </template>

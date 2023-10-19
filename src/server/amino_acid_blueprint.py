@@ -8,7 +8,19 @@ def resolve_api_endpoints(api_handler: AminoAcidLabApiHandler):
     amino_acid_bp = Blueprint('amino-acid', __name__)
 
     @amino_acid_bp.route('/inference', methods=['POST'])
-    def inference_amino_acid():
+    def inference():
         return api_handler.inference(request)
+
+    @amino_acid_bp.route('/experiments')
+    def get_experiments():
+        return api_handler.get_experiments()
+
+    @amino_acid_bp.route('/load-experiment', methods=['GET'])
+    def get_experiment():
+        return api_handler.get_experiment(request)
+
+    @amino_acid_bp.route('/delete-experiment', methods=['DELETE'])
+    def delete_experiment():
+        return api_handler.delete_experiment()
 
     return amino_acid_bp

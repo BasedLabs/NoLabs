@@ -1,35 +1,27 @@
 <script>
-
-
 export default {
-    props: ['experimentsState', 'experimentsApi'],
-    data() {
-        return {
-            experimentsState: this.experimentsState,
-            experimentsApi: this.experimentsApi
-        }
-    },
+    props: ['state', 'api'],
     methods: {
-        loadExperiments: async () => {
+        async loadExperiments () {
             await this.api.getAllExperiments();
         },
         async selectExperiment(experiment) {
-            this.$loading.show();
+            const loader = this.$loading.show();
             await this.api.loadExperiment(experiment);
-            this.$loading.hide();
+            loader.hide();
         },
-        addExperiment: async () => {
+        async addExperiment() {
             this.api.addExperiment();
         },
-        deleteExperiment: async (experiment) => {
+        async deleteExperiment(experiment) {
             await this.api.deleteExperiment(experiment);
             await loadExperiments();
         },
         async onFormSubmit(data) {
-            await this.api.inference(data.target);
+            await this.api.inference({form: data.target, experiment: this.state.experiment});
             await this.selectExperiment()
         },
-        isCurrentExperiment(experiment){
+        isCurrentExperiment(experiment) {
             return this.state.experiment && (this.state.experiment.name == experiment.name)
         }
     },
@@ -37,8 +29,19 @@ export default {
         await this.loadExperiments();
     },
     computed: {
-        exprimentNotEmpty() {
-            return !!this.state.experiment && this.state.experiment.data && this.state.experiment.data.length > 0;
+        experimentEmpty() {
+            if(!this.state.experiment || !this.state.experiment.data)
+                return true;
+
+            if(typeof this.state.experiment.data === 'Array')
+                return this.state.experiment.data.length === 0;
+
+            if(Object.keys(this.state.experiment.data).length > 0)
+            {
+                console.log('NOT EMPTY');
+            }
+
+            return Object.keys(this.state.experiment.data).length === 0;
         },
         experimentSelected() {
             return !!this.state.experiment;
@@ -55,10 +58,9 @@ export default {
                     <button type="button" @click.stop="addExperiment()"
                         class="btn btn-outline-success add-experiments-button">Add</button>
                 </li>
-                <li v-for="experiment in drugTarget.experiments"
+                <li v-for="experiment in state.experiments"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                    :class="isCurrentExperiment(experiment) ? 'active' : ''"
-                    @click.stop="selectExperiment(experiment)">
+                    :class="isCurrentExperiment(experiment) ? 'active' : ''" @click.stop="selectExperiment(experiment)">
                     {{ experiment.name }}
                     <span class="badge bg-danger rounded-pill btn btn-outline-danger btn-sm btn-link text-decoration-none"
                         @click.stop="deleteExperiment(experiment)">X</span>
@@ -70,13 +72,19 @@ export default {
                 <slot name="labTitle"></slot>
                 <div class="row" v-if="experimentSelected">
                     <div class="col-md-12">
-                        <slot name="labForm"></slot>
+                        <slot name="labForm" :onFormSubmit="onFormSubmit"></slot>
                     </div>
                 </div>
-                <div id="resultContainer" v-if="exprimentNotEmpty">
+                <div class="row" v-else>
+                    <div class="col-md-12">
+                        <hr/>
+                        <h4>Add or select experiment</h4>
+                    </div>
+                </div>
+                <div id="resultContainer" v-if="!experimentEmpty">
                     <div class="tab-content" id="nav-tabContent">
                         <div class="tab-pane fade mt-1 show active" role="tabpanel">
-                            <slot name="lab" :key="state.experiment"></slot>
+                            <slot name="lab" :key="state.experiment.id" :experiment="state.experiment"></slot>
                         </div>
                     </div>
                 </div>

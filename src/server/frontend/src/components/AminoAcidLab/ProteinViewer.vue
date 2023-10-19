@@ -1,82 +1,78 @@
-<script setup>
-import store from '../../storage.js';
-
-import { ref, onMounted } from 'vue'
-
-const downloadPdbFile = () => {
-    const filename = 'protein.pdb';
-    const blob = new Blob([store.state.aminoAcid.inference.folding], { type: 'text/plain' });
-    if (window.navigator.msSaveOrOpenBlob) {
-        window.navigator.msSaveBlob(blob, filename);
-    } else {
-        const elem = window.document.createElement('a');
-        elem.href = window.URL.createObjectURL(blob);
-        elem.download = filename;
-        document.body.appendChild(elem);
-        elem.click();
-        document.body.removeChild(elem);
+<script>
+export default {
+    props: ['experiment'],
+    data() {
+        const views = {
+            default: { key: 'default', title: 'Default representation' },
+            cartoon: { key: 'cartoon', title: 'Cartoon' },
+            backbone: { key: 'backbone', title: 'Backbone' },
+            ballsAndSticks: { key: 'ball+stick', title: 'Balls and sticks' },
+            contact: { key: 'contact', title: 'Contact' },
+            helixorient: { key: 'helixorient', title: 'Helixorient' },
+            hyperball: { key: 'hyperball', title: 'Hyperball' },
+            licorice: { key: 'licorice', title: 'Licorice' },
+            ribbon: { key: 'ribbon', title: 'Ribbon' },
+            rope: { key: 'rope', title: 'Rope' },
+            surface: { key: 'surface', title: 'Surface' },
+            spacefill: { key: 'spacefill', title: 'Spacefill' },
+            unitcell: { key: 'unitcell', title: 'Unitcell' }
+        };
+        return {
+            views: views,
+            viewsItems: Object.keys(views),
+            selectedView: views.default,
+            stage: null,
+            pdbComponent: null,
+            ligandComponent: null
+        }
+    },
+    methods: {
+        setView(viewKey) {
+            this.selectedView = this.views[viewKey];
+            if (this.selectedView === this.views.default) {
+                this.render();
+                return;
+            }
+            this.pdbComponent.removeAllRepresentations();
+            this.pdbComponent.addRepresentation(selectedView.key);
+        },
+        cleanStage() {
+            if (this.stage)
+                this.stage.removeAllComponents();
+        },
+        render() {
+            setTimeout(() => {
+                // Render 3d structure
+                document.getElementById('viewport').innerHTML = '';
+                this.cleanStage();
+                this.stage = new NGL.Stage("viewport");
+                this.stage.setParameters({ backgroundColor: 'white' });
+                const proteinFileContentBlob = new Blob([this.experiment.data.folding], { type: 'text/plain' });
+                const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
+                this.stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
+                    this.pdbComponent = component;
+                });
+            }, 500);
+        },
+        downloadPdbFile() {
+            const filename = 'protein.pdb';
+            const blob = new Blob([store.state.aminoAcid.inference.folding], { type: 'text/plain' });
+            if (window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                const elem = window.document.createElement('a');
+                elem.href = window.URL.createObjectURL(blob);
+                elem.download = filename;
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+            }
+        }
+    },
+    mounted() {
+        this.render();
     }
 }
-
-const views = {
-    default: {key: 'default', title: 'Default representation'},
-    cartoon: {key: 'cartoon', title: 'Cartoon'},
-    backbone: {key: 'backbone', title: 'Backbone'},
-    ballsAndSticks: {key: 'ball+stick', title: 'Balls and sticks'},
-    contact: {key: 'contact', title: 'Contact'},
-    helixorient: {key: 'helixorient', title: 'Helixorient'},
-    hyperball: {key: 'hyperball', title: 'Hyperball'},
-    licorice: {key: 'licorice', title: 'Licorice'},
-    ribbon: {key: 'ribbon', title: 'Ribbon'},
-    rope: {key: 'rope', title: 'Rope'},
-    surface: {key: 'surface', title: 'Surface'},
-    spacefill: {key: 'spacefill', title: 'Spacefill'},
-    unitcell: {key: 'unitcell', title: 'Unitcell'}
-};
-const viewsItems = Object.keys(views);
-
-let nglComponent;
-let stage;
-let selectedView = ref(views.default);
-
-const setView = (viewKey) => {
-    selectedView = views[viewKey];
-    if (selectedView === views.default) {
-        render();
-        return;
-    }
-    nglComponent.removeAllRepresentations();
-    nglComponent.addRepresentation(selectedView.key);
-}
-
-const cleanStage = () => {
-    if (stage)
-        stage.removeAllComponents();
-}
-
-const render = () => {
-    setTimeout(() => {
-        document.getElementById('viewport').innerHTML = '';
-        cleanStage();
-        stage = new NGL.Stage("viewport");
-        stage.setParameters({ backgroundColor: 'white' });
-        const proteinFileContentBlob = new Blob([store.state.aminoAcid.inference.folding], { type: 'text/plain' });
-        const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
-        stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
-            nglComponent = component;
-        });
-    }, 500);
-
-}
-
-onMounted(() => {
-    render();
-});
-
-defineExpose({
-    render
-});
-
 </script>
 
 <template>
@@ -87,11 +83,12 @@ defineExpose({
         <div class="col-md-4">
             <h4>Options</h4>
             <select class="form-select form-select-md mb-3" aria-label="Select a representation">
-                <option v-for="viewKey in viewsItems" @click="setView(viewKey)" :selected="selectedView === view">
+                <option v-for="viewKey in viewsItems" @click="setView(viewKey)">
                     {{ views[viewKey].title }}
                 </option>
             </select>
-            <button type="button" @click="downloadPdbFile()" class="btn btn-primary padding-top-button-group download-pdb-button">Download .pdb
+            <button type="button" @click="downloadPdbFile()"
+                class="btn btn-primary padding-top-button-group download-pdb-button">Download .pdb
             </button>
         </div>
     </div>

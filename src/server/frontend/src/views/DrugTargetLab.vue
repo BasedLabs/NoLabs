@@ -13,21 +13,23 @@ export default {
         }
     },
     components: {
-        ExperimentsView
+        ExperimentsView,
+        DrugTargetLabFormView,
+        DrugTargetLabInferenceView
     }
 }
 </script>
 
 <template>
-    <ExperimentsView experimentsState="experimentsState" experimentsApi="experimentsApi">
+    <ExperimentsView :state="experimentsState" :api="experimentsApi">
         <template v-slot:labTitle>
             <h4>Drug target lab</h4>
         </template>
-        <template v-slot:labForm>
+        <template v-slot:labForm="labForm">
             <DrugTargetLabFormView/>
         </template>
-        <template v-slot:lab>
-            <DrugTargetLabInferenceView/>
+        <template v-slot:lab="lab">
+            <DrugTargetLabInferenceView :experiment="lab.experiment"/>
         </template>
     </ExperimentsView >
 </template>

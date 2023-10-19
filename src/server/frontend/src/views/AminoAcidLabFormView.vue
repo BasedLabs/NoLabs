@@ -1,8 +1,6 @@
 <script>
 export default {
-    props: {
-        onFormSubmit: undefined // method
-    }
+    props: ['onFormSubmit']
 }
 </script>
 
