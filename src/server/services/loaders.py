@@ -49,7 +49,6 @@ class FileLoaderFactory:
     @staticmethod
     def get_loader(filename):
         file_extension = os.path.splitext(filename)[1].lower()
-
         if file_extension == '.pdb':
             return PDBFileLoader()
         elif file_extension == '.csv':
@@ -64,45 +63,81 @@ class FileLoaderFactory:
             raise ValueError(f"Unsupported file extension: {file_extension}")
 
 class DTILoader:
+    def __init__(self):
+        pass
 
-    def get_dti_results(pipeline, ligand_files: str):
-        model = pipeline.get_model_by_task("dti")
-        experiment_folder = model.experiment_folder
-        result_folder = model.result_folder
-        protein_file = model.protein_file
-        protein_name = model.protein_name
+    def get_dti_results(self, experiment_folder: str):
+        protein_names = [d for d in os.listdir(experiment_folder) \
+        if os.path.isdir(os.path.join(experiment_folder, d))]
 
-        pdb_content = ""
+        results = []
+        for protein_name in protein_names:
+            result_folder = f'{experiment_folder}{protein_name}/result'
+            protein_name = protein_name
 
-        # Open and read the PDB file
-        with open(f'{experiment_folder}/{protein_file}', 'r') as pdb_file:
-            for line in pdb_file:
-                pdb_content += line
+            pdb_content = ""
 
-        ligands_sdf_contents = []
-        affinity_list = []
+            # Open and read the PDB file
+            with open(f'{experiment_folder}/{protein_name}/{protein_name}.pdb', 'r') as pdb_file:
+                for line in pdb_file:
+                    pdb_content += line
 
-        ligand_names = [os.path.splitext(file.filename)[0] for file in ligand_files]
+            ligand_names = self.get_ligand_names(f'{experiment_folder}/{protein_name}')
 
-        for ligand_name in ligand_names:
+            for ligand_name in ligand_names:
 
-            ligand_file = f'{result_folder}/{ligand_name}_tankbind.sdf'
+                ligand_file = f'{result_folder}/{ligand_name}_tankbind.sdf'
 
-            info_df = pd.read_csv(f"{result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
-            chosen = info_df.loc[info_df.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
-            affinity_list.append(chosen['affinity'].item())
+                info_df = pd.read_csv(f"{result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
+                chosen = info_df.loc[info_df.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
 
-            sdf_supplier = SDMolSupplier(ligand_file)
-            # Initialize an empty string to store the SDF contents
-            sdf_contents = ""
-            # Iterate through the molecules in the SDF file and append their representations to the string
-            for mol in sdf_supplier:
-                if mol is not None:
-                    # Convert the molecule to an SDF block and append it to the string
-                    sdf_contents += Chem.MolToMolBlock(mol) + "\n"
-            ligands_sdf_contents.append(sdf_contents)
+                sdf_supplier = SDMolSupplier(ligand_file)
+                # Initialize an empty string to store the SDF contents
+                sdf_contents = ""
+                # Iterate through the molecules in the SDF file and append their representations to the string
+                for mol in sdf_supplier:
+                    if mol is not None:
+                        # Convert the molecule to an SDF block and append it to the string
+                        sdf_contents += Chem.MolToMolBlock(mol) + "\n"
+                results.append(
+                    {
+                    'pdb': pdb_content, 
+                    'proteinName': protein_name, 
+                    'sdf': sdf_contents, 
+                    'ligandName': ligand_name, 
+                    'affinity': chosen['affinity'].item()
+                    }
+                )
 
-        
-        print("AFFINITY_LIST: ", affinity_list)
+        return results
 
-        return pdb_content, protein_name, ligands_sdf_contents, ligand_names, affinity_list
+    def get_ligand_names(self, ligands_path):
+        # List all directories inside the ligands folder
+        all_dirs = [d for d in os.listdir(ligands_path) if os.path.isdir(os.path.join(ligands_path, d))]
+
+        # Extract ligand names by removing the '_dataset' suffix
+        ligand_names = [dir_name.rsplit('_dataset', 1)[0] for dir_name in all_dirs if dir_name.endswith('_dataset')]
+
+        return ligand_names
+
+
+def load_experiment_names(experiments_dir):
+    # List all directories inside the dti experiments folder
+    experiment_ids = [d for d in os.listdir(experiments_dir) if os.path.isdir(os.path.join(experiments_dir, d))]
+
+    experimentId2name = {}
+
+    for experiment_id in experiment_ids:
+        metadata_path = os.path.join(experiments_dir, experiment_id, 'metadata.json')
+
+        # Check if metadata.json exists in the directory
+        if os.path.exists(metadata_path):
+            with open(metadata_path, 'r') as f:
+                data = json.load(f)
+                # Assuming the JSON structure has a key 'experiment_name' with the name of the experiment.
+                # Adjust if the structure is different.
+                experiment_name = data.get('name', None)
+                if experiment_name:
+                    experimentId2name[experiment_id] = experiment_name
+
+    return experimentId2name

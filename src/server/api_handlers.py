@@ -1,5 +1,6 @@
 import time
-
+from src.server.services.loaders import DTILoader
+from src.server.services.experiment_service import DrugDiscovery, ProteinPropertyPrediction, save_experiment_metadata
 from flask import Request
 import src.server.services.inference_service as inference_service
 from src.server import settings
@@ -10,6 +11,8 @@ from src.server.services.oboreader import read_obo
 class ApiHandler:
     pass
 
+drug_discovery = DrugDiscovery()
+protein_prediction = ProteinPropertyPrediction()
 
 class AminoAcidLabApiHandler(ApiHandler):
     def inference(self, request: Request) -> dict:
@@ -19,27 +22,21 @@ class AminoAcidLabApiHandler(ApiHandler):
         if not amino_acid_input_sequence:
             amino_acid_input_sequence = \
                 [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
-        pipeline = inference_service.create_pipeline(use_gpu=True, is_test=settings.is_test)
-        localisation_result = inference_service.get_localisation_output(pipeline=pipeline,
-                                                                        amino_acid_sequence=amino_acid_input_sequence)
+        experiment_id = protein_prediction.run(amino_acid_input_sequence)
 
-        folding_result = inference_service.get_folding_output(pipeline=pipeline,
-                                                              amino_acid_sequence=amino_acid_input_sequence)
-        gene_ontology_result = inference_service.get_gene_ontology_output(pipeline=pipeline,
-                                                                          amino_acid_sequence=amino_acid_input_sequence)
-        solubility = inference_service.get_solubility_output(pipeline=pipeline,
-                                                             amino_acid_sequence=amino_acid_input_sequence)
+        localisation_result = ProteinPropertyPrediction.load_result(experiment_id, 'localisation')
+        folding_result = ProteinPropertyPrediction.load_result(experiment_id, 'folding')
+        gene_ontology_result = ProteinPropertyPrediction.load_result(experiment_id, 'gene_ontology')
+        solubility = inference_service.get_solubility_output(experiment_id, 'solubility')
 
-        esm_protein_localization = {key: value for key, value in localisation_result}
         obo_graph = read_obo(gene_ontology_result)
         return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data':{
-            'sequence': amino_acid_input_sequence,
             'localisation': {
-                'mithochondria': esm_protein_localization["Mitochondrial Proteins"],
-                'nucleus': esm_protein_localization["Nuclear Proteins"],
-                'cytoplasm': esm_protein_localization["Cytosolic Proteins"],
-                'other': esm_protein_localization["Other Proteins"],
-                'extracellular': esm_protein_localization["Extracellular/Secreted Proteins"]
+                'mithochondria': localisation_result["Mitochondrial Proteins"],
+                'nucleus': localisation_result["Nuclear Proteins"],
+                'cytoplasm': localisation_result["Cytosolic Proteins"],
+                'other': localisation_result["Other Proteins"],
+                'extracellular': localisation_result["Extracellular/Secreted Proteins"]
             },
             'folding': folding_result,
             'oboGraph': obo_graph,
@@ -47,13 +44,30 @@ class AminoAcidLabApiHandler(ApiHandler):
         }}
 
     def get_experiments(self):
-        return []
+        return ProteinPropertyPrediction.load_experiment_names()
 
     def get_experiment(self, request):
         # get name of the experiment and get EXISTING SAVED data based on this name
         experiment_id = int(request.args.get('id'))
 
-        return {'id': experiment_id, 'name': 'test', 'data': []}
+        localisation_result = ProteinPropertyPrediction.load_result(experiment_id, 'localisation')
+        folding_result = ProteinPropertyPrediction.load_result(experiment_id, 'folding')
+        gene_ontology_result = ProteinPropertyPrediction.load_result(experiment_id, 'gene_ontology')
+        solubility = inference_service.get_solubility_output(experiment_id, 'solubility')
+
+        obo_graph = read_obo(gene_ontology_result)
+        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data':{
+            'localisation': {
+                'mithochondria': localisation_result["Mitochondrial Proteins"],
+                'nucleus': localisation_result["Nuclear Proteins"],
+                'cytoplasm': localisation_result["Cytosolic Proteins"],
+                'other': localisation_result["Other Proteins"],
+                'extracellular': localisation_result["Extracellular/Secreted Proteins"]
+            },
+            'folding': folding_result,
+            'oboGraph': obo_graph,
+            'solubility': solubility
+        }}
 
     def delete_experiment(self):
         # Get name of experiment here and delete it based on this name
@@ -118,45 +132,27 @@ class AminoAcidLabApiMockHandler(AminoAcidLabApiHandler):
         # Get name of experiment here and delete it based on this name
         return 200
 
-
 class DrugTargetApiHandler(ApiHandler):
     def inference(self, request):
         ligand_files = request.files.getlist('sdfFileInput')
         protein_files = request.files.getlist('proteinFileInput')
-        experiment_id = request.form['experimentId']
+        experiment_name = request.form['experimentName']
+        experiment_id = request.form['experimentdId']
 
-        pipeline = inference_service.create_pipeline(use_gpu=settings.use_gpu, is_test=settings.is_test)
+        experiment_id = drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files)
+        DrugDiscovery.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
+        data = DTILoader.get_dti_results(experiment_id)
 
-        inference_service.save_uploaded_files(pipeline, ligand_files)
-        inference_service.save_uploaded_files(pipeline, protein_files)
-
-        inference_service.generate_dti_results(pipeline, ligand_files, protein_files)
-        pdb_content, protein_name, ligands_sdf_contents, ligand_names, affinity_list \
-            = inference_service.get_dti_results(pipeline, ligand_files)
-
-        if not ligand_files:
-           return 'You must provide either smiles text or smiles files', 400
-
-        if not protein_files:
-           return 'You must provide a protein .pdb file', 400
-
-        res = {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': [{'proteinName': protein_name,
-               'ligandName': ligand_name,
-               'pdb': pdb_content,
-               'sdf': ligand_content,
-               'affinity': affinity} for ligand_name, ligand_content, affinity \
-               in zip(ligand_names, ligands_sdf_contents, affinity_list)]}
-
-        return res
+        return {'id': experiment_id, 'name': experiment_name, 'data': data}
 
     def get_experiments(self):
-        return []
+        return DrugDiscovery.load_experiment_names()
 
     def get_experiment(self, request):
         # get name of the experiment and get EXISTING SAVED data based on this name
-        experiment_id = int(request.args.get('id'))
-
-        return {'id': experiment_id, 'name': 'to be populated from back', 'data': []}
+        experiment_id = request.args.get('id')
+        data = DTILoader.get_dti_results(experiment_id)
+        return {'id': experiment_id, 'data': data}
 
     def delete_experiment(self):
         # Get name of experiment here and delete it based on this name

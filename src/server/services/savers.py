@@ -58,5 +58,7 @@ class FileSaverFactory:
             return SDFFileSaver()
         elif file_extension == '.json':
             return JSONFileSaver()
+        elif file_extension == 'skip':
+            pass
         else:
             raise ValueError(f"Unsupported file extension: {file_extension}")
