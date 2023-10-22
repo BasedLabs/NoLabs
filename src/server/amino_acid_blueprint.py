@@ -23,4 +23,8 @@ def resolve_api_endpoints(api_handler: AminoAcidLabApiHandler):
     def delete_experiment():
         return api_handler.delete_experiment()
 
+    @amino_acid_bp.route('/change-experiment-name', methods=['POST'])
+    def change_experiment_name():
+        return api_handler.change_experiment_name(request)
+
     return amino_acid_bp

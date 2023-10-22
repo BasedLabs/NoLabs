@@ -3,7 +3,9 @@ export default {
     props: ['state', 'api'],
     methods: {
         async loadExperiments () {
+            const loader = this.$loading.show();
             await this.api.getAllExperiments();
+            loader.hide();
         },
         async selectExperiment(experiment) {
             const loader = this.$loading.show();
@@ -14,15 +16,35 @@ export default {
             this.api.addExperiment();
         },
         async deleteExperiment(experiment) {
+            const loader = this.$loading.show();
             await this.api.deleteExperiment(experiment);
+            loader.hide();
             await loadExperiments();
         },
         async onFormSubmit(data) {
+            const loader = this.$loading.show();
             await this.api.inference({form: data.target, experiment: this.state.experiment});
-            await this.selectExperiment()
+            loader.hide();
+            await this.selectExperiment();
+            
         },
         isCurrentExperiment(experiment) {
             return this.state.experiment && (this.state.experiment.name == experiment.name)
+        },
+        showTooltip(evt, text) {
+            let tooltip = document.getElementById("tooltip");
+            tooltip.innerHTML = text;
+            tooltip.style.display = "block";
+            tooltip.style.left = evt.pageX + 10 + 'px';
+            tooltip.style.top = evt.pageY + 10 + 'px';
+        },
+        hideTooltip() {
+            var tooltip = document.getElementById("tooltip");
+            tooltip.style.display = "none";
+        },
+        async changeExperimentName(evt, experiment) {
+            experiment.name = evt.target.value;
+            await this.api.changeExperimentName(experiment);
         }
     },
     async mounted() {
@@ -58,16 +80,23 @@ export default {
                     <button type="button" @click.stop="addExperiment()"
                         class="btn btn-outline-success add-experiments-button">Add</button>
                 </li>
+                <div id="tooltip" display="none" style="position: absolute; display: none; z-index: 10"></div>
                 <li v-for="experiment in state.experiments"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                    :class="isCurrentExperiment(experiment) ? 'active' : ''" @click.stop="selectExperiment(experiment)">
-                    {{ experiment.name }}
-                    <span class="badge bg-danger rounded-pill btn btn-outline-danger btn-sm btn-link text-decoration-none"
-                        @click.stop="deleteExperiment(experiment)">X</span>
+                    :class="isCurrentExperiment(experiment) ? 'active' : ''">
+                    <input class="form-control" :value="experiment.name" @input="changeExperimentName($event, experiment)"/>
+                    <i class="bi bi-download btn btn-sm btn-outline-success" type="button" 
+                        @click.stop="selectExperiment(experiment)"
+                        @mouseover="showTooltip($event, 'Load into solution')"
+                        @mouseout="hideTooltip()"></i>
+                    <i class="bi bi-x-circle btn btn-sm btn-outline-danger"
+                        @click.stop="deleteExperiment(experiment)"
+                        @mouseover="showTooltip($event, 'Delete from solution')"
+                        @mouseout="hideTooltip()"></i>
                 </li>
             </ul>
         </div>
-        <div class="col-md-10">
+        <div class="col-md-8">
             <div class="text-center m-5">
                 <slot name="labTitle"></slot>
                 <div class="row" v-if="experimentSelected">

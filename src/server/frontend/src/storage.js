@@ -44,6 +44,10 @@ const store = createStore({
             const response = await axios.get(apiConstants.aminoAcid.loadExperiment.path, { params: { id: experiment.id } });
             commit(apiConstants.aminoAcid.loadExperiment.mutation, { name: experiment.name, experiment: response.data });
         },
+        async aminoAcid_changeExperimentName({commit}, {experiment}){
+            if('id' in experiment)
+                await axios.post(apiConstants.aminoAcid.changeExperimentName.path, { id: experiment.id, name: experiment.name });
+        },
         drugTarget_addExperiment({ commit }, { experiment }) {
             commit(apiConstants.drugTarget.addExperiment.mutation, experiment);
         },
@@ -69,6 +73,10 @@ const store = createStore({
         async drugTarget_loadExperiment({ commit }, { experiment }) {
             const response = await axios.get(apiConstants.drugTarget.loadExperiment.path, { params: { id: experiment.id } });
             commit(apiConstants.drugTarget.loadExperiment.mutation, { name: experiment.name, experiment: response.data });
+        },
+        async drugTarget_changeExperimentName({commit}, {experiment}){
+            if('id' in experiment)
+                await axios.post(apiConstants.drugTarget.changeExperimentName.path, { id: experiment.id, name: experiment.name });
         }
     },
     mutations: {
@@ -143,6 +151,9 @@ export const api = {
                     latestExperiment = experimentNumber + 1;
             }
             store.dispatch(apiConstants.aminoAcid.addExperiment.action, { experiment: { name: `Experiment ${latestExperiment}` } });
+        },
+        changeExperimentName: async (experiment) => {
+            await store.dispatch(apiConstants.aminoAcid.changeExperimentName.action, {experiment});
         }
     },
     drugTarget: {
@@ -166,6 +177,9 @@ export const api = {
                     latestExperiment = experimentNumber + 1;
             }
             store.dispatch(apiConstants.drugTarget.addExperiment.action, { experiment: { name: `Experiment ${latestExperiment}` } });
+        },
+        changeExperimentName: async (experiment) => {
+            await store.dispatch(apiConstants.drugTarget.changeExperimentName.action, {experiment});
         }
     }
 }

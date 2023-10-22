@@ -25,6 +25,10 @@ export const apiConstants = {
             path: baseUrl + '/api/amino-acid/load-experiment',
             mutation: 'aminoAcid_loadExperiment',
             action: 'aminoAcid_loadExperiment'
+        },
+        changeExperimentName: {
+            path: baseUrl + '/api/amino-acid/change-experiment-name',
+            action: 'aminoAcid_changeExperimentName'
         }
     },
     // When we click on submit - we trigger server inference, then we save it, and then we return this inference to the UI
@@ -58,6 +62,10 @@ export const apiConstants = {
             path: baseUrl + '/api/drug-target/load-experiment',
             mutation: 'drugTarget_loadExperiment',
             action: 'drugTarget_loadExperiment'
+        },
+        changeExperimentName: {
+            path: baseUrl + '/api/drug-target/change-experiment-name',
+            action: 'drugTarget_changeExperimentName'
         }
     }
 }

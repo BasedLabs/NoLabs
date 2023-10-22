@@ -23,4 +23,8 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     def delete_experiment():
         return api_handler.delete_experiment()
 
+    @drug_target_bp.route('/change-experiment-name', methods=['POST'])
+    def change_experiment_name():
+        return api_handler.change_experiment_name(request)
+
     return drug_target_bp

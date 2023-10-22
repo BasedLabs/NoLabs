@@ -9,10 +9,17 @@ from src.server.services.oboreader import read_obo
 
 
 class ApiHandler:
-    pass
+    def change_experiment_name(self, request: Request):
+        j = request.get_json(force=True)
+        experiment_id = j['id']
+        experiment_name = j['name']
+
+        return 200
+
 
 drug_discovery = DrugDiscovery()
 protein_prediction = ProteinPropertyPrediction()
+
 
 class AminoAcidLabApiHandler(ApiHandler):
     def inference(self, request: Request) -> dict:
@@ -30,7 +37,7 @@ class AminoAcidLabApiHandler(ApiHandler):
         solubility = inference_service.get_solubility_output(experiment_id, 'solubility')
 
         obo_graph = read_obo(gene_ontology_result)
-        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data':{
+        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
             'localisation': {
                 'mithochondria': localisation_result["Mitochondrial Proteins"],
                 'nucleus': localisation_result["Nuclear Proteins"],
@@ -56,7 +63,7 @@ class AminoAcidLabApiHandler(ApiHandler):
         solubility = inference_service.get_solubility_output(experiment_id, 'solubility')
 
         obo_graph = read_obo(gene_ontology_result)
-        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data':{
+        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
             'localisation': {
                 'mithochondria': localisation_result["Mitochondrial Proteins"],
                 'nucleus': localisation_result["Nuclear Proteins"],
@@ -131,6 +138,7 @@ class AminoAcidLabApiMockHandler(AminoAcidLabApiHandler):
     def delete_experiment(self):
         # Get name of experiment here and delete it based on this name
         return 200
+
 
 class DrugTargetApiHandler(ApiHandler):
     def inference(self, request):
