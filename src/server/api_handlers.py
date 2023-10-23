@@ -1,6 +1,7 @@
 import time
 from src.server.services.loaders import DTILoader
-from src.server.services.experiment_service import DrugDiscovery, ProteinPropertyPrediction, save_experiment_metadata
+from src.server.services.experiment_service import DrugDiscovery, ProteinPropertyPrediction, save_experiment_metadata, \
+    delete_experiment, rename_experiment
 from flask import Request
 import src.server.services.inference_service as inference_service
 from src.server import settings
@@ -14,7 +15,11 @@ class ApiHandler:
         experiment_id = j['id']
         experiment_name = j['name']
 
-        return 200
+        rename_experiment(experiment_id, experiment_name)
+
+    def delete_experiment(self, request: Request):
+        j = request.get_json(force=True)
+        delete_experiment(j['id'])
 
 
 drug_discovery = DrugDiscovery(settings.use_gpu, settings.is_test)
@@ -29,7 +34,7 @@ class AminoAcidLabApiHandler(ApiHandler):
         if not amino_acid_input_sequence:
             amino_acid_input_sequence = \
                 [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
-        experiment_id = protein_prediction.run(amino_acid_input_sequence)
+        experiment_id = protein_prediction.run(amino_acid_input_sequence, experiment_id)
 
         localisation_result = ProteinPropertyPrediction.load_result(experiment_id, 'localisation')
         folding_result = ProteinPropertyPrediction.load_result(experiment_id, 'folding')
@@ -55,7 +60,7 @@ class AminoAcidLabApiHandler(ApiHandler):
 
     def get_experiment(self, request):
         # get name of the experiment and get EXISTING SAVED data based on this name
-        experiment_id = int(request.args.get('id'))
+        experiment_id = request.args.get('id')
 
         localisation_result = ProteinPropertyPrediction.load_result(experiment_id, 'localisation')
         folding_result = ProteinPropertyPrediction.load_result(experiment_id, 'folding')
@@ -75,10 +80,6 @@ class AminoAcidLabApiHandler(ApiHandler):
             'oboGraph': obo_graph,
             'solubility': solubility
         }}
-
-    def delete_experiment(self):
-        # Get name of experiment here and delete it based on this name
-        return 200
 
 
 class AminoAcidLabApiMockHandler(AminoAcidLabApiHandler):
@@ -135,10 +136,6 @@ class AminoAcidLabApiMockHandler(AminoAcidLabApiHandler):
             'solubility': 0.5
         }}
 
-    def delete_experiment(self):
-        # Get name of experiment here and delete it based on this name
-        return 200
-
 
 class DrugTargetApiHandler(ApiHandler):
     def inference(self, request):
@@ -147,9 +144,9 @@ class DrugTargetApiHandler(ApiHandler):
         experiment_name = request.form['experimentName']
         experiment_id = request.form['experimentdId']
 
-        experiment_id = drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files)
+        experiment_id = drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files, experiment_id=experiment_id)
         DrugDiscovery.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
-        data = DTILoader.get_dti_results(experiment_id)
+        data = DTILoader.get_dti_results(experiment_id,)
 
         return {'id': experiment_id, 'name': experiment_name, 'data': data}
 
@@ -161,10 +158,6 @@ class DrugTargetApiHandler(ApiHandler):
         experiment_id = request.args.get('id')
         data = DTILoader.get_dti_results(experiment_id)
         return {'id': experiment_id, 'data': data}
-
-    def delete_experiment(self):
-        # Get name of experiment here and delete it based on this name
-        return 200
 
 
 class DrugTargetApiMockHandler(DrugTargetApiHandler):
@@ -200,7 +193,3 @@ class DrugTargetApiMockHandler(DrugTargetApiHandler):
             'sdf': open('mock_data/test.sdf').read(),
             'affinity': 10
         }]}
-
-    def delete_experiment(self):
-        # Get name of experiment here and delete it based on this name
-        return 200

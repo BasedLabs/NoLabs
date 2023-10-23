@@ -27,6 +27,18 @@ def ensure_base_directory():
         os.makedirs(DTI_EXPERIMENTS_DIR)
 
 
+def delete_experiment(experiment_id):
+    os.remove(os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id))
+
+
+def rename_experiment(experiment_id, experiment_name):
+    metadata_path = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+    with open(metadata_path, 'w') as f:
+        metadata = json.load(f)
+        metadata['name'] = experiment_name
+        json.dump(metadata, f, indent=4)
+
+
 class BaseExperiment:
 
     @abstractmethod
@@ -126,7 +138,8 @@ class DrugDiscovery(BaseExperiment):
     def load_experiment_names(cls):
         return load_experiment_names(DTI_EXPERIMENTS_DIR)
 
-    def save_experiment_metadata(experiment_id: str, experiment_name: str):
+    @classmethod
+    def save_experiment_metadata(cls, experiment_id: str, experiment_name: str):
         metadata = {
             "id": experiment_id,
             "name": experiment_name,
