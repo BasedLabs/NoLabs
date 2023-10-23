@@ -6,7 +6,7 @@ from src.server.api_handlers import AminoAcidLabApiMockHandler, DrugTargetApiMoc
 def api_handlers_factory():
     is_test = settings.is_test
 
-    if is_test:
-        return AminoAcidLabApiMockHandler(), DrugTargetApiMockHandler()
+    #if is_test:
+    #    return AminoAcidLabApiMockHandler(), DrugTargetApiMockHandler()
 
     return AminoAcidLabApiHandler(), DrugTargetApiHandler()
