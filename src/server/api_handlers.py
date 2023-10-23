@@ -17,7 +17,7 @@ class ApiHandler:
         return 200
 
 
-drug_discovery = DrugDiscovery()
+drug_discovery = DrugDiscovery(settings.use_gpu, settings.is_test)
 protein_prediction = ProteinPropertyPrediction()
 
 

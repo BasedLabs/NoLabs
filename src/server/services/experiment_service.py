@@ -10,12 +10,12 @@ from src.server.services.inference_service import create_pipeline, create_model,
 from src.server.services.savers import FileSaverFactory
 from src.server.services.loaders import FileLoaderFactory, load_experiment_names
 
-
 dirname = os.path.dirname
 # Base directory for storing experiment results
 EXPERIMENTS_DIR = dirname(dirname(dirname(os.path.abspath(__file__))) + "/experiments/")
 PROTEIN_EXPERIMENTS_DIR = EXPERIMENTS_DIR + "/proteins"
 DTI_EXPERIMENTS_DIR = EXPERIMENTS_DIR + "/drug_discovery"
+
 
 # Helper function to ensure the base directory exists
 def ensure_base_directory():
@@ -26,11 +26,13 @@ def ensure_base_directory():
     if not os.path.exists(DTI_EXPERIMENTS_DIR):
         os.makedirs(DTI_EXPERIMENTS_DIR)
 
+
 class BaseExperiment:
 
     @abstractmethod
     def run(self, *args, **kwargs):
         pass
+
 
 class ProteinPropertyPrediction(BaseExperiment):
 
@@ -65,28 +67,27 @@ class ProteinPropertyPrediction(BaseExperiment):
         experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
         file_saver.save(result, experiment_dir, filename)
 
-    def save_experiment_metadata(experiment_id: str, experiment_name: str):
+    def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
         metadata = {
             "id": experiment_id,
             "name": experiment_name,
-            "date": datetime.now().isoformat()
+            "date": datetime.datetime.now().isoformat()
         }
-        
+
         metadata_path = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
 
-
     @classmethod
-    def load_result(self, experiment_id: str, model_task: str):
-        filename = self.task2results_map[model_task]
+    def load_result(cls, experiment_id: str, model_task: str):
+        filename = cls.task2results_map[model_task]
         experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
         loader = FileLoaderFactory().get_loader(filename)
         loaded_content = loader.load(experiment_dir, filename)
         return loaded_content
 
     @classmethod
-    def load_experiment_names():
+    def load_experiment_names(cls):
         return load_experiment_names(PROTEIN_EXPERIMENTS_DIR)
 
 
@@ -104,7 +105,7 @@ class DrugDiscovery(BaseExperiment):
             if model_metadata["task"] in self.task2results_map.keys():
                 model = create_model(model_metadata, use_gpu)
                 self.pipeline.add_model(model)
-    
+
     def run(self, ligand_files: List[str], protein_files: str, experiment_id):
         if not experiment_id:
             experiment_id = str(uuid.uuid4())
@@ -114,33 +115,24 @@ class DrugDiscovery(BaseExperiment):
         return experiment_id
 
     @classmethod
-    def load_result(self, experiment_id: str, model_task: str):
-        filename = self.task2results_map[model_task]
+    def load_result(cls, experiment_id: str, model_task: str):
+        filename = cls.task2results_map[model_task]
         experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
         loader = FileLoaderFactory().get_loader(filename)
         loaded_content = loader.load(experiment_dir, filename)
         return loaded_content
 
     @classmethod
-    def load_result(self, experiment_id: str, model_task: str):
-        filename = self.task2results_map[model_task]
-        experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
-        loader = FileLoaderFactory().get_loader(filename)
-        loaded_content = loader.load(experiment_dir, filename)
-        return loaded_content
-
-    @classmethod
-    def load_experiment_names():
+    def load_experiment_names(cls):
         return load_experiment_names(DTI_EXPERIMENTS_DIR)
-    
+
     def save_experiment_metadata(experiment_id: str, experiment_name: str):
         metadata = {
             "id": experiment_id,
             "name": experiment_name,
-            "date": datetime.now().isoformat()
+            "date": datetime.datetime.now().isoformat()
         }
-        
+
         metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, "metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
-
