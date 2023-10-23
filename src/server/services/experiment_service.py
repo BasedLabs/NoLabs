@@ -27,16 +27,7 @@ def ensure_base_directory():
         os.makedirs(DTI_EXPERIMENTS_DIR)
 
 
-def delete_experiment(experiment_id):
-    os.remove(os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id))
 
-
-def rename_experiment(experiment_id, experiment_name):
-    metadata_path = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
-    with open(metadata_path, 'w') as f:
-        metadata = json.load(f)
-        metadata['name'] = experiment_name
-        json.dump(metadata, f, indent=4)
 
 
 class BaseExperiment:
@@ -44,6 +35,16 @@ class BaseExperiment:
     @abstractmethod
     def run(self, *args, **kwargs):
         pass
+
+    def __delete_experiment(self, base_dir, experiment_id):
+        os.remove(os.path.join(base_dir, experiment_id))
+
+    def __rename_experiment(self, base_dir, experiment_id, experiment_name):
+        metadata_path = os.path.join(base_dir, experiment_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            metadata = json.load(f)
+            metadata['name'] = experiment_name
+            json.dump(metadata, f, indent=4)
 
 
 class ProteinPropertyPrediction(BaseExperiment):
@@ -102,6 +103,12 @@ class ProteinPropertyPrediction(BaseExperiment):
     def load_experiment_names(cls):
         return load_experiment_names(PROTEIN_EXPERIMENTS_DIR)
 
+    def delete_experiment(self, experiment_id):
+        self.__delete_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+
+    def rename_experiment(self, experiment_id, experiment_name):
+        self.__rename_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id, experiment_name)
+
 
 class DrugDiscovery(BaseExperiment):
 
@@ -149,3 +156,9 @@ class DrugDiscovery(BaseExperiment):
         metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, "metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
+
+    def delete_experiment(self, experiment_id):
+        self.__delete_experiment(DTI_EXPERIMENTS_DIR, experiment_id)
+
+    def rename_experiment(self, experiment_id, experiment_name):
+        self.__rename_experiment(DTI_EXPERIMENTS_DIR, experiment_id, experiment_name)
