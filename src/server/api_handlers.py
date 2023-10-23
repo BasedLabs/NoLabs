@@ -1,7 +1,6 @@
 import time
 from src.server.services.loaders import DTILoader
-from src.server.services.experiment_service import DrugDiscovery, ProteinPropertyPrediction, save_experiment_metadata, \
-    delete_experiment, rename_experiment
+from src.server.services.experiment_service import DrugDiscovery, ProteinPropertyPrediction
 from flask import Request
 import src.server.services.inference_service as inference_service
 from src.server import settings
@@ -36,10 +35,10 @@ class AminoAcidLabApiHandler(ApiHandler):
                 [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
         experiment_id = protein_prediction.run(amino_acid_input_sequence, experiment_id)
 
-        localisation_result = ProteinPropertyPrediction.load_result(experiment_id, 'localisation')
-        folding_result = ProteinPropertyPrediction.load_result(experiment_id, 'folding')
-        gene_ontology_result = ProteinPropertyPrediction.load_result(experiment_id, 'gene_ontology')
-        solubility = inference_service.get_solubility_output(experiment_id, 'solubility')
+        localisation_result = protein_prediction.load_result(experiment_id, 'localisation')
+        folding_result = protein_prediction.load_result(experiment_id, 'folding')
+        gene_ontology_result = protein_prediction.load_result(experiment_id, 'gene_ontology')
+        solubility = protein_prediction.load_result(experiment_id, 'solubility')
 
         obo_graph = read_obo(gene_ontology_result)
         return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
@@ -62,10 +61,10 @@ class AminoAcidLabApiHandler(ApiHandler):
         # get name of the experiment and get EXISTING SAVED data based on this name
         experiment_id = request.args.get('id')
 
-        localisation_result = ProteinPropertyPrediction.load_result(experiment_id, 'localisation')
-        folding_result = ProteinPropertyPrediction.load_result(experiment_id, 'folding')
-        gene_ontology_result = ProteinPropertyPrediction.load_result(experiment_id, 'gene_ontology')
-        solubility = inference_service.get_solubility_output(experiment_id, 'solubility')
+        localisation_result = protein_prediction.load_result(experiment_id, 'localisation')
+        folding_result = protein_prediction.load_result(experiment_id, 'folding')
+        gene_ontology_result = protein_prediction.load_result(experiment_id, 'gene_ontology')
+        solubility = protein_prediction.load_result(experiment_id, 'solubility')
 
         obo_graph = read_obo(gene_ontology_result)
         return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
@@ -146,7 +145,7 @@ class DrugTargetApiHandler(ApiHandler):
 
         experiment_id = drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files, experiment_id=experiment_id)
         DrugDiscovery.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
-        data = DTILoader.get_dti_results(experiment_id,)
+        data = drug_discovery.load_result(experiment_id)
 
         return {'id': experiment_id, 'name': experiment_name, 'data': data}
 

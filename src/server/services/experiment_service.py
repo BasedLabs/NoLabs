@@ -8,7 +8,7 @@ import json
 
 from src.server.services.inference_service import create_pipeline, create_model, get_models_from_config
 from src.server.services.savers import FileSaverFactory
-from src.server.services.loaders import FileLoaderFactory, load_experiment_names
+from src.server.services.loaders import DTILoader, FileLoaderFactory, load_experiment_names
 
 dirname = os.path.dirname
 # Base directory for storing experiment results
@@ -26,8 +26,7 @@ def ensure_base_directory():
     if not os.path.exists(DTI_EXPERIMENTS_DIR):
         os.makedirs(DTI_EXPERIMENTS_DIR)
 
-
-
+ensure_base_directory()
 
 
 class BaseExperiment:
@@ -80,7 +79,8 @@ class ProteinPropertyPrediction(BaseExperiment):
         experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
         file_saver.save(result, experiment_dir, filename)
 
-    def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
+    @classmethod
+    def save_experiment_metadata(experiment_id: str, experiment_name: str):
         metadata = {
             "id": experiment_id,
             "name": experiment_name,
@@ -92,8 +92,20 @@ class ProteinPropertyPrediction(BaseExperiment):
             json.dump(metadata, f, indent=4)
 
     @classmethod
-    def load_result(cls, experiment_id: str, model_task: str):
-        filename = cls.task2results_map[model_task]
+    def read_experiment_metadata(experiment_id: str):
+        metadata_path = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+
+        # Check if metadata.json exists
+        if not os.path.exists(metadata_path):
+            raise FileNotFoundError(f"No metadata found for experiment_id: {experiment_id}")
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        return metadata
+
+    def load_result(self, experiment_id: str, model_task: str):
+        filename = self.task2results_map[model_task]
         experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
         loader = FileLoaderFactory().get_loader(filename)
         loaded_content = loader.load(experiment_dir, filename)
@@ -112,7 +124,7 @@ class ProteinPropertyPrediction(BaseExperiment):
 
 class DrugDiscovery(BaseExperiment):
 
-    def __init__(self, use_gpu, is_test):
+    def __init__(self, use_gpu, is_test=True):
         # "skip" file fornat is used for skipping since the data saving procedure is written somewhere else
         # Here it's written in dti model predict method
         self.task2results_map = {
@@ -133,13 +145,11 @@ class DrugDiscovery(BaseExperiment):
         model.predict(ligand_files, protein_files, experiment_dir)
         return experiment_id
 
-    @classmethod
-    def load_result(cls, experiment_id: str, model_task: str):
-        filename = cls.task2results_map[model_task]
-        experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
-        loader = FileLoaderFactory().get_loader(filename)
-        loaded_content = loader.load(experiment_dir, filename)
+    def load_result(self, experiment_id: str):
+        loader = DTILoader()
+        loaded_content = loader.get_dti_results(DTI_EXPERIMENTS_DIR, experiment_id)
         return loaded_content
+
 
     @classmethod
     def load_experiment_names(cls):
@@ -162,3 +172,16 @@ class DrugDiscovery(BaseExperiment):
 
     def rename_experiment(self, experiment_id, experiment_name):
         self.__rename_experiment(DTI_EXPERIMENTS_DIR, experiment_id, experiment_name)
+
+    def read_experiment_metadata(experiment_id: str):
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+
+        # Check if metadata.json exists
+        if not os.path.exists(metadata_path):
+            raise FileNotFoundError(f"No metadata found for experiment_id: {experiment_id}")
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        return metadata
+

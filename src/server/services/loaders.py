@@ -6,7 +6,6 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import SDMolSupplier
 
-
 class FileLoader:
     def load(self, folder, filename):
         raise NotImplementedError
@@ -66,7 +65,9 @@ class DTILoader:
     def __init__(self):
         pass
 
-    def get_dti_results(self, experiment_folder: str):
+    def get_dti_results(self, experiments_folder, experiment_id: str):
+        experiment_folder = os.path.join(experiments_folder, experiment_id)
+
         protein_names = [d for d in os.listdir(experiment_folder) \
         if os.path.isdir(os.path.join(experiment_folder, d))]
 
