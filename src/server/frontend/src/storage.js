@@ -95,7 +95,11 @@ const store = createStore({
             if (experiments.length === 0) {
                 api.addExperiment();
             }
-            state.aminoAcid.experiments = experiments;
+            const experimentsArray = [];
+            for (const [key, value] of Object.entries(experiments)) {
+                experimentsArray.push({id: key, name: value});
+            }
+            state.aminoAcid.experiments = experimentsArray;
         },
         aminoAcid_inference(state, experiment) {
             state.aminoAcid.experiment = experiment;
@@ -118,7 +122,11 @@ const store = createStore({
             if (experiments.length === 0) {
                 api.addExperiment();
             }
-            state.drugTarget.experiments = experiments;
+            const experimentsArray = [];
+            for (const [key, value] of Object.entries(experiments)) {
+                experimentsArray.push({id: key, name: value});
+            }
+            state.drugTarget.experiments = experimentsArray;
         },
         drugTarget_inference(state, experiment) {
             state.drugTarget.experiment = experiment;
