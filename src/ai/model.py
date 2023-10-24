@@ -242,10 +242,9 @@ class GeneOntologyPrediction(BaseModel):
         # Path where you want to save the downloaded .pth file
         local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/gene_ontology/go_model_150M.pth"
 
-        response = requests.get(model_url)
-
         if not os.path.exists(local_path):
             with open(local_path, 'wb') as f:
+                response = requests.get(model_url)
                 f.write(response.content)
 
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
