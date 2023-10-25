@@ -10,16 +10,16 @@ describe('Main page', () => {
     });
 
     it('Amino Acid lab opened', () => {
-        cy.visit('http://127.0.0.1:5000/amino-acid');
+        cy.visit('http://127.0.0.1:5000/amino-acid-lab');
     });
 
     it('Amino-acid sequence input is visible', () => {
-        cy.visit('http://127.0.0.1:5000/amino-acid');
+        cy.visit('http://127.0.0.1:5000/amino-acid-lab');
         cy.get(inputAminoAcidSequenceId).should('exist');
     });
 
     it('Inference result is visible', () => {
-        cy.visit('http://127.0.0.1:5000/amino-acid');
+        cy.visit('http://127.0.0.1:5000/amino-acid-lab');
         cy.get(inputAminoAcidSequenceId).click();
         cy.get(inputAminoAcidSequenceId).type(`AAACGAGGCAA`);
         cy.get(submitAminoAcidSequenceId).click();
