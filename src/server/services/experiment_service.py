@@ -40,7 +40,7 @@ class BaseExperiment:
 
     @abstractmethod
     def _delete_experiment(self, base_dir, experiment_id):
-        shutil.rmtree(os.path.join(base_dir, experiment_id))
+        shutil.rmtree(os.path.join(base_dir, experiment_id), ignore_errors=True)
 
     @abstractmethod
     def _rename_experiment(self, base_dir, experiment_id, experiment_name):
@@ -51,6 +51,10 @@ class BaseExperiment:
         metadata['name'] = experiment_name
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
+
+    @abstractmethod
+    def _experiment_exists(self, base_dir, experiment_id):
+        return os.path.exists(os.path.join(base_dir, experiment_id))
 
 
 class ProteinPropertyPrediction(BaseExperiment):
@@ -101,7 +105,6 @@ class ProteinPropertyPrediction(BaseExperiment):
 
     @classmethod
     def read_experiment_metadata(experiment_id: str):
-        print('ASIKDAJOSDOJIASFINHFHJINDSFdf')
         metadata_path = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
 
         # Check if metadata.json exists
@@ -129,6 +132,9 @@ class ProteinPropertyPrediction(BaseExperiment):
 
     def rename_experiment(self, experiment_id, experiment_name):
         self._rename_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id, experiment_name)
+
+    def experiment_exists(self, experiment_id):
+        return super()._experiment_exists(PROTEIN_EXPERIMENTS_DIR, experiment_id)
 
 
 class DrugDiscovery(BaseExperiment):
@@ -209,4 +215,7 @@ class DrugDiscovery(BaseExperiment):
             metadata = json.load(f)
 
         return metadata
+
+    def experiment_exists(self, experiment_id):
+        return super()._experiment_exists(DTI_EXPERIMENTS_DIR, experiment_id)
 

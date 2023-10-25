@@ -13,13 +13,14 @@ export default {
             loader.hide();
         },
         async addExperiment() {
-            this.api.addExperiment();
+            const loader = this.$loading.show();
+            await this.api.addExperiment();
+            loader.hide();
         },
         async deleteExperiment(experiment) {
             const loader = this.$loading.show();
             await this.api.deleteExperiment(experiment);
             loader.hide();
-            await loadExperiments();
         },
         async onFormSubmit(data) {
             const loader = this.$loading.show();
@@ -27,7 +28,7 @@ export default {
             loader.hide();
         },
         isCurrentExperiment(experiment) {
-            return this.state.experiment && (this.state.experiment.name == experiment.name)
+            return this.state.experiment && (this.state.experiment.id == experiment.id)
         },
         showTooltip(evt, text) {
             let tooltip = document.getElementById("tooltip");
@@ -56,11 +57,6 @@ export default {
             if(typeof this.state.experiment.data === 'Array')
                 return this.state.experiment.data.length === 0;
 
-            if(Object.keys(this.state.experiment.data).length > 0)
-            {
-                console.log('NOT EMPTY');
-            }
-
             return Object.keys(this.state.experiment.data).length === 0;
         },
         experimentSelected() {
@@ -72,7 +68,7 @@ export default {
 
 <template>
     <div class="row gy-1">
-        <div class="col-md-2 experiments-col">
+        <div class="col-md-3 experiments-col">
             <ul class="list-group">
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <button type="button" @click.stop="addExperiment()"
@@ -83,11 +79,11 @@ export default {
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     :class="isCurrentExperiment(experiment) ? 'active' : ''">
                     <input class="form-control" :value="experiment.name" @input="changeExperimentName($event, experiment)"/>
-                    <i class="bi bi-download btn btn-sm btn-outline-success" type="button" 
+                    <i class="bi bi-check2 btn btn btn-outline-success" type="button" 
                         @click.stop="selectExperiment(experiment)"
-                        @mouseover="showTooltip($event, 'Load into solution')"
+                        @mouseover="showTooltip($event, 'Select')"
                         @mouseout="hideTooltip()"></i>
-                    <i class="bi bi-x-circle btn btn-sm btn-outline-danger"
+                    <i class="bi bi-x-circle btn btn btn-outline-danger"
                         @click.stop="deleteExperiment(experiment)"
                         @mouseover="showTooltip($event, 'Delete from solution')"
                         @mouseout="hideTooltip()"></i>

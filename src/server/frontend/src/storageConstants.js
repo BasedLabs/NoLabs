@@ -6,6 +6,9 @@ export const apiConstants = {
             mutation: 'aminoAcid_addExperiment',
             action: 'aminoAcid_addExperiment'
         },
+        generateId: {
+            path: baseUrl + '/api/amino-acid/generate-id'
+        },
         experiments: { // response: [{name: 'exp1'}, {name: 'exp2'}]
             path: baseUrl + '/api/amino-acid/experiments',
             mutation: 'aminoAcid_getAllExperiments',
@@ -18,7 +21,7 @@ export const apiConstants = {
         },
         deleteExperiment: { // request: {name: '123'}
             path: baseUrl + '/api/amino-acid/delete-experiment',
-            mutation: 'aminoAcid_eleteExperiment',
+            mutation: 'aminoAcid_deleteExperiment',
             action: 'aminoAcid_deleteExperiment'
         },
         loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
@@ -42,6 +45,9 @@ export const apiConstants = {
         addExperiment: {
             mutation: 'drugTarget_addExperiment',
             action: 'drugTarget_addExperiment'
+        },
+        generateId: {
+            path: baseUrl + '/api/drug-target/generate-id'
         },
         experiments: { // response: [{name: 'exp1'}, {name: 'exp2'}]
             path: baseUrl + '/api/drug-target/experiments',

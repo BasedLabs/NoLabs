@@ -27,4 +27,8 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     def change_experiment_name():
         return api_handler.change_experiment_name(request)
 
+    @drug_target_bp.route('/generate-id', methods=['GET'])
+    def generate_id():
+        return api_handler.gen_uuid()
+
     return drug_target_bp

@@ -118,7 +118,7 @@ export default {
         <div class="col-md-4">
             <h4>Options</h4>
             <select class="form-select form-select-md mb-3" aria-label="Select a representation">
-                <option v-for="viewKey in viewsItems" @click="setView(viewKey)">
+                <option v-for="viewKey in viewsItems" @click.native="setView(viewKey)">
                     {{ views[viewKey].title }}
                 </option>
             </select>

@@ -27,4 +27,8 @@ def resolve_api_endpoints(api_handler: AminoAcidLabApiHandler):
     def change_experiment_name():
         return api_handler.change_experiment_name(request)
 
+    @amino_acid_bp.route('/generate-id', methods=['GET'])
+    def generate_id():
+        return api_handler.gen_uuid()
+
     return amino_acid_bp

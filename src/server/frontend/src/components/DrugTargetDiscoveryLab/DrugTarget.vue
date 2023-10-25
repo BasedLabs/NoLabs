@@ -28,16 +28,18 @@ export default {
         }
     },
     methods: {
-        setView(viewKey) {
-            selectedView = this.views[viewKey];
-            if (selectedView === this.views.default) {
+        setView(evt) {
+            debugger;
+            const viewKey = evt.target.value;
+            this.selectedView = this.views[viewKey];
+            if (this.selectedView === this.views.default) {
                 this.render();
                 return;
             }
             this.pdbComponent.removeAllRepresentations();
-            this.pdbComponent.addRepresentation(selectedView.key);
+            this.pdbComponent.addRepresentation(this.selectedView.key);
             this.ligandComponent.removeAllRepresentations();
-            this.ligandComponent.addRepresentation(selectedView.key);
+            this.ligandComponent.addRepresentation(this.selectedView.key);
         },
         cleanStage() {
             if (this.stage)
@@ -117,8 +119,8 @@ export default {
         </div>
         <div class="col-md-4">
             <h4>Options</h4>
-            <select class="form-select form-select-md mb-3" aria-label="Select a representation">
-                <option v-for="viewKey in viewsItems" @click="setView(viewKey)" :selected="selectedView === view">
+            <select  @change.native="setView($event)" class="form-select form-select-md mb-3" aria-label="Select a representation">
+                <option v-for="viewKey in viewsItems" :key="viewKey" :value="viewKey">
                     {{ views[viewKey].title }}
                 </option>
             </select>
