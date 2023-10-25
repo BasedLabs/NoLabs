@@ -1,3 +1,4 @@
+import shutil
 from abc import abstractmethod
 from typing import Dict, Type, Union, Optional, List
 import uuid
@@ -6,8 +7,10 @@ import os
 import datetime
 import json
 
+from werkzeug.datastructures import FileStorage
+
 from src.server.services.inference_service import create_pipeline, create_model, get_models_from_config
-from src.server.services.savers import FileSaverFactory
+from src.server.services.savers import FileSaverFactory, SDFFileSaver, PDBFileSaver
 from src.server.services.loaders import DTILoader, FileLoaderFactory, load_experiment_names
 
 dirname = os.path.dirname
@@ -35,14 +38,18 @@ class BaseExperiment:
     def run(self, *args, **kwargs):
         pass
 
-    def __delete_experiment(self, base_dir, experiment_id):
-        os.remove(os.path.join(base_dir, experiment_id))
+    @abstractmethod
+    def _delete_experiment(self, base_dir, experiment_id):
+        shutil.rmtree(os.path.join(base_dir, experiment_id))
 
-    def __rename_experiment(self, base_dir, experiment_id, experiment_name):
+    @abstractmethod
+    def _rename_experiment(self, base_dir, experiment_id, experiment_name):
         metadata_path = os.path.join(base_dir, experiment_id, "metadata.json")
-        with open(metadata_path, 'w') as f:
+        print(metadata_path)
+        with open(metadata_path, 'r') as f:
             metadata = json.load(f)
-            metadata['name'] = experiment_name
+        metadata['name'] = experiment_name
+        with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
 
 
@@ -53,7 +60,7 @@ class ProteinPropertyPrediction(BaseExperiment):
             "folding": "folding_prediction.pdb",
             "gene_ontology": "gene_ontology.json",
             "localisation": "cell_localisation.json",
-            "solubility": "metadata"
+            "solubility": "solubility.json"
         }
         self.pipeline = create_pipeline(use_gpu, is_test)
         models_metadata = get_models_from_config(is_test)
@@ -65,7 +72,7 @@ class ProteinPropertyPrediction(BaseExperiment):
     def run(self, sequence: str, experiment_id: str):
         if not experiment_id:
             experiment_id = str(uuid.uuid4())
-        for task, result_file in self.task2results_map:
+        for task, result_file in self.task2results_map.items():
             self.run_by_task(task, sequence, experiment_id, result_file)
         return experiment_id
 
@@ -80,7 +87,8 @@ class ProteinPropertyPrediction(BaseExperiment):
         file_saver.save(result, experiment_dir, filename)
 
     @classmethod
-    def save_experiment_metadata(experiment_id: str, experiment_name: str):
+    def save_experiment_metadata(cls, experiment_id: str, experiment_name: str):
+        print(experiment_id)
         metadata = {
             "id": experiment_id,
             "name": experiment_name,
@@ -93,6 +101,7 @@ class ProteinPropertyPrediction(BaseExperiment):
 
     @classmethod
     def read_experiment_metadata(experiment_id: str):
+        print('ASIKDAJOSDOJIASFINHFHJINDSFdf')
         metadata_path = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
 
         # Check if metadata.json exists
@@ -116,10 +125,10 @@ class ProteinPropertyPrediction(BaseExperiment):
         return load_experiment_names(PROTEIN_EXPERIMENTS_DIR)
 
     def delete_experiment(self, experiment_id):
-        self.__delete_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+        self._delete_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id)
 
     def rename_experiment(self, experiment_id, experiment_name):
-        self.__rename_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id, experiment_name)
+        self._rename_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id, experiment_name)
 
 
 class DrugDiscovery(BaseExperiment):
@@ -137,11 +146,27 @@ class DrugDiscovery(BaseExperiment):
                 model = create_model(model_metadata, use_gpu)
                 self.pipeline.add_model(model)
 
-    def run(self, ligand_files: List[str], protein_files: str, experiment_id):
+    def store_result(self, experiment_id: str, result, filename: str):
+        file_saver = FileSaverFactory().get_saver(filename)
+        experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+        file_saver.save(result, experiment_dir, filename)
+
+    def _store_inputs(self, experiments_dir: str, ligand_files: List[FileStorage], protein_files: List[FileStorage]):
+        sdf_saver = SDFFileSaver()
+        pdb_saver = PDBFileSaver()
+
+        for ligand_file in ligand_files:
+            sdf_saver.save(ligand_file, experiments_dir, ligand_file.filename)
+
+        for pdb_file in protein_files:
+            pdb_saver.save(pdb_file, experiments_dir, pdb_file.filename)
+
+    def run(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_id: str):
         if not experiment_id:
             experiment_id = str(uuid.uuid4())
         model = self.pipeline.get_model_by_task("dti")
         experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+        self._store_inputs(experiment_dir, ligand_files, protein_files)
         model.predict(ligand_files, protein_files, experiment_dir)
         return experiment_id
 
@@ -168,10 +193,10 @@ class DrugDiscovery(BaseExperiment):
             json.dump(metadata, f, indent=4)
 
     def delete_experiment(self, experiment_id):
-        self.__delete_experiment(DTI_EXPERIMENTS_DIR, experiment_id)
+        self._delete_experiment(DTI_EXPERIMENTS_DIR, experiment_id)
 
     def rename_experiment(self, experiment_id, experiment_name):
-        self.__rename_experiment(DTI_EXPERIMENTS_DIR, experiment_id, experiment_name)
+        self._rename_experiment(DTI_EXPERIMENTS_DIR, experiment_id, experiment_name)
 
     def read_experiment_metadata(experiment_id: str):
         metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, "metadata.json")

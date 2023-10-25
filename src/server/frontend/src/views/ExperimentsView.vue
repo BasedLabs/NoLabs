@@ -25,8 +25,6 @@ export default {
             const loader = this.$loading.show();
             await this.api.inference({form: data.target, experiment: this.state.experiment});
             loader.hide();
-            await this.selectExperiment();
-            
         },
         isCurrentExperiment(experiment) {
             return this.state.experiment && (this.state.experiment.name == experiment.name)

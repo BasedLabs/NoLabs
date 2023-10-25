@@ -34,6 +34,11 @@ class JSONFileLoader(FileLoader):
         with open(os.path.join(folder, filename), 'r') as f:
             return json.load(f)
 
+class JSONFileLoader(FileLoader):
+    def load(self, folder, filename):
+        with open(os.path.join(folder, filename), 'r') as f:
+            return json.load(f)
+
 class CSVListLoader(FileLoader):
     def load(self, folder, filename):
         content = []
@@ -56,6 +61,8 @@ class FileLoaderFactory:
             return SDFFileLoader()
         elif file_extension == '.json':
             return JSONFileLoader()
+        elif file_extension == '.txt':
+            return JSONFileLoader()
         elif file_extension == '.list.csv':
             return CSVListLoader()
         else:
@@ -65,7 +72,7 @@ class DTILoader:
     def __init__(self):
         pass
 
-    def get_dti_results(self, experiments_folder, experiment_id: str):
+    def get_dti_results(self, experiments_folder: str, experiment_id: str):
         experiment_folder = os.path.join(experiments_folder, experiment_id)
 
         protein_names = [d for d in os.listdir(experiment_folder) \
@@ -73,15 +80,19 @@ class DTILoader:
 
         results = []
         for protein_name in protein_names:
-            result_folder = f'{experiment_folder}{protein_name}/result'
+            result_folder = os.path.join(experiment_folder, protein_name, 'result')
             protein_name = protein_name
 
             pdb_content = ""
 
             # Open and read the PDB file
-            with open(f'{experiment_folder}/{protein_name}/{protein_name}.pdb', 'r') as pdb_file:
+            pdb_file_path = os.path.join(experiment_folder, protein_name, protein_name + '.pdb')
+            print(pdb_file_path)
+            with open(pdb_file_path, 'r') as pdb_file:
                 for line in pdb_file:
                     pdb_content += line
+
+            print(pdb_content)
 
             ligand_names = self.get_ligand_names(f'{experiment_folder}/{protein_name}')
 
@@ -133,6 +144,7 @@ def load_experiment_names(experiments_dir):
 
         # Check if metadata.json exists in the directory
         if os.path.exists(metadata_path):
+            print(metadata_path, 'EXISTISITISTISID')
             with open(metadata_path, 'r') as f:
                 data = json.load(f)
                 # Assuming the JSON structure has a key 'experiment_name' with the name of the experiment.

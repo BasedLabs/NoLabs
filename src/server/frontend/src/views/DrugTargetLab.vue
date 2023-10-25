@@ -26,7 +26,7 @@ export default {
             <h4>Drug target lab</h4>
         </template>
         <template v-slot:labForm="labForm">
-            <DrugTargetLabFormView/>
+            <DrugTargetLabFormView :onFormSubmit="labForm.onFormSubmit"/>
         </template>
         <template v-slot:lab="lab">
             <DrugTargetLabInferenceView :experiment="lab.experiment"/>

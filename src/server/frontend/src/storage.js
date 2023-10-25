@@ -24,7 +24,8 @@ const store = createStore({
         async aminoAcid_inference({ commit }, { payload }) {
             const {form, experiment} = payload;
             const formData = new FormData(form);
-            formData.append('experimentId', experiment.id);
+            formData.append('experimentId', experiment.id ?? '');
+            formData.append('experimentName', experiment.name);
             const response = await axios({
                 method: 'post',
                 url: apiConstants.aminoAcid.inference.path,
@@ -34,11 +35,11 @@ const store = createStore({
             commit(apiConstants.aminoAcid.inference.mutation, response.data);
         },
         async aminoAcid_getAllExperiments({ commit }) {
-            const response = await axios.get(apiConstants.drugTarget.experiments.path);
+            const response = await axios.get(apiConstants.aminoAcid.experiments.path);
             commit(apiConstants.aminoAcid.experiments.mutation, response.data);
         },
         async aminoAcid_deleteExperiment({ commit }, { experiment }) {
-            return await axios.delete(apiConstants.aminoAcid.deleteExperiment.path, { id: experiment.id });
+            return await axios.delete(apiConstants.aminoAcid.deleteExperiment.path, { data: { id: experiment.id } });
         },
         async aminoAcid_loadExperiment({ commit }, { experiment }) {
             const response = await axios.get(apiConstants.aminoAcid.loadExperiment.path, { params: { id: experiment.id } });
@@ -54,7 +55,8 @@ const store = createStore({
         async drugTarget_inference({ commit }, { payload }) {
             const {form, experiment} = payload;
             const formData = new FormData(form);
-            formData.append('experimentId', experiment.id);
+            formData.append('experimentId', experiment.id ?? '');
+            formData.append('experimentName', experiment.name);
             const response = await axios({
                 method: 'post',
                 url: apiConstants.drugTarget.inference.path,
@@ -68,7 +70,7 @@ const store = createStore({
             commit(apiConstants.drugTarget.experiments.mutation, response.data);
         },
         async drugTarget_deleteExperiment({ commit }, { experiment }) {
-            return await axios.delete(apiConstants.drugTarget.deleteExperiment.path, { id: experiment.id });
+            return await axios.delete(apiConstants.drugTarget.deleteExperiment.path, { data: { id: experiment.id } });
         },
         async drugTarget_loadExperiment({ commit }, { experiment }) {
             const response = await axios.get(apiConstants.drugTarget.loadExperiment.path, { params: { id: experiment.id } });
@@ -152,13 +154,7 @@ export const api = {
             return await store.dispatch(apiConstants.aminoAcid.loadExperiment.action, { experiment });
         },
         addExperiment: () => {
-            let latestExperiment = 1;
-            for (const experiment of store.state.aminoAcid.experiments) {
-                const experimentNumber = parseInt(experiment.name.split(' ')[1]);
-                if (experimentNumber >= latestExperiment)
-                    latestExperiment = experimentNumber + 1;
-            }
-            store.dispatch(apiConstants.aminoAcid.addExperiment.action, { experiment: { name: `Experiment ${latestExperiment}` } });
+            store.dispatch(apiConstants.aminoAcid.addExperiment.action, { experiment: { name: `New experiment` } });
         },
         changeExperimentName: async (experiment) => {
             await store.dispatch(apiConstants.aminoAcid.changeExperimentName.action, {experiment});
@@ -169,7 +165,7 @@ export const api = {
             return await store.dispatch(apiConstants.drugTarget.experiments.action);
         },
         inference: async (payload) => {
-            return await store.dispatch(apiConstants.drugTarget.inference.action, payload);
+            return await store.dispatch(apiConstants.drugTarget.inference.action, { payload });
         },
         deleteExperiment: async (experiment) => {
             return await store.dispatch(apiConstants.drugTarget.deleteExperiment.action, { experiment });
@@ -178,13 +174,7 @@ export const api = {
             return await store.dispatch(apiConstants.drugTarget.loadExperiment.action, { experiment });
         },
         addExperiment: () => {
-            let latestExperiment = 1;
-            for (const experiment of store.state.drugTarget.experiments) {
-                const experimentNumber = parseInt(experiment.name.split(' ')[1]);
-                if (experimentNumber >= latestExperiment)
-                    latestExperiment = experimentNumber + 1;
-            }
-            store.dispatch(apiConstants.drugTarget.addExperiment.action, { experiment: { name: `Experiment ${latestExperiment}` } });
+            store.dispatch(apiConstants.drugTarget.addExperiment.action, { experiment: { name: 'New experiment' } });
         },
         changeExperimentName: async (experiment) => {
             await store.dispatch(apiConstants.drugTarget.changeExperimentName.action, {experiment});

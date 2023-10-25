@@ -1,3 +1,5 @@
+import shutil
+
 import torch
 from torch import Tensor
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, EsmForProteinFolding
@@ -242,6 +244,7 @@ class GeneOntologyPrediction(BaseModel):
         # Path where you want to save the downloaded .pth file
         local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/gene_ontology/go_model_150M.pth"
 
+        print(f'Downloading model: {model_url}, to path: {local_path}')
         if not os.path.exists(local_path):
             with open(local_path, 'wb') as f:
                 response = requests.get(model_url)
@@ -281,9 +284,12 @@ class SolubilityPrediction(BaseModel):
         # Path where you want to save the downloaded .pth file
         local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/solubility/solubility_model.pth"
 
-        response = requests.get(model_url)
-        with open(local_path, 'wb') as f:
-            f.write(response.content)
+        print(f'Downloading model: {model_url}, to path: {local_path}')
+
+        if not os.path.exists(local_path):
+            with open(local_path, 'wb') as f:
+                response = requests.get(model_url)
+                f.write(response.content)
 
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
 
@@ -292,7 +298,7 @@ class SolubilityPrediction(BaseModel):
         embedding = embedding.to(self.device)
         outputs = self.model(embedding.float())
 
-        return outputs.item()
+        return {'solubility': outputs.item()}
 
 
 class DrugTargetInteraction(BaseModel):
@@ -311,9 +317,9 @@ class DrugTargetInteraction(BaseModel):
     def prepare_data(
             self,
             ligands_names: List[str],
-            ligands_smiles: List[str],
+            ligands_smiles: List[FileStorage],
             protein_names: List[str],
-            protein_files: List[str],
+            protein_files: List[FileStorage],
             experiment_folder: str
     ):
         self.prepare_folders(experiment_folder, protein_names)
@@ -348,13 +354,16 @@ class DrugTargetInteraction(BaseModel):
 
             self.protein2ligandcompdict[protein_name] = ligand2compounddict
 
-    def _prepare_protein_data(self, experiment_folder, protein_files, protein_names):
+    def _prepare_protein_data(self, experiment_folder, protein_files: List[FileStorage], protein_names):
         protein_dict = {}
         for protein_file, protein_name in zip(protein_files, protein_names):
             # p2rank
+            original_protein_file = os.path.join(experiment_folder, protein_file.filename)
+            destination_protein_file = os.path.join(experiment_folder, protein_name, protein_file.filename)
+            shutil.copyfile(original_protein_file, destination_protein_file)
             ds = f"{experiment_folder}/{protein_name}/protein_list.ds"
             with open(ds, "w") as out:
-                out.write(f"{protein_file}\n")
+                out.write(f"{protein_file.filename}\n")
             p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/p2rank_2.4.1/prank"
             print("P2RANK_EXEC: " + p2rank_exec)
             p2rank = f"bash {p2rank_exec}"
@@ -362,7 +371,7 @@ class DrugTargetInteraction(BaseModel):
             os.system(cmd)
             # getting protein feature
             parser = PDBParser(QUIET=True)
-            s = parser.get_structure("x", experiment_folder + protein_file)
+            s = parser.get_structure("x", os.path.join(experiment_folder, protein_file.filename))
             res_list = list(s.get_residues())
             protein_dict[protein_name] = get_protein_feature(res_list)
         return protein_dict
@@ -399,12 +408,12 @@ class DrugTargetInteraction(BaseModel):
                 write_with_new_coords(mol, new_coords, toFile)
 
         for protein_name in protein_names:
-            result_folder = f'{experiment_folder}/{protein_name}/result'
+            result_folder = os.path.join(experiment_folder, protein_name, 'result')
             if not os.path.exists(result_folder):
                 os.mkdir(result_folder)
             ligand2compounddict = self.protein2ligandcompdict[protein_name]
             for ligand_name in ligands_names:
-                info = pd.read_csv(f"{experiment_folder}/{ligand_name}_temp_info.csv")
+                info = pd.read_csv(os.path.join(experiment_folder,protein_name, f"{ligand_name}_temp_info.csv"))
                 compound_dict, rdkitMolFile = ligand2compounddict[ligand_name]
                 dataset_path = f"{experiment_folder}/{protein_name}/{ligand_name}_dataset/"
                 os.system(f"rm -r {dataset_path}")
@@ -429,10 +438,10 @@ class DrugTargetInteraction(BaseModel):
                     info.groupby(['protein_name', 'compound_name'], sort=False)['affinity'].agg('idxmax')].reset_index()
                 post_process(chosen, rdkitMolFile, dataset=dataset, result_folder=result_folder)
 
-    def predict(self, ligand_files: List[FileStorage], protein_files: str, experiment_folder: str):
-        ligand_files = [experiment_folder + file.filename for file in ligand_files]
+    def predict(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_folder: str):
+        ligand_files = [os.path.join(experiment_folder, file.filename) for file in ligand_files]
         ligands_names, ligands_smiles = read_sdf_files(ligand_files)
-        protein_files = [x.filename for x in protein_files]
-        protein_names = [os.path.splitext(x) for x in protein_files]
+        protein_names = [os.path.splitext(x.filename)[0] for x in protein_files]
+
         self.prepare_data(ligands_names, ligands_smiles, protein_names, protein_files, experiment_folder)
-        self._raw_inference(experiment_folder)
+        self._raw_inference(experiment_folder, protein_names, ligands_names)
