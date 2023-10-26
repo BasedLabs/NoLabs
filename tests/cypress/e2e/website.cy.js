@@ -5,24 +5,17 @@ describe('Main page', () => {
     const localisationImageClass = '.localisation-image';
     const foldingSelector = '#viewport div';
 
-    it('Opened main page', () => {
-        cy.visit('http://127.0.0.1:5000');
-    });
-
     it('Amino Acid lab opened', () => {
-        cy.visit('http://127.0.0.1:5000/amino-acid-lab');
-    });
-
-    it('Amino-acid sequence input is visible', () => {
-        cy.visit('http://127.0.0.1:5000/amino-acid-lab');
-        cy.get(inputAminoAcidSequenceId).should('exist');
+        cy.visit('http://localhost:5174/amino-acid-lab');
     });
 
     it('Inference result is visible', () => {
-        cy.visit('http://127.0.0.1:5000/amino-acid-lab');
-        cy.get(inputAminoAcidSequenceId).click();
-        cy.get(inputAminoAcidSequenceId).type(`AAACGAGGCAA`);
-        cy.get(submitAminoAcidSequenceId).click();
-        cy.get(foldingSelector, {timeout: 90000}).should('exist');
+        cy.visit('http://localhost:5174/amino-acid-lab');
+        cy.get('.btn.btn-outline-success.add-experiments-button', {timeout: 90000}).click();
+        cy.get('.bi.bi-check2.btn.btn.btn-outline-success', {timeout: 90000}).click();
+        cy.get('#submitInference', {timeout: 90000}).click();
+        cy.intercept('**').as('all');
+        cy.wait('@all', {timeout: 90000}).its('response.statusCode').should('be.oneOf', [200]);
+        cy.get('#mithochondria-list-item', {timeout: 90000}).should('exist');
     });
 })

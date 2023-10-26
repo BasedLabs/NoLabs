@@ -60,6 +60,7 @@ const store = createStore({
             state.drugTarget.experiments.push(experiment);
         },
         drugTarget_deleteExperiment(state, experiment) {
+            debugger;
             if(state.drugTarget.experiment && state.drugTarget.experiment.id === experiment.id){
                 state.drugTarget.experiment = null;
             }
@@ -123,7 +124,7 @@ const store = createStore({
         },
         async drugTarget_deleteExperiment({ commit }, { experiment }) {
             await axios.delete(apiConstants.drugTarget.deleteExperiment.path, { data: { id: experiment.id } });
-            commit(apiConstants.aminoAcid.deleteExperiment.mutation, experiment);
+            commit(apiConstants.drugTarget.deleteExperiment.mutation, experiment);
         },
         async drugTarget_loadExperiment({ commit }, { experiment }) {
             const response = await axios.get(apiConstants.drugTarget.loadExperiment.path, { params: { id: experiment.id, name: experiment.name } });
