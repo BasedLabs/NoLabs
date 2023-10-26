@@ -22,6 +22,9 @@ jobs:
       - name: Start backend server
         working-directory: src/server
         run: PYTHONPATH=/home/runner/work/NoLabs/NoLabs python run.py --host=127.0.0.1 --port=5000 --test=True &
+      - name: Start frontend server
+        working-directory: src/server/frontend
+        run: npm install && (npm run dev &)
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
