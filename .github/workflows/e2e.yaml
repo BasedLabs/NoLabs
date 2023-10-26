@@ -27,7 +27,7 @@ jobs:
         run: npm install
       - name: Run frontend
         working-directory: src/server/frontend
-        run:  npm run dev -- --host &
+        run:  npm run dev &
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
