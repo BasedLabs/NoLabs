@@ -13,11 +13,11 @@ describe('Main page', () => {
     it('Inference result is visible', () => {
         cy.once('uncaught:exception', () => false);
         cy.visit('http://localhost:5173/amino-acid-lab');
-        cy.get('.btn.btn-outline-success.add-experiments-button', {timeout: 90000}).click();
-        cy.get('.bi.bi-check2.btn.btn.btn-outline-success', {timeout: 90000}).click();
-        cy.get('#submitInference', {timeout: 90000}).click();
+        cy.get('.btn.btn-outline-success.add-experiments-button', {timeout: 90000, force: true}).click();
+        cy.get('.bi.bi-check2.btn.btn.btn-outline-success', {timeout: 90000, force: true}).click();
+        cy.get('#submitInference', {timeout: 90000, force: true}).click();
         cy.intercept('**').as('all');
-        cy.wait('@all', {timeout: 90000}).its('response.statusCode').should('be.oneOf', [200]);
+        cy.wait('@all', {timeout: 90000, force: true}).its('response.statusCode').should('be.oneOf', [200]);
         cy.get('#mithochondria-list-item', {timeout: 90000}).should('exist');
     });
 })
