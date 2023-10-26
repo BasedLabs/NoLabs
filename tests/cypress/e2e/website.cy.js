@@ -6,11 +6,11 @@ describe('Main page', () => {
     const foldingSelector = '#viewport div';
 
     it('Amino Acid lab opened', () => {
-        cy.visit('http://localhost:5174/amino-acid-lab');
+        cy.visit('http://localhost:5173/amino-acid-lab');
     });
 
     it('Inference result is visible', () => {
-        cy.visit('http://localhost:5174/amino-acid-lab');
+        cy.visit('http://localhost:5173/amino-acid-lab');
         cy.get('.btn.btn-outline-success.add-experiments-button', {timeout: 90000}).click();
         cy.get('.bi.bi-check2.btn.btn.btn-outline-success', {timeout: 90000}).click();
         cy.get('#submitInference', {timeout: 90000}).click();
