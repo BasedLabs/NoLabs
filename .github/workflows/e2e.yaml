@@ -17,6 +17,7 @@ jobs:
         run: | 
           while true; do \
             output=$(docker logs nolabs-docker)
+            echo $output
             if echo "$output" | grep -q ":5000"; then
               echo "Stopping action, since flask is running"
               break
