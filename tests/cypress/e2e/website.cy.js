@@ -5,6 +5,7 @@ describe('Main page', () => {
     const localisationImageClass = '.localisation-image';
     const foldingSelector = '#viewport div';
 
+    const gets = []
     const logGet = (request) => {
         const start = Date.now()
         request.continue((response) => {
