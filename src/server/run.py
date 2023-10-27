@@ -35,4 +35,5 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['FLASK_DEBUG'] = True
 
 if __name__ == '__main__':
+    print('-- Starting flask server')
     app.run(host=settings.host, port=settings.port)
