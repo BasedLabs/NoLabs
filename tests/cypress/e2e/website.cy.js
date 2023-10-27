@@ -5,6 +5,16 @@ describe('Main page', () => {
     const localisationImageClass = '.localisation-image';
     const foldingSelector = '#viewport div';
 
+    const logGet = (request) => {
+        const start = Date.now()
+        request.continue((response) => {
+            const duration = Date.now() - start
+            gets.push({url: request.url, duration})
+        })
+    }
+
+    cy.intercept('*', logGet)
+
     it('Amino Acid lab opened', () => {
         cy.on('uncaught:exception', () => false);
         cy.visit('http://localhost:5173/amino-acid-lab');
