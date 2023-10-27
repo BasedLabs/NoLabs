@@ -13,7 +13,7 @@ describe('Main page', () => {
         })
     }
 
-    cy.intercept('*', logGet)
+
 
     it('Amino Acid lab opened', () => {
         cy.on('uncaught:exception', () => false);
@@ -21,6 +21,7 @@ describe('Main page', () => {
     });
 
     it('Inference result is visible', () => {
+        cy.intercept('*', logGet)
         cy.visit('http://localhost:5173/amino-acid-lab');
         cy.get('.btn.btn-outline-success.add-experiments-button', {timeout: 90000}).click();
         cy.get('.bi.bi-check2.btn.btn.btn-outline-success', {timeout: 90000}).click();
