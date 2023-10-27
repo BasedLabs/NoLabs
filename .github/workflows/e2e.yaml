@@ -25,6 +25,8 @@ jobs:
             fi
             sleep 3  # Sleep for 1 second before checking again
           done
+      - name: Check curl
+        run: curl http://127.0.0.1:5000/api/amino-acid/experiments
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:

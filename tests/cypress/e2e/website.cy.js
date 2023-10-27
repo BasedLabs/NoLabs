@@ -14,8 +14,6 @@ describe('Main page', () => {
         })
     }
 
-
-
     it('Amino Acid lab opened', () => {
         cy.on('uncaught:exception', () => false);
         cy.visit('http://localhost:5173/amino-acid-lab');
