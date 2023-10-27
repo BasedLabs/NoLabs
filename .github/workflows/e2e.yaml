@@ -15,7 +15,8 @@ jobs:
         run: docker run -d -p 5173:5173 -p 5000:5000 -e --test nolabs
       - name: Cypress run
         uses: cypress-io/github-action@v5
-      - name: Show docker container output
-        run: docker logs $OUTPUT
         with:
           working-directory: tests
+      - name: Show docker container output
+        run: docker logs $OUTPUT
+
