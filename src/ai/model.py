@@ -1,3 +1,5 @@
+import shutil
+
 import torch
 from torch import Tensor
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, EsmForProteinFolding
@@ -15,15 +17,14 @@ from src.ai.custom_models.drug_target.utils import install_p2rank, read_sdf_file
 
 from Bio.PDB import PDBParser
 import rdkit.Chem as Chem
-import pandas as pd 
+import pandas as pd
 
 from src.ai.custom_models.drug_target.tankbind.feature_utils import get_protein_feature, \
     generate_sdf_from_smiles_using_rdkit, extract_torchdrug_feature_from_mol
-from src.ai.custom_models.drug_target.tankbind.generation_utils import get_LAS_distance_constraint_mask,\
-     get_info_pred_distance, write_with_new_coords
+from src.ai.custom_models.drug_target.tankbind.generation_utils import get_LAS_distance_constraint_mask, \
+    get_info_pred_distance, write_with_new_coords
 from src.ai.custom_models.drug_target.tankbind.model import get_model
 from src.ai.custom_models.drug_target.tankbind.data import TankBind_prediction
-
 
 from esm import FastaBatchedDataset, pretrained
 
@@ -35,8 +36,9 @@ from werkzeug.datastructures import FileStorage
 
 dirname = os.path.dirname
 
+
 class BaseModel:
-    def __init__(self, model_name: str, gpu: bool, model_task = ""):
+    def __init__(self, model_name: str, gpu: bool, model_task=""):
         self.model_name = model_name
         self.model_task = model_task
         self.model = None
@@ -57,7 +59,7 @@ class BaseModel:
 
 
 class ClassificationModel(BaseModel):
-    def __init__(self, model_name: str, gpu: bool, model_task = ""):
+    def __init__(self, model_name: str, gpu: bool, model_task=""):
         super().__init__(model_name, gpu, model_task)
 
     def set_labels(self, labels: List[str]):
@@ -81,12 +83,13 @@ class ClassificationModel(BaseModel):
             raise ModelNotLoadedException()
 
         probabilities = self._raw_inference(sequence)
-        prob_table = list(zip(self.labels, probabilities))
+        prob_table = {key: value for key, value in list(zip(self.labels, probabilities))}
         return prob_table
+
 
 class Folding(BaseModel):
 
-    def __init__(self, model_name: str, gpu: bool, model_task = ""):
+    def __init__(self, model_name: str, gpu: bool, model_task=""):
         super().__init__(model_name, gpu, model_task)
         self.model_name = model_name
         self.gpu = gpu
@@ -122,11 +125,10 @@ class Folding(BaseModel):
             pdbs.append(to_pdb(pred))
         return pdbs
 
-
     def _raw_inference(self, sequence: str):
 
         tokenized_input = self.tokenizer([sequence], return_tensors="pt", add_special_tokens=False)['input_ids']
-        
+
         if self.gpu:
             tokenized_input = tokenized_input.cuda()
 
@@ -148,7 +150,7 @@ class Folding(BaseModel):
 
 
 class ESM2EmbeddingGenerator(BaseModel):
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu)
         if gpu:
             self.device = torch.device('cuda')
@@ -167,11 +169,11 @@ class ESM2EmbeddingGenerator(BaseModel):
         toks_per_batch = 4096
 
         args = Namespace(
-            repr_layers = repr_layers,
-            include = include,
-            truncation_seq_length = truncation_seq_length,
-            nogpu = nogpu,
-            toks_per_batch = toks_per_batch
+            repr_layers=repr_layers,
+            include=include,
+            truncation_seq_length=truncation_seq_length,
+            nogpu=nogpu,
+            toks_per_batch=toks_per_batch
         )
 
         if self.device == torch.device('cuda'):
@@ -206,7 +208,7 @@ class ESM2EmbeddingGenerator(BaseModel):
                     result = {"label": label}
                     truncate_len = min(args.truncation_seq_length, len(strs[i]))
                     result["mean_representations"] = {
-                        layer: t[i, 1 : truncate_len + 1].mean(0).clone() \
+                        layer: t[i, 1: truncate_len + 1].mean(0).clone() \
                         for layer, t in representations.items()
                     }
                     return result["mean_representations"][30]
@@ -217,7 +219,7 @@ class GeneOntologyPrediction(BaseModel):
     Look for a better model there https://www.kaggle.com/competitions/cafa-5-protein-function-prediction
     """
 
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu, model_task)
         if gpu:
             self.device = torch.device('cuda')
@@ -230,7 +232,7 @@ class GeneOntologyPrediction(BaseModel):
         self._load_model_state_dict()
         self.model.eval()
         self.labels = np.load(dirname(os.path.abspath(__file__)) + \
-             "/custom_models/models/gene_ontology/go_labels_200.npy", allow_pickle=True)
+                              "/custom_models/models/gene_ontology/go_labels_200.npy", allow_pickle=True)
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
@@ -242,22 +244,24 @@ class GeneOntologyPrediction(BaseModel):
         # Path where you want to save the downloaded .pth file
         local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/gene_ontology/go_model_150M.pth"
 
-        response = requests.get(model_url)
-        with open(local_path, 'wb') as f:
-            f.write(response.content)
+        print(f'Downloading model: {model_url}, to path: {local_path}')
+        if not os.path.exists(local_path):
+            with open(local_path, 'wb') as f:
+                response = requests.get(model_url)
+                f.write(response.content)
 
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
 
     def predict(self, protein_id: str):
         embedding = self.embedding_model.predict(protein_id)
         raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
-        
+
         outputs = {label: confidence for label, confidence in zip(self.labels, raw_outputs)}
         return outputs
 
 
 class SolubilityPrediction(BaseModel):
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu, model_task)
         if gpu:
             self.device = torch.device('cuda')
@@ -280,9 +284,12 @@ class SolubilityPrediction(BaseModel):
         # Path where you want to save the downloaded .pth file
         local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/solubility/solubility_model.pth"
 
-        response = requests.get(model_url)
-        with open(local_path, 'wb') as f:
-            f.write(response.content)
+        print(f'Downloading model: {model_url}, to path: {local_path}')
+
+        if not os.path.exists(local_path):
+            with open(local_path, 'wb') as f:
+                response = requests.get(model_url)
+                f.write(response.content)
 
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
 
@@ -291,78 +298,82 @@ class SolubilityPrediction(BaseModel):
         embedding = embedding.to(self.device)
         outputs = self.model(embedding.float())
 
-        return outputs.item()
+        return {'solubility': outputs.item()}
 
 
 class DrugTargetInteraction(BaseModel):
-    def __init__(self, model_name, gpu, model_task = ""):
+    def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu, model_task)
         if gpu:
             self.device = torch.device('cuda')
         else:
             self.device = torch.device('cpu')
         install_p2rank()
-        self.prepare_folders()
 
-    def prepare_folders(self):
-        self.experiment_folder = dirname(dirname(os.path.abspath(__file__))) + "/experiment/"
-        os.system(f"rm -r {self.experiment_folder}")
-        os.mkdir(self.experiment_folder)
-        os.mkdir(self.experiment_folder+"/molecules/")
+    def prepare_folders(self, experiment_folder: str, protein_names: List[str]):
+        for protein_name in protein_names:
+            os.system(f'mkdir -p {experiment_folder}/{protein_name}')
 
+    def prepare_data(
+            self,
+            ligands_names: List[str],
+            ligands_smiles: List[FileStorage],
+            protein_names: List[str],
+            protein_files: List[FileStorage],
+            experiment_folder: str
+    ):
+        self.prepare_folders(experiment_folder, protein_names)
+        self.protein_dict = self._prepare_protein_data(experiment_folder, protein_files, protein_names)
+        self.protein2ligandcompdict = {}
+        for protein_name in protein_names:
+            ligand2compounddict = {}
+            for ligand_name, ligand_smiles in zip(ligands_names, ligands_smiles):
+                # getting compund feature
+                compound_dict = {}
+                rdkitMolFile = f"{experiment_folder}/{protein_name}/{ligand_name}_mol_from_rdkit.sdf"
+                shift_dis = 0  # for visual only, could be any number, shift the ligand away from the protein.
+                generate_sdf_from_smiles_using_rdkit(ligand_smiles, rdkitMolFile, shift_dis=shift_dis)
+                mol = Chem.MolFromMolFile(rdkitMolFile)
+                compound_dict[protein_name + "_" + f"{ligand_name}_rdkit"] = extract_torchdrug_feature_from_mol(mol,
+                                                                                                                has_LAS_mask=True)
+                ligand2compounddict[ligand_name] = [compound_dict, rdkitMolFile]
+                info = []
+                for compound_name in list(compound_dict.keys()):
+                    # use protein center as the block center.
+                    com = ",".join([str(a.round(3)) for a in self.protein_dict[protein_name][0].mean(axis=0).numpy()])
+                    info.append([protein_name, compound_name, "protein_center", com])
+                    p2rankFile = f"{experiment_folder}/{protein_name}/p2rank/{protein_name}.pdb_predictions.csv"
+                    pocket = pd.read_csv(p2rankFile)
+                    pocket.columns = pocket.columns.str.strip()
+                    pocket_coms = pocket[['center_x', 'center_y', 'center_z']].values
+                    for ith_pocket, com in enumerate(pocket_coms):
+                        com = ",".join([str(a.round(3)) for a in com])
+                        info.append([protein_name, compound_name, f"pocket_{ith_pocket + 1}", com])
+                info = pd.DataFrame(info, columns=['protein_name', 'compound_name', 'pocket_name', 'pocket_com'])
+                info.to_csv(f"{experiment_folder}/{protein_name}/{ligand_name}_temp_info.csv")
 
-    def prepare_data(self, ligands_files: List[str], protein_files: List[str]):
-        self.ligands_names, self.ligands_smiles = read_sdf_files(ligands_files)
-        self.protein_file = protein_files[0].filename
-        self.protein_name = os.path.splitext(self.protein_file)[0]
-        self.result_folder = f'{self.experiment_folder}{self.protein_name}_result/'
-        os.system(f'mkdir -p {self.result_folder}')
+            self.protein2ligandcompdict[protein_name] = ligand2compounddict
 
-        self.protein_dict = self._prepare_protein_data()
-
-        self.ligand2compounddict = {}
-        for ligand_name, ligand_smiles in zip(self.ligands_names, self.ligands_smiles):
-            #getting compund feature
-            compound_dict = {}
-            rdkitMolFile = f"{self.experiment_folder}molecules/{self.protein_name}_{ligand_name}_mol_from_rdkit.sdf"
-            shift_dis = 0   # for visual only, could be any number, shift the ligand away from the protein.
-            generate_sdf_from_smiles_using_rdkit(ligand_smiles, rdkitMolFile, shift_dis=shift_dis)    
-            mol = Chem.MolFromMolFile(rdkitMolFile)
-            compound_dict[self.protein_name+"_"+f"{ligand_name}_rdkit"] = extract_torchdrug_feature_from_mol(mol, has_LAS_mask=True)
-            self.ligand2compounddict[ligand_name] = [compound_dict, rdkitMolFile]
-
-            info = []
-            for compound_name in list(compound_dict.keys()):
-                # use protein center as the block center.
-                com = ",".join([str(a.round(3)) for a in self.protein_dict[self.protein_name][0].mean(axis=0).numpy()])
-                info.append([self.protein_name, compound_name, "protein_center", com])
-
-                p2rankFile = f"{self.experiment_folder}p2rank/{self.protein_name}.pdb_predictions.csv"
-                pocket = pd.read_csv(p2rankFile)
-                pocket.columns = pocket.columns.str.strip()
-                pocket_coms = pocket[['center_x', 'center_y', 'center_z']].values
-                for ith_pocket, com in enumerate(pocket_coms):
-                    com = ",".join([str(a.round(3)) for a in com])
-                    info.append([self.protein_name, compound_name, f"pocket_{ith_pocket+1}", com])
-            info = pd.DataFrame(info, columns=['protein_name', 'compound_name', 'pocket_name', 'pocket_com'])
-            info.to_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
-
-    def _prepare_protein_data(self):
-        #p2rank
-        ds = f"{self.experiment_folder}/protein_list.ds"
-        with open(ds, "w") as out:
-            out.write(f"{self.protein_file}\n")
-        p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/p2rank_2.4.1/prank"
-        print("P2RANK_EXEC: "+p2rank_exec)
-        p2rank = f"bash {p2rank_exec}"
-        cmd = f"{p2rank} predict {ds} -o {self.experiment_folder}/p2rank -threads 1"
-        os.system(cmd)
-        #getting protein feature
-        parser = PDBParser(QUIET=True)
-        s = parser.get_structure("x", self.experiment_folder + self.protein_file)
-        res_list = list(s.get_residues())
+    def _prepare_protein_data(self, experiment_folder, protein_files: List[FileStorage], protein_names):
         protein_dict = {}
-        protein_dict[self.protein_name] = get_protein_feature(res_list)
+        for protein_file, protein_name in zip(protein_files, protein_names):
+            # p2rank
+            original_protein_file = os.path.join(experiment_folder, protein_file.filename)
+            destination_protein_file = os.path.join(experiment_folder, protein_name, protein_file.filename)
+            shutil.copyfile(original_protein_file, destination_protein_file)
+            ds = f"{experiment_folder}/{protein_name}/protein_list.ds"
+            with open(ds, "w") as out:
+                out.write(f"{protein_file.filename}\n")
+            p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/p2rank_2.4.1/prank"
+            print("P2RANK_EXEC: " + p2rank_exec)
+            p2rank = f"bash {p2rank_exec}"
+            cmd = f"{p2rank} predict {ds} -o {experiment_folder}/{protein_name}/p2rank -threads 1"
+            os.system(cmd)
+            # getting protein feature
+            parser = PDBParser(QUIET=True)
+            s = parser.get_structure("x", os.path.join(experiment_folder, protein_file.filename))
+            res_list = list(s.get_residues())
+            protein_dict[protein_name] = get_protein_feature(res_list)
         return protein_dict
 
     def load_model(self):
@@ -372,9 +383,9 @@ class DrugTargetInteraction(BaseModel):
         self.model.load_state_dict(torch.load(modelFile, map_location=self.device))
         self.model.eval()
 
-    def _raw_inference(self):
+    def _raw_inference(self, experiment_folder, protein_names, ligands_names):
 
-        def post_process(chosen, rdkitMolFile, dataset):
+        def post_process(chosen, rdkitMolFile, dataset, result_folder):
             for i, line in chosen.iterrows():
                 idx = line['index']
                 pocket_name = line['pocket_name']
@@ -389,40 +400,48 @@ class DrugTargetInteraction(BaseModel):
                 compound_pair_dis_constraint = torch.cdist(coords, coords)
                 mol = Chem.MolFromMolFile(rdkitMolFile)
                 LAS_distance_constraint_mask = get_LAS_distance_constraint_mask(mol).bool()
-                info = get_info_pred_distance(coords, y_pred, protein_nodes_xyz, compound_pair_dis_constraint, 
-                                            LAS_distance_constraint_mask=LAS_distance_constraint_mask,
-                                            n_repeat=1, show_progress=False)
-                # toFile = f'{result_folder}/{ligandName}_{pocket_name}_tankbind.sdf'
-                toFile = f'{self.result_folder}/{ligandName}_tankbind.sdf'
-                # print(toFile)
+                info = get_info_pred_distance(coords, y_pred, protein_nodes_xyz, compound_pair_dis_constraint,
+                                              LAS_distance_constraint_mask=LAS_distance_constraint_mask,
+                                              n_repeat=1, show_progress=False)
+                toFile = f'{result_folder}/{ligandName}_tankbind.sdf'
                 new_coords = info.sort_values("loss")['coords'].iloc[0].astype(np.double)
                 write_with_new_coords(mol, new_coords, toFile)
 
-        for ligand_name in self.ligands_names:
-            info = pd.read_csv(f"{self.experiment_folder}/{ligand_name}_temp_info.csv")
-            compound_dict, rdkitMolFile = self.ligand2compounddict[ligand_name]
-            dataset_path = f"{self.experiment_folder}{ligand_name}_dataset/"
-            os.system(f"rm -r {dataset_path}")
-            os.system(f"mkdir -p {dataset_path}")
-            dataset = TankBind_prediction(dataset_path, data=info, protein_dict=self.protein_dict, compound_dict=compound_dict)
-            batch_size = 1
-            data_loader = DataLoader(dataset, batch_size=batch_size, follow_batch=['x', 'y', 'compound_pair'], shuffle=False, num_workers=8)
-            affinity_pred_list = []
-            self.y_pred_list = []
-            for data in tqdm(data_loader):
-                data = data.to(self.device)
-                y_pred, affinity_pred = self.model(data)
-                affinity_pred_list.append(affinity_pred.detach().cpu())
-                for i in range(data.y_batch.max() + 1):
-                    self.y_pred_list.append((y_pred[data['y_batch'] == i]).detach().cpu())
-            affinity_pred_list = torch.cat(affinity_pred_list)
-            info['affinity'] = affinity_pred_list
-            info.to_csv(f"{self.result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
+        for protein_name in protein_names:
+            result_folder = os.path.join(experiment_folder, protein_name, 'result')
+            if not os.path.exists(result_folder):
+                os.mkdir(result_folder)
+            ligand2compounddict = self.protein2ligandcompdict[protein_name]
+            for ligand_name in ligands_names:
+                info = pd.read_csv(os.path.join(experiment_folder,protein_name, f"{ligand_name}_temp_info.csv"))
+                compound_dict, rdkitMolFile = ligand2compounddict[ligand_name]
+                dataset_path = f"{experiment_folder}/{protein_name}/{ligand_name}_dataset/"
+                os.system(f"rm -r {dataset_path}")
+                os.system(f"mkdir -p {dataset_path}")
+                dataset = TankBind_prediction(dataset_path, data=info, protein_dict=self.protein_dict,
+                                              compound_dict=compound_dict)
+                batch_size = 1
+                data_loader = DataLoader(dataset, batch_size=batch_size, follow_batch=['x', 'y', 'compound_pair'],
+                                         shuffle=False, num_workers=8)
+                affinity_pred_list = []
+                self.y_pred_list = []
+                for data in tqdm(data_loader):
+                    data = data.to(self.device)
+                    y_pred, affinity_pred = self.model(data)
+                    affinity_pred_list.append(affinity_pred.detach().cpu())
+                    for i in range(data.y_batch.max() + 1):
+                        self.y_pred_list.append((y_pred[data['y_batch'] == i]).detach().cpu())
+                affinity_pred_list = torch.cat(affinity_pred_list)
+                info['affinity'] = affinity_pred_list
+                info.to_csv(f"{result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
+                chosen = info.loc[
+                    info.groupby(['protein_name', 'compound_name'], sort=False)['affinity'].agg('idxmax')].reset_index()
+                post_process(chosen, rdkitMolFile, dataset=dataset, result_folder=result_folder)
 
-            chosen = info.loc[info.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
-            post_process(chosen, rdkitMolFile, dataset=dataset)
+    def predict(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_folder: str):
+        ligand_files = [os.path.join(experiment_folder, file.filename) for file in ligand_files]
+        ligands_names, ligands_smiles = read_sdf_files(ligand_files)
+        protein_names = [os.path.splitext(x.filename)[0] for x in protein_files]
 
-    def predict(self, ligand_files: List[FileStorage], protein_file: str):
-        ligand_files_paths = [self.experiment_folder + file.filename for file in ligand_files]
-        self.prepare_data(ligand_files_paths, protein_file)
-        self._raw_inference()
+        self.prepare_data(ligands_names, ligands_smiles, protein_names, protein_files, experiment_folder)
+        self._raw_inference(experiment_folder, protein_names, ligands_names)

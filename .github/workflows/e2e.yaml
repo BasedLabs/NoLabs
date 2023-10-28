@@ -6,23 +6,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-      - name: Upgrade pip
-        run: pip install --upgrade pip
-      - name: Install pytorch
-        run: pip install torch==1.13.1 torchvision torchaudio
-      - name: Install torchgeometric
-        run: pip install torch-geometric
-      - name: Install additional deps
-        run: pip install --no-index pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cpu.html
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Start backend server
-        working-directory: src/server
-        run: PYTHONPATH=/home/runner/work/NoLabs/NoLabs python run.py --host=127.0.0.1 --port=5000 --test=True &
+      - name: Clean space
+        run: ./free_disk_space_github.sh
+        shell: bash
+      - name: Build docker container
+        run: docker build -t nolabs -f Dockerfile .
+      - name: Run docker container
+        run: docker run --name nolabs-docker -d -p 5173:5173 -p 5000:5000 -e --test nolabs
+      - name: Wait for the backend
+        run: | 
+          while true; do \
+            output=$(docker logs nolabs-docker --since 4s)
+            echo $output
+            if echo "$output" | grep -q -- "-- Starting flask server"; then
+              echo "$output"
+              echo "Stopping action, since flask is running"
+              break
+            fi
+            sleep 3  # Sleep for 1 second before checking again
+          done
+      - name: Check curl
+        run: curl http://localhost:5000/api/amino-acid/experiments
       - name: Cypress run
         uses: cypress-io/github-action@v5
         with:
           working-directory: tests
+
+

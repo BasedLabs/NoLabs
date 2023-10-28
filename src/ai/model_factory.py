@@ -4,7 +4,7 @@ from typing import Dict, Union
 from .exceptions.unknown_model_ex import UnknownModelException
 from .model import ClassificationModel, Folding, SolubilityPrediction, \
     GeneOntologyPrediction, ESM2EmbeddingGenerator, DrugTargetInteraction, BaseModel
-from test.ai.mock_model import FakeFolding
+from test.ai.mock_model import APIFolding
 
 
 def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union[BaseModel, None]:
@@ -48,15 +48,14 @@ def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union
         
         return model
 
-    # adding for testing purposes (folding is not fast :()), will substitute with an api call option
-    if model_type == "fakefolding":
+    if model_type == "apifolding":
 
         model_task = ""
 
         if 'task' in model_metadata:
             model_task = model_metadata["task"]
 
-        model = FakeFolding(model_name=model_name, gpu=use_gpu, model_task=model_task)
+        model = APIFolding(model_name=model_name, gpu=use_gpu, model_task=model_task)
         model.load_model()
 
         return model

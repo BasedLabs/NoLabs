@@ -11,7 +11,9 @@ def install_p2rank():
     p2rank_url = "https://github.com/rdk/p2rank/releases/download/2.4.1/p2rank_2.4.1.tar.gz"
 
     # P2Rank folder
-    p2rank_folder = dirname(os.path.abspath(__file__)) + "/p2rank_2.4.1/"
+    p2rank_folder = dirname(os.path.abspath(__file__)) + "/tankbind/p2rank_2.4.1/"
+
+    print("P2RANK FOLDER:", p2rank_folder)
 
     # Check if the destination folder already exists
     if os.path.exists(p2rank_folder):

@@ -1,15 +1,9 @@
 import torch
-import torch_geometric.transforms as T
 from torch_geometric.nn import SAGEConv, to_hetero
 from torch_geometric.utils import to_dense_batch
-from torch import nn
 from torch.nn import Linear
-import sys
 import torch.nn as nn
-from .gvp import GVP, GVPConvLayer, LayerNorm, tuple_index
-from torch.distributions import Categorical
-from torch_scatter import scatter_mean
-from .GATv2 import GAT
+from .gvp import GVP, GVPConvLayer, LayerNorm
 from .GINv2 import GIN
 
 class GNN(torch.nn.Module):
