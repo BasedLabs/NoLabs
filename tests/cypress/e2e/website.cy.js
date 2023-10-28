@@ -15,27 +15,17 @@ describe('Main page', () => {
     }
 
     it('Amino Acid lab opened', () => {
-        cy.intercept('*', logGet);
         cy.on('uncaught:exception', () => false);
         cy.visit('amino-acid-lab');
     });
 
-    it('Add experiments', () => {
-        cy.intercept('*', logGet);
+    it('Inference result is visible', () => {
+        cy.intercept('*', logGet)
+        cy.visit('amino-acid-lab');
         cy.get('.btn.btn-outline-success.add-experiments-button', {timeout: 90000}).click();
-    });
-
-    it('Select experiment', () => {
-        cy.intercept('*', logGet);
         cy.get('.bi.bi-check2.btn.btn.btn-outline-success', {timeout: 90000}).click();
         cy.get('#submitInference', {timeout: 90000}).click();
-        cy.wait('@all', {timeout: 90000}).its('response.statusCode').should('be.oneOf', [200]);
-        cy.get('#mithochondria-list-item', {timeout: 90000}).should('exist');
-    });
-
-    it('Submit inference', () => {
-        cy.intercept('*', logGet);
-        cy.get('#submitInference', {timeout: 90000}).click();
+        cy.intercept('**').as('all');
         cy.wait('@all', {timeout: 90000}).its('response.statusCode').should('be.oneOf', [200]);
         cy.get('#mithochondria-list-item', {timeout: 90000}).should('exist');
     });
