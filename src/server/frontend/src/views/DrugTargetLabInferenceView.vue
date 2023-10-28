@@ -24,7 +24,8 @@ export default {
             selectedView: views.default,
             stage: null,
             pdbComponent: null,
-            ligandComponent: null
+            ligandComponent: null,
+            selectedRowId: 0
         }
     },
     methods: {
@@ -38,18 +39,14 @@ export default {
             this.pdbComponent.removeAllRepresentations();
             this.pdbComponent.addRepresentation(this.selectedView.key);
             this.ligandComponent.removeAllRepresentations();
-            this.ligandComponent.addRepresentation(this.selectedView.key);
+            this.ligandComponent.addRepresentation(this.selectedView.key, {color: 'red'});
         },
         cleanStage() {
             if (this.stage)
                 this.stage.removeAllComponents();
         },
-        render(experiment, bindingIndex) {
-            if (bindingIndex >= experiment.data.length) {
-                console.log('No experiment data');
-                return;
-            }
-            const drugTarget = experiment.data[bindingIndex];
+        render() {
+            const drugTarget = this.experiment.data[this.selectedRowId];
 
             setTimeout(() => {
                 // Render 3d structure
@@ -68,10 +65,10 @@ export default {
                 this.stage.loadFile(sdfFile, { defaultRepresentation: true }).then((component) => {
                     this.ligandComponent = component;
                 });
-            }, 500);
+            }, 200);
         },
-        renderTable(experiment) {
-            const experimentData = experiment.data;
+        renderTable() {
+            const experimentData = this.experiment.data;
             // Render table
             const tableData = [];
             for (let [index, val] of experimentData.entries()) {
@@ -79,7 +76,8 @@ export default {
             }
 
             const rowSelect = (rowData) => {
-                this.render(experiment, rowData.id);
+                this.selectedRowId = rowData.id;
+                this.render();
             }
 
             $('#ligandProteinTable').bootstrapTable({
@@ -100,8 +98,8 @@ export default {
         }
     },
     mounted() {
-        this.renderTable(this.experiment);
-        this.render(this.experiment, 0);
+        this.renderTable();
+        this.render();
     },
     computed: {
         experiment() {
