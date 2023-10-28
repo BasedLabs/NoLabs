@@ -23,8 +23,8 @@ export default {
             viewsItems: Object.keys(views),
             selectedView: views.default,
             stage: null,
-            pdbComponent: null,
-            ligandComponent: null,
+            component: null,
+            sdfComponent: null,
             selectedRowId: 0
         }
     },
@@ -36,10 +36,8 @@ export default {
                 this.render();
                 return;
             }
-            this.pdbComponent.removeAllRepresentations();
-            this.pdbComponent.addRepresentation(this.selectedView.key);
-            this.ligandComponent.removeAllRepresentations();
-            this.ligandComponent.addRepresentation(this.selectedView.key, {color: 'red'});
+            this.component.removeAllRepresentations();
+            this.component.addRepresentation(this.selectedView.key);
         },
         cleanStage() {
             if (this.stage)
@@ -59,11 +57,10 @@ export default {
                 const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
                 const sdfFile = new File([ligandFileContentBlob], 'ligand.sdf', { type: 'text/plain' });
                 this.stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
-                    this.pdbComponent = component;
-                });
-
-                this.stage.loadFile(sdfFile, { defaultRepresentation: true }).then((component) => {
-                    this.ligandComponent = component;
+                    this.component = component;
+                    this.stage.loadFile(sdfFile, { defaultRepresentation: true }).then((sdfComponent) => {
+                        this.sdfComponent = sdfComponent;
+                    });
                 });
             }, 200);
         },
@@ -95,7 +92,13 @@ export default {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 });
             });
-        }
+        },
+        zoomInLigand () {
+            this.sdfComponent.autoView();
+         },  
+         zoomInProtein() {
+            this.component.autoView();
+         }
     },
     mounted() {
         this.renderTable();
@@ -121,6 +124,12 @@ export default {
                     {{ views[viewKey].title }}
                 </option>
             </select>
+            <button type="button" @click="zoomInLigand()" style="width: 100%"
+                class="btn btn-primary padding-top-button-group">Zoom in ligand
+            </button>
+            <button type="button" @click="zoomInProtein()" style="width: 100%"
+                class="btn btn-primary padding-top-button-group">Zoom in protein
+            </button>
         </div>
         <div class="row">
             <div class="col-md-12 container">
