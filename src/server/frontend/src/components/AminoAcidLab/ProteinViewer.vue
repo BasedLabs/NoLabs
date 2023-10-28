@@ -53,7 +53,7 @@ export default {
                 this.stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
                     this.pdbComponent = component;
                 });
-            }, 500);
+            }, 200);
         },
         downloadPdbFile(evt) {
             const filename = 'protein.pdb';

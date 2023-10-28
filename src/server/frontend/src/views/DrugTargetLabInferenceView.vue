@@ -23,8 +23,9 @@ export default {
             viewsItems: Object.keys(views),
             selectedView: views.default,
             stage: null,
-            pdbComponent: null,
-            ligandComponent: null
+            component: null,
+            sdfComponent: null,
+            selectedRowId: 0
         }
     },
     methods: {
@@ -35,21 +36,15 @@ export default {
                 this.render();
                 return;
             }
-            this.pdbComponent.removeAllRepresentations();
-            this.pdbComponent.addRepresentation(this.selectedView.key);
-            this.ligandComponent.removeAllRepresentations();
-            this.ligandComponent.addRepresentation(this.selectedView.key);
+            this.component.removeAllRepresentations();
+            this.component.addRepresentation(this.selectedView.key);
         },
         cleanStage() {
             if (this.stage)
                 this.stage.removeAllComponents();
         },
-        render(experiment, bindingIndex) {
-            if (bindingIndex >= experiment.data.length) {
-                console.log('No experiment data');
-                return;
-            }
-            const drugTarget = experiment.data[bindingIndex];
+        render() {
+            const drugTarget = this.experiment.data[this.selectedRowId];
 
             setTimeout(() => {
                 // Render 3d structure
@@ -62,16 +57,15 @@ export default {
                 const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
                 const sdfFile = new File([ligandFileContentBlob], 'ligand.sdf', { type: 'text/plain' });
                 this.stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
-                    this.pdbComponent = component;
+                    this.component = component;
+                    this.stage.loadFile(sdfFile, { defaultRepresentation: true }).then((sdfComponent) => {
+                        this.sdfComponent = sdfComponent;
+                    });
                 });
-
-                this.stage.loadFile(sdfFile, { defaultRepresentation: true }).then((component) => {
-                    this.ligandComponent = component;
-                });
-            }, 500);
+            }, 200);
         },
-        renderTable(experiment) {
-            const experimentData = experiment.data;
+        renderTable() {
+            const experimentData = this.experiment.data;
             // Render table
             const tableData = [];
             for (let [index, val] of experimentData.entries()) {
@@ -79,7 +73,8 @@ export default {
             }
 
             const rowSelect = (rowData) => {
-                this.render(experiment, rowData.id);
+                this.selectedRowId = rowData.id;
+                this.render();
             }
 
             $('#ligandProteinTable').bootstrapTable({
@@ -97,11 +92,17 @@ export default {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 });
             });
-        }
+        },
+        zoomInLigand () {
+            this.sdfComponent.autoView();
+         },  
+         zoomInProtein() {
+            this.component.autoView();
+         }
     },
     mounted() {
-        this.renderTable(this.experiment);
-        this.render(this.experiment, 0);
+        this.renderTable();
+        this.render();
     },
     computed: {
         experiment() {
@@ -123,6 +124,12 @@ export default {
                     {{ views[viewKey].title }}
                 </option>
             </select>
+            <button type="button" @click="zoomInLigand()" style="width: 100%"
+                class="btn btn-primary padding-top-button-group">Zoom in ligand
+            </button>
+            <button type="button" @click="zoomInProtein()" style="width: 100%"
+                class="btn btn-primary padding-top-button-group">Zoom in protein
+            </button>
         </div>
         <div class="row">
             <div class="col-md-12 container">
