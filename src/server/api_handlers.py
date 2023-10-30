@@ -1,5 +1,7 @@
 import time
+import traceback
 import uuid
+
 from src.server.services.experiment_service import DrugDiscovery, ProteinPropertyPrediction
 from flask import Request
 from src.server import settings
@@ -10,6 +12,7 @@ from src.server.services.oboreader import read_obo
 class ApiHandler:
     def gen_uuid(self):
         return {'id': str(uuid.uuid4())}
+
 
 drug_discovery = DrugDiscovery(settings.use_gpu, settings.is_test)
 protein_prediction = ProteinPropertyPrediction(settings.use_gpu, settings.is_test)
@@ -151,7 +154,8 @@ class DrugTargetApiHandler(ApiHandler):
         experiment_name = request.form['experimentName']
         experiment_id = request.form['experimentId']
 
-        experiment_id = drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files, experiment_id=experiment_id)
+        experiment_id = drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files,
+                                           experiment_id=experiment_id)
         DrugDiscovery.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
         data = drug_discovery.load_result(experiment_id)
 

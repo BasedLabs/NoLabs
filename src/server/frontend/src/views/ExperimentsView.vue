@@ -1,8 +1,16 @@
 <script>
+import { io } from "socket.io-client";
+const socket = io("http://127.0.0.1:5000");
+
 export default {
     props: ['state', 'api'],
+    data() {
+        return {
+            serverLogs: ''
+        }
+    },
     methods: {
-        async loadExperiments () {
+        async loadExperiments() {
             const loader = this.$loading.show();
             await this.api.getAllExperiments();
             loader.hide();
@@ -24,7 +32,7 @@ export default {
         },
         async onFormSubmit(data) {
             const loader = this.$loading.show();
-            await this.api.inference({form: data.target, experiment: this.state.experiment});
+            await this.api.inference({ form: data.target, experiment: this.state.experiment });
             loader.hide();
         },
         isCurrentExperiment(experiment) {
@@ -48,13 +56,16 @@ export default {
     },
     async mounted() {
         await this.loadExperiments();
+        socket.on("get-logs", (...args) => {
+            this.serverLogs += args[0].response + '\n';
+        });
     },
     computed: {
         experimentEmpty() {
-            if(!this.state.experiment || !this.state.experiment.data)
+            if (!this.state.experiment || !this.state.experiment.data)
                 return true;
 
-            if(typeof this.state.experiment.data === 'Array')
+            if (typeof this.state.experiment.data === 'Array')
                 return this.state.experiment.data.length === 0;
 
             return Object.keys(this.state.experiment.data).length === 0;
@@ -78,16 +89,15 @@ export default {
                 <li v-for="experiment in state.experiments"
                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     :class="isCurrentExperiment(experiment) ? 'active' : ''">
-                    <input class="form-control" :value="experiment.name" @input="changeExperimentName($event, experiment)"/>
-                    <i class="bi bi-check2 btn btn btn-outline-success" type="button" 
-                        @click.stop="selectExperiment(experiment)"
-                        @mouseover="showTooltip($event, 'Select')"
+                    <input class="form-control" :value="experiment.name"
+                        @input="changeExperimentName($event, experiment)" />
+                    <i class="bi bi-check2 btn btn btn-outline-success" type="button"
+                        @click.stop="selectExperiment(experiment)" @mouseover="showTooltip($event, 'Select')"
                         @mouseout="hideTooltip()"></i>
-                    <i class="bi bi-x-circle btn btn btn-outline-danger"
-                        @click.stop="deleteExperiment(experiment)"
-                        @mouseover="showTooltip($event, 'Delete from solution')"
-                        @mouseout="hideTooltip()"></i>
+                    <i class="bi bi-x-circle btn btn btn-outline-danger" @click.stop="deleteExperiment(experiment)"
+                        @mouseover="showTooltip($event, 'Delete from solution')" @mouseout="hideTooltip()"></i>
                 </li>
+                <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" :value="serverLogs"></textarea>
             </ul>
         </div>
         <div class="col-md-8">
@@ -100,7 +110,7 @@ export default {
                 </div>
                 <div class="row" v-else>
                     <div class="col-md-12">
-                        <hr/>
+                        <hr />
                         <h4>Add or select experiment</h4>
                     </div>
                 </div>
