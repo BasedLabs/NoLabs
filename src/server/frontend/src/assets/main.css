@@ -145,3 +145,7 @@ body::-webkit-scrollbar-track {
   width: 100%;
   height: 100%;
 }
+
+.loading-wrap {
+  display: none;
+}

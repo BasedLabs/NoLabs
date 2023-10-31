@@ -97,7 +97,6 @@ export default {
                     <i class="bi bi-x-circle btn btn btn-outline-danger" @click.stop="deleteExperiment(experiment)"
                         @mouseover="showTooltip($event, 'Delete from solution')" @mouseout="hideTooltip()"></i>
                 </li>
-                <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" :value="serverLogs"></textarea>
             </ul>
         </div>
         <div class="col-md-8">
