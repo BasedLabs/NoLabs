@@ -1,37 +1,41 @@
 <script>
 import { io } from "socket.io-client";
+import { h } from "vue";
 const socket = io("http://127.0.0.1:5000");
 
 export default {
     props: ['state', 'api'],
     data() {
         return {
-            serverLogs: ''
+            serverLogs: 'Loading . . .'
         }
     },
     methods: {
+        startLoader() {
+            return this.$loading.show(null, {default: () => h('div', {}, this.serverLogs )});
+        },
         async loadExperiments() {
-            const loader = this.$loading.show();
+            const loader = this.startLoader();
             await this.api.getAllExperiments();
             loader.hide();
         },
         async selectExperiment(experiment) {
-            const loader = this.$loading.show();
+            const loader = this.startLoader();
             await this.api.loadExperiment(experiment);
             loader.hide();
         },
         async addExperiment() {
-            const loader = this.$loading.show();
+            const loader = this.startLoader();
             await this.api.addExperiment();
             loader.hide();
         },
         async deleteExperiment(experiment) {
-            const loader = this.$loading.show();
+            const loader = this.startLoader();
             await this.api.deleteExperiment(experiment);
             loader.hide();
         },
         async onFormSubmit(data) {
-            const loader = this.$loading.show();
+            const loader = this.startLoader();
             await this.api.inference({ form: data.target, experiment: this.state.experiment });
             loader.hide();
         },
@@ -57,7 +61,7 @@ export default {
     async mounted() {
         await this.loadExperiments();
         socket.on("get-logs", (...args) => {
-            this.serverLogs += args[0].response + '\n';
+            this.serverLogs = args[0].response;
         });
     },
     computed: {
