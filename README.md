@@ -54,7 +54,8 @@ The goal of the project is to accelerate the Research stage of biotechnological 
 <img src="media/website-screenshot.jpg" width="100%">
 <hr style="border:2px solid gray">
 
-[<img src="media/NoLabs.gif" width="100%">](media/NoLabs.mp4)
+[<img src="media/amino-acid-lab.gif" width="100%">](media/NoLabs.mp4)
+[<img src="media/drug-target.gif" width="100%">](media/NoLabs.mp4)
 
 <hr style="border:2px solid gray">
 
