@@ -31,11 +31,11 @@ from esm import FastaBatchedDataset, pretrained
 from typing import List, Tuple
 import os
 import logging
+from src.server.initializers.loggers import logger
 from argparse import Namespace
 from werkzeug.datastructures import FileStorage
 
 dirname = os.path.dirname
-
 
 class BaseModel:
     def __init__(self, model_name: str, gpu: bool, model_task=""):
@@ -66,6 +66,7 @@ class ClassificationModel(BaseModel):
         self.labels = labels
 
     def load_model(self):
+        logger.info("Loading classification model")
         self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model.eval()
@@ -79,11 +80,13 @@ class ClassificationModel(BaseModel):
         return probabilities
 
     def predict(self, sequence: str) -> List[List[Tuple[str, int]]]:
+        logger.info("Making classification predictions...")
         if not self.tokenizer or not self.model:
             raise ModelNotLoadedException()
 
         probabilities = self._raw_inference(sequence)
         prob_table = {key: value for key, value in list(zip(self.labels, probabilities))}
+        logger.info("Successfully made classification predictions!")
         return prob_table
 
 
@@ -95,6 +98,7 @@ class Folding(BaseModel):
         self.gpu = gpu
 
     def load_model(self):
+        logger.info("Loading folding model")
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = EsmForProteinFolding.from_pretrained(self.model_name, low_cpu_mem_usage=True)
         if self.gpu:
@@ -140,12 +144,14 @@ class Folding(BaseModel):
         return output
 
     def predict(self, sequence: str) -> str:
+        logger.info("Predicting folded structure...")
         if not self.tokenizer or not self.model:
             raise ModelNotLoadedException()
         output = self._raw_inference(sequence)
 
         pdbs = self.convert_outputs_to_pdb(output)
 
+        logger.info("Successfully predicted folded structure!")
         return "".join(pdbs)
 
 
@@ -228,11 +234,13 @@ class GeneOntologyPrediction(BaseModel):
         self.embedding_model = None
 
     def load_model(self):
+        logger.info("Loading gene ontology model...")
         self.model = SimpleGOMultiLayerPerceptron(input_dim=640, num_classes=200).to(self.device)
         self._load_model_state_dict()
         self.model.eval()
         self.labels = np.load(dirname(os.path.abspath(__file__)) + \
                               "/custom_models/models/gene_ontology/go_labels_200.npy", allow_pickle=True)
+        logger.info("Gene ontology model has been loaded!")
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
@@ -244,7 +252,6 @@ class GeneOntologyPrediction(BaseModel):
         # Path where you want to save the downloaded .pth file
         local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/gene_ontology/go_model_150M.pth"
 
-        print(f'Downloading model: {model_url}, to path: {local_path}')
         if not os.path.exists(local_path):
             with open(local_path, 'wb') as f:
                 response = requests.get(model_url)
@@ -253,10 +260,12 @@ class GeneOntologyPrediction(BaseModel):
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
 
     def predict(self, protein_id: str):
+        logger.info("Making gene ontology predictions...")
         embedding = self.embedding_model.predict(protein_id)
         raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
 
         outputs = {label: confidence for label, confidence in zip(self.labels, raw_outputs)}
+        logger.info("Successfully predicted gene ontology!")
         return outputs
 
 
@@ -270,9 +279,11 @@ class SolubilityPrediction(BaseModel):
         self.embedding_model = None
 
     def load_model(self):
+        logger.info("Loading solubility model...")
         self.model = SimpleSolubilityMultiLayerPerceptron().to(self.device)
         self._load_model_state_dict()
         self.model.eval()
+        logger.info("Successfully loaded solubility model!")
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
@@ -284,8 +295,6 @@ class SolubilityPrediction(BaseModel):
         # Path where you want to save the downloaded .pth file
         local_path = dirname(os.path.abspath(__file__)) + "/custom_models/models/solubility/solubility_model.pth"
 
-        print(f'Downloading model: {model_url}, to path: {local_path}')
-
         if not os.path.exists(local_path):
             with open(local_path, 'wb') as f:
                 response = requests.get(model_url)
@@ -294,10 +303,11 @@ class SolubilityPrediction(BaseModel):
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
 
     def predict(self, protein_id: str):
+        logger.info("Predicting solubility...")
         embedding = self.embedding_model.predict(protein_id)
         embedding = embedding.to(self.device)
         outputs = self.model(embedding.float())
-
+        logger.info("Solubility has been predicted!")
         return {'solubility': outputs.item()}
 
 
@@ -308,7 +318,10 @@ class DrugTargetInteraction(BaseModel):
             self.device = torch.device('cuda')
         else:
             self.device = torch.device('cpu')
+
+        logger.info("Loading p2rank...")
         install_p2rank()
+        logger.info("P2rank has been loaded!")
 
     def prepare_folders(self, experiment_folder: str, protein_names: List[str]):
         for protein_name in protein_names:
@@ -407,12 +420,17 @@ class DrugTargetInteraction(BaseModel):
                 new_coords = info.sort_values("loss")['coords'].iloc[0].astype(np.double)
                 write_with_new_coords(mol, new_coords, toFile)
 
-        for protein_name in protein_names:
+        for protein_idx in range(0, len(protein_names)):
+            protein_name = protein_names[0]
+            logger.info(f"Making dti predictions for {protein_idx+1} out of {len(protein_names)} protein...")
             result_folder = os.path.join(experiment_folder, protein_name, 'result')
             if not os.path.exists(result_folder):
                 os.mkdir(result_folder)
             ligand2compounddict = self.protein2ligandcompdict[protein_name]
-            for ligand_name in ligands_names:
+            for ligand_idx in range(0, len(ligands_names)):
+                ligand_name = ligands_names[ligand_idx]
+                logger.info(f"Making dti predictions for {protein_idx+1} out of {len(protein_names)} protein...\n \
+                Currently predicting {ligand_idx+1} out of {len(ligands_names)} ligands...")
                 info = pd.read_csv(os.path.join(experiment_folder,protein_name, f"{ligand_name}_temp_info.csv"))
                 compound_dict, rdkitMolFile = ligand2compounddict[ligand_name]
                 dataset_path = f"{experiment_folder}/{protein_name}/{ligand_name}_dataset/"
@@ -439,9 +457,11 @@ class DrugTargetInteraction(BaseModel):
                 post_process(chosen, rdkitMolFile, dataset=dataset, result_folder=result_folder)
 
     def predict(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_folder: str):
+        logger.info("Making dti predictions...")
         ligand_files = [os.path.join(experiment_folder, file.filename) for file in ligand_files]
         ligands_names, ligands_smiles = read_sdf_files(ligand_files)
         protein_names = [os.path.splitext(x.filename)[0] for x in protein_files]
 
         self.prepare_data(ligands_names, ligands_smiles, protein_names, protein_files, experiment_folder)
         self._raw_inference(experiment_folder, protein_names, ligands_names)
+        logger.info("DTI predictions are completed!")
