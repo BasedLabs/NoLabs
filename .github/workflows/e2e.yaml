@@ -16,7 +16,7 @@ jobs:
       - name: Wait for the backend
         run: | 
           while true; do \
-            output=$(docker logs nolabs-docker --since 4s)
+            output=$(docker logs nolabs-docker --since 6s)
             echo $output
             if echo "$output" | grep -q -- "Running on all addresses (0.0.0.0)"; then
               echo "$output"
