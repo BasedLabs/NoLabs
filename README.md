@@ -49,16 +49,22 @@
 
 NoLabs is an open source bioengine with support of web visualisation and hosting.
 
-The goal of the project is to accelerate the Research stage of biotechnological processes via leveraging solutions for prediction and simulation.
+The goal of the project is to accelerate bio research via virtual biolabs. We are currenly supporting protein biolab (predicting useful protein properties such as solubility, localisation, Gene ontology, folding etc.) and drug discovery biolab (construct ligands and test binding to target proteins). 
+
+We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and contributions. Let's accelerate bio research!
+
 <hr style="border:2px solid gray">
 <img src="media/website-screenshot.jpg" width="100%">
 <hr style="border:2px solid gray">
 
-[<img src="media/NoLabs.gif" width="100%">](media/NoLabs.mp4)
+[<img src="media/amino-acid-lab.gif" width="100%">](media/NoLabs.mp4)
+[<img src="media/drug-target.gif" width="100%">](media/NoLabs.mp4)
 
 <hr style="border:2px solid gray">
 
 ## Features ##
+
+**Protein biolab:**
 
 1) Prediction of subcellular localisation via fine-tuned [ritakurban/ESM_protein_localization](https://huggingface.co/ritakurban/ESM_protein_localization) model (to be updated with a better model)
 
@@ -68,9 +74,11 @@ The goal of the project is to accelerate the Research stage of biotechnological 
 
 4) Protein solubility prediction
 
-5) Drug-target interaction prediction, hight throughput virtual screening (HTVS) based on [TankBind](https://github.com/luwei0917/TankBind)
+**Drug discovery biolab:**
+1) Drug-target interaction prediction, hight throughput virtual screening (HTVS) based on [TankBind](https://github.com/luwei0917/TankBind)
 
-7) Docker containerisation for easy hosting
+Hosting:
+1) Docker containerisation for easy hosting
 
 ## Starting ##
 
@@ -85,8 +93,8 @@ $ cd nolabs
 $ docker build -t nolabs -f Dockerfile .
 
 # Run the image and expose the 5000 port
-$ docker run -p 5173:5173 -p 5000:5000 -e --test nolabs
-# Run without -e --test if you want to run models on GPU
+$ docker run -p 5173:5173 -p 5000:5000 nolabs --test
+# Run without --test if you want to run models on GPU
 # check 'Requirements' section for more information
 
 # The website will be available on <http://localhost:5173>
@@ -103,9 +111,13 @@ The following tools were used in this project:
 
 ## Requirements ##
 
-- RAM > 20GB
+**[Recommended for laptops]** If using ```--test``` argument, no need to have a lot of compute, i.e.:
+- RAM > 16GB
 - [Optional] GPU memory >= 16GB (REALLY speeds up the inference)
 
+**[Recommended for powerful workstations]** Else, if you want to host everything on your machine:
+- RAM > 20GB
+- [Optional] GPU memory >= 40GB (REALLY speeds up the inference)
 
 ## :memo: License ##
 

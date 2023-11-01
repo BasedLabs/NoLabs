@@ -3,7 +3,7 @@ flask-cors
 pandas
 numpy
 transformers
-flask-cors
+flask_socketio
 torchdrug==0.1.2
 torchmetrics==1.2.0
 rdkit
