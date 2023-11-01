@@ -18,7 +18,7 @@ jobs:
           while true; do \
             output=$(docker logs nolabs-docker --since 4s)
             echo $output
-            if echo "$output" | grep -q -- "-- Starting flask server"; then
+            if echo "$output" | grep -q -- "Running on all addresses (0.0.0.0)"; then
               echo "$output"
               echo "Stopping action, since flask is running"
               break
