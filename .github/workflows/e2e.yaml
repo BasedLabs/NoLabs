@@ -12,7 +12,7 @@ jobs:
       - name: Build docker container
         run: docker build -t nolabs -f Dockerfile .
       - name: Run docker container
-        run: docker run --name nolabs-docker -d -p 5173:5173 -p 5000:5000 -e --test nolabs
+        run: docker run --name nolabs-docker -d -p 5173:5173 -p 5000:5000 nolabs --test
       - name: Wait for the backend
         run: | 
           while true; do \

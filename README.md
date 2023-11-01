@@ -93,8 +93,8 @@ $ cd nolabs
 $ docker build -t nolabs -f Dockerfile .
 
 # Run the image and expose the 5000 port
-$ docker run -p 5173:5173 -p 5000:5000 -e --test nolabs
-# Run without -e --test if you want to run models on GPU
+$ docker run -p 5173:5173 -p 5000:5000 nolabs --test
+# Run without --test if you want to run models on GPU
 # check 'Requirements' section for more information
 
 # The website will be available on <http://localhost:5173>
