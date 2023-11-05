@@ -1,24 +1,20 @@
-import time
-import traceback
-import uuid
-
-from src.server.services.experiment_service import DrugDiscovery, ProteinPropertyPrediction
 from flask import Request
-from src.server import settings
+
 from src.server.services.fasta_reader import get_sequences
 from src.server.services.oboreader import read_obo
-
-
-class ApiHandler:
-    def gen_uuid(self):
-        return {'id': str(uuid.uuid4())}
-
-
-drug_discovery = DrugDiscovery(settings.use_gpu, settings.is_test)
-protein_prediction = ProteinPropertyPrediction(settings.use_gpu, settings.is_test)
+from src.server import settings
+from src.server.services.experiment_service import ProteinPropertyPrediction
+from src.server.api_handlers.api_handler import ApiHandler
+from src.server.services.experiments_structure_loader import ProteinLabExperimentsLoader
 
 
 class AminoAcidLabApiHandler(ApiHandler):
+    def __init__(self):
+
+        super().__init__()
+        self.experiments_loader = ProteinLabExperimentsLoader()
+        self.protein_prediction = ProteinPropertyPrediction(settings.use_gpu, settings.is_test)
+
     def inference(self, request: Request) -> dict:
         amino_acid_input_sequence = request.form['inputSequence']
         amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
@@ -27,12 +23,13 @@ class AminoAcidLabApiHandler(ApiHandler):
         if not amino_acid_input_sequence:
             amino_acid_input_sequence = \
                 [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
-        experiment_id = protein_prediction.run(amino_acid_input_sequence, experiment_id)
-        ProteinPropertyPrediction.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
-        localisation_result = protein_prediction.load_result(experiment_id, 'localisation')
-        folding_result = protein_prediction.load_result(experiment_id, 'folding')
-        gene_ontology_result = protein_prediction.load_result(experiment_id, 'gene_ontology')
-        solubility_result = protein_prediction.load_result(experiment_id, 'solubility')
+        experiment_id = self.protein_prediction.run(amino_acid_input_sequence, experiment_id)
+        self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
+        result = self.experiments_loader.load_experiment(experiment_id)
+        localisation_result = result['localisation']
+        folding_result = result['folding']
+        gene_ontology_result = result['gene_ontology']
+        solubility_result = result['solubility']
 
         obo_graph = read_obo(gene_ontology_result)
         return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
@@ -49,20 +46,22 @@ class AminoAcidLabApiHandler(ApiHandler):
         }}
 
     def get_experiments(self):
-        return ProteinPropertyPrediction.load_experiment_names()
+        return self.experiments_loader.load_experiments()
 
     def get_experiment(self, request):
         # get name of the experiment and get EXISTING SAVED data based on this name
         experiment_id = request.args.get('id')
         experiment_name = request.args.get('name')
 
-        if not protein_prediction.experiment_exists(experiment_id):
+        if not self.experiments_loader.experiment_exists(experiment_id):
             return {'id': experiment_id, 'name': experiment_name, 'data': {}}
 
-        localisation_result = protein_prediction.load_result(experiment_id, 'localisation')
-        folding_result = protein_prediction.load_result(experiment_id, 'folding')
-        gene_ontology_result = protein_prediction.load_result(experiment_id, 'gene_ontology')
-        solubility = protein_prediction.load_result(experiment_id, 'solubility')
+        result = self.experiments_loader.load_experiment(experiment_id)
+
+        localisation_result = result['localisation']
+        folding_result = result['folding']
+        gene_ontology_result = result['gene_ontology']
+        solubility = result['solubility']
 
         obo_graph = read_obo(gene_ontology_result)
         return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
@@ -83,12 +82,12 @@ class AminoAcidLabApiHandler(ApiHandler):
         experiment_id = j['id']
         experiment_name = j['name']
 
-        protein_prediction.rename_experiment(experiment_id, experiment_name)
+        self.experiments_loader.rename_experiment(experiment_id, experiment_name)
         return {'status': 200}
 
     def delete_experiment(self, request: Request):
         j = request.get_json(force=True)
-        protein_prediction.delete_experiment(j['id'])
+        self.experiments_loader.delete_experiment(j['id'])
         return {'status': 200}
 
 
@@ -145,82 +144,3 @@ class AminoAcidLabApiMockHandler(AminoAcidLabApiHandler):
             },
             'solubility': 0.5
         }}
-
-
-class DrugTargetApiHandler(ApiHandler):
-    def inference(self, request):
-        ligand_files = request.files.getlist('sdfFileInput')
-        protein_files = request.files.getlist('proteinFileInput')
-        experiment_name = request.form['experimentName']
-        experiment_id = request.form['experimentId']
-
-        experiment_id = drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files,
-                                           experiment_id=experiment_id)
-        DrugDiscovery.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
-        data = drug_discovery.load_result(experiment_id)
-
-        return {'id': experiment_id, 'name': experiment_name, 'data': data}
-
-    def get_experiments(self):
-        return DrugDiscovery.load_experiment_names()
-
-    def get_experiment(self, request):
-        # get name of the experiment and get EXISTING SAVED data based on this name
-        experiment_id = request.args.get('id')
-        experiment_name = request.args.get('name')
-
-        if not drug_discovery.experiment_exists(experiment_id):
-            return {'id': experiment_id, 'name': experiment_name, 'data': {}}
-
-        data = drug_discovery.load_result(experiment_id)
-        return {'id': experiment_id, 'data': data}
-
-    def change_experiment_name(self, request: Request):
-        j = request.get_json(force=True)
-        experiment_id = j['id']
-        experiment_name = j['name']
-
-        drug_discovery.rename_experiment(experiment_id, experiment_name)
-
-        return {'status': 200}
-
-    def delete_experiment(self, request: Request):
-        j = request.get_json(force=True)
-        drug_discovery.delete_experiment(j['id'])
-
-        return {'status': 200}
-
-
-class DrugTargetApiMockHandler(DrugTargetApiHandler):
-    def inference(self, request):
-        ligand_files = request.files.getlist('sdfFileInput')
-        protein_files = request.files.getlist('proteinFileInput')
-        experiment_id = request.form['experimentId']
-
-        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': [{
-            'proteinName': "AHAHAHAHAHHAHA2222222222222222",
-            'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
-            'pdb': open('mock_data/test.pdb').read(),
-            'sdf': open('mock_data/test.sdf').read(),
-            'affinity': 10
-        }]}
-
-    def get_experiments(self):
-        experiments = [
-            {'id': 1, 'name': 'Experiment 10'},
-            {'id': 2, 'name': 'Experiment 11'}
-        ]
-        return experiments
-
-    def get_experiment(self, request):
-        time.sleep(10)
-        # get name of the experiment and get EXISTING SAVED data based on this name
-        experiment_id = int(request.args.get('id'))
-
-        return {'id': experiment_id, 'name': 'Experiment 10', 'data': [{
-            'proteinName': "AHAHAHAHAHHAHA2222222222222222",
-            'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
-            'pdb': open('mock_data/test.pdb').read(),
-            'sdf': open('mock_data/test.sdf').read(),
-            'affinity': 10
-        }]}

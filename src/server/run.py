@@ -11,9 +11,12 @@ if __name__ == '__main__':
     parser.add_argument('--port', default=5000)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--test', action='store_true')
+    parser.add_argument('--demo', action='store_true')
     args = vars(parser.parse_args())
     is_test = args['test']
     settings.is_test = is_test
+    is_demo = args['demo']
+    settings.is_demo = is_demo
     settings.use_gpu = torch.cuda.is_available()
     settings.host = args['host']
     settings.port = args['port']
