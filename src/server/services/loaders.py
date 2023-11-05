@@ -92,8 +92,6 @@ class DTILoader:
                 for line in pdb_file:
                     pdb_content += line
 
-            print(pdb_content)
-
             ligand_names = self.get_ligand_names(f'{experiment_folder}/{protein_name}')
 
             for ligand_name in ligand_names:
