@@ -29,7 +29,7 @@ if __name__ == '__main__':
     import src.server.amino_acid_blueprint as amino_acid_blueprint
     import src.server.drug_target_blueprint as drug_target_blueprint
 
-    amino_acid_api_handler, drug_target_api_handler = factories.api_handlers_factory()
+    amino_acid_api_handler, drug_target_api_handler = factories.api_handlers_factory(is_test=is_test, is_demo=is_demo)
 
     app.register_blueprint(drug_target_blueprint.resolve_api_endpoints(drug_target_api_handler),
                            url_prefix='/api/drug-target')
