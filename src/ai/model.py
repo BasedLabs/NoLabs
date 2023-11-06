@@ -420,14 +420,14 @@ class DrugTargetInteraction(BaseModel):
                 new_coords = info.sort_values("loss")['coords'].iloc[0].astype(np.double)
                 write_with_new_coords(mol, new_coords, toFile)
 
-        for protein_idx in range(0, len(protein_names)):
-            protein_name = protein_names[0]
+        for protein_idx in range(len(protein_names)):
+            protein_name = protein_names[protein_idx]
             logger.info(f"Making dti predictions for {protein_idx+1} out of {len(protein_names)} protein...")
             result_folder = os.path.join(experiment_folder, protein_name, 'result')
             if not os.path.exists(result_folder):
                 os.mkdir(result_folder)
             ligand2compounddict = self.protein2ligandcompdict[protein_name]
-            for ligand_idx in range(0, len(ligands_names)):
+            for ligand_idx in range(len(ligands_names)):
                 ligand_name = ligands_names[ligand_idx]
                 logger.info(f"Making dti predictions for {protein_idx+1} out of {len(protein_names)} protein...\n \
                 Currently predicting {ligand_idx+1} out of {len(ligands_names)} ligands...")
