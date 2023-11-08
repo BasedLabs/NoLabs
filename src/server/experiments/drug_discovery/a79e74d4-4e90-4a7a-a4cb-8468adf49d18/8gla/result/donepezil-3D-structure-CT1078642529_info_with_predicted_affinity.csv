@@ -1,0 +1,9 @@
+,Unnamed: 0,protein_name,compound_name,pocket_name,pocket_com,affinity
+0,0,8gla,8gla_donepezil-3D-structure-CT1078642529_rdkit,protein_center,"60.646,-29.899,76.157",3.4145322
+1,1,8gla,8gla_donepezil-3D-structure-CT1078642529_rdkit,pocket_1,"74.797,-38.322,107.569",3.0638793
+2,2,8gla,8gla_donepezil-3D-structure-CT1078642529_rdkit,pocket_2,"36.368,-9.844,84.68",4.5184445
+3,3,8gla,8gla_donepezil-3D-structure-CT1078642529_rdkit,pocket_3,"59.081,-19.149,35.984",5.0856867
+4,4,8gla,8gla_donepezil-3D-structure-CT1078642529_rdkit,pocket_4,"64.864,-55.011,75.635",7.1971703
+5,5,8gla,8gla_donepezil-3D-structure-CT1078642529_rdkit,pocket_5,"66.154,-29.872,50.025",1.857276
+6,6,8gla,8gla_donepezil-3D-structure-CT1078642529_rdkit,pocket_6,"47.83,-6.473,68.916",1.6690255
+7,7,8gla,8gla_donepezil-3D-structure-CT1078642529_rdkit,pocket_7,"90.54,-22.261,106.464",4.140902
