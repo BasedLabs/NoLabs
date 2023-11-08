@@ -165,6 +165,7 @@ class ESM2EmbeddingGenerator(BaseModel):
 
     def load_model(self):
         self.model, self.alphabet = pretrained.load_model_and_alphabet(self.model_name)
+        self.model.to(self.device)
         self.model.eval()
 
     def predict(self, protein_sequence: str):
@@ -244,7 +245,7 @@ class GeneOntologyPrediction(BaseModel):
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
-        self.embedding_model.to(self.device)
+        self.embedding_model
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
@@ -288,7 +289,7 @@ class SolubilityPrediction(BaseModel):
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
-        self.embedding_model.to(self.device)
+        self.embedding_model
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
