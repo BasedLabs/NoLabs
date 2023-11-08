@@ -244,6 +244,7 @@ class GeneOntologyPrediction(BaseModel):
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
+        self.embedding_model.to(self.device)
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
@@ -287,6 +288,7 @@ class SolubilityPrediction(BaseModel):
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
+        self.embedding_model.to(self.device)
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
