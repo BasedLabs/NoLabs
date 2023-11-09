@@ -1,10 +1,10 @@
 from flask import Blueprint
 from flask import request
 
-from src.server.api_handlers import DrugTargetApiHandler
+from src.server.api_handlers.api_handler import ApiHandler
 
 
-def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
+def resolve_api_endpoints(api_handler: ApiHandler):
     drug_target_bp = Blueprint('drug-target', __name__)
 
     @drug_target_bp.route('/inference', methods=['POST'])

@@ -92,8 +92,6 @@ class DTILoader:
                 for line in pdb_file:
                     pdb_content += line
 
-            print(pdb_content)
-
             ligand_names = self.get_ligand_names(f'{experiment_folder}/{protein_name}')
 
             for ligand_name in ligand_names:
@@ -131,26 +129,3 @@ class DTILoader:
         ligand_names = [dir_name.rsplit('_dataset', 1)[0] for dir_name in all_dirs if dir_name.endswith('_dataset')]
 
         return ligand_names
-
-
-def load_experiment_names(experiments_dir):
-    # List all directories inside the dti experiments folder
-    experiment_ids = [d for d in os.listdir(experiments_dir) if os.path.isdir(os.path.join(experiments_dir, d))]
-
-    experimentId2name = {}
-
-    for experiment_id in experiment_ids:
-        metadata_path = os.path.join(experiments_dir, experiment_id, 'metadata.json')
-
-        # Check if metadata.json exists in the directory
-        if os.path.exists(metadata_path):
-            print(metadata_path, 'EXISTISITISTISID')
-            with open(metadata_path, 'r') as f:
-                data = json.load(f)
-                # Assuming the JSON structure has a key 'experiment_name' with the name of the experiment.
-                # Adjust if the structure is different.
-                experiment_name = data.get('name', None)
-                if experiment_name:
-                    experimentId2name[experiment_id] = experiment_name
-
-    return experimentId2name

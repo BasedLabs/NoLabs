@@ -16,7 +16,7 @@ export default {
 
             <div class="col-md-6">
                 <label for="proteinFileInput" class="col-form-label fs-4">Proteins (.pdb format)</label>
-                <input type="file" accept="text/x-pdb" class="form-control" id="proteinFileInput"
+                <input type="file" multiple="multiple" accept="text/x-pdb" class="form-control" id="proteinFileInput"
                     name="proteinFileInput">
             </div>
         </div>

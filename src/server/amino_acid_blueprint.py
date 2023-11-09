@@ -1,10 +1,10 @@
 from flask import Blueprint
 from flask import request
 
-from src.server.api_handlers import AminoAcidLabApiHandler
+from src.server.api_handlers.amino_acid import ApiHandler
 
 
-def resolve_api_endpoints(api_handler: AminoAcidLabApiHandler):
+def resolve_api_endpoints(api_handler: ApiHandler):
     amino_acid_bp = Blueprint('amino-acid', __name__)
 
     @amino_acid_bp.route('/inference', methods=['POST'])
