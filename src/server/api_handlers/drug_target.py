@@ -2,6 +2,7 @@ import time
 
 from flask import Request
 
+from src.server.services.sdf_pdb_combine import combine_sdf_pdb
 from src.server import settings
 from src.server.api_handlers.api_handler import ApiHandler
 from src.server.services.experiment_service import DrugDiscovery
@@ -56,6 +57,16 @@ class DrugTargetApiHandler(ApiHandler):
 
         return {'status': 200}
 
+    def download_combined_pdb(self, request):
+        j = request.get_json(force=True)
+        experiment_id = j['experiment_id']
+        experiment_selected_index = j['selected_index']
+
+        data = self.experiments_loader.load_result(experiment_id)
+
+        combined_pdb = combine_sdf_pdb(data[experiment_selected_index])
+
+        return {'pdb': 'res'}
 
 class DrugTargetApiMockHandler(DrugTargetApiHandler):
     def inference(self, request):
@@ -79,7 +90,6 @@ class DrugTargetApiMockHandler(DrugTargetApiHandler):
         return experiments
 
     def get_experiment(self, request):
-        time.sleep(1)
         # get name of the experiment and get EXISTING SAVED data based on this name
         experiment_id = int(request.args.get('id'))
 
@@ -90,3 +100,6 @@ class DrugTargetApiMockHandler(DrugTargetApiHandler):
             'sdf': open('mock_data/test.sdf').read(),
             'affinity': 10
         }]}
+
+    def download_combined_pdb(self, request):
+        pass

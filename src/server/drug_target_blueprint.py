@@ -1,10 +1,9 @@
 from flask import Blueprint
 from flask import request
+from src.server.api_handlers.drug_target import DrugTargetApiHandler
 
-from src.server.api_handlers.api_handler import ApiHandler
 
-
-def resolve_api_endpoints(api_handler: ApiHandler):
+def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     drug_target_bp = Blueprint('drug-target', __name__)
 
     @drug_target_bp.route('/inference', methods=['POST'])
@@ -30,5 +29,9 @@ def resolve_api_endpoints(api_handler: ApiHandler):
     @drug_target_bp.route('/generate-id', methods=['GET'])
     def generate_id():
         return api_handler.gen_uuid()
+
+    @drug_target_bp.route('/download-combined-pdb', methods=['POST'])
+    def download_combined_pdb():
+        return api_handler.download_combined_pdb(request)
 
     return drug_target_bp

@@ -10,3 +10,4 @@ dirname = os.path.dirname
 EXPERIMENTS_DIR = dirname(dirname(os.path.abspath(__file__)) + "/experiments/")
 PROTEIN_EXPERIMENTS_DIR = EXPERIMENTS_DIR + "/proteins"
 DTI_EXPERIMENTS_DIR = EXPERIMENTS_DIR + "/drug_discovery"
+CONFORMATIONS_EXPERIMENTS_DIR = EXPERIMENTS_DIR + "/conformations"

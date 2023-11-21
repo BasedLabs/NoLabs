@@ -1,0 +1,5 @@
+conda install -c conda-forge openmm
+sudo apt-get install libstdc++6
+conda install -c conda-forge gcc=12.1.0
+conda install -c conda-forge pdbfixer
+install gromacs from https://manual.gromacs.org/documentation/current/install-guide/index.html

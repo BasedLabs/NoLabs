@@ -1,5 +1,5 @@
 <script>
-import store from '../storage';
+import store, { api } from '../storage';
 
 export default {
     data() {
@@ -93,12 +93,27 @@ export default {
                 });
             });
         },
-        zoomInLigand () {
+        zoomInLigand() {
             this.sdfComponent.autoView();
-         },  
-         zoomInProtein() {
+        },
+        zoomInProtein() {
             this.component.autoView();
-         }
+        },
+        async downloadPdbFile(evt) {
+            const response = await api.drugTarget.downloadCombinedPdb(this.experiment, this.selectedRowId);
+            const filename = 'protein.pdb';
+            const blob = new Blob([response.data.pdb], { type: 'text/plain' });
+            if (window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                const elem = window.document.createElement('a');
+                elem.href = window.URL.createObjectURL(blob);
+                elem.download = filename;
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+            }
+        }
     },
     mounted() {
         this.renderTable();
@@ -129,6 +144,9 @@ export default {
             </button>
             <button type="button" @click="zoomInProtein()" style="width: 100%"
                 class="btn btn-primary padding-top-button-group">Zoom in protein
+            </button>
+            <button type="button" @click="downloadPdbFile()" style="width: 100%"
+                class="btn btn-primary padding-top-button-group">Download structure .pdb
             </button>
         </div>
         <div class="row">
