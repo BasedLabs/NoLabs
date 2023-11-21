@@ -7,7 +7,7 @@ from typing import List, Dict
 
 from src.server.services.loaders import FileLoaderFactory, DTILoader
 from src.server.services.savers import FileSaverFactory
-from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR
+from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
 
 
 def _load_experiments_ids_names(experiments_dir) -> Dict:
@@ -46,7 +46,7 @@ class ExperimentsLoader(ABC):
         pass
 
     @abstractmethod
-    def store_experiment(self, experiment_id: str, result, filename: str):
+    def store_experiment(self, experiment_id: str, result, filename: str = None):
         pass
 
     def _delete_experiment(self, base_dir, experiment_id):
@@ -60,6 +60,59 @@ class ExperimentsLoader(ABC):
         metadata['name'] = experiment_name
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
+
+
+class ConformationsExperimentsLoader(ExperimentsLoader):
+    def __init__(self):
+        self.conformations_file_name = 'conformations.pdb'
+
+    def experiment_exists(self, experiment_id) -> bool:
+        return _experiment_exists(CONFORMATIONS_EXPERIMENTS_DIR, experiment_id)
+
+    def load_experiments(self) -> Dict:
+        return _load_experiments_ids_names(CONFORMATIONS_EXPERIMENTS_DIR)
+
+    def load_experiment(self, experiment_id) -> Dict:
+        result = {}
+        experiment_dir = os.path.join(CONFORMATIONS_EXPERIMENTS_DIR, experiment_id)
+        loader = FileLoaderFactory().get_loader('conf')
+        loaded_content = loader.load(experiment_dir, self.conformations_file_name)
+        result['pdb'] = loaded_content
+        return result
+
+    def store_experiment(self, experiment_id: str, result, filename: str = None):
+        file_saver = FileSaverFactory().get_saver(self.conformations_file_name)
+        experiment_dir = os.path.join(CONFORMATIONS_EXPERIMENTS_DIR, experiment_id)
+        file_saver.save(result, experiment_dir, self.conformations_file_name)
+
+    def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
+        metadata = {
+            "id": experiment_id,
+            "name": experiment_name,
+            "date": datetime.now().isoformat()
+        }
+
+        metadata_path = os.path.join(CONFORMATIONS_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=4)
+
+    def read_experiment_metadata(self, experiment_id: str):
+        metadata_path = os.path.join(CONFORMATIONS_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+
+        # Check if metadata.json exists
+        if not os.path.exists(metadata_path):
+            raise FileNotFoundError(f"No metadata found for experiment_id: {experiment_id}")
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        return metadata
+
+    def delete_experiment(self, experiment_id):
+        self._delete_experiment(CONFORMATIONS_EXPERIMENTS_DIR, experiment_id)
+
+    def rename_experiment(self, experiment_id, experiment_name):
+        self._rename_experiment(CONFORMATIONS_EXPERIMENTS_DIR, experiment_id, experiment_name)
 
 
 class ProteinLabExperimentsLoader(ExperimentsLoader):
