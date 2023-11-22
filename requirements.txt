@@ -13,3 +13,12 @@ biopython
 fair-esm
 requests
 obonet
+"jax[cuda11_pip]==0.4.13" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+ml-collections==0.1.1
+dm-haiku==0.0.9
+biopython==1.81
+chex==0.1.5
+dm-tree==0.1.8
+immutabledict==2.0.0
+scipy==1.7.3
+tensorflow==2.11.0
