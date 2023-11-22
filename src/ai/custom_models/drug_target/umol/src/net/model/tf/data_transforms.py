@@ -1,10 +1,10 @@
 
 """Data for network."""
 
-from net.common import residue_constants
-from net.model.tf import shape_helpers
-from net.model.tf import shape_placeholders
-from net.model.tf import utils
+from src.ai.custom_models.drug_target.umol.src.net.common import residue_constants
+from src.ai.custom_models.drug_target.umol.src.net.model.tf import shape_helpers
+from src.ai.custom_models.drug_target.umol.src.net.model.tf import shape_placeholders
+from src.ai.custom_models.drug_target.umol.src.net.model.tf import utils
 import numpy as np
 import tensorflow.compat.v1 as tf
 

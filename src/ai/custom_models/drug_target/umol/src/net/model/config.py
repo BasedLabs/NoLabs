@@ -1,7 +1,7 @@
 """Model config."""
 
 import copy
-from net.model.tf import shape_placeholders
+from .tf import shape_placeholders
 import ml_collections
 
 

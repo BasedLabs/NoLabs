@@ -1,8 +1,8 @@
 
 """Feature pre-processing input pipeline for protein."""
 
-from net.model.tf import data_transforms
-from net.model.tf import shape_placeholders
+from src.ai.custom_models.drug_target.umol.src.net.model.tf import data_transforms
+from src.ai.custom_models.drug_target.umol.src.net.model.tf import shape_placeholders
 import tensorflow.compat.v1 as tf
 import pdb
 import tree

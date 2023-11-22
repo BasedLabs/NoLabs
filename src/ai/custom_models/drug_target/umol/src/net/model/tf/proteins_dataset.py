@@ -2,7 +2,7 @@
 
 """Datasets consisting of proteins."""
 from typing import Dict, Mapping, Optional, Sequence
-from net.model.tf import protein_features
+from src.ai.custom_models.drug_target.umol.src.net.model.tf import protein_features
 import numpy as np
 import tensorflow.compat.v1 as tf
 

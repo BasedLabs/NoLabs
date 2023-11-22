@@ -22,10 +22,10 @@ the network to facilitate easier conversion to existing protein datastructures.
 """
 
 from typing import Dict, Optional
-from net.common import residue_constants
+from src.ai.custom_models.drug_target.umol.src.net.common import residue_constants
 
-from net.model import r3
-from net.model import utils
+from src.ai.custom_models.drug_target.umol.src.net.model import r3
+from src.ai.custom_models.drug_target.umol.src.net.model import utils
 import jax
 import jax.numpy as jnp
 import numpy as np

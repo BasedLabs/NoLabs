@@ -59,3 +59,12 @@ def read_sdf_files(ligand_files):
                 smiles_list.append(smiles)
 
     return file_names, smiles_list
+
+def get_sequence(file):
+    sequence = ''
+    with open(file, 'r') as file:
+        for line in file:
+            if line.startswith('>'):
+                continue  # Skip the header line
+            sequence += line.strip()  # Append the sequence removing any whitespace
+    return sequence

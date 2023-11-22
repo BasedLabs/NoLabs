@@ -5,7 +5,7 @@
 import io
 import os
 from typing import List
-from net.model import utils
+from .utils import *
 import haiku as hk
 import numpy as np
 # Internal import (7716).

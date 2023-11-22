@@ -4,7 +4,7 @@
 import dataclasses
 import io
 from typing import Any, Mapping, Optional
-from net.common import residue_constants
+from src.ai.custom_models.drug_target.umol.src.net.common import residue_constants
 from Bio.PDB import PDBParser
 import numpy as np
 import pdb

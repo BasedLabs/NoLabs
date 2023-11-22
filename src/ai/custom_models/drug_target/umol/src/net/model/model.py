@@ -2,9 +2,9 @@
 from typing import Any, Mapping, Optional, Union
 
 from absl import logging
-from net.common import confidence
-from net.model import features
-from net.model import modules
+from src.ai.custom_models.drug_target.umol.src.net.common import confidence
+from src.ai.custom_models.drug_target.umol.src.net.model import features
+from src.ai.custom_models.drug_target.umol.src.net.model import modules
 import haiku as hk
 import jax
 import ml_collections

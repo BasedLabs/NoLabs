@@ -3,13 +3,13 @@
 
 import functools
 from typing import Dict
-from net.common import residue_constants
-from net.model import all_atom
-from net.model import common_modules
-from net.model import prng
-from net.model import quat_affine
-from net.model import r3
-from net.model import utils
+from src.ai.custom_models.drug_target.umol.src.net.common import residue_constants
+from src.ai.custom_models.drug_target.umol.src.net.model import all_atom
+from src.ai.custom_models.drug_target.umol.src.net.model import common_modules
+from src.ai.custom_models.drug_target.umol.src.net.model import prng
+from src.ai.custom_models.drug_target.umol.src.net.model import quat_affine
+from src.ai.custom_models.drug_target.umol.src.net.model import r3
+from src.ai.custom_models.drug_target.umol.src.net.model import utils
 import haiku as hk
 import jax
 import jax.numpy as jnp

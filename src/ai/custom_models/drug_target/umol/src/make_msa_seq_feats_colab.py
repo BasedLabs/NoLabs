@@ -17,8 +17,8 @@ import os
 from typing import Mapping, Optional, Sequence
 import pickle
 import sys
-from net.common import residue_constants
-from net.data import parsers
+from .net.common import residue_constants
+from .net.data import parsers
 import numpy as np
 import pdb
 # Internal import (7716).

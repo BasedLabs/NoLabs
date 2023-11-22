@@ -3,8 +3,8 @@
 """Code to generate processed features."""
 import copy
 from typing import List, Mapping, Tuple
-from net.model.tf import input_pipeline
-from net.model.tf import proteins_dataset
+from .tf import input_pipeline
+from .tf import proteins_dataset
 import ml_collections
 import numpy as np
 import os

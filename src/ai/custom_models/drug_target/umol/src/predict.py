@@ -20,11 +20,11 @@ from scipy.special import softmax
 import pdb
 
 #net imports
-from net.common import protein
-from net.common import residue_constants
-from net.model import config
-from net.model import features
-from net.model import modules
+from .net.common import protein
+from .net.common import residue_constants
+from .net.model import config
+from .net.model import features
+from .net.model import modules
 
 #JAX will preallocate 90% of currently-available GPU memory when the first JAX operation is run.
 #This prevents this

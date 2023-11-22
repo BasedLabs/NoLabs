@@ -3,7 +3,7 @@
 """Contains descriptions of various protein features."""
 import enum
 from typing import Dict, Optional, Sequence, Tuple, Union
-from net.common import residue_constants
+from src.ai.custom_models.drug_target.umol.src.net.common import residue_constants
 import tensorflow.compat.v1 as tf
 
 # Type aliases.

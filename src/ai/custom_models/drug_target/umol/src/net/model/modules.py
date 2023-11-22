@@ -3,16 +3,16 @@ Modules for information processing.
 The structure generation code is in 'folding.py'.
 """
 import functools
-from net.common import residue_constants
-from net.model import all_atom
-from net.model import common_modules
-from net.model import folding
-from net.model import layer_stack
-from net.model import lddt
-from net.model import mapping
-from net.model import prng
-from net.model import quat_affine
-from net.model import utils
+from src.ai.custom_models.drug_target.umol.src.net.common import residue_constants
+from src.ai.custom_models.drug_target.umol.src.net.model import all_atom
+from src.ai.custom_models.drug_target.umol.src.net.model import common_modules
+from src.ai.custom_models.drug_target.umol.src.net.model import folding
+from src.ai.custom_models.drug_target.umol.src.net.model import layer_stack
+from src.ai.custom_models.drug_target.umol.src.net.model import lddt
+from src.ai.custom_models.drug_target.umol.src.net.model import mapping
+from src.ai.custom_models.drug_target.umol.src.net.model import prng
+from src.ai.custom_models.drug_target.umol.src.net.model import quat_affine
+from src.ai.custom_models.drug_target.umol.src.net.model import utils
 import haiku as hk
 import jax
 import jax.numpy as jnp
