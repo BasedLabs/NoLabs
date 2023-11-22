@@ -165,6 +165,7 @@ class ESM2EmbeddingGenerator(BaseModel):
 
     def load_model(self):
         self.model, self.alphabet = pretrained.load_model_and_alphabet(self.model_name)
+        self.model.to(self.device)
         self.model.eval()
 
     def predict(self, protein_sequence: str):
@@ -244,7 +245,6 @@ class GeneOntologyPrediction(BaseModel):
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
-        self.embedding_model.to(self.device)
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
@@ -263,6 +263,7 @@ class GeneOntologyPrediction(BaseModel):
     def predict(self, protein_id: str):
         logger.info("Making gene ontology predictions...")
         embedding = self.embedding_model.predict(protein_id)
+        embedding = embedding.to(self.device)
         raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
 
         outputs = {label: confidence for label, confidence in zip(self.labels, raw_outputs)}
@@ -288,7 +289,7 @@ class SolubilityPrediction(BaseModel):
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
-        self.embedding_model.to(self.device)
+        self.embedding_model
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
@@ -406,15 +407,15 @@ class DrugTargetInteraction(BaseModel):
                 pocket_name = line['pocket_name']
                 compound_name = line['compound_name']
                 ligandName = compound_name.split("_")[1]
-                coords = dataset[idx].coords.to(self.device)
-                protein_nodes_xyz = dataset[idx].node_xyz.to(self.device)
+                coords = dataset[idx].coords.detach().cpu()
+                protein_nodes_xyz = dataset[idx].node_xyz.detach().cpu()
                 n_compound = coords.shape[0]
                 n_protein = protein_nodes_xyz.shape[0]
-                y_pred = self.y_pred_list[idx].reshape(n_protein, n_compound).to(self.device)
-                y = dataset[idx].dis_map.reshape(n_protein, n_compound).to(self.device)
-                compound_pair_dis_constraint = torch.cdist(coords, coords)
+                y_pred = self.y_pred_list[idx].reshape(n_protein, n_compound).detach().cpu()
+                y = dataset[idx].dis_map.reshape(n_protein, n_compound).detach().cpu()
+                compound_pair_dis_constraint = torch.cdist(coords, coords).detach().cpu()
                 mol = Chem.MolFromMolFile(rdkitMolFile)
-                LAS_distance_constraint_mask = get_LAS_distance_constraint_mask(mol).bool()
+                LAS_distance_constraint_mask = get_LAS_distance_constraint_mask(mol).bool().detach().cpu()
                 info = get_info_pred_distance(coords, y_pred, protein_nodes_xyz, compound_pair_dis_constraint,
                                               LAS_distance_constraint_mask=LAS_distance_constraint_mask,
                                               n_repeat=1, show_progress=False)

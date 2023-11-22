@@ -8,7 +8,7 @@ from werkzeug.datastructures import FileStorage
 from src.server.services.experiments_structure_loader import ProteinLabExperimentsLoader, DTILabExperimentsLoader
 from src.server.services.inference_service import create_pipeline, create_model, get_models_from_config
 from src.server.services.savers import SDFFileSaver, PDBFileSaver
-from src.server.settings import EXPERIMENTS_DIR, PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR
+from src.server.settings import EXPERIMENTS_DIR, PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
 from src.server.services.mixins import UUIDGenerator
 
 
@@ -20,6 +20,8 @@ def ensure_base_directory():
         os.makedirs(PROTEIN_EXPERIMENTS_DIR)
     if not os.path.exists(DTI_EXPERIMENTS_DIR):
         os.makedirs(DTI_EXPERIMENTS_DIR)
+    if not os.path.exists(CONFORMATIONS_EXPERIMENTS_DIR):
+        os.makedirs(CONFORMATIONS_EXPERIMENTS_DIR)
 
 
 ensure_base_directory()

@@ -43,12 +43,12 @@ export default {
         render() {
             setTimeout(() => {
                 // Render 3d structure
-                const experiment = store.state.conformations.experiment;
+                const experiment = this.experiment;
                 document.getElementById('viewport').innerHTML = '';
                 this.cleanStage();
                 const stage = new NGL.Stage("viewport");
                 stage.setParameters({ backgroundColor: 'black' });
-                const proteinFileContentBlob = new Blob([experiment.data], { type: 'text/plain' });
+                const proteinFileContentBlob = new Blob([experiment.data.pdb], { type: 'text/plain' });
                 const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
                 stage.loadFile(proteinFile, { defaultRepresentation: true, asTrajectory: true }).then(function(component) {
                     var traj = component.addTrajectory().trajectory
