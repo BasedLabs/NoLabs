@@ -323,7 +323,7 @@ class SolubilityPrediction(BaseModel):
         return {'solubility': outputs.item()}
 
 
-class DrugTargetInteraction(BaseModel):
+class DeprecatedDrugTargetInteraction(BaseModel):
     def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu, model_task)
         if gpu:
@@ -479,7 +479,7 @@ class DrugTargetInteraction(BaseModel):
         logger.info("DTI predictions are completed!")
 
 
-class UmolDrugTargetInteraction(BaseModel):
+class DrugTargetInteraction(BaseModel):
     def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu, model_task)
 
@@ -576,7 +576,17 @@ class UmolDrugTargetInteraction(BaseModel):
             print('Saved ligand features to', features_output_path)
 
     def load_model(self):
-        # Load model here
+        print("Loading uMol DTI params...")
+        self.model_params_path = os.path.join(dirname(os.path.abspath(__file__)), 'custom_models', 'drug_target', 'models_ckpt', 'params.pkl')
+        url = 'https://huggingface.co/thomasshelby/uMol_params/resolve/main/params.pkl?download=true'
+        if not os.path.exists(self.model_params_path):
+            response = requests.get(url, stream=True)
+            if response.status_code == 200:
+                with open(self.model_params_path, 'wb') as f:
+                    f.write(response.content)
+            else:
+                raise Exception(f"Failed to download file from {url}")
+
         pass
 
     def _raw_inference(self, protein_ids, ligands, experiment_folder, target_positions, num_recycles):
@@ -591,7 +601,8 @@ class UmolDrugTargetInteraction(BaseModel):
 
             MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
             LIGAND_FEATS = os.path.join(protein_folder, 'ligand_inp_features.pkl')
-            with open('/content/drive/MyDrive/params.pkl', 'rb') as file:
+            
+            with open(self.model_params_path, 'rb') as file:
                 PARAMS = pickle.load(file)
         
             # Predict
@@ -624,7 +635,7 @@ class UmolDrugTargetInteraction(BaseModel):
 
 
     def predict(self, ligand_files, protein_files, experiment_folder: str):
-        #logger.info("Making dti predictions...")
+        logger.info("Making dti predictions...")
         ligands_names, ligands_smiles = read_sdf_files(ligand_files)
         protein_names = [os.path.splitext(x)[0] for x in protein_files]
 

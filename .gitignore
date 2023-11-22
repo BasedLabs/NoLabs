@@ -168,6 +168,7 @@ tests/cypress/screenshots/
 tests/cypress/videos/
 tests/node_modules/
 src/ai/custom_models/drug_target/tankbind/p2rank_2.4.1/
+src/ai/custom_models/drug_target/models_ckpt/params.pkl
 src/server/experiments/drug_discovery/*
 !/src/server/experiments/drug_discovery/a79e74d4-4e90-4a7a-a4cb-8468adf49d18
 src/server/experiments/proteins/*
