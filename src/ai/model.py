@@ -520,7 +520,6 @@ class DrugTargetInteraction(BaseModel):
             else:
                 print(f"Failed to get .a3m for {fasta_file_path}: {response.status_code}")
 
-
     def prepare_data(
             self,
             ligands_names: List[str],
@@ -534,10 +533,10 @@ class DrugTargetInteraction(BaseModel):
 
         # Prepare ligand features
         # Add ligand data preparation steps here
-        self.prepare_ligand_data(protein_files, ligands_smiles, experiment_folder)
+        self.prepare_ligand_data(protein_files, ligands_smiles, ligands_names, experiment_folder)
 
-    def prepare_ligand_data(self, fasta_files, ligands, experiment_folder):
-        for fasta_file, ligand in zip(fasta_files, ligands):
+    def prepare_ligand_data(self, fasta_files, ligands, ligand_names, experiment_folder):
+        for fasta_file, ligand, ligand_name in zip(fasta_files, ligands, ligand_names):
             protein_name = os.path.splitext(os.path.basename(fasta_file))[0]
             protein_folder = os.path.join(experiment_folder, protein_name)
 
@@ -545,7 +544,7 @@ class DrugTargetInteraction(BaseModel):
                 os.makedirs(protein_folder)
 
             MSA=os.path.join(experiment_folder, protein_name, protein_name+'.a3m')
-            PROCESSED_MSA=MSA.split('.')[0]+'_processed.a3m'
+            PROCESSED_MSA=os.path.join(experiment_folder, protein_name, protein_name+'_processed.a3m')
             process_a3m(MSA, get_sequence(fasta_file), PROCESSED_MSA)
             MSA=PROCESSED_MSA
 
@@ -570,7 +569,7 @@ class DrugTargetInteraction(BaseModel):
                 'bond_mask': bond_mask
             }
 
-            features_output_path = os.path.join(protein_folder, 'ligand_inp_features.pkl')
+            features_output_path = os.path.join(protein_folder, '{ligand_name}_ligand_inp_features.pkl')
             with open(features_output_path, 'wb') as f:
                 pickle.dump(ligand_inp_feats, f, protocol=4)
             print('Saved ligand features to', features_output_path)
@@ -589,15 +588,15 @@ class DrugTargetInteraction(BaseModel):
 
         pass
 
-    def _raw_inference(self, protein_ids, ligands, experiment_folder, target_positions, num_recycles):
-        for ID, LIGAND in zip(protein_ids, ligands):
+    def _raw_inference(self, protein_ids, ligands, ligands_names, experiment_folder, target_positions, num_recycles):
+        for ID, LIGAND, LIGAND_NAME in zip(protein_ids, ligands, ligands_names):
             protein_folder = os.path.join(experiment_folder, ID)
             result_folder = os.path.join(protein_folder, 'result')
 
             if not os.path.exists(result_folder):
                 os.makedirs(result_folder)
 
-            result_folder = os.path.join(protein_folder, 'result/')
+            result_folder = os.path.join(protein_folder, 'result')
 
             MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
             LIGAND_FEATS = os.path.join(protein_folder, 'ligand_inp_features.pkl')
@@ -619,12 +618,12 @@ class DrugTargetInteraction(BaseModel):
             aligned_conf_pos = align_coords_transform(pred_ligand['chain_coords'], best_conf_pos, nonH_inds)
 
             # Write sdf
-            sdf_output_path = os.path.join(result_folder, f'{ID}_pred_ligand.sdf')
+            sdf_output_path = os.path.join(result_folder, f'{LIGAND_NAME}_pred_ligand.sdf')
             write_sdf(mol, best_conf, aligned_conf_pos, best_conf_id, sdf_output_path)
 
             # Extract ATOM and HETATM records from the PDB file
             protein_pdb_path = os.path.join(result_folder, f'{ID}_pred_protein.pdb')
-            ligand_plddt_path = os.path.join(result_folder, 'ligand_plddt.csv')
+            ligand_plddt_path = os.path.join(result_folder, '{LIGAND_NAME}_ligand_plddt.csv')
 
             with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path, 'w') as ligand_out:
                 for line in infile:
@@ -639,13 +638,14 @@ class DrugTargetInteraction(BaseModel):
         ligands_names, ligands_smiles = read_sdf_files(ligand_files)
         protein_names = [os.path.splitext(x)[0] for x in protein_files]
 
-        #TARGET_POSITIONS = "51,52,54,55,56,57,58,59,60,61,62,63,65,66,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,93,94,95,96,97,98,99,100,101,102,104,105,125,128,129" 
-        #TARGET_POSITIONS = np.array([int(x) for x in TARGET_POSITIONS.split(',')])
+        #TODO: ADD p2rank to identify target positions
+        target_array = np.asarray([])
 
         self.prepare_data(ligands_names, ligands_smiles, protein_names, protein_files, experiment_folder)
         self._raw_inference(
             protein_ids=protein_names, 
             ligands=ligands_smiles, 
+            ligands_names=ligands_names,
             experiment_folder=experiment_folder,
-            target_positions=np.asarray([]), 
+            target_positions=target_array, 
             num_recycles=3)

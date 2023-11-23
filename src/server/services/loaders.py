@@ -2,6 +2,7 @@ import os
 import json
 import csv
 
+import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import SDMolSupplier
@@ -96,10 +97,10 @@ class DTILoader:
 
             for ligand_name in ligand_names:
 
-                ligand_file = f'{result_folder}/{ligand_name}_tankbind.sdf'
+                ligand_file = f'{result_folder}/{ligand_name}_pred_ligand.sdf'
 
-                info_df = pd.read_csv(f"{result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
-                chosen = info_df.loc[info_df.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
+                plddt_df = pd.read_csv(f"{result_folder}/{ligand_name}_ligand_plddt.csv", header=None)
+                ligand_plddt = np.round(plddt_df[0].mean(),1)
 
                 sdf_supplier = SDMolSupplier(ligand_file)
                 # Initialize an empty string to store the SDF contents
@@ -115,7 +116,7 @@ class DTILoader:
                     'proteinName': protein_name, 
                     'sdf': sdf_contents, 
                     'ligandName': ligand_name, 
-                    'affinity': chosen['affinity'].item()
+                    'affinity': ligand_plddt
                     }
                 )
 
