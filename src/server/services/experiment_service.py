@@ -7,7 +7,7 @@ from werkzeug.datastructures import FileStorage
 
 from src.server.services.experiments_structure_loader import ProteinLabExperimentsLoader, DTILabExperimentsLoader
 from src.server.services.inference_service import create_pipeline, create_model, get_models_from_config
-from src.server.services.savers import SDFFileSaver, PDBFileSaver
+from src.server.services.savers import FastaFileSaver, SDFFileSaver, PDBFileSaver
 from src.server.settings import EXPERIMENTS_DIR, PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR
 from src.server.services.mixins import UUIDGenerator
 
@@ -72,12 +72,17 @@ class DrugDiscovery(BaseExperiment):
     def _store_inputs(self, experiments_dir: str, ligand_files: List[FileStorage], protein_files: List[FileStorage]):
         sdf_saver = SDFFileSaver()
         pdb_saver = PDBFileSaver()
+        fasta_saver = FastaFileSaver()
 
         for ligand_file in ligand_files:
             sdf_saver.save(ligand_file, experiments_dir, ligand_file.filename)
 
-        for pdb_file in protein_files:
-            pdb_saver.save(pdb_file, experiments_dir, pdb_file.filename)
+        for protein_file in protein_files:
+            if protein_file.filename.endswith(".pdb"):
+                pdb_saver.save(protein_file, experiments_dir, protein_file.filename)
+                pdb_saver.pdb_to_fasta(protein_file, experiments_dir, protein_file.filename)
+            elif protein_file.filename.endswith(".fasta"):
+                fasta_saver.save(protein_file, experiments_dir, protein_file.filename)
 
     def run(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_id: str):
         if not experiment_id:

@@ -81,17 +81,24 @@ class DTILoader:
 
         results = []
         for protein_name in protein_names:
-            result_folder = os.path.join(experiment_folder, protein_name, 'result')
+            protein_folder = os.path.join(experiment_folder, protein_name)
+            result_folder = os.path.join(protein_folder, 'result')
             protein_name = protein_name
 
             pdb_content = ""
-
             # Open and read the PDB file
-            pdb_file_path = os.path.join(experiment_folder, protein_name, protein_name + '.pdb')
-            print(pdb_file_path)
-            with open(pdb_file_path, 'r') as pdb_file:
-                for line in pdb_file:
-                    pdb_content += line
+            pdb_file_path = os.path.join(protein_folder, protein_name + '.pdb')
+
+            # If a user uploaded pdb file then we prioritise this structure
+            if os.path.exists(pdb_file_path):
+                with open(pdb_file_path, 'r') as pdb_file:
+                    for line in pdb_file:
+                        pdb_content += line
+            else:
+                pred_pdb_file_path = os.path.join(result_folder, protein_name + "_pred_protein.pdb")
+                with open(pred_pdb_file_path, 'r') as pdb_file:
+                    for line in pdb_file:
+                        pdb_content += line
 
             ligand_names = self.get_ligand_names(f'{experiment_folder}/{protein_name}')
 
