@@ -12,9 +12,9 @@ describe('Main page', () => {
 
     it('Inference result is visible', () => {
         cy.visit('amino-acid-lab');
-        cy.get('.btn.btn-outline-success.add-experiments-button', {timeout: 90000}).click();
-        cy.get('.bi.bi-check2.btn.btn.btn-outline-success', {timeout: 90000}).click();
-        cy.get('#submitInference', {timeout: 90000}).click();
+        cy.get('.btn.btn-outline-success.add-experiments-button', {timeout: 90000}).first().click();
+        cy.get('.bi.bi-check2.btn.btn.btn-outline-success', {timeout: 90000}).first().click();
+        cy.get('#submitInference', {timeout: 90000}).first().click();
         cy.get('#mithochondria-list-item', {timeout: 90000}).should('exist');
     });
 })
