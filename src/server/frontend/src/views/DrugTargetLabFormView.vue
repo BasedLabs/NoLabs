@@ -15,9 +15,9 @@ export default {
             </div>
 
             <div class="col-md-6">
-                <label for="proteinFileInput" class="col-form-label fs-4">Proteins (.pdb format)</label>
-                <input type="file" multiple="multiple" accept="text/x-pdb" class="form-control" id="proteinFileInput"
-                    name="proteinFileInput">
+                <label for="proteinFileInput" class="col-form-label fs-4">Proteins (.pdb or .fasta format)</label>
+                <input type="file" multiple="multiple" accept=".pdb, .fasta, text/x-fasta, chemical/x-pdb, chemical/x-fasta" 
+                    class="form-control" id="proteinFileInput" name="proteinFileInput">
             </div>
         </div>
         <div class="row justify-content-center m-4">

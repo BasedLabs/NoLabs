@@ -11,7 +11,52 @@ class FileSaver:
 
 class PDBFileSaver(FileSaver):
     def save(self, content, folder, filename):
-        self._save_content(content, folder, filename)
+        return self._save_content(content, folder, filename)
+
+    def pdb_to_fasta(self, pdb_filename, pdb_content, fasta_filename):
+        """
+        Convert a PDB file to a FASTA file.
+        
+        :param pdb_filename: The path to the input PDB file.
+        :param fasta_filename: The path to the output FASTA file.
+        """
+
+        sequence = ""
+        current_chain = None
+
+        for line in pdb_content:
+            if line.startswith("ATOM") and line[13:15].strip() == "CA":
+                chain_id = line[21]
+                amino_acid = line[17:20].strip()
+
+                # If a new chain starts, separate it with a newline in the FASTA file
+                if current_chain and current_chain != chain_id:
+                    sequence += "\n"
+                current_chain = chain_id
+
+                # Convert three-letter amino acid codes to single-letter codes
+                amino_acid_code = self.three_to_one(amino_acid)
+                sequence += amino_acid_code
+
+        with open(fasta_filename, 'w') as fasta_file:
+            fasta_file.write(">Converted from {}\n".format(pdb_filename))
+            fasta_file.write(sequence)
+
+        return fasta_filename
+
+
+    def three_to_one(self, three_letter_code):
+        """
+        Convert a three-letter amino acid code to a single-letter code.
+        """
+        conversion = {
+            "ALA": "A", "ARG": "R", "ASN": "N", "ASP": "D",
+            "CYS": "C", "GLU": "E", "GLN": "Q", "GLY": "G",
+            "HIS": "H", "ILE": "I", "LEU": "L", "LYS": "K",
+            "MET": "M", "PHE": "F", "PRO": "P", "SER": "S",
+            "THR": "T", "TRP": "W", "TYR": "Y", "VAL": "V"
+        }
+        return conversion.get(three_letter_code, "?")
 
     def _save_content(self, content, folder, filename):
         if not filename.endswith('.pdb'):
@@ -39,7 +84,7 @@ class CSVFileSaver(FileSaver):
 
 class SDFFileSaver(FileSaver):
     def save(self, content, folder, filename):
-        self._save_content(content, folder, filename)
+        return self._save_content(content, folder, filename)
 
     def _save_content(self, content, folder, filename):
         if not filename.endswith('.sdf'):
@@ -49,9 +94,10 @@ class SDFFileSaver(FileSaver):
         path = os.path.join(folder, filename)
         if isinstance(content, FileStorage):
             content.save(path)
-            return
+            return path
         with open(path, 'w') as f:
             f.write(content)
+        return path
 
 class JSONFileSaver(FileSaver):
     def save(self, content, folder, filename):
@@ -67,6 +113,22 @@ class JSONFileSaver(FileSaver):
         with open(os.path.join(folder, filename), 'w') as f:
             json.dump(content, f, indent=4, default=float)
 
+class FastaFileSaver(FileSaver):
+    def save(self, content, folder, filename):
+        return self._save_content(content, folder, filename)
+
+    def _save_content(self, content, folder, filename):
+        if not filename.endswith('.fasta'):
+            filename += '.fasta'
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        path = os.path.join(folder, filename)
+        if isinstance(content, FileStorage):
+            content.save(path)
+            return path
+        with open(path, 'w') as f:
+            f.write(content)
+        return path
 
 class FileSaverFactory:
     @staticmethod

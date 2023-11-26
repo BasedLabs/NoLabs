@@ -1,10 +1,14 @@
+import glob
 import os
 import json
 import csv
 
+import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import SDMolSupplier
+from pathlib import Path
+
 
 class FileLoader:
     def load(self, folder, filename):
@@ -28,11 +32,6 @@ class SDFFileLoader(FileLoader):
     def load(self, folder, filename):
         with open(os.path.join(folder, filename), 'r') as f:
             return f.read()
-
-class JSONFileLoader(FileLoader):
-    def load(self, folder, filename):
-        with open(os.path.join(folder, filename), 'r') as f:
-            return json.load(f)
 
 class JSONFileLoader(FileLoader):
     def load(self, folder, filename):
@@ -74,32 +73,39 @@ class DTILoader:
 
     def get_dti_results(self, experiments_folder: str, experiment_id: str):
         experiment_folder = os.path.join(experiments_folder, experiment_id)
-
+        import glob
         protein_names = [d for d in os.listdir(experiment_folder) \
         if os.path.isdir(os.path.join(experiment_folder, d))]
 
         results = []
         for protein_name in protein_names:
-            result_folder = os.path.join(experiment_folder, protein_name, 'result')
+            protein_folder = os.path.join(experiment_folder, protein_name)
+            result_folder = os.path.join(protein_folder, 'result')
             protein_name = protein_name
 
             pdb_content = ""
-
             # Open and read the PDB file
-            pdb_file_path = os.path.join(experiment_folder, protein_name, protein_name + '.pdb')
-            print(pdb_file_path)
-            with open(pdb_file_path, 'r') as pdb_file:
-                for line in pdb_file:
-                    pdb_content += line
+            pdb_file_path = os.path.join(protein_folder, protein_name + '.pdb')
 
-            ligand_names = self.get_ligand_names(f'{experiment_folder}/{protein_name}')
+            # If a user uploaded pdb file then we prioritise this structure
+            if os.path.exists(pdb_file_path):
+                with open(pdb_file_path, 'r') as pdb_file:
+                    for line in pdb_file:
+                        pdb_content += line
+            else:
+                pred_pdb_file_path = os.path.join(result_folder, protein_name + "_pred_protein.pdb")
+                with open(pred_pdb_file_path, 'r') as pdb_file:
+                    for line in pdb_file:
+                        pdb_content += line
+
+            ligand_names = self.get_ligand_names(result_folder)
 
             for ligand_name in ligand_names:
 
-                ligand_file = f'{result_folder}/{ligand_name}_tankbind.sdf'
+                ligand_file = f'{result_folder}/{ligand_name}_pred_ligand.sdf'
 
-                info_df = pd.read_csv(f"{result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
-                chosen = info_df.loc[info_df.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
+                plddt_df = pd.read_csv(f"{result_folder}/{ligand_name}_ligand_plddt.csv", header=None)
+                ligand_plddt = np.round(plddt_df[0].mean(),1)
 
                 sdf_supplier = SDMolSupplier(ligand_file)
                 # Initialize an empty string to store the SDF contents
@@ -115,17 +121,16 @@ class DTILoader:
                     'proteinName': protein_name, 
                     'sdf': sdf_contents, 
                     'ligandName': ligand_name, 
-                    'affinity': chosen['affinity'].item()
+                    'affinity': ligand_plddt
                     }
                 )
 
         return results
 
-    def get_ligand_names(self, ligands_path):
-        # List all directories inside the ligands folder
-        all_dirs = [d for d in os.listdir(ligands_path) if os.path.isdir(os.path.join(ligands_path, d))]
-
-        # Extract ligand names by removing the '_dataset' suffix
-        ligand_names = [dir_name.rsplit('_dataset', 1)[0] for dir_name in all_dirs if dir_name.endswith('_dataset')]
-
-        return ligand_names
+    def get_ligand_names(self, result_folder):
+        suffix = '_pred_ligand'
+        ligands_path = glob.glob(result_folder + f'/*{suffix}.sdf')
+        file_names = [
+            Path(ligand_path).stem for ligand_path in ligands_path
+        ]
+        return [file_name.replace(suffix, '') for file_name in file_names]
