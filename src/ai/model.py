@@ -12,6 +12,7 @@ import requests
 from tqdm import tqdm
 import pickle
 
+from src.server import settings
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
 from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron, SimpleSolubilityMultiLayerPerceptron
 from src.ai.custom_models.drug_target.utils import install_p2rank, read_sdf_files, get_sequence
@@ -298,7 +299,6 @@ class SolubilityPrediction(BaseModel):
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
-        self.embedding_model
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
@@ -348,7 +348,7 @@ class DeprecatedDrugTargetInteraction(BaseModel):
             experiment_folder: str
     ):
         self.prepare_folders(experiment_folder, protein_names)
-        self.protein_dict = self._prepare_protein_data(experiment_folder, protein_files, protein_names)
+        self.protein_dict = self._prepare_protein_data(experiment_folder, protein_files)
         self.protein2ligandcompdict = {}
         for protein_name in protein_names:
             ligand2compounddict = {}
@@ -483,28 +483,21 @@ class DrugTargetInteraction(BaseModel):
     def __init__(self, model_name, gpu, model_task=""):
         super().__init__(model_name, gpu, model_task)
 
-    def prepare_folders(self, experiment_folder: str, protein_names: List[str]):
-        for protein_name in protein_names:
-            os.makedirs(f'{experiment_folder}/{protein_name}', exist_ok=True)
+    def prepare_folders(self, protein_dir_paths: List[str]):
+        for protein_dir_name in protein_dir_paths:
+            os.makedirs(protein_dir_name, exist_ok=True)
 
-    def _prepare_protein_data(self, experiment_folder, protein_files, protein_names):
-        for protein_file, protein_name in zip(protein_files, protein_names):
-            fasta_path = os.path.join(experiment_folder, protein_name, f'{protein_name}.fasta')
-            with open(fasta_path, 'w') as file:
-                sequence = get_sequence(protein_file)
-                file.write(f'>{protein_name}\n{sequence}')
-
+    def _prepare_protein_data(self, experiment_folder, protein_files_paths):
         # Process MSA and write features
         # Add other protein data preparation steps here
-        api_url = 'http://143.198.141.110:8000/generate-msa/'
-        self.submit_fasta_and_save_a3m(api_url, protein_files, os.path.join(experiment_folder, protein_name))
+        self.submit_fasta_and_save_a3m(settings.FASTA_API, protein_files_paths, experiment_folder)
 
 
     def submit_fasta_and_save_a3m(self, api_url, fasta_file_paths, experiment_folder):
         for fasta_file_path in fasta_file_paths:
             # Extract the base name to create the .a3m file name
-            base_name = os.path.splitext(os.path.basename(fasta_file_path))[0]
-            a3m_file_path = os.path.join(experiment_folder, f"{base_name}.a3m")
+            base_name = os.path.splitext(os.path.basename(fasta_file_path))[-2]
+            a3m_file_path = os.path.join(experiment_folder, base_name, f"{base_name}.a3m")
 
             # Open the FASTA file and send it to the API
             with open(fasta_file_path, 'rb') as file:
@@ -516,20 +509,20 @@ class DrugTargetInteraction(BaseModel):
                 # Write the .a3m content to a file
                 with open(a3m_file_path, 'w') as a3m_file:
                     a3m_file.write(response.json()['alignment'])
-                print(f"Saved .a3m file for {fasta_file_path} as {a3m_file_path}")
+                logger.info(f"Saved .a3m file for {fasta_file_path} as {a3m_file_path}")
             else:
-                print(f"Failed to get .a3m for {fasta_file_path}: {response.status_code}")
+                logger.error(f"Failed to get .a3m for {fasta_file_path}: {response.status_code}")
 
     def prepare_data(
             self,
             ligands_names: List[str],
             ligands_smiles: List[str],
-            protein_names: List[str],
+            protein_dirs_paths: List[str],
             protein_files: List,
             experiment_folder: str
     ):
-        self.prepare_folders(experiment_folder, protein_names)
-        self._prepare_protein_data(experiment_folder, protein_files, protein_names)
+        self.prepare_folders(protein_dirs_paths)
+        self._prepare_protein_data(experiment_folder, protein_files)
 
         # Prepare ligand features
         # Add ligand data preparation steps here
@@ -553,7 +546,7 @@ class DrugTargetInteraction(BaseModel):
             features_output_path = os.path.join(protein_folder, 'msa_features.pkl')
             with open(features_output_path, 'wb') as f:
                 pickle.dump(feature_dict, f, protocol=4)
-            print('Saved MSA features to', features_output_path)
+            logger.info('Saved MSA features to', features_output_path)
 
             atom_encoding = {'B':0, 'C':1, 'F':2, 'I':3, 'N':4, 'O':5, 'P':6, 'S':7,'Br':8, 'Cl':9, #Individual encoding
                 'As':10, 'Co':10, 'Fe':10, 'Mg':10, 'Pt':10, 'Rh':10, 'Ru':10, 'Se':10, 'Si':10, 'Te':10, 'V':10, 'Zn':10 #Joint (rare)
@@ -569,7 +562,7 @@ class DrugTargetInteraction(BaseModel):
                 'bond_mask': bond_mask
             }
 
-            features_output_path = os.path.join(protein_folder, '{ligand_name}_ligand_inp_features.pkl')
+            features_output_path = os.path.join(protein_folder, f'{ligand_name}_ligand_inp_features.pkl')
             with open(features_output_path, 'wb') as f:
                 pickle.dump(ligand_inp_feats, f, protocol=4)
             print('Saved ligand features to', features_output_path)
@@ -596,14 +589,15 @@ class DrugTargetInteraction(BaseModel):
             if not os.path.exists(result_folder):
                 os.makedirs(result_folder)
 
-            result_folder = os.path.join(protein_folder, 'result')
+            result_folder = os.path.join(protein_folder, 'result/')
 
             MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
-            LIGAND_FEATS = os.path.join(protein_folder, 'ligand_inp_features.pkl')
-            
+            LIGAND_FEATS = os.path.join(protein_folder, f'{LIGAND_NAME}_ligand_inp_features.pkl')
+
             with open(self.model_params_path, 'rb') as file:
                 PARAMS = pickle.load(file)
-        
+            
+            ID = ID.split('/')[-1]
             # Predict
             predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, target_positions, PARAMS, num_recycles, outdir=result_folder)
 
@@ -623,7 +617,7 @@ class DrugTargetInteraction(BaseModel):
 
             # Extract ATOM and HETATM records from the PDB file
             protein_pdb_path = os.path.join(result_folder, f'{ID}_pred_protein.pdb')
-            ligand_plddt_path = os.path.join(result_folder, '{LIGAND_NAME}_ligand_plddt.csv')
+            ligand_plddt_path = os.path.join(result_folder, f'{LIGAND_NAME}_ligand_plddt.csv')
 
             with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path, 'w') as ligand_out:
                 for line in infile:
@@ -633,19 +627,19 @@ class DrugTargetInteraction(BaseModel):
                         ligand_out.write(line[64:66] + '\n')  # Extracting plDDT values
 
 
-    def predict(self, ligand_files, protein_files, experiment_folder: str):
+    def predict(self, ligand_files_paths, protein_files, experiment_folder: str):
         logger.info("Making dti predictions...")
-        ligands_names, ligands_smiles = read_sdf_files(ligand_files)
-        protein_names = [os.path.splitext(x)[0] for x in protein_files]
+        ligands_names, ligands_smiles = read_sdf_files(ligand_files_paths)
+        protein_file_paths = [os.path.splitext(x)[0] for x in protein_files]
 
         #TODO: ADD p2rank to identify target positions
         target_array = np.asarray([])
-
-        self.prepare_data(ligands_names, ligands_smiles, protein_names, protein_files, experiment_folder)
+        protein_names = [os.path.splitext(protein_file_path)[-2] for protein_file_path in protein_files]
+        self.prepare_data(ligands_names, ligands_smiles, protein_file_paths, protein_files, experiment_folder)
         self._raw_inference(
-            protein_ids=protein_names, 
-            ligands=ligands_smiles, 
+            protein_ids=protein_names,
+            ligands=ligands_smiles,
             ligands_names=ligands_names,
             experiment_folder=experiment_folder,
-            target_positions=target_array, 
+            target_positions=target_array,
             num_recycles=3)

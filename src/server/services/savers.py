@@ -11,7 +11,7 @@ class FileSaver:
 
 class PDBFileSaver(FileSaver):
     def save(self, content, folder, filename):
-        self._save_content(content, folder, filename)
+        return self._save_content(content, folder, filename)
 
     def pdb_to_fasta(self, pdb_filename, pdb_content, fasta_filename):
         """
@@ -41,6 +41,9 @@ class PDBFileSaver(FileSaver):
         with open(fasta_filename, 'w') as fasta_file:
             fasta_file.write(">Converted from {}\n".format(pdb_filename))
             fasta_file.write(sequence)
+
+        return fasta_filename
+
 
     def three_to_one(self, three_letter_code):
         """
@@ -81,7 +84,7 @@ class CSVFileSaver(FileSaver):
 
 class SDFFileSaver(FileSaver):
     def save(self, content, folder, filename):
-        self._save_content(content, folder, filename)
+        return self._save_content(content, folder, filename)
 
     def _save_content(self, content, folder, filename):
         if not filename.endswith('.sdf'):
@@ -91,9 +94,10 @@ class SDFFileSaver(FileSaver):
         path = os.path.join(folder, filename)
         if isinstance(content, FileStorage):
             content.save(path)
-            return
+            return path
         with open(path, 'w') as f:
             f.write(content)
+        return path
 
 class JSONFileSaver(FileSaver):
     def save(self, content, folder, filename):
@@ -111,17 +115,20 @@ class JSONFileSaver(FileSaver):
 
 class FastaFileSaver(FileSaver):
     def save(self, content, folder, filename):
-        if not isinstance(content, dict):
-            raise ValueError("The content must be a dictionary for JSONFileSaver.")
-        self._save_content(content, folder, filename)
+        return self._save_content(content, folder, filename)
 
     def _save_content(self, content, folder, filename):
-        if not os.path.exists(folder):
-            os.makedirs(folder)
         if not filename.endswith('.fasta'):
             filename += '.fasta'
-        with open(os.path.join(folder, filename), 'w') as f:
-            json.dump(content, f, indent=4, default=float)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        path = os.path.join(folder, filename)
+        if isinstance(content, FileStorage):
+            content.save(path)
+            return path
+        with open(path, 'w') as f:
+            f.write(content)
+        return path
 
 class FileSaverFactory:
     @staticmethod

@@ -1,3 +1,4 @@
+import glob
 import os
 import json
 import csv
@@ -6,6 +7,8 @@ import numpy as np
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import SDMolSupplier
+from pathlib import Path
+
 
 class FileLoader:
     def load(self, folder, filename):
@@ -75,7 +78,7 @@ class DTILoader:
 
     def get_dti_results(self, experiments_folder: str, experiment_id: str):
         experiment_folder = os.path.join(experiments_folder, experiment_id)
-
+        import glob
         protein_names = [d for d in os.listdir(experiment_folder) \
         if os.path.isdir(os.path.join(experiment_folder, d))]
 
@@ -100,7 +103,7 @@ class DTILoader:
                     for line in pdb_file:
                         pdb_content += line
 
-            ligand_names = self.get_ligand_names(f'{experiment_folder}/{protein_name}')
+            ligand_names = self.get_ligand_names(result_folder)
 
             for ligand_name in ligand_names:
 
@@ -129,11 +132,10 @@ class DTILoader:
 
         return results
 
-    def get_ligand_names(self, ligands_path):
-        # List all directories inside the ligands folder
-        all_dirs = [d for d in os.listdir(ligands_path) if os.path.isdir(os.path.join(ligands_path, d))]
-
-        # Extract ligand names by removing the '_dataset' suffix
-        ligand_names = [dir_name.rsplit('_dataset', 1)[0] for dir_name in all_dirs if dir_name.endswith('_dataset')]
-
-        return ligand_names
+    def get_ligand_names(self, result_folder):
+        suffix = '_pred_ligand'
+        ligands_path = glob.glob(result_folder + f'/*{suffix}.sdf')
+        file_names = [
+            Path(ligand_path).stem for ligand_path in ligands_path
+        ]
+        return [file_name.replace(suffix, '') for file_name in file_names]

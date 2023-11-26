@@ -74,21 +74,29 @@ class DrugDiscovery(BaseExperiment):
         pdb_saver = PDBFileSaver()
         fasta_saver = FastaFileSaver()
 
+        ligand_file_paths = []
+        pdb_file_paths = []
+
         for ligand_file in ligand_files:
-            sdf_saver.save(ligand_file, experiments_dir, ligand_file.filename)
+            file_path = sdf_saver.save(ligand_file, experiments_dir, ligand_file.filename)
+            ligand_file_paths.append(file_path)
 
         for protein_file in protein_files:
             if protein_file.filename.endswith(".pdb"):
-                pdb_saver.save(protein_file, experiments_dir, protein_file.filename)
+                file_path = pdb_saver.save(protein_file, experiments_dir, protein_file.filename)
                 pdb_saver.pdb_to_fasta(protein_file, experiments_dir, protein_file.filename)
+                pdb_file_paths.append(file_path)
             elif protein_file.filename.endswith(".fasta"):
-                fasta_saver.save(protein_file, experiments_dir, protein_file.filename)
+                file_path = fasta_saver.save(protein_file, experiments_dir, protein_file.filename)
+                pdb_file_paths.append(file_path)
+
+        return (ligand_file_paths, pdb_file_paths)
 
     def run(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_id: str):
         if not experiment_id:
             experiment_id = self.gen_uuid()
         model = self.pipeline.get_model_by_task("dti")
         experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
-        self._store_inputs(experiment_dir, ligand_files, protein_files)
-        model.predict(ligand_files, protein_files, experiment_dir)
+        ligand_file_paths, pdb_file_paths = self._store_inputs(experiment_dir, ligand_files, protein_files)
+        model.predict(ligand_file_paths, pdb_file_paths, experiment_dir)
         return experiment_id

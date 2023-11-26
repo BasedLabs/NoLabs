@@ -36,13 +36,13 @@ def install_p2rank():
     print("p2rank successfully installed and extracted to:", destination_folder)
 
 
-def read_sdf_files(ligand_files):
+def read_sdf_files(ligand_files_paths):
     # Initialize lists to store file names and SMILES strings
     file_names = []
     smiles_list = []
 
     # Iterate through files in the 'temp/' folder
-    for file_path in ligand_files:
+    for file_path in ligand_files_paths:
 
         # Extract file name without the '.sdf' extension
         file_name_without_extension = os.path.splitext(os.path.basename(file_path))[0]
