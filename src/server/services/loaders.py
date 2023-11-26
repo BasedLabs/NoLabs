@@ -38,11 +38,6 @@ class JSONFileLoader(FileLoader):
         with open(os.path.join(folder, filename), 'r') as f:
             return json.load(f)
 
-class JSONFileLoader(FileLoader):
-    def load(self, folder, filename):
-        with open(os.path.join(folder, filename), 'r') as f:
-            return json.load(f)
-
 class CSVListLoader(FileLoader):
     def load(self, folder, filename):
         content = []
