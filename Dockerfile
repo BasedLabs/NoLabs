@@ -12,7 +12,7 @@ RUN apt-get -y update && \
 WORKDIR /app
 ADD . /app
 
-RUN tar xfz gromacs-distro/gromacs.tar.gz
+RUN tar xfz gromacs.tar.gz
 WORKDIR /app/gromacs-2023.3
 RUN mkdir build
 RUN cd build
