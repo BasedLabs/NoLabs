@@ -15,7 +15,7 @@ ADD . /app
 RUN tar xfz gromacs.tar.gz
 WORKDIR /app/gromacs-2023.3
 RUN mkdir build
-RUN cd build
+WORKDIR /app/gromacs-2023.3/build
 RUN cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON
 RUN make
 RUN make check
