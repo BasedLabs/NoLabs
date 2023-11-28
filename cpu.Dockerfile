@@ -4,7 +4,7 @@ FROM cnstark/pytorch:2.0.1-py3.9.17-ubuntu20.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -y update && \
-    apt-get install -y wget software-properties-common python3.8 python3.8-distutils curl libxrender1 libxext6 && \
+    apt-get install -y cmake wget software-properties-common python3.8 python3.8-distutils curl libxrender1 libxext6 && \
     wget https://bootstrap.pypa.io/get-pip.py && \
     python3.8 get-pip.py
 
