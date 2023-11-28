@@ -12,8 +12,8 @@ RUN apt-get -y update && \
 WORKDIR /app
 ADD . /app
 
-RUN tar xfz gromacs-distro/gromacs.tar.gz -C gromacs-2023.3
-WORKDIR ./gromacs-2023.3
+RUN tar xfz gromacs-distro/gromacs.tar.gz
+WORKDIR /app/gromacs-2023.3
 RUN mkdir build
 RUN cd build
 RUN cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON
