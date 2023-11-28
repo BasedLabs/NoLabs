@@ -4,7 +4,7 @@ FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-devel
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -y update && \
-    apt-get install -y wget software-properties-common python3.8 python3.8-distutils curl libxrender1 libxext6 && \
+    apt-get install -y cmake wget software-properties-common python3.8 python3.8-distutils curl libxrender1 libxext6 && \
     wget https://bootstrap.pypa.io/get-pip.py && \
     python3.8 get-pip.py
 
