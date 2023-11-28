@@ -12,15 +12,15 @@ RUN apt-get -y update && \
 WORKDIR /app
 ADD . /app
 
-RUN tar xfz gromacs.tar.gz
-WORKDIR /app/gromacs-2023.3
-RUN mkdir build
-WORKDIR /app/gromacs-2023.3/build
-RUN cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON
-RUN make
-RUN make check
-RUN sudo make install
-RUN source /usr/local/gromacs/bin/GMXRC
+#RUN tar xfz gromacs.tar.gz
+#WORKDIR /app/gromacs-2023.3
+#RUN mkdir build
+#WORKDIR /app/gromacs-2023.3/build
+#RUN cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON
+#RUN make
+#RUN make check
+#RUN sudo make install
+#RUN source /usr/local/gromacs/bin/GMXRC
 
 WORKDIR /app
 
