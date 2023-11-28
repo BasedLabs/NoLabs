@@ -155,7 +155,7 @@ body::-webkit-scrollbar-track {
   display: grid;
   place-items: center;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 20px; /* Space between the lab containers */
 }
 
@@ -165,9 +165,10 @@ body::-webkit-scrollbar-track {
   display: grid;
   place-items: center;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   align-content: center;
   margin-bottom: 20px;
+  margin-top: 40px;
 }
 
 .protein-container canvas {
@@ -182,6 +183,6 @@ body::-webkit-scrollbar-track {
 .labs-flex-container {
   display: flex;
   justify-content: center; /* Center the items horizontally */
-  align-items: center; /* Center the items vertically */
-  gap: 40px; /* Optional: adds some space between the containers */
+  align-items: flex-start; /* Center the items vertically */
+  gap: 150px; /* Optional: adds some space between the containers */
 }
