@@ -13,6 +13,10 @@ biopython
 fair-esm
 requests
 obonet
+openmm
+pdbfixer
+parmed
+gcc==12.1.0
 jax==0.4.13
 jaxlib==0.4.13
 ml-collections==0.1.1
