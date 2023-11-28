@@ -38,7 +38,7 @@ RUN apt-get install libstdc++6 -y
 RUN python3.8 -m pip install --upgrade pip && \
     python3.8 -m pip install torch==1.13.1 torchvision torchaudio && \
     python3.8 -m pip install torch-geometric && \
-    python3.8 -m pip install gcc=12.1.0 openmm pdbfixer parmed && \
+    python3.8 -m pip install gcc==12.1.0 openmm pdbfixer parmed && \
     python3.8 -m pip install --no-index pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cu116.html && \
     python3.8 -m pip install -r requirements.txt
 
