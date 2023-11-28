@@ -149,3 +149,7 @@ body::-webkit-scrollbar-track {
 .loading-wrap {
   display: none;
 }
+
+#app {
+  overflow-x: hidden;
+}

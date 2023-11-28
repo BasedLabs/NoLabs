@@ -1,7 +1,6 @@
 import glob
 import itertools
 import subprocess
-import os
 
 from openmm.app import *
 from openmm import *
@@ -134,11 +133,11 @@ def fix_pdb(input_pdb):
 
     fixer = pdbfixer.PDBFixer(input_pdb)
     logger.info("Finding missing residues")
-    #fixer.findMissingResidues()
+    fixer.findMissingResidues()
     logger.info("Finding nonstandard residues")
-    #fixer.findNonstandardResidues()
+    fixer.findNonstandardResidues()
     logger.info('Replacing nonstandard residues')
-    #fixer.replaceNonstandardResidues()
+    fixer.replaceNonstandardResidues()
     logger.info('Finding missing atoms')
     fixer.findMissingAtoms()
     logger.info('Adding missing atoms')
@@ -158,9 +157,9 @@ def generate_gromacs_files(input_pdb, output_gro, topology_top, force_field, wat
                           '-ignh', '-ff', force_field.lower(), '-water', water.lower()],
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     if os.path.exists(output_gro) and os.path.exists(topology_top):
-        logger.info(res.stdout.decode('utf-8'))
+        logger.info(res.stdout.decode('utf-8')[:100])
         return True
-    logger.error(res.stderr.decode('utf-8'))
+    logger.error(res.stderr.decode('utf-8')[:100])
     return False
 
 
@@ -173,24 +172,24 @@ def permute_simulation(pdb_content: FileStorage, report_every=1000, simulations_
         tries = [amber_files, charmm]
 
         for input_pdb in [fix_pdb(pdb_tmp_file), pdb_tmp_file]:
-            #for water in gromacs_force_fields['water']:
-            #    for force_field in gromacs_force_fields['protein']:
-            #        logger.info(
-            #            f'Trying to process {input_pdb} by GROMACS using force field {force_field} and water {water}')
-            #        gro = f'{input_pdb}.gro'
-            #        top = f'{input_pdb}.top'
-            #        res = generate_gromacs_files(input_pdb, f'{input_pdb}.gro', f'{input_pdb}.top', force_field,
-            #                          water)
-            #        if res and run_simulation_on_gromacs(top, gro, output_tmp_file, report_every, simulations_count):
-            #            logger.info('Success')
-            #            return
-            #        remove_conformations_backups()
+            for water in gromacs_force_fields['water']:
+                for force_field in gromacs_force_fields['protein']:
+                    logger.info(
+                        f'Trying to process your pdb by GROMACS using force field {force_field} and water {water}')
+                    gro = f'{input_pdb}.gro'
+                    top = f'{input_pdb}.top'
+                    res = generate_gromacs_files(input_pdb, f'{input_pdb}.gro', f'{input_pdb}.top', force_field,
+                                      water)
+                    if res and run_simulation_on_gromacs(top, gro, output_tmp_file, report_every, simulations_count):
+                        logger.info('Success')
+                        return
+                    remove_conformations_backups()
 
             for t in tries:
                 for protein_force_fields in [pff for pff in t['protein']]:
                     for water_force_fields in [wff for wff in t['water']]:
                         logger.info(
-                            f'Trying to process {input_pdb} by OPENMM using force field {protein_force_fields} and water {water_force_fields}')
+                            f'Trying to process your pdb by OPENMM using force field {protein_force_fields} and water {water_force_fields}')
 
                         sim_res = run_simulation_on_pdb(input_pdb, output_tmp_file,
                                                         [protein_force_fields, water_force_fields])

@@ -10,7 +10,8 @@ from rdkit.Chem import SDMolSupplier
 from src.ai.model_factory import create_model
 from src.ai.pipeline import Pipeline
 
-def create_pipeline(use_gpu=False, is_test = False) -> Pipeline:
+
+def create_pipeline(use_gpu=False, is_test=False) -> Pipeline:
     pipeline = Pipeline()
     models_metadata = get_models_from_config(is_test)
 
@@ -20,29 +21,35 @@ def create_pipeline(use_gpu=False, is_test = False) -> Pipeline:
 
     return pipeline
 
+
 def get_localisation_output(pipeline, amino_acid_sequence: str) -> Dict:
     assert amino_acid_sequence
     model = pipeline.get_model_by_task("localisation")
     return model.predict(amino_acid_sequence)
+
 
 def get_folding_output(pipeline, amino_acid_sequence: str) -> str:
     assert amino_acid_sequence
     model = pipeline.get_model_by_task("folding")
     return model.predict(amino_acid_sequence)
 
+
 def get_gene_ontology_output(pipeline, amino_acid_sequence: str) -> Dict:
     model = pipeline.get_model_by_task("gene_ontology")
     res = model.predict(amino_acid_sequence)
     return res
+
 
 def get_solubility_output(pipeline, amino_acid_sequence: str) -> Dict:
     model = pipeline.get_model_by_task("solubility")
     res = model.predict(amino_acid_sequence)
     return res
 
+
 def generate_dti_results(pipeline, ligand_files: List[str], protein_file: str):
     model = pipeline.get_model_by_task("dti")
     model.predict(ligand_files, protein_file)
+
 
 def get_dti_results(pipeline, ligand_files: str):
     model = pipeline.get_model_by_task("dti")
@@ -68,7 +75,8 @@ def get_dti_results(pipeline, ligand_files: str):
         ligand_file = f'{result_folder}/{ligand_name}_tankbind.sdf'
 
         info_df = pd.read_csv(f"{result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
-        chosen = info_df.loc[info_df.groupby(['protein_name', 'compound_name'],sort=False)['affinity'].agg('idxmax')].reset_index()
+        chosen = info_df.loc[
+            info_df.groupby(['protein_name', 'compound_name'], sort=False)['affinity'].agg('idxmax')].reset_index()
         affinity_list.append(chosen['affinity'].item())
 
         sdf_supplier = SDMolSupplier(ligand_file)
@@ -81,10 +89,8 @@ def get_dti_results(pipeline, ligand_files: str):
                 sdf_contents += Chem.MolToMolBlock(mol) + "\n"
         ligands_sdf_contents.append(sdf_contents)
 
-    
-    print("AFFINITY_LIST: ", affinity_list)
-
     return pdb_content, protein_name, ligands_sdf_contents, ligand_names, affinity_list
+
 
 def save_uploaded_files(pipeline, files):
     model = pipeline.get_model_by_task("dti")
@@ -107,14 +113,17 @@ def save_uploaded_files(pipeline, files):
 
     return saved_file_paths
 
+
 def get_pipeline_output(pipeline, amino_acid_sequence: str) -> str:
     assert amino_acid_sequence
     return pipeline.predict(amino_acid_sequence)
+
 
 def read_json_file(file_path):
     with open(file_path, 'r') as json_file:
         data = json.load(json_file)
     return data
+
 
 def read_config():
     dirname = os.path.dirname
@@ -123,6 +132,7 @@ def read_config():
     data = read_json_file(file_path)
     return data
 
+
 def read_test_config():
     dirname = os.path.dirname
     root_directory = dirname(dirname(dirname(dirname(os.path.abspath(__file__)))))
@@ -130,8 +140,8 @@ def read_test_config():
     data = read_json_file(file_path)
     return data
 
+
 def get_models_from_config(is_test):
-    data = None
     if is_test:
         data = read_test_config()
     else:
