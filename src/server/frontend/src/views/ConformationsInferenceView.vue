@@ -47,8 +47,8 @@ export default {
                 document.getElementById('viewport').innerHTML = '';
                 this.cleanStage();
                 const stage = new NGL.Stage("viewport");
-                stage.setParameters({ backgroundColor: 'black' });
-                const proteinFileContentBlob = new Blob([experiment.data], { type: 'text/plain' });
+                stage.setParameters({ backgroundColor: 'white' });
+                const proteinFileContentBlob = new Blob([experiment.data.pdb], { type: 'text/plain' });
                 const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
                 stage.loadFile(proteinFile, { defaultRepresentation: true, asTrajectory: true }).then(function(component) {
                     var traj = component.addTrajectory().trajectory

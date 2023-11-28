@@ -18,11 +18,11 @@ class ConformationsApiHandler(ApiHandler):
         experiment_id = request.args.get('id')
         experiment_name = request.args.get('name')
 
-        return {
-            'id': experiment_id,
-            'name': experiment_name,
-            'data': open('api_handlers/CONFORMATIONS.pdb','r').read()
-        }
+        if not self.experiments_loader.experiment_exists(experiment_id):
+            return {'id': experiment_id, 'name': experiment_name, 'data': {}}
+
+        experiment_data = self.experiments_loader.load_experiment(experiment_id)
+        return {'id': experiment_id, 'name': experiment_name, 'data': experiment_data}
 
     def change_experiment_name(self, request: Request):
         return {'result': 'Dont look here! It is a demo'}
@@ -35,14 +35,13 @@ class ConformationsApiHandler(ApiHandler):
         experiment_name = request.form['experimentName']
         experiment_id = request.form['experimentId']
 
-        simulation_result = permute_simulation(pdb_file)
-        self.experiments_loader.store_experiment(experiment_id, simulation_result)
-        self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
+        simulation_result = permute_simulation(protein_files[0])
+        if simulation_result:
+            self.experiments_loader.store_experiment(experiment_id, simulation_result)
+            self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
 
         return {
             'id': experiment_id,
             'name': experiment_name,
-            'pdb': simulation_result
+            'data': {'pdb': simulation_result}
         }
-
-
