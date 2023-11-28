@@ -19,6 +19,7 @@ a {
   top: 0px;
   left: 0px;
   right: 0px;
+  z-index: 10;
 }
 
 #inspector {
@@ -148,4 +149,49 @@ body::-webkit-scrollbar-track {
 
 .loading-wrap {
   display: none;
+}
+
+.lab-container {
+  display: grid;
+  place-items: center;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 20px; /* Space between the lab containers */
+}
+
+.protein-container {
+  width: 300px;
+  height: 300px;
+  display: grid;
+  place-items: center;
+  justify-content: center;
+  align-items: flex-start;
+  align-content: center;
+  margin-bottom: 20px;
+  margin-top: 40px;
+}
+
+.protein-container-gif {
+  max-width:100%;
+  max-height:100%;
+}
+
+.protein-container canvas {
+  position: relative !important; /* Override the absolute positioning */
+  top: auto !important;
+  left: auto !important;
+  /* Ensure the canvas is centered within lab-container */
+  margin: auto;
+  border-radius: 20px;
+}
+
+.labs-flex-container {
+  display: flex;
+  justify-content: center; /* Center the items horizontally */
+  align-items: flex-start; /* Center the items vertically */
+  gap: 150px; /* Optional: adds some space between the containers */
+}
+
+#app {
+  overflow-x: hidden;
 }

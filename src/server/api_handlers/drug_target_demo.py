@@ -1,5 +1,6 @@
 from flask import Request
 
+from server.services.sdf_pdb_combine import combine_sdf_pdb
 from src.server.api_handlers.api_handler import ApiHandler
 from src.server.services.experiments_structure_loader import DTILabExperimentsLoader
 
@@ -26,3 +27,14 @@ class DrugTargetDemoApiHandler(ApiHandler):
 
     def inference(self, request: Request) -> dict:
         return {'result': 'This is a demo, deploy docker container or buy us a fancy gpu'}
+
+    def download_combined_pdb(self, request):
+        j = request.get_json(force=True)
+        experiment_id = j['experiment_id']
+        experiment_selected_index = j['selected_index']
+
+        data = self.experiments_loader.load_result(experiment_id)
+
+        combined_pdb = combine_sdf_pdb(data[experiment_selected_index]['sdf'], data[experiment_selected_index]['pdb'])
+
+        return {'pdb': combined_pdb}

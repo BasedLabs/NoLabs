@@ -11,6 +11,10 @@ const store = createStore({
         drugTarget: {
             experiment: null,
             experiments: []
+        },
+        conformations: {
+            experiment: null,
+            experiments: []
         }
     },
     mutations: {
@@ -23,7 +27,7 @@ const store = createStore({
             }
             const experimentsArray = [];
             for (const [key, value] of Object.entries(experiments)) {
-                experimentsArray.push({id: key, name: value});
+                experimentsArray.push({ id: key, name: value });
             }
             state.aminoAcid.experiments = experimentsArray;
         },
@@ -31,12 +35,12 @@ const store = createStore({
             state.aminoAcid.experiment = experiment;
         },
         aminoAcid_addExperiment(state, data) {
-            const {experiment, id} = data;
+            const { experiment, id } = data;
             experiment.id = id;
             state.aminoAcid.experiments.push(experiment);
         },
         aminoAcid_deleteExperiment(state, experiment) {
-            if(state.aminoAcid.experiment && state.aminoAcid.experiment.id === experiment.id){
+            if (state.aminoAcid.experiment && state.aminoAcid.experiment.id === experiment.id) {
                 state.aminoAcid.experiment = null;
             }
             state.aminoAcid.experiments = state.aminoAcid.experiments.filter(exp => exp.id !== experiment.id);
@@ -47,7 +51,7 @@ const store = createStore({
         drugTarget_getAllExperiments(state, experiments) {
             const experimentsArray = [];
             for (const [key, value] of Object.entries(experiments)) {
-                experimentsArray.push({id: key, name: value});
+                experimentsArray.push({ id: key, name: value });
             }
             state.drugTarget.experiments = experimentsArray;
         },
@@ -55,25 +59,48 @@ const store = createStore({
             state.drugTarget.experiment = experiment;
         },
         drugTarget_addExperiment(state, data) {
-            const {experiment, id} = data;
+            const { experiment, id } = data;
             experiment.id = id;
             state.drugTarget.experiments.push(experiment);
         },
         drugTarget_deleteExperiment(state, experiment) {
-            debugger;
-            if(state.drugTarget.experiment && state.drugTarget.experiment.id === experiment.id){
+            if (state.drugTarget.experiment && state.drugTarget.experiment.id === experiment.id) {
                 state.drugTarget.experiment = null;
             }
             state.drugTarget.experiments = state.drugTarget.experiments.filter(exp => exp.id !== experiment.id);
+        },
+        conformations_loadExperiment(state, { experiment }) {
+            state.conformations.experiment = experiment;
+        },
+        conformations_getAllExperiments(state, experiments) {
+            const experimentsArray = [];
+            for (const [key, value] of Object.entries(experiments)) {
+                experimentsArray.push({ id: key, name: value });
+            }
+            state.conformations.experiments = experimentsArray;
+        },
+        conformations_inference(state, experiment) {
+            state.conformations.experiment = experiment;
+        },
+        conformations_addExperiment(state, data) {
+            const { experiment, id } = data;
+            experiment.id = id;
+            state.conformations.experiments.push(experiment);
+        },
+        conformations_deleteExperiment(state, experiment) {
+            if (state.conformations.experiment && state.conformations.experiment.id === experiment.id) {
+                state.conformations.experiment = null;
+            }
+            state.conformations.experiments = state.conformations.experiments.filter(exp => exp.id !== experiment.id);
         },
     },
     actions: {
         async aminoAcid_addExperiment({ commit }, { experiment }) {
             const response = await axios.get(apiConstants.aminoAcid.generateId.path);
-            commit(apiConstants.aminoAcid.addExperiment.mutation, {experiment, id: response.data.id});
+            commit(apiConstants.aminoAcid.addExperiment.mutation, { experiment, id: response.data.id });
         },
         async aminoAcid_inference({ commit }, { payload }) {
-            const {form, experiment} = payload;
+            const { form, experiment } = payload;
             const formData = new FormData(form);
             formData.append('experimentId', experiment.id ?? '');
             formData.append('experimentName', experiment.name);
@@ -97,16 +124,16 @@ const store = createStore({
             const response = await axios.get(apiConstants.aminoAcid.loadExperiment.path, { params: { id: experiment.id, name: experiment.name } });
             commit(apiConstants.aminoAcid.loadExperiment.mutation, { experiment: response.data });
         },
-        async aminoAcid_changeExperimentName({commit}, {experiment}){
-            if('id' in experiment)
+        async aminoAcid_changeExperimentName({ commit }, { experiment }) {
+            if ('id' in experiment)
                 await axios.post(apiConstants.aminoAcid.changeExperimentName.path, { id: experiment.id, name: experiment.name });
         },
         async drugTarget_addExperiment({ commit }, { experiment }) {
             const response = await axios.get(apiConstants.aminoAcid.generateId.path);
-            commit(apiConstants.drugTarget.addExperiment.mutation, {experiment, id: response.data.id});
+            commit(apiConstants.drugTarget.addExperiment.mutation, { experiment, id: response.data.id });
         },
         async drugTarget_inference({ commit }, { payload }) {
-            const {form, experiment} = payload;
+            const { form, experiment } = payload;
             const formData = new FormData(form);
             formData.append('experimentId', experiment.id ?? '');
             formData.append('experimentName', experiment.name);
@@ -130,9 +157,42 @@ const store = createStore({
             const response = await axios.get(apiConstants.drugTarget.loadExperiment.path, { params: { id: experiment.id, name: experiment.name } });
             commit(apiConstants.drugTarget.loadExperiment.mutation, { experiment: response.data });
         },
-        async drugTarget_changeExperimentName({commit}, {experiment}){
-            if('id' in experiment)
+        async drugTarget_changeExperimentName({ commit }, { experiment }) {
+            if ('id' in experiment)
                 await axios.post(apiConstants.drugTarget.changeExperimentName.path, { id: experiment.id, name: experiment.name });
+        },
+        async conformations_addExperiment({ commit }, { experiment }) {
+            const response = await axios.get(apiConstants.aminoAcid.generateId.path);
+            commit(apiConstants.conformations.addExperiment.mutation, { experiment, id: response.data.id });
+        },
+        async conformations_inference({ commit }, { payload }) {
+            const { form, experiment } = payload;
+            const formData = new FormData(form);
+            formData.append('experimentId', experiment.id ?? '');
+            formData.append('experimentName', experiment.name);
+            const response = await axios({
+                method: 'post',
+                url: apiConstants.conformations.inference.path,
+                data: formData,
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            commit(apiConstants.conformations.inference.mutation, response.data);
+        },
+        async conformations_getAllExperiments({ commit }) {
+            const response = await axios.get(apiConstants.conformations.experiments.path);
+            commit(apiConstants.conformations.experiments.mutation, response.data);
+        },
+        async conformations_deleteExperiment({ commit }, { experiment }) {
+            await axios.delete(apiConstants.conformations.deleteExperiment.path, { data: { id: experiment.id } });
+            commit(apiConstants.conformations.deleteExperiment.mutation, experiment);
+        },
+        async conformations_loadExperiment({ commit }, { experiment }) {
+            const response = await axios.get(apiConstants.conformations.loadExperiment.path, { params: { id: experiment.id, name: experiment.name } });
+            commit(apiConstants.conformations.loadExperiment.mutation, { experiment: response.data });
+        },
+        async conformations_changeExperimentName({ commit }, { experiment }) {
+            if ('id' in experiment)
+                await axios.post(apiConstants.conformations.changeExperimentName.path, { id: experiment.id, name: experiment.name });
         }
     },
 });
@@ -155,7 +215,7 @@ export const api = {
             store.dispatch(apiConstants.aminoAcid.addExperiment.action, { experiment: { name: `New experiment` } });
         },
         changeExperimentName: async (experiment) => {
-            await store.dispatch(apiConstants.aminoAcid.changeExperimentName.action, {experiment});
+            await store.dispatch(apiConstants.aminoAcid.changeExperimentName.action, { experiment });
         }
     },
     drugTarget: {
@@ -175,7 +235,31 @@ export const api = {
             store.dispatch(apiConstants.drugTarget.addExperiment.action, { experiment: { name: 'New experiment' } });
         },
         changeExperimentName: async (experiment) => {
-            await store.dispatch(apiConstants.drugTarget.changeExperimentName.action, {experiment});
+            await store.dispatch(apiConstants.drugTarget.changeExperimentName.action, { experiment });
+        },
+        downloadCombinedPdb: async (experiment, selectedIndex) => {
+            return await axios.post(apiConstants.drugTarget.downloadCombinedPdb.path,
+                { experiment_id: experiment.id, selected_index: selectedIndex });
+        }
+    },
+    conformations: {
+        getAllExperiments: async () => {
+            return await store.dispatch(apiConstants.conformations.experiments.action);
+        },
+        inference: async (payload) => {
+            return await store.dispatch(apiConstants.conformations.inference.action, { payload });
+        },
+        deleteExperiment: async (experiment) => {
+            return await store.dispatch(apiConstants.conformations.deleteExperiment.action, { experiment });
+        },
+        loadExperiment: async (experiment) => {
+            return await store.dispatch(apiConstants.conformations.loadExperiment.action, { experiment });
+        },
+        addExperiment: () => {
+            store.dispatch(apiConstants.conformations.addExperiment.action, { experiment: { name: 'New experiment' } });
+        },
+        changeExperimentName: async (experiment) => {
+            await store.dispatch(apiConstants.conformations.changeExperimentName.action, { experiment });
         }
     }
 }
