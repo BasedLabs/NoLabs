@@ -64,7 +64,6 @@ const store = createStore({
             state.drugTarget.experiments.push(experiment);
         },
         drugTarget_deleteExperiment(state, experiment) {
-            debugger;
             if (state.drugTarget.experiment && state.drugTarget.experiment.id === experiment.id) {
                 state.drugTarget.experiment = null;
             }
@@ -89,7 +88,6 @@ const store = createStore({
             state.conformations.experiments.push(experiment);
         },
         conformations_deleteExperiment(state, experiment) {
-            debugger;
             if (state.conformations.experiment && state.conformations.experiment.id === experiment.id) {
                 state.conformations.experiment = null;
             }

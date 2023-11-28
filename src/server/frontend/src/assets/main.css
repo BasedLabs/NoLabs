@@ -184,5 +184,9 @@ body::-webkit-scrollbar-track {
   display: flex;
   justify-content: center; /* Center the items horizontally */
   align-items: flex-start; /* Center the items vertically */
-  gap: 150px; /* Optional: adds some space between the containers */
+  gap: 150px; /* Optional: adds some space between the containers */ 
+}
+
+#app {
+  overflow-x: hidden;
 }

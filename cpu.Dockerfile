@@ -21,9 +21,24 @@ RUN apt-get install nodejs -y
 WORKDIR /app
 ADD . /app
 
+RUN tar xfz gromacs-distro/gromacs.tar.gz
+WORKDIR ./gromacs-2023.3
+RUN mkdir build
+RUN cd build
+RUN cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON
+RUN make
+RUN make check
+RUN sudo make install
+RUN source /usr/local/gromacs/bin/GMXRC
+
+WORKDIR /app
+
+RUN apt-get install libstdc++6
+
 RUN python3.8 -m pip install --upgrade pip && \
     python3.8 -m pip install torch==1.13.1 torchvision torchaudio && \
     python3.8 -m pip install torch-geometric && \
+    python3.8 -m pip install openmm pdbfixer parmed gcc=12.1.0 && \
     python3.8 -m pip install --no-index pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.0+cu116.html && \
     python3.8 -m pip install -r requirements.txt
 
