@@ -1,6 +1,6 @@
 from flask import Request
 
-from src.server.services.conformations.conformations_pipeline import permute_simulation
+#from src.server.services.conformations.conformations_pipeline import permute_simulation
 from src.server.services.experiments_structure_loader import ConformationsExperimentsLoader
 from src.server.api_handlers.api_handler import ApiHandler
 
@@ -35,7 +35,8 @@ class ConformationsApiHandler(ApiHandler):
         experiment_name = request.form['experimentName']
         experiment_id = request.form['experimentId']
 
-        simulation_result = permute_simulation(protein_files[0])
+        #simulation_result = permute_simulation(protein_files[0])
+        simulation_result = ''
         if simulation_result:
             self.experiments_loader.store_experiment(experiment_id, simulation_result)
             self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
