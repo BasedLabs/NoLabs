@@ -20,7 +20,7 @@ class ConformationsApiHandler(ApiHandler):
             return {'id': experiment_id, 'name': experiment_name, 'data': {}}
 
         experiment_data = self.experiments_loader.load_experiment(experiment_id)
-        return {'id': experiment_id, 'name': experiment_name, 'data':experiment_data}
+        return {'id': experiment_id, 'name': experiment_name, 'data': experiment_data}
 
     def change_experiment_name(self, request: Request):
         j = request.get_json(force=True)
@@ -44,14 +44,11 @@ class ConformationsApiHandler(ApiHandler):
 
         simulation_result = permute_simulation(protein_files[0])
         if simulation_result:
-            print('SIMULATION RESULT', simulation_result)
             self.experiments_loader.store_experiment(experiment_id, simulation_result)
             self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
 
         return {
             'id': experiment_id,
             'name': experiment_name,
-            'pdb': simulation_result
+            'data': {'pdb': simulation_result}
         }
-
-

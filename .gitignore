@@ -173,3 +173,5 @@ src/server/experiments/drug_discovery/*
 !/src/server/experiments/drug_discovery/25befab3-cb27-4f04-a454-b966ebedbc0c
 src/server/experiments/proteins/*
 !/src/server/experiments/proteins/71813a82-7bc6-4ed6-b0c2-eecbced66a50
+src/server/experiments/conformations/*
+!/src/server/experiments/conformations/85e6d812-777c-4a79-97c6-054b7aa517f2

@@ -23,7 +23,7 @@ export default {
 <template>
     <ExperimentsView :state="experimentsState" :api="experimentsApi">
         <template v-slot:labTitle>
-            <h4>Conformations lab</h4>
+            <h4>Conformations lab (pre-alpha)</h4>
         </template>
         <template v-slot:labForm="labForm">
             <ConformationsFormView :onFormSubmit="labForm.onFormSubmit"/>

@@ -24,7 +24,6 @@
         <div class="protein-container" ref="drugDiscoveryProtein"></div>
         <ul class="lab-features">
           <li>Protein-Ligand Binding</li>
-          <li class="upcoming-feature">Simulations</li>
           <li class="upcoming-feature">Metabolic processes affected</li>
         </ul>
         <RouterLink type="button" class="btn btn-primary btn-md" to="/drug-target-lab">Drug discovery lab</RouterLink>
@@ -37,12 +36,11 @@
 
       <!-- Conformations lab Lab -->
       <div class="lab-container">
-        <div class="protein-container" ref="drugDiscoveryProtein"></div>
+        <div class="protein-container"><img class="protein-container-gif" src="exampleProteins/shadi_3P.gif"></div>
         <ul class="lab-features">
-          <li>Conformations (pre-alpha)</li>
           <li class="upcoming-feature">Protein conformations simulation</li>
         </ul>
-        <RouterLink type="button" class="btn btn-primary btn-md" to="/conformations">Conformations lab</RouterLink>
+        <RouterLink type="button" class="btn btn-primary btn-md" to="/conformations">Conformations lab (pre-alpha)</RouterLink>
         <div class="toggle-text" @click="toggleDropdown('drugDiscovery')">More Info</div>
         <div v-if="dropdowns.drugDiscovery" class="dropdown-content">
           <!-- Your info content here -->

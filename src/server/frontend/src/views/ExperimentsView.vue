@@ -95,10 +95,10 @@ export default {
                     :class="isCurrentExperiment(experiment) ? 'active' : ''">
                     <input class="form-control" :value="experiment.name"
                         @input="changeExperimentName($event, experiment)" />
-                    <i class="bi bi-check2 btn btn btn-outline-success" type="button"
+                    <i class="bi bi-check2 btn ms-1 btn-outline-success" type="button"
                         @click.stop="selectExperiment(experiment)" @mouseover="showTooltip($event, 'Select')"
                         @mouseout="hideTooltip()"></i>
-                    <i class="bi bi-x-circle btn btn btn-outline-danger" @click.stop="deleteExperiment(experiment)"
+                    <i class="bi bi-x-circle btn ms-1 btn-outline-danger" @click.stop="deleteExperiment(experiment)"
                         @mouseover="showTooltip($event, 'Delete from solution')" @mouseout="hideTooltip()"></i>
                 </li>
             </ul>
