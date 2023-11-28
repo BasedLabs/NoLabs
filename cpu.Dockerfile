@@ -8,20 +8,11 @@ RUN apt-get -y update && \
     wget https://bootstrap.pypa.io/get-pip.py && \
     python3.8 get-pip.py
 
-# Install Node.js 18
-RUN apt-get install -y ca-certificates curl gnupg
-RUN mkdir -p /etc/apt/keyrings
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-ARG NODE_MAJOR=18
-RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-RUN apt-get update
-RUN apt-get install nodejs -y
-
 # Continue with your setup...
 WORKDIR /app
 ADD . /app
 
-RUN tar xfz gromacs-distro/gromacs.tar.gz
+RUN tar xfz gromacs-distro/gromacs.tar.gz -C gromacs-2023.3
 WORKDIR ./gromacs-2023.3
 RUN mkdir build
 RUN cd build
@@ -32,6 +23,15 @@ RUN sudo make install
 RUN source /usr/local/gromacs/bin/GMXRC
 
 WORKDIR /app
+
+# Install Node.js 18
+RUN apt-get install -y ca-certificates curl gnupg
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+ARG NODE_MAJOR=18
+RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+RUN apt-get update
+RUN apt-get install nodejs -y
 
 RUN apt-get install libstdc++6
 
