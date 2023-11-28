@@ -33,7 +33,7 @@ RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesourc
 RUN apt-get update
 RUN apt-get install nodejs -y
 
-RUN apt-get install libstdc++6
+RUN apt-get install libstdc++6 -y
 
 RUN python3.8 -m pip install --upgrade pip && \
     python3.8 -m pip install torch==1.13.1 torchvision torchaudio && \
