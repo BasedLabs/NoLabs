@@ -1,6 +1,6 @@
 from flask import Request
 
-from server.services.sdf_pdb_combine import combine_sdf_pdb
+from src.server.services.sdf_pdb_combine import combine_sdf_pdb
 from src.server.api_handlers.api_handler import ApiHandler
 from src.server.services.experiments_structure_loader import DTILabExperimentsLoader
 

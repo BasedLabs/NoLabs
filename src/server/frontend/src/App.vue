@@ -12,11 +12,6 @@
           <li class="upcoming-feature">Protein generation</li>
         </ul>
         <RouterLink type="button" class="btn btn-primary btn-md" to="/amino-acid-lab">Amino acid lab</RouterLink>
-        <div class="toggle-text" @click="toggleDropdown('aminoAcid')">More Info</div>
-        <div v-if="dropdowns.aminoAcid" class="dropdown-content">
-          <!-- Your info content here -->
-          See example
-        </div>
       </div>
 
       <!-- Drug Discovery Lab -->
@@ -27,11 +22,6 @@
           <li class="upcoming-feature">Metabolic processes affected</li>
         </ul>
         <RouterLink type="button" class="btn btn-primary btn-md" to="/drug-target-lab">Drug discovery lab</RouterLink>
-        <div class="toggle-text" @click="toggleDropdown('drugDiscovery')">More Info</div>
-        <div v-if="dropdowns.drugDiscovery" class="dropdown-content">
-          <!-- Your info content here -->
-          See example
-        </div>
       </div>
 
       <!-- Conformations lab Lab -->
@@ -41,11 +31,6 @@
           <li class="upcoming-feature">Protein conformations simulation</li>
         </ul>
         <RouterLink type="button" class="btn btn-primary btn-md" to="/conformations">Conformations lab (pre-alpha)</RouterLink>
-        <div class="toggle-text" @click="toggleDropdown('drugDiscovery')">More Info</div>
-        <div v-if="dropdowns.drugDiscovery" class="dropdown-content">
-          <!-- Your info content here -->
-          See example
-        </div>
       </div>
     </div>
   </div>
