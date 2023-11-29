@@ -183,6 +183,8 @@ body::-webkit-scrollbar-track {
   /* Ensure the canvas is centered within lab-container */
   margin: auto;
   border-radius: 20px;
+  border-color:aqua;
+  border-width: 2px;
 }
 
 .labs-flex-container {
@@ -190,8 +192,64 @@ body::-webkit-scrollbar-track {
   justify-content: center; /* Center the items horizontally */
   align-items: flex-start; /* Center the items vertically */
   gap: 150px; /* Optional: adds some space between the containers */
+  width: 100vw;
 }
 
 #app {
   overflow-x: hidden;
+}
+
+.row-gy-1 {
+  margin-left: 10px;
+}
+
+.col-md-8 {
+  width: 100vw;
+}
+
+.col-md-8 {
+  width: 100vw;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a1a1a; /* Dark background */
+    color: white; /* Light text */
+    font-weight: lighter;
+    margin: 0px;
+    width: 100%;
+    height: 100% x;
+    /* Other styles for dark mode */
+  }
+
+  header {
+    color: white;
+    font-weight: lighter;
+  }
+
+  header nav{
+    z-index: 2;
+    background-color: white;
+  }
+
+  header nav .navbar-brand {
+    margin-left: 20px;
+  }
+
+  .btn {
+    /* Your existing styles for buttons */
+    border-radius: 10px; /* Adjust the radius as needed */
+    border-color: #f7f7f9;
+    border-width: 1px;
+  }
+
+  .nav-link {
+    color: white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: white; /* Default text color for light mode */
+    /* Other styling for headers */
+  }
 }

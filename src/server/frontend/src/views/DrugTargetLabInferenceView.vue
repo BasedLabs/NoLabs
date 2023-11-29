@@ -132,7 +132,7 @@ export default {
         <div class="col-md-8">
             <div id="viewport" style="width: 100%; height: 500px;"></div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4" style="margin-top: 10px;">
             <h4>Options</h4>
             <select class="form-select form-select-md mb-3" aria-label="Select a representation" @change="setView($event)">
                 <option v-for="viewKey in viewsItems" :key="viewKey" :value="viewKey">
@@ -161,7 +161,7 @@ export default {
                         <tr>
                             <th data-field="ligand">Ligand</th>
                             <th data-field="protein">Protein</th>
-                            <th data-field="affinity">Affinity</th>
+                            <th data-field="affinity">pLDDt</th>
                         </tr>
                     </thead>
                 </table>
