@@ -9,16 +9,28 @@ from werkzeug.datastructures import FileStorage
 
 from src.server.initializers.loggers import logger
 
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 pdb_tmp_file = 'tmp.pdb'
 output_tmp_file = 'output.pdb'
 
 
 def remove_conformations_backups():
-    files = glob.glob('./*.rtp*')
+    files = glob.glob('*.rtp*')
     for f in files:
         os.remove(f)
-    files = glob.glob('../*.itp*')
+    files = glob.glob('*.itp*')
+    for f in files:
+        os.remove(f)
+    files = glob.glob('*.gro*')
+    for f in files:
+        os.remove(f)
+
+
+def remove_pdbs():
+    files = glob.glob('*.pdb*')
     for f in files:
         os.remove(f)
 
@@ -79,14 +91,32 @@ def run_simulation_on_pdb(input_pdb, output_pdb, force_fields, report_every=1000
         forcefield = ForceField(*force_fields)
         system = forcefield.createSystem(pdb.topology, nonbondedMethod=PME, nonbondedCutoff=1 * nanometer,
                                          constraints=HBonds)
-        integrator = LangevinIntegrator(300 * kelvin, 1 / picosecond, 0.002 * picoseconds)
+        integrator = LangevinIntegrator(1 * kelvin, 1 / picosecond, 0.002 * picoseconds)
         simulation = Simulation(pdb.topology, system, integrator)
         simulation.context.setPositions(pdb.positions)
         simulation.minimizeEnergy()
         simulation.reporters.append(PDBReporter(output_pdb, report_every))
         simulation.step(report_steps)
-        logger.info("Gene ontology model has been loaded!")
         logger.info("Success!")
+        return True
+    except Exception as e:
+        logger.error(e)
+        return False
+
+
+def run_simulation_on_gromacs(input_top, input_gro, output_pdb, report_every=1000, report_steps=10000):
+    try:
+        gro = GromacsGroFile(input_gro)
+        top = GromacsTopFile(input_top, periodicBoxVectors=gro.getPeriodicBoxVectors(),
+                             includeDir='/usr/local/gromacs/share/gromacs/top')
+        system = top.createSystem(nonbondedMethod=PME, nonbondedCutoff=1 * nanometer,
+                                  constraints=HBonds)
+        integrator = LangevinMiddleIntegrator(1 * kelvin, 1 / picosecond, 0.002 * picoseconds)
+        simulation = Simulation(top.topology, system, integrator)
+        simulation.context.setPositions(gro.positions)
+        simulation.minimizeEnergy()
+        simulation.reporters.append(PDBReporter(output_pdb, report_every))
+        simulation.step(report_steps)
         return True
     except Exception as e:
         logger.error(e)
@@ -119,11 +149,11 @@ def fix_pdb(input_pdb):
     return output_pdb
 
 
-def run_gromacs(input_pdb, output_gro, topology_top, force_field, water):
+def generate_gromacs_files(input_pdb, output_gro, topology_top, force_field, water):
     res = subprocess.run(['/usr/local/gromacs/bin/gmx', 'pdb2gmx', '-f',
                           input_pdb, '-o',
                           output_gro, '-p',
-                          topology_top, '-missing',
+                          topology_top,
                           '-ignh', '-ff', force_field.lower(), '-water', water.lower()],
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     if os.path.exists(output_gro) and os.path.exists(topology_top):
@@ -133,8 +163,11 @@ def run_gromacs(input_pdb, output_gro, topology_top, force_field, water):
     return False
 
 
-def permute_simulation(pdb_content: FileStorage):
+def permute_simulation(pdb_content: FileStorage, report_every=1000, simulations_count=10000):
+    remove_conformations_backups()
+    remove_pdbs()
     pdb_content.save(pdb_tmp_file)
+
     def inner():
         tries = [amber_files, charmm]
 
@@ -160,10 +193,10 @@ def permute_simulation(pdb_content: FileStorage):
 
                         sim_res = run_simulation_on_pdb(input_pdb, output_tmp_file,
                                                         [protein_force_fields, water_force_fields])
-                        remove_conformations_backups()
                         if sim_res:
                             logger.info('Success')
                             return
+                        remove_conformations_backups()
 
                         other_force_fields_keys = [ff_key for ff_key in
                                                    [key for key in t.keys() if key != 'water' and key != 'protein']]
@@ -172,16 +205,21 @@ def permute_simulation(pdb_content: FileStorage):
                             force_fields = itertools.chain([protein_force_fields, water_force_fields], t[key])
                             sim_res = run_simulation_on_pdb(input_pdb,
                                                             output_tmp_file,
-                                                            force_fields)
-                            remove_conformations_backups()
+                                                            force_fields, report_every, simulations_count)
                             if sim_res:
                                 logger.info('Success')
                                 return
-
-        with open(output_tmp_file, 'r') as f:
-            return f.read()
+                            remove_conformations_backups()
     try:
         inner()
+
+        if os.path.exists(output_tmp_file):
+            with open(output_tmp_file, 'r') as f:
+                pdb_output = f.read()
+                return pdb_output
+        else:
+            logger.info('Unable to generate conformations for this .pdb file')
+            return
     finally:
-        os.remove(pdb_tmp_file)
-        os.remove(output_tmp_file)
+        remove_conformations_backups()
+        remove_pdbs()

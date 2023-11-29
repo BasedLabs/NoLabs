@@ -43,7 +43,7 @@ export default {
         render() {
             setTimeout(() => {
                 // Render 3d structure
-                const experiment = store.state.conformations.experiment;
+                const experiment = this.experiment;
                 document.getElementById('viewport').innerHTML = '';
                 this.cleanStage();
                 const stage = new NGL.Stage("viewport");

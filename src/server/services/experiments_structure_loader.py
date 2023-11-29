@@ -75,7 +75,7 @@ class ConformationsExperimentsLoader(ExperimentsLoader):
     def load_experiment(self, experiment_id) -> Dict:
         result = {}
         experiment_dir = os.path.join(CONFORMATIONS_EXPERIMENTS_DIR, experiment_id)
-        loader = FileLoaderFactory().get_loader('conf')
+        loader = FileLoaderFactory().get_loader(self.conformations_file_name)
         loaded_content = loader.load(experiment_dir, self.conformations_file_name)
         result['pdb'] = loaded_content
         return result

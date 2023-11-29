@@ -19,7 +19,7 @@ a {
   top: 0px;
   left: 0px;
   right: 0px;
-  z-index: 10; 
+  z-index: 10;
 }
 
 #inspector {
@@ -252,5 +252,4 @@ body::-webkit-scrollbar-track {
     color: white; /* Default text color for light mode */
     /* Other styling for headers */
   }
-
 }
