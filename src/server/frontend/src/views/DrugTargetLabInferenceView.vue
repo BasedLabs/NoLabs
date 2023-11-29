@@ -143,7 +143,7 @@ export default {
                         <tr>
                             <th data-field="ligand">Ligand</th>
                             <th data-field="protein">Protein</th>
-                            <th data-field="affinity">Affinity</th>
+                            <th data-field="affinity">pLDDt</th>
                         </tr>
                     </thead>
                 </table>
