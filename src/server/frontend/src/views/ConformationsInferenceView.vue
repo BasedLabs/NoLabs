@@ -78,7 +78,7 @@ export default {
 <template>
     <div class="row mt-2">
         <div class="col-md-8">
-            <div id="viewport"></div>
+            <div id="viewport" style="width: 100%; height: 500px;"></div>
         </div>
         <div class="col-md-4" style="align-self: center; margin-top: 10px;">
             <h4>Options</h4>
