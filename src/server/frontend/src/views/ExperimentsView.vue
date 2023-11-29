@@ -82,7 +82,7 @@ export default {
 </script>
 
 <template>
-    <div class="row-gy-1">
+    <div class="row gy-1">
         <div class="col-md-3 experiments-col">
             <ul class="list-group">
                 <li class="list-group-item d-flex justify-content-between align-items-center">
