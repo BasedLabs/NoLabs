@@ -192,25 +192,11 @@ body::-webkit-scrollbar-track {
   justify-content: center; /* Center the items horizontally */
   align-items: flex-start; /* Center the items vertically */
   gap: 150px; /* Optional: adds some space between the containers */
-  width: 100vw;
 }
 
 #app {
   overflow-x: hidden;
 }
-
-.row-gy-1 {
-  margin-left: 10px;
-}
-
-.col-md-8 {
-  width: 100vw;
-}
-
-.col-md-8 {
-  width: 100vw;
-}
-
 
 @media (prefers-color-scheme: dark) {
   body {
