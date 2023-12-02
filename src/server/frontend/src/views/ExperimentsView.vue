@@ -117,14 +117,16 @@ export default {
             <div v-if="!selectedExperiment" class="add-experiments">
                <button type="button" class="btn btn-primary btn-md" @click.stop="addExperiment()">Add Experiment</button>
             </div>
-            <div class="experiments-container">
-               <div v-for="experiment in state.experiments" :key="experiment.id" class="experiment" @click="selectExperiment(experiment)">
+            <div class="container-fluid row experiments-container">
+               <div class="col-md-4"></div>
+               <div v-for="experiment in state.experiments" :key="experiment.id" class="col-md-4 experiment" @click="selectExperiment(experiment)">
                     <h3>{{ experiment.name }}</h3>
                     <p>Last Modified: {{ experiment.date }}</p>
                     <div class="tags">
                             <span v-for="type in ['gene ontology', 'folding', 'solubility']" :key="type" class="tag"> {{ type }} </span>
                     </div>
                 </div>
+                <div class="col-md-4"></div>
             </div>
         </div>
         <div class="col-md-8" v-if="selectedExperiment">
@@ -217,7 +219,7 @@ export default {
 }
 
 .main-content {
-    margin-top: 40px;
+  margin-top: 40px;
   display: flex;
   align-items: center;
   flex-direction: column; /* Stacks children vertically */
