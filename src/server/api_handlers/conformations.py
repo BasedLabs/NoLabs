@@ -1,6 +1,6 @@
 from flask import Request
 
-#from src.server.services.conformations.conformations_pipeline import permute_simulation
+from src.server.services.conformations.conformations_pipeline import pipeline
 from src.server.services.experiments_structure_loader import ConformationsExperimentsLoader
 from src.server.api_handlers.api_handler import ApiHandler
 
@@ -41,9 +41,28 @@ class ConformationsApiHandler(ApiHandler):
         protein_files = request.files.getlist('proteinFileInput')
         experiment_name = request.form['experimentName']
         experiment_id = request.form['experimentId']
+        total_frames = int(request.form['totalFramesInput'])
+        system_temp = float(request.form['tempInput'])
+        take_frame_every = int(request.form['takeFrameEveryInput'])
+        step_size = float(request.form['stepSizeInput'])
+        replace_nonstandard_residues = True if request.form['replaceNonstandardResiduesInput'] == 'on' else False
+        integrator = request.form['integratorSelect']
+        friction_coeff = float(request.form['frictionCoeffInput'])
+        add_missing_hydrogens = True if request.form['addMissingHydrogensCheckbox'] == 'on' else False
+        add_missing_atoms = True if request.form['addMissingAtomsCheckbox'] == 'on' else False
+        ignore_missing_atoms = True if request.form['ignoreMissingAtomsCheckbox'] == 'on' else False
 
-        #simulation_result = permute_simulation(protein_files[0])
-        simulation_result = ''
+        (simulation_result, errors) = pipeline(pdb_content=protein_files[0],
+                                     total_frames=total_frames,
+                                     take_frame_every=take_frame_every,
+                                     integrator=integrator,
+                                     friction_coeff=friction_coeff,
+                                     step_size=step_size,
+                                     temperature_kelvin=system_temp,
+                                     replace_nonstandard_residues=replace_nonstandard_residues,
+                                     add_missing_atoms=add_missing_atoms,
+                                     add_missing_hydrogens=add_missing_hydrogens,
+                                     ignore_missing=ignore_missing_atoms)
         if simulation_result:
             self.experiments_loader.store_experiment(experiment_id, simulation_result)
             self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
@@ -51,5 +70,6 @@ class ConformationsApiHandler(ApiHandler):
         return {
             'id': experiment_id,
             'name': experiment_name,
-            'data': {'pdb': simulation_result}
+            'data': {'pdb': simulation_result},
+            'errors': errors
         }
