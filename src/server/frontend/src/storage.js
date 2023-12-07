@@ -167,7 +167,6 @@ const store = createStore({
         },
         async conformations_inference({ commit }, { payload }) {
             const { form, experiment } = payload;
-            debugger;
             const formData = new FormData(form);
             formData.append('experimentId', experiment.id ?? '');
             formData.append('experimentName', experiment.name);

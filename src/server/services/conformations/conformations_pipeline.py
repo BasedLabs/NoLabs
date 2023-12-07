@@ -1,6 +1,7 @@
 import glob
 import itertools
 import subprocess
+from typing import Union
 
 from openmm.app import *
 from openmm import *
@@ -8,7 +9,7 @@ from openmm.unit import *
 import re
 from werkzeug.datastructures import FileStorage
 
-from src.server.initializers.loggers import logger
+from src.server.initializers.loggers import logger, conformations_errors_logger
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -45,6 +46,8 @@ def pipeline(pdb_content: FileStorage,
     :return:
     '''
 
+    meaningful_errors_cache = set()
+
     friction_coeff = friction_coeff / picosecond
     step_size = step_size / picoseconds
 
@@ -76,7 +79,25 @@ def pipeline(pdb_content: FileStorage,
         for f in files:
             os.remove(f)
 
-    errors = []
+    def log_error(e):
+        if isinstance(e, Exception):
+            error = str(e)
+            meaningful_error = extract_meaningful_error(error)
+            if meaningful_error:
+                if meaningful_error not in meaningful_errors_cache:
+                    meaningful_errors_cache.add(meaningful_error)
+                    conformations_errors_logger.error(meaningful_error)
+            else:
+                logger.error(error[-100:])
+        else:
+            error = e.decode('utf-8')
+            meaningful_error = extract_meaningful_error(error)
+            if meaningful_error:
+                if meaningful_error not in meaningful_errors_cache:
+                    meaningful_errors_cache.add(meaningful_error)
+                    conformations_errors_logger.error(meaningful_error)
+            else:
+                logger.error(error[:100])
 
     amber_files = {
         'protein': [
@@ -127,14 +148,15 @@ def pipeline(pdb_content: FileStorage,
         'water': ['spc', 'spce', 'ip3p', 'tip4p', 'tip5p', 'tips3p']
     }
 
-    def extract_residues_from_errors():
-        errored_residues = []
-        for error in errors:
-            r = re.search('No template.*?\.', error)
-            if r:
-                residue = r.group(0).replace('No template found for residue', '').strip().strip('.')
-                errored_residues.append(residue)
-        return errored_residues
+    def extract_meaningful_error(error):
+        r = re.search('No template.*?\.', error)
+        if r:
+            residue = r.group(0).replace('No template found for residue', '').strip().strip('.')
+            return f"{residue} not found in force fields databases. Replace or fix it"
+        r = re.search('.*?not found in force fields databases', error) # 1 (HIS) not found in force fields databases
+        if r:
+            residue = r.group(0).replace('not found in force fields databases', '').strip().strip('.')
+            return f"{residue} not found in force fields databases. Replace or fix it"
 
     def run_simulation_on_pdb(input_pdb, output_pdb, force_fields):
         try:
@@ -152,8 +174,7 @@ def pipeline(pdb_content: FileStorage,
             logger.info("Success!")
             return True
         except Exception as e:
-            logger.error(e)
-            errors.append(str(e))
+            log_error(e)
             return False
 
     def run_simulation_on_gromacs(input_top, input_gro, output_pdb):
@@ -172,8 +193,7 @@ def pipeline(pdb_content: FileStorage,
             simulation.step(total_frames)
             return True
         except Exception as e:
-            logger.error(e)
-            errors.append(str(e))
+            log_error(e)
             return False
 
     def fix_pdb(input_pdb):
@@ -205,18 +225,17 @@ def pipeline(pdb_content: FileStorage,
         return input_pdb
 
     def generate_gromacs_files(input_pdb, output_gro, topology_top, force_field, water):
-        res = subprocess.run(['/usr/local/gromacs/bin/gmx', 'pdb2gmx', '-f',
+        program = ['/usr/local/gromacs/bin/gmx', 'pdb2gmx', '-f',
                               input_pdb, '-o',
                               output_gro, '-p',
-                              topology_top,
-                              '-ignh' if ignore_missing else '', '-ff', force_field.lower(), '-water', water.lower()],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+                              topology_top,'-ff', force_field.lower(), '-water', water.lower()]
+        if ignore_missing:
+            program.append('-ignh')
+        res = subprocess.run(program, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         if os.path.exists(output_gro) and os.path.exists(topology_top):
             logger.info(res.stdout.decode('utf-8')[:100])
             return True
-        error = res.stderr.decode('utf-8')
-        errors.append(error)
-        logger.error(error[:100])
+        log_error(res.stderr)
         return False
 
     def permute_simulation(pdb_content: FileStorage):
@@ -227,7 +246,7 @@ def pipeline(pdb_content: FileStorage,
         def inner():
             tries = [amber_files, charmm]
 
-            for input_pdb in [fix_pdb(pdb_tmp_file), pdb_tmp_file]:
+            for input_pdb in [pdb_tmp_file, fix_pdb(pdb_tmp_file)]:
                 for water in gromacs_force_fields['water']:
                     for force_field in gromacs_force_fields['protein']:
                         logger.info(
@@ -273,10 +292,12 @@ def pipeline(pdb_content: FileStorage,
             if os.path.exists(output_tmp_file):
                 with open(output_tmp_file, 'r') as f:
                     pdb_output = f.read()
-                    return (pdb_output, extract_residues_from_errors())
+                    conformations_errors_logger.info('<success>')
+                    return pdb_output
             else:
+                conformations_errors_logger.info('<end>')
                 logger.info('Unable to generate conformations for this .pdb file')
-                return (None, extract_residues_from_errors())
+                return
         finally:
             remove_conformations_backups()
             remove_pdbs()

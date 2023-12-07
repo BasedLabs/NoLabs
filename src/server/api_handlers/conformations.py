@@ -45,14 +45,14 @@ class ConformationsApiHandler(ApiHandler):
         system_temp = float(request.form['tempInput'])
         take_frame_every = int(request.form['takeFrameEveryInput'])
         step_size = float(request.form['stepSizeInput'])
-        replace_nonstandard_residues = True if request.form['replaceNonstandardResiduesInput'] == 'on' else False
+        replace_nonstandard_residues = 'replaceNonstandardResiduesInput' in request.form
         integrator = request.form['integratorSelect']
         friction_coeff = float(request.form['frictionCoeffInput'])
-        add_missing_hydrogens = True if request.form['addMissingHydrogensCheckbox'] == 'on' else False
-        add_missing_atoms = True if request.form['addMissingAtomsCheckbox'] == 'on' else False
-        ignore_missing_atoms = True if request.form['ignoreMissingAtomsCheckbox'] == 'on' else False
+        add_missing_hydrogens = 'addMissingHydrogensCheckbox' in request.form
+        add_missing_atoms = 'addMissingAtomsCheckbox' in request.form
+        ignore_missing_atoms = 'ignoreMissingAtomsCheckbox' in request.form
 
-        (simulation_result, errors) = pipeline(pdb_content=protein_files[0],
+        simulation_result = pipeline(pdb_content=protein_files[0],
                                      total_frames=total_frames,
                                      take_frame_every=take_frame_every,
                                      integrator=integrator,
@@ -70,6 +70,5 @@ class ConformationsApiHandler(ApiHandler):
         return {
             'id': experiment_id,
             'name': experiment_name,
-            'data': {'pdb': simulation_result},
-            'errors': errors
+            'data': {'pdb': simulation_result}
         }

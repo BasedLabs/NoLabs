@@ -1,7 +1,6 @@
 <script>
-import { io } from "socket.io-client";
 import { h } from "vue";
-const socket = io("http://127.0.0.1:5000");
+import socket from '../sockets';
 
 export default {
     props: ['state', 'api'],
