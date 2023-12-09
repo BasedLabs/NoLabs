@@ -33,6 +33,11 @@
       "name": "DTI",
       "type": "dti",
       "task": "dti"
+    },
+    {
+      "name": "rfdiffusion",
+      "type": "protein_design",
+      "task": "protein_design"
     }
   ]
 }

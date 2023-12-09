@@ -16,7 +16,7 @@ class DrugTargetDemoApiHandler(ApiHandler):
     def get_experiment(self, request):
         experiment_id = request.args.get('id')
         experiment_name = request.args.get('name')
-        data = self.experiments_loader.load_result(experiment_id)
+        data = self.experiments_loader.load_experiment(experiment_id)
         return {'id': experiment_id, 'data': data}
 
     def change_experiment_name(self, request: Request):
@@ -33,7 +33,7 @@ class DrugTargetDemoApiHandler(ApiHandler):
         experiment_id = j['experiment_id']
         experiment_selected_index = j['selected_index']
 
-        data = self.experiments_loader.load_result(experiment_id)
+        data = self.experiments_loader.load_experiment(experiment_id)
 
         combined_pdb = combine_sdf_pdb(data[experiment_selected_index]['sdf'], data[experiment_selected_index]['pdb'])
 

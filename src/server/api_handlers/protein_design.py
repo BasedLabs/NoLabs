@@ -9,7 +9,7 @@ from src.server.services.experiment_service import DrugDiscovery
 from src.server.services.experiments_structure_loader import DTILabExperimentsLoader
 
 
-class DrugTargetApiHandler(ApiHandler):
+class ProteinDesignApiHandler(ApiHandler):
     def __init__(self):
         super().__init__()
         self.experiments_loader = DTILabExperimentsLoader()
@@ -67,39 +67,3 @@ class DrugTargetApiHandler(ApiHandler):
         combined_pdb = combine_sdf_pdb(data[experiment_selected_index])
 
         return {'pdb': 'res'}
-
-class DrugTargetApiMockHandler(DrugTargetApiHandler):
-    def inference(self, request):
-        ligand_files = request.files.getlist('sdfFileInput')
-        protein_files = request.files.getlist('proteinFileInput')
-        experiment_id = request.form['experimentId']
-
-        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': [{
-            'proteinName': "AHAHAHAHAHHAHA2222222222222222",
-            'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
-            'pdb': open('mock_data/test.pdb').read(),
-            'sdf': open('mock_data/test.sdf').read(),
-            'affinity': 10
-        }]}
-
-    def get_experiments(self):
-        experiments = [
-            {'id': 1, 'name': 'Experiment 10'},
-            {'id': 2, 'name': 'Experiment 11'}
-        ]
-        return experiments
-
-    def get_experiment(self, request):
-        # get name of the experiment and get EXISTING SAVED data based on this name
-        experiment_id = int(request.args.get('id'))
-
-        return {'id': experiment_id, 'name': 'Experiment 10', 'data': [{
-            'proteinName': "AHAHAHAHAHHAHA2222222222222222",
-            'ligandName': 'LALSDLASDLASLDASLDA IAM CRAZYYYY',
-            'pdb': open('mock_data/test.pdb').read(),
-            'sdf': open('mock_data/test.sdf').read(),
-            'affinity': 10
-        }]}
-
-    def download_combined_pdb(self, request):
-        pass

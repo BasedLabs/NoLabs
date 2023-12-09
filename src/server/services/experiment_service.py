@@ -1,5 +1,4 @@
 import os
-import uuid
 from abc import abstractmethod, ABC
 from typing import List
 
@@ -98,6 +97,17 @@ class DrugDiscovery(BaseExperiment):
         if not experiment_id:
             experiment_id = self.gen_uuid()
         model = self.pipeline.get_model_by_task("dti")
+        experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+        ligand_file_paths, pdb_file_paths = self._store_inputs(experiment_dir, ligand_files, protein_files)
+        model.predict(ligand_file_paths, pdb_file_paths, experiment_dir)
+        return experiment_id
+
+
+class ProteinDesign(BaseExperiment):
+    def run(self, experiment_id, pdb_content, contigs):
+        if not experiment_id:
+            experiment_id = self.gen_uuid()
+        model = self.pipeline.get_model_by_task("protein_design")
         experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
         ligand_file_paths, pdb_file_paths = self._store_inputs(experiment_dir, ligand_files, protein_files)
         model.predict(ligand_file_paths, pdb_file_paths, experiment_dir)

@@ -22,8 +22,8 @@ from src.ai.custom_models.drug_target.umol.src.make_ligand_feats_colab import bo
 from src.ai.custom_models.drug_target.umol.src.make_msa_seq_feats_colab import process
 from src.ai.custom_models.drug_target.umol.src.net.model import config
 from src.ai.custom_models.drug_target.umol.src.predict_colab import predict
-from src.ai.custom_models.drug_target.umol.src.relax.align_ligand_conformer_colab import read_pdb, generate_best_conformer, align_coords_transform, write_sdf
-
+from src.ai.custom_models.drug_target.umol.src.relax.align_ligand_conformer_colab import read_pdb, \
+    generate_best_conformer, align_coords_transform, write_sdf
 
 from Bio.PDB import PDBParser
 import rdkit.Chem as Chem
@@ -46,6 +46,7 @@ from argparse import Namespace
 from werkzeug.datastructures import FileStorage
 
 dirname = os.path.dirname
+
 
 class BaseModel:
     def __init__(self, model_name: str, gpu: bool, model_task=""):
@@ -434,16 +435,16 @@ class DeprecatedDrugTargetInteraction(BaseModel):
 
         for protein_idx in range(len(protein_names)):
             protein_name = protein_names[protein_idx]
-            logger.info(f"Making dti predictions for {protein_idx+1} out of {len(protein_names)} protein...")
+            logger.info(f"Making dti predictions for {protein_idx + 1} out of {len(protein_names)} protein...")
             result_folder = os.path.join(experiment_folder, protein_name, 'result')
             if not os.path.exists(result_folder):
                 os.mkdir(result_folder)
             ligand2compounddict = self.protein2ligandcompdict[protein_name]
             for ligand_idx in range(len(ligands_names)):
                 ligand_name = ligands_names[ligand_idx]
-                logger.info(f"Making dti predictions for {protein_idx+1} out of {len(protein_names)} protein...\n \
-                Currently predicting {ligand_idx+1} out of {len(ligands_names)} ligands...")
-                info = pd.read_csv(os.path.join(experiment_folder,protein_name, f"{ligand_name}_temp_info.csv"))
+                logger.info(f"Making dti predictions for {protein_idx + 1} out of {len(protein_names)} protein...\n \
+                Currently predicting {ligand_idx + 1} out of {len(ligands_names)} ligands...")
+                info = pd.read_csv(os.path.join(experiment_folder, protein_name, f"{ligand_name}_temp_info.csv"))
                 compound_dict, rdkitMolFile = ligand2compounddict[ligand_name]
                 dataset_path = f"{experiment_folder}/{protein_name}/{ligand_name}_dataset/"
                 os.system(f"rm -r {dataset_path}")
@@ -492,7 +493,6 @@ class DrugTargetInteraction(BaseModel):
         # Add other protein data preparation steps here
         self.submit_fasta_and_save_a3m(settings.FASTA_API, protein_files_paths, experiment_folder)
 
-
     def submit_fasta_and_save_a3m(self, api_url, fasta_file_paths, experiment_folder):
         for fasta_file_path in fasta_file_paths:
             # Extract the base name to create the .a3m file name
@@ -536,10 +536,10 @@ class DrugTargetInteraction(BaseModel):
             if not os.path.exists(protein_folder):
                 os.makedirs(protein_folder)
 
-            MSA=os.path.join(experiment_folder, protein_name, protein_name+'.a3m')
-            PROCESSED_MSA=os.path.join(experiment_folder, protein_name, protein_name+'_processed.a3m')
+            MSA = os.path.join(experiment_folder, protein_name, protein_name + '.a3m')
+            PROCESSED_MSA = os.path.join(experiment_folder, protein_name, protein_name + '_processed.a3m')
             process_a3m(MSA, get_sequence(fasta_file), PROCESSED_MSA)
-            MSA=PROCESSED_MSA
+            MSA = PROCESSED_MSA
 
             # Process MSA features
             feature_dict = process(fasta_file, [MSA])  # Assuming MSA is defined elsewhere
@@ -548,9 +548,12 @@ class DrugTargetInteraction(BaseModel):
                 pickle.dump(feature_dict, f, protocol=4)
             logger.info('Saved MSA features to', features_output_path)
 
-            atom_encoding = {'B':0, 'C':1, 'F':2, 'I':3, 'N':4, 'O':5, 'P':6, 'S':7,'Br':8, 'Cl':9, #Individual encoding
-                'As':10, 'Co':10, 'Fe':10, 'Mg':10, 'Pt':10, 'Rh':10, 'Ru':10, 'Se':10, 'Si':10, 'Te':10, 'V':10, 'Zn':10 #Joint (rare)
-                 }
+            atom_encoding = {'B': 0, 'C': 1, 'F': 2, 'I': 3, 'N': 4, 'O': 5, 'P': 6, 'S': 7, 'Br': 8, 'Cl': 9,
+                             # Individual encoding
+                             'As': 10, 'Co': 10, 'Fe': 10, 'Mg': 10, 'Pt': 10, 'Rh': 10, 'Ru': 10, 'Se': 10, 'Si': 10,
+                             'Te': 10, 'V': 10, 'Zn': 10
+                             # Joint (rare)
+                             }
 
             # Process ligand features
             atom_types, atoms, bond_types, bond_lengths, bond_mask = bonds_from_smiles(ligand, atom_encoding)
@@ -569,7 +572,8 @@ class DrugTargetInteraction(BaseModel):
 
     def load_model(self):
         print("Loading uMol DTI params...")
-        self.model_params_path = os.path.join(dirname(os.path.abspath(__file__)), 'custom_models', 'drug_target', 'models_ckpt', 'params.pkl')
+        self.model_params_path = os.path.join(dirname(os.path.abspath(__file__)), 'custom_models', 'drug_target',
+                                              'models_ckpt', 'params.pkl')
         url = 'https://huggingface.co/thomasshelby/uMol_params/resolve/main/params.pkl?download=true'
         if not os.path.exists(self.model_params_path):
             response = requests.get(url, stream=True)
@@ -596,17 +600,19 @@ class DrugTargetInteraction(BaseModel):
 
             with open(self.model_params_path, 'rb') as file:
                 PARAMS = pickle.load(file)
-            
+
             ID = ID.split('/')[-1]
             # Predict
-            predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, target_positions, PARAMS, num_recycles, outdir=result_folder)
+            predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, target_positions, PARAMS, num_recycles,
+                    outdir=result_folder)
 
             # Process the prediction
             RAW_PDB = os.path.join(result_folder, f'{ID}_pred_raw.pdb')
 
             # Get a conformer
             pred_ligand = read_pdb(RAW_PDB)
-            best_conf, best_conf_pos, best_conf_err, atoms, nonH_inds, mol, best_conf_id = generate_best_conformer(pred_ligand['chain_coords'], LIGAND)
+            best_conf, best_conf_pos, best_conf_err, atoms, nonH_inds, mol, best_conf_id = generate_best_conformer(
+                pred_ligand['chain_coords'], LIGAND)
 
             # Align it to the prediction
             aligned_conf_pos = align_coords_transform(pred_ligand['chain_coords'], best_conf_pos, nonH_inds)
@@ -619,20 +625,20 @@ class DrugTargetInteraction(BaseModel):
             protein_pdb_path = os.path.join(result_folder, f'{ID}_pred_protein.pdb')
             ligand_plddt_path = os.path.join(result_folder, f'{LIGAND_NAME}_ligand_plddt.csv')
 
-            with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path, 'w') as ligand_out:
+            with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path,
+                                                                                                'w') as ligand_out:
                 for line in infile:
                     if line.startswith('ATOM'):
                         protein_out.write(line)
                     elif line.startswith('HETATM'):
                         ligand_out.write(line[64:66] + '\n')  # Extracting plDDT values
 
-
     def predict(self, ligand_files_paths, protein_files, experiment_folder: str):
         logger.info("Making dti predictions...")
         ligands_names, ligands_smiles = read_sdf_files(ligand_files_paths)
         protein_file_paths = [os.path.splitext(x)[0] for x in protein_files]
 
-        #TODO: ADD p2rank to identify target positions
+        # TODO: ADD p2rank to identify target positions
         target_array = np.asarray([])
         protein_names = [os.path.splitext(protein_file_path)[-2] for protein_file_path in protein_files]
         self.prepare_data(ligands_names, ligands_smiles, protein_file_paths, protein_files, experiment_folder)
@@ -643,3 +649,55 @@ class DrugTargetInteraction(BaseModel):
             experiment_folder=experiment_folder,
             target_positions=target_array,
             num_recycles=3)
+
+
+class RfDiffusionProteinDesign(BaseModel):
+    def __init__(self, model_name: str, gpu: bool, model_task=""):
+        super().__init__(model_name, gpu, model_task)
+
+    def load_model(self):
+        """Load model and tokenizer here"""
+        pass
+
+    # Method to get raw model outputs
+    def _raw_inference(self,
+                       pdb_content: str = None,
+                       contig: str = '50',
+                       symmetry: str = None,
+                       timesteps: int = 50,
+                       hotspots: str = ''):
+        result = requests.post(settings.RFDIFFUSION_API, json={
+            'pdb_content': pdb_content,
+            'contig': contig,
+            'symmetry': symmetry,
+            'timesteps': timesteps,
+            'hotspots': hotspots
+        })
+        return result.json()
+
+    # Method to return raw outputs in the desired format
+    def predict(self,
+                pdb_content: str = None,
+                contig: str = '50',
+                symmetry: str = None,
+                timesteps: int = 50,
+                hotspots: str = ''):
+        """
+                Run raw inference on rfdiffusion
+                :param pdb_content: pdb content (optional). If not specified design an unconditional monomer
+                :param contig: contigs (around what and how to design a protein). See https://github.com/RosettaCommons/RFdiffusion
+                :param symmetry: To design a symmetrical protein,
+                  Available symmetries:
+                  - Cyclic symmetry (C_n) # call as c5
+                  - Dihedral symmetry (D_n) # call as d5
+                  - Tetrahedral symmetry # call as tetrahedral
+                  - Octahedral symmetry # call as octahedral
+                  - Icosahedral symmetry # call as icosahedral
+                Default None
+                :param timesteps: default 50 ( Desired iterations to generate structure. )
+                :param hotspots: A30, A33, A34
+                The model optionally readily learns that it should be making an interface which involving these hotspot residues. Input is ChainResidueNumber: A100 for residue 100 on chain A.
+                :return:
+                """
+        result = self._raw_inference(pdb_content, contig, symmetry, timesteps, hotspots)
+        return result
