@@ -4,10 +4,12 @@ from typing import List
 
 from werkzeug.datastructures import FileStorage
 
+from src.server.services.conformations.conformations_pipeline import permute_simulation
 from src.server.services.experiments_structure_loader import ProteinLabExperimentsLoader, DTILabExperimentsLoader
 from src.server.services.inference_service import create_pipeline, create_model, get_models_from_config
 from src.server.services.savers import FastaFileSaver, SDFFileSaver, PDBFileSaver
-from src.server.settings import EXPERIMENTS_DIR, PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
+from src.server.settings import EXPERIMENTS_DIR, PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, \
+    CONFORMATIONS_EXPERIMENTS_DIR, PROTEIN_DESIGN_EXPERIMENTS_DIR
 from src.server.services.mixins import UUIDGenerator
 
 
@@ -27,6 +29,9 @@ ensure_base_directory()
 
 
 class BaseExperiment(ABC, UUIDGenerator):
+    def __init__(self):
+        self.pipeline = create_pipeline(use_gpu, is_test)
+
 
     @abstractmethod
     def run(self, *args, **kwargs):
@@ -36,8 +41,8 @@ class BaseExperiment(ABC, UUIDGenerator):
 class ProteinPropertyPrediction(BaseExperiment):
 
     def __init__(self, use_gpu=False, is_test=True):
+        super().__init__()
         self.loader = ProteinLabExperimentsLoader()
-        self.pipeline = create_pipeline(use_gpu, is_test)
         models_metadata = get_models_from_config(is_test)
         for model_metadata in models_metadata:
             if model_metadata["task"] in self.loader.task2results_map.keys():
@@ -62,8 +67,8 @@ class DrugDiscovery(BaseExperiment):
     def __init__(self, use_gpu, is_test=True):
         # "skip" file fornat is used for skipping since the data saving procedure is written somewhere else
         # Here it's written in dti model predict method
+        super().__init__()
         self.loader = DTILabExperimentsLoader()
-        self.pipeline = create_pipeline(use_gpu, is_test)
         models_metadata = get_models_from_config(is_test)
         for model_metadata in models_metadata:
             if model_metadata["task"] in self.loader.task2results_map.keys():
@@ -104,11 +109,24 @@ class DrugDiscovery(BaseExperiment):
 
 
 class ProteinDesign(BaseExperiment):
-    def run(self, experiment_id, pdb_content, contigs):
+    def __init__(self):
+        super().__init__()
+
+    def run(self,
+            experiment_id: str,
+            pdb_file_name: str = None,
+            pdb_content: str = None,
+            contig: str = '50',
+            symmetry: str = None,
+            timesteps: int = 50,
+            hotspots: str = ''):
+        assert pdb_file_name and pdb_content or not (pdb_file_name and pdb_content)
         if not experiment_id:
             experiment_id = self.gen_uuid()
         model = self.pipeline.get_model_by_task("protein_design")
-        experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
-        ligand_file_paths, pdb_file_paths = self._store_inputs(experiment_dir, ligand_files, protein_files)
-        model.predict(ligand_file_paths, pdb_file_paths, experiment_dir)
+        experiment_dir = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
+        if pdb_file_name:
+            with open(os.path.join(experiment_dir, pdb_file_name), 'w') as pdb_file:
+                pdb_file.write(pdb_content)
+        result = model.predict(pdb_content, contig, symmetry, timesteps, hotspots)
         return experiment_id

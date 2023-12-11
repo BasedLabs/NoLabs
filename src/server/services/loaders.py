@@ -67,13 +67,21 @@ class FileLoaderFactory:
         else:
             raise ValueError(f"Unsupported file extension: {file_extension}")
 
-class DTILoader:
-    def __init__(self):
-        pass
 
+class ProteinDesignLoader:
+    def get_protein_design_results(self, experiments_folder: str, experiment_id: str, result_folder: str):
+        import glob
+        experiment_folder = os.path.join(experiments_folder, experiment_id, result_folder)
+        generated_proteins_filenames = glob.glob(os.path.join(experiment_folder, '*.pdb'))
+        pdb_contents = []
+        for filename in generated_proteins_filenames:
+            with open(filename, 'r') as f:
+                pdb_contents.append(f.read())
+        return pdb_contents
+
+class DTILoader:
     def get_dti_results(self, experiments_folder: str, experiment_id: str):
         experiment_folder = os.path.join(experiments_folder, experiment_id)
-        import glob
         protein_names = [d for d in os.listdir(experiment_folder) \
         if os.path.isdir(os.path.join(experiment_folder, d))]
 

@@ -1,6 +1,5 @@
 from flask import Request
 
-#from src.server.services.conformations.conformations_pipeline import permute_simulation
 from src.server.services.experiments_structure_loader import ConformationsExperimentsLoader
 from src.server.api_handlers.api_handler import ApiHandler
 

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import List, Dict
 
-from src.server.services.loaders import FileLoaderFactory, DTILoader
+from src.server.services.loaders import FileLoaderFactory, DTILoader, ProteinDesignLoader
 from src.server.services.savers import FileSaverFactory
 from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR, \
     PROTEIN_DESIGN_EXPERIMENTS_DIR
@@ -16,7 +16,8 @@ class ExperimentsLoader(ABC):
         self.experiments_dir = experiments_dir
 
     def load_experiments(self) -> Dict:
-        experiment_ids = [d for d in os.listdir(self.experiments_dir) if os.path.isdir(os.path.join(self.experiments_dir, d))]
+        experiment_ids = [d for d in os.listdir(self.experiments_dir) if
+                          os.path.isdir(os.path.join(self.experiments_dir, d))]
 
         experimentId2name = {}
 
@@ -171,11 +172,17 @@ class DTILabExperimentsLoader(ExperimentsLoader):
 class ProteinDesignExperimentsLoader(ExperimentsLoader):
     def __init__(self):
         super().__init__(PROTEIN_DESIGN_EXPERIMENTS_DIR)
+        self.result_folder = 'generated'
 
     def load_experiment(self, experiment_id) -> Dict:
-        pass
+        loader = ProteinDesignLoader()
+        pdb_contents = loader.get_protein_design_results(
+            PROTEIN_DESIGN_EXPERIMENTS_DIR,
+            experiment_id,
+            self.result_folder)
+        return pdb_contents
 
-    def store_experiment(self, experiment_id: str, result, filename: str):
+    def store_experiment(self, experiment_id: str, result, filename: str = None):
         file_saver = FileSaverFactory().get_saver(filename)
-        experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+        experiment_dir = os.path.join(self.experiments_dir, experiment_id)
         file_saver.save(result, experiment_dir, filename)

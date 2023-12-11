@@ -163,6 +163,8 @@ cython_debug/
 
 *.DS_STORE
 
+*.pt
+
 #Cypress
 tests/cypress/screenshots/
 tests/cypress/videos/
