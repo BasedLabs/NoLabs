@@ -24,10 +24,25 @@ export const apiConstants = {
             mutation: 'aminoAcid_deleteExperiment',
             action: 'aminoAcid_deleteExperiment'
         },
-        loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
+        loadExperiment: { // request: {name: '123'}, response: {exp, protein_ids: []}
             path: baseUrl + '/api/amino-acid/load-experiment',
             mutation: 'aminoAcid_loadExperiment',
             action: 'aminoAcid_loadExperiment'
+        },
+        loadResults : {
+            path: baseUrl + '/api/amino-acid/load-results',
+            mutation: 'aminoAcid_loadResults',
+            action: 'aminoAcid_loadResults'
+        },
+        loadExperimentProgress : {
+            path: baseUrl + '/api/amino-acid/load-experiment-progress',
+            mutation: 'aminoAcid_loadExperimentProgress',
+            action: 'aminoAcid_loadExperimentProgress'
+        },
+        loadExperimentInstanceProgress : {
+            path: baseUrl + '/api/amino-acid/load-experiment-instance-progress',
+            mutation: 'aminoAcid_loadExperimentInstanceProgress',
+            action: 'aminoAcid_loadExperimentInstanceProgress'
         },
         changeExperimentName: {
             path: baseUrl + '/api/amino-acid/change-experiment-name',

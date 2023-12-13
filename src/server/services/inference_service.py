@@ -11,13 +11,25 @@ from src.ai.model_factory import create_model
 from src.ai.pipeline import Pipeline
 
 
-def create_pipeline(use_gpu=False, is_test=False) -> Pipeline:
-    pipeline = Pipeline()
-    models_metadata = get_models_from_config(is_test)
+def create_pipeline(use_gpu=False, is_test=False, target_tasks = []) -> Pipeline:
+    pipeline = Pipeline(models=[])
 
-    for model_metadata in models_metadata:
-        model = create_model(model_metadata, use_gpu)
-        pipeline.add_model(model)
+    print(f"New Pipeline instance created: {id(pipeline)}")
+    print("New pipeline has models inside: ", pipeline.get_model_names())
+    models_metadata = get_models_from_config(is_test)
+    if not target_tasks:
+        print("NO TARGET TASKS")
+        for model_metadata in models_metadata:
+            model = create_model(model_metadata, use_gpu)
+            pipeline.add_model(model)
+    else:
+        for model_metadata in models_metadata:
+            if model_metadata["task"] in target_tasks:
+                print(model_metadata["task"])
+                model = create_model(model_metadata, use_gpu)
+                pipeline.add_model(model)
+
+    print(pipeline.get_model_names())
 
     return pipeline
 

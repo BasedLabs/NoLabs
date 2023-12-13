@@ -38,24 +38,34 @@ class ProteinPropertyPrediction(BaseExperiment):
 
     def __init__(self, use_gpu=False, is_test=True):
         self.loader = ProteinLabExperimentsLoader()
-        self.pipeline = create_pipeline(use_gpu, is_test)
-        models_metadata = get_models_from_config(is_test)
-        for model_metadata in models_metadata:
-            if model_metadata["task"] in self.loader.task2results_map.keys():
-                model = create_model(model_metadata, use_gpu)
-                self.pipeline.add_model(model)
+        self.pipeline = create_pipeline(use_gpu, is_test, target_tasks=["localisation",
+                                                                         "folding",
+                                                                         "solubility",
+                                                                         "gene_ontology"])
 
-    def run(self, sequence: str, experiment_id: str):
+    def run(self, sequence: str, protein_files: List[FileStorage], experiment_id: str):
+
+        print("Protein_property", self.pipeline.get_model_names())
+        
         if not experiment_id:
             experiment_id = self.gen_uuid()
-        for task, result_file in self.loader.task2results_map.items():
-            self.run_by_task(task, sequence, experiment_id, result_file)
+        
+        if sequence:
+            for task, _ in self.loader.task2results_map.items():
+                self.run_single_expeeriment(task, sequence, experiment_id)
+
+        if protein_files:
+            self.loader.store_inputs(fasta_files=protein_files, experiment_id=experiment_id)
+            input_fastas = self.loader.get_input_files(experiment_id=experiment_id)
+            experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+            self.pipeline.run(input_fastas, loader=self.loader, experiment_dir=experiment_dir)
+        
         return experiment_id
 
-    def run_by_task(self, task: str, sequence: str, experiment_id: str, result_file: str):
+    def run_single_expeeriment(self, task: str, sequence: List[str], experiment_id: str):
         model = self.pipeline.get_model_by_task(task)
         result = model.predict(sequence)
-        self.loader.store_experiment(experiment_id, result, result_file)
+        self.loader.store_experiment(experiment_id, result, task)
 
 
 class DrugDiscovery(BaseExperiment):
@@ -64,12 +74,7 @@ class DrugDiscovery(BaseExperiment):
         # "skip" file fornat is used for skipping since the data saving procedure is written somewhere else
         # Here it's written in dti model predict method
         self.loader = DTILabExperimentsLoader()
-        self.pipeline = create_pipeline(use_gpu, is_test)
-        models_metadata = get_models_from_config(is_test)
-        for model_metadata in models_metadata:
-            if model_metadata["task"] in self.loader.task2results_map.keys():
-                model = create_model(model_metadata, use_gpu)
-                self.pipeline.add_model(model)
+        self.pipeline = create_pipeline(use_gpu, is_test, target_tasks=["dti"])
 
     def _store_inputs(self, experiments_dir: str, ligand_files: List[FileStorage], protein_files: List[FileStorage]):
         sdf_saver = SDFFileSaver()

@@ -18,6 +18,31 @@ class PDBFileLoader(FileLoader):
     def load(self, folder, filename):
         with open(os.path.join(folder, filename), 'r') as f:
             return f.read()
+        
+class FastaFileLoader(FileLoader):
+    def load(self, file_path):
+        sequence_ids = []
+        sequences = []
+
+        with open(file_path, 'r') as file:
+            current_sequence_id = None
+            sequence_data = []
+
+            for line in file:
+                if line.startswith('>'):
+                    if current_sequence_id:
+                        sequences.append(''.join(sequence_data))
+                        sequence_data = []
+
+                    current_sequence_id = line[1:].strip()
+                    sequence_ids.append(current_sequence_id)
+                else:
+                    sequence_data.append(line.strip())
+
+            if current_sequence_id:
+                sequences.append(''.join(sequence_data))
+
+        return sequence_ids, sequences
 
 class CSVFileLoader(FileLoader):
     def load(self, folder, filename):
@@ -64,6 +89,8 @@ class FileLoaderFactory:
             return JSONFileLoader()
         elif file_extension == '.list.csv':
             return CSVListLoader()
+        elif file_extension == '.fasta':
+            return FastaFileLoader()
         else:
             raise ValueError(f"Unsupported file extension: {file_extension}")
 

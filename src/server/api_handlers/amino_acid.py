@@ -1,6 +1,5 @@
-from flask import Request
+from flask import Request, jsonify
 
-from src.server.services.fasta_reader import get_sequences
 from src.server.services.oboreader import read_obo
 from src.server import settings
 from src.server.services.experiment_service import ProteinPropertyPrediction
@@ -16,34 +15,17 @@ class AminoAcidLabApiHandler(ApiHandler):
         self.protein_prediction = ProteinPropertyPrediction(settings.use_gpu, settings.is_test)
 
     def inference(self, request: Request) -> dict:
+
+        print("FORM: ", request.form)
         amino_acid_input_sequence = request.form['inputSequence']
-        amino_acid_input_sequence_files = request.files.getlist('inputSequenceFile')
+        fasta_files = request.files.getlist('inputSequenceFile')
         experiment_name = request.form['experimentName']
         experiment_id = request.form['experimentId']
-        if not amino_acid_input_sequence:
-            amino_acid_input_sequence = \
-                [seq for seq in get_sequences(amino_acid_input_sequence_files)][0]
-        experiment_id = self.protein_prediction.run(amino_acid_input_sequence, experiment_id)
-        self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
-        result = self.experiments_loader.load_experiment(experiment_id)
-        localisation_result = result['localisation']
-        folding_result = result['folding']
-        gene_ontology_result = result['gene_ontology']
-        solubility_result = result['solubility']
 
-        obo_graph = read_obo(gene_ontology_result)
-        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
-            'localisation': {
-                'mithochondria': localisation_result["Mitochondrial Proteins"],
-                'nucleus': localisation_result["Nuclear Proteins"],
-                'cytoplasm': localisation_result["Cytosolic Proteins"],
-                'other': localisation_result["Other Proteins"],
-                'extracellular': localisation_result["Extracellular/Secreted Proteins"]
-            },
-            'folding': folding_result,
-            'oboGraph': obo_graph,
-            'solubility': solubility_result['solubility']
-        }}
+        experiment_id = self.protein_prediction.run(amino_acid_input_sequence, fasta_files, experiment_id)
+        self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
+
+        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK'}
 
     def get_experiments(self):
         return self.experiments_loader.load_experiments()
@@ -56,7 +38,38 @@ class AminoAcidLabApiHandler(ApiHandler):
         if not self.experiments_loader.experiment_exists(experiment_id):
             return {'id': experiment_id, 'name': experiment_name, 'data': {}}
 
-        result = self.experiments_loader.load_experiment(experiment_id)
+        protein_ids = self.experiments_loader.get_protein_ids(experiment_id)
+
+        print("selecting experiment...")
+
+        res = jsonify({'id': experiment_id, 
+                       'name': 'PULL IT FROM THE BACK', 
+                       'progress': self.experiments_loader.load_experiment_progress(experiment_id),
+                       'proteinIds': {protein_id: {'id': protein_id, 'progress': self.experiments_loader.load_protein_progress(experiment_id, protein_id)} for protein_id in protein_ids} })
+
+        return res
+    
+    def get_experiment_progress(self, request):
+        experiment_id = request.args.get('id')
+        return {'progress': self.experiments_loader.load_experiment_progress(experiment_id)}
+    
+    def get_experiment_instance_progress(self, request):
+        experiment_id = request.args.get('id')
+        protein_id = request.args.get('proteinId')
+        print("PROTEIN PROGRESS: ", (experiment_id, protein_id))
+        protein_progress = self.experiments_loader.load_protein_progress(experiment_id, protein_id)
+        return jsonify({'id': protein_id, 'progress': protein_progress})
+    
+    def get_predictions(self, request):
+        # get name of the experiment and get EXISTING SAVED data based on this name
+        experiment_id = request.args.get('id')
+        protein_id = request.args.get('proteinId')
+        experiment_name = request.args.get('name')
+
+        if not self.experiments_loader.experiment_exists(experiment_id):
+            return {'id': experiment_id, 'name': experiment_name, 'data': {}}
+
+        result = self.experiments_loader.load_predictions(experiment_id, protein_id=protein_id)
 
         localisation_result = result['localisation']
         folding_result = result['folding']

@@ -23,9 +23,8 @@ export default {
             loader.hide();
         },
         async selectExperiment(experiment) {
-            const loader = this.startLoader();
+            debugger;
             await this.api.loadExperiment(experiment);
-            loader.hide();
             this.selectedExperiment = experiment;
         },
         async addExperiment() {
@@ -40,11 +39,12 @@ export default {
         },
         async onFormSubmit(data) {
             const loader = this.startLoader();
-            await this.api.inference({ form: data.target, experiment: this.state.experiment });
+            debugger;
+            this.api.inference({ form: data.target, experiment: this.state.experiment });
             loader.hide();
         },
         isCurrentExperiment(experiment) {
-            return this.state.experiment && (this.state.experiment.id == experiment.id)
+            return this.state.experiment && (this.state.experiment.metaData.id == experiment.id)
         },
         async changeExperimentName(evt, experiment) {
             experiment.name = evt.target.innerText;
@@ -54,15 +54,9 @@ export default {
             if (this.showSideMenu) {
                 // Start the hide transition
                 this.showSideMenu = false;
-                setTimeout(() => {
-                this.renderSideMenu = false;
-                }, 300); // Delay should match the CSS transition time
             } else {
                 // Start the show transition
-                this.renderSideMenu = true;
-                this.$nextTick(() => {
                 this.showSideMenu = true;
-                });
             }
         },
         finishEditing(event) {
@@ -92,62 +86,97 @@ export default {
     }
 }
 </script>
-
 <template>
     <!-- Center Container -->
-    <div class="experiments-menu">
-       <div class="side-menu-container">
-           <div v-if="selectedExperiment" class="burger-icon" @click="toggleSideMenu">
-                   &#9776; <!-- Representing the burger icon -->
-           </div>
-           <div v-if="renderSideMenu" class="side-menu">
-               <div v-for="experiment in state.experiments" :key="experiment.id" class="experiment" @click="selectExperiment(experiment)">
-                <h3 
-                    contenteditable="true" 
-                    @blur="changeExperimentName($event, experiment)"
-                    @keyup.enter="finishEditing($event)"
-                >{{ experiment.name }}</h3>
-               <p>Last Modified: {{ experiment.date }}</p>
-               <button class="delete-button" @click.stop="deleteExperiment(experiment)">Delete</button>
-               </div>
-           </div>
-       </div>
-       <div v-if="!selectedExperiment" class="main-content">
-            <slot name="labTitle"></slot>
-            <div v-if="!selectedExperiment" class="add-experiments">
-               <button type="button" class="btn btn-primary btn-md" @click.stop="addExperiment()">Add Experiment</button>
-            </div>
-            <div class="container-fluid row experiments-container">
-               <div class="col-md-4"></div>
-               <div v-for="experiment in state.experiments" :key="experiment.id" class="col-md-4 experiment" @click="selectExperiment(experiment)">
-                    <h3>{{ experiment.name }}</h3>
-                    <p>Last Modified: {{ experiment.date }}</p>
-                    <div class="tags">
-                            <span v-for="type in ['gene ontology', 'folding', 'solubility']" :key="type" class="tag"> {{ type }} </span>
+    <div class="container-fluid">
+        <div class="row align-content-center">
+            <div class="bd-example">
+                <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample" @click="toggleSideMenu()">
+                View experiments
+                </button>
+                <div class="offcanvas offcanvas-start" :class="{ show: this.showSideMenu }" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title" id="offcanvasExampleLabel">Latest experiments</h5>
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close" @click="toggleSideMenu"></button>
                     </div>
+                    <div class="offcanvas-body">
+                        <div class="">
+                        Select an experiment or add a new one
+                        </div>
+                        <div v-if="!selectedExperiment" class="add-experiments">
+                        <button type="button" class="btn btn-primary btn-md" @click.stop="addExperiment()">Add Experiment</button>
+                        </div>
+                        <div class="experiments-container align-items-center">
+                            <div v-for="experiment in state.experiments" :key="experiment.id" class="max-auto experiment" @click="selectExperiment(experiment)">
+                                    <h3 
+                                        contenteditable="true" 
+                                        @blur="changeExperimentName($event, experiment)"
+                                        @keyup.enter="finishEditing($event)"
+                                    >{{ experiment.name }}</h3>
+                                <p>Last Modified: {{ experiment.date }}</p>
+                                <div class="progress" style="margin-top: 10px; margin-bottom:5px; height: 1px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        :style="{ width: experiment.progress + '%' }"
+                                        :aria-valuenow="experiment.progress"
+                                        aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <button class="delete-button" @click.stop="deleteExperiment(experiment)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="!selectedExperiment" class="main-content">
+                <slot name="labTitle"></slot>
+                <div v-if="!selectedExperiment" class="add-experiments">
+                <button type="button" class="btn btn-primary btn-md" @click.stop="addExperiment()">Add Experiment</button>
+                </div>
+                <div class="container-fluid row experiments-container">
+                <div class="col-md-4"></div>
+                <div v-for="experiment in state.experiments" :key="experiment.id" class="max-auto experiment" @click="selectExperiment(experiment)">
+                        <h3>{{ experiment.name }}</h3>
+                        <p>Last Modified: {{ experiment.date }}</p>
+                        <div class="tags">
+
+                                <span v-for="type in ['gene ontology', 'folding', 'solubility', 'localisation']" :key="type" class="tag"> {{ type }} </span>
+                    
+                        </div>
+                        <div class="progress" style="margin-top: 10px; height: 5px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                :style="{ width: experiment.progress + '%' }"
+                                :aria-valuenow="experiment.progress"
+                                aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
                 </div>
                 <div class="col-md-4"></div>
+                </div>
             </div>
-        </div>
-        <div class="col-md-8" v-if="selectedExperiment">
-            <div class="text-center m-5">
-                <slot name="labTitle"></slot>
-                <div class="row" v-if="selectedExperiment">
-                    <div class="col-md-12">
-                        <slot name="labForm" :onFormSubmit="onFormSubmit"></slot>
-                    </div>
-                </div>
-                <div class="row" v-else>
-                    <div class="col-md-12">
-                        <hr />
-                        <h4>Add or select experiment</h4>
-                    </div>
-                </div>
-                <div id="resultContainer" v-if="!experimentEmpty">
-                    <div class="tab-content" id="nav-tabContent">
-                        <div class="tab-pane fade mt-1 show active" role="tabpanel">
-                            <slot name="lab" :key="state.experiment.id" :experiment="state.experiment"></slot>
+            <div class="container-fluid" v-if="selectedExperiment">
+                <div class="text-center m-5">
+                    <slot name="labTitle"></slot>
+                    <div class="row" v-if="selectedExperiment">
+                        <div class="col-md-12">
+                            <slot name="labForm" :onFormSubmit="onFormSubmit"></slot>
                         </div>
+                    </div>
+                    <div class="row" v-else>
+                        <div class="col-md-12">
+                            <hr />
+                            <h4>Add or select experiment</h4>
+                        </div>
+                    </div>
+                    <div id="resultContainer" v-if="!experimentEmpty">
+                        <div class="tab-content" id="nav-tabContent">
+                            <div class="tab-pane fade mt-1 show active" role="tabpanel">
+                                <slot name="lab" :key="state.experiment.metaData.id" :experiment="state.experiment"></slot>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="experimentData" style="margin-top: 10px">
+                        <slot name="experimentMetaData" :experiment="state.experiment"></slot>
                     </div>
                 </div>
             </div>
@@ -171,20 +200,16 @@ export default {
 }
 
 .experiments-container {
-  margin-left: 250px;
-  min-width: 40vw;
-  max-width: 80vw;
-  max-height: 500px; /* Set a maximum height */
-  margin: 20px;
+  max-width: 60vw;
+  max-height: 50vh; /* Set a maximum height */
   overflow-y: auto; /* Enables vertical scrolling */
   border: 1px solid #ccc; /* Optional: adds a border around the container */
   border-radius: 5px; /* Optional: rounds the corners */
-  padding: 10px; /* Optional: adds some padding inside the container */
+  margin-top: 10px;
 }
 
 .experiment {
   background-color: #f0f0f0;
-  margin: 10px 0;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -265,11 +290,15 @@ export default {
 @media (prefers-color-scheme: dark) {
     .experiment {
         background-color: rgb(41, 33, 33);
-        margin: 10px 0;
         padding: 10px;
         border: 1px solid #ddd;
         border-radius: 5px;
         cursor: pointer;
+        align-self: center;
+    }
+
+    h5 {
+        color: black;
     }
 }
 </style>
