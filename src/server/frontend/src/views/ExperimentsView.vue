@@ -23,7 +23,7 @@ export default {
             loader.hide();
         },
         async selectExperiment(experiment) {
-            debugger;
+            this.state.experiment.data = null;
             await this.api.loadExperiment(experiment);
             this.selectedExperiment = experiment;
         },
@@ -47,7 +47,7 @@ export default {
             return this.state.experiment && (this.state.experiment.metaData.id == experiment.id)
         },
         async changeExperimentName(evt, experiment) {
-            experiment.name = evt.target.innerText;
+            experiment.metaData.name = evt.target.innerText;
             await this.api.changeExperimentName(experiment);
         },
         toggleSideMenu() {
@@ -107,17 +107,17 @@ export default {
                         <button type="button" class="btn btn-primary btn-md" @click.stop="addExperiment()">Add Experiment</button>
                         </div>
                         <div class="experiments-container align-items-center">
-                            <div v-for="experiment in state.experiments" :key="experiment.id" class="max-auto experiment" @click="selectExperiment(experiment)">
+                            <div v-for="experiment in state.experiments" :key="experiment.metaData.id" class="max-auto experiment" @click="selectExperiment(experiment)">
                                     <h3 
                                         contenteditable="true" 
                                         @blur="changeExperimentName($event, experiment)"
                                         @keyup.enter="finishEditing($event)"
-                                    >{{ experiment.name }}</h3>
-                                <p>Last Modified: {{ experiment.date }}</p>
+                                    >{{ experiment.metaData.name }}</h3>
+                                <p>Last Modified: {{ experiment.metaData.date }}</p>
                                 <div class="progress" style="margin-top: 10px; margin-bottom:5px; height: 1px;">
                                     <div class="progress-bar bg-success" role="progressbar"
-                                        :style="{ width: experiment.progress + '%' }"
-                                        :aria-valuenow="experiment.progress"
+                                        :style="{ width: experiment.metaData.progress + '%' }"
+                                        :aria-valuenow="experiment.metaData.progress"
                                         aria-valuemin="0" aria-valuemax="100">
                                     </div>
                                 </div>
@@ -135,9 +135,9 @@ export default {
                 </div>
                 <div class="container-fluid row experiments-container">
                 <div class="col-md-4"></div>
-                <div v-for="experiment in state.experiments" :key="experiment.id" class="max-auto experiment" @click="selectExperiment(experiment)">
-                        <h3>{{ experiment.name }}</h3>
-                        <p>Last Modified: {{ experiment.date }}</p>
+                <div v-for="experiment in state.experiments" :key="experiment.metaData.id" class="max-auto experiment" @click="selectExperiment(experiment)">
+                        <h3>{{ experiment.metaData.name }}</h3>
+                        <p>Last Modified: {{ experiment.metaData.date }}</p>
                         <div class="tags">
 
                                 <span v-for="type in ['gene ontology', 'folding', 'solubility', 'localisation']" :key="type" class="tag"> {{ type }} </span>
@@ -145,8 +145,8 @@ export default {
                         </div>
                         <div class="progress" style="margin-top: 10px; height: 5px;">
                             <div class="progress-bar bg-success" role="progressbar"
-                                :style="{ width: experiment.progress + '%' }"
-                                :aria-valuenow="experiment.progress"
+                                :style="{ width: experiment.metaData.progress + '%' }"
+                                :aria-valuenow="experiment.metaData.progress"
                                 aria-valuemin="0" aria-valuemax="100">
                             </div>
                         </div>

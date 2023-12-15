@@ -25,7 +25,7 @@ class AminoAcidLabApiHandler(ApiHandler):
         experiment_id = self.protein_prediction.run(amino_acid_input_sequence, fasta_files, experiment_id)
         self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
 
-        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK'}
+        return {'id': experiment_id, 'name': experiment_name}
 
     def get_experiments(self):
         return self.experiments_loader.load_experiments()
@@ -43,7 +43,7 @@ class AminoAcidLabApiHandler(ApiHandler):
         print("selecting experiment...")
 
         res = jsonify({'id': experiment_id, 
-                       'name': 'PULL IT FROM THE BACK', 
+                       'name': experiment_name, 
                        'progress': self.experiments_loader.load_experiment_progress(experiment_id),
                        'proteinIds': {protein_id: {'id': protein_id, 'progress': self.experiments_loader.load_protein_progress(experiment_id, protein_id)} for protein_id in protein_ids} })
 
@@ -77,7 +77,7 @@ class AminoAcidLabApiHandler(ApiHandler):
         solubility = result['solubility']
 
         obo_graph = read_obo(gene_ontology_result)
-        return {'id': experiment_id, 'name': 'PULL IT FROM THE BACK', 'data': {
+        return {'id': experiment_id, 'name': experiment_name, 'data': {
             'localisation': {
                 'mithochondria': localisation_result["Mitochondrial Proteins"],
                 'nucleus': localisation_result["Nuclear Proteins"],

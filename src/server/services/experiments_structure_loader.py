@@ -137,14 +137,17 @@ class ProteinLabExperimentsLoader(ExperimentsLoader):
             "localisation": "cell_localisation.json",
             "solubility": "solubility.json"
         }
+        self.fasta_saver = FastaFileSaver()
+
+    def store_single_input(self, content, filename, experiment_id):
+        inputs_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, 'inputs')
+        self.fasta_saver.save(content, inputs_dir, filename)
 
     def store_inputs(self, fasta_files: List[FileStorage], experiment_id):
-        print(experiment_id)
         inputs_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, 'inputs')
-        fasta_saver = FastaFileSaver()
 
         for fasta_file in fasta_files:
-            fasta_saver.save(fasta_file, inputs_dir, fasta_file.filename)
+            self.fasta_saver.save(fasta_file, inputs_dir, fasta_file.filename)
 
     def get_input_files(self, experiment_id):
         inputs_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, 'inputs')
@@ -206,9 +209,9 @@ class ProteinLabExperimentsLoader(ExperimentsLoader):
         file_saver = FileSaverFactory().get_saver(filename)
         file_saver.save(result, save_dir, filename)
 
-    def store_experiment(self, experiment_id: str, result, task):
-        experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
-        self.save_files(result, task, experiment_dir)
+    def store_experiment(self, experiment_id: str, sequence, result, task):
+        save_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, sequence)
+        self.save_outputs(result, task, save_dir)
 
     def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
         metadata = {

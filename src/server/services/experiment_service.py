@@ -44,13 +44,14 @@ class ProteinPropertyPrediction(BaseExperiment):
                                                                          "gene_ontology"])
 
     def run(self, sequence: str, protein_files: List[FileStorage], experiment_id: str):
-
-        print("Protein_property", self.pipeline.get_model_names())
         
         if not experiment_id:
             experiment_id = self.gen_uuid()
         
         if sequence:
+            fasta_contents = f">{sequence}\n{sequence}"
+            filename = f"{sequence}.fasta"
+            self.loader.store_single_input(fasta_contents, sequence, experiment_id=experiment_id)
             for task, _ in self.loader.task2results_map.items():
                 self.run_single_expeeriment(task, sequence, experiment_id)
 
@@ -65,7 +66,7 @@ class ProteinPropertyPrediction(BaseExperiment):
     def run_single_expeeriment(self, task: str, sequence: List[str], experiment_id: str):
         model = self.pipeline.get_model_by_task(task)
         result = model.predict(sequence)
-        self.loader.store_experiment(experiment_id, result, task)
+        self.loader.store_experiment(experiment_id, sequence, result, task)
 
 
 class DrugDiscovery(BaseExperiment):

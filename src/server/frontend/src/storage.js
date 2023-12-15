@@ -21,18 +21,15 @@ const store = createStore({
     mutations: {
         aminoAcid_loadExperiment(state, { experiment }) {
             state.aminoAcid.experiment.metaData = experiment;
-            debugger;
         },
         aminoAcid_loadResults(state, { experimentData }) {
             debugger;
             state.aminoAcid.experiment.data = experimentData.data;
         },
         aminoAcid_loadExperimentProgress(state, { experimentProgress }) {
-            debugger;
             state.aminoAcid.experiment.metaData.progress = experimentProgress.data;
         },
         aminoAcid_loadExperimentInstanceProgress(state, { experimentInstanceProgress }) {
-            debugger;
             state.aminoAcid.experiment.metaData.proteinIds[experimentInstanceProgress.id] = experimentInstanceProgress.progress;
         },
         aminoAcid_getAllExperiments(state, experiments) {
@@ -41,29 +38,29 @@ const store = createStore({
             }
             const experimentsArray = [];
             for (const [key, value] of Object.entries(experiments)) {
-                experimentsArray.push({ 
-                    id: key, 
-                    name: value.name, 
-                    progress: value.progress,
-                    date: value.date 
+                experimentsArray.push({
+                    metaData: {id: key, 
+                        name: value.name, 
+                        progress: value.progress,
+                        date: value.date 
+                    }
                 });
             }
             state.aminoAcid.experiments = experimentsArray;
         },
         aminoAcid_inference(state, experiment) {
-            debugger;
             state.aminoAcid.experiment = experiment;
         },
         aminoAcid_addExperiment(state, data) {
             const { experiment, id } = data;
-            experiment.id = id;
+            experiment.metaData.id = id;
             state.aminoAcid.experiments.push(experiment);
         },
         aminoAcid_deleteExperiment(state, experiment) {
-            if (state.aminoAcid.experiment && state.aminoAcid.experiment.id === experiment.id) {
+            if (state.aminoAcid.experiment && state.aminoAcid.experiment.metaData.id === experiment.metaData.id) {
                 state.aminoAcid.experiment = null;
             }
-            state.aminoAcid.experiments = state.aminoAcid.experiments.filter(exp => exp.id !== experiment.id);
+            state.aminoAcid.experiments = state.aminoAcid.experiments.filter(exp => exp.id !== experiment.metaData.id);
         },
         drugTarget_loadExperiment(state, { experiment }) {
             state.drugTarget.experiment = experiment;
@@ -121,7 +118,6 @@ const store = createStore({
         },
         async aminoAcid_inference({ commit }, { payload }) {
             const { form, experiment } = payload;
-            debugger;
             const formData = new FormData(form);
             formData.append('experimentId', experiment.metaData.id ?? '');
             formData.append('experimentName', experiment.metaData.name);
@@ -137,15 +133,14 @@ const store = createStore({
             commit(apiConstants.aminoAcid.experiments.mutation, response.data);
         },
         async aminoAcid_deleteExperiment({ commit }, { experiment }) {
-            await axios.delete(apiConstants.aminoAcid.deleteExperiment.path, { data: { id: experiment.id } });
+            await axios.delete(apiConstants.aminoAcid.deleteExperiment.path, { data: { id: experiment.metaData.id } });
             commit(apiConstants.aminoAcid.deleteExperiment.mutation, experiment);
         },
         async aminoAcid_loadExperiment({ commit }, { experiment }) {
-            const response = await axios.get(apiConstants.aminoAcid.loadExperiment.path, { params: { id: experiment.id, name: experiment.name } });
+            const response = await axios.get(apiConstants.aminoAcid.loadExperiment.path, { params: { id: experiment.metaData.id, name: experiment.metaData.name } });
             commit(apiConstants.aminoAcid.loadExperiment.mutation, { experiment: response.data });
         },
         async aminoAcid_loadResults({ commit }, { experiment, proteinId }) {
-            debugger;
             const response = await axios.get(apiConstants.aminoAcid.loadResults.path, 
                 { params: 
                     { id: experiment.metaData.id,
@@ -154,7 +149,6 @@ const store = createStore({
             commit(apiConstants.aminoAcid.loadResults.mutation, { experimentData: response.data });
         },
         async aminoAcid_loadExperimentProgress({ commit }, { experiment }) {
-            debugger;
             const response = await axios.get(apiConstants.aminoAcid.loadExperimentProgress.path, 
                 { params: { id: experiment.metaData.id } });
             commit(apiConstants.aminoAcid.loadExperimentProgress.mutation, { experimentData: response.data });
@@ -167,7 +161,7 @@ const store = createStore({
             commit(apiConstants.aminoAcid.loadExperimentInstanceProgress.mutation, { experimentInstanceProgress: response.data });
         },
         async aminoAcid_changeExperimentName({ commit }, { experiment }) {
-            if ('id' in experiment)
+            if ('id' in experiment.metaData)
                 await axios.post(apiConstants.aminoAcid.changeExperimentName.path, { id: experiment.metaData.id, name: experiment.metaData.name });
         },
         async drugTarget_addExperiment({ commit }, { experiment }) {
