@@ -257,7 +257,7 @@ export const api = {
             return await store.dispatch(apiConstants.aminoAcid.loadExperimentInstanceProgress.action, { experiment, proteinId });
         },
         addExperiment: () => {
-            store.dispatch(apiConstants.aminoAcid.addExperiment.action, { experiment: { name: `New experiment` } });
+            store.dispatch(apiConstants.aminoAcid.addExperiment.action, { experiment: { metaData: {name: `New experiment` } } });
         },
         changeExperimentName: async (experiment) => {
             await store.dispatch(apiConstants.aminoAcid.changeExperimentName.action, { experiment });
