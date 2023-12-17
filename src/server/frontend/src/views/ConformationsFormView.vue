@@ -17,13 +17,12 @@ export default {
     },
     async mounted() {
         socket.on("conformations-errors", (...args) => {
-            this.conformationsErrors.push(args[0].response);
-        });
-
-        socket.on("conformations-errors", (...args) => {
             const message = args[0].response;
-            if (message === '<success>') { this.conformationsErrors = []; }
-            if (message === '<end>') { this.conformationsErrors }
+
+            if(!this.conformationsErrors.includes(message))
+            {
+                this.conformationsErrors.push(message);
+            }
         });
     },
 }
@@ -135,14 +134,15 @@ export default {
                                 </div>
                             </div>
                         </div>
-                        <div class="justify-content-center col-md-5" style="max-height: 100%;height:100%; overflow-y:scroll">
+                        <div class="justify-content-center col-md-5"
+                            style="max-height: 100%;height:100%; overflow-y:scroll">
                             <label for="proteinFileInput" class="col-form-label fs-4">Source protein (.pdb)</label>
                             <input type="file" required multiple="multiple" accept="text/x-pdb" class="form-control"
                                 id="proteinFileInput" name="proteinFileInput">
                             <p v-if="conformationsErrors.length > 0">Issues</p>
                             <p v-if="inferenceFinished && conformationsErrors.length > 0"></p>
                             <div>
-                                <p v-for="error in conformationsErrors" :id="error"> 
+                                <p v-for="error in conformationsErrors" :id="error">
                                     {{ error }}
                                 </p>
                             </div>

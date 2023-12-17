@@ -1,15 +1,17 @@
 import glob
 import itertools
+import logging
 import subprocess
 from typing import Union
+from urllib.parse import urljoin
 
+import requests
 from openmm.app import *
 from openmm import *
 from openmm.unit import *
 import re
-from werkzeug.datastructures import FileStorage
 
-from src.server.initializers.loggers import logger, conformations_errors_logger
+import settings
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -18,8 +20,55 @@ os.chdir(dname)
 pdb_tmp_file = 'tmp.pdb'
 output_tmp_file = 'output.pdb'
 
+last_log = ''
+last_error = ''
 
-def pipeline(pdb_content: FileStorage,
+
+class LogsFilter(logging.Filter):
+    def filter(self, record):
+        global last_log
+        if record.levelno == logging.INFO:
+            logs_url = urljoin(settings.MAIN_SERVICE_URL, '/conformations/logs')
+            requests.post(logs_url, json={'get-logs', record.msg})
+        return True
+
+
+class ErrorsFilter(logging.Filter):
+    def filter(self, record):
+        global last_error
+        if record.levelno == logging.ERROR:
+            logs_url = urljoin(settings.MAIN_SERVICE_URL, '/conformations/errors')
+            requests.post(logs_url, json={'conformations-errors', record.msg})
+        return True
+
+
+logger = logging.getLogger('my_logger')
+logger.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.addFilter(LogsFilter())
+logger.addHandler(ch)
+
+conformations_errors_logger = logging.getLogger('conformations_logger')
+conformations_errors_logger.setLevel(logging.DEBUG)
+
+ch_conformations = logging.StreamHandler()
+ch_conformations.setLevel(logging.DEBUG)
+ch_conformations.addFilter(ErrorsFilter())
+conformations_errors_logger.addHandler(ch_conformations)
+
+
+class FileStorage:
+    def __init__(self, data: str):
+        self.data = data
+
+    def save(self, path):
+        with open(path, 'w') as f:
+            f.write(self.data)
+
+
+def pipeline(pdb_content: str,
              total_frames: int = 10000,
              take_frame_every: int = 1000,
              integrator: str = 'LangevinIntegator',
@@ -45,7 +94,13 @@ def pipeline(pdb_content: FileStorage,
     :param ignore_missing: ignore missing. Dangerous. See https://manual.gromacs.org/documentation/current/onlinehelp/gmx-pdb2gmx.html -ignh option
     :return:
     '''
+    global last_log
+    global last_error
 
+    last_log = ''
+    last_error = ''
+
+    pdb_content = FileStorage(pdb_content)
     meaningful_errors_cache = set()
 
     friction_coeff = friction_coeff / picosecond
@@ -78,6 +133,13 @@ def pipeline(pdb_content: FileStorage,
         files = glob.glob('*.pdb*')
         for f in files:
             os.remove(f)
+
+    def clean_logs():
+        global last_log
+        global last_error
+
+        last_log = ''
+        last_error = ''
 
     def log_error(e):
         if isinstance(e, Exception):
@@ -153,7 +215,7 @@ def pipeline(pdb_content: FileStorage,
         if r:
             residue = r.group(0).replace('No template found for residue', '').strip().strip('.')
             return f"{residue} not found in force fields databases. Replace or fix it"
-        r = re.search('.*?not found in force fields databases', error) # 1 (HIS) not found in force fields databases
+        r = re.search('.*?not found in force fields databases', error)  # 1 (HIS) not found in force fields databases
         if r:
             residue = r.group(0).replace('not found in force fields databases', '').strip().strip('.')
             return f"{residue} not found in force fields databases. Replace or fix it"
@@ -226,9 +288,9 @@ def pipeline(pdb_content: FileStorage,
 
     def generate_gromacs_files(input_pdb, output_gro, topology_top, force_field, water):
         program = ['/usr/local/gromacs/bin/gmx', 'pdb2gmx', '-f',
-                              input_pdb, '-o',
-                              output_gro, '-p',
-                              topology_top,'-ff', force_field.lower(), '-water', water.lower()]
+                   input_pdb, '-o',
+                   output_gro, '-p',
+                   topology_top, '-ff', force_field.lower(), '-water', water.lower()]
         if ignore_missing:
             program.append('-ignh')
         res = subprocess.run(program, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
