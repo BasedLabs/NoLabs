@@ -25,4 +25,4 @@ RUN conda init zsh
 RUN conda create --name conformations
 RUN conda install -n conformations -c conda-forge -y --file requirements.txt
 
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "conformations", "python", "conformations_microservice.py", "--host=0.0.0.0", "--port=5785"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "conformations", "python", "-u", "conformations_microservice.py", "--host=0.0.0.0", "--port=5785"]

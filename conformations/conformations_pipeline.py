@@ -28,8 +28,8 @@ class LogsFilter(logging.Filter):
     def filter(self, record):
         global last_log
         if record.levelno == logging.INFO:
-            logs_url = urljoin(settings.MAIN_SERVICE_URL, '/conformations/logs')
-            requests.post(logs_url, json={'get-logs', record.msg})
+            logs_url = urljoin(settings.MAIN_SERVICE_URL, 'logging/conformations/logs')
+            requests.post(logs_url, json={'get-logs': record.msg})
         return True
 
 
@@ -37,8 +37,8 @@ class ErrorsFilter(logging.Filter):
     def filter(self, record):
         global last_error
         if record.levelno == logging.ERROR:
-            logs_url = urljoin(settings.MAIN_SERVICE_URL, '/conformations/errors')
-            requests.post(logs_url, json={'conformations-errors', record.msg})
+            logs_url = urljoin(settings.MAIN_SERVICE_URL, 'logging/conformations/errors')
+            requests.post(logs_url, json={'conformations-errors': record.msg})
         return True
 
 
@@ -104,7 +104,7 @@ def pipeline(pdb_content: str,
     meaningful_errors_cache = set()
 
     friction_coeff = friction_coeff / picosecond
-    step_size = step_size / picoseconds
+    step_size = step_size * picoseconds
 
     def integrator_factory():
         if integrator == 'LangevinIntegator':
@@ -358,7 +358,7 @@ def pipeline(pdb_content: str,
                     return pdb_output
             else:
                 conformations_errors_logger.info('<end>')
-                logger.info('Unable to generate conformations for this .pdb file')
+                logger.error('Unable to generate conformations for this .pdb file')
                 return
         finally:
             remove_conformations_backups()

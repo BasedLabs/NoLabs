@@ -10,36 +10,30 @@ CORS(app)
 
 @app.route('/conformations', methods=['POST'])
 def conformations():
-    try:
-        data = request.get_json()
-        pdb_content = data.get('pdb_content')
-        total_frames = data.get('total_frames', 10000)
-        take_frame_every = data.get('take_frame_every', 1000)
-        integrator = data.get('integrator', 'LangevinIntegator')
-        friction_coeff = data.get('friction_coeff', 1.0)
-        step_size = data.get('step_size', 0.002)
-        temperature_kelvin = data.get('temperature_kelvin', 273.15)
-        replace_nonstandard_residues = data.get('replace_nonstandard_residues', True)
-        add_missing_atoms = data.get('add_missing_atoms', True)
-        add_missing_hydrogens = data.get('add_missing_hydrogens', True)
-        ignore_missing = data.get('ignore_missing', False)
-        simulation_result = pipeline.pipeline(pdb_content,
-                                              total_frames,
-                                              take_frame_every,
-                                              integrator,
-                                              friction_coeff,
-                                              step_size,
-                                              temperature_kelvin,
-                                              replace_nonstandard_residues,
-                                              add_missing_atoms,
-                                              add_missing_hydrogens,
-                                              ignore_missing)
-        return jsonify({'simulation_result': simulation_result})
-
-    except Exception as e:
-        print(str(e))
-        response = {'status': 'error', 'message': str(e)}
-        return jsonify(response), 500
+    data = request.get_json()
+    pdb_content = data.get('pdb_content')
+    total_frames = data.get('total_frames', 10000)
+    take_frame_every = data.get('take_frame_every', 1000)
+    integrator = data.get('integrator', 'LangevinIntegator')
+    friction_coeff = data.get('friction_coeff', 1.0)
+    step_size = data.get('step_size', 0.002)
+    temperature_kelvin = data.get('temperature_kelvin', 273.15)
+    replace_nonstandard_residues = data.get('replace_nonstandard_residues', True)
+    add_missing_atoms = data.get('add_missing_atoms', True)
+    add_missing_hydrogens = data.get('add_missing_hydrogens', True)
+    ignore_missing = data.get('ignore_missing', False)
+    simulation_result = pipeline.pipeline(pdb_content,
+                                          total_frames,
+                                          take_frame_every,
+                                          integrator,
+                                          friction_coeff,
+                                          step_size,
+                                          temperature_kelvin,
+                                          replace_nonstandard_residues,
+                                          add_missing_atoms,
+                                          add_missing_hydrogens,
+                                          ignore_missing)
+    return jsonify({'simulation_result': simulation_result})
 
 
 if __name__ == '__main__':
