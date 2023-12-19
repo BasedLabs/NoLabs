@@ -13,6 +13,7 @@ DTI_EXPERIMENTS_DIR = EXPERIMENTS_DIR + "/drug_discovery"
 CONFORMATIONS_EXPERIMENTS_DIR = EXPERIMENTS_DIR + "/conformations"
 PROTEIN_DESIGN_EXPERIMENTS_DIR = EXPERIMENTS_DIR + "/protein_design"
 FASTA_API = 'http://143.198.141.110:8000/generate-msa/'
-
+CONFORMATIONS_API = 'http://127.0.0.1:5785/'
+CONFORMATIONS_IN_PROCESS = False
 # models microservices apis
 RFDIFFUSION_API = 'http://localhost:5780'
