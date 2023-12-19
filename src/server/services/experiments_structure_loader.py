@@ -248,6 +248,7 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         self.task2results_map = {
             "dti": "skip",
         }
+        self.loader = DTILoader()
 
     def experiment_exists(self, experiment_id) -> bool:
         return _experiment_exists(DTI_EXPERIMENTS_DIR, experiment_id)
@@ -255,10 +256,20 @@ class DTILabExperimentsLoader(ExperimentsLoader):
     def load_experiments(self) -> Dict:
         return _load_experiments_ids_names(DTI_EXPERIMENTS_DIR)
 
-    def load_result(self, experiment_id: str):
-        loader = DTILoader()
-        loaded_content = loader.get_dti_results(DTI_EXPERIMENTS_DIR, experiment_id)
+    def load_result(self, experiment_id: str, protein_id: str, ligand_id: str):
+        loaded_content = self.loader.get_dti_single_result(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, ligand_id)
         return loaded_content
+    
+    def get_protein_ids(self, experiment_id: str):
+        return self.loader.get_protein_ids(experiments_folder=DTI_EXPERIMENTS_DIR, experiment_id=experiment_id)
+    
+    def get_ligands_ids(self, experiment_id: str, protein_id: str):
+        protein_folder = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, 'result')
+        return self.loader.get_ligand_names(protein_folder)
+    
+    def load_experiment_progress(self, experiment_id):
+        experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+        return get_progress(experiment_dir)
 
     def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
         metadata = {

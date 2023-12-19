@@ -84,6 +84,11 @@ export const apiConstants = {
             mutation: 'drugTarget_loadExperiment',
             action: 'drugTarget_loadExperiment'
         },
+        loadResults : {
+            path: baseUrl + '/api/drug-target/load-results',
+            mutation: 'drugTarget_loadResults',
+            action: 'drugTarget_loadResults'
+        },
         changeExperimentName: {
             path: baseUrl + '/api/drug-target/change-experiment-name',
             action: 'drugTarget_changeExperimentName'

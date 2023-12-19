@@ -17,6 +17,21 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/load-experiment', methods=['GET'])
     def get_experiment():
         return api_handler.get_experiment(request)
+    
+    @drug_target_bp.route('/load-results', methods=['GET'])
+    def get_predictions():
+        print("getting predictions")
+        return api_handler.get_predictions(request)
+    
+    @drug_target_bp.route('/load-experiment-progress', methods=['GET'])
+    def get_experiment_progress():
+        print("getting experiment progress")
+        return api_handler.get_experiment_progress(request)
+    
+    @drug_target_bp.route('/load-experiment-instance-progress', methods=['GET'])
+    def get_experiment_instance_progress():
+        print("getting instance progress")
+        return api_handler.get_experiment_instance_progress(request)
 
     @drug_target_bp.route('/delete-experiment', methods=['DELETE'])
     def delete_experiment():

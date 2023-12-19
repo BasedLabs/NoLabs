@@ -1,6 +1,6 @@
 import time
 
-from flask import Request
+from flask import Request, jsonify
 
 from src.server.services.sdf_pdb_combine import combine_sdf_pdb
 from src.server import settings
@@ -24,13 +24,12 @@ class DrugTargetApiHandler(ApiHandler):
         experiment_id = self.drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files,
                                                 experiment_id=experiment_id)
         self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
-        data = self.experiments_loader.load_result(experiment_id)
 
-        return {'id': experiment_id, 'name': experiment_name, 'data': data}
+        return {'id': experiment_id, 'name': experiment_name}
 
     def get_experiments(self):
         return self.experiments_loader.load_experiments()
-
+    
     def get_experiment(self, request):
         # get name of the experiment and get EXISTING SAVED data based on this name
         experiment_id = request.args.get('id')
@@ -38,9 +37,30 @@ class DrugTargetApiHandler(ApiHandler):
 
         if not self.experiments_loader.experiment_exists(experiment_id):
             return {'id': experiment_id, 'name': experiment_name, 'data': {}}
+        
+        protein_ids = self.experiments_loader.get_protein_ids(experiment_id)
 
-        data = self.experiments_loader.load_result(experiment_id)
-        return {'id': experiment_id, 'data': data}
+        res = jsonify({'id': experiment_id, 
+                       'name': experiment_name, 
+                       'progress': 0,
+                       'proteinIds': {protein_id: {'id': protein_id,
+                                                'ligandIds': self.experiments_loader.get_ligands_ids(experiment_id=experiment_id, protein_id=protein_id),
+                                                  'progress': {'progress': 100.0} } for protein_id in protein_ids} })
+
+        return res
+
+    def get_predictions(self, request):
+        # get name of the experiment and get EXISTING SAVED data based on this name
+        experiment_id = request.args.get('id')
+        experiment_name = request.args.get('name')
+        protein_id = request.args.get('proteinId')
+        ligand_id = request.args.get('ligandId')
+
+        if not self.experiments_loader.experiment_exists(experiment_id):
+            return {'id': experiment_id, 'name': experiment_name, 'data': {}}
+
+        data = self.experiments_loader.load_result(experiment_id, protein_id, ligand_id)
+        return {'id': experiment_id, "ligandId": ligand_id, "proteinId": protein_id, 'data': data}
 
     def change_experiment_name(self, request: Request):
         j = request.get_json(force=True)
@@ -59,14 +79,15 @@ class DrugTargetApiHandler(ApiHandler):
 
     def download_combined_pdb(self, request):
         j = request.get_json(force=True)
-        experiment_id = j['experiment_id']
-        experiment_selected_index = j['selected_index']
+        experiment_id = j['experimentId']
+        protein_id = j['proteinId']
+        ligand_id = j['ligandId']
 
-        data = self.experiments_loader.load_result(experiment_id)
+        data = self.experiments_loader.load_result(experiment_id, protein_id, ligand_id)
 
-        combined_pdb = combine_sdf_pdb(data[experiment_selected_index])
+        combined_pdb = combine_sdf_pdb(data['sdf'], data['pdb'])
 
-        return {'pdb': 'res'}
+        return {'pdb': combined_pdb}
 
 class DrugTargetApiMockHandler(DrugTargetApiHandler):
     def inference(self, request):

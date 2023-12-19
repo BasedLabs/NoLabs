@@ -4,6 +4,7 @@ import { api } from '../storage';
 import ExperimentsView from './ExperimentsView.vue';
 import DrugTargetLabFormView from './DrugTargetLabFormView.vue';
 import DrugTargetLabInferenceView from './DrugTargetLabInferenceView.vue';
+import DrugTargetList from '../components/AminoAcidLab/DrugTargetList.vue';
 
 export default {
     data() {
@@ -15,7 +16,8 @@ export default {
     components: {
         ExperimentsView,
         DrugTargetLabFormView,
-        DrugTargetLabInferenceView
+        DrugTargetLabInferenceView,
+        DrugTargetList
     }
 }
 </script>
@@ -27,6 +29,9 @@ export default {
         </template>
         <template v-slot:labForm="labForm">
             <DrugTargetLabFormView :onFormSubmit="labForm.onFormSubmit"/>
+        </template>
+        <template v-slot:experimentMetaData="experimentMetaData" :api="experimentsApi">
+            <DrugTargetList :experiment="experimentMetaData.experiment" :api="experimentsApi"/>
         </template>
         <template v-slot:lab="lab">
             <DrugTargetLabInferenceView :experiment="lab.experiment"/>
