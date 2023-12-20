@@ -13,6 +13,7 @@ from tqdm import tqdm
 import pickle
 
 from src.server import settings
+from src.server.services.progress import ProgressTracker
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
 from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron, SimpleSolubilityMultiLayerPerceptron
 from src.ai.custom_models.drug_target.utils import install_p2rank, read_sdf_files, get_sequence
@@ -582,49 +583,57 @@ class DrugTargetInteraction(BaseModel):
         pass
 
     def _raw_inference(self, protein_ids, ligands, ligands_names, experiment_folder, target_positions, num_recycles):
-        for ID, LIGAND, LIGAND_NAME in zip(protein_ids, ligands, ligands_names):
-            protein_folder = os.path.join(experiment_folder, ID)
-            result_folder = os.path.join(protein_folder, 'result')
+        experiment_progress_tracker = ProgressTracker(experiment_folder, protein_ids)
+        for ID in protein_ids:
+            for LIGAND, LIGAND_NAME in zip(ligands, ligands_names):
+                protein_folder = os.path.join(experiment_folder, ID)
+                result_folder = os.path.join(protein_folder, 'result')
 
-            if not os.path.exists(result_folder):
-                os.makedirs(result_folder)
+                protein_progress_tracker = ProgressTracker(protein_folder, tasks=ligands_names)
 
-            result_folder = os.path.join(protein_folder, 'result/')
+                if not os.path.exists(result_folder):
+                    os.makedirs(result_folder)
 
-            MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
-            LIGAND_FEATS = os.path.join(protein_folder, f'{LIGAND_NAME}_ligand_inp_features.pkl')
+                result_folder = os.path.join(protein_folder, 'result/')
 
-            with open(self.model_params_path, 'rb') as file:
-                PARAMS = pickle.load(file)
-            
-            ID = ID.split('/')[-1]
-            # Predict
-            predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, target_positions, PARAMS, num_recycles, outdir=result_folder)
+                MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
+                LIGAND_FEATS = os.path.join(protein_folder, f'{LIGAND_NAME}_ligand_inp_features.pkl')
 
-            # Process the prediction
-            RAW_PDB = os.path.join(result_folder, f'{ID}_pred_raw.pdb')
+                with open(self.model_params_path, 'rb') as file:
+                    PARAMS = pickle.load(file)
+                
+                ID = ID.split('/')[-1]
+                # Predict
+                predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, target_positions, PARAMS, num_recycles, outdir=result_folder)
 
-            # Get a conformer
-            pred_ligand = read_pdb(RAW_PDB)
-            best_conf, best_conf_pos, best_conf_err, atoms, nonH_inds, mol, best_conf_id = generate_best_conformer(pred_ligand['chain_coords'], LIGAND)
+                # Process the prediction
+                RAW_PDB = os.path.join(result_folder, f'{ID}_pred_raw.pdb')
 
-            # Align it to the prediction
-            aligned_conf_pos = align_coords_transform(pred_ligand['chain_coords'], best_conf_pos, nonH_inds)
+                # Get a conformer
+                pred_ligand = read_pdb(RAW_PDB)
+                best_conf, best_conf_pos, best_conf_err, atoms, nonH_inds, mol, best_conf_id = generate_best_conformer(pred_ligand['chain_coords'], LIGAND)
 
-            # Write sdf
-            sdf_output_path = os.path.join(result_folder, f'{LIGAND_NAME}_pred_ligand.sdf')
-            write_sdf(mol, best_conf, aligned_conf_pos, best_conf_id, sdf_output_path)
+                # Align it to the prediction
+                aligned_conf_pos = align_coords_transform(pred_ligand['chain_coords'], best_conf_pos, nonH_inds)
 
-            # Extract ATOM and HETATM records from the PDB file
-            protein_pdb_path = os.path.join(result_folder, f'{ID}_pred_protein.pdb')
-            ligand_plddt_path = os.path.join(result_folder, f'{LIGAND_NAME}_ligand_plddt.csv')
+                # Write sdf
+                sdf_output_path = os.path.join(result_folder, f'{LIGAND_NAME}_pred_ligand.sdf')
+                write_sdf(mol, best_conf, aligned_conf_pos, best_conf_id, sdf_output_path)
 
-            with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path, 'w') as ligand_out:
-                for line in infile:
-                    if line.startswith('ATOM'):
-                        protein_out.write(line)
-                    elif line.startswith('HETATM'):
-                        ligand_out.write(line[64:66] + '\n')  # Extracting plDDT values
+                # Extract ATOM and HETATM records from the PDB file
+                protein_pdb_path = os.path.join(result_folder, f'{ID}_pred_protein.pdb')
+                ligand_plddt_path = os.path.join(result_folder, f'{LIGAND_NAME}_ligand_plddt.csv')
+
+                with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path, 'w') as ligand_out:
+                    for line in infile:
+                        if line.startswith('ATOM'):
+                            protein_out.write(line)
+                        elif line.startswith('HETATM'):
+                            ligand_out.write(line[64:66] + '\n')  # Extracting plDDT values
+                
+                protein_progress_tracker.update_progress(LIGAND_NAME)
+
+            experiment_progress_tracker.update_progress(ID)
 
 
     def predict(self, ligand_files_paths, protein_files, experiment_folder: str):

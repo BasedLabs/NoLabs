@@ -55,19 +55,20 @@ class Pipeline:
         """
         Make predictions for multiple sequences
         """
+
+        experiment_progress_tracker = ProgressTracker(experiment_dir, protein_ids)
         for sequence, protein_id in zip(sequences, protein_ids):
             output = self.predict_single(sequence)
-            result_dir = os.path.join(experiment_dir, protein_id)
+            protein_dir = os.path.join(experiment_dir, protein_id)
+
+            protein_progress_tracker = ProgressTracker(protein_dir, tasks=self.get_model_tasks())
             for task, result in output.items():
-                loader.save_outputs(result=result, task=task, save_dir=result_dir)
-                if self.progress_tracker:
-                    self.progress_tracker.update_protein_progress(protein_id, task)
-            if self.progress_tracker:
-                self.progress_tracker.update_experiment_progress()
+                loader.save_outputs(result=result, task=task, save_dir=protein_dir)
+                protein_progress_tracker.update_progress(task)
+            experiment_progress_tracker.update_progress(protein_id)
 
     def run(self, fasta_files_paths, loader: ProteinLabExperimentsLoader, experiment_dir=""):
         protein_ids, sequences = loader.get_sequences(fasta_files_paths)
-        self.progress_tracker = ProgressTracker(experiment_dir, protein_ids, self.get_model_tasks())
 
         self.predict_fasta(protein_ids=protein_ids, 
                            sequences=sequences, 

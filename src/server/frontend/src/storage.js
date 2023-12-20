@@ -58,9 +58,6 @@ const store = createStore({
             state.aminoAcid.experiments.push(experiment);
         },
         aminoAcid_deleteExperiment(state, experiment) {
-            if (state.aminoAcid.experiment && state.aminoAcid.experiment.metaData.id === experiment.metaData.id) {
-                state.aminoAcid.experiment = null;
-            }
             state.aminoAcid.experiments = state.aminoAcid.experiments.filter(exp => exp.id !== experiment.metaData.id);
         },
         drugTarget_loadExperiment(state, { experiment }) {

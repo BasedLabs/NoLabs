@@ -10,7 +10,7 @@ from werkzeug.datastructures import FileStorage
 from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader
 from src.server.services.savers import FileSaverFactory, FastaFileSaver
 from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
-from src.server.services.progress import get_progress, get_protein_progress
+from src.server.services.progress import get_progress
 
 def _load_experiments_ids_names(experiments_dir) -> Dict:
     # List all directories inside the dti experiments folder
@@ -199,9 +199,8 @@ class ProteinLabExperimentsLoader(ExperimentsLoader):
         return get_progress(experiment_dir)
     
     def load_protein_progress(self, experiment_id, protein_id):
-        experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
-        res =  get_protein_progress(experiment_dir, protein_id)
-        print("Protein_progress: ", res)
+        target_dir =  os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, protein_id)
+        res =  get_progress(target_dir)
         return res
     
     def save_outputs(self, result, task, save_dir):
