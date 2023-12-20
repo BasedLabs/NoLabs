@@ -6,36 +6,6 @@ from rdkit.Chem import SDMolSupplier
 
 dirname = os.path.dirname
 
-def install_p2rank():
-    # URL of the p2rank tar.gz file
-    p2rank_url = "https://github.com/rdk/p2rank/releases/download/2.4.1/p2rank_2.4.1.tar.gz"
-
-    # P2Rank folder
-    p2rank_folder = dirname(os.path.abspath(__file__)) + "/tankbind/p2rank_2.4.1/"
-
-    # Check if the destination folder already exists
-    if os.path.exists(p2rank_folder):
-        return
-
-    destination_folder = dirname(os.path.abspath(__file__)) + "/tankbind/"        
-
-    # Create the destination folder
-    os.makedirs(destination_folder, exist_ok=True)
-
-    # Download the p2rank tar.gz file
-    p2rank_tar_path = os.path.join(destination_folder, "p2rank.tar.gz")
-    urllib.request.urlretrieve(p2rank_url, p2rank_tar_path)
-
-    # Extract the contents of the tar.gz file
-    with tarfile.open(p2rank_tar_path, "r:gz") as tar:
-        tar.extractall(destination_folder)
-
-    # Remove the downloaded tar.gz file
-    os.remove(p2rank_tar_path)
-
-    print("p2rank successfully installed and extracted to:", destination_folder)
-
-
 def read_sdf_files(ligand_files_paths):
     # Initialize lists to store file names and SMILES strings
     file_names = []
