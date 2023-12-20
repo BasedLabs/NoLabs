@@ -1,8 +1,6 @@
 <script>
 export default {
-    props: {
-
-    },
+    props: ['experiment'],
     data() {
         const views = {
             default: { key: 'default', title: 'Default representation' },
@@ -20,27 +18,15 @@ export default {
             unitcell: { key: 'unitcell', title: 'Unitcell' }
         };
         return {
-            pdbContent: null,
             views: views,
             viewsItems: Object.keys(views),
             selectedView: views.default,
             stage: null,
-            pdbComponent: null
+            pdbComponent: null,
+            ligandComponent: null
         }
     },
     methods: {
-        loadPdb(event) {
-            const reader = new FileReader();
-            reader.addEventListener(
-                "load",
-                () => {
-                    this.pdbContent = reader.result;
-                    this.render()
-                },
-                false,
-            );
-            reader.readAsText(event.target.files[0]);
-        },
         setView(evt) {
             const viewKey = evt.target.value;
             this.selectedView = this.views[viewKey];
@@ -61,39 +47,50 @@ export default {
                 document.getElementById('viewport').innerHTML = '';
                 this.cleanStage();
                 this.stage = new NGL.Stage("viewport");
-                this.stage.setParameters({ backgroundColor: 'black' });
-                const proteinFileContentBlob = new Blob([this.pdbContent], { type: 'text/plain' });
+                this.stage.setParameters({ backgroundColor: 'white' });
+                const proteinFileContentBlob = new Blob([this.experiment.data.folding], { type: 'text/plain' });
                 const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
                 this.stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
                     this.pdbComponent = component;
                 });
             }, 200);
+        },
+        downloadPdbFile(evt) {
+            const filename = 'protein.pdb';
+            const blob = new Blob([this.experiment.data.folding], { type: 'text/plain' });
+            if (window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                const elem = window.document.createElement('a');
+                elem.href = window.URL.createObjectURL(blob);
+                elem.download = filename;
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+            }
         }
+    },
+    mounted() {
+        this.render();
     }
 }
 </script>
 
 <template>
-    <div class="container-fluid">
-        <div class="row height-100">
-            <div class="col-md-3 text-center justify-content-center">
-                <h4 v-if="pdbContent != null">Options</h4>
-                <select v-if="pdbContent != null" class="form-select form-select-md" aria-label="Select a representation"
-                    @change="setView($event)">
-                    <option v-for="viewKey in viewsItems" :key="viewKey" :value="viewKey">
-                        {{ views[viewKey].title }}
-                    </option>
-                </select>
-                <input type="file" ref="file" style="display: none" @change="loadPdb" accept=".pdb" />
-                <button type="button" @click="$refs.file.click()"
-                    class="btn btn-primary padding-top-button-group download-pdb-button">Upload .pdb
-                </button>
-            </div>
-            <div class="col-md-9 text-center">
-                <h4>Pdb viewer</h4>
-                <div id="viewport" style="width: 100%; min-height: 80vh;"></div>
-            </div>
+    <div class="row mt-2">
+        <div class="col-md-8">
+            <div id="viewport" style="width: 100%; height: 500px;"></div>
         </div>
-
+        <div class="col-md-4" style="margin-top: 10px;">
+            <h4>Options</h4>
+            <select class="form-select form-select-md mb-3" aria-label="Select a representation" @change="setView($event)">
+                <option v-for="viewKey in viewsItems" :key="viewKey" :value="viewKey">
+                    {{ views[viewKey].title }}
+                </option>
+            </select>
+            <button type="button" @click="downloadPdbFile()"
+                class="btn btn-primary padding-top-button-group download-pdb-button">Download .pdb
+            </button>
+        </div>
     </div>
 </template>

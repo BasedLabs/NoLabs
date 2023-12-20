@@ -33,7 +33,7 @@ def conformations():
                                           add_missing_atoms,
                                           add_missing_hydrogens,
                                           ignore_missing)
-    return jsonify({'simulation_result': simulation_result})
+    return jsonify({'result': simulation_result})
 
 
 if __name__ == '__main__':

@@ -16,4 +16,5 @@ FASTA_API = 'http://143.198.141.110:8000/generate-msa/'
 CONFORMATIONS_API = 'http://127.0.0.1:5785/'
 CONFORMATIONS_IN_PROCESS = False
 # models microservices apis
-RFDIFFUSION_API = 'http://localhost:5780'
+PROTEIN_DESIGN_API = 'http://127.0.0.1:5786/'
+PROTEIN_DESIGN_IN_PROCESS = False

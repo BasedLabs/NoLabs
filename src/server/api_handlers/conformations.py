@@ -62,7 +62,7 @@ class ConformationsApiClient:
         }
         response = requests.post(pipeline_url, json=j)
         if response.status_code == 200:
-            return response.json()['simulation_result']
+            return response.json()['result']
 
         raise Exception('Cannot obtain simulation result')
 

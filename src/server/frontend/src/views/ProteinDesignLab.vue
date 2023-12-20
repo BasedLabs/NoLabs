@@ -2,8 +2,8 @@
 import store from '../storage';
 import { api } from '../storage';
 import ExperimentsView from './ExperimentsView.vue';
-import ConformationsFormView from './ConformationsFormView.vue';
-import ConformationsInferenceView from './ConformationsInferenceView.vue';
+import ProteinDesignLabFormView from './ProteinDesignLabFormView.vue';
+import ProteinDesignLabInferenceView from './ProteinDesignLabInferenceView.vue';
 
 export default {
     data() {
@@ -14,8 +14,8 @@ export default {
     },
     components: {
         ExperimentsView,
-        ConformationsFormView,
-        ConformationsInferenceView
+        ProteinDesignLabFormView,
+        ProteinDesignLabInferenceView
     }
 }
 </script>
@@ -23,13 +23,13 @@ export default {
 <template>
     <ExperimentsView :state="experimentsState" :api="experimentsApi">
         <template v-slot:labTitle>
-            <h2>Conformations lab (pre-alpha)</h2>
+            <h2>Protein design lab</h2>
         </template>
         <template v-slot:labForm="labForm">
-            <ConformationsFormView :onFormSubmit="labForm.onFormSubmit"/>
+            <ProteinDesignLabFormView :onFormSubmit="labForm.onFormSubmit"/>
         </template>
         <template v-slot:lab="lab">
-            <ConformationsInferenceView :experiment="lab.experiment"/>
+            <ProteinDesignLabInferenceView :experiment="lab.experiment"/>
         </template>
     </ExperimentsView >
 </template>
