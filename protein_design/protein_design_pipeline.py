@@ -80,6 +80,8 @@ def pipeline(pdb_content: str = None,
         return {'pdbs': pdbs, 'errors': []}
     except ValueError:
         return {'pdbs': [], 'errors': ['Contig is incorrect']}
-    except
+    except Exception:
+        return {'pdbs': [], 'errors': ['Unknown error']}
+    # TODO add exception handling for incorrect hotspots
     finally:
         cleanup_folders()

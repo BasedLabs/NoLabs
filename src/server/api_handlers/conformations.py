@@ -80,10 +80,10 @@ class ConformationsApiHandler(ApiHandler):
         experiment_name = request.args.get('name')
 
         if not self.experiments_loader.experiment_exists(experiment_id):
-            return {'id': experiment_id, 'name': experiment_name, 'data': {}}
+            return {'metaData': {'id': experiment_id, 'name': experiment_name}, 'data': {}}
 
         experiment_data = self.experiments_loader.load_experiment(experiment_id)
-        return {'id': experiment_id, 'name': experiment_name, 'data': experiment_data}
+        return {'metaData': {'id': experiment_id, 'name': experiment_name}, 'data': experiment_data}
 
     def change_experiment_name(self, request: Request):
         j = request.get_json(force=True)
@@ -139,8 +139,7 @@ class ConformationsApiHandler(ApiHandler):
                 self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
 
             return {
-                'id': experiment_id,
-                'name': experiment_name,
+                'metaData': {'id': experiment_id, 'name': experiment_name},
                 'data': {'pdb': simulation_result}
             }
         finally:

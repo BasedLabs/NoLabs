@@ -69,10 +69,10 @@ class ProteinDesignApiHandler(ApiHandler):
         experiment_name = request.args.get('name')
 
         if not self.experiments_loader.experiment_exists(experiment_id):
-            return {'id': experiment_id, 'name': experiment_name, 'data': {}}
+            return {'metaData': {'id': experiment_id, 'name': experiment_name}, 'data': {}}
 
         experiment_data = self.experiments_loader.load_experiment(experiment_id)
-        return {'id': experiment_id, 'name': experiment_name, 'data': {'pdb': experiment_data}}
+        return {'metaData': {'id': experiment_id, 'name': experiment_name}, 'data': {'pdb': experiment_data}}
 
     def change_experiment_name(self, request: Request):
         j = request.get_json(force=True)
@@ -97,7 +97,6 @@ class ProteinDesignApiHandler(ApiHandler):
             timesteps = int(request.form.get('timestepsInput')) if request.form.get('timestepsInput') else None
             hotspots = request.form.get('hotspotsInput')
             number_of_designs = request.form.get('numOfDesignsInput')
-            symmetry = request.form.get('symmetry')
             experiment_name = request.form.get('experimentName')
             experiment_id = request.form.get('experimentId')
 
@@ -116,8 +115,7 @@ class ProteinDesignApiHandler(ApiHandler):
             self.experiments_loader.store_experiment(experiment_id, protein_design_result, file_storage.filename)
             self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
             return {
-                'id': experiment_id,
-                'name': experiment_name,
+                'metaData': {'id': experiment_id, 'name': experiment_name},
                 'data': {'pdb': protein_design_result}
             }
         finally:
