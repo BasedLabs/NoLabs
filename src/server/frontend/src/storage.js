@@ -15,6 +15,10 @@ const store = createStore({
         conformations: {
             experiment: null,
             experiments: []
+        },
+        proteinDesign: {
+            experiment: null,
+            experiments: []
         }
     },
     mutations: {
@@ -92,6 +96,33 @@ const store = createStore({
                 state.conformations.experiment = null;
             }
             state.conformations.experiments = state.conformations.experiments.filter(exp => exp.id !== experiment.id);
+        },
+        proteinDesign_loadExperiment(state, { experiment }) {
+            state.proteinDesign.experiment = experiment;
+        },
+        proteinDesign_getAllExperiments(state, experiments) {
+            if (experiments.length === 0) {
+                api.addExperiment();
+            }
+            const experimentsArray = [];
+            for (const [key, value] of Object.entries(experiments)) {
+                experimentsArray.push({ id: key, name: value });
+            }
+            state.proteinDesign.experiments = experimentsArray;
+        },
+        proteinDesign_inference(state, experiment) {
+            state.proteinDesign.experiment = experiment;
+        },
+        proteinDesign_addExperiment(state, data) {
+            const { experiment, id } = data;
+            experiment.id = id;
+            state.proteinDesign.experiments.push(experiment);
+        },
+        proteinDesign_deleteExperiment(state, experiment) {
+            if (state.proteinDesign.experiment && state.proteinDesign.experiment.id === experiment.id) {
+                state.proteinDesign.experiment = null;
+            }
+            state.proteinDesign.experiments = state.proteinDesign.experiments.filter(exp => exp.id !== experiment.id);
         },
     },
     actions: {
@@ -193,7 +224,40 @@ const store = createStore({
         async conformations_changeExperimentName({ commit }, { experiment }) {
             if ('id' in experiment)
                 await axios.post(apiConstants.conformations.changeExperimentName.path, { id: experiment.id, name: experiment.name });
-        }
+        },
+        async proteinDesign_addExperiment({ commit }, { experiment }) {
+            const response = await axios.get(apiConstants.proteinDesign.generateId.path);
+            commit(apiConstants.proteinDesign.addExperiment.mutation, { experiment, id: response.data.id });
+        },
+        async proteinDesign_inference({ commit }, { payload }) {
+            const { form, experiment } = payload;
+            const formData = new FormData(form);
+            formData.append('experimentId', experiment.id ?? '');
+            formData.append('experimentName', experiment.name);
+            const response = await axios({
+                method: 'post',
+                url: apiConstants.proteinDesign.inference.path,
+                data: formData,
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            commit(apiConstants.proteinDesign.inference.mutation, response.data);
+        },
+        async proteinDesign_getAllExperiments({ commit }) {
+            const response = await axios.get(apiConstants.proteinDesign.experiments.path);
+            commit(apiConstants.proteinDesign.experiments.mutation, response.data);
+        },
+        async proteinDesign_deleteExperiment({ commit }, { experiment }) {
+            await axios.delete(apiConstants.proteinDesign.deleteExperiment.path, { data: { id: experiment.id } });
+            commit(apiConstants.proteinDesign.deleteExperiment.mutation, experiment);
+        },
+        async proteinDesign_loadExperiment({ commit }, { experiment }) {
+            const response = await axios.get(apiConstants.proteinDesign.loadExperiment.path, { params: { id: experiment.id, name: experiment.name } });
+            commit(apiConstants.proteinDesign.loadExperiment.mutation, { experiment: response.data });
+        },
+        async proteinDesign_changeExperimentName({ commit }, { experiment }) {
+            if ('id' in experiment)
+                await axios.post(apiConstants.proteinDesign.changeExperimentName.path, { id: experiment.id, name: experiment.name });
+        },
     },
 });
 
@@ -260,6 +324,26 @@ export const api = {
         },
         changeExperimentName: async (experiment) => {
             await store.dispatch(apiConstants.conformations.changeExperimentName.action, { experiment });
+        }
+    },
+    proteinDesign: {
+        getAllExperiments: async () => {
+            return await store.dispatch(apiConstants.proteinDesign.experiments.action);
+        },
+        inference: async (payload) => {
+            return await store.dispatch(apiConstants.proteinDesign.inference.action, { payload });
+        },
+        deleteExperiment: async (experiment) => {
+            return await store.dispatch(apiConstants.proteinDesign.deleteExperiment.action, { experiment });
+        },
+        loadExperiment: async (experiment) => {
+            return await store.dispatch(apiConstants.proteinDesign.loadExperiment.action, { experiment });
+        },
+        addExperiment: () => {
+            store.dispatch(apiConstants.proteinDesign.addExperiment.action, { experiment: { name: 'New experiment' } });
+        },
+        changeExperimentName: async (experiment) => {
+            await store.dispatch(apiConstants.proteinDesign.changeExperimentName.action, { experiment });
         }
     }
 }

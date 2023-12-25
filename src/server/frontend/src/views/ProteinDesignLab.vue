@@ -8,8 +8,8 @@ import ProteinDesignLabInferenceView from './ProteinDesignLabInferenceView.vue';
 export default {
     data() {
         return {
-            experimentsState: store.state.conformations,
-            experimentsApi: api.conformations
+            experimentsState: store.state.proteinDesign,
+            experimentsApi: api.proteinDesign
         }
     },
     components: {

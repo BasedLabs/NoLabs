@@ -38,16 +38,16 @@ class ProteinDesignApiClient:
     def pipeline(self,
                  pdb_content: str = None,
                  contig: str = '50',
-                 symmetry: str = None,
                  timesteps: int = None,
-                 hotspots: str = None):
+                 hotspots: str = None,
+                 number_of_designs: int = 1):
         pipeline_url = urljoin(settings.PROTEIN_DESIGN_API, 'protein-design')
         j = {
             'pdb_content': pdb_content,
             'contig': contig,
-            'symmetry': symmetry,
             'timesteps': timesteps,
-            'hotspots': hotspots
+            'hotspots': hotspots,
+            'number_of_designs': number_of_designs
         }
         response = requests.post(pipeline_url, json=j)
         if response.status_code == 200:
@@ -72,7 +72,7 @@ class ProteinDesignApiHandler(ApiHandler):
             return {'id': experiment_id, 'name': experiment_name, 'data': {}}
 
         experiment_data = self.experiments_loader.load_experiment(experiment_id)
-        return {'id': experiment_id, 'name': experiment_name, 'data': experiment_data}
+        return {'id': experiment_id, 'name': experiment_name, 'data': {'pdb': experiment_data}}
 
     def change_experiment_name(self, request: Request):
         j = request.get_json(force=True)
@@ -93,41 +93,28 @@ class ProteinDesignApiHandler(ApiHandler):
         settings.PROTEIN_DESIGN_IN_PROCESS = True
         try:
             pdb_files: List[FileStorage] = request.files.getlist('proteinFileInput')
-            contig = request.form['contig']
-            symmetry = request.form['symmetry']
-            timesteps = int(request.form['timesteps']) if request.form['timesteps'] else None
-            hotspots = request.form['hotspots']
-            experiment_name = request.form['experimentName']
-            experiment_id = request.form['experimentId']
+            contig = request.form['contigInput']
+            timesteps = int(request.form.get('timestepsInput')) if request.form.get('timestepsInput') else None
+            hotspots = request.form.get('hotspotsInput')
+            number_of_designs = request.form.get('numOfDesignsInput')
+            symmetry = request.form.get('symmetry')
+            experiment_name = request.form.get('experimentName')
+            experiment_id = request.form.get('experimentId')
 
             tmp_pdb = 'tmp.pdb'
-            pdb_contents = tuple()
-            if pdb_files:
-                file_storage = pdb_files[0]
-                file_storage.save(tmp_pdb)
-                with open(tmp_pdb, 'r') as f:
-                    pdb = f.read()
-                pdb_contents = (file_storage.name, pdb)
-                os.remove(tmp_pdb)
-
-            if not pdb_contents:
-                protein_design_result = self.api_client.pipeline(contig=contig,
-                                                                 symmetry=symmetry,
-                                                                 timesteps=timesteps,
-                                                                 hotspots=hotspots)
-                self.experiments_loader.store_experiment(experiment_id, protein_design_result)
-                self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
-            else:
-                file_name, pdb_content = pdb_contents
-                protein_design_result = self.api_client.pipeline(
-                    pdb_content=pdb_content,
-                    contig=contig,
-                    symmetry=symmetry,
-                    timesteps=timesteps,
-                    hotspots=hotspots)
-                self.experiments_loader.store_experiment(experiment_id, protein_design_result, file_name)
-                self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
-
+            file_storage = pdb_files[0]
+            file_storage.save(tmp_pdb)
+            with open(tmp_pdb, 'r') as f:
+                pdb = f.read()
+            os.remove(tmp_pdb)
+            protein_design_result = self.api_client.pipeline(
+                pdb_content=pdb,
+                contig=contig,
+                timesteps=timesteps,
+                hotspots=hotspots,
+                number_of_designs=number_of_designs)
+            self.experiments_loader.store_experiment(experiment_id, protein_design_result, file_storage.filename)
+            self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
             return {
                 'id': experiment_id,
                 'name': experiment_name,

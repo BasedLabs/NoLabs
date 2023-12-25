@@ -4,7 +4,6 @@ from typing import List
 
 from werkzeug.datastructures import FileStorage
 
-from src.server.services.conformations.conformations_pipeline import permute_simulation
 from src.server.services.experiments_structure_loader import ProteinLabExperimentsLoader, DTILabExperimentsLoader
 from src.server.services.inference_service import create_pipeline, create_model, get_models_from_config
 from src.server.services.savers import FastaFileSaver, SDFFileSaver, PDBFileSaver

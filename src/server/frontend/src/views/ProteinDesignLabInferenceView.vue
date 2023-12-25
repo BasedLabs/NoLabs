@@ -20,7 +20,8 @@ export default {
         return {
             views: views,
             viewsItems: Object.keys(views),
-            selectedView: views.default,
+            selectedTableIndex: 0,
+            selectedPdb: null,
             stage: null,
             pdbComponent: null,
             ligandComponent: null
@@ -48,7 +49,7 @@ export default {
                 this.cleanStage();
                 this.stage = new NGL.Stage("viewport");
                 this.stage.setParameters({ backgroundColor: 'white' });
-                const proteinFileContentBlob = new Blob([this.experiment.data.folding], { type: 'text/plain' });
+                const proteinFileContentBlob = new Blob([this.experiment.data.pdb[this.selectedTableIndex]], { type: 'text/plain' });
                 const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
                 this.stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
                     this.pdbComponent = component;
@@ -57,7 +58,7 @@ export default {
         },
         downloadPdbFile(evt) {
             const filename = 'protein.pdb';
-            const blob = new Blob([this.experiment.data.folding], { type: 'text/plain' });
+            const blob = new Blob([this.experiment.data.pdb[this.selectedTableIndex]], { type: 'text/plain' });
             if (window.navigator.msSaveOrOpenBlob) {
                 window.navigator.msSaveBlob(blob, filename);
             } else {
@@ -68,10 +69,33 @@ export default {
                 elem.click();
                 document.body.removeChild(elem);
             }
+        },
+        renderTable() {
+            const tableData = this.experiment.data.pdb.map((pdb, key) => {
+                return {
+                    id: key,
+                    name: 'Generated protein #' + key
+                }
+            });
+
+            const rowSelect = (rowData) => {
+                this.selectedTableIndex = rowData.id;
+                this.render();
+            }
+
+            $('#designedProteinsTable').bootstrapTable({
+                data: tableData,
+                onClickRow: (row, el, field) => {
+                    $('#designedProteinsTable tr').removeClass('active');
+                    $(el).addClass('active');
+                    rowSelect(row)
+                }
+            });
         }
     },
     mounted() {
         this.render();
+        this.renderTable();
     }
 }
 </script>
@@ -91,6 +115,21 @@ export default {
             <button type="button" @click="downloadPdbFile()"
                 class="btn btn-primary padding-top-button-group download-pdb-button">Download .pdb
             </button>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-2"></div>
+            <div class="col-md-8 container">
+                <table style="max-height: 200px; overflow-y:scroll;" class="table table-bordered table-striped"
+                    id="designedProteinsTable">
+                    <thead>
+                        <tr>
+                            <th data-field="id"></th>
+                            <th data-field="name">Protein name</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+            <div class="col-md-2"></div>
         </div>
     </div>
 </template>

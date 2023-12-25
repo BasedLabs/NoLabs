@@ -26,7 +26,7 @@
 
         <!-- Conformations lab Lab -->
         <div class="lab-container col-md-4 col-xs-1">
-          <div class="protein-container"><img class="protein-container-gif" src="exampleProteins/shadi_3P.gif"></div>
+          <div class="protein-container" ref="conformationsProtein"></div>
           <ul class="lab-features">
             <li class="upcoming-feature">Protein conformations simulation</li>
           </ul>
@@ -43,8 +43,8 @@
 
         <!-- Protein motif Lab -->
         <div class="lab-container col-md-4 col-xs-1">
-          <div class="protein-container"><img class="protein-container-gif" src="exampleProteins/shadi_3P.gif"></div>
-          <RouterLink type="button" class="btn btn-primary btn-md" to="/protein-design">Protein motif lab</RouterLink>
+          <div class="protein-container" ref="proteinDesign"></div>
+          <RouterLink type="button" class="btn btn-primary btn-md" to="/protein-design">Protein design lab</RouterLink>
         </div>
       </div>
     </div>
@@ -75,10 +75,12 @@ export default {
   },
   methods: {
     initProteins() {
-      this.loadProteinModel(this.$refs.aminoAcidProtein, 'exampleProteins/protein.pdb', true);
-      this.loadProteinModel(this.$refs.drugDiscoveryProtein, 'exampleProteins/protein_ligand.pdb', false);
+      this.loadProteinModel(this.$refs.aminoAcidProtein, 'exampleProteins/protein.pdb', true, true);
+      this.loadProteinModel(this.$refs.drugDiscoveryProtein, 'exampleProteins/protein_ligand.pdb', false, true);
+      this.loadProteinModel(this.$refs.conformationsProtein, 'exampleProteins/conformations.pdb', true, true);
+      this.loadProteinModel(this.$refs.proteinDesign, 'exampleProteins/proteinDesign.pdb', true, false);
     },
-    loadProteinModel(element, pdbPath, isCartoon) {
+    loadProteinModel(element, pdbPath, isCartoon, rotate) {
       let viewer = $3Dmol.createViewer(element, {
         backgroundColor: 'black'
       });
@@ -98,7 +100,9 @@ export default {
             viewer.setStyle({ hetflag: true }, { stick: { radius: 0.6, colorscheme: 'greenCarbon' } });
           }
           viewer.zoomTo();
-          this.rotateModel(viewer);
+          if(rotate){
+            this.rotateModel(viewer);
+          }
           viewer.render();
         });
     },

@@ -3,8 +3,10 @@ import json
 import os
 import shutil
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Dict
+from pathlib import Path
+from typing import List, Dict, Tuple
 
 from src.server.services.loaders import FileLoaderFactory, DTILoader
 from src.server.services.savers import FileSaverFactory
@@ -183,23 +185,22 @@ class ProteinDesignExperimentsLoader(ExperimentsLoader):
     def load_experiments(self) -> Dict:
         return _load_experiments_ids_names(PROTEIN_DESIGN_EXPERIMENTS_DIR)
 
-    def load_experiment(self, experiment_id) -> Dict:
-        result = {}
+    def load_experiment(self, experiment_id) -> List[str]:
         experiment_dir = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
-        loaded_content = []
-        for file in glob.glob(os.path.join(experiment_dir, '*')):
+        pdbs = []
+        for file in glob.glob(os.path.join(experiment_dir, '*_designed*.pdb')):
             with open(file, 'r') as f:
-                loaded_content.append(f.read())
-        result['pdb'] = loaded_content
-        return result
+                pdbs.append(f.read())
+        return pdbs
 
-    def store_experiment(self, experiment_id: str, result, filename: str = None):
-        if not filename:
-            filename = 'result.pdb'
-        experiment_dir = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
-        file_path = os.path.join(experiment_dir, filename)
-        with open(file_path, 'w') as f:
-            f.write(result)
+    def store_experiment(self, experiment_id: str, result: List[str], filename: str = None):
+        for i, pdb in enumerate(result):
+            fn_without_extension, extension = os.path.splitext(filename)
+            fn_without_extension += '_designed_' + str(i)
+            fn = fn_without_extension + extension
+            file_saver = FileSaverFactory().get_saver(fn)
+            experiment_dir = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
+            file_saver.save(pdb, experiment_dir, fn)
 
     def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
         metadata = {
@@ -208,12 +209,12 @@ class ProteinDesignExperimentsLoader(ExperimentsLoader):
             "date": datetime.now().isoformat()
         }
 
-        metadata_path = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+        metadata_path = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
 
     def read_experiment_metadata(self, experiment_id: str):
-        metadata_path = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+        metadata_path = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
 
         # Check if metadata.json exists
         if not os.path.exists(metadata_path):
@@ -225,10 +226,10 @@ class ProteinDesignExperimentsLoader(ExperimentsLoader):
         return metadata
 
     def delete_experiment(self, experiment_id):
-        self._delete_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+        self._delete_experiment(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
 
     def rename_experiment(self, experiment_id, experiment_name):
-        self._rename_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id, experiment_name)
+        self._rename_experiment(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id, experiment_name)
 
 
 class DTILabExperimentsLoader(ExperimentsLoader):

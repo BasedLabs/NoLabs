@@ -3,7 +3,7 @@ from typing import Dict, Union
 
 from .exceptions.unknown_model_ex import UnknownModelException
 from .model import ClassificationModel, Folding, SolubilityPrediction, \
-    GeneOntologyPrediction, ESM2EmbeddingGenerator, DrugTargetInteraction, BaseModel, RfDiffusionProteinDesign
+    GeneOntologyPrediction, ESM2EmbeddingGenerator, DrugTargetInteraction, BaseModel
 from test.ai.mock_model import APIFolding
 
 

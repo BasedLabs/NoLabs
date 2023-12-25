@@ -89,9 +89,14 @@ $ git clone https://github.com/BasedLabs/nolabs
 # Access
 $ cd nolabs
 
+# Build conformations
+$ sudo docker buildx build --progress=plain -t conformations -f conformations/Dockerfile .
+
+# Build RFdiffusion
+$ sudo docker buildx build --progress=plain -t protein-design -f protein_design/Dockerfile .
+
 # Build the docker image
-$ docker build -t nolabs -f conformations.Dockerfile .
-$ docker buil 
+$ sudo docker buildx build --progress=plain -t nolabs -f build/Dockerfile .
 
 # Run the image and expose the 5000 port
 $ docker run -p 5173:5173 -p 5000:5000 nolabs --test

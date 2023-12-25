@@ -11,14 +11,15 @@ CORS(app)
 @app.route('/protein-design', methods=['POST'])
 def protein_design():
     data = request.get_json()
+    print(data)
 
     pdb_content = data.get('pdb_content', None)
-    contig = data.get('contig', '50')
-    symmetry = data.get('symmetry', None)
+    contig = data.get('contig', '5')
     timesteps = data.get('timesteps', None)
     hotspots = data.get('hotspots', None)
+    number_of_designs = data.get('number_of_designs', 1)
 
-    inference_result = pipeline(pdb_content, contig, symmetry, timesteps, hotspots)
+    inference_result = pipeline(pdb_content, contig, timesteps, hotspots, number_of_designs)
 
     return jsonify({'result': inference_result})
 
@@ -32,4 +33,4 @@ if __name__ == '__main__':
     port = args['port']
 
     print('--Starting protein design microservice')
-    app.run(debug=True, host=host, port=port)
+    app.run(debug=False, host=host, port=port)

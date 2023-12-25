@@ -29,9 +29,10 @@ if __name__ == '__main__':
     import src.server.amino_acid_blueprint as amino_acid_blueprint
     import src.server.drug_target_blueprint as drug_target_blueprint
     import src.server.conformations_blueprint as conformations_blueprint
+    import src.server.protein_design_blueprint as protein_design_blueprint
     import src.server.logging_blueprint as logging_blueprint
 
-    amino_acid_api_handler, drug_target_api_handler, conformations_api_handler \
+    amino_acid_api_handler, drug_target_api_handler, conformations_api_handler, protein_design_api_handler \
         = factories.api_handlers_factory(is_test=is_test, is_demo=is_demo)
 
     app.register_blueprint(drug_target_blueprint.resolve_api_endpoints(drug_target_api_handler),
@@ -40,6 +41,8 @@ if __name__ == '__main__':
                            url_prefix='/api/amino-acid')
     app.register_blueprint(conformations_blueprint.resolve_api_endpoints(conformations_api_handler),
                            url_prefix='/api/conformations')
+    app.register_blueprint(protein_design_blueprint.resolve_api_endpoints(protein_design_api_handler),
+                           url_prefix='/api/protein-design')
     app.register_blueprint(logging_blueprint.resolve_api_endpoints(), url_prefix='/logging')
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['FLASK_DEBUG'] = True

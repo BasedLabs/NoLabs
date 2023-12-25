@@ -110,6 +110,40 @@ export const apiConstants = {
             path: baseUrl + '/api/conformations/change-experiment-name',
             action: 'conformations_changeExperimentName'
         }
+    },
+
+    proteinDesign: {
+        addExperiment: {
+            mutation: 'proteinDesign_addExperiment',
+            action: 'proteinDesign_addExperiment'
+        },
+        generateId: {
+            path: baseUrl + '/api/protein-design/generate-id'
+        },
+        experiments: { // response: [{name: 'exp1'}, {name: 'exp2'}]
+            path: baseUrl + '/api/protein-design/experiments',
+            mutation: 'proteinDesign_getAllExperiments',
+            action: 'proteinDesign_getAllExperiments'
+        },
+        inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
+            path: baseUrl + '/api/protein-design/inference',
+            mutation: 'proteinDesign_inference',
+            action: 'proteinDesign_inference'
+        },
+        deleteExperiment: { // request: {name: '123'}
+            path: baseUrl + '/api/protein-design/delete-experiment',
+            mutation: 'proteinDesign_deleteExperiment',
+            action: 'proteinDesign_deleteExperiment'
+        },
+        loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
+            path: baseUrl + '/api/protein-design/load-experiment',
+            mutation: 'proteinDesign_loadExperiment',
+            action: 'proteinDesign_loadExperiment'
+        },
+        changeExperimentName: {
+            path: baseUrl + '/api/protein-design/change-experiment-name',
+            action: 'proteinDesign_changeExperimentName'
+        }
     }
 }
 
