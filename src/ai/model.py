@@ -16,7 +16,7 @@ from src.server import settings
 from src.server.services.progress import ProgressTracker
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
 from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron, SimpleSolubilityMultiLayerPerceptron
-from src.ai.custom_models.drug_target.utils import read_sdf_files, get_sequence
+from src.ai.custom_models.drug_target.utils import install_p2rank, read_sdf_files, get_sequence
 
 from src.ai.custom_models.drug_target.umol.src.check_msa_colab import process_a3m
 from src.ai.custom_models.drug_target.umol.src.make_ligand_feats_colab import bonds_from_smiles
@@ -315,6 +315,37 @@ class SolubilityPrediction(BaseModel):
         outputs = self.model(embedding.float())
         logger.info("Solubility has been predicted!")
         return {'solubility': outputs.item()}
+    
+
+
+        
+class PocketPredictor(BaseModel):
+    def __init__(self, model_name: str, model_task=""):
+        self.model_name = model_name
+        self.model_task = model_task
+
+    def load_model(self):
+        """Load model and tokenizer here"""
+        install_p2rank()
+
+    # Method to get raw model outputs
+    def _raw_inference(self, protein_file_path: str, save_dir: str):
+        protein_filename = os.path.split(protein_file_path)[1]
+        destination_protein_file = os.path.join(save_dir, protein_filename)
+        shutil.copyfile(protein_file_path, destination_protein_file)
+        ds = f"{save_dir}/protein_list.ds"
+        with open(ds, "w") as out:
+            out.write(f"{protein_filename}\n")
+        p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/p2rank_2.4.1/prank"
+        p2rank = f"bash {p2rank_exec}"
+        cmd = f"{p2rank} predict {ds} -o {save_dir}/p2rank -threads 1"
+        os.system(cmd)
+
+    # Method to return raw outputs in the desired format
+    def predict(self, protein_file_path: str, save_dir: str):
+        self._raw_inference(protein_file_path, save_dir)
+
+
 
 class DrugTargetInteraction(BaseModel):
     def __init__(self, model_name, gpu, model_task=""):

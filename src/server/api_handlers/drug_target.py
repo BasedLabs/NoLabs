@@ -26,6 +26,58 @@ class DrugTargetApiHandler(ApiHandler):
         self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
 
         return {'id': experiment_id, 'name': experiment_name}
+    
+    def add_target(self, request):
+        protein_file = request.files['proteinFileInput']
+        experiment_name = request.form['experimentName']
+        experiment_id = request.form['experimentId']
+
+        self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
+        self.experiments_loader.store_target(experiment_id, protein_file)
+
+        return {'id': experiment_id, 'name': experiment_name}
+    
+    def load_targets(self, request):
+        experiment_name = request.args.get('name')
+        experiment_id = request.args.get('id')
+
+        targets = self.experiments_loader.load_targets(experiment_id)
+
+        return {'id': experiment_id, 'name': experiment_name, 'targets': targets}
+    
+    def set_binding_pocket(self, request):
+        experiment_id = request.args.get('id')
+        protein_id = request.args.get('proteinId')
+        is_pocket_manual = request.args.get('isManualPocket')
+
+        if is_pocket_manual:
+            pocket_sequence_ids = request.args.get('pocketIds')
+            self.experiments_loader.save_pocket(experiment_id, 
+                                                protein_id, 
+                                                is_pocket_manual, 
+                                                pocket_sequence_ids)
+        else:
+            self.experiments_loader.save_pocket(experiment_id, 
+                                                protein_id, 
+                                                is_pocket_manual)
+
+
+    def get_binding_pocket(self, request):
+        experiment_id = request.args.get('id')
+        protein_id = request.args.get('proteinId')
+        is_pocket_manual = request.args.get('isManualPocket')
+
+        pocket_ids = []
+        
+        pocket_ids = self.experiments_loader.load_pocket(experiment_id, 
+                                                protein_id, 
+                                                is_pocket_manual)
+            
+        return {"experimentId": experiment_id, 
+                "proteinId": protein_id, 
+                "pocketIds": pocket_ids}
+    
+    
 
     def get_experiments(self):
         return self.experiments_loader.load_experiments()

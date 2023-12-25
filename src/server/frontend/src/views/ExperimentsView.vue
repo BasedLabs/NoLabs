@@ -39,7 +39,6 @@ export default {
         },
         async onFormSubmit(data) {
             const loader = this.startLoader();
-            debugger;
             this.api.inference({ form: data.target, experiment: this.state.experiment });
             loader.hide();
         },

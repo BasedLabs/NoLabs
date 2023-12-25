@@ -11,6 +11,7 @@ const store = createStore({
         },
         drugTarget: {
             experiment: {'metaData': null,
+                        'targets': null,
                         'data': null},
             experiments: []
         },
@@ -24,7 +25,6 @@ const store = createStore({
             state.aminoAcid.experiment.metaData = experiment;
         },
         aminoAcid_loadResults(state, { experimentData }) {
-            debugger;
             state.aminoAcid.experiment.data = experimentData.data;
         },
         aminoAcid_loadExperimentProgress(state, { experimentProgress }) {
@@ -81,6 +81,10 @@ const store = createStore({
                 });
             }
             state.drugTarget.experiments = experimentsArray;
+        },
+        drugTarget_loadTargets(state, { data }) {
+            //state.drugTarget.experiment = experiment;
+            state.drugTarget.experiment.targets = data.targets;
         },
         drugTarget_inference(state, experiment) {
             state.drugTarget.experiment = experiment;
@@ -177,6 +181,24 @@ const store = createStore({
         async drugTarget_addExperiment({ commit }, { experiment }) {
             const response = await axios.get(apiConstants.drugTarget.generateId.path);
             commit(apiConstants.drugTarget.addExperiment.mutation, { experiment, id: response.data.id });
+        },
+        async drugTarget_addTarget({commit}, {experiment, file}) {
+            // Constructing form data for file upload
+            let formData = new FormData();
+            formData.append('proteinFileInput', file);
+            formData.append('experimentId', experiment.metaData.id);
+            formData.append('experimentName', experiment.metaData.name);
+            // Assuming there's an endpoint in your API for uploading target files
+            return await axios({
+                method: 'post',
+                url: apiConstants.drugTarget.addTarget.path,
+                data: formData,
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+        },
+        async drugTarget_loadTargets({ commit }, { experiment }) {
+            const response = await axios.get(apiConstants.drugTarget.loadTargets.path, { params: { id: experiment.metaData.id, name: experiment.metaData.name } });
+            commit(apiConstants.drugTarget.loadTargets.mutation, { data: response.data });
         },
         async drugTarget_inference({ commit }, { payload }) {
             const { form, experiment } = payload;
@@ -284,6 +306,12 @@ export const api = {
     drugTarget: {
         getAllExperiments: async () => {
             return await store.dispatch(apiConstants.drugTarget.experiments.action);
+        },
+        addTarget: async (experiment, file) => {
+            return await store.dispatch(apiConstants.drugTarget.addTarget.action, {experiment, file});
+        },
+        loadTargets: async (experiment) => {
+            return await store.dispatch(apiConstants.drugTarget.loadTargets.action, {experiment});
         },
         inference: async (payload) => {
             return await store.dispatch(apiConstants.drugTarget.inference.action, { payload });

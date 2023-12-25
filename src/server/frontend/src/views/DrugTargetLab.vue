@@ -5,6 +5,7 @@ import ExperimentsView from './ExperimentsView.vue';
 import DrugTargetLabFormView from './DrugTargetLabFormView.vue';
 import DrugTargetLabInferenceView from './DrugTargetLabInferenceView.vue';
 import DrugTargetList from '../components/AminoAcidLab/DrugTargetList.vue';
+import TargetsList from '../components/AminoAcidLab/TargetsList.vue';
 
 export default {
     data() {
@@ -17,7 +18,8 @@ export default {
         ExperimentsView,
         DrugTargetLabFormView,
         DrugTargetLabInferenceView,
-        DrugTargetList
+        DrugTargetList,
+        TargetsList
     }
 }
 </script>
@@ -27,11 +29,8 @@ export default {
         <template v-slot:labTitle>
             <h4>Drug target lab</h4>
         </template>
-        <template v-slot:labForm="labForm">
-            <DrugTargetLabFormView :onFormSubmit="labForm.onFormSubmit"/>
-        </template>
         <template v-slot:experimentMetaData="experimentMetaData" :api="experimentsApi">
-            <DrugTargetList :experiment="experimentMetaData.experiment" :api="experimentsApi"/>
+            <TargetsList :experiment="experimentMetaData.experiment" :api="experimentsApi"/>
         </template>
         <template v-slot:lab="lab">
             <DrugTargetLabInferenceView :experiment="lab.experiment"/>

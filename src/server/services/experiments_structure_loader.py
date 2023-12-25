@@ -7,10 +7,11 @@ from typing import List, Dict
 from pathlib import Path
 from werkzeug.datastructures import FileStorage
 
-from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader
-from src.server.services.savers import FileSaverFactory, FastaFileSaver
+from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader,PDBFileLoader
+from src.server.services.savers import FileSaverFactory, FastaFileSaver, SDFFileSaver, PDBFileSaver
 from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
 from src.server.services.progress import get_progress
+from src.server.services.mixins import UUIDGenerator
 
 def _load_experiments_ids_names(experiments_dir) -> Dict:
     # List all directories inside the dti experiments folder
@@ -280,6 +281,98 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, "metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
+
+    def save_target_metadata(self, experiment_id: str, target_id: str, protein_name: str, manual_pocket = False):
+        metadata = {
+            "id": target_id,
+            "name": protein_name,
+            "date": datetime.now().isoformat(),
+            "manual_pocket": manual_pocket
+        }
+
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', target_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=4)
+
+    def load_target_metadata(self, experiment_id: str, target_id: str,):
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR,
+                                      experiment_id,
+                                        'targets',
+                                          target_id,
+                                            "metadata.json")
+
+        # Check if metadata.json exists
+        if not os.path.exists(metadata_path):
+            return {}
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        return metadata
+
+    def store_target(self, experiment_id: str, protein_file: List[FileStorage]):
+        experiments_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+        targets_dir = os.path.join(experiments_dir, 'targets')
+
+        if not os.path.exists(targets_dir):
+            os.mkdir(targets_dir)
+
+        pdb_saver = PDBFileSaver()
+        fasta_saver = FastaFileSaver()
+
+        id_generator = UUIDGenerator()
+
+        protein_id = id_generator.gen_uuid()['id']
+        protein_name = os.path.splitext(protein_file.filename)[-2]
+        protein_dir = os.path.join(targets_dir, protein_id)
+        if not os.path.exists(protein_dir):
+            os.mkdir(protein_dir)
+        self.save_target_metadata(experiment_id, protein_id, protein_name)
+
+        if protein_file.filename.endswith(".pdb"):
+            print("Saving pdb file")
+            pdb_saver.save(protein_file, protein_dir, protein_file.filename)
+        elif protein_file.filename.endswith(".fasta"):
+            fasta_saver.save(protein_file, protein_dir, protein_file.filename)
+
+    def load_targets(self, experiment_id: str):
+        targets_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets')
+
+        pdb_loader = PDBFileLoader()
+        fasta_loader = FastaFileLoader()
+
+        targets = {}
+
+        # Iterate over each subdirectory in the targets directory
+        if not os.path.exists(targets_dir):
+            return targets
+        
+        for target_id in os.listdir(targets_dir):
+            target_path = os.path.join(targets_dir, target_id)
+            
+            # Skip if not a directory
+            if not os.path.isdir(target_path):
+                continue
+
+            # Initialize the target entry
+            targets[target_id] = {
+                'metadata': self.load_target_metadata(experiment_id, target_id),
+                'pdb': None,
+                'fasta': None
+            }
+
+            # Check for PDB and FASTA files
+            for file in os.listdir(target_path):
+                if file.endswith('.pdb'):
+                    file = pdb_loader.load(target_path, os.path.basename(file))
+                    targets[target_id]['pdb'] = file  # Storing file name for simplicity
+                elif file.endswith('.fasta'):
+                    file = fasta_loader.load(os.path.join(targets_dir, target_id, file))[1][0]
+                    targets[target_id]['fasta'] = file  # Storing file name for simplicity
+
+        return targets
+
+
 
     def delete_experiment(self, experiment_id):
         self._delete_experiment(DTI_EXPERIMENTS_DIR, experiment_id)

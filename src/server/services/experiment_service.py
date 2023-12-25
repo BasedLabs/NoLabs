@@ -92,7 +92,7 @@ class DrugDiscovery(BaseExperiment):
         for protein_file in protein_files:
             if protein_file.filename.endswith(".pdb"):
                 file_path = pdb_saver.save(protein_file, experiments_dir, protein_file.filename)
-                pdb_saver.pdb_to_fasta(protein_file, experiments_dir, protein_file.filename)
+                pdb_saver.pdb_to_fasta(protein_file.stream, experiments_dir, protein_file.filename)
                 pdb_file_paths.append(file_path)
             elif protein_file.filename.endswith(".fasta"):
                 file_path = fasta_saver.save(protein_file, experiments_dir, protein_file.filename)

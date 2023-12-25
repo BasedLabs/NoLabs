@@ -69,6 +69,16 @@ export const apiConstants = {
             mutation: 'drugTarget_getAllExperiments',
             action: 'drugTarget_getAllExperiments'
         },
+        addTarget: {
+            path: baseUrl + '/api/drug-target/add-target',
+            mutation: 'drugTarget_addTarget',
+            action: 'drugTarget_addTarget'
+        },
+        loadTargets: {
+            path: baseUrl + '/api/drug-target/load-targets',
+            mutation: 'drugTarget_loadTargets',
+            action: 'drugTarget_loadTargets'
+        },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
             path: baseUrl + '/api/drug-target/inference',
             mutation: 'drugTarget_inference',
