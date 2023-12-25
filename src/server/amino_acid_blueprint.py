@@ -1,8 +1,6 @@
-from flask import Blueprint
-from flask import request
+from flask import Blueprint, request
 
 from src.server.api_handlers.amino_acid import ApiHandler
-
 
 def resolve_api_endpoints(api_handler: ApiHandler):
     amino_acid_bp = Blueprint('amino-acid', __name__)
@@ -18,6 +16,21 @@ def resolve_api_endpoints(api_handler: ApiHandler):
     @amino_acid_bp.route('/load-experiment', methods=['GET'])
     def get_experiment():
         return api_handler.get_experiment(request)
+
+    @amino_acid_bp.route('/load-results', methods=['GET'])
+    def get_predictions():
+        print("getting predictions")
+        return api_handler.get_predictions(request)
+    
+    @amino_acid_bp.route('/load-experiment-progress', methods=['GET'])
+    def get_experiment_progress():
+        print("getting experiment progress")
+        return api_handler.get_experiment_progress(request)
+    
+    @amino_acid_bp.route('/load-experiment-instance-progress', methods=['GET'])
+    def get_experiment_instance_progress():
+        print("getting instance progress")
+        return api_handler.get_experiment_instance_progress(request)
 
     @amino_acid_bp.route('/delete-experiment', methods=['DELETE'])
     def delete_experiment():

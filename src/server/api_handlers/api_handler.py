@@ -16,7 +16,31 @@ class ApiHandler(UUIDGenerator):
         pass
 
     @abstractmethod
+    def get_predictions(self):
+        """
+        Pulls predictions
+        """
+        pass
+
+    @abstractmethod
     def get_experiment(self, request):
+        """
+        Pulls all experiment metadata
+        """
+        pass
+
+    @abstractmethod
+    def get_experiment_progress(self, request):
+        """
+        Pulls all experiment metadata
+        """
+        pass
+
+    @abstractmethod
+    def get_instance_progress(self, request):
+        """
+        Pulls all experiment metadata
+        """
         pass
 
     @abstractmethod

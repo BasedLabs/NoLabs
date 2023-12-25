@@ -1,28 +1,28 @@
 <template>
   <div class="text-center" v-if="this.$route.path === '/'">
-    <div class="container-fluid">
-      <div class="row">
-        <!-- Amino Acid Lab -->
-        <div class="lab-container col-md-4 col-xs-1">
-          <div class="protein-container" ref="aminoAcidProtein"></div>
-          <ul class="lab-features">
-            <li>Folding</li>
-            <li>Gene Ontology</li>
-            <li>Solubility</li>
-            <li>Localization</li>
-          </ul>
-          <RouterLink type="button" class="btn btn-primary btn-md" to="/amino-acid-lab">Amino acid lab</RouterLink>
+    <div class="container-fluid row justify-content-center">
+      <!-- Amino Acid Lab -->
+      <div class="col-md-3 d-flex flex-column align-items-center">
+        <div class="mx-auto protein-container" ref="aminoAcidProtein"></div>
+        <div class="lab-features">
+          <span class="tag">Folding</span>
+          <span class="tag">Gene Ontology</span>
+          <span class="tag">Solubility</span>
+          <span class="tag">Localization</span>
+          <span class="upcoming-feature">Protein generation</span>
         </div>
+        <RouterLink type="button" class="btn btn-primary btn-md mt-2" to="/amino-acid-lab">Amino acid lab</RouterLink>
+      </div>
 
-        <!-- Drug Discovery Lab -->
-        <div class="lab-container col-md-4 col-xs-1">
-          <div class="protein-container" ref="drugDiscoveryProtein"></div>
-          <ul class="lab-features">
-            <li>Protein-Ligand Binding</li>
-            <li class="upcoming-feature">Metabolic processes affected</li>
-          </ul>
-          <RouterLink type="button" class="btn btn-primary btn-md" to="/drug-target-lab">Drug discovery lab</RouterLink>
+      <!-- Drug Discovery Lab -->
+      <div class="col-md-3 justify-content-center">
+        <div class="mx-auto protein-container" ref="drugDiscoveryProtein"></div>
+        <div class="lab-features">
+          <span class="tag">Protein-Ligand Binding</span>
+          <span class="upcoming-feature">Metabolic processes affected</span>
         </div>
+        <RouterLink type="button" class="btn btn-primary btn-md mt-2" to="/drug-target-lab">Drug discovery lab</RouterLink>
+      </div>
 
         <!-- Conformations lab Lab -->
         <div class="lab-container col-md-4 col-xs-1">
@@ -48,7 +48,6 @@
         </div>
       </div>
     </div>
-  </div>
   <RouterView />
 </template>
 
@@ -124,33 +123,33 @@ export default {
 <style>
 .btn {
   /* Your existing styles for buttons */
-  border-radius: 10px;
-  /* Adjust the radius as needed */
+  border-radius: 10px; /* Adjust the radius as needed */
 }
-
 .lab-features li {
-  margin-bottom: 5px;
-  /* Space between list items */
-  position: relative;
-  /* Needed for positioning the pseudo-element */
-  padding-left: 25px;
-  /* Space for the checkmark */
+  margin-bottom: 5px; /* Space between list items */
+  position: center; /* Needed for positioning the pseudo-element */
+  padding-left: 25px; /* Space for the checkmark */
   text-align: left;
 }
 
-.lab-features li::before {
-  content: '✅';
-  /* The checkmark */
-  position: absolute;
-  left: 0;
-  /* Aligns the checkmark to the left */
-  top: 0;
-  /* Aligns the checkmark to the top */
+.tag {
+  display: inline-block;
+  background-color: #007bff; /* Example background color */
+  color: white;
+  padding: 5px 10px;
+  margin: 5px;
+  border-radius: 15px; /* Creates the pill shape */
+  font-size: 0.8em;
 }
 
-.lab-features .upcoming-feature::before {
-  content: '🔜';
-  /* Change the marker to "🔜" */
+.upcoming-feature {
+  display: inline-block; /* Example background color */
+  color: white;
+  padding: 5px 10px;
+  margin: 5px;
+  border-radius: 15px; /* Creates the pill shape */
+  font-size: 0.8em;
+  background-color: #494e4a; /* Different background color for upcoming features */
 }
 
 .toggle-text {

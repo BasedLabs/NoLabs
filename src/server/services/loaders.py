@@ -19,6 +19,31 @@ class PDBFileLoader(FileLoader):
         with open(os.path.join(folder, filename), 'r') as f:
             return f.read()
 
+class FastaFileLoader(FileLoader):
+    def load(self, file_path):
+        sequence_ids = []
+        sequences = []
+
+        with open(file_path, 'r') as file:
+            current_sequence_id = None
+            sequence_data = []
+
+            for line in file:
+                if line.startswith('>'):
+                    if current_sequence_id:
+                        sequences.append(''.join(sequence_data))
+                        sequence_data = []
+
+                    current_sequence_id = line[1:].strip()
+                    sequence_ids.append(current_sequence_id)
+                else:
+                    sequence_data.append(line.strip())
+
+            if current_sequence_id:
+                sequences.append(''.join(sequence_data))
+
+        return sequence_ids, sequences
+
 class CSVFileLoader(FileLoader):
     def load(self, folder, filename):
         content = []
@@ -64,6 +89,8 @@ class FileLoaderFactory:
             return JSONFileLoader()
         elif file_extension == '.list.csv':
             return CSVListLoader()
+        elif file_extension == '.fasta':
+            return FastaFileLoader()
         else:
             raise ValueError(f"Unsupported file extension: {file_extension}")
 
@@ -80,6 +107,57 @@ class ProteinDesignLoader:
         return pdb_contents
 
 class DTILoader:
+    def __init__(self):
+        pass
+
+    def get_dti_single_result(self,
+                              experiment_folder: str,
+                              experiment_id: str,
+                              protein_id: str,
+                              ligand_id: str):
+
+        protein_folder = os.path.join(experiment_folder, experiment_id, protein_id)
+        result_folder = os.path.join(protein_folder, 'result')
+
+        pdb_content = ""
+        # Open and read the PDB file
+        pdb_file_path = os.path.join(protein_folder, protein_id + '.pdb')
+
+        # If a user uploaded pdb file then we prioritise this structure
+        if os.path.exists(pdb_file_path):
+            with open(pdb_file_path, 'r') as pdb_file:
+                for line in pdb_file:
+                    pdb_content += line
+        else:
+            pred_pdb_file_path = os.path.join(result_folder, protein_id + "_pred_protein.pdb")
+            with open(pred_pdb_file_path, 'r') as pdb_file:
+                for line in pdb_file:
+                    pdb_content += line
+
+        ligand_file = f'{result_folder}/{ligand_id}_pred_ligand.sdf'
+
+        plddt_df = pd.read_csv(f"{result_folder}/{ligand_id}_ligand_plddt.csv", header=None)
+        ligand_plddt = np.round(plddt_df[0].mean(),1)
+
+        sdf_supplier = SDMolSupplier(ligand_file)
+        # Initialize an empty string to store the SDF contents
+        sdf_contents = ""
+        # Iterate through the molecules in the SDF file and append their representations to the string
+        for mol in sdf_supplier:
+            if mol is not None:
+                # Convert the molecule to an SDF block and append it to the string
+                sdf_contents += Chem.MolToMolBlock(mol) + "\n"
+        return {
+            'pdb': pdb_content,
+            'proteinName': protein_id,
+            'sdf': sdf_contents,
+            'ligandName': ligand_id,
+            'affinity': ligand_plddt
+            }
+
+
+
+
     def get_dti_results(self, experiments_folder: str, experiment_id: str):
         experiment_folder = os.path.join(experiments_folder, experiment_id)
         protein_names = [d for d in os.listdir(experiment_folder) \
@@ -134,6 +212,14 @@ class DTILoader:
                 )
 
         return results
+
+    def get_protein_ids(self, experiments_folder, experiment_id):
+        experiment_folder = os.path.join(experiments_folder, experiment_id)
+        protein_names = [d for d in os.listdir(experiment_folder) \
+        if os.path.isdir(os.path.join(experiment_folder, d))]
+
+        return protein_names
+
 
     def get_ligand_names(self, result_folder):
         suffix = '_pred_ligand'

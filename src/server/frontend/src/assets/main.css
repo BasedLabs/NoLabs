@@ -162,10 +162,9 @@ body::-webkit-scrollbar-track {
 .protein-container {
   width: 300px;
   height: 300px;
-  display: grid;
   place-items: center;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   align-content: center;
   margin-bottom: 20px;
   margin-top: 40px;
@@ -185,13 +184,6 @@ body::-webkit-scrollbar-track {
   border-radius: 20px;
   border-color:aqua;
   border-width: 2px;
-}
-
-.labs-flex-container {
-  display: flex;
-  justify-content: center; /* Center the items horizontally */
-  align-items: flex-start; /* Center the items vertically */
-  gap: 150px; /* Optional: adds some space between the containers */
 }
 
 #app {

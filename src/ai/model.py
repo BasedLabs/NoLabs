@@ -13,6 +13,7 @@ from tqdm import tqdm
 import pickle
 
 from src.server import settings
+from src.server.services.progress import ProgressTracker
 from src.ai.exceptions.model_not_loaded_ex import ModelNotLoadedException
 from src.ai.custom_models.custom_models import SimpleGOMultiLayerPerceptron, SimpleSolubilityMultiLayerPerceptron
 from src.ai.custom_models.drug_target.utils import install_p2rank, read_sdf_files, get_sequence
@@ -28,13 +29,6 @@ from src.ai.custom_models.drug_target.umol.src.relax.align_ligand_conformer_cola
 from Bio.PDB import PDBParser
 import rdkit.Chem as Chem
 import pandas as pd
-
-from src.ai.custom_models.drug_target.tankbind.feature_utils import get_protein_feature, \
-    generate_sdf_from_smiles_using_rdkit, extract_torchdrug_feature_from_mol
-from src.ai.custom_models.drug_target.tankbind.generation_utils import get_LAS_distance_constraint_mask, \
-    get_info_pred_distance, write_with_new_coords
-from src.ai.custom_models.drug_target.tankbind.model import get_model
-from src.ai.custom_models.drug_target.tankbind.data import TankBind_prediction
 
 from esm import FastaBatchedDataset, pretrained
 
@@ -324,160 +318,34 @@ class SolubilityPrediction(BaseModel):
         return {'solubility': outputs.item()}
 
 
-class DeprecatedDrugTargetInteraction(BaseModel):
-    def __init__(self, model_name, gpu, model_task=""):
-        super().__init__(model_name, gpu, model_task)
-        if gpu:
-            self.device = torch.device('cuda')
-        else:
-            self.device = torch.device('cpu')
 
-        logger.info("Loading p2rank...")
-        install_p2rank()
-        logger.info("P2rank has been loaded!")
 
-    def prepare_folders(self, experiment_folder: str, protein_names: List[str]):
-        for protein_name in protein_names:
-            os.system(f'mkdir -p {experiment_folder}/{protein_name}')
-
-    def prepare_data(
-            self,
-            ligands_names: List[str],
-            ligands_smiles: List[FileStorage],
-            protein_names: List[str],
-            protein_files: List[FileStorage],
-            experiment_folder: str
-    ):
-        self.prepare_folders(experiment_folder, protein_names)
-        self.protein_dict = self._prepare_protein_data(experiment_folder, protein_files)
-        self.protein2ligandcompdict = {}
-        for protein_name in protein_names:
-            ligand2compounddict = {}
-            for ligand_name, ligand_smiles in zip(ligands_names, ligands_smiles):
-                # getting compund feature
-                compound_dict = {}
-                rdkitMolFile = f"{experiment_folder}/{protein_name}/{ligand_name}_mol_from_rdkit.sdf"
-                shift_dis = 0  # for visual only, could be any number, shift the ligand away from the protein.
-                generate_sdf_from_smiles_using_rdkit(ligand_smiles, rdkitMolFile, shift_dis=shift_dis)
-                mol = Chem.MolFromMolFile(rdkitMolFile)
-                compound_dict[protein_name + "_" + f"{ligand_name}_rdkit"] = extract_torchdrug_feature_from_mol(mol,
-                                                                                                                has_LAS_mask=True)
-                ligand2compounddict[ligand_name] = [compound_dict, rdkitMolFile]
-                info = []
-                for compound_name in list(compound_dict.keys()):
-                    # use protein center as the block center.
-                    com = ",".join([str(a.round(3)) for a in self.protein_dict[protein_name][0].mean(axis=0).numpy()])
-                    info.append([protein_name, compound_name, "protein_center", com])
-                    p2rankFile = f"{experiment_folder}/{protein_name}/p2rank/{protein_name}.pdb_predictions.csv"
-                    pocket = pd.read_csv(p2rankFile)
-                    pocket.columns = pocket.columns.str.strip()
-                    pocket_coms = pocket[['center_x', 'center_y', 'center_z']].values
-                    for ith_pocket, com in enumerate(pocket_coms):
-                        com = ",".join([str(a.round(3)) for a in com])
-                        info.append([protein_name, compound_name, f"pocket_{ith_pocket + 1}", com])
-                info = pd.DataFrame(info, columns=['protein_name', 'compound_name', 'pocket_name', 'pocket_com'])
-                info.to_csv(f"{experiment_folder}/{protein_name}/{ligand_name}_temp_info.csv")
-
-            self.protein2ligandcompdict[protein_name] = ligand2compounddict
-
-    def _prepare_protein_data(self, experiment_folder, protein_files: List[FileStorage], protein_names):
-        protein_dict = {}
-        for protein_file, protein_name in zip(protein_files, protein_names):
-            # p2rank
-            original_protein_file = os.path.join(experiment_folder, protein_file.filename)
-            destination_protein_file = os.path.join(experiment_folder, protein_name, protein_file.filename)
-            shutil.copyfile(original_protein_file, destination_protein_file)
-            ds = f"{experiment_folder}/{protein_name}/protein_list.ds"
-            with open(ds, "w") as out:
-                out.write(f"{protein_file.filename}\n")
-            p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/tankbind/p2rank_2.4.1/prank"
-            print("P2RANK_EXEC: " + p2rank_exec)
-            p2rank = f"bash {p2rank_exec}"
-            cmd = f"{p2rank} predict {ds} -o {experiment_folder}/{protein_name}/p2rank -threads 1"
-            os.system(cmd)
-            # getting protein feature
-            parser = PDBParser(QUIET=True)
-            s = parser.get_structure("x", os.path.join(experiment_folder, protein_file.filename))
-            res_list = list(s.get_residues())
-            protein_dict[protein_name] = get_protein_feature(res_list)
-        return protein_dict
+class PocketPredictor(BaseModel):
+    def __init__(self, model_name: str, model_task=""):
+        self.model_name = model_name
+        self.model_task = model_task
 
     def load_model(self):
-        logging.basicConfig(level=logging.INFO)
-        self.model = get_model(0, logging, self.device)
-        modelFile = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/models_ckpt/self_dock.pt"
-        self.model.load_state_dict(torch.load(modelFile, map_location=self.device))
-        self.model.eval()
+        """Load model and tokenizer here"""
+        install_p2rank()
 
-    def _raw_inference(self, experiment_folder, protein_names, ligands_names):
+    # Method to get raw model outputs
+    def _raw_inference(self, protein_file_path: str, save_dir: str):
+        protein_filename = os.path.split(protein_file_path)[1]
+        destination_protein_file = os.path.join(save_dir, protein_filename)
+        shutil.copyfile(protein_file_path, destination_protein_file)
+        ds = f"{save_dir}/protein_list.ds"
+        with open(ds, "w") as out:
+            out.write(f"{protein_filename}\n")
+        p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/p2rank_2.4.1/prank"
+        p2rank = f"bash {p2rank_exec}"
+        cmd = f"{p2rank} predict {ds} -o {save_dir}/p2rank -threads 1"
+        os.system(cmd)
 
-        def post_process(chosen, rdkitMolFile, dataset, result_folder):
-            for i, line in chosen.iterrows():
-                idx = line['index']
-                pocket_name = line['pocket_name']
-                compound_name = line['compound_name']
-                ligandName = compound_name.split("_")[1]
-                coords = dataset[idx].coords.detach().cpu()
-                protein_nodes_xyz = dataset[idx].node_xyz.detach().cpu()
-                n_compound = coords.shape[0]
-                n_protein = protein_nodes_xyz.shape[0]
-                y_pred = self.y_pred_list[idx].reshape(n_protein, n_compound).detach().cpu()
-                y = dataset[idx].dis_map.reshape(n_protein, n_compound).detach().cpu()
-                compound_pair_dis_constraint = torch.cdist(coords, coords).detach().cpu()
-                mol = Chem.MolFromMolFile(rdkitMolFile)
-                LAS_distance_constraint_mask = get_LAS_distance_constraint_mask(mol).bool().detach().cpu()
-                info = get_info_pred_distance(coords, y_pred, protein_nodes_xyz, compound_pair_dis_constraint,
-                                              LAS_distance_constraint_mask=LAS_distance_constraint_mask,
-                                              n_repeat=1, show_progress=False)
-                toFile = f'{result_folder}/{ligandName}_tankbind.sdf'
-                new_coords = info.sort_values("loss")['coords'].iloc[0].astype(np.double)
-                write_with_new_coords(mol, new_coords, toFile)
+    # Method to return raw outputs in the desired format
+    def predict(self, protein_file_path: str, save_dir: str):
+        self._raw_inference(protein_file_path, save_dir)
 
-        for protein_idx in range(len(protein_names)):
-            protein_name = protein_names[protein_idx]
-            logger.info(f"Making dti predictions for {protein_idx + 1} out of {len(protein_names)} protein...")
-            result_folder = os.path.join(experiment_folder, protein_name, 'result')
-            if not os.path.exists(result_folder):
-                os.mkdir(result_folder)
-            ligand2compounddict = self.protein2ligandcompdict[protein_name]
-            for ligand_idx in range(len(ligands_names)):
-                ligand_name = ligands_names[ligand_idx]
-                logger.info(f"Making dti predictions for {protein_idx + 1} out of {len(protein_names)} protein...\n \
-                Currently predicting {ligand_idx + 1} out of {len(ligands_names)} ligands...")
-                info = pd.read_csv(os.path.join(experiment_folder, protein_name, f"{ligand_name}_temp_info.csv"))
-                compound_dict, rdkitMolFile = ligand2compounddict[ligand_name]
-                dataset_path = f"{experiment_folder}/{protein_name}/{ligand_name}_dataset/"
-                os.system(f"rm -r {dataset_path}")
-                os.system(f"mkdir -p {dataset_path}")
-                dataset = TankBind_prediction(dataset_path, data=info, protein_dict=self.protein_dict,
-                                              compound_dict=compound_dict)
-                batch_size = 1
-                data_loader = DataLoader(dataset, batch_size=batch_size, follow_batch=['x', 'y', 'compound_pair'],
-                                         shuffle=False, num_workers=8)
-                affinity_pred_list = []
-                self.y_pred_list = []
-                for data in tqdm(data_loader):
-                    data = data.to(self.device)
-                    y_pred, affinity_pred = self.model(data)
-                    affinity_pred_list.append(affinity_pred.detach().cpu())
-                    for i in range(data.y_batch.max() + 1):
-                        self.y_pred_list.append((y_pred[data['y_batch'] == i]).detach().cpu())
-                affinity_pred_list = torch.cat(affinity_pred_list)
-                info['affinity'] = affinity_pred_list
-                info.to_csv(f"{result_folder}/{ligand_name}_info_with_predicted_affinity.csv")
-                chosen = info.loc[
-                    info.groupby(['protein_name', 'compound_name'], sort=False)['affinity'].agg('idxmax')].reset_index()
-                post_process(chosen, rdkitMolFile, dataset=dataset, result_folder=result_folder)
-
-    def predict(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_folder: str):
-        logger.info("Making dti predictions...")
-        ligand_files = [os.path.join(experiment_folder, file.filename) for file in ligand_files]
-        ligands_names, ligands_smiles = read_sdf_files(ligand_files)
-        protein_names = [os.path.splitext(x.filename)[0] for x in protein_files]
-
-        self.prepare_data(ligands_names, ligands_smiles, protein_names, protein_files, experiment_folder)
-        self._raw_inference(experiment_folder, protein_names, ligands_names)
-        logger.info("DTI predictions are completed!")
 
 
 class DrugTargetInteraction(BaseModel):
@@ -586,52 +454,58 @@ class DrugTargetInteraction(BaseModel):
         pass
 
     def _raw_inference(self, protein_ids, ligands, ligands_names, experiment_folder, target_positions, num_recycles):
-        for ID, LIGAND, LIGAND_NAME in zip(protein_ids, ligands, ligands_names):
-            protein_folder = os.path.join(experiment_folder, ID)
-            result_folder = os.path.join(protein_folder, 'result')
+        experiment_progress_tracker = ProgressTracker(experiment_folder, protein_ids)
+        for ID in protein_ids:
+            for LIGAND, LIGAND_NAME in zip(ligands, ligands_names):
+                protein_folder = os.path.join(experiment_folder, ID)
+                result_folder = os.path.join(protein_folder, 'result')
 
-            if not os.path.exists(result_folder):
-                os.makedirs(result_folder)
+                protein_progress_tracker = ProgressTracker(protein_folder, tasks=ligands_names)
 
-            result_folder = os.path.join(protein_folder, 'result/')
+                if not os.path.exists(result_folder):
+                    os.makedirs(result_folder)
 
-            MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
-            LIGAND_FEATS = os.path.join(protein_folder, f'{LIGAND_NAME}_ligand_inp_features.pkl')
+                result_folder = os.path.join(protein_folder, 'result/')
 
-            with open(self.model_params_path, 'rb') as file:
-                PARAMS = pickle.load(file)
+                MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
+                LIGAND_FEATS = os.path.join(protein_folder, f'{LIGAND_NAME}_ligand_inp_features.pkl')
 
-            ID = ID.split('/')[-1]
-            # Predict
-            predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, target_positions, PARAMS, num_recycles,
-                    outdir=result_folder)
+                with open(self.model_params_path, 'rb') as file:
+                    PARAMS = pickle.load(file)
 
-            # Process the prediction
-            RAW_PDB = os.path.join(result_folder, f'{ID}_pred_raw.pdb')
+                ID = ID.split('/')[-1]
+                # Predict
+                predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, target_positions, PARAMS, num_recycles, outdir=result_folder)
 
-            # Get a conformer
-            pred_ligand = read_pdb(RAW_PDB)
-            best_conf, best_conf_pos, best_conf_err, atoms, nonH_inds, mol, best_conf_id = generate_best_conformer(
-                pred_ligand['chain_coords'], LIGAND)
+                # Process the prediction
+                RAW_PDB = os.path.join(result_folder, f'{ID}_pred_raw.pdb')
 
-            # Align it to the prediction
-            aligned_conf_pos = align_coords_transform(pred_ligand['chain_coords'], best_conf_pos, nonH_inds)
+                # Get a conformer
+                pred_ligand = read_pdb(RAW_PDB)
+                best_conf, best_conf_pos, best_conf_err, atoms, nonH_inds, mol, best_conf_id = generate_best_conformer(pred_ligand['chain_coords'], LIGAND)
 
-            # Write sdf
-            sdf_output_path = os.path.join(result_folder, f'{LIGAND_NAME}_pred_ligand.sdf')
-            write_sdf(mol, best_conf, aligned_conf_pos, best_conf_id, sdf_output_path)
+                # Align it to the prediction
+                aligned_conf_pos = align_coords_transform(pred_ligand['chain_coords'], best_conf_pos, nonH_inds)
 
-            # Extract ATOM and HETATM records from the PDB file
-            protein_pdb_path = os.path.join(result_folder, f'{ID}_pred_protein.pdb')
-            ligand_plddt_path = os.path.join(result_folder, f'{LIGAND_NAME}_ligand_plddt.csv')
+                # Write sdf
+                sdf_output_path = os.path.join(result_folder, f'{LIGAND_NAME}_pred_ligand.sdf')
+                write_sdf(mol, best_conf, aligned_conf_pos, best_conf_id, sdf_output_path)
 
-            with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path,
-                                                                                                'w') as ligand_out:
-                for line in infile:
-                    if line.startswith('ATOM'):
-                        protein_out.write(line)
-                    elif line.startswith('HETATM'):
-                        ligand_out.write(line[64:66] + '\n')  # Extracting plDDT values
+                # Extract ATOM and HETATM records from the PDB file
+                protein_pdb_path = os.path.join(result_folder, f'{ID}_pred_protein.pdb')
+                ligand_plddt_path = os.path.join(result_folder, f'{LIGAND_NAME}_ligand_plddt.csv')
+
+                with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path, 'w') as ligand_out:
+                    for line in infile:
+                        if line.startswith('ATOM'):
+                            protein_out.write(line)
+                        elif line.startswith('HETATM'):
+                            ligand_out.write(line[64:66] + '\n')  # Extracting plDDT values
+
+                protein_progress_tracker.update_progress(LIGAND_NAME)
+
+            experiment_progress_tracker.update_progress(ID)
+
 
     def predict(self, ligand_files_paths, protein_files, experiment_folder: str):
         logger.info("Making dti predictions...")
