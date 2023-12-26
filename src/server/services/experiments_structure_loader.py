@@ -10,6 +10,7 @@ from pathlib import Path
 from werkzeug.datastructures import FileStorage
 from pathlib import Path
 from typing import List, Dict, Tuple
+import numpy as np
 
 from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader,PDBFileLoader
 from src.server.services.savers import FileSaverFactory, FastaFileSaver, SDFFileSaver, PDBFileSaver
@@ -357,6 +358,15 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
 
+    def update_target_metadata(self, experiment_id: str, target_id: str, key: str, value):
+        metadata = self.load_target_metadata(experiment_id, target_id)
+        metadata[key] = value
+
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', target_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=4)
+
+
     def load_target_metadata(self, experiment_id: str, target_id: str,):
         metadata_path = os.path.join(DTI_EXPERIMENTS_DIR,
                                       experiment_id,
@@ -434,8 +444,30 @@ class DTILabExperimentsLoader(ExperimentsLoader):
                     targets[target_id]['fasta'] = file  # Storing file name for simplicity
 
         return targets
+    
+    def set_binding_pocket(self, experiment_id, protein_id, pocket_ids_array):
+        protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)
+
+        pockets_dir = os.path.join(protein_dir, 'pocket')
+        if not os.path.exists(pockets_dir):
+            os.mkdir(pockets_dir)
+
+        np.save(os.path.join(pockets_dir, "pocket.npy"), pocket_ids_array)
+        self.update_target_metadata(experiment_id, protein_id, "manual_pocket", True)
 
 
+    def load_binding_pocket(self, experiment_id, protein_id):
+        protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)
+
+        pockets_dir = os.path.join(protein_dir, 'pocket')
+        if not os.path.exists(pockets_dir):
+            return []
+        
+        binding_pockets_ids = np.load(os.path.join(pockets_dir, "pocket.npy"))
+        binding_pockets_ids = binding_pockets_ids.tolist()
+
+        return binding_pockets_ids
+        
 
     def delete_experiment(self, experiment_id):
         self._delete_experiment(DTI_EXPERIMENTS_DIR, experiment_id)

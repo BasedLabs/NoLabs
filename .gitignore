@@ -177,3 +177,4 @@ src/server/experiments/proteins/*
 src/server/experiments/conformations/*
 !/src/server/experiments/conformations/85e6d812-777c-4a79-97c6-054b7aa517f2
 src/server/experiments/drug_discovery/25befab3-cb27-4f04-a454-b966ebedbc0c/targets/
+src/ai/custom_models/drug_target/p2rank_2.4.1

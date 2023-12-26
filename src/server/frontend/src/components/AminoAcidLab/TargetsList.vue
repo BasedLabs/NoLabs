@@ -110,7 +110,7 @@ export default {
 
         <!-- Modal -->
         <div v-if="isModalOpen" class="modal">
-            <TargetProteinViewer :target="selectedTarget" @close="closeModal" />
+            <TargetProteinViewer :api="this.api" :experiment="this.experiment" :target="selectedTarget" @close="closeModal" />
         </div>
     </div>
 </template>

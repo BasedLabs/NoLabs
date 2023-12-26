@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 
 import torch
 from torch import Tensor
@@ -11,6 +12,7 @@ import numpy as np
 import requests
 from tqdm import tqdm
 import pickle
+from pathlib import Path
 
 from src.server import settings
 from src.server.services.progress import ProgressTracker
@@ -332,19 +334,41 @@ class PocketPredictor(BaseModel):
     # Method to get raw model outputs
     def _raw_inference(self, protein_file_path: str, save_dir: str):
         protein_filename = os.path.split(protein_file_path)[1]
-        destination_protein_file = os.path.join(save_dir, protein_filename)
-        shutil.copyfile(protein_file_path, destination_protein_file)
         ds = f"{save_dir}/protein_list.ds"
         with open(ds, "w") as out:
             out.write(f"{protein_filename}\n")
-        p2rank_exec = dirname(os.path.abspath(__file__)) + "/custom_models/drug_target/p2rank_2.4.1/prank"
-        p2rank = f"bash {p2rank_exec}"
-        cmd = f"{p2rank} predict {ds} -o {save_dir}/p2rank -threads 1"
-        os.system(cmd)
+        p2rank_exec = os.path.join(os.path.dirname(os.path.abspath(__file__)), "custom_models/drug_target/p2rank_2.4.1/prank")
+        cmd = ["bash", p2rank_exec, "predict", ds, "-o", f"{save_dir}/p2rank", "-threads", "1"]
 
+        # Run the command and wait for it to complete
+        subprocess.run(cmd, check=True)
+
+        p2rankFile = os.path.join(save_dir, 'p2rank', f"{Path(protein_filename).stem}.pdb_predictions.csv")
+        pocket = pd.read_csv(p2rankFile, skipinitialspace=True)
+
+        # Check if the dataframe is empty
+        if pocket.empty:
+            return np.array([])
+        
+        print("POCKET DF: ", pocket.columns)
+
+        # Extract and process the 'residue_ids' column
+        # Splits the value by "_" and return only the integer on the right
+        residue_ids = pocket['residue_ids'].str.split()
+        all_ids = [int(item.split('_')[1]) for sublist in residue_ids for item in sublist]
+
+        pocket_ids = np.sort(np.array(all_ids))
+
+        np.save(os.path.join(save_dir, "pocket.npy"), pocket_ids)
+
+        pocket_ids = pocket_ids.tolist()
+
+        return pocket_ids
+
+        
     # Method to return raw outputs in the desired format
     def predict(self, protein_file_path: str, save_dir: str):
-        self._raw_inference(protein_file_path, save_dir)
+        return self._raw_inference(protein_file_path, save_dir)
 
 
 
@@ -453,9 +477,9 @@ class DrugTargetInteraction(BaseModel):
 
         pass
 
-    def _raw_inference(self, protein_ids, ligands, ligands_names, experiment_folder, target_positions, num_recycles):
+    def _raw_inference(self, protein_ids, ligands, ligands_names, experiment_folder, binding_pockets, num_recycles):
         experiment_progress_tracker = ProgressTracker(experiment_folder, protein_ids)
-        for ID in protein_ids:
+        for ID, binding_pocket in zip(protein_ids, binding_pockets):
             for LIGAND, LIGAND_NAME in zip(ligands, ligands_names):
                 protein_folder = os.path.join(experiment_folder, ID)
                 result_folder = os.path.join(protein_folder, 'result')
@@ -475,7 +499,7 @@ class DrugTargetInteraction(BaseModel):
 
                 ID = ID.split('/')[-1]
                 # Predict
-                predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, target_positions, PARAMS, num_recycles, outdir=result_folder)
+                predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, binding_pocket, PARAMS, num_recycles, outdir=result_folder)
 
                 # Process the prediction
                 RAW_PDB = os.path.join(result_folder, f'{ID}_pred_raw.pdb')
@@ -507,13 +531,11 @@ class DrugTargetInteraction(BaseModel):
             experiment_progress_tracker.update_progress(ID)
 
 
-    def predict(self, ligand_files_paths, protein_files, experiment_folder: str):
+    def predict(self, ligand_files_paths, protein_files, binding_pockets, experiment_folder: str):
         logger.info("Making dti predictions...")
         ligands_names, ligands_smiles = read_sdf_files(ligand_files_paths)
         protein_file_paths = [os.path.splitext(x)[0] for x in protein_files]
 
-        # TODO: ADD p2rank to identify target positions
-        target_array = np.asarray([])
         protein_names = [os.path.splitext(protein_file_path)[-2] for protein_file_path in protein_files]
         self.prepare_data(ligands_names, ligands_smiles, protein_file_paths, protein_files, experiment_folder)
         self._raw_inference(
@@ -521,5 +543,5 @@ class DrugTargetInteraction(BaseModel):
             ligands=ligands_smiles,
             ligands_names=ligands_names,
             experiment_folder=experiment_folder,
-            target_positions=target_array,
+            binding_pockets=binding_pockets,
             num_recycles=3)

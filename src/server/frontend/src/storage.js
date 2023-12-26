@@ -102,6 +102,9 @@ const store = createStore({
             //state.drugTarget.experiment = experiment;
             state.drugTarget.experiment.targets = data.targets;
         },
+        drugTarget_setBindingPocket (state, { data }) {
+            const experimentsArray = [];
+        },
         drugTarget_inference(state, experiment) {
             state.drugTarget.experiment = experiment;
         },
@@ -262,6 +265,17 @@ const store = createStore({
             const response = await axios.get(apiConstants.drugTarget.loadTargets.path, { params: { id: experiment.metaData.id, name: experiment.metaData.name } });
             commit(apiConstants.drugTarget.loadTargets.mutation, { data: response.data });
         },
+        async drugTarget_setBindingPocket({ commit }, { experiment, proteinId, selectedResidues }){
+            const payload = {
+                id: experiment.metaData.id,
+                name: experiment.metaData.name,
+                proteinId: proteinId,
+                selectedResidues: Array.from(selectedResidues),
+                isPocketManual: true
+            };
+            const response = await axios.post(apiConstants.drugTarget.setBindingPocket.path, payload);
+            commit(apiConstants.drugTarget.loadTargets.mutation, { data: response.data });
+        },
         async drugTarget_inference({ commit }, { payload }) {
             const { form, experiment } = payload;
             const formData = new FormData(form);
@@ -411,6 +425,15 @@ export const api = {
         },
         loadTargets: async (experiment) => {
             return await store.dispatch(apiConstants.drugTarget.loadTargets.action, { experiment });
+        },
+        setBindingPocket: async (experiment, proteinId, selectedResidues) => {
+            return await store.dispatch(apiConstants.drugTarget.setBindingPocket.action, { experiment, proteinId, selectedResidues });
+        },
+        loadBindingPocket: async (experiment, proteinId) => {
+            return await axios.get(apiConstants.drugTarget.loadBindingPocket.path, { params: { id: experiment.metaData.id, proteinId: proteinId } });
+        },
+        predictBindingPocket: async (experiment, proteinId) => {
+            return await axios.get(apiConstants.drugTarget.predictBindingPocket.path, { params: { id: experiment.metaData.id, proteinId: proteinId } });
         },
         inference: async (payload) => {
             return await store.dispatch(apiConstants.drugTarget.inference.action, { payload });

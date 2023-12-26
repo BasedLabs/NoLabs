@@ -1,6 +1,7 @@
 import time
 
 from flask import Request, jsonify
+import numpy as np
 
 from src.server.services.sdf_pdb_combine import combine_sdf_pdb
 from src.server import settings
@@ -46,36 +47,42 @@ class DrugTargetApiHandler(ApiHandler):
         return {'id': experiment_id, 'name': experiment_name, 'targets': targets}
 
     def set_binding_pocket(self, request):
-        experiment_id = request.args.get('id')
-        protein_id = request.args.get('proteinId')
-        is_pocket_manual = request.args.get('isManualPocket')
+        data = request.json  # Access data sent in the request body
+        experiment_id = data.get('id')
+        protein_id = data.get('proteinId')
+        selected_residues = data.get('selectedResidues', [])
+        
+        # Convert to NumPy array
+        selected_residues_array = np.array(selected_residues)
 
-        if is_pocket_manual:
-            pocket_sequence_ids = request.args.get('pocketIds')
-            self.experiments_loader.save_pocket(experiment_id,
-                                                protein_id,
-                                                is_pocket_manual,
-                                                pocket_sequence_ids)
-        else:
-            self.experiments_loader.save_pocket(experiment_id,
-                                                protein_id,
-                                                is_pocket_manual)
+        self.experiments_loader.set_binding_pocket(experiment_id, 
+                                                   protein_id,
+                                                   selected_residues_array)
+
+        return {}
 
 
     def get_binding_pocket(self, request):
         experiment_id = request.args.get('id')
         protein_id = request.args.get('proteinId')
-        is_pocket_manual = request.args.get('isManualPocket')
 
-        pocket_ids = []
-
-        pocket_ids = self.experiments_loader.load_pocket(experiment_id,
-                                                protein_id,
-                                                is_pocket_manual)
+        pocket_ids = self.experiments_loader.load_binding_pocket(experiment_id,
+                                                protein_id)
 
         return {"experimentId": experiment_id,
                 "proteinId": protein_id,
                 "pocketIds": pocket_ids}
+    
+    def predict_binding_pocket(self, request):
+        experiment_id = request.args.get('id')
+        protein_id = request.args.get('proteinId')
+
+        pocket = self.drug_discovery.predict_pocket(
+                                                experiment_id=experiment_id,
+                                                protein_id=protein_id
+                                                )
+        
+        return pocket
 
 
 

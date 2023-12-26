@@ -1,4 +1,5 @@
 import os
+import shutil
 from abc import abstractmethod, ABC
 from typing import List
 
@@ -10,6 +11,8 @@ from src.server.services.savers import FastaFileSaver, SDFFileSaver, PDBFileSave
 from src.server.settings import EXPERIMENTS_DIR, PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, \
     CONFORMATIONS_EXPERIMENTS_DIR, PROTEIN_DESIGN_EXPERIMENTS_DIR
 from src.server.services.mixins import UUIDGenerator
+
+from src.ai.model import PocketPredictor
 
 
 # Helper function to ensure the base directory exists
@@ -111,6 +114,29 @@ class DrugDiscovery(BaseExperiment):
         ligand_file_paths, pdb_file_paths = self._store_inputs(experiment_dir, ligand_files, protein_files)
         model.predict(ligand_file_paths, pdb_file_paths, experiment_dir)
         return experiment_id
+    
+
+    def predict_pocket(self, experiment_id: str, protein_id: str):
+
+        pocket_predictor = PocketPredictor('pocket_predictor', 'pocket_prediction')
+        pocket_predictor.load_model()
+
+        protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)
+
+        pockets_dir = os.path.join(protein_dir, 'pocket')
+        if not os.path.exists(pockets_dir):
+            os.mkdir(pockets_dir)
+
+        protein_file = None
+
+        for filename in os.listdir(protein_dir):
+            if filename.endswith(".pdb"):
+                destination_protein_file = os.path.join(pockets_dir, filename)
+                shutil.copyfile(os.path.join(protein_dir, filename), destination_protein_file)
+                protein_file = os.path.join(pockets_dir, filename)
+
+        return pocket_predictor.predict(protein_file, pockets_dir)
+
 
 
 class ProteinDesign(BaseExperiment):

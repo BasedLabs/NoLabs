@@ -1,6 +1,6 @@
 <script>
 export default {
-    props: ['target'],
+    props: ['api', 'experiment', 'target'],
     data() {
         const views = {
             default: { key: 'default', title: 'Default representation' },
@@ -26,7 +26,8 @@ export default {
             ligandComponent: null,
             selectedResidues: new Set(),
             sequence: [],
-            selectionMode: false
+            selectionMode: false,
+            showNoPocketModal: false,
         }
     },
     methods: {
@@ -93,8 +94,28 @@ export default {
         },
         sendSelectedResidues() {
             const selectedResidueArray = Array.from(this.selectedResidues);
-            console.log("Sending selected residues to backend:", selectedResidueArray);
-            // Replace with your API call to send data to the backend
+            this.api.setBindingPocket(this.experiment, this.target.metadata.id, selectedResidueArray);
+        },
+        async displayBindingPocket() {
+            const response = await this.api.loadBindingPocket(this.experiment, this.target.metadata.id);
+            if (response.data.pocketIds && response.data.pocketIds.length > 0) {
+                this.selectedResidues = new Set(response.data.pocketIds);
+                this.highlightSelectedResidues();
+            } else {
+                // Show modal if no binding pocket data is found
+                this.showNoPocketModal = true;
+            }
+        },
+        async predictBindingPocket() {
+            this.isLoading = true; // Set loading state
+            const response = await this.api.predictBindingPocket(this.experiment, this.target.metadata.id);
+            this.isLoading = false; // Reset loading state
+            this.showNoPocketModal = false; // Close the modal
+
+            if (response.data && response.data.length > 0) {
+                this.selectedResidues = new Set(response.data);
+                this.highlightSelectedResidues();
+            }
         },
         extractSequenceFromComponent(component) {
             // Extracting amino acid sequence from the PDB component
@@ -172,6 +193,41 @@ export default {
                 <button v-if="this.selectionMode" type="button" @click="sendSelectedResidues" class="btn btn-success" style="margin-top: 10px;">
                     Confirm selection
                 </button>
+                <button v-if="!this.selectionMode" type="button" @click="displayBindingPocket" class="btn btn-info" style="margin-top: 10px;">
+                    Display Binding Pocket
+                </button>
+            </div>
+        </div>
+        <div v-if="isLoading" class="loading-indicator">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Predicting...</span>
+            </div>
+            <span>Predicting...</span>
+        </div>
+        <div v-if="showNoPocketModal" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Binding Pocket Not Found</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="showNoPocketModal = false">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div v-if="isLoading" class="loading-indicator">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Predicting...</span>
+                        </div>
+                        <span>Predicting...</span>
+                    </div>
+                    <div class="modal-body" style="color: black;">
+                        <p>You don't have a binding pocket for this protein.</p>
+                        <p>Do you wish it to be predicted?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @click="predictBindingPocket">Predict</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="showNoPocketModal = false">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="row">
@@ -202,5 +258,12 @@ export default {
 .amino-acid-sequence span.selected {
     background-color: blue;
     color: white;
+}
+
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
 }
 </style>

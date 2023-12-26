@@ -79,6 +79,17 @@ export const apiConstants = {
             mutation: 'drugTarget_loadTargets',
             action: 'drugTarget_loadTargets'
         },
+        setBindingPocket: {
+            path: baseUrl + '/api/drug-target/set-binding-pocket',
+            mutation: 'drugTarget_setBindingPocket',
+            action: 'drugTarget_setBindingPocket'
+        },
+        loadBindingPocket: {
+            path: baseUrl + '/api/drug-target/get-binding-pocket'
+        },
+        predictBindingPocket: {
+            path: baseUrl + '/api/drug-target/predict-binding-pocket'
+        },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
             path: baseUrl + '/api/drug-target/inference',
             mutation: 'drugTarget_inference',
