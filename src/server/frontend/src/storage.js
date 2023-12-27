@@ -29,7 +29,8 @@ const store = createStore({
         proteinDesign: {
             experiment: {
                 metaData: null,
-                data: null
+                data: null,
+                errors: []
             },
             experiments: []
         }
@@ -73,7 +74,7 @@ const store = createStore({
             state.aminoAcid.experiments.push(experiment);
         },
         aminoAcid_deleteExperiment(state, experiment) {
-            state.aminoAcid.experiments = state.aminoAcid.experiments.filter(exp => exp.id !== experiment.metaData.id);
+            state.aminoAcid.experiments = state.aminoAcid.experiments.filter(exp => exp.metaData.id !== experiment.metaData.id);
         },
         drugTarget_loadExperiment(state, { experiment }) {
             //state.drugTarget.experiment = experiment;
@@ -114,10 +115,10 @@ const store = createStore({
             if (state.drugTarget.experiment && state.drugTarget.experiment.metaData.id === experiment.metaData.id) {
                 state.drugTarget.experiment = null;
             }
-            state.drugTarget.experiments = state.drugTarget.experiments.filter(exp => exp.id !== experiment.metaData.id);
+            state.drugTarget.experiments = state.drugTarget.experiments.filter(exp => exp.metaData.id !== experiment.metaData.id);
         },
         conformations_loadExperiment(state, { experiment }) {
-            state.conformations.experiment.metaData = experiment;
+            state.conformations.experiment  = experiment;
         },
         conformations_getAllExperiments(state, experiments) {
             if (experiments.length === 0) {
@@ -148,7 +149,7 @@ const store = createStore({
             state.conformations.experiments = state.conformations.experiments.filter(exp => exp.id !== experiment.metaData.id);
         },
         proteinDesign_loadExperiment(state, { experiment }) {
-            state.proteinDesign.experiment.metaData = experiment;
+            state.proteinDesign.experiment = experiment;
         },
         proteinDesign_getAllExperiments(state, experiments) {
             if (experiments.length === 0) {
@@ -176,7 +177,7 @@ const store = createStore({
             state.proteinDesign.experiments.push(experiment);
         },
         proteinDesign_deleteExperiment(state, experiment) {
-            state.proteinDesign.experiments = state.proteinDesign.experiments.filter(exp => exp.id !== experiment.metaData.id);
+            state.proteinDesign.experiments = state.proteinDesign.experiments.filter(exp => exp.metaData.id !== experiment.metaData.id);
         }
     },
     actions: {
@@ -310,8 +311,8 @@ const store = createStore({
         async conformations_inference({ commit }, { payload }) {
             const { form, experiment } = payload;
             const formData = new FormData(form);
-            formData.append('experimentId', experiment.id ?? '');
-            formData.append('experimentName', experiment.name);
+            formData.append('experimentId', experiment.metaData.id ?? '');
+            formData.append('experimentName', experiment.metaData.name);
             const response = await axios({
                 method: 'post',
                 url: apiConstants.conformations.inference.path,
@@ -325,7 +326,7 @@ const store = createStore({
             commit(apiConstants.conformations.experiments.mutation, response.data);
         },
         async conformations_deleteExperiment({ commit }, { experiment }) {
-            await axios.delete(apiConstants.conformations.deleteExperiment.path, { data: { id: experiment.id } });
+            await axios.delete(apiConstants.conformations.deleteExperiment.path, { data: { id: experiment.metaData.id } });
             commit(apiConstants.conformations.deleteExperiment.mutation, experiment);
         },
         async conformations_loadExperiment({ commit }, { experiment }) {
@@ -343,8 +344,8 @@ const store = createStore({
         async proteinDesign_inference({ commit }, { payload }) {
             const { form, experiment } = payload;
             const formData = new FormData(form);
-            formData.append('experimentId', experiment.id ?? '');
-            formData.append('experimentName', experiment.name);
+            formData.append('experimentId', experiment.metaData.id);
+            formData.append('experimentName', experiment.metaData.name);
             const response = await axios({
                 method: 'post',
                 url: apiConstants.proteinDesign.inference.path,
@@ -358,7 +359,7 @@ const store = createStore({
             commit(apiConstants.proteinDesign.experiments.mutation, response.data);
         },
         async proteinDesign_deleteExperiment({ commit }, { experiment }) {
-            await axios.delete(apiConstants.proteinDesign.deleteExperiment.path, { data: { id: experiment.id } });
+            await axios.delete(apiConstants.proteinDesign.deleteExperiment.path, { data: { id: experiment.metaData.id } });
             commit(apiConstants.proteinDesign.deleteExperiment.mutation, experiment);
         },
         async proteinDesign_loadExperiment({ commit }, { experiment }) {

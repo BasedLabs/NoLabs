@@ -14,7 +14,7 @@ export default {
     },
     methods: {
         startLoader() {
-            return this.$loading.show(null, {default: () => h('div', {}, this.serverLogs )});
+            return this.$loading.show(null, { default: () => h('div', {'style': {color: 'black'}}, this.serverLogs )});
         },
         async loadExperiments() {
             const loader = this.startLoader();
@@ -38,7 +38,7 @@ export default {
         },
         async onFormSubmit(data) {
             const loader = this.startLoader();
-            this.api.inference({ form: data.target, experiment: this.state.experiment });
+            await this.api.inference({ form: data.target, experiment: this.state.experiment });
             loader.hide();
         },
         isCurrentExperiment(experiment) {

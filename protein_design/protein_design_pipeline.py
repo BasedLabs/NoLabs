@@ -28,6 +28,18 @@ def cleanup_folders():
     shutil.rmtree(output_files_dir)
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 def pipeline(pdb_content: str = None,
              contig: str = '50',
              timesteps: int = None,
@@ -69,8 +81,18 @@ def pipeline(pdb_content: str = None,
             program.append(f'ppi.hotspot_res=[{hotspots}]')
 
         res = subprocess.run(program, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-        print(res.stdout.decode('utf-8'))
-        print(res.stderr.decode('utf-8'))
+
+        stdout = res.stdout.decode('utf-8')
+        stderr = res.stderr.decode('utf-8')
+
+        print(stdout)
+        print(bcolors.FAIL + stderr + bcolors.FAIL)
+
+        if stderr and 'ValueError' in stderr:
+            return {'pdbs': [], 'errors': ['Contig is incorrect, check the contig input']}
+
+        if stderr and 'Exception' in stderr:
+            return {'pdbs': [], 'errors': ['Unknown error, try to fix contig or hotspots input']}
 
         pdbs = []
         files = glob.glob(os.path.join(output_files_dir, '*.pdb'))
@@ -78,10 +100,5 @@ def pipeline(pdb_content: str = None,
             with open(file_name, 'r') as f:
                 pdbs.append(f.read())
         return {'pdbs': pdbs, 'errors': []}
-    except ValueError:
-        return {'pdbs': [], 'errors': ['Contig is incorrect']}
-    except Exception:
-        return {'pdbs': [], 'errors': ['Unknown error']}
-    # TODO add exception handling for incorrect hotspots
     finally:
         cleanup_folders()

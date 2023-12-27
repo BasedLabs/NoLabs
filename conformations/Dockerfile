@@ -1,7 +1,7 @@
 FROM continuumio/miniconda3:latest
 
 WORKDIR /app
-COPY conformations/gromacs.tar.gz /app
+COPY gromacs.tar.gz /app
 
 RUN apt-get -y update && \
     apt-get install -y cmake wget build-essential
@@ -18,7 +18,7 @@ RUN make
 RUN make check
 RUN make install
 
-ADD conformations /app
+ADD . /app
 
 WORKDIR /app
 RUN conda init zsh

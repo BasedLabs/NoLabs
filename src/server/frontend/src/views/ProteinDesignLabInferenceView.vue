@@ -49,7 +49,7 @@ export default {
                 this.cleanStage();
                 this.stage = new NGL.Stage("viewport");
                 this.stage.setParameters({ backgroundColor: 'white' });
-                const proteinFileContentBlob = new Blob([this.experiment.data.pdb[this.selectedTableIndex]], { type: 'text/plain' });
+                const proteinFileContentBlob = new Blob([this.experiment.data.pdbs[this.selectedTableIndex]], { type: 'text/plain' });
                 const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
                 this.stage.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
                     this.pdbComponent = component;
@@ -58,7 +58,7 @@ export default {
         },
         downloadPdbFile(evt) {
             const filename = 'protein.pdb';
-            const blob = new Blob([this.experiment.data.pdb[this.selectedTableIndex]], { type: 'text/plain' });
+            const blob = new Blob([this.experiment.data.pdbs[this.selectedTableIndex]], { type: 'text/plain' });
             if (window.navigator.msSaveOrOpenBlob) {
                 window.navigator.msSaveBlob(blob, filename);
             } else {
@@ -71,7 +71,7 @@ export default {
             }
         },
         renderTable() {
-            const tableData = this.experiment.data.pdb.map((pdb, key) => {
+            const tableData = this.experiment.data.pdbs.map((pdb, key) => {
                 return {
                     id: key,
                     name: 'Generated protein #' + key
@@ -94,14 +94,28 @@ export default {
         }
     },
     mounted() {
-        this.render();
-        this.renderTable();
+        if (this.experiment.data.pdbs != null && this.experiment.data.pdbs.length > 0) {
+            this.render();
+            this.renderTable();
+        }
     }
 }
 </script>
 
 <template>
-    <div class="row mt-2">
+    <div v-if="this.experiment.errors != null && this.experiment.errors.length > 0" class="row mt-2">
+        <div class="col-md-4">
+        </div>
+        <div class="col-md-4" style="margin-top: 10px; font-size: large">
+            Issues in inference:
+            <p v-for="error in this.experiment.errors">
+                {{ error }}
+            </p>
+        </div>
+        <div class="col-md-4">
+        </div>
+    </div>
+    <div v-if="this.experiment.data.pdbs != null && this.experiment.data.pdbs.length > 0" class="row mt-2">
         <div class="col-md-8">
             <div id="viewport" style="width: 100%; height: 500px;"></div>
         </div>
@@ -129,7 +143,8 @@ export default {
                     </thead>
                 </table>
             </div>
-            <div class="col-md-2"></div>
+            <div class="col-md-2">
+            </div>
         </div>
     </div>
 </template>
