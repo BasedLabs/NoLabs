@@ -1,5 +1,4 @@
 <script>
-import socket from '../sockets';
 
 export default {
     props: ['onFormSubmit'],
@@ -11,7 +10,7 @@ export default {
     methods: {
         parametersVisibleShow() {
             this.parametersVisible = !this.parametersVisible;
-        }
+        },
     }
 }
 </script>

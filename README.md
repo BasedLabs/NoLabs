@@ -67,12 +67,11 @@ We are working on expanding both and adding a cell biolab and genetic biolab, an
 **Protein biolab:**
 
 1) Prediction of subcellular localisation via fine-tuned [ritakurban/ESM_protein_localization](https://huggingface.co/ritakurban/ESM_protein_localization) model (to be updated with a better model)
-
 2) Prediction of folded structure via [facebook/esmfold_v1](https://huggingface.co/facebook/esmfold_v1)
-
 3) Gene ontology prediction for 200 most popular gene ontologies
-
 4) Protein solubility prediction
+5) Protein conformations simulation with most popular force fields databases
+6) Protein design
 
 **Drug discovery biolab:**
 1) Drug-target interaction prediction, hight throughput virtual screening (HTVS) based on [uMol](https://github.com/patrickbryant1/Umol)
@@ -90,17 +89,24 @@ $ git clone https://github.com/BasedLabs/nolabs
 $ cd nolabs
 
 # Build conformations
-$ sudo docker buildx build --progress=plain -t conformations -f conformations/Dockerfile .
+$ cd conformations
+$ sudo docker buildx build --progress=plain -t conformations -f Dockerfile .
 
-# Build RFdiffusion
-$ sudo docker buildx build --progress=plain -t protein-design -f protein_design/Dockerfile .
+$ cd ..
+# Build protein design lab
+$ cd protein_design
+$ sudo docker buildx build --progress=plain -t protein-design -f Dockerfile .
 
+$ cd ..
 # Build the docker image
 $ sudo docker buildx build --progress=plain -t nolabs -f build/Dockerfile .
 
-# Run the image and expose the 5000 port
-$ docker run -p 5173:5173 -p 5000:5000 nolabs --test
+# Run the images and expose the 5000 port
+$ docker run --name protein-design --gpus all --net=host protein-design
+$ docker run --name conformations --gpus all --net=host conformations
+$ docker run --net=host nolabs --test
 # Run without --test if you want to run models on GPU
+# Protein design lab is GPU only
 # check 'Requirements' section for more information
 
 # The website will be available on <http://localhost:5173>

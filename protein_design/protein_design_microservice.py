@@ -21,7 +21,7 @@ def protein_design():
 
     inference_result = pipeline(pdb_content, contig, timesteps, hotspots, number_of_designs)
 
-    return jsonify({'result': inference_result})
+    return jsonify({'pdbs': inference_result['pdbs'], 'errors': inference_result['errors']})
 
 
 if __name__ == '__main__':

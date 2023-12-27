@@ -51,7 +51,7 @@ class ProteinDesignApiClient:
         }
         response = requests.post(pipeline_url, json=j)
         if response.status_code == 200:
-            return response.json()['result']
+            return response.json()
 
         raise Exception('Cannot obtain protein design result')
 
@@ -72,7 +72,7 @@ class ProteinDesignApiHandler(ApiHandler):
             return {'metaData': {'id': experiment_id, 'name': experiment_name}, 'data': {}}
 
         experiment_data = self.experiments_loader.load_experiment(experiment_id)
-        return {'metaData': {'id': experiment_id, 'name': experiment_name}, 'data': {'pdb': experiment_data}}
+        return {'metaData': {'id': experiment_id, 'name': experiment_name}, 'data': {'pdbs': experiment_data}}
 
     def change_experiment_name(self, request: Request):
         j = request.get_json(force=True)
@@ -112,11 +112,18 @@ class ProteinDesignApiHandler(ApiHandler):
                 timesteps=timesteps,
                 hotspots=hotspots,
                 number_of_designs=number_of_designs)
-            self.experiments_loader.store_experiment(experiment_id, protein_design_result, file_storage.filename)
+            if protein_design_result['errors']:
+                return {
+                    'metaData': {'id': experiment_id, 'name': experiment_name},
+                    'data': {'pdb': protein_design_result['pdbs']},
+                    'errors': protein_design_result['errors']
+                }
+            self.experiments_loader.store_experiment(experiment_id, protein_design_result['pdbs'], file_storage.filename)
             self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name)
             return {
                 'metaData': {'id': experiment_id, 'name': experiment_name},
-                'data': {'pdb': protein_design_result}
+                'data': {'pdbs': protein_design_result['pdbs']},
+                'errors': []
             }
         finally:
             settings.PROTEIN_DESIGN_IN_PROCESS = False

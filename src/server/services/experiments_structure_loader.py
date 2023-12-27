@@ -272,12 +272,12 @@ class ProteinDesignExperimentsLoader(ExperimentsLoader):
         return pdbs
 
     def store_experiment(self, experiment_id: str, result: List[str], filename: str = None):
+        experiment_dir = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
         for i, pdb in enumerate(result):
             fn_without_extension, extension = os.path.splitext(filename)
             fn_without_extension += '_designed_' + str(i)
             fn = fn_without_extension + extension
             file_saver = FileSaverFactory().get_saver(fn)
-            experiment_dir = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
             file_saver.save(pdb, experiment_dir, fn)
 
     def save_experiment_metadata(self, experiment_id: str, experiment_name: str):

@@ -9,7 +9,6 @@
           <span class="tag">Gene Ontology</span>
           <span class="tag">Solubility</span>
           <span class="tag">Localization</span>
-          <span class="upcoming-feature">Protein generation</span>
         </div>
         <RouterLink type="button" class="btn btn-primary btn-md mt-2" to="/amino-acid-lab">Amino acid lab</RouterLink>
       </div>
@@ -26,18 +25,15 @@
 
         <!-- Conformations lab Lab -->
         <div class="lab-container col-md-4 col-xs-1">
-          <div class="protein-container" ref="conformationsProtein"></div>
-          <ul class="lab-features">
-            <li class="upcoming-feature">Protein conformations simulation</li>
-          </ul>
+          <div class="protein-container"><img class="protein-container-gif" src="exampleProteins/shadi_3P.gif"></div>
           <RouterLink type="button" class="btn btn-primary btn-md" to="/conformations">Conformations lab (pre-alpha)
           </RouterLink>
         </div>
       </div>
-      <div class="row">
+      <div class="container-fluid row justify-content-center">
         <!-- Protein viewer-->
         <div class="lab-container col-md-4 col-xs-1">
-          <div class="protein-container"><img class="protein-container-gif" src="exampleProteins/shadi_3P.gif"></div>
+          <div class="protein-container" ref="conformationsProtein"></div>
           <RouterLink type="button" class="btn btn-primary btn-md" to="/protein-viewer">Simple .pdb viewer</RouterLink>
         </div>
 
