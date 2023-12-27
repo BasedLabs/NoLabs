@@ -7,10 +7,6 @@ export default {
     components: {
         DrugTargetResultsList,
     },
-    data() {
-        return {
-        };
-    },
     methods: {
         runExperiment() {
             this.api.inference(this.experiment);
