@@ -15,6 +15,7 @@ const store = createStore({
             experiment: {
                 metaData: null,
                 targets: null,
+                ligands: null,
                 data: null
             },
             experiments: []
@@ -76,7 +77,6 @@ const store = createStore({
             state.aminoAcid.experiments = state.aminoAcid.experiments.filter(exp => exp.id !== experiment.metaData.id);
         },
         drugTarget_loadExperiment(state, { experiment }) {
-            //state.drugTarget.experiment = experiment;
             state.drugTarget.experiment.metaData = experiment;
         },
         drugTarget_loadResults(state, { experimentData }) {
@@ -99,11 +99,13 @@ const store = createStore({
             state.drugTarget.experiments = experimentsArray;
         },
         drugTarget_loadTargets(state, { data }) {
-            //state.drugTarget.experiment = experiment;
             state.drugTarget.experiment.targets = data.targets;
         },
         drugTarget_setBindingPocket (state, { data }) {
             const experimentsArray = [];
+        },
+        drugTarget_loadLigands(state, { data }) {
+            state.drugTarget.experiment.ligands = data.ligands;
         },
         drugTarget_inference(state, experiment) {
             state.drugTarget.experiment = experiment;
@@ -276,6 +278,22 @@ const store = createStore({
             const response = await axios.post(apiConstants.drugTarget.setBindingPocket.path, payload);
             commit(apiConstants.drugTarget.loadTargets.mutation, { data: response.data });
         },
+        async drugTarget_addLigand({ commit }, { experiment, file }) {
+            let formData = new FormData();
+            formData.append('ligandFileInput', file);
+            formData.append('experimentId', experiment.metaData.id);
+            formData.append('experimentName', experiment.metaData.name);
+            return await axios({
+                method: 'post',
+                url: apiConstants.drugTarget.addLigand.path,
+                data: formData,
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+        },
+        async drugTarget_loadLigands({ commit }, { experiment }) {
+            const response = await axios.get(apiConstants.drugTarget.loadLigands.path, { params: { id: experiment.metaData.id, name: experiment.metaData.name } });
+            commit(apiConstants.drugTarget.loadLigands.mutation, { data: response.data });
+        },
         async drugTarget_inference({ commit }, { payload }) {
             const { form, experiment } = payload;
             const formData = new FormData(form);
@@ -434,6 +452,12 @@ export const api = {
         },
         predictBindingPocket: async (experiment, proteinId) => {
             return await axios.get(apiConstants.drugTarget.predictBindingPocket.path, { params: { id: experiment.metaData.id, proteinId: proteinId } });
+        },
+        addLigand: async (experiment, file) => {
+            return await store.dispatch(apiConstants.drugTarget.addLigand.action, { experiment, file });
+        },
+        loadLigands: async (experiment) => {
+            return await store.dispatch(apiConstants.drugTarget.loadLigands.action, { experiment });
         },
         inference: async (payload) => {
             return await store.dispatch(apiConstants.drugTarget.inference.action, { payload });

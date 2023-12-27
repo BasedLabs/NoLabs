@@ -104,7 +104,7 @@ export default {
         <div class="container-fluid" v-if="Object.keys(targets).length > 0">
             <h4>Uploaded targets: </h4>
             <div v-for="(target, id) in targets" :key="id" class="target-button">
-                <button class="max-auto btn btn-primary" @click="openModal(target)">{{ target.metadata.name }}</button>
+                <button class="btn btn-info" style="width: 50vw;" @click="openModal(target)">{{ target.metadata.name }}</button>
             </div>
         </div>
 

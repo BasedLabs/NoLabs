@@ -90,6 +90,16 @@ export const apiConstants = {
         predictBindingPocket: {
             path: baseUrl + '/api/drug-target/predict-binding-pocket'
         },
+        addLigand: {
+            path: baseUrl + '/api/drug-target/add-ligand',
+            mutation: 'drugTarget_addLigand',
+            action: 'drugTarget_addLigand'
+        },
+        loadLigands: {
+            path: baseUrl + '/api/drug-target/load-ligands',
+            mutation: 'drugTarget_loadLigands',
+            action: 'drugTarget_loadLigands'
+        },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
             path: baseUrl + '/api/drug-target/inference',
             mutation: 'drugTarget_inference',

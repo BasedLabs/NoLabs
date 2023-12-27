@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 import numpy as np
 
-from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader,PDBFileLoader
+from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader,PDBFileLoader, SDFFileLoader
 from src.server.services.savers import FileSaverFactory, FastaFileSaver, SDFFileSaver, PDBFileSaver
 from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
 from src.server.services.progress import get_progress
@@ -358,6 +358,17 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
 
+    def save_ligand_metadata(self, experiment_id: str, ligand_id: str, ligand_name: str):
+        metadata = {
+            "id": ligand_id,
+            "name": ligand_name,
+            "date": datetime.now().isoformat(),
+        }
+
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'ligands', ligand_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=4)
+
     def update_target_metadata(self, experiment_id: str, target_id: str, key: str, value):
         metadata = self.load_target_metadata(experiment_id, target_id)
         metadata[key] = value
@@ -372,6 +383,23 @@ class DTILabExperimentsLoader(ExperimentsLoader):
                                       experiment_id,
                                         'targets',
                                           target_id,
+                                            "metadata.json")
+
+        # Check if metadata.json exists
+        if not os.path.exists(metadata_path):
+            return {}
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        return metadata
+    
+
+    def load_ligand_metadata(self, experiment_id: str, ligand_id: str,):
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR,
+                                      experiment_id,
+                                        'ligands',
+                                          ligand_id,
                                             "metadata.json")
 
         # Check if metadata.json exists
@@ -468,6 +496,54 @@ class DTILabExperimentsLoader(ExperimentsLoader):
 
         return binding_pockets_ids
         
+    def store_ligand(self, experiment_id: str, ligand_file: List[FileStorage]):
+        experiments_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+        ligands_dir = os.path.join(experiments_dir, 'ligands')
+
+        if not os.path.exists(ligands_dir):
+            os.mkdir(ligands_dir)
+
+        sdf_saver = SDFFileSaver()
+
+        id_generator = UUIDGenerator()
+
+        ligand_id = id_generator.gen_uuid()['id']
+        ligand_name = os.path.splitext(ligand_file.filename)[-2]
+        ligand_dir = os.path.join(ligands_dir, ligand_id)
+        if not os.path.exists(ligand_dir):
+            os.mkdir(ligand_dir)
+        self.save_ligand_metadata(experiment_id, ligand_id, ligand_name)
+
+        sdf_saver.save(ligand_file, ligand_dir, ligand_file.filename)
+        
+
+    def load_ligands(self, experiment_id: str):
+        ligands_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'ligands')
+        sdf_loader = SDFFileLoader()
+        ligands = {}
+
+        if not os.path.exists(ligands_dir):
+            return ligands
+
+        for ligand_id in os.listdir(ligands_dir):
+            ligand_path = os.path.join(ligands_dir, ligand_id)
+
+            if not os.path.isdir(ligand_path):
+                continue
+
+            ligands[ligand_id] = {
+                'metadata': self.load_ligand_metadata(experiment_id, ligand_id),
+                'sdf': None
+            }
+
+            # Check for PDB and FASTA files
+            for file in os.listdir(ligand_path):
+                if file.endswith('.sdf'):
+                    file = sdf_loader.load(ligand_path, os.path.basename(file))
+                    ligands[ligand_id]['sdf'] = file  # Storing file name for simplicity
+
+        return ligands
+
 
     def delete_experiment(self, experiment_id):
         self._delete_experiment(DTI_EXPERIMENTS_DIR, experiment_id)

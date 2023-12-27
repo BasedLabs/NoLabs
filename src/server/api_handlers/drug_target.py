@@ -83,7 +83,25 @@ class DrugTargetApiHandler(ApiHandler):
                                                 )
         
         return pocket
+    
+    
+    def add_ligand(self, request):
+        ligand_file = request.files['ligandFileInput']
+        experiment_name = request.form['experimentName']
+        experiment_id = request.form['experimentId']
 
+        self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
+        self.experiments_loader.store_ligand(experiment_id, ligand_file)
+
+        return {'id': experiment_id, 'name': experiment_name}
+    
+    def load_ligands(self, request):
+        experiment_name = request.args.get('name')
+        experiment_id = request.args.get('id')
+
+        ligands = self.experiments_loader.load_ligands(experiment_id)
+
+        return {'id': experiment_id, 'name': experiment_name, 'ligands': ligands}
 
 
     def get_experiments(self):

@@ -29,6 +29,14 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/predict-binding-pocket', methods=['GET'])
     def predict_binding_pocket():
         return api_handler.predict_binding_pocket(request)
+    
+    @drug_target_bp.route('/add-ligand', methods=['POST'])
+    def add_ligand():
+        return api_handler.add_ligand(request)
+    
+    @drug_target_bp.route('/load-ligands', methods=['GET'])
+    def load_ligands():
+        return api_handler.load_ligands(request)
 
     @drug_target_bp.route('/experiments')
     def get_experiments():

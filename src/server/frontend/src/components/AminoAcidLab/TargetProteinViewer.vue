@@ -28,6 +28,7 @@ export default {
             sequence: [],
             selectionMode: false,
             showNoPocketModal: false,
+            isLoading: false,
         }
     },
     methods: {
@@ -214,10 +215,10 @@ export default {
                         </button>
                     </div>
                     <div v-if="isLoading" class="loading-indicator">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Predicting...</span>
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden text-primary">Predicting...</span>
                         </div>
-                        <span>Predicting...</span>
+                        <span class="text-primary">Predicting...</span>
                     </div>
                     <div class="modal-body" style="color: black;">
                         <p>You don't have a binding pocket for this protein.</p>
