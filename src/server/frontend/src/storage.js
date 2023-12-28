@@ -295,8 +295,8 @@ const store = createStore({
             commit(apiConstants.drugTarget.loadLigands.mutation, { data: response.data });
         },
         async drugTarget_inference({ commit }, { payload }) {
-            const { form, experiment } = payload;
-            const formData = new FormData(form);
+            const experiment = payload;
+            const formData = new FormData();
             formData.append('experimentId', experiment.metaData.id ?? '');
             formData.append('experimentName', experiment.metaData.name);
             const response = await axios({

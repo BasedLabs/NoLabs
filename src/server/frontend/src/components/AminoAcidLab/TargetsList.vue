@@ -36,7 +36,7 @@ export default {
             const files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
             if (files && files.length > 0) {
                 Array.from(files).forEach(file => {
-                    if (file.name.endsWith('.fasta') || file.name.endsWith('.pdb')) {
+                    if (file.name.endsWith('.pdb')) {
                         this.uploadProteinFile(file);
                     } else {
                         console.error('Invalid file type:', file.name);
@@ -96,8 +96,8 @@ export default {
         </div>
 
         <div class="file-upload-area" @dragover.prevent="dragOverHandler" @drop.prevent="dropHandler">
-            <p>Drag and drop your .fasta or .pdb files here, or click to select files</p>
-            <input type="file" id="fileInput" multiple @change="handleFileUpload" accept=".fasta,.pdb" style="display: none;" />
+            <p>Drag and drop your .pdb files here, or click to select files</p>
+            <input type="file" id="fileInput" multiple @change="handleFileUpload" accept=".pdb" style="display: none;" />
             <label for="fileInput" class="file-upload-button">Select Files</label>
         </div>
 

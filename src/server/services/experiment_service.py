@@ -2,6 +2,7 @@ import os
 import shutil
 from abc import abstractmethod, ABC
 from typing import List
+import numpy as np
 
 from werkzeug.datastructures import FileStorage
 
@@ -106,13 +107,53 @@ class DrugDiscovery(BaseExperiment):
 
         return (ligand_file_paths, pdb_file_paths)
 
-    def run(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_id: str):
+    def run(self, experiment_id: str):
         if not experiment_id:
             experiment_id = self.gen_uuid()
         model = self.pipeline.get_model_by_task("dti")
         experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
-        ligand_file_paths, pdb_file_paths = self._store_inputs(experiment_dir, ligand_files, protein_files)
-        model.predict(ligand_file_paths, pdb_file_paths, experiment_dir)
+
+        binding_pockets = []
+        protein_file_paths = []
+        ligand_file_paths = [] 
+
+        targets_dir = os.path.join(experiment_dir, 'targets')
+           # List all items in the targets_dir
+        for item in os.listdir(targets_dir):
+            subdir = os.path.join(targets_dir, item)
+            
+            # Check if the item is a directory
+            if os.path.isdir(subdir):
+                target_id = os.path.basename(subdir)
+                pocket_dir = os.path.join(subdir, 'pocket')
+                pocket_file = os.path.join(pocket_dir, 'pocket.npy')
+
+                if os.path.isdir(pocket_dir) and os.path.isfile(pocket_file):
+                    # Load the numpy array if pocket.npy exists
+                    binding_pocket = np.load(pocket_file)
+                    binding_pockets.append(binding_pocket)
+                else:
+                    # Check for .pdb files in the subdir
+                    for file in os.listdir(subdir):
+                        if file.endswith('.pdb'):
+                            pdb_file_path = os.path.join(subdir, file)
+                            protein_file_paths.append(pdb_file_path)
+                            # Assuming predict_pocket is a method that predicts the pocket and returns it
+                            binding_pocket = self.predict_pocket(experiment_id=experiment_id, protein_id=target_id)
+                            binding_pockets.append(np.array(binding_pocket))
+
+        ligands_dir = os.path.join(experiment_dir, 'ligands')
+        for subdir, dirs, files in os.walk(ligands_dir):
+            for file in files:
+                if file.endswith('.sdf'):
+                    ligand_file_paths.append(os.path.join(subdir, file))
+
+        model.predict(ligand_file_paths, protein_file_paths, binding_pockets. experiment_dir)
+                    
+        print("BINDING POCKETS: ", binding_pockets)
+        print("Ligand file paths: ", ligand_file_paths)
+        print("Protein file paths: ", protein_file_paths)
+
         return experiment_id
     
 

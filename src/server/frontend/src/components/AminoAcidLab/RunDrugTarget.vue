@@ -9,6 +9,9 @@ export default {
         };
     },
     methods: {
+        runExperiment() {
+            this.api.inference(this.experiment);
+        },
     },
     mounted() {
     }
@@ -17,6 +20,6 @@ export default {
 
 <template>
     <div>
-        <button class="btn btn-success"> Run Experiment </button>
+        <button class="btn btn-success" @click="runExperiment"> Run Experiment </button>
     </div>
 </template>

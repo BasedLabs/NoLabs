@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 import numpy as np
 
+from io import StringIO
+
 from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader,PDBFileLoader, SDFFileLoader
 from src.server.services.savers import FileSaverFactory, FastaFileSaver, SDFFileSaver, PDBFileSaver
 from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
@@ -432,7 +434,12 @@ class DTILabExperimentsLoader(ExperimentsLoader):
 
         if protein_file.filename.endswith(".pdb"):
             print("Saving pdb file")
-            pdb_saver.save(protein_file, protein_dir, protein_file.filename)
+            pdb_content_str = protein_file.read().decode('utf-8')
+            pdb_content = StringIO(pdb_content_str)
+            pdb_saver.save(pdb_content_str, protein_dir, protein_file.filename)
+            pdb_content.seek(0)
+            pdb_saver.pdb_to_fasta(pdb_content, protein_dir, protein_name)
+
         elif protein_file.filename.endswith(".fasta"):
             fasta_saver.save(protein_file, protein_dir, protein_file.filename)
 
@@ -543,6 +550,38 @@ class DTILabExperimentsLoader(ExperimentsLoader):
                     ligands[ligand_id]['sdf'] = file  # Storing file name for simplicity
 
         return ligands
+    
+    def get_pockets_prediction_progress(experiment_id: str):
+        experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+
+        targets_dir = os.path.join(experiment_dir, 'targets')
+        targets_with_pockets = []
+        targets_without_pockets = []
+
+        # List all items in the targets_dir
+        for item in os.listdir(targets_dir):
+            subdir = os.path.join(targets_dir, item)
+            
+            # Check if the item is a directory
+            if os.path.isdir(subdir):
+                target_id = os.path.basename(subdir)
+                pocket_dir = os.path.join(subdir, 'pocket')
+                pocket_file = os.path.join(pocket_dir, 'pocket.npy')
+
+                if os.path.isdir(pocket_dir) and os.path.isfile(pocket_file):
+                    targets_with_pockets.append(target_id)
+                else:
+                    targets_without_pockets.append(target_id)
+
+        total_targets = len(targets_with_pockets) + len(targets_without_pockets)
+        percentage_with_pockets = (len(targets_with_pockets) / total_targets * 100) if total_targets > 0 else 0
+
+        return {
+            'targets_with_pockets': targets_with_pockets,
+            'targets_without_pockets': targets_without_pockets,
+            'percentage': percentage_with_pockets
+        }
+
 
 
     def delete_experiment(self, experiment_id):

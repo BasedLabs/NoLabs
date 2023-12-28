@@ -17,13 +17,10 @@ class DrugTargetApiHandler(ApiHandler):
         self.drug_discovery = DrugDiscovery(settings.use_gpu, settings.is_test)
 
     def inference(self, request):
-        ligand_files = request.files.getlist('sdfFileInput')
-        protein_files = request.files.getlist('proteinFileInput')
         experiment_name = request.form['experimentName']
         experiment_id = request.form['experimentId']
 
-        experiment_id = self.drug_discovery.run(ligand_files=ligand_files, protein_files=protein_files,
-                                                experiment_id=experiment_id)
+        experiment_id = self.drug_discovery.run(experiment_id=experiment_id)
         self.experiments_loader.save_experiment_metadata(experiment_id, experiment_name=experiment_name)
 
         return {'id': experiment_id, 'name': experiment_name}
