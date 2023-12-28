@@ -54,11 +54,9 @@ The goal of the project is to accelerate bio research via making inference model
 We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and contributions. Let's accelerate bio research!
 
 <hr style="border:2px solid gray">
-<img src="media/website-screenshot.jpg" width="100%">
-<hr style="border:2px solid gray">
 
-[<img src="media/amino-acid-lab.gif" width="100%">](media/NoLabs.mp4)
-[<img src="media/drug-target.gif" width="100%">](media/NoLabs.mp4)
+<img src="media/protein_design.gif" width="100%">
+<img src="media/conformations.gif" width="100%">
 
 <hr style="border:2px solid gray">
 
@@ -97,7 +95,7 @@ $ cd ..
 $ cd protein_design
 $ sudo docker buildx build --progress=plain -t protein-design -f Dockerfile .
 
-$ cd ..
+$ cd ../build
 # Build the docker image
 $ sudo docker buildx build --progress=plain -t nolabs -f build/Dockerfile .
 
