@@ -375,7 +375,7 @@ class DrugTargetInteraction(BaseModel):
     def submit_fasta_and_save_a3m(self, api_url, fasta_file_path, save_dir):
         # Extract the base name to create the .a3m file name
         base_name = os.path.splitext(os.path.basename(fasta_file_path))[-2]
-        a3m_file_path = os.path.join(save_dir, base_name, f"{base_name}.a3m")
+        a3m_file_path = os.path.join(save_dir, f"{base_name}.a3m")
 
         # Open the FASTA file and send it to the API
         with open(fasta_file_path, 'rb') as file:
@@ -448,14 +448,18 @@ class DrugTargetInteraction(BaseModel):
 
         pass
 
-    def _raw_inference(self, protein_file_paths, protein_ids, ligands, ligands_names, experiment_folder, binding_pockets, num_recycles):
+    def _raw_inference(self, protein_file_paths, protein_names, protein_ids, ligands, ligands_names, experiment_folder, binding_pockets, num_recycles):
         results_dir = os.path.join(experiment_folder, 'results')
-        experiment_progress_tracker = ProgressTracker(experiment_folder, protein_ids)
-        for protein_file_path, ID, binding_pocket in zip(protein_file_paths, protein_ids, binding_pockets):
-            result_id =  str(uuid.uuid4())
+        if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+        experiment_progress_tracker = ProgressTracker(experiment_folder, protein_names)
+        for protein_file_path, protein_name, protein_id, binding_pocket in zip(protein_file_paths, protein_names, protein_ids, binding_pockets):
+            result_id = protein_id
             save_dir = os.path.join(results_dir, result_id)
-            self.submit_fasta_and_save_a3m(settings.FASTA_API, protein_file_path, save_dir)
-            self.prepare_ligand_data(protein_file_path, ligands, ligands_names, experiment_folder)
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+            #self.submit_fasta_and_save_a3m(settings.FASTA_API, protein_file_path, save_dir)
+            self.prepare_ligand_data(protein_file_path, ligands, ligands_names, save_dir)
 
             for LIGAND, LIGAND_NAME in zip(ligands, ligands_names):
                 protein_folder = save_dir
@@ -474,12 +478,12 @@ class DrugTargetInteraction(BaseModel):
                 with open(self.model_params_path, 'rb') as file:
                     PARAMS = pickle.load(file)
 
-                ID = ID.split('/')[-1]
+                protein_name = protein_name.split('/')[-1]
                 # Predict
-                predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, ID, binding_pocket, PARAMS, num_recycles, outdir=result_folder)
+                predict(config.CONFIG, MSA_FEATS, LIGAND_FEATS, protein_name, binding_pocket, PARAMS, num_recycles, outdir=result_folder)
 
                 # Process the prediction
-                RAW_PDB = os.path.join(result_folder, f'{ID}_pred_raw.pdb')
+                RAW_PDB = os.path.join(result_folder, f'{protein_name}_pred_raw.pdb')
 
                 # Get a conformer
                 pred_ligand = read_pdb(RAW_PDB)
@@ -493,7 +497,7 @@ class DrugTargetInteraction(BaseModel):
                 write_sdf(mol, best_conf, aligned_conf_pos, best_conf_id, sdf_output_path)
 
                 # Extract ATOM and HETATM records from the PDB file
-                protein_pdb_path = os.path.join(result_folder, f'{ID}_pred_protein.pdb')
+                protein_pdb_path = os.path.join(result_folder, f'{protein_name}_pred_protein.pdb')
                 ligand_plddt_path = os.path.join(result_folder, f'{LIGAND_NAME}_ligand_plddt.csv')
 
                 with open(RAW_PDB, 'r') as infile, open(protein_pdb_path, 'w') as protein_out, open(ligand_plddt_path, 'w') as ligand_out:
@@ -503,20 +507,22 @@ class DrugTargetInteraction(BaseModel):
                         elif line.startswith('HETATM'):
                             ligand_out.write(line[64:66] + '\n')  # Extracting plDDT values
 
-                protein_progress_tracker.update_progress(LIGAND_NAME)
+                #protein_progress_tracker.update_progress(LIGAND_NAME)
 
-            experiment_progress_tracker.update_progress(ID)
+            #experiment_progress_tracker.update_progress(protein_name)
 
 
-    def predict(self, ligand_files_paths, protein_files, binding_pockets, experiment_folder: str):
+    def predict(self, ligand_files_paths, protein_files, protein_ids, binding_pockets, experiment_folder: str):
         logger.info("Making dti predictions...")
         ligands_names, ligands_smiles = read_sdf_files(ligand_files_paths)
         protein_file_paths = [os.path.splitext(x)[0] for x in protein_files]
 
-        protein_names = [os.path.splitext(protein_file_path)[-2] for protein_file_path in protein_files]
+        protein_names = [os.path.basename(protein_file_path) for protein_file_path in protein_file_paths]
 
         self._raw_inference(
-            protein_ids=protein_names,
+            protein_file_paths=protein_files,
+            protein_names=protein_names,
+            protein_ids=protein_ids,
             ligands=ligands_smiles,
             ligands_names=ligands_names,
             experiment_folder=experiment_folder,

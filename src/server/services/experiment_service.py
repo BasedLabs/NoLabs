@@ -115,6 +115,7 @@ class DrugDiscovery(BaseExperiment):
 
         binding_pockets = []
         protein_file_paths = []
+        protein_ids = []
         ligand_file_paths = [] 
 
         targets_dir = os.path.join(experiment_dir, 'targets')
@@ -125,6 +126,7 @@ class DrugDiscovery(BaseExperiment):
             # Check if the item is a directory
             if os.path.isdir(subdir):
                 target_id = os.path.basename(subdir)
+                protein_ids.append(target_id)
                 pocket_dir = os.path.join(subdir, 'pocket')
                 pocket_file = os.path.join(pocket_dir, 'pocket.npy')
 
@@ -132,10 +134,14 @@ class DrugDiscovery(BaseExperiment):
                     # Load the numpy array if pocket.npy exists
                     binding_pocket = np.load(pocket_file)
                     binding_pockets.append(binding_pocket)
+                    for file in os.listdir(subdir):
+                        if file.endswith('.fasta'):
+                            pdb_file_path = os.path.join(subdir, file)
+                            protein_file_paths.append(pdb_file_path)
                 else:
                     # Check for .pdb files in the subdir
                     for file in os.listdir(subdir):
-                        if file.endswith('.pdb'):
+                        if file.endswith('.fasta'):
                             pdb_file_path = os.path.join(subdir, file)
                             protein_file_paths.append(pdb_file_path)
                             # Assuming predict_pocket is a method that predicts the pocket and returns it
@@ -148,11 +154,13 @@ class DrugDiscovery(BaseExperiment):
                 if file.endswith('.sdf'):
                     ligand_file_paths.append(os.path.join(subdir, file))
 
-        model.predict(ligand_file_paths, protein_file_paths, binding_pockets. experiment_dir)
-                    
+                            
         print("BINDING POCKETS: ", binding_pockets)
         print("Ligand file paths: ", ligand_file_paths)
         print("Protein file paths: ", protein_file_paths)
+        print("Protein Ids:", protein_ids)
+
+        model.predict(ligand_file_paths, protein_file_paths, protein_ids, binding_pockets, experiment_dir)
 
         return experiment_id
     
