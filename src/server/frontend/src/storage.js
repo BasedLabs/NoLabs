@@ -155,7 +155,7 @@ const store = createStore({
             state.conformations.experiments.push(experiment);
         },
         conformations_deleteExperiment(state, experiment) {
-            state.conformations.experiments = state.conformations.experiments.filter(exp => exp.id !== experiment.metaData.id);
+            state.conformations.experiments = state.conformations.experiments.filter(exp => exp.metaData.id !== experiment.metaData.id);
         },
         proteinDesign_loadExperiment(state, { experiment }) {
             state.proteinDesign.experiment = experiment;

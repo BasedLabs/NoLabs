@@ -136,11 +136,6 @@ export default {
                 <div v-for="experiment in state.experiments" :key="experiment.metaData.id" class="max-auto experiment" @click="selectExperiment(experiment)">
                         <h3>{{ experiment.metaData.name }}</h3>
                         <p>Last Modified: {{ experiment.metaData.date }}</p>
-                        <div class="tags">
-
-                                <span v-for="type in ['gene ontology', 'folding', 'solubility', 'localisation']" :key="type" class="tag"> {{ type }} </span>
-                    
-                        </div>
                         <div class="progress" style="margin-top: 10px; height: 5px;">
                             <div class="progress-bar bg-success" role="progressbar"
                                 :style="{ width: experiment.metaData.progress + '%' }"
