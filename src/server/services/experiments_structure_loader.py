@@ -330,7 +330,7 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         return self.loader.get_protein_ids(experiments_folder=DTI_EXPERIMENTS_DIR, experiment_id=experiment_id)
 
     def get_ligands_ids(self, experiment_id: str, protein_id: str):
-        protein_folder = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, 'result')
+        protein_folder = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'results', protein_id)
         return self.loader.get_ligand_names(protein_folder)
 
     def load_experiment_progress(self, experiment_id):

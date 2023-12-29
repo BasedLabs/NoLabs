@@ -458,19 +458,22 @@ class DrugTargetInteraction(BaseModel):
             save_dir = os.path.join(results_dir, result_id)
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
-            #self.submit_fasta_and_save_a3m(settings.FASTA_API, protein_file_path, save_dir)
+            self.submit_fasta_and_save_a3m(settings.FASTA_API, protein_file_path, save_dir)
             self.prepare_ligand_data(protein_file_path, ligands, ligands_names, save_dir)
 
             for LIGAND, LIGAND_NAME in zip(ligands, ligands_names):
                 protein_folder = save_dir
-                result_folder = os.path.join(protein_folder, 'result')
+                ligand_folder = os.path.join(protein_folder, LIGAND_NAME)
+
+                if not os.path.exists(ligand_folder):
+                    os.makedirs(ligand_folder)
 
                 protein_progress_tracker = ProgressTracker(protein_folder, tasks=ligands_names)
 
+                result_folder = os.path.join(ligand_folder, 'result/')
+
                 if not os.path.exists(result_folder):
                     os.makedirs(result_folder)
-
-                result_folder = os.path.join(protein_folder, 'result/')
 
                 MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
                 LIGAND_FEATS = os.path.join(protein_folder, f'{LIGAND_NAME}_ligand_inp_features.pkl')

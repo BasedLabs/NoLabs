@@ -105,25 +105,27 @@ class DrugTargetApiHandler(ApiHandler):
         return self.experiments_loader.load_experiments()
 
     def get_experiment(self, request):
-        # get name of the experiment and get EXISTING SAVED data based on this name
         experiment_id = request.args.get('id')
         experiment_name = request.args.get('name')
 
         if not self.experiments_loader.experiment_exists(experiment_id):
-            return {'id': experiment_id, 'name': experiment_name, 'data': {}}
+            return {}
+
+        return {'id': experiment_id, 'name': experiment_name}
+    
+
+    def get_results(self, request):
+        experiment_id = request.args.get('id')
 
         protein_ids = self.experiments_loader.get_protein_ids(experiment_id)
 
-        res = jsonify({'id': experiment_id,
-                       'name': experiment_name,
-                       'progress': 0,
-                       'proteinIds': {protein_id: {'id': protein_id,
+        res = jsonify({'proteinIds': {protein_id: {'id': protein_id,
                                                 'ligandIds': self.experiments_loader.get_ligands_ids(experiment_id=experiment_id, protein_id=protein_id),
-                                                  'progress': {'progress': 100.0} } for protein_id in protein_ids} })
+                                                  'progress': {'progress': 100.0} } for protein_id in protein_ids}})
 
         return res
 
-    def get_predictions(self, request):
+    def get_prediction_data(self, request):
         # get name of the experiment and get EXISTING SAVED data based on this name
         experiment_id = request.args.get('id')
         experiment_name = request.args.get('name')

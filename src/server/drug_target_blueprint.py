@@ -45,11 +45,14 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/load-experiment', methods=['GET'])
     def get_experiment():
         return api_handler.get_experiment(request)
-    
+
     @drug_target_bp.route('/load-results', methods=['GET'])
-    def get_predictions():
-        print("getting predictions")
-        return api_handler.get_predictions(request)
+    def get_results():
+        return api_handler.get_results(request)
+    
+    @drug_target_bp.route('/load-prediction-data', methods=['GET'])
+    def get_prediction_data():
+        return api_handler.get_prediction_data(request)
     
     @drug_target_bp.route('/load-experiment-progress', methods=['GET'])
     def get_experiment_progress():
