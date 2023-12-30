@@ -42,7 +42,7 @@ export default {
         uploadLigandFile(file) {
             this.api.addLigand(this.experiment, file)
                 .then(() => {
-                    this.ligands.push(file.name);
+                    this.loadLigands();
                 })
                 .catch(error => {
                     console.error('Error uploading file:', error);
@@ -82,7 +82,7 @@ export default {
         <div class="container-fluid" v-if="Object.keys(ligands).length > 0">
             <h4>Uploaded ligands: </h4>
             <div v-for="(ligand, id) in ligands" :key="id" class="ligand-button">
-                <button class="max-auto btn btn-primary" @click="openModal(ligand)">{{ ligand.metadata.name }}</button>
+                <button class="btn btn-info" style="width: 50vw;" @click="openModal(ligand)">{{ ligand.metadata.name }}</button>
             </div>
         </div>
 

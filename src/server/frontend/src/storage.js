@@ -16,6 +16,7 @@ const store = createStore({
                 metaData: null,
                 targets: null,
                 ligands: null,
+                results: null,
                 data: null
             },
             experiments: []
@@ -79,7 +80,10 @@ const store = createStore({
         drugTarget_loadExperiment(state, { experiment }) {
             state.drugTarget.experiment.metaData = experiment;
         },
-        drugTarget_loadResults(state, { experimentData }) {
+        drugTarget_loadResults(state, { experiment }) {
+            state.drugTarget.experiment.results = experiment;
+        },
+        drugTarget_loadPredictionData(state, { experimentData }) {
             state.drugTarget.experiment.data = experimentData.data;
             state.drugTarget.experiment.metaData['selectedLigandId'] = experimentData.ligandId;
             state.drugTarget.experiment.metaData['selectedProteinId'] = experimentData.proteinId;
@@ -318,8 +322,12 @@ const store = createStore({
             const response = await axios.get(apiConstants.drugTarget.loadExperiment.path, { params: { id: experiment.metaData.id, name: experiment.metaData.name } });
             commit(apiConstants.drugTarget.loadExperiment.mutation, { experiment: response.data });
         },
-        async drugTarget_loadResults({ commit }, { experiment, proteinId, ligandId }) {
-            const response = await axios.get(apiConstants.drugTarget.loadResults.path,
+        async drugTarget_loadResults({ commit }, { experiment }) {
+            const response = await axios.get(apiConstants.drugTarget.loadResults.path, { params: { id: experiment.metaData.id, name: experiment.metaData.name } });
+            commit(apiConstants.drugTarget.loadResults.mutation, { experiment: response.data });
+        },
+        async drugTarget_loadPredictionData({ commit }, { experiment, proteinId, ligandId }) {
+            const response = await axios.get(apiConstants.drugTarget.loadPredictionData.path,
                 {
                     params:
                     {
@@ -329,7 +337,7 @@ const store = createStore({
                         ligandId: ligandId
                     }
                 });
-            commit(apiConstants.drugTarget.loadResults.mutation, { experimentData: response.data });
+            commit(apiConstants.drugTarget.loadPredictionData.mutation, { experimentData: response.data });
         },
         async drugTarget_changeExperimentName({ commit }, { experiment }) {
             if ('id' in experiment.metaData)
@@ -444,6 +452,16 @@ export const api = {
         loadTargets: async (experiment) => {
             return await store.dispatch(apiConstants.drugTarget.loadTargets.action, { experiment });
         },
+        predictStructure: async (experiment, selectedProteinId) => {
+            return await axios.get(apiConstants.drugTarget.predictStructure.path,
+                {
+                    params:
+                    {
+                        id: experiment.metaData.id,
+                        proteinId: selectedProteinId
+                    }
+                });
+        },
         setBindingPocket: async (experiment, proteinId, selectedResidues) => {
             return await store.dispatch(apiConstants.drugTarget.setBindingPocket.action, { experiment, proteinId, selectedResidues });
         },
@@ -468,8 +486,11 @@ export const api = {
         loadExperiment: async (experiment) => {
             return await store.dispatch(apiConstants.drugTarget.loadExperiment.action, { experiment });
         },
-        loadResults: async (experiment, proteinId, ligandId) => {
-            return await store.dispatch(apiConstants.drugTarget.loadResults.action, { experiment, proteinId, ligandId });
+        loadResults: async (experiment) => {
+            return await store.dispatch(apiConstants.drugTarget.loadResults.action, { experiment });
+        },
+        loadPredictionData: async (experiment, proteinId, ligandId) => {
+            return await store.dispatch(apiConstants.drugTarget.loadPredictionData.action, { experiment, proteinId, ligandId });
         },
         addExperiment: () => {
             store.dispatch(apiConstants.drugTarget.addExperiment.action, { experiment: { metaData: { name: `New experiment` } } });

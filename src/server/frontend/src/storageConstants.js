@@ -1,4 +1,4 @@
-export const baseUrl = 'http://127.0.0.1:5000'
+export const baseUrl = 'http://64.62.255.56:5000'
 
 export const apiConstants = {
     aminoAcid: {
@@ -79,6 +79,9 @@ export const apiConstants = {
             mutation: 'drugTarget_loadTargets',
             action: 'drugTarget_loadTargets'
         },
+        predictStructure: {
+            path: baseUrl + '/api/drug-target/predict-3d-structure'
+        },
         setBindingPocket: {
             path: baseUrl + '/api/drug-target/set-binding-pocket',
             mutation: 'drugTarget_setBindingPocket',
@@ -115,10 +118,15 @@ export const apiConstants = {
             mutation: 'drugTarget_loadExperiment',
             action: 'drugTarget_loadExperiment'
         },
-        loadResults : {
+        loadResults: {
             path: baseUrl + '/api/drug-target/load-results',
             mutation: 'drugTarget_loadResults',
             action: 'drugTarget_loadResults'
+        },
+        loadPredictionData : {
+            path: baseUrl + '/api/drug-target/load-prediction-data',
+            mutation: 'drugTarget_loadPredictionData',
+            action: 'drugTarget_loadPredictionData'
         },
         changeExperimentName: {
             path: baseUrl + '/api/drug-target/change-experiment-name',

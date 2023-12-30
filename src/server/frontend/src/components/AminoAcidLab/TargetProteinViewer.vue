@@ -1,4 +1,5 @@
 <script>
+import axios from 'axios';
 export default {
     props: ['api', 'experiment', 'target'],
     data() {
@@ -41,6 +42,25 @@ export default {
             }
             this.pdbComponent.removeAllRepresentations();
             this.pdbComponent.addRepresentation(this.selectedView.key);
+        },
+        async predictStructure() {
+            this.isLoading = true;
+
+            try {
+                const response = await this.api.predictStructure(this.experiment, this.target.metadata.id);
+                // Check if the response contains PDB data
+                if (response.data && response.data.pdb) {
+                    // Update the target PDB data
+                    this.target.pdb = response.data.pdb;
+
+                    // Render the PDB component with the new data
+                    this.render();
+                };
+            } catch (error) {
+                console.error('Error predicting 3D structure:', error);
+            } finally {
+                this.isLoading = false;
+            }
         },
         cleanStage() {
             if (this.stage)
@@ -92,6 +112,14 @@ export default {
                 this.selectedResidues.add(index);
             }
             this.highlightSelectedResidues();
+        },
+        toggleFastaResidueSelection(index) {
+            // Toggle residue selection for FASTA sequence
+            if (this.selectedResidues.has(index)) {
+                this.selectedResidues.delete(index);
+            } else {
+                this.selectedResidues.add(index);
+            }
         },
         sendSelectedResidues() {
             const selectedResidueArray = Array.from(this.selectedResidues);
@@ -173,19 +201,22 @@ export default {
                     </span>
                 </div>
             </div>
-            <div v-else>
-                <div class="amino-acid-sequence">{{ fastaSequence }}</div>
-                <button class="btn btn-primary" @click="uploadPdb">Upload corresponding PDB</button>
-                <button class="btn btn-secondary" @click="predictStructure">Predict 3D structure</button>
+            <div v-else class="amino-acid-sequence">
+                <span v-for="(acid, index) in fastaSequence" :key="index"
+                      :class="{ 'selected': selectedResidues.has(index) }"
+                      @click="toggleFastaResidueSelection(index)">
+                    {{ acid }}
+                </span>
             </div>
-            <div class="col-lg-4" v-if="hasPdb">
+            <div class="col-lg-4">
                 <h4>Options</h4>
-                <select class="form-select form-select-md mb-3" aria-label="Select a representation" @change="setView($event)">
+                <button class="btn btn-secondary" @click="predictStructure">Predict 3D structure</button>
+                <select v-if="hasPdb" class="form-select form-select-md mb-3" aria-label="Select a representation" @change="setView($event)">
                     <option v-for="viewKey in viewsItems" :key="viewKey" :value="viewKey">
                         {{ views[viewKey].title }}
                     </option>
                 </select>
-                <button type="button" @click="downloadPdbFile()"
+                <button v-if="hasPdb" type="button" @click="downloadPdbFile()"
                     class="btn btn-primary padding-top-button-group download-pdb-button">Download .pdb
                 </button>
                 <button type="button" @click="toggleSelectionMode" class="btn btn-secondary" style="margin-top: 10px;">
