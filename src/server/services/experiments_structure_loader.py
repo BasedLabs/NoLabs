@@ -327,6 +327,9 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         loaded_content = self.loader.get_dti_single_result(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, ligand_id)
         return loaded_content
 
+    def check_result_available(self, experiment_id: str, protein_id: str, ligand_id: str):
+        return self.loader.check_result_available(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, ligand_id)
+
     def get_protein_ids(self, experiment_id: str):
         return self.loader.get_protein_ids(experiments_folder=DTI_EXPERIMENTS_DIR, experiment_id=experiment_id)
 

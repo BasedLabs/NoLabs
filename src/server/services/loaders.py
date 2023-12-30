@@ -207,8 +207,24 @@ class DTILoader:
 
         return results
 
+    def check_result_available(self, experiments_folder, experiment_id: str, protein_id: str, ligand_id: str):
+        experiment_folder = os.path.join(experiments_folder, experiment_id)
+
+        protein_folder = os.path.join(experiment_folder, 'results', protein_id)
+        result_folder = os.path.join(protein_folder, ligand_id, 'result')
+
+        ligand_file = f'{result_folder}/{ligand_id}_pred_ligand.sdf'
+
+        plddt_df_file = f"{result_folder}/{ligand_id}_ligand_plddt.csv"
+
+        if not (os.path.exists(ligand_file) and os.path.exists(plddt_df_file)):
+            return False
+        return True
+
     def get_protein_ids(self, experiments_folder, experiment_id):
         experiment_folder = os.path.join(experiments_folder, experiment_id, 'results')
+        if not os.path.exists(experiment_folder):
+            os.mkdir(experiment_folder)
         protein_ids = [d for d in os.listdir(experiment_folder) \
         if os.path.isdir(os.path.join(experiment_folder, d))]
 

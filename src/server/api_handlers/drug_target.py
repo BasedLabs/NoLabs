@@ -128,7 +128,12 @@ class DrugTargetApiHandler(ApiHandler):
 
         res = jsonify({'proteinIds': {protein_id: {'id': protein_id,
                                                 'ligandIds': self.experiments_loader.get_ligands_ids(experiment_id=experiment_id, protein_id=protein_id),
-                                                  'progress': {'progress': 100.0} } for protein_id in protein_ids}})
+                                                'ligandResultsAvailable': [self.experiments_loader.check_result_available(experiment_id=experiment_id,
+                                                                                                                           protein_id=protein_id, ligand_id=ligand) 
+                                                                                                                           for ligand in 
+                                                                                                                           self.experiments_loader.get_ligands_ids(experiment_id=experiment_id,
+                                                                                                                                                                    protein_id=protein_id)],
+                                                'progress': {'progress': 100.0} } for protein_id in protein_ids}})
 
         return res
 
