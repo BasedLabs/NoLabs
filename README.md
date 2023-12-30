@@ -53,14 +53,17 @@ The goal of the project is to accelerate bio research via making inference model
 
 We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and contributions. Let's accelerate bio research!
 
-<hr style="border:2px solid gray">
+<img src="media/NoLabs_Architecture.png" width="100%">
 
-<img src="media/protein_design.gif" width="100%">
-<img src="media/conformations.gif" width="100%">
-
-<hr style="border:2px solid gray">
 
 ## Features ##
+
+**Drug discovery biolab (State of the art):**
+1) Drug-target interaction prediction, hight throughput virtual screening (HTVS) based on [uMol](https://github.com/patrickbryant1/Umol)
+2) Automatic pocket prediction via [P2Rank](https://github.com/rdk/p2rank)
+3) Automatic MSA generation via [HH-suite3](https://github.com/soedinglab/hh-suite)
+<img src="media/DTI_inputs.gif" width="100%">
+<img src="media/DTI_inference.gif" width="100%">
 
 **Protein biolab:**
 
@@ -68,11 +71,15 @@ We are working on expanding both and adding a cell biolab and genetic biolab, an
 2) Prediction of folded structure via [facebook/esmfold_v1](https://huggingface.co/facebook/esmfold_v1)
 3) Gene ontology prediction for 200 most popular gene ontologies
 4) Protein solubility prediction
-5) Protein conformations simulation with most popular force fields databases
-6) Protein design
 
-**Drug discovery biolab:**
-1) Drug-target interaction prediction, hight throughput virtual screening (HTVS) based on [uMol](https://github.com/patrickbryant1/Umol)
+**Protein Design Lab:**
+1) Protein generation via [RFDiffusion](https://github.com/RosettaCommons/RFdiffusion)
+<img src="media/protein_design.gif" width="100%">
+
+**Conformations Lab:**
+1) Conformations via [OpenMM](https://github.com/openmm/openmm) and [GROMACS](https://github.com/gromacs/gromacs) 
+<img src="media/conformations.gif" width="100%">
+
 
 Hosting:
 1) Docker containerisation for easy hosting
