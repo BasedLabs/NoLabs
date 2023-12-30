@@ -98,6 +98,7 @@ $ sudo docker buildx build --progress=plain -t protein-design -f Dockerfile .
 $ cd ../build
 # Build the docker image
 $ sudo docker buildx build --progress=plain -t nolabs -f build/Dockerfile .
+# or build/cpu.Dockerfile for inference on cpu
 
 # Run the images and expose the 5000 port
 $ docker run --name protein-design --gpus all --net=host protein-design

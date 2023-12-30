@@ -1,4 +1,4 @@
-export const baseUrl = 'http://64.62.255.56:5000'
+export const baseUrl = 'http://localhost:5000'
 
 export const apiConstants = {
     aminoAcid: {
