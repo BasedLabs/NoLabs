@@ -116,23 +116,17 @@ class DTILoader:
                               protein_id: str,
                               ligand_id: str):
 
-        protein_folder = os.path.join(experiment_folder, experiment_id, protein_id)
-        result_folder = os.path.join(protein_folder, 'result')
+        protein_folder = os.path.join(experiment_folder, experiment_id, 'results', protein_id)
+        result_folder = os.path.join(protein_folder, ligand_id, 'result')
 
         pdb_content = ""
         # Open and read the PDB file
-        pdb_file_path = os.path.join(protein_folder, protein_id + '.pdb')
-
-        # If a user uploaded pdb file then we prioritise this structure
-        if os.path.exists(pdb_file_path):
-            with open(pdb_file_path, 'r') as pdb_file:
-                for line in pdb_file:
-                    pdb_content += line
-        else:
-            pred_pdb_file_path = os.path.join(result_folder, protein_id + "_pred_protein.pdb")
-            with open(pred_pdb_file_path, 'r') as pdb_file:
-                for line in pdb_file:
-                    pdb_content += line
+        for filename in os.listdir(result_folder):
+            if filename.endswith('_pred_protein.pdb') and os.path.isfile(os.path.join(result_folder, filename)):
+                pred_pdb_file_path = os.path.join(result_folder, filename)
+                with open(pred_pdb_file_path, 'r') as pdb_file:
+                    for line in pdb_file:
+                        pdb_content += line
 
         ligand_file = f'{result_folder}/{ligand_id}_pred_ligand.sdf'
 
@@ -213,18 +207,31 @@ class DTILoader:
 
         return results
 
-    def get_protein_ids(self, experiments_folder, experiment_id):
+    def check_result_available(self, experiments_folder, experiment_id: str, protein_id: str, ligand_id: str):
         experiment_folder = os.path.join(experiments_folder, experiment_id)
-        protein_names = [d for d in os.listdir(experiment_folder) \
+
+        protein_folder = os.path.join(experiment_folder, 'results', protein_id)
+        result_folder = os.path.join(protein_folder, ligand_id, 'result')
+
+        ligand_file = f'{result_folder}/{ligand_id}_pred_ligand.sdf'
+
+        plddt_df_file = f"{result_folder}/{ligand_id}_ligand_plddt.csv"
+
+        if not (os.path.exists(ligand_file) and os.path.exists(plddt_df_file)):
+            return False
+        return True
+
+    def get_protein_ids(self, experiments_folder, experiment_id):
+        experiment_folder = os.path.join(experiments_folder, experiment_id, 'results')
+        if not os.path.exists(experiment_folder):
+            os.mkdir(experiment_folder)
+        protein_ids = [d for d in os.listdir(experiment_folder) \
         if os.path.isdir(os.path.join(experiment_folder, d))]
 
-        return protein_names
+        return protein_ids
 
 
     def get_ligand_names(self, result_folder):
-        suffix = '_pred_ligand'
-        ligands_path = glob.glob(result_folder + f'/*{suffix}.sdf')
-        file_names = [
-            Path(ligand_path).stem for ligand_path in ligands_path
-        ]
-        return [file_name.replace(suffix, '') for file_name in file_names]
+        ligand_ids = [d for d in os.listdir(result_folder) 
+                      if os.path.isdir(os.path.join(result_folder, d))]
+        return ligand_ids

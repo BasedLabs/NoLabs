@@ -17,6 +17,10 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/load-targets', methods=['GET'])
     def load_targets():
         return api_handler.load_targets(request)
+
+    @drug_target_bp.route('/predict-3d-structure', methods=['GET'])
+    def predict_3d_structure():
+        return api_handler.predict_3d_structure(request)
     
     @drug_target_bp.route('/set-binding-pocket', methods=['POST'])
     def store_binding_pocket():
@@ -25,6 +29,18 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/get-binding-pocket', methods=['GET'])
     def get_binding_pocket():
         return api_handler.get_binding_pocket(request)
+    
+    @drug_target_bp.route('/predict-binding-pocket', methods=['GET'])
+    def predict_binding_pocket():
+        return api_handler.predict_binding_pocket(request)
+    
+    @drug_target_bp.route('/add-ligand', methods=['POST'])
+    def add_ligand():
+        return api_handler.add_ligand(request)
+    
+    @drug_target_bp.route('/load-ligands', methods=['GET'])
+    def load_ligands():
+        return api_handler.load_ligands(request)
 
     @drug_target_bp.route('/experiments')
     def get_experiments():
@@ -33,11 +49,14 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/load-experiment', methods=['GET'])
     def get_experiment():
         return api_handler.get_experiment(request)
-    
+
     @drug_target_bp.route('/load-results', methods=['GET'])
-    def get_predictions():
-        print("getting predictions")
-        return api_handler.get_predictions(request)
+    def get_results():
+        return api_handler.get_results(request)
+    
+    @drug_target_bp.route('/load-prediction-data', methods=['GET'])
+    def get_prediction_data():
+        return api_handler.get_prediction_data(request)
     
     @drug_target_bp.route('/load-experiment-progress', methods=['GET'])
     def get_experiment_progress():

@@ -1,4 +1,4 @@
-export const baseUrl = 'http://127.0.0.1:5000'
+export const baseUrl = 'http://localhost:5000'
 
 export const apiConstants = {
     aminoAcid: {
@@ -79,6 +79,30 @@ export const apiConstants = {
             mutation: 'drugTarget_loadTargets',
             action: 'drugTarget_loadTargets'
         },
+        predictStructure: {
+            path: baseUrl + '/api/drug-target/predict-3d-structure'
+        },
+        setBindingPocket: {
+            path: baseUrl + '/api/drug-target/set-binding-pocket',
+            mutation: 'drugTarget_setBindingPocket',
+            action: 'drugTarget_setBindingPocket'
+        },
+        loadBindingPocket: {
+            path: baseUrl + '/api/drug-target/get-binding-pocket'
+        },
+        predictBindingPocket: {
+            path: baseUrl + '/api/drug-target/predict-binding-pocket'
+        },
+        addLigand: {
+            path: baseUrl + '/api/drug-target/add-ligand',
+            mutation: 'drugTarget_addLigand',
+            action: 'drugTarget_addLigand'
+        },
+        loadLigands: {
+            path: baseUrl + '/api/drug-target/load-ligands',
+            mutation: 'drugTarget_loadLigands',
+            action: 'drugTarget_loadLigands'
+        },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
             path: baseUrl + '/api/drug-target/inference',
             mutation: 'drugTarget_inference',
@@ -94,10 +118,15 @@ export const apiConstants = {
             mutation: 'drugTarget_loadExperiment',
             action: 'drugTarget_loadExperiment'
         },
-        loadResults : {
+        loadResults: {
             path: baseUrl + '/api/drug-target/load-results',
             mutation: 'drugTarget_loadResults',
             action: 'drugTarget_loadResults'
+        },
+        loadPredictionData : {
+            path: baseUrl + '/api/drug-target/load-prediction-data',
+            mutation: 'drugTarget_loadPredictionData',
+            action: 'drugTarget_loadPredictionData'
         },
         changeExperimentName: {
             path: baseUrl + '/api/drug-target/change-experiment-name',

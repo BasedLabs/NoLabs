@@ -1,6 +1,7 @@
 <script>
+import axios from 'axios';
 export default {
-    props: ['target'],
+    props: ['api', 'experiment', 'target'],
     data() {
         const views = {
             default: { key: 'default', title: 'Default representation' },
@@ -26,7 +27,9 @@ export default {
             ligandComponent: null,
             selectedResidues: new Set(),
             sequence: [],
-            selectionMode: false
+            selectionMode: false,
+            showNoPocketModal: false,
+            isLoading: false,
         }
     },
     methods: {
@@ -39,6 +42,25 @@ export default {
             }
             this.pdbComponent.removeAllRepresentations();
             this.pdbComponent.addRepresentation(this.selectedView.key);
+        },
+        async predictStructure() {
+            this.isLoading = true;
+
+            try {
+                const response = await this.api.predictStructure(this.experiment, this.target.metadata.id);
+                // Check if the response contains PDB data
+                if (response.data && response.data.pdb) {
+                    // Update the target PDB data
+                    this.target.pdb = response.data.pdb;
+
+                    // Render the PDB component with the new data
+                    this.render();
+                };
+            } catch (error) {
+                console.error('Error predicting 3D structure:', error);
+            } finally {
+                this.isLoading = false;
+            }
         },
         cleanStage() {
             if (this.stage)
@@ -91,10 +113,38 @@ export default {
             }
             this.highlightSelectedResidues();
         },
+        toggleFastaResidueSelection(index) {
+            // Toggle residue selection for FASTA sequence
+            if (this.selectedResidues.has(index)) {
+                this.selectedResidues.delete(index);
+            } else {
+                this.selectedResidues.add(index);
+            }
+        },
         sendSelectedResidues() {
             const selectedResidueArray = Array.from(this.selectedResidues);
-            console.log("Sending selected residues to backend:", selectedResidueArray);
-            // Replace with your API call to send data to the backend
+            this.api.setBindingPocket(this.experiment, this.target.metadata.id, selectedResidueArray);
+        },
+        async displayBindingPocket() {
+            const response = await this.api.loadBindingPocket(this.experiment, this.target.metadata.id);
+            if (response.data.pocketIds && response.data.pocketIds.length > 0) {
+                this.selectedResidues = new Set(response.data.pocketIds);
+                this.highlightSelectedResidues();
+            } else {
+                // Show modal if no binding pocket data is found
+                this.showNoPocketModal = true;
+            }
+        },
+        async predictBindingPocket() {
+            this.isLoading = true; // Set loading state
+            const response = await this.api.predictBindingPocket(this.experiment, this.target.metadata.id);
+            this.isLoading = false; // Reset loading state
+            this.showNoPocketModal = false; // Close the modal
+
+            if (response.data && response.data.length > 0) {
+                this.selectedResidues = new Set(response.data);
+                this.highlightSelectedResidues();
+            }
         },
         extractSequenceFromComponent(component) {
             // Extracting amino acid sequence from the PDB component
@@ -151,19 +201,22 @@ export default {
                     </span>
                 </div>
             </div>
-            <div v-else>
-                <div class="amino-acid-sequence">{{ fastaSequence }}</div>
-                <button class="btn btn-primary" @click="uploadPdb">Upload corresponding PDB</button>
-                <button class="btn btn-secondary" @click="predictStructure">Predict 3D structure</button>
+            <div v-else class="amino-acid-sequence">
+                <span v-for="(acid, index) in fastaSequence" :key="index"
+                      :class="{ 'selected': selectedResidues.has(index) }"
+                      @click="toggleFastaResidueSelection(index)">
+                    {{ acid }}
+                </span>
             </div>
-            <div class="col-lg-4" v-if="hasPdb">
+            <div class="col-lg-4">
                 <h4>Options</h4>
-                <select class="form-select form-select-md mb-3" aria-label="Select a representation" @change="setView($event)">
+                <button class="btn btn-secondary" @click="predictStructure">Predict 3D structure</button>
+                <select v-if="hasPdb" class="form-select form-select-md mb-3" aria-label="Select a representation" @change="setView($event)">
                     <option v-for="viewKey in viewsItems" :key="viewKey" :value="viewKey">
                         {{ views[viewKey].title }}
                     </option>
                 </select>
-                <button type="button" @click="downloadPdbFile()"
+                <button v-if="hasPdb" type="button" @click="downloadPdbFile()"
                     class="btn btn-primary padding-top-button-group download-pdb-button">Download .pdb
                 </button>
                 <button type="button" @click="toggleSelectionMode" class="btn btn-secondary" style="margin-top: 10px;">
@@ -172,6 +225,41 @@ export default {
                 <button v-if="this.selectionMode" type="button" @click="sendSelectedResidues" class="btn btn-success" style="margin-top: 10px;">
                     Confirm selection
                 </button>
+                <button v-if="!this.selectionMode" type="button" @click="displayBindingPocket" class="btn btn-info" style="margin-top: 10px;">
+                    Display Binding Pocket
+                </button>
+            </div>
+        </div>
+        <div v-if="isLoading" class="loading-indicator">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Predicting...</span>
+            </div>
+            <span>Predicting...</span>
+        </div>
+        <div v-if="showNoPocketModal" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Binding Pocket Not Found</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="showNoPocketModal = false">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div v-if="isLoading" class="loading-indicator">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden text-primary">Predicting...</span>
+                        </div>
+                        <span class="text-primary">Predicting...</span>
+                    </div>
+                    <div class="modal-body" style="color: black;">
+                        <p>You don't have a binding pocket for this protein.</p>
+                        <p>Do you wish it to be predicted?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @click="predictBindingPocket">Predict</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="showNoPocketModal = false">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="row">
@@ -202,5 +290,12 @@ export default {
 .amino-acid-sequence span.selected {
     background-color: blue;
     color: white;
+}
+
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
 }
 </style>

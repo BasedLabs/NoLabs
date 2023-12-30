@@ -14,7 +14,7 @@ class PDBFileSaver(FileSaver):
     def save(self, content, folder, filename):
         return self._save_content(content, folder, filename)
 
-    def pdb_to_fasta(self, pdb_content ,folder, fasta_filename):
+    def pdb_to_fasta(self, pdb_content, folder, fasta_filename):
         """
         Convert a PDB file to a FASTA file.
         
@@ -24,14 +24,13 @@ class PDBFileSaver(FileSaver):
         sequence = next(SeqIO.parse(pdb_content, "pdb-atom"))
 
         # Construct the full path for the output FASTA file
-        path = os.path.join(folder, fasta_filename + ".fasta")
+        fasta_path = os.path.join(folder, fasta_filename + ".fasta")
 
         # Write the sequence to the FASTA file
-        with open(path, "w") as output_handle:
+        with open(fasta_path, "w") as output_handle:
             SeqIO.write(sequence, output_handle, "fasta")
 
-        return fasta_filename
-
+        return fasta_path
 
     def _save_content(self, content, folder, filename):
         if not filename.endswith('.pdb'):

@@ -25,15 +25,15 @@
 
         <!-- Conformations lab Lab -->
         <div class="lab-container col-md-4 col-xs-1">
-          <div class="protein-container"><img class="protein-container-gif" src="exampleProteins/shadi_3P.gif"></div>
-          <RouterLink type="button" class="btn btn-primary btn-md" to="/conformations">Conformations lab (pre-alpha)
+          <div class="mx-auto protein-container" ref="multiStepProtein"></div>
+          <RouterLink type="button" class="btn btn-primary btn-md" to="/conformations">Conformations lab
           </RouterLink>
         </div>
       </div>
       <div class="container-fluid row justify-content-center">
         <!-- Protein viewer-->
         <div class="lab-container col-md-4 col-xs-1">
-          <div class="protein-container" ref="conformationsProtein"></div>
+          <div class="mx-auto protein-container" ref="conformationsProtein"></div>
           <RouterLink type="button" class="btn btn-primary btn-md" to="/protein-viewer">Simple .pdb viewer</RouterLink>
         </div>
 
@@ -74,8 +74,9 @@ export default {
       this.loadProteinModel(this.$refs.drugDiscoveryProtein, 'exampleProteins/protein_ligand.pdb', false, true);
       this.loadProteinModel(this.$refs.conformationsProtein, 'exampleProteins/conformations.pdb', true, true);
       this.loadProteinModel(this.$refs.proteinDesign, 'exampleProteins/proteinDesign.pdb', true, false);
+      this.loadProteinModel(this.$refs.multiStepProtein, 'exampleProteins/1aep_ms.pdb', true, false, true);
     },
-    loadProteinModel(element, pdbPath, isCartoon, rotate) {
+    loadProteinModel(element, pdbPath, isCartoon, rotate, isMultiStep = false) {
       let viewer = $3Dmol.createViewer(element, {
         backgroundColor: 'black'
       });
@@ -87,19 +88,38 @@ export default {
 
           if (isCartoon) {
             viewer.setStyle({}, { cartoon: { color: 'spectrum' } });
-          }
-          else {
+          } else {
             viewer.setStyle({}, { cartoon: { color: 'white' } });
-            // Style for the ligands
-            // You can customize this style as needed
             viewer.setStyle({ hetflag: true }, { stick: { radius: 0.6, colorscheme: 'greenCarbon' } });
           }
+
           viewer.zoomTo();
-          if(rotate){
+
+          if (rotate) {
             this.rotateModel(viewer);
           }
+
+          if (isMultiStep) {
+            this.animateMultiStepModel(viewer);
+          }
+
           viewer.render();
         });
+    },
+
+    animateMultiStepModel(viewer) {
+      let modelCount = viewer.getModel().getNumFrames();
+      let currentFrame = 0;
+
+      function animate() {
+        viewer.setStyle({}, { cartoon: { color: 'spectrum' } });
+        viewer.setModelFrame(viewer.getModel(), currentFrame);
+        viewer.render();
+        currentFrame = (currentFrame + 1) % modelCount;
+        setTimeout(animate, 1000); // Adjust time for frame change
+      }
+
+      animate();
     },
     rotateModel(viewer) {
       function rotate() {

@@ -1,6 +1,8 @@
 import os
+import shutil
 from abc import abstractmethod, ABC
 from typing import List
+import numpy as np
 
 from werkzeug.datastructures import FileStorage
 
@@ -10,6 +12,8 @@ from src.server.services.savers import FastaFileSaver, SDFFileSaver, PDBFileSave
 from src.server.settings import EXPERIMENTS_DIR, PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, \
     CONFORMATIONS_EXPERIMENTS_DIR, PROTEIN_DESIGN_EXPERIMENTS_DIR
 from src.server.services.mixins import UUIDGenerator
+
+from src.ai.model import PocketPredictor
 
 
 # Helper function to ensure the base directory exists
@@ -103,14 +107,86 @@ class DrugDiscovery(BaseExperiment):
 
         return (ligand_file_paths, pdb_file_paths)
 
-    def run(self, ligand_files: List[FileStorage], protein_files: List[FileStorage], experiment_id: str):
+    def run(self, experiment_id: str):
         if not experiment_id:
             experiment_id = self.gen_uuid()
         model = self.pipeline.get_model_by_task("dti")
         experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
-        ligand_file_paths, pdb_file_paths = self._store_inputs(experiment_dir, ligand_files, protein_files)
-        model.predict(ligand_file_paths, pdb_file_paths, experiment_dir)
+
+        binding_pockets = []
+        protein_file_paths = []
+        protein_ids = []
+        ligand_file_paths = [] 
+
+        targets_dir = os.path.join(experiment_dir, 'targets')
+           # List all items in the targets_dir
+        for item in os.listdir(targets_dir):
+            subdir = os.path.join(targets_dir, item)
+            
+            # Check if the item is a directory
+            if os.path.isdir(subdir):
+                target_id = os.path.basename(subdir)
+                protein_ids.append(target_id)
+                pocket_dir = os.path.join(subdir, 'pocket')
+                pocket_file = os.path.join(pocket_dir, 'pocket.npy')
+
+                if os.path.isdir(pocket_dir) and os.path.isfile(pocket_file):
+                    # Load the numpy array if pocket.npy exists
+                    binding_pocket = np.load(pocket_file)
+                    binding_pockets.append(binding_pocket)
+                    for file in os.listdir(subdir):
+                        if file.endswith('.fasta'):
+                            pdb_file_path = os.path.join(subdir, file)
+                            protein_file_paths.append(pdb_file_path)
+                else:
+                    # Check for .pdb files in the subdir
+                    for file in os.listdir(subdir):
+                        if file.endswith('.fasta'):
+                            pdb_file_path = os.path.join(subdir, file)
+                            protein_file_paths.append(pdb_file_path)
+                            self.loader.predict_3d_structure(experiment_id, target_id)
+                            # Assuming predict_pocket is a method that predicts the pocket and returns it
+                            binding_pocket = self.predict_pocket(experiment_id=experiment_id, protein_id=target_id)
+                            binding_pockets.append(np.array(binding_pocket))
+
+        ligands_dir = os.path.join(experiment_dir, 'ligands')
+        for subdir, dirs, files in os.walk(ligands_dir):
+            for file in files:
+                if file.endswith('.sdf'):
+                    ligand_file_paths.append(os.path.join(subdir, file))
+
+                            
+        print("BINDING POCKETS: ", binding_pockets)
+        print("Ligand file paths: ", ligand_file_paths)
+        print("Protein file paths: ", protein_file_paths)
+        print("Protein Ids:", protein_ids)
+
+        model.predict(ligand_file_paths, protein_file_paths, protein_ids, binding_pockets, experiment_dir)
+
         return experiment_id
+    
+
+    def predict_pocket(self, experiment_id: str, protein_id: str):
+
+        pocket_predictor = PocketPredictor('pocket_predictor', 'pocket_prediction')
+        pocket_predictor.load_model()
+
+        protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)
+
+        pockets_dir = os.path.join(protein_dir, 'pocket')
+        if not os.path.exists(pockets_dir):
+            os.mkdir(pockets_dir)
+
+        protein_file = None
+
+        for filename in os.listdir(protein_dir):
+            if filename.endswith(".pdb"):
+                destination_protein_file = os.path.join(pockets_dir, filename)
+                shutil.copyfile(os.path.join(protein_dir, filename), destination_protein_file)
+                protein_file = os.path.join(pockets_dir, filename)
+
+        return pocket_predictor.predict(protein_file, pockets_dir)
+
 
 
 class ProteinDesign(BaseExperiment):

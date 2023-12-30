@@ -36,7 +36,7 @@ export default {
             const files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
             if (files && files.length > 0) {
                 Array.from(files).forEach(file => {
-                    if (file.name.endsWith('.fasta') || file.name.endsWith('.pdb')) {
+                    if (file.name.endsWith('.fasta')) {
                         this.uploadProteinFile(file);
                     } else {
                         console.error('Invalid file type:', file.name);
@@ -47,9 +47,7 @@ export default {
         uploadProteinFile(file) {
             this.api.addTarget(this.experiment, file)
                 .then(() => {
-                    this.targets.push(file.name); // Update the targets list with the new file
-                    // Optionally, refresh targets from backend if needed
-                    // this.loadTargets(); 
+                    this.loadTargets();
                 })
                 .catch(error => {
                     console.error('Error uploading file:', error);
@@ -66,16 +64,7 @@ export default {
     computed: {
         isNightMode() {
             return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        },
-        experimentEmpty() {
-            if (!this.state.experiment.data)
-                return true;
-
-            if (typeof this.experiment.data === 'Array')
-                return this.experiment.data.length === 0;
-
-            return Object.keys(this.experiment.data).length === 0;
-        },
+        }
     },
     mounted() {
         this.loadTargets();
@@ -96,21 +85,21 @@ export default {
         </div>
 
         <div class="file-upload-area" @dragover.prevent="dragOverHandler" @drop.prevent="dropHandler">
-            <p>Drag and drop your .fasta or .pdb files here, or click to select files</p>
-            <input type="file" id="fileInput" multiple @change="handleFileUpload" accept=".fasta,.pdb" style="display: none;" />
+            <p>Drag and drop your .fasta files here, or click to select files</p>
+            <input type="file" id="fileInput" multiple @change="handleFileUpload" accept=".fasta" style="display: none;" />
             <label for="fileInput" class="file-upload-button">Select Files</label>
         </div>
 
         <div class="container-fluid" v-if="Object.keys(targets).length > 0">
             <h4>Uploaded targets: </h4>
             <div v-for="(target, id) in targets" :key="id" class="target-button">
-                <button class="max-auto btn btn-primary" @click="openModal(target)">{{ target.metadata.name }}</button>
+                <button class="btn btn-info" style="width: 50vw;" @click="openModal(target)">{{ target.metadata.name }}</button>
             </div>
         </div>
 
         <!-- Modal -->
         <div v-if="isModalOpen" class="modal">
-            <TargetProteinViewer :target="selectedTarget" @close="closeModal" />
+            <TargetProteinViewer :api="this.api" :experiment="this.experiment" :target="selectedTarget" @close="closeModal" />
         </div>
     </div>
 </template>

@@ -10,8 +10,11 @@ from pathlib import Path
 from werkzeug.datastructures import FileStorage
 from pathlib import Path
 from typing import List, Dict, Tuple
+import numpy as np
 
-from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader,PDBFileLoader
+from io import StringIO
+
+from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader,PDBFileLoader, SDFFileLoader
 from src.server.services.savers import FileSaverFactory, FastaFileSaver, SDFFileSaver, PDBFileSaver
 from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
 from src.server.services.progress import get_progress
@@ -20,6 +23,7 @@ from src.server.services.loaders import FileLoaderFactory, DTILoader
 from src.server.services.savers import FileSaverFactory
 from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR, \
     PROTEIN_DESIGN_EXPERIMENTS_DIR
+from test.ai.mock_model import APIFolding
 
 
 def _load_experiments_ids_names(experiments_dir) -> Dict:
@@ -323,11 +327,14 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         loaded_content = self.loader.get_dti_single_result(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, ligand_id)
         return loaded_content
 
+    def check_result_available(self, experiment_id: str, protein_id: str, ligand_id: str):
+        return self.loader.check_result_available(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, ligand_id)
+
     def get_protein_ids(self, experiment_id: str):
         return self.loader.get_protein_ids(experiments_folder=DTI_EXPERIMENTS_DIR, experiment_id=experiment_id)
 
     def get_ligands_ids(self, experiment_id: str, protein_id: str):
-        protein_folder = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, 'result')
+        protein_folder = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'results', protein_id)
         return self.loader.get_ligand_names(protein_folder)
 
     def load_experiment_progress(self, experiment_id):
@@ -357,11 +364,48 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
 
+    def save_ligand_metadata(self, experiment_id: str, ligand_id: str, ligand_name: str):
+        metadata = {
+            "id": ligand_id,
+            "name": ligand_name,
+            "date": datetime.now().isoformat(),
+        }
+
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'ligands', ligand_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=4)
+
+    def update_target_metadata(self, experiment_id: str, target_id: str, key: str, value):
+        metadata = self.load_target_metadata(experiment_id, target_id)
+        metadata[key] = value
+
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', target_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=4)
+
+
     def load_target_metadata(self, experiment_id: str, target_id: str,):
         metadata_path = os.path.join(DTI_EXPERIMENTS_DIR,
                                       experiment_id,
                                         'targets',
                                           target_id,
+                                            "metadata.json")
+
+        # Check if metadata.json exists
+        if not os.path.exists(metadata_path):
+            return {}
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        return metadata
+    
+
+    def load_ligand_metadata(self, experiment_id: str, ligand_id: str,):
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR,
+                                      experiment_id,
+                                        'ligands',
+                                          ligand_id,
                                             "metadata.json")
 
         # Check if metadata.json exists
@@ -394,7 +438,12 @@ class DTILabExperimentsLoader(ExperimentsLoader):
 
         if protein_file.filename.endswith(".pdb"):
             print("Saving pdb file")
-            pdb_saver.save(protein_file, protein_dir, protein_file.filename)
+            pdb_content_str = protein_file.read().decode('utf-8')
+            pdb_content = StringIO(pdb_content_str)
+            pdb_saver.save(pdb_content_str, protein_dir, protein_file.filename)
+            pdb_content.seek(0)
+            pdb_saver.pdb_to_fasta(pdb_content, protein_dir, protein_name)
+
         elif protein_file.filename.endswith(".fasta"):
             fasta_saver.save(protein_file, protein_dir, protein_file.filename)
 
@@ -434,6 +483,141 @@ class DTILabExperimentsLoader(ExperimentsLoader):
                     targets[target_id]['fasta'] = file  # Storing file name for simplicity
 
         return targets
+
+    def predict_3d_structure(self, experiment_id, protein_id):
+        protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)
+
+        # Find a .fasta file in the directory
+        fasta_file = None
+        for file in os.listdir(protein_dir):
+            if file.endswith(".fasta"):
+                fasta_file = file
+                break
+
+        if fasta_file is None:
+            print("No .fasta file found in the directory.")
+            return
+
+        # Initialize the APIFolding model
+        folding_model = APIFolding(model_name="esm_model", gpu=False)
+
+        # Read the fasta file
+        fasta_path = os.path.join(protein_dir, fasta_file)
+        with open(fasta_path, 'r') as file:
+            sequence = file.read()
+
+        # Predict the pdb structure
+        pdb_structure = folding_model.predict(sequence)
+
+        # Write the prediction to <fasta name>.pdb
+        pdb_file = os.path.splitext(fasta_file)[0] + '.pdb'
+        pdb_path = os.path.join(protein_dir, pdb_file)
+        with open(pdb_path, 'w') as file:
+            file.write(pdb_structure)
+
+        return pdb_structure
+    
+    def set_binding_pocket(self, experiment_id, protein_id, pocket_ids_array):
+        protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)
+
+        pockets_dir = os.path.join(protein_dir, 'pocket')
+        if not os.path.exists(pockets_dir):
+            os.mkdir(pockets_dir)
+
+        np.save(os.path.join(pockets_dir, "pocket.npy"), pocket_ids_array)
+        self.update_target_metadata(experiment_id, protein_id, "manual_pocket", True)
+
+
+    def load_binding_pocket(self, experiment_id, protein_id):
+        protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)
+
+        pockets_dir = os.path.join(protein_dir, 'pocket')
+        if not os.path.exists(pockets_dir):
+            return []
+        
+        binding_pockets_ids = np.load(os.path.join(pockets_dir, "pocket.npy"))
+        binding_pockets_ids = binding_pockets_ids.tolist()
+
+        return binding_pockets_ids
+        
+    def store_ligand(self, experiment_id: str, ligand_file: List[FileStorage]):
+        experiments_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+        ligands_dir = os.path.join(experiments_dir, 'ligands')
+
+        if not os.path.exists(ligands_dir):
+            os.mkdir(ligands_dir)
+
+        sdf_saver = SDFFileSaver()
+
+        id_generator = UUIDGenerator()
+
+        ligand_id = id_generator.gen_uuid()['id']
+        ligand_name = os.path.splitext(ligand_file.filename)[-2]
+        ligand_dir = os.path.join(ligands_dir, ligand_id)
+        if not os.path.exists(ligand_dir):
+            os.mkdir(ligand_dir)
+        self.save_ligand_metadata(experiment_id, ligand_id, ligand_name)
+
+        sdf_saver.save(ligand_file, ligand_dir, ligand_file.filename)
+        
+
+    def load_ligands(self, experiment_id: str):
+        ligands_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'ligands')
+        sdf_loader = SDFFileLoader()
+        ligands = {}
+
+        if not os.path.exists(ligands_dir):
+            return ligands
+
+        for ligand_id in os.listdir(ligands_dir):
+            ligand_path = os.path.join(ligands_dir, ligand_id)
+
+            if not os.path.isdir(ligand_path):
+                continue
+
+            ligands[ligand_id] = {
+                'metadata': self.load_ligand_metadata(experiment_id, ligand_id),
+                'sdf': None
+            }
+
+            # Check for PDB and FASTA files
+            for file in os.listdir(ligand_path):
+                if file.endswith('.sdf'):
+                    file = sdf_loader.load(ligand_path, os.path.basename(file))
+                    ligands[ligand_id]['sdf'] = file  # Storing file name for simplicity
+
+        return ligands
+    
+    def get_pockets_prediction_progress(experiment_id: str):
+        experiment_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+
+        targets_dir = os.path.join(experiment_dir, 'targets')
+        targets_with_pockets = []
+        targets_without_pockets = []
+
+        # List all items in the targets_dir
+        for item in os.listdir(targets_dir):
+            subdir = os.path.join(targets_dir, item)
+            
+            # Check if the item is a directory
+            if os.path.isdir(subdir):
+                target_id = os.path.basename(subdir)
+                pocket_dir = os.path.join(subdir, 'pocket')
+                pocket_file = os.path.join(pocket_dir, 'pocket.npy')
+
+                if os.path.isdir(pocket_dir) and os.path.isfile(pocket_file):
+                    targets_with_pockets.append(target_id)
+                else:
+                    targets_without_pockets.append(target_id)
+
+        total_targets = len(targets_with_pockets) + len(targets_without_pockets)
+        percentage_with_pockets = (len(targets_with_pockets) / total_targets * 100) if total_targets > 0 else 0
+
+        return {
+            'targets_with_pockets': targets_with_pockets,
+            'targets_without_pockets': targets_without_pockets,
+            'percentage': percentage_with_pockets
+        }
 
 
 

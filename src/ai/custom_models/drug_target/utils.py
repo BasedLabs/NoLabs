@@ -6,6 +6,12 @@ from rdkit.Chem import SDMolSupplier
 
 dirname = os.path.dirname
 
+import ssl
+
+# Create an unverified SSL context
+ssl._create_default_https_context = ssl._create_unverified_context
+
+
 def install_p2rank():
     # URL of the p2rank tar.gz file
     p2rank_url = "https://github.com/rdk/p2rank/releases/download/2.4.1/p2rank_2.4.1.tar.gz"
