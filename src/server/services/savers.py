@@ -1,5 +1,6 @@
 import os
 import json
+from Bio import SeqIO
 from pathlib import Path
 
 from werkzeug.datastructures import FileStorage
@@ -13,50 +14,24 @@ class PDBFileSaver(FileSaver):
     def save(self, content, folder, filename):
         return self._save_content(content, folder, filename)
 
-    def pdb_to_fasta(self, pdb_filename, pdb_content, fasta_filename):
+    def pdb_to_fasta(self, pdb_content ,folder, fasta_filename):
         """
         Convert a PDB file to a FASTA file.
         
         :param pdb_filename: The path to the input PDB file.
         :param fasta_filename: The path to the output FASTA file.
         """
+        sequence = next(SeqIO.parse(pdb_content, "pdb-atom"))
 
-        sequence = ""
-        current_chain = None
+        # Construct the full path for the output FASTA file
+        path = os.path.join(folder, fasta_filename + ".fasta")
 
-        for line in pdb_content:
-            if line.startswith("ATOM") and line[13:15].strip() == "CA":
-                chain_id = line[21]
-                amino_acid = line[17:20].strip()
-
-                # If a new chain starts, separate it with a newline in the FASTA file
-                if current_chain and current_chain != chain_id:
-                    sequence += "\n"
-                current_chain = chain_id
-
-                # Convert three-letter amino acid codes to single-letter codes
-                amino_acid_code = self.three_to_one(amino_acid)
-                sequence += amino_acid_code
-
-        with open(fasta_filename, 'w') as fasta_file:
-            fasta_file.write(">Converted from {}\n".format(pdb_filename))
-            fasta_file.write(sequence)
+        # Write the sequence to the FASTA file
+        with open(path, "w") as output_handle:
+            SeqIO.write(sequence, output_handle, "fasta")
 
         return fasta_filename
 
-
-    def three_to_one(self, three_letter_code):
-        """
-        Convert a three-letter amino acid code to a single-letter code.
-        """
-        conversion = {
-            "ALA": "A", "ARG": "R", "ASN": "N", "ASP": "D",
-            "CYS": "C", "GLU": "E", "GLN": "Q", "GLY": "G",
-            "HIS": "H", "ILE": "I", "LEU": "L", "LYS": "K",
-            "MET": "M", "PHE": "F", "PRO": "P", "SER": "S",
-            "THR": "T", "TRP": "W", "TYR": "Y", "VAL": "V"
-        }
-        return conversion.get(three_letter_code, "?")
 
     def _save_content(self, content, folder, filename):
         if not filename.endswith('.pdb'):

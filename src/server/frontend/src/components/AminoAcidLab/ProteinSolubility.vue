@@ -2,7 +2,7 @@
 export default {
     props: ['experiment'],
     data() {
-        const solubility = `This protein is soluble with ${+(Math.round(this.experiment.data.solubility * 100.0 + "e+2") + "e-2")}% probability`
+        const solubility = `This protein is soluble with ${+(Math.round(this.experiment.data.solubility.solubility * 100.0 + "e+2") + "e-2")}% probability`
 
         return {
             solubility

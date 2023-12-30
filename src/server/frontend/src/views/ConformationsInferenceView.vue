@@ -20,21 +20,14 @@ export default {
         return {
             views: views,
             viewsItems: Object.keys(views),
-            selectedView: views.default,
-            stage: null,
-            pdbComponent: null
+            selectedView: views.default
         }
     },
     methods: {
         setView(evt) {
             const viewKey = evt.target.value;
             this.selectedView = this.views[viewKey];
-            if (this.selectedView === this.views.default) {
-                this.render();
-                return;
-            }
-            this.pdbComponent.removeAllRepresentations();
-            this.pdbComponent.addRepresentation(this.selectedView.key);
+            this.render();
         },
         cleanStage() {
             if (this.stage)
@@ -50,7 +43,16 @@ export default {
                 stage.setParameters({ backgroundColor: 'white' });
                 const proteinFileContentBlob = new Blob([experiment.data.pdb], { type: 'text/plain' });
                 const proteinFile = new File([proteinFileContentBlob], 'protein.pdb', { type: 'text/plain' });
-                stage.loadFile(proteinFile, { defaultRepresentation: true, asTrajectory: true }).then(function(component) {
+                
+                let params = {}
+                if(this.selectedView === this.views.default){
+                    params = { defaultRepresentation: true, asTrajectory: true }
+                }
+                else{
+                    params = { asTrajectory: true }
+                }
+
+                stage.loadFile(proteinFile, params).then((component) => {
                     var traj = component.addTrajectory().trajectory
                     var player = new NGL.TrajectoryPlayer(traj, {
                         step: 1,
@@ -63,6 +65,10 @@ export default {
                         direction: "bounce"
                     });
                     player.play();
+                    
+                    if(this.selectedView !== this.views.default){
+                        component.addRepresentation(this.selectedView.key);
+                    }
 
                     component.autoView();
                 });
@@ -76,7 +82,7 @@ export default {
 </script>
 
 <template>
-    <div class="row mt-2">
+    <div class="row mt-2" v-if="experiment != null && experiment.data != null && experiment.data.pdb != null">
         <div class="col-md-8">
             <div id="viewport" style="width: 100%; height: 500px;"></div>
         </div>

@@ -44,7 +44,7 @@ export default {
                 this.stage.removeAllComponents();
         },
         render() {
-            const drugTarget = this.experiment.data[this.selectedRowId];
+            const drugTarget = this.experiment.data;
 
             setTimeout(() => {
                 // Render 3d structure
@@ -64,35 +64,6 @@ export default {
                 });
             }, 200);
         },
-        renderTable() {
-            const experimentData = this.experiment.data;
-            // Render table
-            const tableData = [];
-            for (let [index, val] of experimentData.entries()) {
-                tableData.push({ id: index, ligand: val.ligandName, protein: val.proteinName, affinity: val.affinity });
-            }
-
-            const rowSelect = (rowData) => {
-                this.selectedRowId = rowData.id;
-                this.render();
-            }
-
-            $('#ligandProteinTable').bootstrapTable({
-                data: tableData,
-                onClickRow: (row, el, field) => {
-                    $('#ligandProteinTable tr').removeClass('active');
-                    $(el).addClass('active');
-                    rowSelect(row)
-                }
-            });
-
-            $("#ligandProteinTableSearch").on("keyup", function () {
-                const value = $(this).val().toLowerCase();
-                $("#ligandProteinTable tr").filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                });
-            });
-        },
         zoomInLigand() {
             this.sdfComponent.autoView();
         },
@@ -100,8 +71,8 @@ export default {
             this.component.autoView();
         },
         async downloadPdbFile(evt) {
-            const response = await api.drugTarget.downloadCombinedPdb(this.experiment, this.selectedRowId);
-            const filename = 'protein.pdb';
+            const response = await api.drugTarget.downloadCombinedPdb(this.experiment, this.experiment.metaData['selectedProteinId'], this.experiment.metaData['selectedLigandId']);
+            const filename = this.experiment.metaData['selectedProteinId'] + this.experiment.metaData['selectedLigandId'] + '_docking.pdb';
             const blob = new Blob([response.data.pdb], { type: 'text/plain' });
             if (window.navigator.msSaveOrOpenBlob) {
                 window.navigator.msSaveBlob(blob, filename);
@@ -116,7 +87,6 @@ export default {
         }
     },
     mounted() {
-        this.renderTable();
         this.render();
     },
     computed: {
@@ -148,25 +118,6 @@ export default {
             <button type="button" @click="downloadPdbFile()" style="width: 100%"
                 class="btn btn-primary padding-top-button-group">Download structure .pdb
             </button>
-        </div>
-        <div class="row">
-            <div class="col-md-12 container">
-                <h4>Ligand-protein pairs</h4>
-                <label for="ligandProteinTableSearch">Search for ligand-protein pair, click to render:</label><input
-                    class="form-control" id="ligandProteinTableSearch" type="text" placeholder="Search..">
-                <br>
-                <table style="max-height: 200px; overflow-y:scroll;" class="table table-bordered table-striped"
-                    id="ligandProteinTable">
-                    <thead>
-                        <tr>
-                            <th data-field="ligand">Ligand</th>
-                            <th data-field="protein">Protein</th>
-                            <th data-field="affinity">pLDDt</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-            <div class="col-md-2"></div>
         </div>
     </div>
 </template>

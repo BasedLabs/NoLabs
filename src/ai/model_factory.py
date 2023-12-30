@@ -104,4 +104,15 @@ def create_model(model_metadata: Dict[str, str], use_gpu: bool = False) -> Union
 
         return model
 
+    if model_type == "protein_design":
+
+        model_task = ""
+
+        if 'task' in model_metadata:
+            model_task = model_metadata["task"]
+
+        model = RfDiffusionProteinDesign(model_name=model_name, gpu=use_gpu, model_task=model_task)
+        model.load_model()
+        return model
+
     raise UnknownModelException()

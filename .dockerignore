@@ -1,0 +1,8 @@
+build/cpu.Dockerfile
+build/Dockerfile
+conformations/Dockerfile
+protein_design/Dockerfile
+.dockerignore
+.github
+.git
+**/.git

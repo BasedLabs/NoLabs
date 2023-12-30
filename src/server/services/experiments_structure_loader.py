@@ -1,23 +1,36 @@
 import json
 import os
+import glob
 import shutil
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Dict
+from pathlib import Path
+from werkzeug.datastructures import FileStorage
+from pathlib import Path
+from typing import List, Dict, Tuple
 
+from src.server.services.loaders import FileLoaderFactory, DTILoader, FastaFileLoader,PDBFileLoader
+from src.server.services.savers import FileSaverFactory, FastaFileSaver, SDFFileSaver, PDBFileSaver
+from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
+from src.server.services.progress import get_progress
+from src.server.services.mixins import UUIDGenerator
 from src.server.services.loaders import FileLoaderFactory, DTILoader
 from src.server.services.savers import FileSaverFactory
-from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR
+from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR, \
+    PROTEIN_DESIGN_EXPERIMENTS_DIR
 
 
 def _load_experiments_ids_names(experiments_dir) -> Dict:
     # List all directories inside the dti experiments folder
     experiment_ids = [d for d in os.listdir(experiments_dir) if os.path.isdir(os.path.join(experiments_dir, d))]
 
-    experimentId2name = {}
+    result_dict = {}
 
     for experiment_id in experiment_ids:
-        metadata_path = os.path.join(experiments_dir, experiment_id, 'metadata.json')
+        experiment_dir = os.path.join(experiments_dir, experiment_id)
+        metadata_path = os.path.join(experiment_dir, 'metadata.json')
 
         # Check if metadata.json exists in the directory
         if os.path.exists(metadata_path):
@@ -26,10 +39,21 @@ def _load_experiments_ids_names(experiments_dir) -> Dict:
                 # Assuming the JSON structure has a key 'experiment_name' with the name of the experiment.
                 # Adjust if the structure is different.
                 experiment_name = data.get('name', None)
-                if experiment_name:
-                    experimentId2name[experiment_id] = experiment_name
+                experiment_date = data.get('date', None)
 
-    return experimentId2name
+                #Get progress if exists
+                experiment_progress = 0
+                try:
+                    experiment_progress = get_progress(experiment_dir)['progress']
+                except:
+                    print('Progress does not exist for experiment: ', experiment_id)
+
+                if experiment_name:
+                    result_dict[experiment_id] = {'name': experiment_name,
+                                                  'date': experiment_date,
+                                                   'progress': experiment_progress}
+
+    return result_dict
 
 
 def _experiment_exists(base_dir, experiment_id):
@@ -123,6 +147,42 @@ class ProteinLabExperimentsLoader(ExperimentsLoader):
             "localisation": "cell_localisation.json",
             "solubility": "solubility.json"
         }
+        self.fasta_saver = FastaFileSaver()
+
+    def store_single_input(self, content, filename, experiment_id):
+        inputs_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, 'inputs')
+        self.fasta_saver.save(content, inputs_dir, filename)
+
+    def store_inputs(self, fasta_files: List[FileStorage], experiment_id):
+        inputs_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, 'inputs')
+
+        for fasta_file in fasta_files:
+            self.fasta_saver.save(fasta_file, inputs_dir, fasta_file.filename)
+
+    def get_input_files(self, experiment_id):
+        inputs_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, 'inputs')
+        all_sequence_files = []
+
+        # Traverse the experiment directory
+        for root, dirs, files in os.walk(inputs_dir):
+            for file in files:
+                if file.endswith('.fasta'):
+                    file_path = os.path.join(root, file)
+                    all_sequence_files.append(file_path)
+
+        return all_sequence_files
+
+    def get_sequences(self, file_paths):
+        fasta_file_loader = FastaFileLoader()
+        all_sequence_ids = []
+        all_sequences = []
+
+        for file_path in file_paths:
+            sequence_ids, sequences = fasta_file_loader.load(file_path=file_path)
+            all_sequence_ids.extend(sequence_ids)
+            all_sequences.extend(sequences)
+
+        return all_sequence_ids, all_sequences
 
     def experiment_exists(self, experiment_id) -> bool:
         return _experiment_exists(PROTEIN_EXPERIMENTS_DIR, experiment_id)
@@ -130,19 +190,37 @@ class ProteinLabExperimentsLoader(ExperimentsLoader):
     def load_experiments(self) -> Dict:
         return _load_experiments_ids_names(PROTEIN_EXPERIMENTS_DIR)
 
-    def load_experiment(self, experiment_id) -> Dict:
+    def get_protein_ids(self, experiment_id):
+        input_fastas = self.get_input_files(experiment_id)
+        protein_ids, _ = self.get_sequences(input_fastas)
+        return protein_ids
+
+    def load_predictions(self, experiment_id, protein_id) -> Dict:
         result = {}
         for key, filename in self.task2results_map.items():
-            experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+            output_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, protein_id)
             loader = FileLoaderFactory().get_loader(filename)
-            loaded_content = loader.load(experiment_dir, filename)
+            loaded_content = loader.load(output_dir, filename)
             result[key] = loaded_content
         return result
 
-    def store_experiment(self, experiment_id: str, result, filename: str):
-        file_saver = FileSaverFactory().get_saver(filename)
+    def load_experiment_progress(self, experiment_id):
         experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
-        file_saver.save(result, experiment_dir, filename)
+        return get_progress(experiment_dir)
+
+    def load_protein_progress(self, experiment_id, protein_id):
+        target_dir =  os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, protein_id)
+        res =  get_progress(target_dir)
+        return res
+
+    def save_outputs(self, result, task, save_dir):
+        filename = self.task2results_map[task]
+        file_saver = FileSaverFactory().get_saver(filename)
+        file_saver.save(result, save_dir, filename)
+
+    def store_experiment(self, experiment_id: str, sequence, result, task):
+        save_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id, sequence)
+        self.save_outputs(result, task, save_dir)
 
     def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
         metadata = {
@@ -174,11 +252,66 @@ class ProteinLabExperimentsLoader(ExperimentsLoader):
         self._rename_experiment(PROTEIN_EXPERIMENTS_DIR, experiment_id, experiment_name)
 
 
+class ProteinDesignExperimentsLoader(ExperimentsLoader):
+    def experiment_exists(self, experiment_id) -> bool:
+        return _experiment_exists(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
+
+    def load_experiments(self) -> Dict:
+        return _load_experiments_ids_names(PROTEIN_DESIGN_EXPERIMENTS_DIR)
+
+    def load_experiment(self, experiment_id) -> List[str]:
+        experiment_dir = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
+        pdbs = []
+        for file in glob.glob(os.path.join(experiment_dir, '*_designed*.pdb')):
+            with open(file, 'r') as f:
+                pdbs.append(f.read())
+        return pdbs
+
+    def store_experiment(self, experiment_id: str, result: List[str], filename: str = None):
+        experiment_dir = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
+        for i, pdb in enumerate(result):
+            fn_without_extension, extension = os.path.splitext(filename)
+            fn_without_extension += '_designed_' + str(i)
+            fn = fn_without_extension + extension
+            file_saver = FileSaverFactory().get_saver(fn)
+            file_saver.save(pdb, experiment_dir, fn)
+
+    def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
+        metadata = {
+            "id": experiment_id,
+            "name": experiment_name,
+            "date": datetime.now().isoformat()
+        }
+
+        metadata_path = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=4)
+
+    def read_experiment_metadata(self, experiment_id: str):
+        metadata_path = os.path.join(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id, "metadata.json")
+
+        # Check if metadata.json exists
+        if not os.path.exists(metadata_path):
+            raise FileNotFoundError(f"No metadata found for experiment_id: {experiment_id}")
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        return metadata
+
+    def delete_experiment(self, experiment_id):
+        self._delete_experiment(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id)
+
+    def rename_experiment(self, experiment_id, experiment_name):
+        self._rename_experiment(PROTEIN_DESIGN_EXPERIMENTS_DIR, experiment_id, experiment_name)
+
+
 class DTILabExperimentsLoader(ExperimentsLoader):
     def __init__(self):
         self.task2results_map = {
             "dti": "skip",
         }
+        self.loader = DTILoader()
 
     def experiment_exists(self, experiment_id) -> bool:
         return _experiment_exists(DTI_EXPERIMENTS_DIR, experiment_id)
@@ -186,10 +319,20 @@ class DTILabExperimentsLoader(ExperimentsLoader):
     def load_experiments(self) -> Dict:
         return _load_experiments_ids_names(DTI_EXPERIMENTS_DIR)
 
-    def load_result(self, experiment_id: str):
-        loader = DTILoader()
-        loaded_content = loader.get_dti_results(DTI_EXPERIMENTS_DIR, experiment_id)
+    def load_result(self, experiment_id: str, protein_id: str, ligand_id: str):
+        loaded_content = self.loader.get_dti_single_result(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, ligand_id)
         return loaded_content
+
+    def get_protein_ids(self, experiment_id: str):
+        return self.loader.get_protein_ids(experiments_folder=DTI_EXPERIMENTS_DIR, experiment_id=experiment_id)
+
+    def get_ligands_ids(self, experiment_id: str, protein_id: str):
+        protein_folder = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, protein_id, 'result')
+        return self.loader.get_ligand_names(protein_folder)
+
+    def load_experiment_progress(self, experiment_id):
+        experiment_dir = os.path.join(PROTEIN_EXPERIMENTS_DIR, experiment_id)
+        return get_progress(experiment_dir)
 
     def save_experiment_metadata(self, experiment_id: str, experiment_name: str):
         metadata = {
@@ -201,6 +344,98 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, "metadata.json")
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
+
+    def save_target_metadata(self, experiment_id: str, target_id: str, protein_name: str, manual_pocket = False):
+        metadata = {
+            "id": target_id,
+            "name": protein_name,
+            "date": datetime.now().isoformat(),
+            "manual_pocket": manual_pocket
+        }
+
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', target_id, "metadata.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=4)
+
+    def load_target_metadata(self, experiment_id: str, target_id: str,):
+        metadata_path = os.path.join(DTI_EXPERIMENTS_DIR,
+                                      experiment_id,
+                                        'targets',
+                                          target_id,
+                                            "metadata.json")
+
+        # Check if metadata.json exists
+        if not os.path.exists(metadata_path):
+            return {}
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        return metadata
+
+    def store_target(self, experiment_id: str, protein_file: List[FileStorage]):
+        experiments_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+        targets_dir = os.path.join(experiments_dir, 'targets')
+
+        if not os.path.exists(targets_dir):
+            os.mkdir(targets_dir)
+
+        pdb_saver = PDBFileSaver()
+        fasta_saver = FastaFileSaver()
+
+        id_generator = UUIDGenerator()
+
+        protein_id = id_generator.gen_uuid()['id']
+        protein_name = os.path.splitext(protein_file.filename)[-2]
+        protein_dir = os.path.join(targets_dir, protein_id)
+        if not os.path.exists(protein_dir):
+            os.mkdir(protein_dir)
+        self.save_target_metadata(experiment_id, protein_id, protein_name)
+
+        if protein_file.filename.endswith(".pdb"):
+            print("Saving pdb file")
+            pdb_saver.save(protein_file, protein_dir, protein_file.filename)
+        elif protein_file.filename.endswith(".fasta"):
+            fasta_saver.save(protein_file, protein_dir, protein_file.filename)
+
+    def load_targets(self, experiment_id: str):
+        targets_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets')
+
+        pdb_loader = PDBFileLoader()
+        fasta_loader = FastaFileLoader()
+
+        targets = {}
+
+        # Iterate over each subdirectory in the targets directory
+        if not os.path.exists(targets_dir):
+            return targets
+
+        for target_id in os.listdir(targets_dir):
+            target_path = os.path.join(targets_dir, target_id)
+
+            # Skip if not a directory
+            if not os.path.isdir(target_path):
+                continue
+
+            # Initialize the target entry
+            targets[target_id] = {
+                'metadata': self.load_target_metadata(experiment_id, target_id),
+                'pdb': None,
+                'fasta': None
+            }
+
+            # Check for PDB and FASTA files
+            for file in os.listdir(target_path):
+                if file.endswith('.pdb'):
+                    file = pdb_loader.load(target_path, os.path.basename(file))
+                    targets[target_id]['pdb'] = file  # Storing file name for simplicity
+                elif file.endswith('.fasta'):
+                    file = fasta_loader.load(os.path.join(targets_dir, target_id, file))[1][0]
+                    targets[target_id]['fasta'] = file  # Storing file name for simplicity
+
+        return targets
+
+
 
     def delete_experiment(self, experiment_id):
         self._delete_experiment(DTI_EXPERIMENTS_DIR, experiment_id)

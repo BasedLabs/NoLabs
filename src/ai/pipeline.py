@@ -3,18 +3,26 @@ import csv
 from datetime import date
 from typing import List
 
+import time
+
 from .model import BaseModel
 
+from src.server.services.experiments_structure_loader import ProteinLabExperimentsLoader
+from src.server.services.progress import ProgressTracker
 
 class Pipeline:
-    def __init__(self, models: List[BaseModel] = []):
+    def __init__(self, models: List[BaseModel] = [], progress_file='progress.json'):
         """
         models: pass the list of loaded models which inherit BaseModel class
         """
+        print("pipeline receives models: ", models)
         self.models = models
 
     def get_model_names(self) -> List[str]:
         return [model.model_name for model in self.models]
+    
+    def get_model_tasks(self) -> List[str]:
+        return [model.model_task for model in self.models]
 
     def get_model_by_task(self, model_task: str):
         """
@@ -30,53 +38,42 @@ class Pipeline:
         """
         self.models.append(model)
 
-    def predict(self, sequence: str):
+    def predict_single(self, sequence: str):
         """
         Make predictions for one sequence
         """
         output = {}
         for model in self.models:
-            output[model.model_name] = model.predict(sequence)
+            print(model.model_task)
+            output[model.model_task] = model.predict(sequence)
         return output
 
-    def predict_multiple(self, sequences: List[str], save_to_csv=False, custom_filename=""):
+    def predict_fasta(self, sequences: List[str],
+            protein_ids: List[str],
+            loader: ProteinLabExperimentsLoader,
+            experiment_dir: str,):
         """
         Make predictions for multiple sequences
         """
-        results = []
-        for sequence in sequences:
-            output = self.predict(sequence)
-            results.append((sequence, output))
 
-        if save_to_csv:
-            # Currently will save into results/ directory
-            save_directory = os.path.dirname(os.path.abspath(__file__)) + "/results/"
-            check_folder_exists(save_directory)
-            if custom_filename:
-                final_path = save_directory + custom_filename + ".csv"
-                self.save_results_to_csv(results, final_path)
-            else:
-                final_path = save_directory + str(date.today()) + ".csv"
-                self.save_results_to_csv(results, final_path)
-        return results
+        experiment_progress_tracker = ProgressTracker(experiment_dir, protein_ids)
+        for sequence, protein_id in zip(sequences, protein_ids):
+            output = self.predict_single(sequence)
+            protein_dir = os.path.join(experiment_dir, protein_id)
 
-    def save_results_to_csv(self, results, filename):
-        if not results:
-            print(f"Your predictions are empty")
-            return
+            protein_progress_tracker = ProgressTracker(protein_dir, tasks=self.get_model_tasks())
+            for task, result in output.items():
+                loader.save_outputs(result=result, task=task, save_dir=protein_dir)
+                protein_progress_tracker.update_progress(task)
+            experiment_progress_tracker.update_progress(protein_id)
 
-        with open(filename, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['Sequence'] + self.get_model_names())
+    def run(self, fasta_files_paths, loader: ProteinLabExperimentsLoader, experiment_dir=""):
+        protein_ids, sequences = loader.get_sequences(fasta_files_paths)
 
-            for result in results:
-                row = [result[0]]
-                outputs = result[1]
-
-                for key in outputs.keys():
-                    row.append(outputs[key])
-
-                writer.writerow(row)
+        self.predict_fasta(protein_ids=protein_ids, 
+                           sequences=sequences, 
+                           loader=loader, 
+                           experiment_dir=experiment_dir)
 
 
 def check_folder_exists(filename):

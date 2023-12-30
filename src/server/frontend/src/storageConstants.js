@@ -1,4 +1,4 @@
-const baseUrl = 'http://127.0.0.1:5000'
+export const baseUrl = 'http://127.0.0.1:5000'
 
 export const apiConstants = {
     aminoAcid: {
@@ -24,10 +24,25 @@ export const apiConstants = {
             mutation: 'aminoAcid_deleteExperiment',
             action: 'aminoAcid_deleteExperiment'
         },
-        loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
+        loadExperiment: { // request: {name: '123'}, response: {exp, protein_ids: []}
             path: baseUrl + '/api/amino-acid/load-experiment',
             mutation: 'aminoAcid_loadExperiment',
             action: 'aminoAcid_loadExperiment'
+        },
+        loadResults : {
+            path: baseUrl + '/api/amino-acid/load-results',
+            mutation: 'aminoAcid_loadResults',
+            action: 'aminoAcid_loadResults'
+        },
+        loadExperimentProgress : {
+            path: baseUrl + '/api/amino-acid/load-experiment-progress',
+            mutation: 'aminoAcid_loadExperimentProgress',
+            action: 'aminoAcid_loadExperimentProgress'
+        },
+        loadExperimentInstanceProgress : {
+            path: baseUrl + '/api/amino-acid/load-experiment-instance-progress',
+            mutation: 'aminoAcid_loadExperimentInstanceProgress',
+            action: 'aminoAcid_loadExperimentInstanceProgress'
         },
         changeExperimentName: {
             path: baseUrl + '/api/amino-acid/change-experiment-name',
@@ -54,6 +69,16 @@ export const apiConstants = {
             mutation: 'drugTarget_getAllExperiments',
             action: 'drugTarget_getAllExperiments'
         },
+        addTarget: {
+            path: baseUrl + '/api/drug-target/add-target',
+            mutation: 'drugTarget_addTarget',
+            action: 'drugTarget_addTarget'
+        },
+        loadTargets: {
+            path: baseUrl + '/api/drug-target/load-targets',
+            mutation: 'drugTarget_loadTargets',
+            action: 'drugTarget_loadTargets'
+        },
         inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
             path: baseUrl + '/api/drug-target/inference',
             mutation: 'drugTarget_inference',
@@ -68,6 +93,11 @@ export const apiConstants = {
             path: baseUrl + '/api/drug-target/load-experiment',
             mutation: 'drugTarget_loadExperiment',
             action: 'drugTarget_loadExperiment'
+        },
+        loadResults : {
+            path: baseUrl + '/api/drug-target/load-results',
+            mutation: 'drugTarget_loadResults',
+            action: 'drugTarget_loadResults'
         },
         changeExperimentName: {
             path: baseUrl + '/api/drug-target/change-experiment-name',
@@ -109,6 +139,40 @@ export const apiConstants = {
         changeExperimentName: {
             path: baseUrl + '/api/conformations/change-experiment-name',
             action: 'conformations_changeExperimentName'
+        }
+    },
+
+    proteinDesign: {
+        addExperiment: {
+            mutation: 'proteinDesign_addExperiment',
+            action: 'proteinDesign_addExperiment'
+        },
+        generateId: {
+            path: baseUrl + '/api/protein-design/generate-id'
+        },
+        experiments: { // response: [{name: 'exp1'}, {name: 'exp2'}]
+            path: baseUrl + '/api/protein-design/experiments',
+            mutation: 'proteinDesign_getAllExperiments',
+            action: 'proteinDesign_getAllExperiments'
+        },
+        inference: { // request: {name: 'exp1', sdf: 'sdf', pdb: 'pdb'} response: {exp, data: []}
+            path: baseUrl + '/api/protein-design/inference',
+            mutation: 'proteinDesign_inference',
+            action: 'proteinDesign_inference'
+        },
+        deleteExperiment: { // request: {name: '123'}
+            path: baseUrl + '/api/protein-design/delete-experiment',
+            mutation: 'proteinDesign_deleteExperiment',
+            action: 'proteinDesign_deleteExperiment'
+        },
+        loadExperiment: { // request: {name: '123'}, response: {exp, data: []}
+            path: baseUrl + '/api/protein-design/load-experiment',
+            mutation: 'proteinDesign_loadExperiment',
+            action: 'proteinDesign_loadExperiment'
+        },
+        changeExperimentName: {
+            path: baseUrl + '/api/protein-design/change-experiment-name',
+            action: 'proteinDesign_changeExperimentName'
         }
     }
 }
