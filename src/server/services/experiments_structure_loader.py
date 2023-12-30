@@ -23,6 +23,7 @@ from src.server.services.loaders import FileLoaderFactory, DTILoader
 from src.server.services.savers import FileSaverFactory
 from src.server.settings import PROTEIN_EXPERIMENTS_DIR, DTI_EXPERIMENTS_DIR, CONFORMATIONS_EXPERIMENTS_DIR, \
     PROTEIN_DESIGN_EXPERIMENTS_DIR
+from test.ai.mock_model import APIFolding
 
 
 def _load_experiments_ids_names(experiments_dir) -> Dict:
@@ -479,6 +480,39 @@ class DTILabExperimentsLoader(ExperimentsLoader):
                     targets[target_id]['fasta'] = file  # Storing file name for simplicity
 
         return targets
+
+    def predict_3d_structure(self, experiment_id, protein_id):
+        protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)
+
+        # Find a .fasta file in the directory
+        fasta_file = None
+        for file in os.listdir(protein_dir):
+            if file.endswith(".fasta"):
+                fasta_file = file
+                break
+
+        if fasta_file is None:
+            print("No .fasta file found in the directory.")
+            return
+
+        # Initialize the APIFolding model
+        folding_model = APIFolding(model_name="esm_model", gpu=False)
+
+        # Read the fasta file
+        fasta_path = os.path.join(protein_dir, fasta_file)
+        with open(fasta_path, 'r') as file:
+            sequence = file.read()
+
+        # Predict the pdb structure
+        pdb_structure = folding_model.predict(sequence)
+
+        # Write the prediction to <fasta name>.pdb
+        pdb_file = os.path.splitext(fasta_file)[0] + '.pdb'
+        pdb_path = os.path.join(protein_dir, pdb_file)
+        with open(pdb_path, 'w') as file:
+            file.write(pdb_structure)
+
+        return pdb_structure
     
     def set_binding_pocket(self, experiment_id, protein_id, pocket_ids_array):
         protein_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets', protein_id)

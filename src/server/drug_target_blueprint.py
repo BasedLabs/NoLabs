@@ -17,6 +17,10 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/load-targets', methods=['GET'])
     def load_targets():
         return api_handler.load_targets(request)
+
+    @drug_target_bp.route('/predict-3d-structure', methods=['GET'])
+    def predict_3d_structure():
+        return api_handler.predict_3d_structure(request)
     
     @drug_target_bp.route('/set-binding-pocket', methods=['POST'])
     def store_binding_pocket():

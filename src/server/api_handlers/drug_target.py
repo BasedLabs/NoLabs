@@ -43,6 +43,13 @@ class DrugTargetApiHandler(ApiHandler):
 
         return {'id': experiment_id, 'name': experiment_name, 'targets': targets}
 
+    def predict_3d_structure(self, request):
+        experiment_id = request.args.get('id')
+        protein_id = request.args.get('proteinId')
+        pdb_structure = self.experiments_loader.predict_3d_structure(experiment_id, protein_id)
+
+        return {'pdb': pdb_structure}
+
     def set_binding_pocket(self, request):
         data = request.json  # Access data sent in the request body
         experiment_id = data.get('id')

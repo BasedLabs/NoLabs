@@ -144,6 +144,7 @@ class DrugDiscovery(BaseExperiment):
                         if file.endswith('.fasta'):
                             pdb_file_path = os.path.join(subdir, file)
                             protein_file_paths.append(pdb_file_path)
+                            self.loader.predict_3d_structure(experiment_id, target_id)
                             # Assuming predict_pocket is a method that predicts the pocket and returns it
                             binding_pocket = self.predict_pocket(experiment_id=experiment_id, protein_id=target_id)
                             binding_pockets.append(np.array(binding_pocket))
