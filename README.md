@@ -59,7 +59,7 @@ We are working on expanding both and adding a cell biolab and genetic biolab, an
 ## Features ##
 
 **Drug discovery biolab (State of the art):**
-1) Drug-target interaction prediction, hight throughput virtual screening (HTVS) based on [uMol](https://github.com/patrickbryant1/Umol)
+1) Drug-target interaction prediction, high throughput virtual screening (HTVS) based on [uMol](https://github.com/patrickbryant1/Umol)
 2) Automatic pocket prediction via [P2Rank](https://github.com/rdk/p2rank)
 3) Automatic MSA generation via [HH-suite3](https://github.com/soedinglab/hh-suite)
 <img src="media/DTI_inputs.gif" width="100%">
