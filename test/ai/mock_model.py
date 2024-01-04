@@ -1,6 +1,6 @@
 import os
 from typing import List
-from src.ai.model import BaseModel
+from nolabs.ai.model import BaseModel
 
 import requests
 

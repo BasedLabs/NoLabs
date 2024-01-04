@@ -18,11 +18,11 @@
 
   <img alt="License" src="https://img.shields.io/github/license/BasedLabs/nolabs?color=56BEB8">
 
-  <!-- <img alt="Github issues" src="https://img.shields.io/github/issues/BasedLabs/nolabs?color=56BEB8" /> -->
+  <!-- <img alt="Github issues" nolabs="https://img.shields.io/github/issues/BasedLabs/nolabs?color=56BEB8" /> -->
 
-  <!-- <img alt="Github forks" src="https://img.shields.io/github/forks/BasedLabs/nolabs?color=56BEB8" /> -->
+  <!-- <img alt="Github forks" nolabs="https://img.shields.io/github/forks/BasedLabs/nolabs?color=56BEB8" /> -->
 
-  <!-- <img alt="Github stars" src="https://img.shields.io/github/stars/BasedLabs/nolabs?color=56BEB8" /> -->
+  <!-- <img alt="Github stars" nolabs="https://img.shields.io/github/stars/BasedLabs/nolabs?color=56BEB8" /> -->
 </p>
 
 <!-- Status -->

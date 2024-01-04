@@ -3,9 +3,11 @@ flask-cors
 pandas
 numpy
 transformers
-
+flake8
+fastapi
+mypy
 torch==1.13.1
-
+pydantic
 flask_socketio
 torchdrug==0.1.2
 torchmetrics==1.2.0
