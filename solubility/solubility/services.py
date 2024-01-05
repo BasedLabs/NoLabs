@@ -10,9 +10,9 @@ from esm import FastaBatchedDataset, pretrained  # type: ignore
 
 import requests
 
-from gene_ontology.api_models import RunGeneOntologyPredictionRequest, RunGeneOntologyPredictionResponse
-from gene_ontology.loggers import Log
-from gene_ontology.settings import Settings
+from solubility.api_models import RunSolubilityPredictionRequest, RunSolubilityPredictionResponse
+from solubility.loggers import Log
+from solubility.settings import Settings
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 models_dir = os.path.join(current_dir, 'models')
@@ -21,21 +21,25 @@ models_dir = os.path.join(current_dir, 'models')
 Log.cuda_available(torch.cuda.is_available())
 
 
-class SimpleGOMultiLayerPerceptron(nn.Module):
-    def __init__(self, input_dim, num_classes):
-        super(SimpleGOMultiLayerPerceptron, self).__init__()
-        self.linear1 = nn.Linear(input_dim, 500)
-        self.activation1 = nn.ReLU()
-        self.linear2 = nn.Linear(500, 300)
-        self.activation2 = nn.ReLU()
-        self.linear3 = nn.Linear(300, num_classes)
+class SimpleSolubilityMultiLayerPerceptron(nn.Module):
+    # Current MLP is build on top of ESM-2 150M
+    def __init__(self, input_size = 640, hidden_sizes = [320, 160, 80, 40], output_size = 1, dropout_rate = 0.2):
+        super(SimpleSolubilityMultiLayerPerceptron, self).__init__()
+        layers = []
+        prev_size = input_size
+        for size in hidden_sizes:
+            layers.append(nn.Linear(prev_size, size))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(dropout_rate))  # Add dropout layer
+            prev_size = size
+        self.hidden_layers = nn.Sequential(*layers)
+        self.output_layer = nn.Linear(prev_size, output_size)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        x = self.linear1(x)
-        x = self.activation1(x)
-        x = self.linear2(x)
-        x = self.activation2(x)
-        x = self.linear3(x)
+        x = self.hidden_layers(x)
+        x = self.output_layer(x)
+        x = self.sigmoid(x)
         return x
 
 
@@ -109,11 +113,7 @@ class ESM2EmbeddingGenerator:
                     return result["mean_representations"][30]
 
 
-class GeneOntologyPrediction:
-    """
-    Look for a better model there https://www.kaggle.com/competitions/cafa-5-protein-function-prediction
-    """
-
+class SolubilityPrediction:
     def __init__(self, model_name, gpu):
         self.model_name = model_name
         self.model = None
@@ -126,22 +126,21 @@ class GeneOntologyPrediction:
         self.embedding_model = None
 
     def load_model(self):
-        Log.loading_gene_ontology_model()
-        self.model = SimpleGOMultiLayerPerceptron(input_dim=640, num_classes=200).to(self.device)
+        Log.loading_solubility_model()
+        self.model = SimpleSolubilityMultiLayerPerceptron().to(self.device)
         self._load_model_state_dict()
         self.model.eval()
-        self.labels = np.load(os.path.join(models_dir, "go_labels_200.npy"), allow_pickle=True)
-        Log.gene_ontology_has_been_loaded()
+        Log.solubility_has_been_loaded()
 
     def set_embedding_model(self, embedding_model):
         self.embedding_model = embedding_model
 
     def _load_model_state_dict(self):
         # URL of the model's .pth file on Hugging Face Model Hub
-        model_url = "https://huggingface.co/thomasshelby/go_prediction/resolve/main/go_model_150M.pth"
+        model_url = "https://huggingface.co/thomasshelby/solubility_model/resolve/main/solubility_model.pth"
 
         # Path where you want to save the downloaded .pth file
-        local_path = os.path.join(models_dir, "go_model_150M.pth")
+        local_path = os.path.join(models_dir, "solubility_model.pth")
 
         if not os.path.exists(local_path):
             with open(local_path, 'wb') as f:
@@ -150,22 +149,18 @@ class GeneOntologyPrediction:
 
         self.model.load_state_dict(torch.load(local_path, map_location=self.device))
 
-    def predict(self, protein_sequence: str) -> Dict[str, numpy.float32]:
-        Log.making_gene_ontology_predictions()
-        embedding = self.embedding_model.predict(protein_sequence)
+    def predict(self, sequence: str):
+        Log.making_solubility_predictions()
+        embedding = self.embedding_model.predict(sequence)
         embedding = embedding.to(self.device)
-        # type: ignore
-        raw_outputs = torch.nn.functional.sigmoid(self.model(embedding)).squeeze().detach().cpu().numpy()
-
-        outputs: Dict[str, numpy.float32] = {label: confidence for label, confidence in zip(self.labels, raw_outputs)}
-        Log.successfully_predicted_gene_ontology()
-        return outputs
+        outputs = self.model(embedding.float())
+        Log.successfully_predicted_solubility()
+        return outputs.item()
 
 
-def run_gene_ontology_prediction(request: RunGeneOntologyPredictionRequest) -> RunGeneOntologyPredictionResponse:
+def run_solubility_predictions(request: RunSolubilityPredictionRequest) -> RunSolubilityPredictionResponse:
     try:
-        model = GeneOntologyPrediction(model_name='gene_ontology',
-                                       gpu=torch.cuda.is_available())
+        model = SolubilityPrediction(model_name='solubility', gpu=torch.cuda.is_available())
         model.load_model()
         if not model.embedding_model:
             settings = Settings()
@@ -174,11 +169,8 @@ def run_gene_ontology_prediction(request: RunGeneOntologyPredictionRequest) -> R
             model.set_embedding_model(emb_model)
 
         result = model.predict(request.proteinSequence)
-        native_float_result = {}
-        for key in result.keys():
-            native_float_result[key] = result[key].item()
-        return RunGeneOntologyPredictionResponse(go_confidence=native_float_result, errors=[])
+        return RunSolubilityPredictionResponse(solubleConfidence=result, errors=[])
     except Exception:
         Log.exception()
-        return RunGeneOntologyPredictionResponse(go_confidence={},
-                                                 errors=['Internal error in gene ontology prediction occured'])
+        return RunSolubilityPredictionResponse(solubleConfidence=None,
+                                                 errors=['Internal error in solubility prediction occured'])
