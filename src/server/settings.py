@@ -2,7 +2,7 @@ import os
 
 is_test = True
 use_gpu = False
-host = '127.0.0.1'
+host = '184.105.3.176'
 port = 5000
 
 dirname = os.path.dirname

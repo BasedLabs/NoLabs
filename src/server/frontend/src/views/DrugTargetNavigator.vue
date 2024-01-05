@@ -1,7 +1,7 @@
 <script>
-import TargetsList from '../components/AminoAcidLab/TargetsList.vue';
-import LigandsList from '../components/AminoAcidLab/LigandList.vue'
-import RunDrugTarget from '../components/AminoAcidLab/RunDrugTarget.vue'
+import TargetsList from '../components/DrugTargetLab/TargetsList.vue';
+import LigandsList from '../components/DrugTargetLab/LigandList.vue'
+import RunDrugTarget from '../components/DrugTargetLab/RunDrugTarget.vue'
 
 export default {
   components: {

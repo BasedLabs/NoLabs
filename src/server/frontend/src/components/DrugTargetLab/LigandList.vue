@@ -48,6 +48,16 @@ export default {
                     console.error('Error uploading file:', error);
                 });
         },
+        deleteLigand(ligandId) {
+            this.api.deleteLigand(this.experiment.metaData.id, ligandId)
+                .then(() => {
+                    // Refresh the targets list after deletion
+                    this.loadLigands();
+                })
+                .catch(error => {
+                    console.error('Error deleting ligand:', error);
+                });
+        },
         openModal(ligand) {
             this.selectedLigand = ligand;
             this.isModalOpen = true;
@@ -83,6 +93,7 @@ export default {
             <h4>Uploaded ligands: </h4>
             <div v-for="(ligand, id) in ligands" :key="id" class="ligand-button">
                 <button class="btn btn-info" style="width: 50vw;" @click="openModal(ligand)">{{ ligand.metadata.name }}</button>
+                <button class="btn btn-danger" @click="deleteLigand(id)">Delete</button>
             </div>
         </div>
 

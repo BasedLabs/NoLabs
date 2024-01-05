@@ -1,4 +1,4 @@
-export const baseUrl = 'http://localhost:5000'
+export const baseUrl = 'http://184.105.3.176:5000'
 
 export const apiConstants = {
     aminoAcid: {
@@ -74,6 +74,9 @@ export const apiConstants = {
             mutation: 'drugTarget_addTarget',
             action: 'drugTarget_addTarget'
         },
+        deleteTarget: {
+            path: baseUrl + '/api/drug-target/delete-target'
+        },
         loadTargets: {
             path: baseUrl + '/api/drug-target/load-targets',
             mutation: 'drugTarget_loadTargets',
@@ -97,6 +100,9 @@ export const apiConstants = {
             path: baseUrl + '/api/drug-target/add-ligand',
             mutation: 'drugTarget_addLigand',
             action: 'drugTarget_addLigand'
+        },
+        deleteLigand: {
+            path: baseUrl + '/api/drug-target/delete-ligand'
         },
         loadLigands: {
             path: baseUrl + '/api/drug-target/load-ligands',

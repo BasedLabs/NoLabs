@@ -450,6 +450,10 @@ export const api = {
         addTarget: async (experiment, file) => {
             return await store.dispatch(apiConstants.drugTarget.addTarget.action, { experiment, file });
         },
+        deleteTarget: async (experimentId, targetId) => {
+            return await axios.post(apiConstants.drugTarget.deleteTarget.path,
+                { id: experimentId, proteinId: targetId });
+        },
         loadTargets: async (experiment) => {
             return await store.dispatch(apiConstants.drugTarget.loadTargets.action, { experiment });
         },
@@ -474,6 +478,10 @@ export const api = {
         },
         addLigand: async (experiment, file) => {
             return await store.dispatch(apiConstants.drugTarget.addLigand.action, { experiment, file });
+        },
+        deleteLigand: async (experimentId, ligandId) => {
+            return await axios.post(apiConstants.drugTarget.deleteLigand.path,
+                { id: experimentId, ligandId: ligandId });
         },
         loadLigands: async (experiment) => {
             return await store.dispatch(apiConstants.drugTarget.loadLigands.action, { experiment });

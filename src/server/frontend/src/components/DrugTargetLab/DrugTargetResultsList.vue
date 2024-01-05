@@ -67,20 +67,6 @@ export default {
         closeModal() {
             this.isModalOpen = false;
         },
-        isTargetInQueue(proteinId) {
-            const targetLigands = this.experiment.ligands 
-                ? Object.keys(this.experiment.ligands)
-                : [];
-            const resultLigands = this.experiment.results && this.experiment.results.proteinIds && this.experiment.results.proteinIds[proteinId] && this.experiment.results.proteinIds[proteinId].ligandIds
-                ? Object.keys(this.experiment.results.proteinIds[proteinId].ligandIds)
-                : [];
-
-            return !this.arraysEqual(targetLigands.sort(), resultLigands.sort());
-        },
-        arraysEqual(a, b) {
-            if (a.length !== b.length) return false;
-            return a.every((val) => b.includes(val));
-        },
         isInResultsOrProcessing(targetId, ligandId) {
             // Check if target-ligand pair is in results or currently processing
             return this.experiment.results 
@@ -90,9 +76,13 @@ export default {
                     || (this.experiment.results.proteinIds[targetId].ligandResultsAvailable
                         && this.experiment.results.proteinIds[targetId].ligandResultsAvailable[ligandId] === false));
         },
+        hasResultsAvailable(proteinId) {
+            return this.ligandIds(proteinId).some(ligandId => this.isResultAvailable(proteinId, ligandId));
+        },
         isProcessing(proteinId) {
-            // Check if any ligand for the given proteinId is still processing
-            return this.ligandIds(proteinId).some(ligandId => !this.isResultAvailable(proteinId, ligandId));
+            // Check if any ligand for the given proteinId is still processing or no ligands available yet
+            return (!this.ligandIds(proteinId).length || 
+                    this.ligandIds(proteinId).some(ligandId => !this.isResultAvailable(proteinId, ligandId)));
         },
         isResultAvailable(proteinId, ligandId) {
             if (this.experiment.results.proteinIds
@@ -107,7 +97,6 @@ export default {
             }
             return false; // Return false if the ligandId is not found or other conditions are not met
         },
-        
         getLigandsForTarget(targetId) {
             // Return the ligands associated with the given target ID
             return this.experiment.ligands || [];
@@ -169,17 +158,6 @@ export default {
         </div>
     </div>
 
-    <div v-for="proteinId in proteinIds" :key="proteinId">
-        <div  v-if="isProcessing(proteinId)" class="container-fluid row align-items-center">
-            <div v-for="ligandId in ligandIds(proteinId)" :key="ligandId">
-                <button v-if="!isResultAvailable(proteinId, ligandId)" class="btn" :style="getButtonStyle()" :disabled="true">
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    {{ this.experiment.targets[proteinId].metadata.name }}: {{ ligandId }}
-                </button>
-            </div>
-        </div>
-    </div>
-
     <h4 style="margin-top: 20px;">Results:</h4>
     <div v-for="proteinId in proteinIds" :key="proteinId">
         <div class="container-fluid row align-items-center">
@@ -187,15 +165,18 @@ export default {
                 <button class="btn btn-primary dropdown-toggle"
                         type="button" 
                         @click="toggleDropdown(proteinId)"
-                        aria-expanded=false>
+                        :class="{ 'btn-secondary': isProcessing(proteinId) && !hasResultsAvailable(proteinId) }"
+                        aria-expanded="false">
+                    <span v-if="isProcessing(proteinId)" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     {{ this.experiment.targets[proteinId].metadata.name }}
                 </button>
             </div>
             <div v-if="dropdownOpen[proteinId]" v-for="ligandId in ligandIds(proteinId)" :key="ligandId">
-                    <button class="btn btn-primary"
-                            @click="loadPredictionsData(proteinId, ligandId)">
-                        {{ ligandId }}
-                    </button>
+                <button class="btn btn-primary"
+                        @click="loadPredictionsData(proteinId, ligandId)">
+                    <span v-if="!isResultAvailable(proteinId, ligandId)" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    {{ ligandId }}
+                </button>
             </div>
         </div>
     </div>

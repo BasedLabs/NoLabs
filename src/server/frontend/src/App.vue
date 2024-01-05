@@ -72,9 +72,9 @@ export default {
     initProteins() {
       this.loadProteinModel(this.$refs.aminoAcidProtein, 'exampleProteins/protein.pdb', true, true);
       this.loadProteinModel(this.$refs.drugDiscoveryProtein, 'exampleProteins/protein_ligand.pdb', false, true);
-      this.loadProteinModel(this.$refs.conformationsProtein, 'exampleProteins/conformations.pdb', true, true);
+      this.loadProteinModel(this.$refs.conformationsProtein, 'exampleProteins/7e3h.pdb', true, true);
       this.loadProteinModel(this.$refs.proteinDesign, 'exampleProteins/proteinDesign.pdb', true, false);
-      this.loadProteinModel(this.$refs.multiStepProtein, 'exampleProteins/1aep_ms.pdb', true, false, true);
+      this.loadProteinModel(this.$refs.multiStepProtein, 'exampleProteins/conformations.pdb', true, false, true);
     },
     loadProteinModel(element, pdbPath, isCartoon, rotate, isMultiStep = false) {
       let viewer = $3Dmol.createViewer(element, {
@@ -82,7 +82,12 @@ export default {
       });
 
       fetch(pdbPath)
-        .then(response => response.text())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.text();
+        })
         .then(pdbData => {
           viewer.addModel(pdbData, 'pdb');
 
@@ -104,23 +109,28 @@ export default {
           }
 
           viewer.render();
+        })
+        .catch(error => {
+          console.error('There has been a problem with your fetch operation:', error);
         });
     },
 
     animateMultiStepModel(viewer) {
       let modelCount = viewer.getModel().getNumFrames();
-      let currentFrame = 0;
+      console.log("Animating multi-step model with frame count: ", modelCount);
+      if (modelCount <= 1) return; // No animation if only one frame
 
+      let currentFrame = 0;
       function animate() {
         viewer.setStyle({}, { cartoon: { color: 'spectrum' } });
         viewer.setModelFrame(viewer.getModel(), currentFrame);
         viewer.render();
         currentFrame = (currentFrame + 1) % modelCount;
-        setTimeout(animate, 1000); // Adjust time for frame change
+        setTimeout(animate, 100); // Adjust time for frame change
       }
-
       animate();
     },
+
     rotateModel(viewer) {
       function rotate() {
         viewer.rotate(0.3, { x: 0, y: 1, z: 0 }); // Adjust rotation axis and speed as needed
