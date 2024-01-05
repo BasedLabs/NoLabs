@@ -53,6 +53,8 @@ class RunSimulationsFeature:
                         if not gromacs_simulations_result.errors:
                             return api.RunSimulationsResponse(gromacs_simulations_result.pdb_content)
 
+                    client.
+
 
         response = client.gromacs_run_gromacs_simulations_post(
             run_gromacs_simulations_request=Run)

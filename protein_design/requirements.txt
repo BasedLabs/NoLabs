@@ -1,3 +1,5 @@
-Flask
-flask-cors
-requests
+fastapi
+uvicorn
+python-json-logger
+mypy
+pydantic

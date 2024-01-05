@@ -8,7 +8,7 @@ app = FastAPI()
 
 
 @app.post("/run-pdb-fixer")
-async def fixer(request: RunPdbFixerRequest) -> RunPdbFixerResponse:
+async def run_pdb_fixer_endpoint(request: RunPdbFixerRequest) -> RunPdbFixerResponse:
     Log.fixer_request(request)
     result = run_pdb_fixer(request)
     Log.fixer_response(result)
@@ -16,7 +16,7 @@ async def fixer(request: RunPdbFixerRequest) -> RunPdbFixerResponse:
 
 
 @app.post("/run-gromacs-simulations")
-async def gromacs(request: RunGromacsSimulationsRequest) -> RunSimulationsResponse:
+async def run_gromacs_simulations_endpoint(request: RunGromacsSimulationsRequest) -> RunSimulationsResponse:
     Log.gromacs_simulations_request(request)
     result = run_gromacs_simulation(request)
     Log.simulations_response(result)
@@ -24,7 +24,7 @@ async def gromacs(request: RunGromacsSimulationsRequest) -> RunSimulationsRespon
 
 
 @app.post('/run-pdb-simulations')
-async def simulations(request: RunPdbSimulationsRequest) -> RunSimulationsResponse:
+async def run_pdb_simulations_endpoint(request: RunPdbSimulationsRequest) -> RunSimulationsResponse:
     Log.pdb_simulations_request(request)
     result = run_pdb_simulation(request)
     Log.simulations_response(result)
@@ -32,7 +32,7 @@ async def simulations(request: RunPdbSimulationsRequest) -> RunSimulationsRespon
 
 
 @app.post('/gen-gro-top')
-async def gen_gro_top(request: GenGroTopRequest) -> GenGroTopResponse:
+async def gen_gro_top_endpoint(request: GenGroTopRequest) -> GenGroTopResponse:
     Log.gro_top_request(request)
     result = generate_gromacs_files(request)
     Log.gro_top_response(result)
