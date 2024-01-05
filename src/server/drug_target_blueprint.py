@@ -13,6 +13,10 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/add-target', methods=['POST'])
     def add_target():
         return api_handler.add_target(request)
+
+    @drug_target_bp.route('/delete-target', methods=['POST'])
+    def delete_target():
+        return api_handler.delete_target(request)
     
     @drug_target_bp.route('/load-targets', methods=['GET'])
     def load_targets():
@@ -37,6 +41,10 @@ def resolve_api_endpoints(api_handler: DrugTargetApiHandler):
     @drug_target_bp.route('/add-ligand', methods=['POST'])
     def add_ligand():
         return api_handler.add_ligand(request)
+    
+    @drug_target_bp.route('/delete-ligand', methods=['POST'])
+    def delete_ligand():
+        return api_handler.delete_ligand(request)
     
     @drug_target_bp.route('/load-ligands', methods=['GET'])
     def load_ligands():

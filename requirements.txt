@@ -12,7 +12,6 @@ torchmetrics==1.2.0
 rdkit
 setfit
 accelerate
-biopython
 fair-esm
 requests
 obonet

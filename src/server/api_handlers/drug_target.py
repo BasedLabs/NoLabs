@@ -35,6 +35,15 @@ class DrugTargetApiHandler(ApiHandler):
 
         return {'id': experiment_id, 'name': experiment_name}
 
+    def delete_target(self, request):
+        data = request.json  # Access data sent in the request body
+        experiment_id = data.get('id')
+        protein_id = data.get('proteinId')
+
+        self.experiments_loader.delete_target(experiment_id, protein_id)
+
+        return {'id': experiment_id}
+
     def load_targets(self, request):
         experiment_name = request.args.get('name')
         experiment_id = request.args.get('id')
@@ -98,6 +107,15 @@ class DrugTargetApiHandler(ApiHandler):
         self.experiments_loader.store_ligand(experiment_id, ligand_file)
 
         return {'id': experiment_id, 'name': experiment_name}
+
+    def delete_ligand(self, request):
+        data = request.json  # Access data sent in the request body
+        experiment_id = data.get('id')
+        ligand_id = data.get('ligandId')
+
+        self.experiments_loader.delete_ligand(experiment_id, ligand_id)
+
+        return {'id': experiment_id}
     
     def load_ligands(self, request):
         experiment_name = request.args.get('name')

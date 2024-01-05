@@ -447,6 +447,17 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         elif protein_file.filename.endswith(".fasta"):
             fasta_saver.save(protein_file, protein_dir, protein_file.filename)
 
+    def delete_target(self, experiment_id: str, protein_id: str):
+        experiments_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+        target_dir = os.path.join(experiments_dir, 'targets', protein_id)
+        shutil.rmtree(target_dir)
+
+        #delete from results as well
+        result_dir = os.path.join(experiments_dir, 'results', protein_id)
+        if os.path.exists(result_dir):
+            shutil.rmtree(result_dir)
+        
+
     def load_targets(self, experiment_id: str):
         targets_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'targets')
 
@@ -559,7 +570,24 @@ class DTILabExperimentsLoader(ExperimentsLoader):
         self.save_ligand_metadata(experiment_id, ligand_id, ligand_name)
 
         sdf_saver.save(ligand_file, ligand_dir, ligand_file.filename)
-        
+
+    def delete_ligand(self, experiment_id: str, ligand_id: str):
+        experiments_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id)
+        ligand_dir = os.path.join(experiments_dir, 'ligands', ligand_id)
+        results_dir = os.path.join(experiments_dir, 'results')
+
+        ligand_name = self.load_ligand_metadata(experiment_id=experiment_id, ligand_id=ligand_id)['name']
+
+        # Remove the ligand directory
+        shutil.rmtree(ligand_dir)
+
+        if os.path.exists(results_dir):
+            for protein_id_subdir in os.listdir(results_dir):
+                protein_id_subdir_path = os.path.join(results_dir, protein_id_subdir)
+                if os.path.isdir(protein_id_subdir_path):
+                    ligand_subdir_path = os.path.join(protein_id_subdir_path, ligand_name)
+                    if os.path.exists(ligand_subdir_path):
+                        shutil.rmtree(ligand_subdir_path)
 
     def load_ligands(self, experiment_id: str):
         ligands_dir = os.path.join(DTI_EXPERIMENTS_DIR, experiment_id, 'ligands')

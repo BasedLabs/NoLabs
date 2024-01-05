@@ -392,46 +392,28 @@ class DrugTargetInteraction(BaseModel):
             logger.error(f"Failed to get .a3m for {fasta_file_path}: {response.status_code}")
 
 
-    def prepare_ligand_data(self, fasta_file, ligands, ligand_names, save_dir):
-        for ligand, ligand_name in zip(ligands, ligand_names):
-            protein_name = os.path.splitext(os.path.basename(fasta_file))[0]
+    def prepare_ligand_data(self, ligand, ligand_name, save_dir):
+        atom_encoding = {'B': 0, 'C': 1, 'F': 2, 'I': 3, 'N': 4, 'O': 5, 'P': 6, 'S': 7, 'Br': 8, 'Cl': 9,
+                            # Individual encoding
+                            'As': 10, 'Co': 10, 'Fe': 10, 'Mg': 10, 'Pt': 10, 'Rh': 10, 'Ru': 10, 'Se': 10, 'Si': 10,
+                            'Te': 10, 'V': 10, 'Zn': 10
+                            # Joint (rare)
+                            }
 
-            if not os.path.exists(save_dir):
-                os.makedirs(save_dir)
+        # Process ligand features
+        atom_types, atoms, bond_types, bond_lengths, bond_mask = bonds_from_smiles(ligand, atom_encoding)
+        ligand_inp_feats = {
+            'atoms': atoms,
+            'atom_types': atom_types,
+            'bond_types': bond_types,
+            'bond_lengths': bond_lengths,
+            'bond_mask': bond_mask
+        }
 
-            MSA = os.path.join(save_dir, protein_name + '.a3m')
-            PROCESSED_MSA = os.path.join(save_dir, protein_name + '_processed.a3m')
-            process_a3m(MSA, get_sequence(fasta_file), PROCESSED_MSA)
-            MSA = PROCESSED_MSA
-
-            # Process MSA features
-            feature_dict = process(fasta_file, [MSA])  # Assuming MSA is defined elsewhere
-            features_output_path = os.path.join(save_dir, 'msa_features.pkl')
-            with open(features_output_path, 'wb') as f:
-                pickle.dump(feature_dict, f, protocol=4)
-            logger.info('Saved MSA features to', features_output_path)
-
-            atom_encoding = {'B': 0, 'C': 1, 'F': 2, 'I': 3, 'N': 4, 'O': 5, 'P': 6, 'S': 7, 'Br': 8, 'Cl': 9,
-                             # Individual encoding
-                             'As': 10, 'Co': 10, 'Fe': 10, 'Mg': 10, 'Pt': 10, 'Rh': 10, 'Ru': 10, 'Se': 10, 'Si': 10,
-                             'Te': 10, 'V': 10, 'Zn': 10
-                             # Joint (rare)
-                             }
-
-            # Process ligand features
-            atom_types, atoms, bond_types, bond_lengths, bond_mask = bonds_from_smiles(ligand, atom_encoding)
-            ligand_inp_feats = {
-                'atoms': atoms,
-                'atom_types': atom_types,
-                'bond_types': bond_types,
-                'bond_lengths': bond_lengths,
-                'bond_mask': bond_mask
-            }
-
-            features_output_path = os.path.join(save_dir, f'{ligand_name}_ligand_inp_features.pkl')
-            with open(features_output_path, 'wb') as f:
-                pickle.dump(ligand_inp_feats, f, protocol=4)
-            print('Saved ligand features to', features_output_path)
+        features_output_path = os.path.join(save_dir, f'{ligand_name}_ligand_inp_features.pkl')
+        with open(features_output_path, 'wb') as f:
+            pickle.dump(ligand_inp_feats, f, protocol=4)
+        print('Saved ligand features to', features_output_path)
 
     def load_model(self):
         print("Loading uMol DTI params...")
@@ -459,7 +441,18 @@ class DrugTargetInteraction(BaseModel):
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
             self.submit_fasta_and_save_a3m(settings.FASTA_API, protein_file_path, save_dir)
-            self.prepare_ligand_data(protein_file_path, ligands, ligands_names, save_dir)
+
+            MSA = os.path.join(save_dir, protein_name + '.a3m')
+            PROCESSED_MSA = os.path.join(save_dir, protein_name + '_processed.a3m')
+            process_a3m(MSA, get_sequence(protein_file_path), PROCESSED_MSA)
+            MSA = PROCESSED_MSA
+
+            # Process MSA features
+            feature_dict = process(protein_file_path, [MSA])  # Assuming MSA is defined elsewhere
+            features_output_path = os.path.join(save_dir, 'msa_features.pkl')
+            with open(features_output_path, 'wb') as f:
+                pickle.dump(feature_dict, f, protocol=4)
+            logger.info('Saved MSA features to', features_output_path)
 
             for LIGAND, LIGAND_NAME in zip(ligands, ligands_names):
                 protein_folder = save_dir
@@ -468,15 +461,18 @@ class DrugTargetInteraction(BaseModel):
                 if not os.path.exists(ligand_folder):
                     os.makedirs(ligand_folder)
 
+                self.prepare_ligand_data(LIGAND, LIGAND_NAME, ligand_folder)
+
                 protein_progress_tracker = ProgressTracker(protein_folder, tasks=ligands_names)
 
                 result_folder = os.path.join(ligand_folder, 'result/')
+
 
                 if not os.path.exists(result_folder):
                     os.makedirs(result_folder)
 
                 MSA_FEATS = os.path.join(protein_folder, 'msa_features.pkl')
-                LIGAND_FEATS = os.path.join(protein_folder, f'{LIGAND_NAME}_ligand_inp_features.pkl')
+                LIGAND_FEATS = os.path.join(ligand_folder, f'{LIGAND_NAME}_ligand_inp_features.pkl')
 
                 with open(self.model_params_path, 'rb') as file:
                     PARAMS = pickle.load(file)
