@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+python-json-logger
+
+pandas
+numpy
+requests
