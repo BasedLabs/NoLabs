@@ -1,0 +1,30 @@
+# CUDA 12 base image
+FROM nvidia/cuda:12.0-base
+
+# Install Python 3.8
+RUN apt-get update && apt-get install -y python3.8 python3-pip
+
+# Set a working directory
+WORKDIR /app
+
+# Copy the application files into the container
+COPY ./umol /app/umol
+COPY ./requirements.txt /app
+
+# Install dependencies
+RUN python3.8 -m pip install --upgrade pip
+RUN python3.8 -m pip install -r requirements.txt
+
+# Install JAX with CUDA 12 support
+RUN python3.8 -m pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+# Download the model weights and place them in the specified directory
+RUN mkdir -p /app/umol/umol_source
+RUN curl -o /app/umol/umol_source/params.pkl -L "https://huggingface.co/thomasshelby/uMol_params/resolve/main/params.pkl?download=true"
+
+# Environment variables for the host and port
+ENV HOST=0.0.0.0
+ENV PORT=80
+
+# Set the command to run the FastAPI app
+CMD ["uvicorn", "umol.api:app", "--host", "$HOST", "--port", "$PORT"]
