@@ -1,7 +1,7 @@
 import logging
 from pythonjsonlogger import jsonlogger
 
-from protein_design.api_models import *
+from p2rank.api_models import *
 
 _logger = logging.getLogger()
 
@@ -12,16 +12,13 @@ _logger.addHandler(_logHandler)
 
 
 class Log:
-    def start_protein_design_api(self):
-        _logger.info('Starting protein design API')
-
-    def run_rfdiffusion_request(self, request: RunRfdiffusionRequest):
+    def p2rank_request(self, request: RunP2RankPredictionRequest):
         d = request.as_log_dict()
-        _logger.info('Run rfdiffusion request', extra=d)
+        _logger.info('Run p2rank request', extra=d)
 
-    def run_rfdiffusion_response(self, response: RunRfdiffusionResponse):
+    def p2rank_response(self, response: RunP2RankPredictionResponse):
         d = response.as_log_dict()
-        _logger.info('Run rfdiffusion response', extra=d)
+        _logger.info('Run p2rank response', extra=d)
 
     def exception(self):
         _logger.exception('Exception occured in microservice')

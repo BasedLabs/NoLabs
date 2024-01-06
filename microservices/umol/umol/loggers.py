@@ -1,7 +1,7 @@
 import logging
 from pythonjsonlogger import jsonlogger
 
-from protein_design.api_models import *
+from umol.api_models import *
 
 _logger = logging.getLogger()
 
@@ -12,16 +12,13 @@ _logger.addHandler(_logHandler)
 
 
 class Log:
-    def start_protein_design_api(self):
-        _logger.info('Starting protein design API')
-
-    def run_rfdiffusion_request(self, request: RunRfdiffusionRequest):
+    def umol_request(self, request: RunUmolPredictionRequest):
         d = request.as_log_dict()
-        _logger.info('Run rfdiffusion request', extra=d)
+        _logger.info('Run umol request', extra=d)
 
-    def run_rfdiffusion_response(self, response: RunRfdiffusionResponse):
+    def umol_response(self, response: RunUmolPredictionResponse):
         d = response.as_log_dict()
-        _logger.info('Run rfdiffusion response', extra=d)
+        _logger.info('Run umol response', extra=d)
 
     def exception(self):
         _logger.exception('Exception occured in microservice')

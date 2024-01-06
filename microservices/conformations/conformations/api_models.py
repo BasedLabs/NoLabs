@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import dataclasses
 from enum import Enum
-from typing import Optional, List
 
+import pydantic
 from pydantic import BaseModel
 
 from conformations.mixins import BaseModelMixin, ErrorResponseMixing
@@ -39,6 +39,7 @@ class WaterForceFields(Enum):
     AMBER14_OPC3 = 'amber14/opc3.xml'
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class GenGromacsFilesRequest(BaseModelMixin, BaseModel):
     pdbContent: str
@@ -46,6 +47,7 @@ class GenGromacsFilesRequest(BaseModelMixin, BaseModel):
     waterForceField: WaterForceFields
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class RunSimulationsBase(BaseModelMixin, BaseModel):
     temperatureK: float = 273.15
@@ -56,12 +58,14 @@ class RunSimulationsBase(BaseModelMixin, BaseModel):
     totalFrames: int = 10000
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class RunGromacsSimulationsRequest(RunSimulationsBase):
     top: str
     gro: str
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class RunPdbSimulationsRequest(RunSimulationsBase):
     pdbContent: str
@@ -69,6 +73,7 @@ class RunPdbSimulationsRequest(RunSimulationsBase):
     waterForceField: WaterForceFields
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class RunPdbFixerRequest(BaseModelMixin, BaseModel):
     replaceNonStandardResidues: bool = False
@@ -77,16 +82,19 @@ class RunPdbFixerRequest(BaseModelMixin, BaseModel):
     pdbContent: str
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class RunPdbFixerResponse(BaseModelMixin, ErrorResponseMixing, BaseModel):
     pdbContent: str | None
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class RunSimulationsResponse(BaseModelMixin, ErrorResponseMixing, BaseModel):
     pdbContent: str | None
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class GenGroTopRequest(BaseModelMixin, BaseModel):
     ignoreMissingAtoms: bool = False
@@ -95,6 +103,7 @@ class GenGroTopRequest(BaseModelMixin, BaseModel):
     pdbContent: str
 
 
+@pydantic.dataclasses.dataclass
 @dataclasses.dataclass(kw_only=True)
 class GenGroTopResponse(BaseModelMixin, ErrorResponseMixing, BaseModel):
     gro: str | None

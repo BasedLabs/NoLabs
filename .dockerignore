@@ -6,4 +6,5 @@ protein_design/build/Dockerfile
 .github
 .git
 **/.git
+microservices/*/build/*Dockerfile
 
