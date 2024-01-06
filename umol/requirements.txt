@@ -5,11 +5,7 @@ python-json-logger
 pandas
 numpy
 rdkit
-setfit
-biopython
 requests
-jax==0.4.13
-jaxlib==0.4.13
 ml-collections==0.1.1
 dm-haiku==0.0.9
 biopython==1.81
