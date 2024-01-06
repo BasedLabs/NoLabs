@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import request
 
-from nolabs.server.api_handlers.amino_acid import ApiHandler
+from nolabs.server.api_handlers.protein_design import ApiHandler
 
 
 def resolve_api_endpoints(api_handler: ApiHandler):

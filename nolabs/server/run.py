@@ -26,8 +26,6 @@ if __name__ == '__main__':
     app, socketio = init()
 
     from nolabs.server import factories
-    import nolabs.server.amino_acid_blueprint as amino_acid_blueprint
-    import nolabs.server.drug_target_blueprint as drug_target_blueprint
     import nolabs.server.conformations_blueprint as conformations_blueprint
     import nolabs.server.protein_design_blueprint as protein_design_blueprint
     import nolabs.server.logging_blueprint as logging_blueprint
@@ -35,10 +33,6 @@ if __name__ == '__main__':
     amino_acid_api_handler, drug_target_api_handler, conformations_api_handler, protein_design_api_handler \
         = factories.api_handlers_factory(is_test=is_test, is_demo=is_demo)
 
-    app.register_blueprint(drug_target_blueprint.resolve_api_endpoints(drug_target_api_handler),
-                           url_prefix='/api/drug-target')
-    app.register_blueprint(amino_acid_blueprint.resolve_api_endpoints(amino_acid_api_handler),
-                           url_prefix='/api/amino-acid')
     app.register_blueprint(conformations_blueprint.resolve_api_endpoints(conformations_api_handler),
                            url_prefix='/api/conformations')
     app.register_blueprint(protein_design_blueprint.resolve_api_endpoints(protein_design_api_handler),

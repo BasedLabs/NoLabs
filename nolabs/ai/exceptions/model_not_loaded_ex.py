@@ -1,2 +1,0 @@
-class ModelNotLoadedException(Exception):
-    pass

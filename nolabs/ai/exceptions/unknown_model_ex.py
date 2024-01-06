@@ -1,2 +1,0 @@
-class UnknownModelException(Exception):
-    pass

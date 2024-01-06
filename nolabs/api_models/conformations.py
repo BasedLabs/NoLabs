@@ -1,8 +1,9 @@
 import dataclasses
 from enum import Enum
-from typing import Annotated
+from typing import List
 
 from fastapi import UploadFile
+from pydantic.dataclasses import dataclass
 
 
 class Integrators(Enum):
@@ -13,6 +14,7 @@ class Integrators(Enum):
     variable_verlet = 'VariableVerletIntegrator'
 
 
+@dataclass
 @dataclasses.dataclass(kw_only=True)
 class RunSimulationsRequest:
     pdbFile: UploadFile
@@ -30,6 +32,26 @@ class RunSimulationsRequest:
     integrator: Integrators = Integrators.langevin
 
 
+@dataclass
 @dataclasses.dataclass(kw_only=True)
 class RunSimulationsResponse:
-    pdbContent: str | None
+    pdbContent: str | None = None
+    errors: List[str] = dataclasses.field(default_factory=list)
+
+
+@dataclass
+@dataclasses.dataclass(kw_only=True)
+class GetResultsRequest:
+    id: str
+
+
+@dataclass
+@dataclasses.dataclass(kw_only=True)
+class GetResultsResponse:
+    pdbContent: str
+
+
+@dataclass
+@dataclasses.dataclass(kw_only=True)
+class DeleteResultsRequest:
+    id: str
