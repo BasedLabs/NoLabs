@@ -48,19 +48,15 @@ class PocketPredictor:
         return pocket_ids
 
     # Method to return raw outputs in the desired format
-    async def predict(self, protein_pdb_file: UploadFile) -> List[int]:
-
+    def predict(self, pdb_contents: str) -> List[int]:
         temp_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
 
         if not os.path.exists(temp_directory):
             os.makedirs(temp_directory)
 
-        # Save the uploaded .pdb file to the temp directory
-        temp_protein_pdb_path = os.path.join(temp_directory, protein_pdb_file.filename)
-        await self.save_upload_file(protein_pdb_file, temp_protein_pdb_path)
+        temp_protein_pdb_path = os.path.join(temp_directory, 'protein.pdb')
+
+        with open(temp_protein_pdb_path, 'w') as file:
+            file.write(pdb_contents)
 
         return self._raw_inference(protein_file_path=temp_protein_pdb_path, save_dir=temp_directory)
-
-    async def save_upload_file(self, upload_file: UploadFile, destination_path: str):
-        with open(destination_path, 'wb') as buffer:
-            shutil.copyfileobj(upload_file.file, buffer)

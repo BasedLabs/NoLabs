@@ -21,9 +21,6 @@ RUN curl -o p2rank.tar.gz -L "https://github.com/rdk/p2rank/releases/download/2.
     && tar -xzvf p2rank.tar.gz -C /app/p2rank/p2rank_source \
     && rm p2rank.tar.gz
 
-# Environment variables for the host and port
-ENV HOST=0.0.0.0
-ENV PORT=80
 
 # Set the command to run the FastAPI app
-CMD ["uvicorn", "p2rank.api:app", "--host", "$HOST", "--port", "$PORT"]
+ENTRYPOINT uvicorn p2rank.api:app --host $HOST --port $PORT

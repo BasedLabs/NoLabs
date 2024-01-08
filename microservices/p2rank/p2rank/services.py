@@ -8,9 +8,9 @@ def run_p2rank(parameters: RunP2RankPredictionRequest) -> RunP2RankPredictionRes
     try:
         model = PocketPredictor()
         pocket_ids = model.predict(
-            protein_pdb_file=parameters.protein_file
+            pdb_contents=parameters.pdb_contents
         )
         return RunP2RankPredictionResponse(pocket_ids=pocket_ids)
     except Exception as e:
         Log.exception()
-        return RunP2RankPredictionResponse(pocket_ids=None, errors=['Unable to run p2rank. Internal error', str(e)])
+        return RunP2RankPredictionResponse(pocket_ids=[])

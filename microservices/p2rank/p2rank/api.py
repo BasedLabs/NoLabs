@@ -5,7 +5,7 @@ from p2rank.loggers import logger
 
 app = FastAPI()
 
-@app.post("/run-umol")
+@app.post("/run-p2rank")
 async def predict(request: RunP2RankPredictionRequest) -> RunP2RankPredictionResponse:
     logger.p2rank_request(request)
     result = run_p2rank(request)

@@ -12,9 +12,9 @@ from umol.mixins import BaseModelMixin, ErrorResponseMixin
 @pydantic.dataclasses.dataclass
 @dataclasses.dataclass
 class RunUmolPredictionRequest(BaseModelMixin):
-    protein_file: str
+    protein_sequence: str
     ligand_smiles: str
-    msa_file: str
+    msa_content: str
     pocket_ids: List[int]
 
 

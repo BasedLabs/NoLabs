@@ -131,23 +131,26 @@ class DrugTargetInteraction:
 
         return sdf_contents, plddt_values
 
-    async def predict(self,
-                      protein_fasta_file: UploadFile,
-                      ligand_smiles: str,
-                      msa_file: UploadFile,
-                      binding_pocket: List[int]) -> Tuple[str, List[int]]:
+    def predict(self, protein_sequence: str,
+                ligand_smiles: str,
+                msa_content: str,
+                binding_pocket: List[int]) -> Tuple[str, List[int]]:
 
         temp_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
 
         if not os.path.exists(temp_directory):
             os.makedirs(temp_directory)
 
-        # Save the uploaded FASTA and MSA files to the temp directory
-        temp_protein_fasta_path = os.path.join(temp_directory, protein_fasta_file.filename)
-        temp_msa_file_path = os.path.join(temp_directory, msa_file.filename)
+        # Define paths for the FASTA and MSA files
+        temp_protein_fasta_path = os.path.join(temp_directory, 'protein.fasta')
+        temp_msa_file_path = os.path.join(temp_directory, 'msa.a3m')
 
-        await self.save_upload_file(protein_fasta_file, temp_protein_fasta_path)
-        await self.save_upload_file(msa_file, temp_msa_file_path)
+        # Write the protein sequence and MSA content to their respective files
+        with open(temp_protein_fasta_path, 'w') as fasta_file:
+            fasta_file.write(protein_sequence)
+
+        with open(temp_msa_file_path, 'w') as msa_file:
+            msa_file.write(msa_content)
 
         # Get the results from _raw_inference
         sdf_contents, plddt_values = self._raw_inference(
@@ -158,10 +161,6 @@ class DrugTargetInteraction:
             save_dir=temp_directory)
 
         return sdf_contents, plddt_values
-
-    async def save_upload_file(self, upload_file: UploadFile, destination_path: str):
-        with open(destination_path, 'wb') as buffer:
-            shutil.copyfileobj(upload_file.file, buffer)
 
 
 def get_sequence(file):

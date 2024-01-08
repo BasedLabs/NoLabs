@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-json-logger
+
+torch==1.13.1
+torchaudio
+torchvision
+pandas
+numpy
+rdkit
+requests
+transformers

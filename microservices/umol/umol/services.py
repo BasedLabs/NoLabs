@@ -9,9 +9,9 @@ def run_umol(parameters: RunUmolPredictionRequest) -> RunUmolPredictionResponse:
     try:
         model = DrugTargetInteraction()
         sdf_content, plddt_array = model.predict(
-            protein_fasta_file=parameters.protein_file,
+            protein_sequence=parameters.protein_sequence,
             ligand_smiles=parameters.ligand_smiles,
-            msa_file=parameters.msa_file,
+            msa_content=parameters.msa_content,
             binding_pocket=parameters.binding_pocket
         )
         return RunUmolPredictionResponse(sdf_contents=sdf_content, plddt_array=plddt_array)
