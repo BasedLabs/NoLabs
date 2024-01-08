@@ -21,14 +21,28 @@ class Settings:
 
     @property
     def conformations_simulations_file_name(self) -> str:
-        return self._config.get('conformations', 'simulations_file_name')
+        return self._config.get('conformations', 'file_name')
 
     @property
     def conformations_experiments_folder(self) -> str:
         import nolabs
-        exp_folder = self._config.get('conformations', 'conformations_experiments_folder')
+        exp_folder = self._config.get('conformations', 'experiments_folder')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
     @property
     def conformations_metadata_file_name(self) -> str:
-        return self._config.get('conformations', 'conformations_metadata_file_name')
+        return self._config.get('conformations', 'metadata_file_name')
+
+    @property
+    def protein_design_file_name(self) -> str:
+        return self._config.get('protein-design', 'file_name')
+
+    @property
+    def protein_design_experiments_folder(self) -> str:
+        import nolabs
+        exp_folder = self._config.get('protein-design', 'experiments_folder')
+        return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
+
+    @property
+    def protein_design_metadata_file_name(self) -> str:
+        return self._config.get('protein-design', 'metadata_file_name')

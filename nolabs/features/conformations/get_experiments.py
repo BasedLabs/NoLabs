@@ -1,6 +1,6 @@
 from typing import Dict
 
-from api_models.conformations import ExperimentMetadataResponse
+from nolabs.api_models.conformations import ExperimentMetadataResponse
 from nolabs.features.conformations.services.file_management import FileManagement
 
 

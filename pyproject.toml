@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "nolabsserver"
+version = "0.1.0"
+description = ""
+authors = ["JaktensTid <jaktenstid1@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[project]
+dependencies = [
+    "fastapi",
+    "mypy",
+    "pydantic"
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

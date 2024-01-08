@@ -1,14 +1,11 @@
 import dataclasses
-import datetime
 import glob
 import json
 import os.path
 import shutil
 from typing import Dict
 
-import nolabs
 from nolabs.api_models.conformations import RunSimulationsRequest
-
 from nolabs.domain.experiment import ExperimentId, ExperimentName, ExperimentMetadata
 from nolabs.infrastructure.settings import Settings
 from nolabs.utils.datetime_utils import DateTimeUtils
@@ -18,7 +15,7 @@ class FileManagement:
     def __init__(self, settings: Settings, dt_utils: DateTimeUtils):
         self._settings = settings
         self._dt_utils = dt_utils
-        self._simulations_file_name = 'simulations.pdb'
+        self._simulations_file_name = settings.conformations_simulations_file_name
 
     def ensure_experiments_folder_exists(self):
         if not os.path.isdir(self._settings.conformations_experiments_folder):
@@ -94,6 +91,7 @@ class FileManagement:
 
     def change_experiment_name(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
         metadata_file = os.path.join(self._settings.conformations_experiments_folder,
+                                     experiment_id.value,
                                      self._settings.conformations_metadata_file_name)
         metadata = json.load(open(metadata_file, 'r', encoding='utf-8'))
         metadata['name'] = experiment_name.value

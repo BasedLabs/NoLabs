@@ -10,7 +10,10 @@ from pydantic.dataclasses import dataclass
 class ExperimentId:
     value: str
 
-    def __eq__(self, other: 'ExperimentId'):
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            raise ValueError()
+
         return self.value == other.value
 
     def __str__(self):
@@ -25,7 +28,10 @@ class ExperimentId:
 class ExperimentName:
     value: str
 
-    def __eq__(self, other: 'ExperimentName'):
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            raise ValueError()
+
         return self.value == other.value
 
     def __str__(self):

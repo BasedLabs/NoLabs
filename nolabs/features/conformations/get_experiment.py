@@ -8,6 +8,8 @@ class GetExperimentFeature:
         self._file_management = file_management
 
     def handle(self, id: str) -> GetExperimentResponse:
+        assert id
+
         experiment_id = ExperimentId(id)
         metadata = self._file_management.get_experiment_metadata()
         data = self._file_management.get_experiment_data(experiment_id)

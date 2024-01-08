@@ -31,8 +31,6 @@ class RunSimulationsRequest:
     frictionCoeff: float = 1.0
     ignoreMissingAtoms: bool = False
     integrator: IntegratorsRequest = IntegratorsRequest.langevin
-    experimentId: str
-    experimentName: str
 
 
 @dataclass
@@ -44,19 +42,13 @@ class RunSimulationsResponse:
 
 @dataclass
 @dataclasses.dataclass
-class GetResultsRequest:
+class GetExperimentRequest:
     experimentId: str
 
 
 @dataclass
 @dataclasses.dataclass
-class GetResultsResponse:
-    pdbContent: str
-
-
-@dataclass
-@dataclasses.dataclass
-class DeleteResultsRequest:
+class DeleteExperimentRequest:
     id: str
 
 

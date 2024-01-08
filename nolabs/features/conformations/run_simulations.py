@@ -6,7 +6,7 @@ from nolabs.infrastructure.settings import Settings
 from nolabs.features.conformations.services.file_management import FileManagement
 from nolabs.domain.experiment import ExperimentId, ExperimentName
 from nolabs.infrastructure.websockets import ConformationsWebsocket
-from nolabs.exceptions import NoLabsException, ExceptionCodes
+from nolabs.exceptions import NoLabsException, ErrorCodes
 
 
 class RunSimulationsFeature:
@@ -20,27 +20,29 @@ class RunSimulationsFeature:
     def _fix_pdb(self, client: microservice.DefaultApi, pdb_content: str, request: api.RunSimulationsRequest) -> str:
         self._websocket.pdb_fixer_start()
         pdb_fixer_request = microservice.RunPdbFixerRequest(
-            replace_non_standard_residues=request.replaceNonStandardResidues,
-            add_missing_atoms=request.addMissingAtoms,
-            add_missing_hydrogens=request.addMissingHydrogens,
-            pdb_content=pdb_content
+            replaceNonStandardResidues=request.replaceNonStandardResidues,
+            addMissingAtoms=request.addMissingAtoms,
+            addMissingHydrogens=request.addMissingHydrogens,
+            pdbContent=pdb_content
         )
         response = client.fixer_run_pdb_fixer_post(run_pdb_fixer_request=pdb_fixer_request)
         self._websocket.pdb_fixer_finish()
+        if not response.pdb_content:
+            raise NoLabsException('Unexpected error in pdb fixer', error_code=ErrorCodes.fix_pdb_error)
         if response.errors:
             self._websocket.pdb_fixer_errors(response.errors)
-            raise NoLabsException(response.errors, error_code=ExceptionCodes.fix_pdb_error)
+            raise NoLabsException(response.errors, error_code=ErrorCodes.fix_pdb_error)
         return response.pdb_content
 
     def _run_gromacs_simulations(self, client: microservice.DefaultApi, gro: str, top: str,
                                  request: api.RunSimulationsRequest) -> microservice.RunSimulationsResponse:
         run_gromacs_simulations_request = microservice.RunGromacsSimulationsRequest(
-            temperature_k=request.temperatureK,
-            friction_coeff=request.frictionCoeff,
-            step_size=request.stepSize,
+            temperatureK=request.temperatureK,
+            frictionCoeff=request.frictionCoeff,
+            stepSize=request.stepSize,
             integrator=microservice.Integrators(request.integrator),
-            take_frame_every=request.takeFrameEvery,
-            total_frames=request.totalFrames,
+            takeFrameEvery=request.takeFrameEvery,
+            totalFrames=request.totalFrames,
             top=top,
             gro=gro
         )
@@ -53,15 +55,15 @@ class RunSimulationsFeature:
                              water_ff: WaterForceFields,
                              request: api.RunSimulationsRequest) -> microservice.RunSimulationsResponse:
         run_pdb_simulations_request = RunPdbSimulationsRequest(
-            temperature_k=request.temperatureK,
-            friction_coeff=request.frictionCoeff,
-            step_size=request.stepSize,
+            temperatureK=request.temperatureK,
+            frictionCoeff=request.frictionCoeff,
+            stepSize=request.stepSize,
             integrator=microservice.Integrators(request.integrator),
-            take_frame_every=request.takeFrameEvery,
-            total_frames=request.totalFrames,
-            pdb_content=pdb_content,
-            force_field=ff,
-            water_force_field=water_ff
+            takeFrameEvery=request.takeFrameEvery,
+            totalFrames=request.totalFrames,
+            pdbContent=pdb_content,
+            forceField=ff,
+            waterForceField=water_ff
         )
         return client.simulations_run_pdb_simulations_post(run_pdb_simulations_request=run_pdb_simulations_request)
 
@@ -84,14 +86,14 @@ class RunSimulationsFeature:
                     self._websocket.gromacs_gro_top_generator_start(ff, water_ff)
                     generate_gromacs_files_response = client.gen_gro_top_gen_gro_top_post(
                         gen_gro_top_request=microservice.GenGroTopRequest(
-                            ignore_missing_atoms=request.ignoreMissingAtoms,
-                            force_field=ff,
-                            water_force_field=water_ff,
-                            pdb_content=pdb_content
+                            ignoreMissingAtoms=request.ignoreMissingAtoms,
+                            forceField=ff,
+                            waterForceField=water_ff,
+                            pdbContent=pdb_content
                         ))
                     self._websocket.gromacs_simulations_finish()
 
-                    if not generate_gromacs_files_response.errors:
+                    if not generate_gromacs_files_response.errors and generate_gromacs_files_response.gro and generate_gromacs_files_response.top:
                         self._websocket.gromacs_simulations_start(ff, water_ff)
                         gromacs_simulations_result = self._run_gromacs_simulations(client,
                                                                                    generate_gromacs_files_response.gro,
@@ -99,7 +101,7 @@ class RunSimulationsFeature:
                                                                                    request)
                         self._websocket.gromacs_simulations_finish()
 
-                        if not gromacs_simulations_result.errors:
+                        if not gromacs_simulations_result.errors and gromacs_simulations_result.pdb_content:
                             self._websocket.gromacs_simulations_errors(gromacs_simulations_result.errors)
 
                             self._file_management.save_experiment(experiment_id, gromacs_simulations_result.pdb_content)
@@ -111,7 +113,7 @@ class RunSimulationsFeature:
                     self._websocket.pdb_simulations_start(ff, water_ff)
                     pdb_simulations_result = self._run_pdb_simulations(client, pdb_content, ff, water_ff, request)
                     self._websocket.pdb_simulations_finish()
-                    if not pdb_simulations_result.errors:
+                    if not pdb_simulations_result.errors and pdb_simulations_result.pdb_content:
                         self._websocket.pdb_simulations_errors(pdb_simulations_result.errors)
 
                         self._file_management.save_experiment(experiment_id, pdb_simulations_result.pdb_content)
