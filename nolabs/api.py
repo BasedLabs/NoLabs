@@ -1,6 +1,29 @@
-from fastapi import FastAPI
+from typing import Annotated, List
 
-app = FastAPI()
+from fastapi import FastAPI, APIRouter, Depends, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+from nolabs.dependencies import global_dependencies, features
+
+app = FastAPI(
+    title='NoLabs',
+    root_path='/api/v1'
+)
+
+origins = [
+    '*'
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+
+def conformations() -> APIRouter:
+
 
 
 # DO NOT DEFINE ANY MORE GLOBAL VARIABLES HERE!

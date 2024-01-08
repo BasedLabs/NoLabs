@@ -2,12 +2,19 @@ import conformations_microservice as microservice
 from conformations_microservice import RunPdbSimulationsRequest, ForceFields, WaterForceFields
 
 import nolabs.api_models.conformations as api
+from nolabs.infrastructure.settings import Settings
+from nolabs.features.conformations.services.file_management import FileManagement
+from nolabs.domain.experiment import ExperimentId, ExperimentName
 from nolabs.infrastructure.websockets import ConformationsWebsocket
 from nolabs.exceptions import NoLabsException, ExceptionCodes
 
 
 class RunSimulationsFeature:
-    def __init__(self, websocket: ConformationsWebsocket):
+    def __init__(self, file_management: FileManagement, settings: Settings, websocket: ConformationsWebsocket):
+        assert websocket
+
+        self._file_management = file_management
+        self._settings = settings
         self._websocket = websocket
 
     def _fix_pdb(self, client: microservice.DefaultApi, pdb_content: str, request: api.RunSimulationsRequest) -> str:
@@ -58,7 +65,16 @@ class RunSimulationsFeature:
         )
         return client.simulations_run_pdb_simulations_post(run_pdb_simulations_request=run_pdb_simulations_request)
 
-    async def handle(self, request: api.RunSimulationsRequest) -> api.RunSimulationsResponse:
+    async def handle(self,
+                     request: api.RunSimulationsRequest) -> api.RunSimulationsResponse:
+        assert request
+
+        experiment_id = ExperimentId(request.experimentId)
+        experiment_name = ExperimentName(request.experimentName)
+
+        self._file_management.create_experiment_folder(experiment_id)
+        self._file_management.update_metadata(experiment_id, experiment_name, request)
+
         client = microservice.DefaultApi(api_client=microservice.ApiClient())
         file_content = (await request.pdbFile.read()).decode('utf-8')
 
@@ -85,6 +101,9 @@ class RunSimulationsFeature:
 
                         if not gromacs_simulations_result.errors:
                             self._websocket.gromacs_simulations_errors(gromacs_simulations_result.errors)
+
+                            self._file_management.save_experiment(experiment_id, gromacs_simulations_result.pdb_content)
+
                             return api.RunSimulationsResponse(gromacs_simulations_result.pdb_content)
                     else:
                         self._websocket.gromacs_gro_top_generator_errors(generate_gromacs_files_response.errors)
@@ -94,6 +113,9 @@ class RunSimulationsFeature:
                     self._websocket.pdb_simulations_finish()
                     if not pdb_simulations_result.errors:
                         self._websocket.pdb_simulations_errors(pdb_simulations_result.errors)
+
+                        self._file_management.save_experiment(experiment_id, pdb_simulations_result.pdb_content)
+
                         return api.RunSimulationsResponse(pdb_simulations_result.pdb_content)
 
         return api.RunSimulationsResponse(errors=['Cannot run simulations for this pdb file'])

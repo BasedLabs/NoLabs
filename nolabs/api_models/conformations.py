@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 from enum import Enum
 from typing import List
 
@@ -6,7 +7,7 @@ from fastapi import UploadFile
 from pydantic.dataclasses import dataclass
 
 
-class Integrators(Enum):
+class IntegratorsRequest(Enum):
     langevin = 'LangevinIntegator'
     langevin_middle = 'LangevinMiddleIntegator'
     nose_hoover = 'NoseHooverIntegrator'
@@ -15,7 +16,7 @@ class Integrators(Enum):
 
 
 @dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass
 class RunSimulationsRequest:
     pdbFile: UploadFile
     experimentName: str
@@ -29,29 +30,58 @@ class RunSimulationsRequest:
     addMissingHydrogens: bool = True
     frictionCoeff: float = 1.0
     ignoreMissingAtoms: bool = False
-    integrator: Integrators = Integrators.langevin
+    integrator: IntegratorsRequest = IntegratorsRequest.langevin
+    experimentId: str
+    experimentName: str
 
 
 @dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass
 class RunSimulationsResponse:
     pdbContent: str | None = None
     errors: List[str] = dataclasses.field(default_factory=list)
 
 
 @dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass
 class GetResultsRequest:
-    id: str
+    experimentId: str
 
 
 @dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass
 class GetResultsResponse:
     pdbContent: str
 
 
 @dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass
 class DeleteResultsRequest:
     id: str
+
+
+@dataclass
+@dataclasses.dataclass
+class ExperimentMetadataResponse:
+    id: str
+    name: str
+    date: datetime.datetime
+
+
+@dataclass
+@dataclasses.dataclass
+class GetExperimentResponse:
+    metaData: ExperimentMetadataResponse
+    data: str
+
+
+@dataclass
+@dataclasses.dataclass
+class ChangeExperimentNameRequest:
+    id: str
+    name: str
+
+@dataclass
+@dataclasses.dataclass
+class GenerateUuidResponse:
+    uuid: str

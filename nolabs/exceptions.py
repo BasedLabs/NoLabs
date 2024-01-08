@@ -4,6 +4,7 @@ from typing import List
 
 class ExceptionCodes(Enum):
     fix_pdb_error = 1
+    conformations_log_websocket_undefined = 2
 
 
 class NoLabsException(Exception):
