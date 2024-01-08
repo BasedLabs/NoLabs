@@ -9,7 +9,7 @@ from nolabs.infrastructure.websockets import ConformationsWebsocket
 from nolabs.exceptions import NoLabsException, ErrorCodes
 
 
-class RunSimulationsFeature:
+class RunProteinDesignFeature:
     def __init__(self, file_management: FileManagement, settings: Settings, websocket: ConformationsWebsocket):
         assert websocket
 

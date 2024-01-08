@@ -1,25 +1,24 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+import nolabs.controllers.conformations as conformations
+import nolabs.infrastructure.environment
 
+app = FastAPI(
+    title='NoLabs',
+    root_path='/api/v1',
+    version='1'
+)
 
-# DO NOT DEFINE ANY MORE GLOBAL VARIABLES HERE!
-def register_conformations():
-    from nolabs.api_models.conformations import RunSimulationsRequest, RunSimulationsResponse
-    from nolabs.features.conformations.run_simulations import RunSimulationsFeature
+origins = [
+    '*'
+]
 
-    @app.post("/run-simulations")
-    async def run_simulations(request: RunSimulationsRequest) -> RunSimulationsResponse:
-        return RunSimulationsFeature()
-
-    @app.post("/run-gromacs-simulations")
-    async def gromacs(request: RunGromacsSimulationsRequest) -> RunSimulationsResponse:
-        return run_gromacs_simulation(request)
-
-    @app.post('/run-pdb-simulations')
-    async def simulations(request: RunPdbSimulationsRequest) -> RunSimulationsResponse:
-        return run_pdb_simulation(request)
-
-    @app.post('/gen-gro-top')
-    async def gen_gro_top(request: GenGroTopRequest) -> GenGroTopResponse:
-        return generate_gromacs_files(request)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+app.include_router(conformations.router)
