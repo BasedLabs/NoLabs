@@ -12,7 +12,7 @@ def run_umol(parameters: RunUmolPredictionRequest) -> RunUmolPredictionResponse:
             protein_sequence=parameters.protein_sequence,
             ligand_smiles=parameters.ligand_smiles,
             msa_content=parameters.msa_content,
-            binding_pocket=parameters.binding_pocket
+            binding_pocket=parameters.pocket_ids
         )
         return RunUmolPredictionResponse(sdf_contents=sdf_content, plddt_array=plddt_array)
     except Exception as e:

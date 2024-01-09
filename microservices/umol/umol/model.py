@@ -23,7 +23,8 @@ from umol.umol_source.src.relax.align_ligand_conformer_colab import read_pdb, \
 
 class DrugTargetInteraction:
     def __init__(self):
-        pass
+        self.model_params_path = ''
+        self.load_model()
 
     def prepare_ligand_data(self, ligand, ligand_name, save_dir):
         atom_encoding = {'B': 0, 'C': 1, 'F': 2, 'I': 3, 'N': 4, 'O': 5, 'P': 6, 'S': 7, 'Br': 8, 'Cl': 9,
@@ -50,9 +51,7 @@ class DrugTargetInteraction:
 
     def load_model(self):
         print("Loading uMol DTI params...")
-        self.model_params_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'custom_models',
-                                              'drug_target',
-                                              'models_ckpt', 'params.pkl')
+        self.model_params_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'umol_source', 'params.pkl')
 
     def _raw_inference(self,
                        protein_fasta_path: str,
@@ -136,6 +135,7 @@ class DrugTargetInteraction:
                 msa_content: str,
                 binding_pocket: List[int]) -> Tuple[str, List[int]]:
 
+        print(msa_content)
         temp_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
 
         if not os.path.exists(temp_directory):

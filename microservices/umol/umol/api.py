@@ -11,6 +11,7 @@ app = FastAPI(
 @app.post("/run-umol")
 async def predict(request: RunUmolPredictionRequest) -> RunUmolPredictionResponse:
     logger.umol_request(request)
+
     result = run_umol(request)
     logger.umol_response(result)
     return result
