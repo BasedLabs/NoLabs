@@ -5,6 +5,7 @@ python-json-logger
 torch==1.13.1
 torchaudio
 torchvision
+accelerate
 pandas
 numpy
 rdkit
