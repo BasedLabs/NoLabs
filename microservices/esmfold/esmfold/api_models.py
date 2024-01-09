@@ -5,11 +5,10 @@ from pydantic import BaseModel
 from esmfold.mixins import BaseModelMixin
 
 
-@dataclasses.dataclass(kw_only=True)
-class RunEsmFoldPredictionRequest(BaseModelMixin, BaseModel):
+@dataclasses.dataclass
+class RunEsmFoldPredictionRequest:
     protein_sequence: str
 
-
-@dataclasses.dataclass(kw_only=True)
-class RunEsmFoldPredictionResponse(BaseModelMixin, BaseModel):
+@dataclasses.dataclass
+class RunEsmFoldPredictionResponse:
     pdb_content: str
