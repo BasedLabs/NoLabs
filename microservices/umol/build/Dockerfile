@@ -1,9 +1,13 @@
 # CUDA 11 base image
-ARG CUDA="12.0.0"
+ARG CUDA="11.7.1"
 ARG CUDNN="8"
 ARG TAG="devel"
 ARG OS="ubuntu20.04"
 FROM nvidia/cuda:${CUDA}-cudnn${CUDNN}-${TAG}-${OS}
+
+# Download the model weights and place them in the specified directory
+RUN mkdir -p /app/umol/umol_source
+RUN curl -o /app/umol/umol_source/params.pkl -L "https://huggingface.co/thomasshelby/uMol_params/resolve/main/params.pkl?download=true"
 
 # Install Python 3.8
 RUN apt-get update && apt-get install -y python3.8 python3-pip curl
@@ -20,11 +24,7 @@ RUN python3.8 -m pip install --upgrade pip
 RUN python3.8 -m pip install -r requirements.txt
 
 # Install JAX with CUDA 11 support
-RUN python3.8 -m pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-
-# Download the model weights and place them in the specified directory
-RUN mkdir -p /app/umol/umol_source
-RUN curl -o /app/umol/umol_source/params.pkl -L "https://huggingface.co/thomasshelby/uMol_params/resolve/main/params.pkl?download=true"
+RUN python3.8 -m pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 COPY ./umol /app/umol
 
