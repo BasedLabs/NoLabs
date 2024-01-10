@@ -1,12 +1,15 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import nolabs.controllers.conformations as conformations
+from nolabs.controllers.conformations.conformations import router as conformations_router
+from nolabs.controllers.solubility.solubility import router as solubility_router
 import nolabs.infrastructure.environment
+
+pfx = '/api/v1'
 
 app = FastAPI(
     title='NoLabs',
-    root_path='/api/v1',
     version='1'
 )
 
@@ -21,4 +24,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-app.include_router(conformations.router)
+app.include_router(conformations_router)
+app.include_router(solubility_router)
+
+print('Go to /api/v1/docs to see Swagger')

@@ -26,13 +26,7 @@ def process_a3m(a3mfile, sequence, outname):
     '''Process a3m file - remove insertions and get only matches and gaps
     Write these to a new file
     '''
-
-    print('BYE BYE')
-    with open(a3mfile, 'r') as file:
-        print(file.read())
     parsed_a3m = read_a3m(a3mfile)
-    print('HELLO')
-    print(parsed_a3m)
     if len([*parsed_a3m.values()][0])!=len(sequence):
         print('The sequence length does not match with the MSA.')
         sys.exit()

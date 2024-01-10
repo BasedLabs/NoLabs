@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import dataclasses
 from enum import Enum
+from typing import List
 
 import pydantic
 from pydantic import BaseModel
 
-from conformations.mixins import BaseModelMixin, ErrorResponseMixing
+from conformations.mixins import BaseModelMixin
 
 
 class Integrators(Enum):
@@ -40,7 +41,7 @@ class WaterForceFields(Enum):
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass()
 class GenGromacsFilesRequest(BaseModelMixin, BaseModel):
     pdbContent: str
     forceField: ForceFields
@@ -48,7 +49,7 @@ class GenGromacsFilesRequest(BaseModelMixin, BaseModel):
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass()
 class RunSimulationsBase(BaseModelMixin, BaseModel):
     temperatureK: float = 273.15
     frictionCoeff: float = 1.0
@@ -59,14 +60,14 @@ class RunSimulationsBase(BaseModelMixin, BaseModel):
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass()
 class RunGromacsSimulationsRequest(RunSimulationsBase):
     top: str
     gro: str
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass()
 class RunPdbSimulationsRequest(RunSimulationsBase):
     pdbContent: str
     forceField: str
@@ -74,37 +75,40 @@ class RunPdbSimulationsRequest(RunSimulationsBase):
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass()
 class RunPdbFixerRequest(BaseModelMixin, BaseModel):
+    pdbContent: str
     replaceNonStandardResidues: bool = False
     addMissingAtoms: bool = False
     addMissingHydrogens: bool = True
-    pdbContent: str
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
-class RunPdbFixerResponse(BaseModelMixin, ErrorResponseMixing, BaseModel):
-    pdbContent: str | None
+@dataclasses.dataclass
+class RunPdbFixerResponse(BaseModelMixin, BaseModel):
+    errors: List[str] = dataclasses.field(default_factory=list)
+    pdbContent: str | None = None
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
-class RunSimulationsResponse(BaseModelMixin, ErrorResponseMixing, BaseModel):
-    pdbContent: str | None
+@dataclasses.dataclass
+class RunSimulationsResponse(BaseModelMixin, BaseModel):
+    errors: List[str] = dataclasses.field(default_factory=list)
+    pdbContent: str | None = None
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass()
 class GenGroTopRequest(BaseModelMixin, BaseModel):
-    ignoreMissingAtoms: bool = False
     forceField: ForceFields
     waterForceField: WaterForceFields
     pdbContent: str
+    ignoreMissingAtoms: bool = False
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass(kw_only=True)
-class GenGroTopResponse(BaseModelMixin, ErrorResponseMixing, BaseModel):
+@dataclasses.dataclass()
+class GenGroTopResponse(BaseModelMixin, BaseModel):
     gro: str | None
     top: str | None
+    errors: List[str] = dataclasses.field(default_factory=list)

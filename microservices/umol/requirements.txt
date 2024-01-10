@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 python-json-logger
-
+pydantic
 pandas
 numpy
 rdkit

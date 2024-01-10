@@ -20,6 +20,14 @@ class Settings:
         self._config.read(os.path.join(dir_path, settings_path))
 
     @property
+    def solubility_host(self) -> str:
+        return self._config.get('microservices', 'solubility_host')
+
+    @property
+    def conformations_host(self) -> str:
+        return self._config.get('microservices', 'conformations_host')
+
+    @property
     def conformations_simulations_file_name(self) -> str:
         return self._config.get('conformations', 'file_name')
 
@@ -46,3 +54,31 @@ class Settings:
     @property
     def protein_design_metadata_file_name(self) -> str:
         return self._config.get('protein-design', 'metadata_file_name')
+
+    @property
+    def go_file_name(self) -> str:
+        return self._config.get('go', 'file_name')
+
+    @property
+    def go_experiments_folder(self) -> str:
+        import nolabs
+        exp_folder = self._config.get('go', 'experiments_folder')
+        return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
+
+    @property
+    def go_metadata_file_name(self) -> str:
+        return self._config.get('go', 'metadata_file_name')
+
+    @property
+    def solubility_file_name(self) -> str:
+        return self._config.get('solubility', 'file_name')
+
+    @property
+    def solubility_experiments_folder(self) -> str:
+        import nolabs
+        exp_folder = self._config.get('solubility', 'experiments_folder')
+        return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
+
+    @property
+    def solubility_metadata_file_name(self) -> str:
+        return self._config.get('solubility', 'metadata_file_name')

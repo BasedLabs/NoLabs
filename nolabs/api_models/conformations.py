@@ -1,10 +1,9 @@
-import dataclasses
+from pydantic import dataclasses as pcdataclass
 import datetime
 from enum import Enum
 from typing import List
 
 from fastapi import UploadFile
-from pydantic.dataclasses import dataclass
 
 
 class IntegratorsRequest(Enum):
@@ -15,8 +14,7 @@ class IntegratorsRequest(Enum):
     variable_verlet = 'VariableVerletIntegrator'
 
 
-@dataclass
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class RunSimulationsRequest:
     pdbFile: UploadFile
     experimentName: str
@@ -33,47 +31,41 @@ class RunSimulationsRequest:
     integrator: IntegratorsRequest = IntegratorsRequest.langevin
 
 
-@dataclass
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class RunSimulationsResponse:
     pdbContent: str | None = None
-    errors: List[str] = dataclasses.field(default_factory=list)
+    errors: List[str] = pcdataclass.Field(default_factory=list)
 
 
-@dataclass
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class GetExperimentRequest:
     experimentId: str
 
 
-@dataclass
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class DeleteExperimentRequest:
     id: str
 
 
-@dataclass
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class ExperimentMetadataResponse:
     id: str
     name: str
     date: datetime.datetime
 
 
-@dataclass
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class GetExperimentResponse:
     metaData: ExperimentMetadataResponse
     data: str
 
 
-@dataclass
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class ChangeExperimentNameRequest:
     id: str
     name: str
 
-@dataclass
-@dataclasses.dataclass
+
+@pcdataclass.dataclass
 class GenerateUuidResponse:
     uuid: str
