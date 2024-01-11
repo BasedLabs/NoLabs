@@ -26,7 +26,7 @@ class DrugTargetInteraction:
         self.model_params_path = ''
         self.load_model()
 
-    def prepare_ligand_data(self, ligand, ligand_name, save_dir):
+    def prepare_ligand_data(self, ligand, save_dir):
         atom_encoding = {'B': 0, 'C': 1, 'F': 2, 'I': 3, 'N': 4, 'O': 5, 'P': 6, 'S': 7, 'Br': 8, 'Cl': 9,
                          # Individual encoding
                          'As': 10, 'Co': 10, 'Fe': 10, 'Mg': 10, 'Pt': 10, 'Rh': 10, 'Ru': 10, 'Se': 10, 'Si': 10,
@@ -44,7 +44,7 @@ class DrugTargetInteraction:
             'bond_mask': bond_mask
         }
 
-        features_output_path = os.path.join(save_dir, f'{ligand_name}_ligand_inp_features.pkl')
+        features_output_path = os.path.join(save_dir, 'ligand_inp_features.pkl')
         with open(features_output_path, 'wb') as f:
             pickle.dump(ligand_inp_feats, f, protocol=4)
         print('Saved ligand features to', features_output_path)
@@ -71,7 +71,7 @@ class DrugTargetInteraction:
         with open(features_output_path, 'wb') as f:
             pickle.dump(feature_dict, f, protocol=4)
 
-        self.prepare_ligand_data(ligand_smiles, 'ligand', save_dir)
+        self.prepare_ligand_data(ligand_smiles, save_dir)
 
         result_folder = os.path.join(save_dir, 'result/')
 

@@ -1,16 +1,17 @@
-# CUDA 11 base image
-ARG CUDA="11.7.1"
-ARG CUDNN="8"
-ARG TAG="devel"
-ARG OS="ubuntu20.04"
-FROM nvidia/cuda:${CUDA}-cudnn${CUDNN}-${TAG}-${OS}
+FROM nvcr.io/nvidia/jax:23.08-t5x-py3
+
+# Install Python 3.8
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential \
+  git \
+  curl \
+  vim \
+  python3-dev \
+  python3-pip
 
 # Download the model weights and place them in the specified directory
 RUN mkdir -p /app/umol/umol_source
 RUN curl -o /app/umol/umol_source/params.pkl -L "https://huggingface.co/thomasshelby/uMol_params/resolve/main/params.pkl?download=true"
-
-# Install Python 3.8
-RUN apt-get update && apt-get install -y python3.8 python3-pip curl
 
 # Set a working directory
 WORKDIR /app/umol
@@ -20,11 +21,10 @@ WORKDIR /app
 COPY ./requirements.txt /app
 
 # Install dependencies
-RUN python3.8 -m pip install --upgrade pip
-RUN python3.8 -m pip install -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# Install JAX with CUDA 11 support
-RUN python3.8 -m pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+RUN pip install --upgrade "jax[cuda11_pip]==0.4.13" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 COPY ./umol /app/umol
 
@@ -32,4 +32,4 @@ RUN ls -l /app/umol
 RUN ls -l /app/umol/umol_source
 
 # Set the command to run the FastAPI app
-ENTRYPOINT ["uvicorn", "umol.api:app"]
+ENTRYPOINT uvicorn umol.api:app --host $HOST --port $PORT
