@@ -82,3 +82,27 @@ class Settings:
     @property
     def solubility_metadata_file_name(self) -> str:
         return self._config.get('solubility', 'metadata_file_name')
+
+    @property
+    def drug_discovery_experiments_folder(self):
+        import nolabs
+        exp_folder = self._config.get('drug-discovery', 'experiments_folder')
+        return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
+
+    @property
+    def drug_discovery_experiment_metadata_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'experiment_metadata_file_name')
+
+    @property
+    def drug_discovery_target_metadata_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'target_metadata_file_name')
+
+    @property
+    def drug_discovery_pocket_directory_name(self) -> str:
+        return self._config.get('drug-discovery', 'pocket_directory_name')
+
+    @property
+    def drug_discovery_pocket_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'pocket_file_name')
+
+
