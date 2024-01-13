@@ -3,10 +3,10 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency, dt_utils_dependency
-from nolabs.features.gene_ontology import GetExperimentsFeature, GetExperimentFeature, DeleteExperimentFeature, \
+from nolabs.features.drug_discovery import GetExperimentsFeature, DeleteExperimentFeature, \
     ChangeExperimentNameFeature
-from nolabs.features.gene_ontology import RunGeneOntologyFeature
-from nolabs.features.gene_ontology.services.file_management import FileManagement
+from nolabs.features.drug_discovery import RunGeneOntologyFeature
+from nolabs.features.drug_discovery.services.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings
 from nolabs.utils import DateTimeUtils
 

@@ -98,6 +98,10 @@ class Settings:
         return self._config.get('drug-discovery', 'target_metadata_file_name')
 
     @property
+    def drug_discovery_ligand_metadata_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'ligand_metadata_file_name')
+
+    @property
     def drug_discovery_pocket_directory_name(self) -> str:
         return self._config.get('drug-discovery', 'pocket_directory_name')
 

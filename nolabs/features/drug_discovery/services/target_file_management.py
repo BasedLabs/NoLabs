@@ -1,9 +1,8 @@
-import glob
 import json
 import os.path
 import shutil
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import List
 
 from nolabs.domain.experiment import ExperimentId
 from nolabs.infrastructure.settings import Settings
@@ -67,10 +66,18 @@ class TargetsFileManagement:
             self.update_target_metadata(experiment_id, target_id, "name", target_name)
             self.update_target_metadata(experiment_id, target_id, "original_filename", original_filename)
 
-            result_list.append(TargetMetaData(targetId=target_id.value,
-                                              targetName=target_name))
+            result_list.append(TargetMetaData(target_id=target_id.value,
+                                              target_name=target_name))
 
         return result_list
+
+    def delete_target(self, experiment_id: ExperimentId, target_id: TargetId):
+        self.ensure_targets_folder_exists(experiment_id)
+        self.ensure_target_folder_exists(experiment_id, target_id)
+        target_folder = self.target_folder(experiment_id, target_id)
+        shutil.rmtree(target_folder)
+
+        return target_id
 
     def update_target_metadata(self, experiment_id: ExperimentId, target_id: TargetId, key: str, value: str):
         metadata_file = os.path.join(self.target_folder(experiment_id, target_id),
@@ -87,7 +94,7 @@ class TargetsFileManagement:
         metadata_file = os.path.join(self.target_folder(experiment_id, target_id),
                                      self._settings.drug_discovery_target_metadata_file_name)
         metadata = json.load(open(metadata_file))
-        target_metadata = TargetMetaData(targetId=metadata["id"], targetName=metadata["name"])
+        target_metadata = TargetMetaData(target_id=metadata["id"], target_name=metadata["name"])
         return target_metadata
 
     def get_targets_list(self, experiment_id: ExperimentId) -> List[TargetMetaData]:
@@ -104,7 +111,7 @@ class TargetsFileManagement:
     def get_target_data(self, experiment_id: ExperimentId, target_id: TargetId) -> tuple[str, str, str]:
         target_folder = self.target_folder(experiment_id, target_id)
         target_metadata = self.get_target_metadata(experiment_id, target_id)
-        target_name = target_metadata.targetName
+        target_name = target_metadata.target_name
 
         ids2sequences = self.fasta_reader.get_data_from_path(os.path.join(target_folder, target_name + ".fasta"))
         sequence = ids2sequences[target_name]
@@ -115,7 +122,7 @@ class TargetsFileManagement:
     def get_pdb_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
         target_metadata = self.get_target_metadata(experiment_id, target_id)
-        target_name = target_metadata.targetName
+        target_name = target_metadata.target_name
         if os.path.exists(os.path.join(target_folder, target_name + ".pdb")):
             return self.pdb_reader.read_pdb(os.path.join(target_folder, target_name + ".pdb"))
 
@@ -131,7 +138,7 @@ class TargetsFileManagement:
 
         return None
 
-    def store_binding_pocket(self, experiment_id: ExperimentId, target_id: TargetId, pocket_ids: List[int]) -> List[int] | None:
+    def store_binding_pocket(self, experiment_id: ExperimentId, target_id: TargetId, pocket_ids: List[int]):
         target_folder = self.target_folder(experiment_id, target_id)
         pocket_file = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name, self._settings.drug_discovery_pocket_file_name)
         if os.path.exists(pocket_file):

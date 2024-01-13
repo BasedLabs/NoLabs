@@ -1,10 +1,8 @@
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from nolabs.controllers.conformations.conformations import router as conformations_router
 from nolabs.controllers.solubility.solubility import router as solubility_router
-import nolabs.infrastructure.environment
 
 pfx = '/api/v1'
 
