@@ -1,4 +1,4 @@
-from esmfold.model import Folding, APIFolding
+from esmfold.model import Folding
 from esmfold.api_models import RunEsmFoldPredictionRequest, RunEsmFoldPredictionResponse
 from esmfold.loggers import Log
 

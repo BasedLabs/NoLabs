@@ -1,40 +1,30 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import AminoAcidLabView from '../views/AminoAcidLab.vue';
-import DrugTargetLabView from '../views/DrugTargetLab.vue';
-import ConformationsLab from '../views/ConformationsLab.vue';
-import ProteinDesignLab from '../views/ProteinDesignLab.vue';
-import ProteinViewerView from '../views/ProteinViewerView.vue';
+import { route } from 'quasar/wrappers'
+import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
+import routes from './routes'
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/amino-acid-lab',
-      name: 'aminoAcid',
-      component: AminoAcidLabView
-    },
-    {
-      path: '/drug-target-lab',
-      name: 'drugTargetLab',
-      component: DrugTargetLabView
-    },
-    {
-      path: '/conformations',
-      name: 'conformationsLab',
-      component: ConformationsLab
-    }
-    ,
-    {
-      path: '/protein-design',
-      name: 'proteinDesign',
-      component: ProteinDesignLab
-    },
-    {
-      path: '/protein-viewer',
-      name: 'proteinViewer',
-      component: ProteinViewerView
-    }
-  ]
+/*
+ * If not building with SSR mode, you can
+ * directly export the Router instantiation;
+ *
+ * The function below can be async too; either use
+ * async/await or return a Promise which resolves
+ * with the Router instance.
+ */
+
+export default route(function (/* { store, ssrContext } */) {
+  const createHistory = process.env.SERVER
+    ? createMemoryHistory
+    : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
+
+  const Router = createRouter({
+    scrollBehavior: () => ({ left: 0, top: 0 }),
+    routes,
+
+    // Leave this as is and make changes in quasar.conf.js instead!
+    // quasar.conf.js -> build -> vueRouterMode
+    // quasar.conf.js -> build -> publicPath
+    history: createHistory(process.env.VUE_ROUTER_BASE)
+  })
+
+  return Router
 })
-
-export default router

@@ -1,5 +1,4 @@
 from typing import List
-import requests
 
 import torch
 from transformers import AutoTokenizer, EsmForProteinFolding
@@ -59,16 +58,4 @@ class Folding:
         pdbs = self.convert_outputs_to_pdb(output)
 
         return "".join(pdbs)
-
-
-class APIFolding:
-
-    def __init__(self):
-        pass
-
-    def predict(self, sequence: str) -> str:
-        url = "https://api.esmatlas.com/foldSequence/v1/pdb/"
-        response = requests.post(url, data=sequence, verify=False)
-
-        return response.text
 

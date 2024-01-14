@@ -9,5 +9,4 @@ accelerate
 pandas
 numpy
 rdkit
-requests
 transformers

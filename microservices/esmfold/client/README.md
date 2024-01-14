@@ -86,7 +86,6 @@ All URIs are relative to *http://localhost*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *DefaultApi* | [**predict_run_folding_post**](docs/DefaultApi.md#predict_run_folding_post) | **POST** /run-folding | Predict
-*DefaultApi* | [**predict_through_api_run_through_api_folding_post**](docs/DefaultApi.md#predict_through_api_run_through_api_folding_post) | **POST** /run-through-api-folding | Predict Through Api
 
 
 ## Documentation For Models

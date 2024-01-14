@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "esmfold_microservice"
 version = "1.0.0"
-description = "FastAPI"
+description = "ESM Fold"
 authors = ["OpenAPI Generator Community <team@openapitools.org>"]
 license = "NoLicense"
 readme = "README.md"
 repository = "https://github.com/GIT_USER_ID/GIT_REPO_ID"
-keywords = ["OpenAPI", "OpenAPI-Generator", "FastAPI"]
+keywords = ["OpenAPI", "OpenAPI-Generator", "ESM Fold"]
 include = ["esmfold_microservice/py.typed"]
 
 [tool.poetry.dependencies]

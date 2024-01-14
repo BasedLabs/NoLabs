@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import dataclasses
-from pydantic import BaseModel
 from esmfold.mixins import BaseModelMixin
 
 
 @dataclasses.dataclass
-class RunEsmFoldPredictionRequest:
+class RunEsmFoldPredictionRequest(BaseModelMixin):
     protein_sequence: str
 
 @dataclasses.dataclass
-class RunEsmFoldPredictionResponse:
+class RunEsmFoldPredictionResponse(BaseModelMixin):
     pdb_content: str
