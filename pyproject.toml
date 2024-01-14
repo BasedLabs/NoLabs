@@ -18,6 +18,9 @@ fastapi = "^0.109.0"
 numpy = "^1.26.3"
 requests = "^2.31.0"
 localisation-microservice = {path = "microservices/localisation/client"}
+obonet = "^1.0.0"
+setuptools = "^69.0.3"
+gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
 
 [project]
 dependencies = [

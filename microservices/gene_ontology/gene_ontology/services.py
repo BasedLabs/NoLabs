@@ -10,7 +10,8 @@ from esm import FastaBatchedDataset, pretrained  # type: ignore
 
 import requests
 
-from gene_ontology.api_models import RunGeneOntologyPredictionRequest, RunGeneOntologyPredictionResponse
+from gene_ontology.api_models import RunGeneOntologyPredictionRequest, RunGeneOntologyPredictionResponse, \
+    GoConfidenceResponse
 from gene_ontology.loggers import logger
 from gene_ontology.settings import Settings
 
@@ -173,12 +174,14 @@ def run_gene_ontology_prediction(request: RunGeneOntologyPredictionRequest) -> R
             emb_model.load_model()
             model.set_embedding_model(emb_model)
 
-        result = model.predict(request.proteinSequence)
+        result = model.predict(request.amino_acid_sequence)
         native_float_result = {}
         for key in result.keys():
             native_float_result[key] = result[key].item()
-        return RunGeneOntologyPredictionResponse(go_confidence=native_float_result, errors=[])
+        return RunGeneOntologyPredictionResponse(go_confidence=[
+            GoConfidenceResponse(name=name, confidence=confidence) for name, confidence in result.items()
+        ], errors=[])
     except Exception:
         logger.exception()
-        return RunGeneOntologyPredictionResponse(go_confidence={},
+        return RunGeneOntologyPredictionResponse(go_confidence=[],
                                                  errors=['Internal error in gene ontology prediction occured'])

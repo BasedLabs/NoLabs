@@ -1,18 +1,22 @@
 import dataclasses
-from typing import Dict
+from typing import Dict, List
 
 import pydantic.dataclasses
+from gene_ontology.mixins import BaseModelMixin
 
-from gene_ontology.mixins import BaseModelMixin, ErrorResponseMixing
 
-
-@dataclasses.dataclass
 @pydantic.dataclasses.dataclass
 class RunGeneOntologyPredictionRequest(BaseModelMixin):
-    proteinSequence: str
+    amino_acid_sequence: str
 
 
-@dataclasses.dataclass
 @pydantic.dataclasses.dataclass
-class RunGeneOntologyPredictionResponse(BaseModelMixin, ErrorResponseMixing):
-    go_confidence: Dict[str, float]
+class GoConfidenceResponse(BaseModelMixin):
+    name: str
+    confidence: float
+
+
+@pydantic.dataclasses.dataclass
+class RunGeneOntologyPredictionResponse(BaseModelMixin):
+    go_confidence: List[GoConfidenceResponse]
+    errors: List[str]

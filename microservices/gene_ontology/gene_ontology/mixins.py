@@ -11,7 +11,3 @@ class BaseModelMixin:
                 d[key] = d[key][:max_val_len]
         return d
 
-
-@dataclasses.dataclass
-class ErrorResponseMixing:
-    errors: List[str]

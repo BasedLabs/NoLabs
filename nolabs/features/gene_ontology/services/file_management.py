@@ -1,15 +1,13 @@
 import dataclasses
 import glob
-import jsonpickle
 import json
 import os.path
-import shutil
-from typing import Dict
+from typing import List, Tuple
 
-from nolabs.features.file_magement_base import ExperimentsFileManagementBase
+from nolabs.domain.amino_acid import AminoAcid
+from nolabs.domain.experiment import ExperimentId, ExperimentName
 from nolabs.domain.gene_ontology import OboNode
-from nolabs.api_models.conformations import RunSimulationsRequest
-from nolabs.domain.experiment import ExperimentId, ExperimentName, ExperimentMetadata
+from nolabs.features.file_magement_base import ExperimentsFileManagementBase
 from nolabs.infrastructure.settings import Settings
 from nolabs.utils import utcnow
 
@@ -22,30 +20,51 @@ class FileManagement(ExperimentsFileManagementBase):
         self.ensure_experiments_folder_exists()
 
     def update_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName,
-                        run_simulations_request: RunSimulationsRequest):
+                        amino_acids: List[AminoAcid]):
+        self.ensure_experiment_folder_exists(experiment_id)
         j = {
-            'id': experiment_id,
-            'name': experiment_name,
-            'date': utcnow(),
-            'properties': dataclasses.asdict(run_simulations_request)
+            'id': experiment_id.value,
+            'name': experiment_name.value,
+            'date': str(utcnow()),
+            'properties': [dataclasses.asdict(amino_acid) for amino_acid in amino_acids]
         }
 
         metadata_file_path = os.path.join(self.experiment_folder(experiment_id),
-                                          self._settings.go_metadata_file_name)
+                                          self._settings.solubility_metadata_file_name)
         with open(metadata_file_path, 'w', encoding='utf-8') as f:
-
             json.dump(j, f, ensure_ascii=False, indent=4)
 
-    def save_experiment(self, experiment_id: ExperimentId, data: Dict[str, OboNode]):
+    def save_experiment(self, experiment_id: ExperimentId, data: List[Tuple[AminoAcid, List[OboNode]]]):
+        self.ensure_experiment_folder_exists(experiment_id)
         experiment_folder = self.experiment_folder(experiment_id)
-        results_pdb_path = os.path.join(experiment_folder, self._go_file_name)
-        with open(results_pdb_path, 'w', encoding='utf-8') as go_f:
-            j = jsonpickle.dumps(data)
-            go_f.write(j)
+        previous_files = glob.glob(os.path.join(experiment_folder, '*aminoacid.json'))
+        for amino_acid, prob in data:
+            results_path = os.path.join(experiment_folder, f'{amino_acid.name}_aminoacid.json')
+            with open(results_path, 'w', encoding='utf-8') as go_f:
+                go_f.write(json.dumps({
+                    'name': amino_acid.name,
+                    'sequence': amino_acid.sequence,
+                    'go': [
+                        dataclasses.asdict(g) for g in prob
+                    ]
+                }))
+        for file in previous_files:
+            os.remove(file)
 
-    def get_experiment_data(self, experiment_id: ExperimentId) -> Dict[str, OboNode]:
+    def get_experiment_data(self, experiment_id: ExperimentId) -> List[Tuple[AminoAcid, List[OboNode]]]:
         experiment_folder = self.experiment_folder(experiment_id)
-        result_pdb_path = os.path.join(experiment_folder, self._go_file_name)
-        with open(result_pdb_path, 'r', encoding='utf-8') as simulations_f:
-            s = simulations_f.read()
-            return jsonpickle.decode(s)
+
+        results = []
+        for file in glob.glob(os.path.join(experiment_folder, '*_aminoacid.json')):
+            with open(file, 'r', encoding='utf-8') as amino_acid:
+                j = json.loads(amino_acid.read())
+                results.append(
+                    (AminoAcid(name=j['name'],
+                               sequence=j['sequence']),
+                     [OboNode(
+                         name=go['name'],
+                         namespace=go['namespace'],
+                         edges=go['edges']
+                     ) for go in j['go']]
+                     ))
+        return results

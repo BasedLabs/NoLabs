@@ -11,11 +11,13 @@ from nolabs.infrastructure.settings import Settings
 
 
 def file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)]) -> FileManagement:
-    return FileManagement(settings=settings, dt_utils=dt_utils)
+    return FileManagement(settings=settings)
 
 
-def run_gene_ontology_feature_dependency() -> RunGeneOntologyFeature:
-    return RunGeneOntologyFeature()
+def run_gene_ontology_feature_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                                         file_management: Annotated[FileManagement, Depends(file_management_dependency)]
+                                         ) -> RunGeneOntologyFeature:
+    return RunGeneOntologyFeature(settings, file_management)
 
 
 def get_experiments_feature_dependency(

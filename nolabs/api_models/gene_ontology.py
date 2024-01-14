@@ -1,17 +1,25 @@
-from pydantic import dataclasses as pcdataclass
+from pydantic import dataclasses as pcdataclass, model_validator
 import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 
-import pydantic
 from fastapi import UploadFile
 
 
 @pcdataclass.dataclass
 class RunGeneOntologyRequest:
-    experimentName: str
-    experimentId: str | None
-    aminoAcidSequence: str | None = None
-    fasta: UploadFile | None = None
+    experiment_name: str
+    experiment_id: Optional[str]
+    amino_acid_sequence: Optional[str]
+    fastas: Optional[List[UploadFile]]
+
+    @model_validator(mode='after')
+    @classmethod
+    def check_inputs(cls, data: Any) -> Any:
+        if not isinstance(data, RunGeneOntologyRequest):
+            raise ValueError('Incorrect data type')
+        if not data.amino_acid_sequence and not data.fastas:
+            raise ValueError('Either specify aminoacid sequence or fastas files')
+        return data
 
 
 @pcdataclass.dataclass
@@ -20,11 +28,19 @@ class RunGeneOntologyResponseDataNode:
     namespace: str
     edges: Dict[str, List[str]]
 
+
+@pcdataclass.dataclass
+class AminoAcidResponse:
+    sequence: str
+    name: str
+    go: List[RunGeneOntologyResponseDataNode]
+
+
 @pcdataclass.dataclass
 class RunGeneOntologyResponse:
-    experimentId: str
-    data: Dict[str, RunGeneOntologyResponseDataNode] | None = None
-    errors: List[str] = pcdataclass.dataclass.field(default_factory=list)
+    experiment_id: str
+    amino_acids: List[AminoAcidResponse]
+    errors: List[str] = pcdataclass.Field(default_factory=list)
 
 
 @pcdataclass.dataclass
@@ -46,8 +62,8 @@ class ExperimentMetadataResponse:
 
 @pcdataclass.dataclass
 class GetExperimentResponse:
-    metaData: ExperimentMetadataResponse
-    data: Dict[str, RunGeneOntologyResponseDataNode]
+    metadata: ExperimentMetadataResponse
+    amino_acids: List[AminoAcidResponse]
 
 
 @pcdataclass.dataclass
