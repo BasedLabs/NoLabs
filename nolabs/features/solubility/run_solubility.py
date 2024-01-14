@@ -38,7 +38,7 @@ class RunSolubilityFeature:
                 fasta_reader = FastaReader()
                 for fasta in request.fastas:
                     fasta_content = await fasta.read()
-                    for amino_acid in fasta_reader.get_ids_and_sequences(fasta_content.decode('utf-8')):
+                    for amino_acid in fasta_reader.get_ids2seqs(fasta_content.decode('utf-8')):
                         if amino_acid.name not in [aa.name for aa in amino_acids]:
                             amino_acids.append(amino_acid)
 

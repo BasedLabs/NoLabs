@@ -109,13 +109,13 @@ class TargetsFileManagement:
 
         return result_list
 
-    def get_target_data(self, experiment_id: ExperimentId, target_id: TargetId) -> tuple[str, str, str]:
+    def get_target_data(self, experiment_id: ExperimentId, target_id: TargetId) -> tuple[str, str, str | None]:
         target_folder = self.target_folder(experiment_id, target_id)
         target_metadata = self.get_target_metadata(experiment_id, target_id)
         target_name = target_metadata.target_name
 
         ids2sequences = self.fasta_reader.get_ids2seqs_from_path(os.path.join(target_folder, target_name + ".fasta"))
-        sequence = ids2sequences[target_name]
+        sequence = [amino_acid.sequence for amino_acid in ids2sequences if amino_acid.name == target_name][0]
         pdb_content = self.get_pdb_contents(experiment_id, target_id)
 
         return target_name, sequence, pdb_content

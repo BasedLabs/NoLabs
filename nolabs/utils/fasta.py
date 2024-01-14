@@ -35,7 +35,7 @@ class FastaReader:
 
         return [AminoAcid(name=sequence_id.split('|')[0], sequence=sequence) for sequence_id, sequence in zip(sequence_ids, sequences)]
 
-    def get_ids2seqs_from_path(self, path: str) -> Dict[str, str]:
+    def get_ids2seqs_from_path(self, path: str) -> List[AminoAcid]:
         """
         Returns a dictionary {'sequence_id' : 'sequence'}
         """
