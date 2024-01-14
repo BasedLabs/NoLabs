@@ -20,6 +20,10 @@ class Settings:
         self._config.read(os.path.join(dir_path, settings_path))
 
     @property
+    def is_light_infrastructure(self) -> str:
+        return self._config.get('features', 'light')
+
+    @property
     def solubility_host(self) -> str:
         return self._config.get('microservices', 'solubility_host')
 
@@ -108,6 +112,10 @@ class Settings:
     @property
     def drug_discovery_pocket_file_name(self) -> str:
         return self._config.get('drug-discovery', 'pocket_file_name')
+
+    @property
+    def drug_discovery_self_hosted_msa(self) -> str:
+        return self._config.get('drug-discovery', 'self_hosted_msa')
 
     @property
     def drug_discovery_msa_url(self) -> str:

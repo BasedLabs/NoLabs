@@ -171,7 +171,7 @@ class ResultMetaData:
 @pcdataclass.dataclass
 class DockingRequest:
     experiment_id: str
-    protein_id: str
+    target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
