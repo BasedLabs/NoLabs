@@ -22,4 +22,5 @@ class RunUmolPredictionRequest(BaseModelMixin):
 @dataclasses.dataclass
 class RunUmolPredictionResponse(BaseModelMixin, ErrorResponseMixin):
     sdf_contents: Optional[str] = None
+    pdb_contents: Optional[str] = None
     plddt_array: List[int] = dataclasses.field(default_factory=list)

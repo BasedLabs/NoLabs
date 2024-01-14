@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **errors** | **List[str]** |  | 
 **sdf_contents** | **str** |  | 
+**pdb_contents** | **str** |  | 
 **plddt_array** | **List[int]** |  | 
 
 ## Example

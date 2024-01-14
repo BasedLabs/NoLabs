@@ -58,7 +58,7 @@ class DrugTargetInteraction:
                        ligand_smiles: str,
                        msa_file_path: str,
                        binding_pocket: List[int],
-                       save_dir: Union[str, bytes]) -> Tuple[str, List[int]]:
+                       save_dir: Union[str, bytes]) -> Tuple[str, str, List[int]]:
 
         MSA = msa_file_path
         PROCESSED_MSA = os.path.join(save_dir, 'protein_processed.a3m')
@@ -119,6 +119,9 @@ class DrugTargetInteraction:
         with open(sdf_output_path, 'r') as f:
             sdf_contents = f.read()
 
+        with open(protein_pdb_path, 'r') as f:
+            pdb_contents = f.read()
+
         # Read and return the pLDDT values from ligand_plddt.csv
         plddt_values = []
         with open(ligand_plddt_path, 'r') as f:
@@ -128,14 +131,13 @@ class DrugTargetInteraction:
                 except ValueError:
                     pass  # Skip lines that can't be converted to integer
 
-        return sdf_contents, plddt_values
+        return sdf_contents, pdb_contents, plddt_values
 
     def predict(self, protein_sequence: str,
                 ligand_smiles: str,
                 msa_content: str,
-                binding_pocket: List[int]) -> Tuple[str, List[int]]:
+                binding_pocket: List[int]) -> Tuple[str, str, List[int]]:
 
-        print(msa_content)
         temp_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
 
         if not os.path.exists(temp_directory):
@@ -153,14 +155,14 @@ class DrugTargetInteraction:
             msa_file.write(msa_content)
 
         # Get the results from _raw_inference
-        sdf_contents, plddt_values = self._raw_inference(
+        sdf_contents, pdb_contents, plddt_values = self._raw_inference(
             protein_fasta_path=temp_protein_fasta_path,
             ligand_smiles=ligand_smiles,
             msa_file_path=temp_msa_file_path,
             binding_pocket=binding_pocket,
             save_dir=temp_directory)
 
-        return sdf_contents, plddt_values
+        return sdf_contents, pdb_contents, plddt_values
 
 
 def get_sequence(file):

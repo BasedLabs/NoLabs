@@ -207,6 +207,25 @@ type = "directory"
 url = "microservices/esmfold_light/client"
 
 [[package]]
+name = "esmfold-microservice"
+version = "1.0.0"
+description = "FastAPI"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/esmfold/client"
+
+[[package]]
 name = "exceptiongroup"
 version = "1.2.0"
 description = "Backport of PEP 654 (exception groups)"
@@ -672,6 +691,25 @@ files = [
     {file = "typing_extensions-4.9.0-py3-none-any.whl", hash = "sha256:af72aea155e91adfc61c3ae9e0e342dbc0cba726d6cba4b6c72c1f34e47291cd"},
     {file = "typing_extensions-4.9.0.tar.gz", hash = "sha256:23478f88c37f27d76ac8aee6c905017a143b0b1b886c3c9f66bc2fd94f9f5783"},
 ]
+
+[[package]]
+name = "umol-microservice"
+version = "1.0.0"
+description = "Umol"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/umol/client"
 
 [[package]]
 name = "urllib3"

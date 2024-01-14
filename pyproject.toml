@@ -10,7 +10,9 @@ python = "^3.10"
 solubility-microservice = {path = "microservices/solubility/client"}
 conformations-microservice = {path = "microservices/conformations/client"}
 p2rank-microservice = {path = "microservices/p2rank/client"}
+esmfold-microservice = {path = "microservices/esmfold/client"}
 esmfold_light-microservice = {path = "microservices/esmfold_light/client"}
+umol-microservice = {path = "microservices/umol/client"}
 msa_light-microservice = {path = "microservices/msa_light/client"}
 websockets = "^12.0"
 uvicorn = "^0.25.0"
