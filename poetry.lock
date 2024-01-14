@@ -207,6 +207,25 @@ type = "directory"
 url = "microservices/esmfold_light/client"
 
 [[package]]
+name = "esmfold-microservice"
+version = "1.0.0"
+description = "FastAPI"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/esmfold/client"
+
+[[package]]
 name = "exceptiongroup"
 version = "1.2.0"
 description = "Backport of PEP 654 (exception groups)"
@@ -604,6 +623,25 @@ files = [
 ]
 
 [[package]]
+name = "umol-microservice"
+version = "1.0.0"
+description = "Umol"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/umol/client"
+
+[[package]]
 name = "urllib3"
 version = "2.1.0"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -722,4 +760,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d5030e5c617c037b53fa1681b5f477ab154bda78a0cfec090f90dbc75bb588f0"
+content-hash = "df64e546e040dffe6bdf77d73c4ef9f0d1ea5a45802bef53ae8bd41cf3a9e01c"

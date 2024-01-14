@@ -2,14 +2,13 @@ from typing import List
 
 from nolabs.infrastructure.settings import Settings
 import p2rank_microservice
+import umol_microservice
 
 settings = Settings()
 if settings.is_light_infrastructure:
     import esmfold_light_microservice as folding_microservice
-
-# TODO: add self-hosted folding microservice
-# else:
-#    import esmfold_microservice as folding_microservice
+else:
+    import esmfold_microservice as folding_microservice
 
 # TODO: Add self-hosted MSA microservice
 # if settings.drug_discovery_self_hosted_msa:
