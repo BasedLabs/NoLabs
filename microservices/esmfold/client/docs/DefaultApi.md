@@ -1,4 +1,4 @@
-# esmfold_microservice.DefaultApi
+# umol_microservice.DefaultApi
 
 All URIs are relative to *http://localhost*
 
@@ -19,24 +19,24 @@ Predict
 ```python
 import time
 import os
-import esmfold_microservice
-from esmfold_microservice.models.run_esm_fold_prediction_request import RunEsmFoldPredictionRequest
-from esmfold_microservice.models.run_esm_fold_prediction_response import RunEsmFoldPredictionResponse
-from esmfold_microservice.rest import ApiException
+import umol_microservice
+from umol_microservice.models.run_esm_fold_prediction_request import RunEsmFoldPredictionRequest
+from umol_microservice.models.run_esm_fold_prediction_response import RunEsmFoldPredictionResponse
+from umol_microservice.rest import ApiException
 from pprint import pprint
 
 # Defining the host is optional and defaults to http://localhost
 # See configuration.py for a list of all supported configuration parameters.
-configuration = esmfold_microservice.Configuration(
+configuration = umol_microservice.Configuration(
     host = "http://localhost"
 )
 
 
 # Enter a context with an instance of the API client
-with esmfold_microservice.ApiClient(configuration) as api_client:
+with umol_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = esmfold_microservice.DefaultApi(api_client)
-    run_esm_fold_prediction_request = esmfold_microservice.RunEsmFoldPredictionRequest() # RunEsmFoldPredictionRequest | 
+    api_instance = umol_microservice.DefaultApi(api_client)
+    run_esm_fold_prediction_request = umol_microservice.RunEsmFoldPredictionRequest() # RunEsmFoldPredictionRequest | 
 
     try:
         # Predict
@@ -89,24 +89,24 @@ Predict Through Api
 ```python
 import time
 import os
-import esmfold_microservice
-from esmfold_microservice.models.run_esm_fold_prediction_request import RunEsmFoldPredictionRequest
-from esmfold_microservice.models.run_esm_fold_prediction_response import RunEsmFoldPredictionResponse
-from esmfold_microservice.rest import ApiException
+import umol_microservice
+from umol_microservice.models.run_esm_fold_prediction_request import RunEsmFoldPredictionRequest
+from umol_microservice.models.run_esm_fold_prediction_response import RunEsmFoldPredictionResponse
+from umol_microservice.rest import ApiException
 from pprint import pprint
 
 # Defining the host is optional and defaults to http://localhost
 # See configuration.py for a list of all supported configuration parameters.
-configuration = esmfold_microservice.Configuration(
+configuration = umol_microservice.Configuration(
     host = "http://localhost"
 )
 
 
 # Enter a context with an instance of the API client
-with esmfold_microservice.ApiClient(configuration) as api_client:
+with umol_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = esmfold_microservice.DefaultApi(api_client)
-    run_esm_fold_prediction_request = esmfold_microservice.RunEsmFoldPredictionRequest() # RunEsmFoldPredictionRequest | 
+    api_instance = umol_microservice.DefaultApi(api_client)
+    run_esm_fold_prediction_request = umol_microservice.RunEsmFoldPredictionRequest() # RunEsmFoldPredictionRequest | 
 
     try:
         # Predict Through Api

@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 ## Example
 
 ```python
-from esmfold_microservice.models.run_esm_fold_prediction_response import RunEsmFoldPredictionResponse
+from umol_microservice.models.run_esm_fold_prediction_response import RunEsmFoldPredictionResponse
 
 # TODO update the JSON string below
 json = "{}"
