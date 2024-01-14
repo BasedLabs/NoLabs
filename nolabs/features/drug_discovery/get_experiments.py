@@ -14,9 +14,9 @@ class GetExperimentsFeature:
         for experiment_id in d.keys():
             metadata = d[experiment_id]
             result_d[experiment_id.value] = ExperimentMetadataResponse(
-                id=metadata.id.value,
-                name=metadata.name.value,
-                date=metadata.date
+                experiment_id=metadata.id.value,
+                experiment_name=metadata.name.value,
+                experiment_date=metadata.date
             )
 
         return result_d

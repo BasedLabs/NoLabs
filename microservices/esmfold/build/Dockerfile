@@ -12,7 +12,7 @@ COPY ./requirements.txt /app/
 
 # Install dependencies
 RUN python3.8 -m pip install --upgrade pip
-RUN python3.8 -m pip install -r requirements.txt
+RUN python3.8 -m pip install --default-timeout=100 -r requirements.txt
 
 # Pre-download ESM-Fold model weights
 RUN python3.8 -c "from transformers import EsmForProteinFolding; EsmForProteinFolding.from_pretrained('facebook/esmfold_v1', low_cpu_mem_usage=True)"

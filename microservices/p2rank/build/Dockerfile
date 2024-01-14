@@ -1,5 +1,5 @@
 # Use Python 3.8 as the base image
-FROM python:3.8
+FROM python:3
 
 # Install default JDK and JRE
 RUN apt-get update && apt-get install -y default-jdk default-jre

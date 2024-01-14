@@ -7,10 +7,16 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-websockets = "^12.0"
-uvicorn = "^0.25.0"
 solubility-microservice = {path = "microservices/solubility/client"}
 conformations-microservice = {path = "microservices/conformations/client"}
+p2rank-microservice = {path = "microservices/p2rank/client"}
+esmfold_light-microservice = {path = "microservices/esmfold_light/client"}
+msa_light-microservice = {path = "microservices/msa_light/client"}
+websockets = "^12.0"
+uvicorn = "^0.25.0"
+fastapi = "^0.109.0"
+numpy = "^1.26.3"
+requests = "^2.31.0"
 
 [project]
 dependencies = [

@@ -1,22 +1,22 @@
 from pydantic import dataclasses as pcdataclass
 import datetime
 from fastapi import UploadFile
-from typing import List, Optional, Dict
+from typing import List
 
 
 @pcdataclass.dataclass
 class GetExperimentRequest:
-    experimentId: str
+    experiment_id: str
 
 @pcdataclass.dataclass
 class DeleteExperimentRequest:
-    id: str
+    experiment_id: str
 
 @pcdataclass.dataclass
 class ExperimentMetadataResponse:
-    id: str
-    name: str
-    date: datetime.datetime
+    experiment_id: str
+    experiment_name: str
+    experiment_date: datetime.datetime
 
 @pcdataclass.dataclass
 class ChangeExperimentNameRequest:
@@ -29,12 +29,12 @@ class ChangeExperimentNameRequest:
 
 @pcdataclass.dataclass
 class TargetMetaData:
-    targetId: str
-    targetName: str
+    target_id: str
+    target_name: str
 
 @pcdataclass.dataclass
 class UploadTargetRequest:
-    experimentId: str
+    experiment_id: str
     fasta_file: UploadFile
 
 @pcdataclass.dataclass
@@ -45,40 +45,76 @@ class UploadTargetResponse:
     result: List[TargetMetaData]
 
 @pcdataclass.dataclass
+class DeleteTargetRequest:
+    experiment_id: str
+    target_id: str
+
+@pcdataclass.dataclass
+class DeleteTargetResponse:
+    target_id: str
+
+@pcdataclass.dataclass
 class GetTargetDataRequest:
-    experimentId: str
-    targetId: str
+    experiment_id: str
+    targe_id: str
 
 @pcdataclass.dataclass
 class GetTargetDataResponse:
-    protein_pdb: str | None = None
     protein_fasta: str
+    protein_pdb: str | None = None
 
 @pcdataclass.dataclass
 class GetTargetsListRequest:
-    experimentId: str
+    experiment_id: str
 
 @pcdataclass.dataclass
 class GetTargetsListResponse:
-    targets: List[UploadTargetResponse]
+    targets: List[TargetMetaData]
 
 @pcdataclass.dataclass
 class GetTargetBindingPocketRequest:
-    experimentId: str
-    targetId: str
+    experiment_id: str
+    targe_id: str
 
 @pcdataclass.dataclass
 class GetTargetBindingPocketResponse:
-    pocketIds: List[int] | None
+    pocket_ids: List[int] | None
 
 @pcdataclass.dataclass
 class PredictBindingPocketRequest:
-    experimentId: str
-    targetId: str
+    experiment_id: str
+    target_id: str
     
 @pcdataclass.dataclass
 class PredictBindingPocketResponse:
-    pocketIds: List[int] | None
+    pocket_ids: List[int] | None
+
+@pcdataclass.dataclass
+class PredictMsaRequest:
+    experiment_id: str
+    target_id: str
+
+@pcdataclass.dataclass
+class PredictMsaResponse:
+    msa_contents: str
+
+@pcdataclass.dataclass
+class CheckFoldingExistRequest:
+    experiment_id: str
+    targe_id: str
+
+@pcdataclass.dataclass
+class CheckFoldingExistResponse:
+    folding_exist: bool
+
+@pcdataclass.dataclass
+class PredictFoldingRequest:
+    experiment_id: str
+    target_id: str
+
+@pcdataclass.dataclass
+class PredictFoldingResponse:
+    pdb_content: str | None = None
 
 # # #
 # Uploading and managing ligands section
@@ -86,30 +122,38 @@ class PredictBindingPocketResponse:
 
 @pcdataclass.dataclass
 class LigandMetaData:
-    ligandId: str
-    ligandName: str
+    ligand_id: str
+    ligand_name: str
 
 @pcdataclass.dataclass
 class UploadLigandRequest:
-    experimentId: str
-    sdf: UploadFile
+    experiment_id: str
+    sdf_file: UploadFile
 
 @pcdataclass.dataclass
 class UploadLigandResponse:
-    ligandId: str
-    ligandMetaData: LigandMetaData
+    ligand_meta_data: LigandMetaData
+
+@pcdataclass.dataclass
+class DeleteLigandRequest:
+    experiment_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class DeleteLigandResponse:
+    ligand_id: str
 
 @pcdataclass.dataclass
 class GetLigandsListRequest:
-    experimentId: str
+    experiment_id: str
 
 @pcdataclass.dataclass
 class GetLigandsListResponse:
-    targets: List[UploadLigandResponse]
+    ligands: List[LigandMetaData]
 
 @pcdataclass.dataclass
 class GetLigandDataRequest:
-    ligandId: str
+    ligand_id: str
 
 @pcdataclass.dataclass
 class GetLigandDataResponse:
@@ -120,13 +164,13 @@ class GetLigandDataResponse:
 # # #
 @pcdataclass.dataclass
 class ResultMetaData:
-    resultId: str
-    proteinId: str
-    ligandIds: List[str]
+    result_id: str
+    protein_id: str
+    ligand_ids: List[str]
 
 @pcdataclass.dataclass
 class DockingRequest:
-    experimentId: str
+    experiment_id: str
     protein_id: str
     ligand_id: str
 
@@ -137,11 +181,11 @@ class DockingResponse:
 
 @pcdataclass.dataclass
 class GetResultsListRequest:
-    experimentId: str
+    experiment_id: str
 
 @pcdataclass.dataclass
 class GetResultsListResponse:
-    resultsList: List
+    results_list: List
 
 
 

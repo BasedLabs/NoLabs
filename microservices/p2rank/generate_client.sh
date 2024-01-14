@@ -16,10 +16,12 @@ fi
 
 echo 'Installation: https://openapi-generator.tech/docs/installation'
 
+sudo docker build -t p2rank -f build/Dockerfile .
+
 # Run the Docker container in the background
 # Replace 'p2rank_app' with the actual name of your Docker image
 # Adjust the port to match the port you're using for the FastAPI application
-sudo docker run -d --name p2rank -e HOST=0.0.0.0 -e PORT=5731 -p 5731:5731 p2rank_app
+sudo docker run -d --name p2rank -e HOST=0.0.0.0 -e PORT=5731 -p 5731:5731 p2rank
 
 # Generate the Python client using OpenAPI Generator
 npx @openapitools/openapi-generator-cli generate \
