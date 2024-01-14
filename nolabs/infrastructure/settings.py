@@ -28,6 +28,10 @@ class Settings:
         return self._config.get('microservices', 'conformations_host')
 
     @property
+    def localisation_host(self) -> str:
+        return self._config.get('microservices', 'localisation_host')
+
+    @property
     def conformations_simulations_file_name(self) -> str:
         return self._config.get('conformations', 'file_name')
 

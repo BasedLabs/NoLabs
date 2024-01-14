@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from nolabs.controllers.conformations.conformations import router as conformations_router
 from nolabs.controllers.solubility.solubility import router as solubility_router
+from nolabs.controllers.localisation.localisation import router as localisation_router
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
 import nolabs.infrastructure.environment
 
@@ -27,6 +28,7 @@ app.add_middleware(
 
 app.include_router(conformations_router)
 app.include_router(solubility_router)
+app.include_router(localisation_router)
 add_domain_exception_middleware(app)
 
 print('Go to /api/v1/docs to see Swagger')

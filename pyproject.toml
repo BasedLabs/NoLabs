@@ -17,6 +17,7 @@ uvicorn = "^0.25.0"
 fastapi = "^0.109.0"
 numpy = "^1.26.3"
 requests = "^2.31.0"
+localisation-microservice = {path = "microservices/localisation/client"}
 
 [project]
 dependencies = [
