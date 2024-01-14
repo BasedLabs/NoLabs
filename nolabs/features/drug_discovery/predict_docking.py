@@ -1,5 +1,7 @@
 from typing import List
 
+from nolabs.features.drug_discovery.data_models.ligand import LigandId
+from nolabs.features.drug_discovery.data_models.result import DockingResultData
 from nolabs.infrastructure.settings import Settings
 import p2rank_microservice
 import umol_microservice
@@ -19,24 +21,47 @@ from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
 from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
+from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
 
 
 class PredictDockingFeature:
-    def __init__(self, target_file_management: TargetsFileManagement, ligand_file_management: LigandsFileManagement):
+    def __init__(self, target_file_management: TargetsFileManagement,
+                 ligand_file_management: LigandsFileManagement,
+                 result_file_management: ResultsFileManagement):
         self._target_file_management = target_file_management
         self._ligand_file_management = ligand_file_management
+        self._result_file_management = result_file_management
 
     def handle(self, request: DockingRequest) -> DockingResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
+        ligand_id = LigandId(request.ligand_id)
 
-        pdb_contents = self.get_folding(experiment_id, target_id)
         msa_contents = self.get_msa(experiment_id, target_id)
         pocket_ids = self.get_pocket_ids(experiment_id, target_id)
+        _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
+        ligand_smiles = self._ligand_file_management.get_ligand_data(experiment_id, target_id, ligand_id)
 
-        return DockingResponse(predicted_pdb=pdb_contents, predicted_sdf="")
+        client = umol_microservice.DefaultApi(api_client=umol_microservice.ApiClient())
+        request = umol_microservice.RunUmolPredictionRequest(protein_sequence=sequence,
+                                                             msa_content=msa_contents,
+                                                             pocket_ids=pocket_ids,
+                                                             ligand_smiles=ligand_smiles)
+        response = client.predict_run_umol_post(request=request)
+
+        predicted_pdb = response.pdb_contents
+        predicted_sdf = response.sdf_contents
+        plddt_array = response.plddt_array
+
+        result_data = DockingResultData(predicted_pdb=predicted_pdb,
+                                        predicted_sdf=predicted_sdf,
+                                        plddt_array=plddt_array)
+
+        self._result_file_management.store_result_data(experiment_id, target_id, ligand_id, result_data)
+
+        return DockingResponse(predicted_pdb=predicted_pdb, predicted_sdf=predicted_sdf, plddt_array=plddt_array)
 
     def get_folding(self, experiment_id: ExperimentId, target_id: TargetId) -> str:
         if not self._target_file_management.get_pdb_contents(experiment_id, target_id):

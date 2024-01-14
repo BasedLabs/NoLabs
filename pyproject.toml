@@ -31,7 +31,8 @@ dependencies = [
     "pydantic",
     "obonet",
     "jsonpickle",
-    "python-multipart"
+    "python-multipart",
+    "rdkit"
 ]
 
 [build-system]

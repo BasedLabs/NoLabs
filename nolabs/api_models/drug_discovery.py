@@ -178,6 +178,7 @@ class DockingRequest:
 class DockingResponse:
     predicted_pdb: str
     predicted_sdf: str
+    plddt_array: List[int]
 
 @pcdataclass.dataclass
 class GetResultsListRequest:

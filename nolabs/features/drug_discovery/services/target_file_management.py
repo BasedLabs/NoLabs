@@ -6,20 +6,17 @@ from typing import List
 
 from nolabs.domain.experiment import ExperimentId
 from nolabs.infrastructure.settings import Settings
-from nolabs.utils.datetime_utils import DateTimeUtils
 
 from nolabs.utils.fasta import FastaReader, FastaWriter
 from nolabs.utils.pdb import PDBReader, PDBWriter
-from nolabs.utils.uuid_utils import UuidUtils
+from nolabs.utils.uuid_utils import generate_uuid
 from nolabs.features.drug_discovery.data_models.target import TargetId, TargetMetaData
-
 from fastapi import UploadFile
 
 
 class TargetsFileManagement:
-    def __init__(self, settings: Settings, dt_utils: DateTimeUtils):
+    def __init__(self, settings: Settings):
         self._settings = settings
-        self._dt_utils = dt_utils
         self.fasta_reader = FastaReader()
         self.fasta_writer = FastaWriter()
         self.pdb_reader = PDBReader()
@@ -56,7 +53,7 @@ class TargetsFileManagement:
 
         for amino_acid in ids2sequences:
             target_name, sequence = amino_acid.name, amino_acid.sequence
-            target_id = TargetId(UuidUtils.generate_uuid())
+            target_id = TargetId(generate_uuid())
             self.ensure_target_folder_exists(experiment_id, target_id)
             target_folder = self.target_folder(experiment_id, target_id)
 
