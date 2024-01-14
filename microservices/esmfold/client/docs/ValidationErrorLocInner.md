@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 ## Example
 
 ```python
-from umol_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from esmfold_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
 
 # TODO update the JSON string below
 json = "{}"

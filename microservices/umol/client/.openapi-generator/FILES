@@ -1,7 +1,6 @@
 .github/workflows/python.yml
 .gitignore
 .gitlab-ci.yml
-.openapi-generator-ignore
 .travis.yml
 README.md
 docs/DefaultApi.md
@@ -17,12 +16,6 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_default_api.py
-test/test_http_validation_error.py
-test/test_run_umol_prediction_request.py
-test/test_run_umol_prediction_response.py
-test/test_validation_error.py
-test/test_validation_error_loc_inner.py
 tox.ini
 umol_microservice/__init__.py
 umol_microservice/api/__init__.py

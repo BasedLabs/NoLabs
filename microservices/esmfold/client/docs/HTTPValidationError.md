@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 ## Example
 
 ```python
-from umol_microservice.models.http_validation_error import HTTPValidationError
+from esmfold_microservice.models.http_validation_error import HTTPValidationError
 
 # TODO update the JSON string below
 json = "{}"

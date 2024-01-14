@@ -31,8 +31,9 @@ class RunUmolPredictionResponse(BaseModel):
     """ # noqa: E501
     errors: List[StrictStr]
     sdf_contents: Optional[StrictStr]
+    pdb_contents: Optional[StrictStr]
     plddt_array: List[StrictInt]
-    __properties: ClassVar[List[str]] = ["errors", "sdf_contents", "plddt_array"]
+    __properties: ClassVar[List[str]] = ["errors", "sdf_contents", "pdb_contents", "plddt_array"]
 
     model_config = {
         "populate_by_name": True,
@@ -76,6 +77,11 @@ class RunUmolPredictionResponse(BaseModel):
         if self.sdf_contents is None and "sdf_contents" in self.model_fields_set:
             _dict['sdf_contents'] = None
 
+        # set to None if pdb_contents (nullable) is None
+        # and model_fields_set contains the field
+        if self.pdb_contents is None and "pdb_contents" in self.model_fields_set:
+            _dict['pdb_contents'] = None
+
         return _dict
 
     @classmethod
@@ -90,6 +96,7 @@ class RunUmolPredictionResponse(BaseModel):
         _obj = cls.model_validate({
             "errors": obj.get("errors"),
             "sdf_contents": obj.get("sdf_contents"),
+            "pdb_contents": obj.get("pdb_contents"),
             "plddt_array": obj.get("plddt_array")
         })
         return _obj
