@@ -1,13 +1,13 @@
 # RunSolubilityPredictionResponse
 
-RunSolubilityPredictionResponse(errors: List[str], solubleConfidence: Optional[float])
+RunSolubilityPredictionResponse(errors: List[str], soluble_probability: Optional[float])
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **errors** | **List[str]** |  | 
-**soluble_confidence** | **float** |  | 
+**soluble_probability** | **float** |  | 
 
 ## Example
 

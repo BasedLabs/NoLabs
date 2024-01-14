@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from esmfold.services import run_folding, run_facebook_api_folding
 from esmfold.api_models import RunEsmFoldPredictionRequest, RunEsmFoldPredictionResponse
-from esmfold.loggers import Log
 
 app = FastAPI()
+
+from esmfold.loggers import Log
+
 
 @app.post("/run-folding")
 async def predict(request: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionResponse:

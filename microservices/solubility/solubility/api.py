@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from solubility.loggers import logger
 from solubility.api_models import *
 from solubility.services import run_solubility_predictions
 
@@ -7,6 +6,7 @@ app = FastAPI(
     title='Solubility api'
 )
 
+from solubility.loggers import logger
 logger.starting_api()
 
 

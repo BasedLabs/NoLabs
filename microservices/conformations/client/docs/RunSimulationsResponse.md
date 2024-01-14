@@ -1,6 +1,5 @@
 # RunSimulationsResponse
 
-RunSimulationsResponse(*, errors: List[str] = None, pdbContent: str | None = None)
 
 ## Properties
 

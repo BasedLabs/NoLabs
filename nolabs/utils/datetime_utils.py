@@ -1,6 +1,5 @@
 import datetime
 
 
-class DateTimeUtils:
-    def utcnow(self) -> datetime.datetime:
-        return datetime.datetime.utcnow()
+def utcnow() -> datetime.datetime:
+    return datetime.datetime.now(datetime.UTC)

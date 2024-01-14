@@ -1,28 +1,44 @@
-from pydantic import dataclasses as pcdataclass
+from pydantic import dataclasses as pcdataclass, model_validator
 import datetime
-from typing import List
+from typing import List, Optional, Any
 
-import pydantic
-from fastapi import UploadFile
+from fastapi import UploadFile, File
 
 
 @pcdataclass.dataclass
 class RunSolubilityRequest:
-    experimentName: str
-    experimentId: str
-    aminoAcidSequence: str | None = None
-    fasta: UploadFile | None = None
+    experiment_name: str
+    experiment_id: Optional[str]
+    amino_acid_sequence: Optional[str]
+    fastas: Optional[List[UploadFile]]
+
+    @model_validator(mode='after')
+    @classmethod
+    def check_inputs(cls, data: Any) -> Any:
+        if not isinstance(data, RunSolubilityRequest):
+            raise ValueError('Incorrect data type')
+        if not data.amino_acid_sequence and not data.fastas:
+            raise ValueError('Either specify aminoacid sequence or fastas files')
+        return data
+
+
+@pcdataclass.dataclass
+class AminoAcidResponse:
+    sequence: str
+    name: str
+    soluble_probability: float
 
 
 @pcdataclass.dataclass
 class RunSolubilityResponse:
-    solubleProbability: float | None = None
+    experiment_id: str
+    amino_acids: List[AminoAcidResponse]
     errors: List[str] = pcdataclass.Field(default_factory=list)
 
 
 @pcdataclass.dataclass
 class GetExperimentRequest:
-    experimentId: str
+    experiment_id: str
 
 
 @pcdataclass.dataclass
@@ -39,8 +55,8 @@ class ExperimentMetadataResponse:
 
 @pcdataclass.dataclass
 class GetExperimentResponse:
-    metaData: ExperimentMetadataResponse
-    solubleProbability: float
+    metadata: ExperimentMetadataResponse
+    amino_acids: List[AminoAcidResponse]
 
 
 @pcdataclass.dataclass

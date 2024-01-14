@@ -27,7 +27,7 @@ except ImportError:
 
 class GenGroTopResponse(BaseModel):
     """
-    GenGroTopResponse(*, gro: str | None, top: str | None, errors: List[str] = None)
+    GenGroTopResponse
     """ # noqa: E501
     gro: Optional[StrictStr]
     top: Optional[StrictStr]

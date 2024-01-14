@@ -5,7 +5,6 @@ from enum import Enum
 from typing import List
 
 import pydantic
-from pydantic import BaseModel
 
 from conformations.mixins import BaseModelMixin
 
@@ -18,7 +17,27 @@ class Integrators(Enum):
     variable_verlet = 'VariableVerletIntegrator'
 
 
-class ForceFields(Enum):
+class GromacsForceFields(Enum):
+    AMBER03 = 'amber03'
+    AMBER94 = 'amber94'
+    AMBER96 = 'amber96'
+    AMBER99 = 'amber99'
+    AMBER99SB_ILDN = 'amber99db-ildn'
+    AMBER99SB = 'amber99sb'
+    AMBERGS = 'amberGS'
+    CHARMM27 = 'charmm27'
+
+
+class GromacsWaterForceFields(Enum):
+    SPC = 'spc'
+    SPCE = 'spce'
+    IP3P = 'ip3p'
+    TIP4P = 'tip4p'
+    TIP5P = 'tip5p'
+    TIPS3P = 'tips3p'
+
+
+class OpenMmForceFields(Enum):
     AMBER14_ALL = 'amber14-all.xml'
     AMBER14_FF14SB = 'amber14/protein.ff14SB.xml'
     AMBER14_FF15IPQ = 'amber14/protein.ff15ipq.xml'
@@ -30,7 +49,7 @@ class ForceFields(Enum):
     CHARMM36 = 'charmm36.xml'
 
 
-class WaterForceFields(Enum):
+class OpenMmWaterForceFields(Enum):
     AMBER14_TIP3P = 'amber14/tip3p.xml'
     AMBER14_TIP3PFB = 'amber14/tip3pfb.xml'
     AMBER14_TIP4PEW = 'amber14/tip4pew.xml'
@@ -38,77 +57,78 @@ class WaterForceFields(Enum):
     AMBER14_SPCE = 'amber14/spce.xml'
     AMBER14_OPC = 'amber14/opc.xml'
     AMBER14_OPC3 = 'amber14/opc3.xml'
+    CHARMM36_WATER = 'charmm36/water.xml'
+    CHARMM36_SPCE = 'charmm36/spce.xml'
+    CHARMM36_TIP3P_PME_B = 'charmm36/tip3p-pme-b.xml'
+    CHARMM36_TIP3P_PME_F = 'charmm36/tip3p-pme-f.xml'
+    CHARMM36_TIP4PEW = 'charmm36/tip4pew.xml'
+    CHARMM36_TIP4P2005 = 'charmm36/tip4p2005.xml'
+    CHARMM36_TIP5P = 'charmm36/tip5p.xml'
+    CHARMM36_TIP5PEW = 'charmm36/tip5pew.xml'
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass()
-class GenGromacsFilesRequest(BaseModelMixin, BaseModel):
-    pdbContent: str
-    forceField: ForceFields
-    waterForceField: WaterForceFields
+class GenGromacsFilesRequest(BaseModelMixin):
+    pdb_content: str
+    force_field: GromacsForceFields
+    water_force_field: GromacsWaterForceFields
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass()
-class RunSimulationsBase(BaseModelMixin, BaseModel):
-    temperatureK: float = 273.15
-    frictionCoeff: float = 1.0
-    stepSize: float = 0.002
-    integrator: Integrators = Integrators.langevin
-    takeFrameEvery: int = 1000
-    totalFrames: int = 10000
-
-
-@pydantic.dataclasses.dataclass
-@dataclasses.dataclass()
-class RunGromacsSimulationsRequest(RunSimulationsBase):
+class RunGromacsSimulationsRequest(BaseModelMixin):
     top: str
     gro: str
+    temperature_k: float = 273.15
+    friction_coeff: float = 1.0
+    step_size: float = 0.002
+    integrator: Integrators = Integrators.langevin
+    take_frame_every: int = 1000
+    total_frames: int = 10000
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass()
-class RunPdbSimulationsRequest(RunSimulationsBase):
-    pdbContent: str
-    forceField: str
-    waterForceField: WaterForceFields
+class RunPdbSimulationsRequest(BaseModelMixin):
+    pdb_content: str
+    force_field: OpenMmForceFields
+    water_force_field: OpenMmWaterForceFields
+    temperature_k: float = 273.15
+    friction_coeff: float = 1.0
+    step_size: float = 0.002
+    integrator: Integrators = Integrators.langevin
+    take_frame_every: int = 1000
+    total_frames: int = 10000
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass()
-class RunPdbFixerRequest(BaseModelMixin, BaseModel):
-    pdbContent: str
-    replaceNonStandardResidues: bool = False
-    addMissingAtoms: bool = False
-    addMissingHydrogens: bool = True
+class RunPdbFixerRequest(BaseModelMixin):
+    pdb_content: str
+    replace_nonstandard_residues: bool = False
+    add_missing_atoms: bool = False
+    add_missing_hydrogens: bool = True
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass
-class RunPdbFixerResponse(BaseModelMixin, BaseModel):
+class RunPdbFixerResponse(BaseModelMixin):
     errors: List[str] = dataclasses.field(default_factory=list)
-    pdbContent: str | None = None
+    pdb_content: str | None = None
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass
-class RunSimulationsResponse(BaseModelMixin, BaseModel):
+class RunSimulationsResponse(BaseModelMixin):
     errors: List[str] = dataclasses.field(default_factory=list)
-    pdbContent: str | None = None
+    pdb_content: str | None = None
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass()
-class GenGroTopRequest(BaseModelMixin, BaseModel):
-    forceField: ForceFields
-    waterForceField: WaterForceFields
-    pdbContent: str
-    ignoreMissingAtoms: bool = False
+class GenGroTopRequest(BaseModelMixin):
+    force_field: GromacsForceFields
+    water_force_field: GromacsWaterForceFields
+    pdb_content: str
+    ignore_missing_atoms: bool = False
 
 
 @pydantic.dataclasses.dataclass
-@dataclasses.dataclass()
-class GenGroTopResponse(BaseModelMixin, BaseModel):
+class GenGroTopResponse(BaseModelMixin):
     gro: str | None
     top: str | None
     errors: List[str] = dataclasses.field(default_factory=list)

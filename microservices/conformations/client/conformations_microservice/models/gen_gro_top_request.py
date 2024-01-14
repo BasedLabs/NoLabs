@@ -20,9 +20,8 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictBool, StrictStr
-from pydantic import Field
-from conformations_microservice.models.force_fields import ForceFields
-from conformations_microservice.models.water_force_fields import WaterForceFields
+from conformations_microservice.models.gromacs_force_fields import GromacsForceFields
+from conformations_microservice.models.gromacs_water_force_fields import GromacsWaterForceFields
 try:
     from typing import Self
 except ImportError:
@@ -30,13 +29,13 @@ except ImportError:
 
 class GenGroTopRequest(BaseModel):
     """
-    GenGroTopRequest(*, forceField: conformations.api_models.ForceFields, waterForceField: conformations.api_models.WaterForceFields, pdbContent: str, ignoreMissingAtoms: bool = False)
+    GenGroTopRequest
     """ # noqa: E501
-    force_field: ForceFields = Field(alias="forceField")
-    water_force_field: WaterForceFields = Field(alias="waterForceField")
-    pdb_content: StrictStr = Field(alias="pdbContent")
-    ignore_missing_atoms: Optional[StrictBool] = Field(default=False, alias="ignoreMissingAtoms")
-    __properties: ClassVar[List[str]] = ["forceField", "waterForceField", "pdbContent", "ignoreMissingAtoms"]
+    force_field: GromacsForceFields
+    water_force_field: GromacsWaterForceFields
+    pdb_content: StrictStr
+    ignore_missing_atoms: Optional[StrictBool] = False
+    __properties: ClassVar[List[str]] = ["force_field", "water_force_field", "pdb_content", "ignore_missing_atoms"]
 
     model_config = {
         "populate_by_name": True,
@@ -87,10 +86,10 @@ class GenGroTopRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "forceField": obj.get("forceField"),
-            "waterForceField": obj.get("waterForceField"),
-            "pdbContent": obj.get("pdbContent"),
-            "ignoreMissingAtoms": obj.get("ignoreMissingAtoms") if obj.get("ignoreMissingAtoms") is not None else False
+            "force_field": obj.get("force_field"),
+            "water_force_field": obj.get("water_force_field"),
+            "pdb_content": obj.get("pdb_content"),
+            "ignore_missing_atoms": obj.get("ignore_missing_atoms") if obj.get("ignore_missing_atoms") is not None else False
         })
         return _obj
 

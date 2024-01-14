@@ -1,13 +1,12 @@
 # GenGroTopRequest
 
-GenGroTopRequest(*, forceField: conformations.api_models.ForceFields, waterForceField: conformations.api_models.WaterForceFields, pdbContent: str, ignoreMissingAtoms: bool = False)
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**force_field** | [**ForceFields**](ForceFields.md) |  | 
-**water_force_field** | [**WaterForceFields**](WaterForceFields.md) |  | 
+**force_field** | [**GromacsForceFields**](GromacsForceFields.md) |  | 
+**water_force_field** | [**GromacsWaterForceFields**](GromacsWaterForceFields.md) |  | 
 **pdb_content** | **str** |  | 
 **ignore_missing_atoms** | **bool** |  | [optional] [default to False]
 

@@ -9,10 +9,10 @@ from solubility.mixins import BaseModelMixin, ErrorResponseMixing
 @dataclasses.dataclass
 @pydantic.dataclasses.dataclass
 class RunSolubilityPredictionRequest(BaseModelMixin):
-    proteinSequence: str
+    amino_acid_sequence: str
 
 
 @dataclasses.dataclass
 @pydantic.dataclasses.dataclass
 class RunSolubilityPredictionResponse(BaseModelMixin, ErrorResponseMixing):
-    solubleConfidence: Optional[float]
+    soluble_probability: Optional[float]

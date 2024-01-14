@@ -5,6 +5,8 @@ from gene_ontology.api_models import RunGeneOntologyPredictionRequest, RunGeneOn
 
 _logger = logging.getLogger()
 
+_logger.setLevel(logging.DEBUG)
+
 _logHandler = logging.StreamHandler()
 _formatter = jsonlogger.JsonFormatter()
 _logHandler.setFormatter(_formatter)

@@ -1,11 +1,15 @@
 import logging
+import sys
+
 from pythonjsonlogger import jsonlogger
 
 from conformations.api_models import *
 
 _logger = logging.getLogger()
 
-_logHandler = logging.StreamHandler()
+_logger.setLevel(logging.DEBUG)
+
+_logHandler = logging.StreamHandler(sys.stdout)
 _formatter = jsonlogger.JsonFormatter()
 _logHandler.setFormatter(_formatter)
 _logger.addHandler(_logHandler)

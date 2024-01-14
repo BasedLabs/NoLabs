@@ -15,7 +15,7 @@ class Settings:
         self._config = configparser.ConfigParser()
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
-        settings_path = 'settings-dev.ini' if is_dev() else 'settings.ini'
+        settings_path = 'settings.ini' if is_dev() else 'settings.ini'
 
         self._config.read(os.path.join(dir_path, settings_path))
 
@@ -34,7 +34,7 @@ class Settings:
     @property
     def conformations_experiments_folder(self) -> str:
         import nolabs
-        exp_folder = self._config.get('conformations', 'experiments_folder')
+        exp_folder = self._config.get('conformations', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
     @property
@@ -48,7 +48,7 @@ class Settings:
     @property
     def protein_design_experiments_folder(self) -> str:
         import nolabs
-        exp_folder = self._config.get('protein-design', 'experiments_folder')
+        exp_folder = self._config.get('protein-design', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
     @property
@@ -62,7 +62,7 @@ class Settings:
     @property
     def go_experiments_folder(self) -> str:
         import nolabs
-        exp_folder = self._config.get('go', 'experiments_folder')
+        exp_folder = self._config.get('go', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
     @property
@@ -70,13 +70,9 @@ class Settings:
         return self._config.get('go', 'metadata_file_name')
 
     @property
-    def solubility_file_name(self) -> str:
-        return self._config.get('solubility', 'file_name')
-
-    @property
     def solubility_experiments_folder(self) -> str:
         import nolabs
-        exp_folder = self._config.get('solubility', 'experiments_folder')
+        exp_folder = self._config.get('solubility', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
     @property
@@ -86,7 +82,7 @@ class Settings:
     @property
     def drug_discovery_experiments_folder(self):
         import nolabs
-        exp_folder = self._config.get('drug-discovery', 'experiments_folder')
+        exp_folder = self._config.get('drug-discovery', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
     @property

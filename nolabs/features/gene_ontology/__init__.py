@@ -1,5 +1,4 @@
 from .delete_experiment import DeleteExperimentFeature
-from .get_results import GetResultsFeature
 from .run_gene_ontology import RunGeneOntologyFeature
 from .get_experiments import GetExperimentsFeature
 from .get_experiment import GetExperimentFeature

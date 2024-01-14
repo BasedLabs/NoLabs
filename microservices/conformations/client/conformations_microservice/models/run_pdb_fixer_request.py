@@ -20,7 +20,6 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictBool, StrictStr
-from pydantic import Field
 try:
     from typing import Self
 except ImportError:
@@ -28,13 +27,13 @@ except ImportError:
 
 class RunPdbFixerRequest(BaseModel):
     """
-    RunPdbFixerRequest(*, pdbContent: str, replaceNonStandardResidues: bool = False, addMissingAtoms: bool = False, addMissingHydrogens: bool = True)
+    RunPdbFixerRequest
     """ # noqa: E501
-    pdb_content: StrictStr = Field(alias="pdbContent")
-    replace_non_standard_residues: Optional[StrictBool] = Field(default=False, alias="replaceNonStandardResidues")
-    add_missing_atoms: Optional[StrictBool] = Field(default=False, alias="addMissingAtoms")
-    add_missing_hydrogens: Optional[StrictBool] = Field(default=True, alias="addMissingHydrogens")
-    __properties: ClassVar[List[str]] = ["pdbContent", "replaceNonStandardResidues", "addMissingAtoms", "addMissingHydrogens"]
+    pdb_content: StrictStr
+    replace_nonstandard_residues: Optional[StrictBool] = False
+    add_missing_atoms: Optional[StrictBool] = False
+    add_missing_hydrogens: Optional[StrictBool] = True
+    __properties: ClassVar[List[str]] = ["pdb_content", "replace_nonstandard_residues", "add_missing_atoms", "add_missing_hydrogens"]
 
     model_config = {
         "populate_by_name": True,
@@ -85,10 +84,10 @@ class RunPdbFixerRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "pdbContent": obj.get("pdbContent"),
-            "replaceNonStandardResidues": obj.get("replaceNonStandardResidues") if obj.get("replaceNonStandardResidues") is not None else False,
-            "addMissingAtoms": obj.get("addMissingAtoms") if obj.get("addMissingAtoms") is not None else False,
-            "addMissingHydrogens": obj.get("addMissingHydrogens") if obj.get("addMissingHydrogens") is not None else True
+            "pdb_content": obj.get("pdb_content"),
+            "replace_nonstandard_residues": obj.get("replace_nonstandard_residues") if obj.get("replace_nonstandard_residues") is not None else False,
+            "add_missing_atoms": obj.get("add_missing_atoms") if obj.get("add_missing_atoms") is not None else False,
+            "add_missing_hydrogens": obj.get("add_missing_hydrogens") if obj.get("add_missing_hydrogens") is not None else True
         })
         return _obj
 

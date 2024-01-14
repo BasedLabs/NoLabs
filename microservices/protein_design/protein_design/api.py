@@ -1,11 +1,11 @@
 from fastapi import FastAPI
-from protein_design.loggers import logger
 from protein_design.api_models import *
 
 app = FastAPI(
     title='Protein design api'
 )
 
+from protein_design.loggers import logger
 logger.start_protein_design_api()
 
 @app.post("/run-rfdiffusion")

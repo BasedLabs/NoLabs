@@ -20,7 +20,6 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
-from pydantic import Field
 from conformations_microservice.models.integrators import Integrators
 try:
     from typing import Self
@@ -29,17 +28,17 @@ except ImportError:
 
 class RunGromacsSimulationsRequest(BaseModel):
     """
-    RunGromacsSimulationsRequest(*args: Any, temperatureK: float = 273.15, frictionCoeff: float = 1.0, stepSize: float = 0.002, integrator: conformations.api_models.Integrators = <Integrators.langevin: 'LangevinIntegator'>, takeFrameEvery: int = 1000, totalFrames: int = 10000, top: str, gro: str)
+    RunGromacsSimulationsRequest
     """ # noqa: E501
-    temperature_k: Optional[Union[StrictFloat, StrictInt]] = Field(default=273.15, alias="temperatureK")
-    friction_coeff: Optional[Union[StrictFloat, StrictInt]] = Field(default=1.0, alias="frictionCoeff")
-    step_size: Optional[Union[StrictFloat, StrictInt]] = Field(default=0.002, alias="stepSize")
-    integrator: Optional[Integrators] = None
-    take_frame_every: Optional[StrictInt] = Field(default=1000, alias="takeFrameEvery")
-    total_frames: Optional[StrictInt] = Field(default=10000, alias="totalFrames")
     top: StrictStr
     gro: StrictStr
-    __properties: ClassVar[List[str]] = ["temperatureK", "frictionCoeff", "stepSize", "integrator", "takeFrameEvery", "totalFrames", "top", "gro"]
+    temperature_k: Optional[Union[StrictFloat, StrictInt]] = 273.15
+    friction_coeff: Optional[Union[StrictFloat, StrictInt]] = 1.0
+    step_size: Optional[Union[StrictFloat, StrictInt]] = 0.002
+    integrator: Optional[Integrators] = None
+    take_frame_every: Optional[StrictInt] = 1000
+    total_frames: Optional[StrictInt] = 10000
+    __properties: ClassVar[List[str]] = ["top", "gro", "temperature_k", "friction_coeff", "step_size", "integrator", "take_frame_every", "total_frames"]
 
     model_config = {
         "populate_by_name": True,
@@ -90,14 +89,14 @@ class RunGromacsSimulationsRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "temperatureK": obj.get("temperatureK") if obj.get("temperatureK") is not None else 273.15,
-            "frictionCoeff": obj.get("frictionCoeff") if obj.get("frictionCoeff") is not None else 1.0,
-            "stepSize": obj.get("stepSize") if obj.get("stepSize") is not None else 0.002,
-            "integrator": obj.get("integrator"),
-            "takeFrameEvery": obj.get("takeFrameEvery") if obj.get("takeFrameEvery") is not None else 1000,
-            "totalFrames": obj.get("totalFrames") if obj.get("totalFrames") is not None else 10000,
             "top": obj.get("top"),
-            "gro": obj.get("gro")
+            "gro": obj.get("gro"),
+            "temperature_k": obj.get("temperature_k") if obj.get("temperature_k") is not None else 273.15,
+            "friction_coeff": obj.get("friction_coeff") if obj.get("friction_coeff") is not None else 1.0,
+            "step_size": obj.get("step_size") if obj.get("step_size") is not None else 0.002,
+            "integrator": obj.get("integrator"),
+            "take_frame_every": obj.get("take_frame_every") if obj.get("take_frame_every") is not None else 1000,
+            "total_frames": obj.get("total_frames") if obj.get("total_frames") is not None else 10000
         })
         return _obj
 

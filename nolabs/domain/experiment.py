@@ -1,11 +1,10 @@
 import dataclasses
 import datetime
-from typing import Dict
+from typing import Dict, Any
 
 from pydantic.dataclasses import dataclass
 
 
-@dataclasses.dataclass
 @dataclass
 class ExperimentId:
     value: str
@@ -23,7 +22,6 @@ class ExperimentId:
         return self.value.__hash__()
 
 
-@dataclasses.dataclass
 @dataclass
 class ExperimentName:
     value: str
@@ -41,10 +39,9 @@ class ExperimentName:
         return self.value.__hash__()
 
 
-@dataclasses.dataclass
 @dataclass
 class ExperimentMetadata:
     id: ExperimentId
     name: ExperimentName
     date: datetime.datetime
-    properties: Dict
+    properties: Any

@@ -1,2 +1,2 @@
-from .datetime_utils import DateTimeUtils
-from .uuid_utils import UuidUtils
+from .datetime_utils import utcnow
+from .uuid_utils import generate_uuid

@@ -20,7 +20,6 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictStr
-from pydantic import Field
 try:
     from typing import Self
 except ImportError:
@@ -28,11 +27,11 @@ except ImportError:
 
 class RunPdbFixerResponse(BaseModel):
     """
-    RunPdbFixerResponse(*, errors: List[str] = None, pdbContent: str | None = None)
+    RunPdbFixerResponse
     """ # noqa: E501
     errors: Optional[List[StrictStr]] = None
-    pdb_content: Optional[StrictStr] = Field(default=None, alias="pdbContent")
-    __properties: ClassVar[List[str]] = ["errors", "pdbContent"]
+    pdb_content: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["errors", "pdb_content"]
 
     model_config = {
         "populate_by_name": True,
@@ -74,7 +73,7 @@ class RunPdbFixerResponse(BaseModel):
         # set to None if pdb_content (nullable) is None
         # and model_fields_set contains the field
         if self.pdb_content is None and "pdb_content" in self.model_fields_set:
-            _dict['pdbContent'] = None
+            _dict['pdb_content'] = None
 
         return _dict
 
@@ -89,7 +88,7 @@ class RunPdbFixerResponse(BaseModel):
 
         _obj = cls.model_validate({
             "errors": obj.get("errors"),
-            "pdbContent": obj.get("pdbContent")
+            "pdb_content": obj.get("pdb_content")
         })
         return _obj
 

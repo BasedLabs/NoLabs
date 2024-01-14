@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from gene_ontology.loggers import logger
 from gene_ontology.api_models import *
 from gene_ontology.services import run_gene_ontology_prediction
 
@@ -7,6 +6,7 @@ app = FastAPI(
     title='Gene ontology api'
 )
 
+from gene_ontology.loggers import logger
 logger.starting_api()
 
 

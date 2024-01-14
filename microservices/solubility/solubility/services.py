@@ -168,9 +168,9 @@ def run_solubility_predictions(request: RunSolubilityPredictionRequest) -> RunSo
             emb_model.load_model()
             model.set_embedding_model(emb_model)
 
-        result = model.predict(request.proteinSequence)
-        return RunSolubilityPredictionResponse(solubleConfidence=result, errors=[])
+        result = model.predict(request.amino_acid_sequence)
+        return RunSolubilityPredictionResponse(soluble_probability=result, errors=[])
     except Exception:
         logger.exception()
-        return RunSolubilityPredictionResponse(solubleConfidence=None,
+        return RunSolubilityPredictionResponse(soluble_probability=None,
                                                  errors=['Internal error in solubility prediction occured'])

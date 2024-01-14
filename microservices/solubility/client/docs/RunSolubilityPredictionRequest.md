@@ -1,12 +1,12 @@
 # RunSolubilityPredictionRequest
 
-RunSolubilityPredictionRequest(proteinSequence: str)
+RunSolubilityPredictionRequest(amino_acid_sequence: str)
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**protein_sequence** | **str** |  | 
+**amino_acid_sequence** | **str** |  | 
 
 ## Example
 

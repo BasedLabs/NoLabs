@@ -1,13 +1,12 @@
 # RunPdbFixerRequest
 
-RunPdbFixerRequest(*, pdbContent: str, replaceNonStandardResidues: bool = False, addMissingAtoms: bool = False, addMissingHydrogens: bool = True)
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **pdb_content** | **str** |  | 
-**replace_non_standard_residues** | **bool** |  | [optional] [default to False]
+**replace_nonstandard_residues** | **bool** |  | [optional] [default to False]
 **add_missing_atoms** | **bool** |  | [optional] [default to False]
 **add_missing_hydrogens** | **bool** |  | [optional] [default to True]
 

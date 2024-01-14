@@ -19,6 +19,7 @@ class RunProteinDesignRequest:
 
 @pcdataclass.dataclass
 class RunProteinDesignResponse:
+    experimentId: str
     pdbContents: List[str] = pcdataclass.dataclass.field(default_factory=list)
     errors: List[str] = pcdataclass.dataclass.field(default_factory=list)
 

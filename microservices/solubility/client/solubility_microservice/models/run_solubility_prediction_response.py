@@ -20,7 +20,6 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
-from pydantic import Field
 try:
     from typing import Self
 except ImportError:
@@ -28,11 +27,11 @@ except ImportError:
 
 class RunSolubilityPredictionResponse(BaseModel):
     """
-    RunSolubilityPredictionResponse(errors: List[str], solubleConfidence: Optional[float])
+    RunSolubilityPredictionResponse(errors: List[str], soluble_probability: Optional[float])
     """ # noqa: E501
     errors: List[StrictStr]
-    soluble_confidence: Optional[Union[StrictFloat, StrictInt]] = Field(alias="solubleConfidence")
-    __properties: ClassVar[List[str]] = ["errors", "solubleConfidence"]
+    soluble_probability: Optional[Union[StrictFloat, StrictInt]]
+    __properties: ClassVar[List[str]] = ["errors", "soluble_probability"]
 
     model_config = {
         "populate_by_name": True,
@@ -71,10 +70,10 @@ class RunSolubilityPredictionResponse(BaseModel):
             },
             exclude_none=True,
         )
-        # set to None if soluble_confidence (nullable) is None
+        # set to None if soluble_probability (nullable) is None
         # and model_fields_set contains the field
-        if self.soluble_confidence is None and "soluble_confidence" in self.model_fields_set:
-            _dict['solubleConfidence'] = None
+        if self.soluble_probability is None and "soluble_probability" in self.model_fields_set:
+            _dict['soluble_probability'] = None
 
         return _dict
 
@@ -89,7 +88,7 @@ class RunSolubilityPredictionResponse(BaseModel):
 
         _obj = cls.model_validate({
             "errors": obj.get("errors"),
-            "solubleConfidence": obj.get("solubleConfidence")
+            "soluble_probability": obj.get("soluble_probability")
         })
         return _obj
 

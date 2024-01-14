@@ -93,11 +93,14 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
- - [ForceFields](docs/ForceFields.md)
  - [GenGroTopRequest](docs/GenGroTopRequest.md)
  - [GenGroTopResponse](docs/GenGroTopResponse.md)
+ - [GromacsForceFields](docs/GromacsForceFields.md)
+ - [GromacsWaterForceFields](docs/GromacsWaterForceFields.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [Integrators](docs/Integrators.md)
+ - [OpenMmForceFields](docs/OpenMmForceFields.md)
+ - [OpenMmWaterForceFields](docs/OpenMmWaterForceFields.md)
  - [RunGromacsSimulationsRequest](docs/RunGromacsSimulationsRequest.md)
  - [RunPdbFixerRequest](docs/RunPdbFixerRequest.md)
  - [RunPdbFixerResponse](docs/RunPdbFixerResponse.md)
@@ -105,7 +108,6 @@ Class | Method | HTTP request | Description
  - [RunSimulationsResponse](docs/RunSimulationsResponse.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
- - [WaterForceFields](docs/WaterForceFields.md)
 
 
 <a id="documentation-for-authorization"></a>

@@ -5,6 +5,8 @@ from esmfold.api_models import *
 
 _logger = logging.getLogger()
 
+_logger.setLevel(logging.DEBUG)
+
 _logHandler = logging.StreamHandler()
 _formatter = jsonlogger.JsonFormatter()
 _logHandler.setFormatter(_formatter)

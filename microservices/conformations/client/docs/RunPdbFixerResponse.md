@@ -1,6 +1,5 @@
 # RunPdbFixerResponse
 
-RunPdbFixerResponse(*, errors: List[str] = None, pdbContent: str | None = None)
 
 ## Properties
 

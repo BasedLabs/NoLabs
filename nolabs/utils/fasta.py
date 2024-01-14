@@ -1,11 +1,13 @@
 from typing import Dict, List
 
+from nolabs.domain.amino_acid import AminoAcid
+
 
 class FastaReader:
     def __init__(self):
         pass
 
-    def get_ids_and_sequences(self, fasta_contents: str) -> Dict[str, str]:
+    def get_ids_and_sequences(self, fasta_contents: str | List[str]) -> List[AminoAcid]:
         """
         Returns a dictionary {'sequence_id' : 'sequence'}
         """
@@ -13,6 +15,9 @@ class FastaReader:
         sequences = []
         current_sequence_id = None
         sequence_data = []
+
+        if isinstance(fasta_contents, str):
+            fasta_contents = [l for l in [l.strip() for l in fasta_contents.split('\n')] if l]
 
         for line in fasta_contents:
             if line.startswith('>'):
@@ -28,7 +33,7 @@ class FastaReader:
         if current_sequence_id:
             sequences.append(''.join(sequence_data))
 
-        return {sequence_id: sequence for sequence_id, sequence in zip(sequence_ids, sequences)}
+        return [AminoAcid(name=sequence_id.split('|')[0], sequence=sequence) for sequence_id, sequence in zip(sequence_ids, sequences)]
 
     def get_data_from_path(self, path: str) -> Dict[str, str]:
         """

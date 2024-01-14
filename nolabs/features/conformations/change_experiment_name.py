@@ -1,6 +1,7 @@
 from nolabs.api_models.conformations import ChangeExperimentNameRequest
 from nolabs.domain.experiment import ExperimentId, ExperimentName
 from nolabs.features.conformations.services.file_management import FileManagement
+from nolabs.exceptions import NoLabsException, ErrorCodes
 
 
 class ChangeExperimentNameFeature:
@@ -12,5 +13,8 @@ class ChangeExperimentNameFeature:
 
         experiment_id = ExperimentId(request.id)
         experiment_name = ExperimentName(request.name)
+
+        if not self._file_management.experiment_exists(experiment_id):
+            raise NoLabsException(message="Experiment does not exist", error_code=ErrorCodes.experiment_id_not_found)
 
         self._file_management.change_experiment_name(experiment_id, experiment_name)

@@ -55,7 +55,8 @@ class TargetsFileManagement:
 
         result_list = []
 
-        for target_name, sequence in ids2sequences.items():
+        for amino_acid in ids2sequences:
+            target_name, sequence = amino_acid.name, amino_acid.sequence
             target_id = TargetId(UuidUtils.generate_uuid())
             self.ensure_target_folder_exists(experiment_id, target_id)
             target_folder = self.target_folder(experiment_id, target_id)

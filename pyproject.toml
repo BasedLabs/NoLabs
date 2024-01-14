@@ -7,10 +7,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-solubility-microservice = {path = "microservices/solubility/client"}
-conformations-microservice = {path = "microservices/conformations/client"}
 websockets = "^12.0"
 uvicorn = "^0.25.0"
+solubility-microservice = {path = "microservices/solubility/client"}
+conformations-microservice = {path = "microservices/conformations/client"}
 
 [project]
 dependencies = [
@@ -18,7 +18,8 @@ dependencies = [
     "mypy",
     "pydantic",
     "obonet",
-    "jsonpickle"
+    "jsonpickle",
+    "python-multipart"
 ]
 
 [build-system]

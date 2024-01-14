@@ -6,29 +6,29 @@ from typing import Dict
 
 from nolabs.domain.experiment import ExperimentId, ExperimentName, ExperimentMetadata
 from nolabs.infrastructure.settings import Settings
-from nolabs.utils.datetime_utils import DateTimeUtils
+from nolabs.utils import utcnow
 
 
 class FileManagement:
-    def __init__(self, settings: Settings, dt_utils: DateTimeUtils):
+    def __init__(self, settings: Settings):
         self._settings = settings
-        self._dt_utils = dt_utils
+        self.ensure_experiments_folder_exists()
 
     def ensure_experiments_folder_exists(self):
         if not os.path.isdir(self._settings.drug_discovery_experiments_folder):
-            os.mkdir(self._settings.drug_discovery_experiments_folder)
+            os.makedirs(self._settings.drug_discovery_experiments_folder, exist_ok=True)
 
     def ensure_targets_folder_exists(self, experiment_id: ExperimentId):
         if not os.path.isdir(self.targets_folder(experiment_id)):
-            os.mkdir(self.targets_folder(experiment_id))
+            os.makedirs(self.targets_folder(experiment_id), exist_ok=True)
 
     def ensure_ligands_folder_exists(self, experiment_id: ExperimentId):
         if not os.path.isdir(self.ligands_folder(experiment_id)):
-            os.mkdir(self.ligands_folder(experiment_id))
+            os.makedirs(self.ligands_folder(experiment_id), exist_ok=True)
 
     def ensure_results_folder_exists(self, experiment_id: ExperimentId):
         if not os.path.isdir(self.results_folder(experiment_id)):
-            os.mkdir(self.results_folder(experiment_id))
+            os.makedirs(self.results_folder(experiment_id), exist_ok=True)
 
     def experiment_folder(self, experiment_id: ExperimentId) -> str:
         return os.path.join(self._settings.drug_discovery_experiments_folder, experiment_id.value)
@@ -88,7 +88,7 @@ class FileManagement:
         j = {
             'id': experiment_id,
             'name': experiment_name,
-            'date': self._dt_utils.utcnow(),
+            'date': utcnow(),
             'properties': {}
         }
 

@@ -1,6 +1,5 @@
 # GenGroTopResponse
 
-GenGroTopResponse(*, gro: str | None, top: str | None, errors: List[str] = None)
 
 ## Properties
 

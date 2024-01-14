@@ -2,12 +2,12 @@ from fastapi import FastAPI
 from conformations.services import run_pdb_fixer, run_gromacs_simulation, run_pdb_simulation, generate_gromacs_files
 from conformations.api_models import RunPdbSimulationsRequest, RunGromacsSimulationsRequest, RunSimulationsResponse, \
     RunPdbFixerResponse, RunPdbFixerRequest, GenGroTopRequest, GenGroTopResponse
-from conformations.loggers import logger
 
 app = FastAPI(
     title='Conformations api'
 )
 
+from conformations.loggers import logger
 
 @app.post("/run-pdb-fixer")
 async def run_pdb_fixer_endpoint(request: RunPdbFixerRequest) -> RunPdbFixerResponse:

@@ -9,7 +9,7 @@ from fastapi import UploadFile
 @pcdataclass.dataclass
 class RunGeneOntologyRequest:
     experimentName: str
-    experimentId: str
+    experimentId: str | None
     aminoAcidSequence: str | None = None
     fasta: UploadFile | None = None
 
@@ -22,6 +22,7 @@ class RunGeneOntologyResponseDataNode:
 
 @pcdataclass.dataclass
 class RunGeneOntologyResponse:
+    experimentId: str
     data: Dict[str, RunGeneOntologyResponseDataNode] | None = None
     errors: List[str] = pcdataclass.dataclass.field(default_factory=list)
 

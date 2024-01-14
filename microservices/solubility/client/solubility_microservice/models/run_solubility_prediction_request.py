@@ -20,7 +20,6 @@ import json
 
 from typing import Any, ClassVar, Dict, List
 from pydantic import BaseModel, StrictStr
-from pydantic import Field
 try:
     from typing import Self
 except ImportError:
@@ -28,10 +27,10 @@ except ImportError:
 
 class RunSolubilityPredictionRequest(BaseModel):
     """
-    RunSolubilityPredictionRequest(proteinSequence: str)
+    RunSolubilityPredictionRequest(amino_acid_sequence: str)
     """ # noqa: E501
-    protein_sequence: StrictStr = Field(alias="proteinSequence")
-    __properties: ClassVar[List[str]] = ["proteinSequence"]
+    amino_acid_sequence: StrictStr
+    __properties: ClassVar[List[str]] = ["amino_acid_sequence"]
 
     model_config = {
         "populate_by_name": True,
@@ -82,7 +81,7 @@ class RunSolubilityPredictionRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "proteinSequence": obj.get("proteinSequence")
+            "amino_acid_sequence": obj.get("amino_acid_sequence")
         })
         return _obj
 

@@ -2,99 +2,59 @@ import dataclasses
 import glob
 import json
 import os.path
-import shutil
-from typing import Dict
+from typing import List, Tuple
 
+from nolabs.domain.amino_acid import AminoAcid
+from nolabs.features.file_magement_base import ExperimentsFileManagementBase
 from nolabs.api_models.solubility import RunSolubilityRequest
 from nolabs.domain.solubility import SolubilityProbability
 from nolabs.domain.experiment import ExperimentId, ExperimentName, ExperimentMetadata
 from nolabs.infrastructure.settings import Settings
-from nolabs.utils.datetime_utils import DateTimeUtils
+from nolabs.utils.datetime_utils import utcnow
 
 
-class FileManagement:
-    def __init__(self, settings: Settings, dt_utils: DateTimeUtils):
+class FileManagement(ExperimentsFileManagementBase):
+    def __init__(self, settings: Settings):
+        super().__init__(settings.solubility_experiments_folder, settings.solubility_metadata_file_name)
         self._settings = settings
-        self._dt_utils = dt_utils
-        self._solubility_file_name = settings.solubility_file_name
-
-    def ensure_experiments_folder_exists(self):
-        if not os.path.isdir(self._settings.solubility_experiments_folder):
-            os.mkdir(self._settings.solubility_experiments_folder)
-
-    def experiment_folder(self, experiment_id: ExperimentId) -> str:
-        return os.path.join(self._settings.solubility_experiments_folder, experiment_id.value)
-
-    def create_experiment_folder(self, experiment_id: ExperimentId):
-        experiment_folder = self.experiment_folder(experiment_id)
-        if not os.path.isdir(experiment_folder):
-            os.mkdir(experiment_folder)
-
-    def delete_experiment_folder(self, experiment_id: ExperimentId):
-        experiment_folder = self.experiment_folder(experiment_id)
-        shutil.rmtree(experiment_folder, ignore_errors=True)
-
-    def get_experiment_metadata(self) -> ExperimentMetadata:
-        metadata_file = os.path.join(self._settings.solubility_experiments_folder,
-                                     self._settings.solubility_metadata_file_name)
-        metadata = json.load(open(metadata_file, 'r', encoding='utf-8'))
-        id = ExperimentId(metadata['id'])
-        return ExperimentMetadata(
-            id=id,
-            name=ExperimentName(metadata['name']),
-            date=metadata['date'],
-            properties=metadata['properties']
-        )
-
-    def get_all_experiments_metadata(self) -> Dict[ExperimentId, ExperimentMetadata]:
-        metadata_files = os.path.join(self._settings.solubility_experiments_folder,
-                                      f'*{self._settings.solubility_metadata_file_name}')
-        d = {}
-        for metadata_file in glob.glob(metadata_files):
-            metadata = json.load(open(metadata_file, 'r', encoding='utf-8'))
-            id = ExperimentId(metadata['id'])
-            d[id] = ExperimentMetadata(
-                id=id,
-                name=ExperimentName(metadata['name']),
-                date=metadata['date'],
-                properties=metadata['properties']
-            )
-        return d
+        self.ensure_experiments_folder_exists()
 
     def update_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName,
-                        run_solubility_request: RunSolubilityRequest):
+                        amino_acids: List[AminoAcid]):
+        self.ensure_experiment_folder_exists(experiment_id)
         j = {
-            'id': experiment_id,
-            'name': experiment_name,
-            'date': self._dt_utils.utcnow(),
-            'properties': dataclasses.asdict(run_solubility_request)
+            'id': experiment_id.value,
+            'name': experiment_name.value,
+            'date': str(utcnow()),
+            'properties': [dataclasses.asdict(amino_acid) for amino_acid in amino_acids]
         }
 
         metadata_file_path = os.path.join(self.experiment_folder(experiment_id),
-                                          self._settings.go_metadata_file_name)
+                                          self._settings.solubility_metadata_file_name)
         with open(metadata_file_path, 'w', encoding='utf-8') as f:
             json.dump(j, f, ensure_ascii=False, indent=4)
 
-    def save_experiment(self, experiment_id: ExperimentId, soluble_probability: SolubilityProbability):
+    def save_experiment(self, experiment_id: ExperimentId, data: List[Tuple[AminoAcid, SolubilityProbability]]):
+        self.ensure_experiment_folder_exists(experiment_id)
         experiment_folder = self.experiment_folder(experiment_id)
-        results_path = os.path.join(experiment_folder, self._solubility_file_name)
-        with open(results_path, 'w', encoding='utf-8') as solubility_f:
-            solubility_f.write(str(soluble_probability.value))
+        previous_files = glob.glob(os.path.join(experiment_folder, '*aminoacid.json'))
+        for amino_acid, prob in data:
+            results_path = os.path.join(experiment_folder, f'{amino_acid.name}_aminoacid.json')
+            with open(results_path, 'w', encoding='utf-8') as solubility_f:
+                solubility_f.write(json.dumps({
+                    'name': amino_acid.name,
+                    'sequence': amino_acid.sequence,
+                    'probability': prob.value
+                }))
+        for file in previous_files:
+            os.remove(file)
 
-    def get_experiment_data(self, experiment_id: ExperimentId) -> SolubilityProbability:
+    def get_experiment_data(self, experiment_id: ExperimentId) -> List[Tuple[AminoAcid, SolubilityProbability]]:
         experiment_folder = self.experiment_folder(experiment_id)
-        results_path = os.path.join(experiment_folder, self._solubility_file_name)
-        with open(results_path, 'r', encoding='utf-8') as solubility_f:
-            s = solubility_f.read()
-            return SolubilityProbability(
-                value=float(s)
-            )
 
-    def change_experiment_name(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
-        metadata_file = os.path.join(self._settings.solubility_file_name,
-                                     experiment_id.value,
-                                     self._settings.solubility_metadata_file_name)
-        metadata = json.load(open(metadata_file, 'r', encoding='utf-8'))
-        metadata['name'] = experiment_name.value
-        with open(metadata_file, 'w', encoding='utf-8') as f:
-            json.dump(metadata, f, ensure_ascii=False, indent=4)
+        results = []
+        for file in glob.glob(os.path.join(experiment_folder, '*_aminoacid.json')):
+            with open(file, 'r', encoding='utf-8') as amino_acid:
+                j = json.loads(amino_acid.read())
+                results.append((AminoAcid(name=j['name'], sequence=j['sequence']), SolubilityProbability(j['probability'])))
+        return results

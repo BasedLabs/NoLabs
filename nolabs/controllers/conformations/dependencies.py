@@ -2,22 +2,24 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from nolabs.controllers.common_dependencies import settings_dependency, dt_utils_dependency
+from nolabs.features.events_queue import EventsQueue
+from nolabs.controllers.common_dependencies import settings_dependency, events_queue_dependency
 from nolabs.features.conformations import GetExperimentsFeature, GetExperimentFeature, DeleteExperimentFeature, \
     ChangeExperimentNameFeature
 from nolabs.features.conformations import RunSimulationsFeature
 from nolabs.features.conformations.services.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings
-from nolabs.utils import DateTimeUtils
 
 
-def file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
-                               dt_utils: Annotated[DateTimeUtils, Depends(dt_utils_dependency)]) -> FileManagement:
-    return FileManagement(settings=settings, dt_utils=dt_utils)
+def file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)]) -> FileManagement:
+    return FileManagement(settings=settings)
 
 
-def run_simulations_feature_dependency() -> RunSimulationsFeature:
-    return RunSimulationsFeature()
+def run_simulations_feature_dependency(file_management: Annotated[FileManagement, Depends(file_management_dependency)],
+                                       settings: Annotated[Settings, Depends(settings_dependency)],
+                                       events_queue: Annotated[EventsQueue, Depends(events_queue_dependency)]
+                                       ) -> RunSimulationsFeature:
+    return RunSimulationsFeature(file_management=file_management, settings=settings, events_queue=events_queue)
 
 
 def get_experiments_feature_dependency(
