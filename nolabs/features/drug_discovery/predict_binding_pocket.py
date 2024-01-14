@@ -5,7 +5,7 @@ from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
 
-class GetBindingPocketFeature:
+class PredictBindingPocketFeature:
     def __init__(self, file_management: TargetsFileManagement):
         self._file_management = file_management
 

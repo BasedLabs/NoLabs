@@ -90,6 +90,15 @@ class PredictBindingPocketResponse:
     pocket_ids: List[int] | None
 
 @pcdataclass.dataclass
+class PredictMsaRequest:
+    experiment_id: str
+    target_id: str
+
+@pcdataclass.dataclass
+class PredictMsaResponse:
+    msa_contents: str
+
+@pcdataclass.dataclass
 class CheckFoldingExistRequest:
     experiment_id: str
     targe_id: str
@@ -101,7 +110,7 @@ class CheckFoldingExistResponse:
 @pcdataclass.dataclass
 class PredictFoldingRequest:
     experiment_id: str
-    targe_id: str
+    target_id: str
 
 @pcdataclass.dataclass
 class PredictFoldingResponse:

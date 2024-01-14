@@ -5,7 +5,7 @@ class FastaReader:
     def __init__(self):
         pass
 
-    def get_ids_and_sequences(self, fasta_contents: str) -> Dict[str, str]:
+    def get_ids2seqs(self, fasta_contents: str) -> Dict[str, str]:
         """
         Returns a dictionary {'sequence_id' : 'sequence'}
         """
@@ -30,13 +30,21 @@ class FastaReader:
 
         return {sequence_id: sequence for sequence_id, sequence in zip(sequence_ids, sequences)}
 
-    def get_data_from_path(self, path: str) -> Dict[str, str]:
+    def get_ids2seqs_from_path(self, path: str) -> Dict[str, str]:
         """
         Returns a dictionary {'sequence_id' : 'sequence'}
         """
         with open(path, 'r') as f:
             contents = f.read()
-            return self.get_ids_and_sequences(contents)
+            return self.get_ids2seqs(contents)
+
+    def get_contents_from_path(self, path: str) -> str:
+        """
+        Returns plain content of a fasta file
+        """
+        with open(path, 'r') as f:
+            contents = f.read()
+            return contents
 
 class FastaWriter:
     def __init__(self):

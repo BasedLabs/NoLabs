@@ -109,4 +109,9 @@ class Settings:
     def drug_discovery_pocket_file_name(self) -> str:
         return self._config.get('drug-discovery', 'pocket_file_name')
 
-
+    @property
+    def drug_discovery_msa_url(self) -> str:
+        return self._config.get('drug-discovery', 'msa_server_url')
+    @property
+    def drug_discovery_msa_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'msa_file_name')

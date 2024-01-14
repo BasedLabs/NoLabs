@@ -50,7 +50,7 @@ class TargetsFileManagement:
 
         original_filename = fasta_file.filename
         contents = fasta_file.file.read().decode('utf-8')
-        ids2sequences = self.fasta_reader.get_ids_and_sequences(fasta_contents=contents)
+        ids2sequences = self.fasta_reader.get_ids2seqs(fasta_contents=contents)
 
         result_list = []
 
@@ -113,7 +113,7 @@ class TargetsFileManagement:
         target_metadata = self.get_target_metadata(experiment_id, target_id)
         target_name = target_metadata.target_name
 
-        ids2sequences = self.fasta_reader.get_data_from_path(os.path.join(target_folder, target_name + ".fasta"))
+        ids2sequences = self.fasta_reader.get_ids2seqs_from_path(os.path.join(target_folder, target_name + ".fasta"))
         sequence = ids2sequences[target_name]
         pdb_content = self.get_pdb_contents(experiment_id, target_id)
 
@@ -128,10 +128,25 @@ class TargetsFileManagement:
 
         return None
 
+    def store_pdb_contents(self, experiment_id: ExperimentId, target_id: TargetId, pdb_content: str) -> None:
+        target_folder = self.target_folder(experiment_id, target_id)
+        target_metadata = self.get_target_metadata(experiment_id, target_id)
+        target_name = target_metadata.target_name
+        self.pdb_writer.write_pdb(os.path.join(target_folder, target_name + ".pdb"), pdb_content)
+
+    def get_fasta_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
+        target_folder = self.target_folder(experiment_id, target_id)
+        target_metadata = self.get_target_metadata(experiment_id, target_id)
+        target_name = target_metadata.target_name
+        if os.path.exists(os.path.join(target_folder, target_name + ".fasta")):
+            return self.fasta_reader.get_contents_from_path(os.path.join(target_folder, target_name + ".fasta"))
+
+        return None
 
     def get_binding_pocket(self, experiment_id: ExperimentId, target_id: TargetId) -> List[int] | None:
         target_folder = self.target_folder(experiment_id, target_id)
-        pocket_file = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name, self._settings.drug_discovery_pocket_file_name)
+        pocket_file = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
+                                   self._settings.drug_discovery_pocket_file_name)
         if os.path.exists(pocket_file):
             pocket_arr = np.load(file=pocket_file)
             return pocket_arr.tolist()
@@ -140,7 +155,8 @@ class TargetsFileManagement:
 
     def store_binding_pocket(self, experiment_id: ExperimentId, target_id: TargetId, pocket_ids: List[int]):
         target_folder = self.target_folder(experiment_id, target_id)
-        pocket_file = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name, self._settings.drug_discovery_pocket_file_name)
+        pocket_file = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
+                                   self._settings.drug_discovery_pocket_file_name)
         if os.path.exists(pocket_file):
             pocket_arr = np.asarray(pocket_ids)
             np.save(pocket_file, pocket_arr)
@@ -150,3 +166,25 @@ class TargetsFileManagement:
                 os.mkdir(pocket_dir)
             pocket_arr = np.asarray(pocket_ids)
             np.save(pocket_file, pocket_arr)
+
+    def get_msa_api_url(self) -> str:
+        return self._settings.drug_discovery_msa_url
+
+    def get_msa(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
+        target_folder = self.target_folder(experiment_id, target_id)
+        msa_file_path = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
+                                     self._settings.drug_discovery_msa_file_name)
+        if os.path.exists(msa_file_path):
+            with open(msa_file_path, "r") as f:
+                msa_contents = f.read()
+                return msa_contents
+
+        return None
+
+    def store_msa(self, experiment_id: ExperimentId, target_id: TargetId, msa_contents: str):
+        target_folder = self.target_folder(experiment_id, target_id)
+        msa_file_path = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
+                                     self._settings.drug_discovery_msa_file_name)
+        if os.path.exists(msa_file_path):
+            with open(msa_file_path, "w") as f:
+                f.write(msa_contents)
