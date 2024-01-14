@@ -21,7 +21,7 @@ DOCKER_IMAGE_NAME="esmfold"
 sudo docker build -t $DOCKER_IMAGE_NAME -f build/Dockerfile .
 # Run the Docker container in the background
 # Replace the Docker image name with the appropriate one
-docker run -d --name esmfold --gpus all -e HOST=0.0.0.0 -e PORT=5732 -p 5732:5732 $DOCKER_IMAGE_NAME
+sudo docker run -d --name esmfold --gpus all -e HOST=0.0.0.0 -e PORT=5736 -p 5736:5736 $DOCKER_IMAGE_NAME
 
 # Generate the Python client using OpenAPI Generator
 npx @openapitools/openapi-generator-cli generate \
