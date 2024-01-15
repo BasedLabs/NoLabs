@@ -8,7 +8,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 solubility-microservice = {path = "microservices/solubility/client"}
-conformations-microservice = {path = "microservices/conformations/client"}
 p2rank-microservice = {path = "microservices/p2rank/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 esmfold_light-microservice = {path = "microservices/esmfold_light/client"}
@@ -23,6 +22,7 @@ localisation-microservice = {path = "microservices/localisation/client"}
 obonet = "^1.0.0"
 setuptools = "^69.0.3"
 gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
+conformations-microservice = {path = "microservices/conformations/client"}
 
 [project]
 dependencies = [

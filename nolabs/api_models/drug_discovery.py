@@ -99,13 +99,13 @@ class PredictMsaResponse:
     msa_contents: str
 
 @pcdataclass.dataclass
-class CheckFoldingExistRequest:
+class GetFoldingRequest:
     experiment_id: str
     targe_id: str
 
 @pcdataclass.dataclass
-class CheckFoldingExistResponse:
-    folding_exist: bool
+class GetFoldingResponse:
+    pdb_contents: str | None
 
 @pcdataclass.dataclass
 class PredictFoldingRequest:
@@ -128,6 +128,7 @@ class LigandMetaData:
 @pcdataclass.dataclass
 class UploadLigandRequest:
     experiment_id: str
+    target_id: str
     sdf_file: UploadFile
 
 @pcdataclass.dataclass
@@ -137,6 +138,7 @@ class UploadLigandResponse:
 @pcdataclass.dataclass
 class DeleteLigandRequest:
     experiment_id: str
+    target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
@@ -146,6 +148,7 @@ class DeleteLigandResponse:
 @pcdataclass.dataclass
 class GetLigandsListRequest:
     experiment_id: str
+    target_id: str
 
 @pcdataclass.dataclass
 class GetLigandsListResponse:

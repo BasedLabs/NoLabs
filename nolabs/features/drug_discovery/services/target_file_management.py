@@ -69,7 +69,7 @@ class TargetsFileManagement:
 
         return result_list
 
-    def delete_target(self, experiment_id: ExperimentId, target_id: TargetId):
+    def delete_target(self, experiment_id: ExperimentId, target_id: TargetId) -> TargetId:
         self.ensure_targets_folder_exists(experiment_id)
         self.ensure_target_folder_exists(experiment_id, target_id)
         target_folder = self.target_folder(experiment_id, target_id)
