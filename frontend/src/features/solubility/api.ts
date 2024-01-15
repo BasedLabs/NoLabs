@@ -1,20 +1,42 @@
-import { AxiosResponse } from 'axios';
-import { SolubilityApi, Configuration, RunSolubilityResponse, NolabsApiModelsSolubilityGetExperimentResponse } from '../../api/client';
+import {
+    RunSolubilityResponse,
+    SolubilityService,
+    CancelablePromise,
+    nolabs__api_models__solubility__GetExperimentResponse,
+    ExperimentMetadataResponse
+} from 'api/client';
 
-const configuration = new Configuration(
-    {
-        basePath: 'http://127.0.0.1:8000'
+async function inference(
+    fastas: Blob[],
+    experimentName?: string,
+    experimentId?: string,
+    aminoAcidSequence?: string): CancelablePromise<RunSolubilityResponse> {
+    const formData = {
+        experiment_name: experimentName,
+        experiment_id: experimentId,
+        amino_acid_sequence: aminoAcidSequence,
+        fastas: fastas,
     }
-)
-
-async function inference(experimentId, experimentName, aminoAcidSequence, fastas): Promise<AxiosResponse<RunSolubilityResponse, any>> {
-    const api = new SolubilityApi(configuration);
-    return await api.inferenceApiV1SolubilityInferencePost(experimentName, experimentId, aminoAcidSequence, fastas);
+    return await SolubilityService.inferenceApiV1SolubilityInferencePost(formData)
 }
 
-async function getExperiment(experimentId): Promise<AxiosResponse<NolabsApiModelsSolubilityGetExperimentResponse, any>> {
-    const api = new SolubilityApi(configuration);
-    return await api.getExperimentApiV1SolubilityGetExperimentGet(experimentId);
+async function getExperiment(experimentId: string): CancelablePromise<nolabs__api_models__solubility__GetExperimentResponse> {
+    return await SolubilityService.getExperimentApiV1SolubilityGetExperimentGet(experimentId);
 }
 
-export { inference, getExperiment };
+async function experiments(): CancelablePromise<Array<ExperimentMetadataResponse>> {
+    return await SolubilityService.experimentsApiV1SolubilityExperimentsGet();
+}
+
+async function deleteExperiment(experimentId: string): CancelablePromise<any> {
+    return await SolubilityService.deleteExperimentApiV1SolubilityDeleteExperimentDelete(experimentId);
+}
+
+async function changeExperimentName(experimentId: string, experimentName: string): CancelablePromise<any> {
+    return await SolubilityService.changeExperimentNameApiV1SolubilityChangeExperimentNamePost({
+        id: experimentId,
+        name: experimentName
+    })
+}
+
+export { inference, getExperiment, experiments, deleteExperiment, changeExperimentName };

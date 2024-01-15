@@ -1,0 +1,7 @@
+{
+    "extends": "@quasar/app-vite/tsconfig-preset.json",
+    "compilerOptions": {
+      "baseUrl": "src"
+    },
+    "include": ["src"]
+  }

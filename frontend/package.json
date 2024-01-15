@@ -14,7 +14,10 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
     "axios": "^1.6.5",
+    "axios-retry": "^4.0.0",
     "pinia": "^2.0.11",
     "quasar": "^2.6.0",
     "vue": "^3.0.0",

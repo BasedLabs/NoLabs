@@ -20,6 +20,10 @@ class Settings:
         self._config.read(os.path.join(dir_path, settings_path))
 
     @property
+    def is_test(self) -> bool:
+        return self._config.getboolean('features', 'test')
+
+    @property
     def is_light_infrastructure(self) -> str:
         return self._config.get('features', 'light')
 
