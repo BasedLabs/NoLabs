@@ -30,7 +30,7 @@ class DeleteTargetFeature:
 
         deleted_target_id = self._file_management.delete_target(experiment_id, target_id)
 
-        return DeleteTargetResponse(target_id=deleted_target_id)
+        return DeleteTargetResponse(target_id=deleted_target_id.value)
 
 class GetTargetsListFeature:
     def __init__(self, file_management: TargetsFileManagement):

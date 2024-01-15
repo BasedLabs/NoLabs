@@ -3,10 +3,22 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.gene_ontology import GetExperimentsFeature, GetExperimentFeature, DeleteExperimentFeature, \
-    ChangeExperimentNameFeature
-from nolabs.features.gene_ontology import RunGeneOntologyFeature
-from nolabs.features.gene_ontology.services.file_management import FileManagement
+from nolabs.features.drug_discovery import GetExperimentsFeature, DeleteExperimentFeature, \
+    ChangeExperimentNameFeature, AddExperimentFeature
+from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
+from nolabs.features.drug_discovery.services.file_management import FileManagement
+from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
+from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
+from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
+from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
+    GetTargetsListFeature
+from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
+    GetLigandsListFeature
+from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
+from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
+from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
+from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
+from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
 from nolabs.infrastructure.settings import Settings
 
 
@@ -14,18 +26,13 @@ def file_management_dependency(settings: Annotated[Settings, Depends(settings_de
     return FileManagement(settings=settings)
 
 
-def run_gene_ontology_feature_dependency() -> RunGeneOntologyFeature:
-    return RunGeneOntologyFeature()
+def add_experiment_feature_dependency(file_management: Annotated[FileManagement, Depends(file_management_dependency)]):
+    return AddExperimentFeature(file_management=file_management)
 
 
 def get_experiments_feature_dependency(
         file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> GetExperimentsFeature:
     return GetExperimentsFeature(file_management=file_management)
-
-
-def get_experiment_feature_dependency(
-        file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> GetExperimentFeature:
-    return GetExperimentFeature(file_management=file_management)
 
 
 def delete_experiment_feature_dependency(
@@ -39,3 +46,84 @@ def change_experiment_name_dependency(
     return ChangeExperimentNameFeature(
         file_management=file_management
     )
+
+
+def target_file_management_dependency(
+        settings: Annotated[Settings, Depends(settings_dependency)]) -> TargetsFileManagement:
+    return TargetsFileManagement(settings=settings)
+
+
+def ligand_file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                                      target_file_management: Annotated[TargetsFileManagement,
+                                      Depends(target_file_management_dependency)]) -> LigandsFileManagement:
+    return LigandsFileManagement(settings=settings, targets_file_management=target_file_management)
+
+
+def result_file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                                      ligand_file_management: Annotated[LigandsFileManagement,
+                                      Depends(ligand_file_management_dependency)]) -> ResultsFileManagement:
+    return ResultsFileManagement(settings=settings, ligand_file_management=ligand_file_management)
+
+
+def generate_msa_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> GenerateMsaFeature:
+    return GenerateMsaFeature(file_management=target_file_management)
+
+
+def upload_target_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> UploadTargetFeature:
+    return UploadTargetFeature(file_management=target_file_management)
+
+
+def delete_target_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> DeleteTargetFeature:
+    return DeleteTargetFeature(file_management=target_file_management)
+
+
+def get_targets_list_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> GetTargetsListFeature:
+    return GetTargetsListFeature(file_management=target_file_management)
+
+
+def get_binding_pocket_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> GetBindingPocketFeature:
+    return GetBindingPocketFeature(file_management=target_file_management)
+
+
+def predict_binding_pocket_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> PredictBindingPocketFeature:
+    return PredictBindingPocketFeature(file_management=target_file_management)
+
+
+def get_folded_structure_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> GetFoldedStructureFeature:
+    return GetFoldedStructureFeature(file_management=target_file_management)
+
+
+def predict_folding_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> PredictFoldingFeature:
+    return PredictFoldingFeature(file_management=target_file_management)
+
+
+def upload_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> UploadLigandFeature:
+    return UploadLigandFeature(file_management=ligand_file_management)
+
+
+def delete_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> DeleteLigandFeature:
+    return DeleteLigandFeature(file_management=ligand_file_management)
+
+
+def get_ligands_list_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> GetLigandsListFeature:
+    return GetLigandsListFeature(file_management=ligand_file_management)
+
+
+def predict_docking_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)], ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)], result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> PredictDockingFeature:
+    return PredictDockingFeature(target_file_management=target_file_management,
+                                 ligand_file_management=ligand_file_management,
+                                 result_file_management=result_file_management)
