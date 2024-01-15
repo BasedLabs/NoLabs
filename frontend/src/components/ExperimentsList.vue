@@ -11,9 +11,11 @@ export { Experiment };
 export default defineComponent({
     name: 'ExperimentsList',
     props: {
-        activeExperiment: null,
         experiments: [] as PropType<Array<Experiment>>,
         onExperimentClick: ((experiment: Experiment) => { }) as PropType<any>
+    },
+    data() {
+        activeExperiment: null as Experiment | null
     },
     methods: {
         experimentClick(experiment: Experiment) {

@@ -14,7 +14,7 @@
 
       <q-drawer v-model="drawer" show-if-above :width="200" :breakpoint="500">
         <q-scroll-area class="fit">
-          <ExperimentsList/>
+          <ExperimentsList />
         </q-scroll-area>
       </q-drawer>
 
@@ -27,7 +27,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import {ExperimentsList} from 'components/ExperimentsList.vue';
+import ExperimentsList from 'components/ExperimentsList.vue';
 
 export default defineComponent({
   name: 'MainLayout',
