@@ -2,9 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type ExperimentMetadataResponse = {
-    id: string;
-    name: string;
-    date: string;
+export type RunSimulationsResponse = {
+    experiment_id: string;
+    pdb_content?: (string | null);
+    errors?: Array<string>;
 };
 
