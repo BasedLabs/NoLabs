@@ -1,10 +1,11 @@
 <template>
-  <div class="q-pa-md">
+  <div>
     <q-layout view="lHh Lpr lFf">
       <q-header class="bg-black">
         <q-toolbar>
           <q-toolbar-title>
-            !Labs
+            <q-img src="/logo.png" fit="scale-down" style="max-width: 100px;">
+            </q-img>
           </q-toolbar-title>
 
           <q-btn flat dense round icon="home" aria-label="Home" />

@@ -25,3 +25,16 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+  protein_design:
+    build: microservices/protein_design/build
+    working_dir: microservices/protein_design
+    ports:
+      - "5789:5789"
+    command: --host=0.0.0.0 --port=5789
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]

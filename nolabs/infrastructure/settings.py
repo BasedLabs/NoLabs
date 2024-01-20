@@ -58,14 +58,14 @@ class Settings:
         return self._config.get('conformations', 'metadata_file_name')
 
     @property
-    def protein_design_file_name(self) -> str:
-        return self._config.get('protein-design', 'file_name')
-
-    @property
     def protein_design_experiments_folder(self) -> str:
         import nolabs
         exp_folder = self._config.get('protein-design', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
+
+    @property
+    def protein_design_host(self) -> str:
+        return self._config.get('microservices', 'protein_design_host')
 
     @property
     def protein_design_metadata_file_name(self) -> str:

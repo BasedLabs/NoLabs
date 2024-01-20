@@ -11,11 +11,13 @@ from nolabs.infrastructure.settings import Settings
 
 
 def file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)]) -> FileManagement:
-    return FileManagement(settings=settings, dt_utils=dt_utils)
+    return FileManagement(settings=settings)
 
 
-def run_protein_design_feature_dependency() -> RunProteinDesignFeature:
-    return RunProteinDesignFeature()
+def run_protein_design_feature_dependency(file_management: Annotated[FileManagement, Depends(file_management_dependency)],
+                                          settings: Annotated[Settings, Depends(settings_dependency)]) -> RunProteinDesignFeature:
+    return RunProteinDesignFeature(file_management=file_management,
+                                   settings=settings)
 
 
 def get_experiments_feature_dependency(

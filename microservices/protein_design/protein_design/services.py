@@ -23,12 +23,12 @@ def run_rfdiffusion(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
     try:
         inference_path = os.path.join(rfdiffusion_dir, 'scripts', 'run_inference.py')
         program = ['python3.9', inference_path, f'inference.model_directory_path={rfdiffusion_dir}/models',
-                   f'inference.num_designs={request.numberOfDesigns}',
+                   f'inference.num_designs={request.number_of_designs}',
                    f'inference.output_prefix={output_files_dir}/result']
 
-        if request.pdbContent:
+        if request.pdb_content:
             with open(tmp_pdb_file, 'w') as f:
-                f.write(request.pdbContent)
+                f.write(request.pdb_content)
             program.append(f'inference.input_pdb={tmp_pdb_file}')
 
         program.append(f'contigmap.contigs=[{request.contig}]')
@@ -45,20 +45,20 @@ def run_rfdiffusion(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
         stderr = res.stderr.decode('utf-8')
 
         if stderr and 'ValueError' in stderr:
-            return RunRfdiffusionResponse(pdbsContents=[], errors=['Contig is incorrect, check the contig input'])
+            return RunRfdiffusionResponse(pdbs_content=[], errors=['Contig is incorrect, check the contig input'])
 
         if stderr and 'Exception' in stderr:
-            return RunRfdiffusionResponse(pdbsContents=[], errors=['Unknown error, try to fix contig or hotspots input'])
+            return RunRfdiffusionResponse(pdbs_content=[], errors=['Unknown error, try to fix contig or hotspots input'])
 
         pdbs = []
         files = glob.glob(os.path.join(output_files_dir, '*.pdb'))
         for file_name in files:
             with open(file_name, 'r') as f:
                 pdbs.append(f.read())
-        return RunRfdiffusionResponse(pdbsContents=pdbs, errors=[])
+        return RunRfdiffusionResponse(pdbs_content=pdbs, errors=[])
     except Exception:
         logger.exception()
-        return RunRfdiffusionResponse(pdbsContents=[], errors=['Internal exception occured'])
+        return RunRfdiffusionResponse(pdbs_content=[], errors=['Internal exception occured'])
     finally:
         shutil.rmtree(input_pdbs_dir)
         shutil.rmtree(output_files_dir)

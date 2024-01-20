@@ -1,6 +1,5 @@
-import dataclasses
 import datetime
-from typing import Dict, Any
+from typing import Generic
 
 from pydantic.dataclasses import dataclass
 
@@ -44,4 +43,3 @@ class ExperimentMetadata:
     id: ExperimentId
     name: ExperimentName
     date: datetime.datetime
-    properties: Any

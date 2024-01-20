@@ -9,6 +9,8 @@ class ErrorCodes(Enum):
     no_amino_acids = 4
     experiment_id_not_found = 5
     amino_acid_localisation_run_error = 6
+    protein_design_run_error = 7
+    protein_design_update_metadata_error = 8
 
 
 class NoLabsException(Exception):

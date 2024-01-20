@@ -1,58 +1,64 @@
-from pydantic import dataclasses as pcdataclass
 import datetime
 from typing import List, Optional
 
 from fastapi import UploadFile
-from pydantic.dataclasses import dataclass
+from pydantic import dataclasses
 
 
-@pcdataclass.dataclass
+@dataclasses.dataclass
 class RunProteinDesignRequest:
-    experimentName: str
-    experimentId: str
-    pdbFile: UploadFile
+    experiment_name: str
+    experiment_id: str
+    pdb_file: UploadFile
     contig: str = '50'
-    numberOfDesign: int = 1
+    number_of_desings: int = 1
     timesteps: Optional[int] = None
-    hotspots: Optional[int] = None
+    hotspots: Optional[str] = None
 
 
-@pcdataclass.dataclass
+@dataclasses.dataclass
 class RunProteinDesignResponse:
-    experimentId: str
-    pdbContents: List[str] = pcdataclass.dataclass.field(default_factory=list)
-    errors: List[str] = pcdataclass.dataclass.field(default_factory=list)
+    experiment_id: str
+    experiment_name: str
+    pdbs_content: List[str] = dataclasses.Field(default_factory=list)
 
 
-@pcdataclass.dataclass
+@dataclasses.dataclass
 class GetResultsRequest:
     experimentId: str
 
 
-@pcdataclass.dataclass
+@dataclasses.dataclass
 class DeleteExperimentRequest:
     id: str
 
 
-@pcdataclass.dataclass
+@dataclasses.dataclass
 class ExperimentMetadataResponse:
     id: str
     name: str
     date: datetime.datetime
 
 
-@pcdataclass.dataclass
+@dataclasses.dataclass
 class GetExperimentResponse:
-    metaData: ExperimentMetadataResponse
-    data: str
+    experiment_id: str
+    experiment_name: str
+    pdbs_content: List[str]
+    pdb_file: str
+    pdb_file_name: str
+    contig: str
+    number_of_desings: int
+    timesteps: int
+    hotspots: str
 
 
-@pcdataclass.dataclass
+@dataclasses.dataclass
 class ChangeExperimentNameRequest:
     id: str
     name: str
 
 
-@pcdataclass.dataclass
+@dataclasses.dataclass
 class GenerateUuidResponse:
     uuid: str

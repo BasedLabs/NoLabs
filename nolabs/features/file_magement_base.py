@@ -45,8 +45,7 @@ class ExperimentsFileManagementBase:
         return ExperimentMetadata(
             id=id,
             name=ExperimentName(metadata['name']),
-            date=metadata['date'],
-            properties=metadata['properties']
+            date=metadata['date']
         )
 
     def change_experiment_name(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
@@ -68,7 +67,6 @@ class ExperimentsFileManagementBase:
             d.append(ExperimentMetadata(
                 id=id,
                 name=ExperimentName(metadata['name']),
-                date=metadata['date'],
-                properties=metadata['properties']
+                date=metadata['date']
             ))
         return d
