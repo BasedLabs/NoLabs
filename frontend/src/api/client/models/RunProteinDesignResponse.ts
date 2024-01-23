@@ -5,7 +5,6 @@
 export type RunProteinDesignResponse = {
     experiment_id: string;
     experiment_name: string;
-    pdbs_content?: Array<string>;
-    errors?: Array<string>;
+    pdb_files: Array<string>;
 };
 

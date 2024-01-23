@@ -20,6 +20,7 @@ export type { DeleteTargetResponse } from './models/DeleteTargetResponse';
 export type { DockingRequest } from './models/DockingRequest';
 export type { DockingResponse } from './models/DockingResponse';
 export { ErrorCodes } from './models/ErrorCodes';
+export type { ExperimentPropertiesResponse } from './models/ExperimentPropertiesResponse';
 export type { GenerateUuidResponse } from './models/GenerateUuidResponse';
 export type { GetFoldingRequest } from './models/GetFoldingRequest';
 export type { GetFoldingResponse } from './models/GetFoldingResponse';

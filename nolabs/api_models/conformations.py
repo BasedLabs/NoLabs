@@ -49,24 +49,24 @@ class DeleteExperimentRequest:
 
 
 @pcdataclass.dataclass
-class ExperimentMetadataResponse:
-    id: str
-    name: str
-    date: datetime.datetime
+class ExperimentPropertiesResponse:
+    pdb_file: str
+    pdb_file_name: str
+    total_frames: Optional[int] = 10000
+    temperature_k: Optional[float] = 273.15
+    take_frame_every: Optional[int] = 1000
+    step_size: Optional[float] = 0.002
+    replace_non_standard_residues: Optional[bool] = False
+    add_missing_atoms: Optional[bool] = False
+    add_missing_hydrogens: Optional[bool] = True
+    friction_coeff: Optional[float] = 1.0
+    ignore_missing_atoms: Optional[bool] = False
+    integrator: Optional[IntegratorsRequest] = IntegratorsRequest.langevin
 
 
 @pcdataclass.dataclass
 class GetExperimentResponse:
-    metadata: ExperimentMetadataResponse
-    data: str
-
-
-@pcdataclass.dataclass
-class ChangeExperimentNameRequest:
-    id: str
-    name: str
-
-
-@pcdataclass.dataclass
-class GenerateUuidResponse:
-    uuid: str
+    experiment_id: str
+    experiment_name: str
+    pdb_file: str
+    properties: ExperimentPropertiesResponse

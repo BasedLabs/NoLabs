@@ -31,24 +31,6 @@ class DeleteExperimentRequest:
 
 
 @pcdataclass.dataclass
-class ExperimentMetadataResponse:
-    id: str
-    name: str
-    date: datetime.datetime
-
-
-@pcdataclass.dataclass
 class GetExperimentResponse:
     metaData: ExperimentMetadataResponse
     solubleProbability: float
-
-
-@pcdataclass.dataclass
-class ChangeExperimentNameRequest:
-    id: str
-    name: str
-
-
-@pcdataclass.dataclass
-class GenerateUuidResponse:
-    uuid: str

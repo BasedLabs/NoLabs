@@ -24,34 +24,35 @@ class RunProteinDesignFeature:
         await request.pdb_file.seek(0)
 
         configuration = microservice.Configuration(
-            host=self._settings.protein_design_experiments_folder
+            host=self._settings.protein_design_host
         )
         with microservice.ApiClient(configuration=configuration) as client:
             api_instance = microservice.DefaultApi(client)
             response = api_instance.run_rfdiffusion_endpoint_run_rfdiffusion_post(
                 run_rfdiffusion_request=microservice.RunRfdiffusionRequest(
-                    pdb_content=pdb_content,
+                    pdb_content=pdb_content.decode('utf-8'),
                     hotspots=request.hotspots,
                     contig=request.contig,
                     timesteps=request.timesteps,
                     number_of_designs=request.number_of_desings
                 )
             )
+            #response = microservice.RunRfdiffusionResponse(errors=[], pdbs_content=['asd'])
 
-            if response.errors or not response.pdbs_contents:
-                raise NoLabsException(', '.join(response.errors), ErrorCodes.protein_design_run_error)
+            if response.errors and not response.pdbs_content:
+                raise NoLabsException(response.errors, ErrorCodes.protein_design_run_error)
 
             await self._file_management.update_metadata(
                 experiment_id=experiment_id,
-                experiment_name=experiment_name,
-                run_protein_design_request=request
+                experiment_name=experiment_name
             )
-            self._file_management.save_experiment(
+            await self._file_management.save_experiment(
                 experiment_id=experiment_id,
-                pdbs_content=response.pdbs_contents
+                pdbs_content=response.pdbs_content,
+                request=request
             )
             return RunProteinDesignResponse(
                 experiment_id=experiment_id.value,
                 experiment_name=experiment_name.value,
-                pdbs_content=response.pdbs_contents
+                pdb_files=response.pdbs_content
             )

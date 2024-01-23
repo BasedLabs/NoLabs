@@ -3,8 +3,9 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.drug_discovery import GetExperimentsFeature, DeleteExperimentFeature, \
-    ChangeExperimentNameFeature, AddExperimentFeature
+from nolabs.features.drug_discovery import GetExperimentsFeature, AddExperimentFeature
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
 from nolabs.features.drug_discovery.services.file_management import FileManagement
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement

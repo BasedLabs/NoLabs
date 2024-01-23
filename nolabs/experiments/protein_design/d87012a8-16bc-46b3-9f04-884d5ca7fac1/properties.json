@@ -1,0 +1,7 @@
+{
+    "contig": "5-15/A10-15/30-40",
+    "number_of_designs": 1,
+    "input_file_name": "3i40.pdb",
+    "timesteps": 50,
+    "hotspots": null
+}

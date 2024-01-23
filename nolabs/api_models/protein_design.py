@@ -20,45 +20,22 @@ class RunProteinDesignRequest:
 class RunProteinDesignResponse:
     experiment_id: str
     experiment_name: str
-    pdbs_content: List[str] = dataclasses.Field(default_factory=list)
+    pdb_files: List[str]
 
 
 @dataclasses.dataclass
-class GetResultsRequest:
-    experimentId: str
-
-
-@dataclasses.dataclass
-class DeleteExperimentRequest:
-    id: str
-
-
-@dataclasses.dataclass
-class ExperimentMetadataResponse:
-    id: str
-    name: str
-    date: datetime.datetime
+class ExperimentPropertiesResponse:
+    pdb_file: str
+    pdb_file_name: str
+    contig: str
+    number_of_desings: int
+    hotspots: Optional[str] = None
+    timesteps: Optional[int] = None
 
 
 @dataclasses.dataclass
 class GetExperimentResponse:
     experiment_id: str
     experiment_name: str
-    pdbs_content: List[str]
-    pdb_file: str
-    pdb_file_name: str
-    contig: str
-    number_of_desings: int
-    timesteps: int
-    hotspots: str
-
-
-@dataclasses.dataclass
-class ChangeExperimentNameRequest:
-    id: str
-    name: str
-
-
-@dataclasses.dataclass
-class GenerateUuidResponse:
-    uuid: str
+    pdb_files: List[str]
+    properties: ExperimentPropertiesResponse

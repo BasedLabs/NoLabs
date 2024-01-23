@@ -20,7 +20,6 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictInt, StrictStr
-from pydantic import Field
 try:
     from typing import Self
 except ImportError:
@@ -30,12 +29,12 @@ class RunRfdiffusionRequest(BaseModel):
     """
     RunRfdiffusionRequest
     """ # noqa: E501
-    pdb_content: StrictStr = Field(alias="pdbContent")
+    pdb_content: StrictStr
     hotspots: Optional[StrictStr] = None
     contig: Optional[StrictStr] = None
     timesteps: Optional[StrictInt] = None
-    number_of_designs: Optional[StrictInt] = Field(default=None, alias="numberOfDesigns")
-    __properties: ClassVar[List[str]] = ["pdbContent", "hotspots", "contig", "timesteps", "numberOfDesigns"]
+    number_of_designs: Optional[StrictInt] = None
+    __properties: ClassVar[List[str]] = ["pdb_content", "hotspots", "contig", "timesteps", "number_of_designs"]
 
     model_config = {
         "populate_by_name": True,
@@ -92,7 +91,7 @@ class RunRfdiffusionRequest(BaseModel):
         # set to None if number_of_designs (nullable) is None
         # and model_fields_set contains the field
         if self.number_of_designs is None and "number_of_designs" in self.model_fields_set:
-            _dict['numberOfDesigns'] = None
+            _dict['number_of_designs'] = None
 
         return _dict
 
@@ -106,11 +105,11 @@ class RunRfdiffusionRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "pdbContent": obj.get("pdbContent"),
+            "pdb_content": obj.get("pdb_content"),
             "hotspots": obj.get("hotspots"),
             "contig": obj.get("contig"),
             "timesteps": obj.get("timesteps"),
-            "numberOfDesigns": obj.get("numberOfDesigns")
+            "number_of_designs": obj.get("number_of_designs")
         })
         return _obj
 

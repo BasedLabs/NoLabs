@@ -2,9 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { ExperimentPropertiesResponse } from './ExperimentPropertiesResponse';
 export type nolabs__api_models__protein_design__GetExperimentResponse = {
     experiment_id: string;
     experiment_name: string;
-    pdbs_content: Array<string>;
+    pdb_files: Array<string>;
+    properties: ExperimentPropertiesResponse;
 };
 

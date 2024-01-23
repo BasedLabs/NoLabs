@@ -3,8 +3,9 @@ from typing import List
 
 
 class ErrorCodes(Enum):
+    unknown_exception = 0
     fix_pdb_error = 1
-    conformations_log_websocket_undefined = 2
+    conformations_update_metadata_error = 2
     amino_acid_solubility_run_error = 3
     no_amino_acids = 4
     experiment_id_not_found = 5
@@ -14,6 +15,6 @@ class ErrorCodes(Enum):
 
 
 class NoLabsException(Exception):
-    def __init__(self, message: List[str] | str, error_code: ErrorCodes):
-        self.message = '|'.join(message) if isinstance(message, list) else message
+    def __init__(self, messages: List[str], error_code: ErrorCodes):
+        self.messages = messages
         self.error_code = error_code

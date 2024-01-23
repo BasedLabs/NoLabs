@@ -21,7 +21,14 @@ origins = [
     '*'
 ]
 
+app.include_router(conformations_router)
+app.include_router(solubility_router)
+app.include_router(localisation_router)
+app.include_router(gene_ontology_router)
+app.include_router(drug_discovery_router)
+app.include_router(protein_design_router)
 add_domain_exception_middleware(app)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -30,11 +37,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(conformations_router)
-app.include_router(solubility_router)
-app.include_router(localisation_router)
-app.include_router(gene_ontology_router)
-app.include_router(drug_discovery_router)
-app.include_router(protein_design_router)
+
+
 
 print('Go to /api/v1/docs to see Swagger')

@@ -1,16 +1,17 @@
-from typing import Annotated, Dict, List
+from typing import Annotated, List
 
 from fastapi import WebSocket, APIRouter, Depends, File, Form, UploadFile
 
+from nolabs.api_models.experiment import ExperimentMetadataResponse, ChangeExperimentNameRequest
+from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.api_models.protein_design import RunProteinDesignRequest, RunProteinDesignResponse, \
-    ExperimentMetadataResponse, \
-    GetExperimentResponse, ChangeExperimentNameRequest, GenerateUuidResponse
+    GetExperimentResponse
 from nolabs.controllers.protein_design.dependencies import run_protein_design_feature_dependency, \
     change_experiment_name_dependency, delete_experiment_feature_dependency, get_experiment_feature_dependency, \
-    get_experiments_feature_dependency
-from nolabs.features.protein_design import DeleteExperimentFeature, RunProteinDesignFeature, \
-    GetExperimentsFeature, GetExperimentFeature, ChangeExperimentNameFeature
-from nolabs.utils import uuid_utils
+    get_experiments_feature_dependency, create_experiment_dependency
+from nolabs.features.protein_design import RunProteinDesignFeature, GetExperimentFeature
+from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 
 logs_websocket: WebSocket | None
 
@@ -41,22 +42,22 @@ async def inference(feature: Annotated[RunProteinDesignFeature, Depends(run_prot
     ))
 
 
-@router.get('/experiments')
-async def experiments(feature: Annotated[GetExperimentsFeature, Depends(get_experiments_feature_dependency)]) -> List[ExperimentMetadataResponse]:
+@router.get('/experiments-metadata')
+async def experiments(feature: Annotated[GetExperimentsMetadataFeature, Depends(get_experiments_feature_dependency)]) -> List[
+    ExperimentMetadataResponse]:
     return feature.handle()
 
 
-@router.get('/get-experiment')
-async def get_experiment(experiment_id: str, feature: Annotated[
+@router.get('/experiment')
+async def get_experiment(id: str, feature: Annotated[
     GetExperimentFeature, Depends(get_experiment_feature_dependency)]) -> GetExperimentResponse:
-    return feature.handle(experiment_id)
+    return feature.handle(id)
 
 
-@router.delete('/delete-experiment')
-@router.delete('/delete-experiment')
-async def delete_experiment(experiment_id: str, feature: Annotated[
+@router.delete('/experiment')
+async def delete_experiment(id: str, feature: Annotated[
     DeleteExperimentFeature, Depends(delete_experiment_feature_dependency)]) -> GetExperimentResponse:
-    return feature.handle(experiment_id)
+    return feature.handle(id)
 
 
 @router.post('/change-experiment-name')
@@ -65,6 +66,6 @@ async def change_experiment_name(request: ChangeExperimentNameRequest, feature: 
     return feature.handle(request)
 
 
-@router.get('/generate_id')
-async def generate_uuid() -> GenerateUuidResponse:
-    return GenerateUuidResponse(uuid=uuid_utils.generate_uuid())
+@router.get('/create-experiment')
+async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
+    return feature.handle()

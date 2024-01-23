@@ -4,7 +4,6 @@
 /* eslint-disable */
 import type { Body_inference_api_v1_protein_design_inference_post } from '../models/Body_inference_api_v1_protein_design_inference_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
-import type { GenerateUuidResponse } from '../models/GenerateUuidResponse';
 import type { nolabs__api_models__protein_design__ExperimentMetadataResponse } from '../models/nolabs__api_models__protein_design__ExperimentMetadataResponse';
 import type { nolabs__api_models__protein_design__GetExperimentResponse } from '../models/nolabs__api_models__protein_design__GetExperimentResponse';
 import type { RunProteinDesignResponse } from '../models/RunProteinDesignResponse';
@@ -36,26 +35,26 @@ export class ProteinDesignService {
      * @returns nolabs__api_models__protein_design__ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static experimentsApiV1ProteinDesignExperimentsGet(): CancelablePromise<Array<nolabs__api_models__protein_design__ExperimentMetadataResponse>> {
+    public static experimentsApiV1ProteinDesignExperimentsMetadataGet(): CancelablePromise<Array<nolabs__api_models__protein_design__ExperimentMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/protein-design/experiments',
+            url: '/api/v1/protein-design/experiments-metadata',
         });
     }
     /**
      * Get Experiment
-     * @param experimentId
+     * @param id
      * @returns nolabs__api_models__protein_design__GetExperimentResponse Successful Response
      * @throws ApiError
      */
-    public static getExperimentApiV1ProteinDesignGetExperimentGet(
-        experimentId: string,
+    public static getExperimentApiV1ProteinDesignExperimentGet(
+        id: string,
     ): CancelablePromise<nolabs__api_models__protein_design__GetExperimentResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/protein-design/get-experiment',
+            url: '/api/v1/protein-design/experiment',
             query: {
-                'experiment_id': experimentId,
+                'id': id,
             },
             errors: {
                 422: `Validation Error`,
@@ -64,18 +63,18 @@ export class ProteinDesignService {
     }
     /**
      * Delete Experiment
-     * @param experimentId
+     * @param id
      * @returns nolabs__api_models__protein_design__GetExperimentResponse Successful Response
      * @throws ApiError
      */
-    public static deleteExperimentApiV1ProteinDesignDeleteExperimentDelete(
-        experimentId: string,
+    public static deleteExperimentApiV1ProteinDesignExperimentDelete(
+        id: string,
     ): CancelablePromise<nolabs__api_models__protein_design__GetExperimentResponse> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/protein-design/delete-experiment',
+            url: '/api/v1/protein-design/experiment',
             query: {
-                'experiment_id': experimentId,
+                'id': id,
             },
             errors: {
                 422: `Validation Error`,
@@ -85,12 +84,12 @@ export class ProteinDesignService {
     /**
      * Change Experiment Name
      * @param requestBody
-     * @returns nolabs__api_models__protein_design__GetExperimentResponse Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
     public static changeExperimentNameApiV1ProteinDesignChangeExperimentNamePost(
         requestBody: ChangeExperimentNameRequest,
-    ): CancelablePromise<nolabs__api_models__protein_design__GetExperimentResponse> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/protein-design/change-experiment-name',
@@ -102,14 +101,14 @@ export class ProteinDesignService {
         });
     }
     /**
-     * Generate Uuid
-     * @returns GenerateUuidResponse Successful Response
+     * Create Experiment
+     * @returns nolabs__api_models__protein_design__ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static generateUuidApiV1ProteinDesignGenerateIdGet(): CancelablePromise<GenerateUuidResponse> {
+    public static createExperimentApiV1ProteinDesignCreateExperimentGet(): CancelablePromise<nolabs__api_models__protein_design__ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/protein-design/generate_id',
+            url: '/api/v1/protein-design/create-experiment',
         });
     }
 }

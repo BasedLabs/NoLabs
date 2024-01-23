@@ -1,4 +1,6 @@
 import logging
+import sys
+
 from pythonjsonlogger import jsonlogger
 
 from protein_design.api_models import *
@@ -7,7 +9,7 @@ _logger = logging.getLogger()
 
 _logger.setLevel(logging.DEBUG)
 
-_logHandler = logging.StreamHandler()
+_logHandler = logging.StreamHandler(sys.stdout)
 _formatter = jsonlogger.JsonFormatter()
 _logHandler.setFormatter(_formatter)
 _logger.addHandler(_logHandler)
@@ -25,8 +27,8 @@ class Log:
         d = response.as_log_dict()
         _logger.info('Run rfdiffusion response', extra=d)
 
-    def exception(self):
-        _logger.exception('Exception occured in microservice')
+    def exception(self, exception):
+        _logger.exception(exception)
 
 
 logger = Log()

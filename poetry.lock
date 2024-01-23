@@ -209,7 +209,7 @@ url = "microservices/esmfold_light/client"
 [[package]]
 name = "esmfold-microservice"
 version = "1.0.0"
-description = "FastAPI"
+description = "ESM Fold"
 optional = false
 python-versions = "^3.7"
 files = []

@@ -9,6 +9,7 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
 
+const path = require('node:path');
 const { configure } = require('quasar/wrappers');
 
 
@@ -59,6 +60,12 @@ module.exports = configure(function (/* ctx */) {
       target: {
         browser: ['es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1'],
         node: 'node16'
+      },
+
+      build: {
+        alias: {
+          src: path.join(__dirname, 'src')
+        }
       },
 
       vueRouterMode: 'hash', // available values: 'hash', 'history'
@@ -124,7 +131,8 @@ module.exports = configure(function (/* ctx */) {
       // Quasar plugins
       plugins: [
         'Loading',
-        'Dialog'
+        'Dialog',
+        'Notify'
       ]
     },
 

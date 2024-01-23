@@ -44,20 +44,15 @@ def run_rfdiffusion(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
 
         stderr = res.stderr.decode('utf-8')
 
-        if stderr and 'ValueError' in stderr:
-            return RunRfdiffusionResponse(pdbs_content=[], errors=['Contig is incorrect, check the contig input'])
-
-        if stderr and 'Exception' in stderr:
-            return RunRfdiffusionResponse(pdbs_content=[], errors=['Unknown error, try to fix contig or hotspots input'])
-
         pdbs = []
         files = glob.glob(os.path.join(output_files_dir, '*.pdb'))
         for file_name in files:
             with open(file_name, 'r') as f:
                 pdbs.append(f.read())
-        return RunRfdiffusionResponse(pdbs_content=pdbs, errors=[])
-    except Exception:
-        logger.exception()
+        logger.exception(stderr)
+        return RunRfdiffusionResponse(pdbs_content=pdbs, errors=[f'Unknown error, try to fix contig or hotspots input, {stderr}'])
+    except Exception as e:
+        logger.exception(str(e))
         return RunRfdiffusionResponse(pdbs_content=[], errors=['Internal exception occured'])
     finally:
         shutil.rmtree(input_pdbs_dir)

@@ -2,15 +2,30 @@ import glob
 import json
 import os
 import shutil
-from typing import Dict, List
+from abc import ABC
+from typing import List, Generic
 
-from nolabs.domain.experiment import ExperimentId, ExperimentMetadata, ExperimentName
+from nolabs.domain.experiment import ExperimentId, ExperimentMetadata, ExperimentName, ExperimentPropertiesT
+from nolabs.utils import utcnow
 
 
-class ExperimentsFileManagementBase:
+class ExperimentsFileManagementBase(ABC, Generic[ExperimentPropertiesT]):
     def __init__(self, experiments_folder: str, metadata_file: str):
         self._experiments_folder = experiments_folder
         self._metadata_file = metadata_file
+
+    async def update_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
+        self.ensure_experiment_folder_exists(experiment_id)
+        j = {
+            'id': experiment_id.value,
+            'name': experiment_name.value,
+            'date': str(utcnow())
+        }
+
+        metadata_file_path = os.path.join(self.experiment_folder(experiment_id),
+                                          self._metadata_file)
+        with open(metadata_file_path, 'w', encoding='utf-8') as f:
+            json.dump(j, f, ensure_ascii=False, indent=4)
 
     def ensure_experiments_folder_exists(self):
         if not os.path.isdir(self._experiments_folder):

@@ -3,8 +3,9 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.gene_ontology import GetExperimentsFeature, GetExperimentFeature, DeleteExperimentFeature, \
-    ChangeExperimentNameFeature
+from nolabs.features.gene_ontology import GetExperimentsFeature, GetExperimentFeature
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.features.gene_ontology import RunGeneOntologyFeature
 from nolabs.features.gene_ontology.services.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings

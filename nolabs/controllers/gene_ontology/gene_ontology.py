@@ -6,9 +6,12 @@ from nolabs.controllers.gene_ontology.dependencies import change_experiment_name
     delete_experiment_feature_dependency, get_experiment_feature_dependency, get_experiments_feature_dependency, \
     run_gene_ontology_feature_dependency
 from nolabs.api_models.gene_ontology import RunGeneOntologyRequest, RunGeneOntologyResponse, ExperimentMetadataResponse, \
-    GetExperimentResponse, ChangeExperimentNameRequest, GenerateUuidResponse
-from nolabs.features.gene_ontology import DeleteExperimentFeature, RunGeneOntologyFeature, \
-    GetExperimentsFeature, GetExperimentFeature, ChangeExperimentNameFeature
+    GetExperimentResponse, GenerateUuidResponse
+from nolabs.features.gene_ontology import RunGeneOntologyFeature, \
+    GetExperimentsFeature, GetExperimentFeature
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.api_models.experiment import ChangeExperimentNameRequest
 from nolabs.utils import uuid_utils
 
 router = APIRouter(

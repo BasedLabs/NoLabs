@@ -1,8 +1,9 @@
 import datetime
-from typing import Generic
+from typing import Generic, TypeVar
 
 from pydantic.dataclasses import dataclass
 
+ExperimentPropertiesT = TypeVar('ExperimentPropertiesT')
 
 @dataclass
 class ExperimentId:

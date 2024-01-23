@@ -3,12 +3,15 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 
 from nolabs.api_models.localisation import RunLocalisationRequest, RunLocalisationResponse, ExperimentMetadataResponse, \
-    GetExperimentResponse, ChangeExperimentNameRequest, GenerateUuidResponse
+    GetExperimentResponse, GenerateUuidResponse
 from nolabs.controllers.localisation.dependencies import run_localisation_feature_dependency, \
     get_experiments_feature_dependency, \
     get_experiment_feature_dependency, delete_experiment_feature_dependency, change_experiment_name_dependency
-from nolabs.features.localisation import DeleteExperimentFeature, RunLocalisationFeature, \
-    GetExperimentsFeature, GetExperimentFeature, ChangeExperimentNameFeature
+from nolabs.features.localisation import RunLocalisationFeature, \
+    GetExperimentsFeature, GetExperimentFeature
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.api_models.experiment import ChangeExperimentNameRequest
 from nolabs.utils import uuid_utils
 
 router = APIRouter(

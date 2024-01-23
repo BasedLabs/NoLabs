@@ -6,7 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **errors** | **List[str]** |  | [optional] 
-**pdbs_contents** | **List[str]** |  | [optional] 
+**pdbs_content** | **List[str]** |  | [optional] 
 
 ## Example
 

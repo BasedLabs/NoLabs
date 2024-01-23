@@ -20,7 +20,6 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictStr
-from pydantic import Field
 try:
     from typing import Self
 except ImportError:
@@ -31,8 +30,8 @@ class RunRfdiffusionResponse(BaseModel):
     RunRfdiffusionResponse
     """ # noqa: E501
     errors: Optional[List[StrictStr]] = None
-    pdbs_contents: Optional[List[StrictStr]] = Field(default=None, alias="pdbsContents")
-    __properties: ClassVar[List[str]] = ["errors", "pdbsContents"]
+    pdbs_content: Optional[List[StrictStr]] = None
+    __properties: ClassVar[List[str]] = ["errors", "pdbs_content"]
 
     model_config = {
         "populate_by_name": True,
@@ -84,7 +83,7 @@ class RunRfdiffusionResponse(BaseModel):
 
         _obj = cls.model_validate({
             "errors": obj.get("errors"),
-            "pdbsContents": obj.get("pdbsContents")
+            "pdbs_content": obj.get("pdbs_content")
         })
         return _obj
 

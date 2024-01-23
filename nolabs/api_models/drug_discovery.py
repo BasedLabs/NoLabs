@@ -8,21 +8,6 @@ from typing import List
 class GetExperimentRequest:
     experiment_id: str
 
-@pcdataclass.dataclass
-class DeleteExperimentRequest:
-    experiment_id: str
-
-@pcdataclass.dataclass
-class ExperimentMetadataResponse:
-    experiment_id: str
-    experiment_name: str
-    experiment_date: datetime.datetime
-
-@pcdataclass.dataclass
-class ChangeExperimentNameRequest:
-    id: str
-    name: str
-
 # # #
 # Uploading and managing targets section
 # # #

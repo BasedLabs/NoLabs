@@ -22,8 +22,6 @@ from nolabs.controllers.drug_discovery.dependencies import (
 )
 from nolabs.features.drug_discovery import (
     GetExperimentsFeature,
-    DeleteExperimentFeature,
-    ChangeExperimentNameFeature,
     AddExperimentFeature
 )
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
@@ -36,6 +34,9 @@ from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
     GetLigandsListFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
+
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 
 from nolabs.api_models.drug_discovery import (
     ChangeExperimentNameRequest,

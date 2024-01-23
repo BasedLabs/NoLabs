@@ -2,9 +2,11 @@ from typing import Annotated
 
 from fastapi import Depends
 
+from features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.protein_design import GetExperimentsFeature, GetExperimentFeature, DeleteExperimentFeature, \
-    ChangeExperimentNameFeature
+from nolabs.features.protein_design import GetExperimentsMetadataFeature, GetExperimentFeature
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.features.protein_design import RunProteinDesignFeature
 from nolabs.features.protein_design.services.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings
@@ -21,8 +23,8 @@ def run_protein_design_feature_dependency(file_management: Annotated[FileManagem
 
 
 def get_experiments_feature_dependency(
-        file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> GetExperimentsFeature:
-    return GetExperimentsFeature(file_management=file_management)
+        file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> GetExperimentsMetadataFeature:
+    return GetExperimentsMetadataFeature(file_management=file_management)
 
 
 def get_experiment_feature_dependency(
@@ -41,3 +43,6 @@ def change_experiment_name_dependency(
     return ChangeExperimentNameFeature(
         file_management=file_management
     )
+
+def create_experiment_dependency() -> CreateExperimentFeature:
+    return CreateExperimentFeature()

@@ -2,14 +2,14 @@ from typing import Annotated, Optional, List, Union
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 
-from nolabs.api_models.solubility import RunSolubilityRequest, RunSolubilityResponse, ExperimentMetadataResponse, \
-    GetExperimentResponse, ChangeExperimentNameRequest, GenerateUuidResponse
+from nolabs.api_models.solubility import RunSolubilityRequest, RunSolubilityResponse, GetExperimentResponse
 from nolabs.controllers.solubility.dependencies import run_solubility_feature_dependency, \
     get_experiments_feature_dependency, \
     get_experiment_feature_dependency, delete_experiment_feature_dependency, change_experiment_name_dependency
-from nolabs.features.solubility import DeleteExperimentFeature, RunSolubilityFeature, \
-    GetExperimentsFeature, GetExperimentFeature, ChangeExperimentNameFeature
-from nolabs.utils import uuid_utils
+from nolabs.features.solubility import RunSolubilityFeature, GetExperimentFeature
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
 
 router = APIRouter(
     prefix='/api/v1/solubility',
@@ -55,8 +55,3 @@ async def delete_experiment(experiment_id: str, feature: Annotated[
 async def change_experiment_name(request: ChangeExperimentNameRequest, feature: Annotated[
     ChangeExperimentNameFeature, Depends(change_experiment_name_dependency)]):
     return feature.handle(request)
-
-
-@router.get('/generate_id')
-async def generate_uuid() -> GenerateUuidResponse:
-    return GenerateUuidResponse(uuid=uuid_utils.generate_uuid())

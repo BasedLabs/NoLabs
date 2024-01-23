@@ -49,28 +49,6 @@ class GetExperimentRequest:
 
 
 @pcdataclass.dataclass
-class DeleteExperimentRequest:
-    id: str
-
-
-@pcdataclass.dataclass
-class ExperimentMetadataResponse:
-    id: str
-    name: str
-    date: datetime.datetime
-
-
-@pcdataclass.dataclass
 class GetExperimentResponse:
     metadata: ExperimentMetadataResponse
     amino_acids: List[AminoAcidResponse]
-
-
-@pcdataclass.dataclass
-class ChangeExperimentNameRequest:
-    id: str
-    name: str
-
-@pcdataclass.dataclass
-class GenerateUuidResponse:
-    uuid: str
