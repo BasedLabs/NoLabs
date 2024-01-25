@@ -53,7 +53,6 @@ export default defineComponent({
     setup() {
         const store = useDrugDiscoveryStore();
         const loading = ref(true);
-        const selectedTab = ref('');
         const router = useRouter();
         const $q = useQuasar();
 
@@ -96,7 +95,7 @@ export default defineComponent({
         };
 
         const openExperiment = (experimentId: string) => {
-            router.push({ name: 'ExperimentViewer', params: { experimentId } });
+            router.push({ name: 'ExperimentNavigation', params: { experimentId } });
         };
 
         const formatDate = (dateString: string) => {

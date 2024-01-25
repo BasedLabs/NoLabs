@@ -130,7 +130,7 @@ class TargetsFileManagement:
         target_folder = self.target_folder(experiment_id, target_id)
         target_metadata = self.get_target_metadata(experiment_id, target_id)
         target_name = target_metadata.target_name
-        self.pdb_writer.write_pdb(os.path.join(target_folder, target_name + ".pdb"), pdb_content)
+        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, target_name + ".pdb"),)
 
     def get_fasta_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
@@ -164,6 +164,7 @@ class TargetsFileManagement:
                 os.mkdir(pocket_dir)
             pocket_arr = np.asarray(pocket_ids)
             np.save(pocket_file, pocket_arr)
+
 
     def get_msa_api_url(self) -> str:
         return self._settings.drug_discovery_msa_url

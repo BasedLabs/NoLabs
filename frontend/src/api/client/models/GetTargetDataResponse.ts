@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type PredictBindingPocketRequest = {
-    experiment_id: string;
-    target_id: string;
+export type GetTargetDataResponse = {
+    protein_sequence: string;
+    protein_pdb?: (string | null);
 };
 

@@ -10,6 +10,8 @@ from nolabs.controllers.drug_discovery.dependencies import (
     upload_target_dependency,
     delete_target_dependency,
     get_targets_list_dependency,
+    get_target_data_dependency,
+    get_ligand_data_dependency,
     upload_ligand_dependency,
     delete_ligand_dependency,
     get_ligands_list_dependency,
@@ -27,14 +29,14 @@ from nolabs.features.drug_discovery import (
     AddExperimentFeature
 )
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
-    GetTargetsListFeature
+    GetTargetsListFeature, GetTargetDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
 from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
-    GetLigandsListFeature
+    GetLigandsListFeature, GetLigandDataFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
 
 from nolabs.api_models.drug_discovery import (
@@ -44,12 +46,14 @@ from nolabs.api_models.drug_discovery import (
     DeleteTargetRequest,
     DeleteTargetResponse,
     GetTargetsListRequest,
+    GetTargetDataRequest,
+    GetTargetDataResponse,
     UploadLigandRequest,
     UploadLigandResponse,
     DeleteLigandRequest,
     DeleteLigandResponse,
     GetLigandsListRequest,
-    GetLigandsListResponse,
+    GetLigandDataResponse,
     GetTargetBindingPocketRequest,
     GetTargetBindingPocketResponse,
     PredictBindingPocketRequest,
@@ -64,7 +68,7 @@ from nolabs.api_models.drug_discovery import (
     DockingResponse,
     ExperimentMetadataResponse,
     TargetMetaData,
-    LigandMetaData
+    LigandMetaData, GetLigandDataRequest
 )
 
 router = APIRouter(
@@ -117,6 +121,14 @@ async def get_targets_list(experiment_id: str, feature: Annotated[
     GetTargetsListFeature, Depends(get_targets_list_dependency)]) -> List[TargetMetaData]:
     return feature.handle(GetTargetsListRequest(experiment_id)).targets
 
+@router.get('/get-target-data')
+async def get_targets_list(feature: Annotated[
+    GetTargetDataFeature, Depends(get_target_data_dependency)],
+                           experiment_id: str,
+                           target_id: str,
+                           ) -> GetTargetDataResponse:
+    result = feature.handle(GetTargetDataRequest(experiment_id, target_id))
+    return GetTargetDataResponse(protein_sequence=result.protein_sequence, protein_pdb=result.protein_pdb)
 
 # Ligand Management
 @router.post('/upload-ligand')
@@ -135,6 +147,14 @@ async def delete_ligand(feature: Annotated[
                         target_id: str,
                         ligand_id: str) -> DeleteLigandResponse:
     return feature.handle(DeleteLigandRequest(experiment_id, target_id, ligand_id))
+
+@router.get('/get-ligand-data')
+async def get_ligand_data(feature: Annotated[
+                        GetLigandDataFeature, Depends(get_ligand_data_dependency)],
+                        experiment_id: str,
+                        target_id: str,
+                        ligand_id: str) -> GetLigandDataResponse:
+    return feature.handle(GetLigandDataRequest(experiment_id, target_id, ligand_id))
 
 
 @router.get('/get-ligands-list')
@@ -155,16 +175,22 @@ async def get_target_binding_pocket(feature: Annotated[GetBindingPocketFeature, 
 
 
 @router.post('/predict-binding-pocket')
-async def predict_binding_pocket(request: PredictBindingPocketRequest, feature: Annotated[
-    PredictBindingPocketFeature, Depends(predict_binding_pocket_dependency)]) -> PredictBindingPocketResponse:
-    return feature.handle(request)
+async def predict_binding_pocket(feature: Annotated[
+    PredictBindingPocketFeature, Depends(predict_binding_pocket_dependency)],
+                                 experiment_id: str,
+                                 target_id: str
+                                 ) -> PredictBindingPocketResponse:
+    return feature.handle(PredictBindingPocketRequest(experiment_id, target_id))
 
 
 # Folding and MSA Prediction
 @router.post('/predict-msa')
-async def predict_msa(request: PredictMsaRequest, feature: Annotated[
-    GenerateMsaFeature, Depends(generate_msa_dependency)]) -> PredictMsaResponse:
-    return feature.handle(request)
+async def predict_msa(feature: Annotated[
+    GenerateMsaFeature, Depends(generate_msa_dependency)],
+                      experiment_id: str,
+                      target_id: str
+                      ) -> PredictMsaResponse:
+    return feature.handle(PredictMsaRequest(experiment_id, target_id))
 
 
 @router.get('/get-folded-structure')
@@ -175,9 +201,12 @@ async def get_folded_structure(request: GetFoldingRequest,
 
 
 @router.post('/predict-folding')
-async def predict_folding(request: PredictFoldingRequest, feature: Annotated[
-    PredictFoldingFeature, Depends(predict_folding_dependency)]) -> PredictFoldingResponse:
-    return feature.handle(request)
+async def predict_folding(feature: Annotated[
+    PredictFoldingFeature, Depends(predict_folding_dependency)],
+                          experiment_id: str,
+                          target_id: str
+                          ) -> PredictFoldingResponse:
+    return feature.handle(PredictFoldingRequest(experiment_id, target_id))
 
 
 # Docking

@@ -1,5 +1,6 @@
 from nolabs.api_models.drug_discovery import UploadTargetRequest, UploadTargetResponse, \
-    GetTargetsListRequest, GetTargetsListResponse, DeleteTargetRequest, DeleteTargetResponse
+    GetTargetsListRequest, GetTargetsListResponse, DeleteTargetRequest, DeleteTargetResponse, \
+    GetTargetDataRequest, GetTargetDataResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
@@ -44,3 +45,18 @@ class GetTargetsListFeature:
         targets = self._file_management.get_targets_list(experiment_id)
 
         return GetTargetsListResponse(targets=targets)
+
+
+class GetTargetDataFeature:
+    def __init__(self, file_management: TargetsFileManagement):
+        self._file_management = file_management
+
+    def handle(self, request: GetTargetDataRequest) -> GetTargetDataResponse:
+        assert request
+
+        experiment_id = ExperimentId(request.experiment_id)
+        target_id = TargetId(request.targe_id)
+
+        target_name, sequence, pdb_content = self._file_management.get_target_data(experiment_id, target_id)
+
+        return GetTargetDataResponse(protein_sequence=sequence, protein_pdb=pdb_content)

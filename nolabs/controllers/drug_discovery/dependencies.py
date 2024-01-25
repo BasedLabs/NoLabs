@@ -11,9 +11,9 @@ from nolabs.features.drug_discovery.services.target_file_management import Targe
 from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
 from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
-    GetTargetsListFeature
+    GetTargetsListFeature, GetTargetDataFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
-    GetLigandsListFeature
+    GetLigandsListFeature, GetLigandDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
 from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
@@ -84,6 +84,10 @@ def get_targets_list_dependency(target_file_management: Annotated[TargetsFileMan
 Depends(target_file_management_dependency)]) -> GetTargetsListFeature:
     return GetTargetsListFeature(file_management=target_file_management)
 
+def get_target_data_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> GetTargetDataFeature:
+    return GetTargetDataFeature(file_management=target_file_management)
+
 
 def get_binding_pocket_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)]) -> GetBindingPocketFeature:
@@ -119,6 +123,9 @@ def get_ligands_list_dependency(ligand_file_management: Annotated[LigandsFileMan
 Depends(ligand_file_management_dependency)]) -> GetLigandsListFeature:
     return GetLigandsListFeature(file_management=ligand_file_management)
 
+def get_ligand_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> GetLigandDataFeature:
+    return GetLigandDataFeature(file_management=ligand_file_management)
 
 def predict_docking_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)], ligand_file_management: Annotated[LigandsFileManagement,
