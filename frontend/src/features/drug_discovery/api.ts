@@ -7,10 +7,11 @@ import {
     Body_upload_target_api_v1_drug_discovery_upload_target_post,
     DockingRequest,
     GetFoldingRequest,
-    PredictBindingPocketRequest,
-    PredictFoldingRequest,
-    PredictMsaRequest,
-    Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post
+    PredictFoldingResponse,
+    PredictBindingPocketResponse,
+    Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
+    GetTargetDataResponse,
+    GetLigandDataResponse
 } from '../../api/client';
 import { CancelablePromise } from 'api/client/core/CancelablePromise';
 
@@ -49,6 +50,10 @@ export function getTargetsList(experimentId: string): CancelablePromise<Array<Ta
     return DrugDiscoveryService.getTargetsListApiV1DrugDiscoveryGetTargetsListGet(experimentId);
 }
 
+export function getTargetData(experimentId: string, targetId: string): CancelablePromise<GetTargetDataResponse> {
+    return DrugDiscoveryService.getTargetsListApiV1DrugDiscoveryGetTargetDataGet(experimentId, targetId);
+}
+
 // Upload a ligand
 export function uploadLigand(formData: Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post): CancelablePromise<any> {
     return DrugDiscoveryService.uploadLigandApiV1DrugDiscoveryUploadLigandPost(formData);
@@ -64,19 +69,23 @@ export function getLigandsList(experimentId: string, targetId: string): Cancelab
     return DrugDiscoveryService.getLigandsListApiV1DrugDiscoveryGetLigandsListGet(experimentId, targetId);
 }
 
+export function getLigandData(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetLigandDataResponse> {
+    return DrugDiscoveryService.getLigandDataApiV1DrugDiscoveryGetLigandDataGet(experimentId, targetId, ligandId);
+}
+
 // Get target binding pocket
 export function getTargetBindingPocket(experimentId: string, targetId: string): CancelablePromise<any> {
     return DrugDiscoveryService.getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(experimentId, targetId);
 }
 
 // Predict binding pocket
-export function predictBindingPocket(requestBody: PredictBindingPocketRequest): CancelablePromise<any> {
-    return DrugDiscoveryService.predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(requestBody);
+export function predictBindingPocket(experimentId: string, targetId: string): CancelablePromise<PredictBindingPocketResponse> {
+    return DrugDiscoveryService.predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(experimentId, targetId);
 }
 
 // Predict MSA (Multiple Sequence Alignment)
-export function predictMsa(requestBody: PredictMsaRequest): CancelablePromise<any> {
-    return DrugDiscoveryService.predictMsaApiV1DrugDiscoveryPredictMsaPost(requestBody);
+export function predictMsa(experimentId: string, targetId: string): CancelablePromise<any> {
+    return DrugDiscoveryService.predictMsaApiV1DrugDiscoveryPredictMsaPost(experimentId, targetId);
 }
 
 // Check if a structure has been folded
@@ -85,8 +94,8 @@ export function checkFoldingExist(requestBody: GetFoldingRequest): CancelablePro
 }
 
 // Predict folding
-export function predictFolding(requestBody: PredictFoldingRequest): CancelablePromise<any> {
-    return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictFoldingPost(requestBody);
+export function predictFolding(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
+    return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictFoldingPost(experimentId, targetId);
 }
 
 // Perform docking

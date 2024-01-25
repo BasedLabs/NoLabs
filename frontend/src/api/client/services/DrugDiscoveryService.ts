@@ -9,16 +9,15 @@ import type { DeleteLigandResponse } from '../models/DeleteLigandResponse';
 import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
 import type { DockingRequest } from '../models/DockingRequest';
 import type { DockingResponse } from '../models/DockingResponse';
-import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { GetFoldingRequest } from '../models/GetFoldingRequest';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
+import type { GetLigandDataResponse } from '../models/GetLigandDataResponse';
 import type { GetTargetBindingPocketResponse } from '../models/GetTargetBindingPocketResponse';
+import type { GetTargetDataResponse } from '../models/GetTargetDataResponse';
 import type { LigandMetaData } from '../models/LigandMetaData';
-import type { PredictBindingPocketRequest } from '../models/PredictBindingPocketRequest';
+import type { nolabs__api_models__drug_discovery__ExperimentMetadataResponse } from '../models/nolabs__api_models__drug_discovery__ExperimentMetadataResponse';
 import type { PredictBindingPocketResponse } from '../models/PredictBindingPocketResponse';
-import type { PredictFoldingRequest } from '../models/PredictFoldingRequest';
 import type { PredictFoldingResponse } from '../models/PredictFoldingResponse';
-import type { PredictMsaRequest } from '../models/PredictMsaRequest';
 import type { PredictMsaResponse } from '../models/PredictMsaResponse';
 import type { TargetMetaData } from '../models/TargetMetaData';
 import type { UploadLigandResponse } from '../models/UploadLigandResponse';
@@ -29,10 +28,10 @@ import { request as __request } from '../core/request';
 export class DrugDiscoveryService {
     /**
      * Experiments
-     * @returns ExperimentMetadataResponse Successful Response
+     * @returns nolabs__api_models__drug_discovery__ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static experimentsApiV1DrugDiscoveryExperimentsGet(): CancelablePromise<Array<ExperimentMetadataResponse>> {
+    public static experimentsApiV1DrugDiscoveryExperimentsGet(): CancelablePromise<Array<nolabs__api_models__drug_discovery__ExperimentMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/drug_discovery/experiments',
@@ -40,10 +39,10 @@ export class DrugDiscoveryService {
     }
     /**
      * Add Experiment
-     * @returns ExperimentMetadataResponse Successful Response
+     * @returns nolabs__api_models__drug_discovery__ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static addExperimentApiV1DrugDiscoveryAddExperimentPost(): CancelablePromise<ExperimentMetadataResponse> {
+    public static addExperimentApiV1DrugDiscoveryAddExperimentPost(): CancelablePromise<nolabs__api_models__drug_discovery__ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/add-experiment',
@@ -72,12 +71,12 @@ export class DrugDiscoveryService {
     /**
      * Change Experiment Name
      * @param requestBody
-     * @returns ExperimentMetadataResponse Successful Response
+     * @returns nolabs__api_models__drug_discovery__ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
     public static changeExperimentNameApiV1DrugDiscoveryChangeExperimentNamePost(
         requestBody: ChangeExperimentNameRequest,
-    ): CancelablePromise<ExperimentMetadataResponse> {
+    ): CancelablePromise<nolabs__api_models__drug_discovery__ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/change-experiment-name',
@@ -151,6 +150,29 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Get Targets List
+     * @param experimentId
+     * @param targetId
+     * @returns GetTargetDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getTargetsListApiV1DrugDiscoveryGetTargetDataGet(
+        experimentId: string,
+        targetId: string,
+    ): CancelablePromise<GetTargetDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-target-data',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Upload Ligand
      * @param formData
      * @returns UploadLigandResponse Successful Response
@@ -185,6 +207,32 @@ export class DrugDiscoveryService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/drug_discovery/delete-ligand',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Ligand Data
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @returns GetLigandDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getLigandDataApiV1DrugDiscoveryGetLigandDataGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+    ): CancelablePromise<GetLigandDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-ligand-data',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
@@ -243,18 +291,22 @@ export class DrugDiscoveryService {
     }
     /**
      * Predict Binding Pocket
-     * @param requestBody
+     * @param experimentId
+     * @param targetId
      * @returns PredictBindingPocketResponse Successful Response
      * @throws ApiError
      */
     public static predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(
-        requestBody: PredictBindingPocketRequest,
+        experimentId: string,
+        targetId: string,
     ): CancelablePromise<PredictBindingPocketResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/predict-binding-pocket',
-            body: requestBody,
-            mediaType: 'application/json',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
             errors: {
                 422: `Validation Error`,
             },
@@ -262,18 +314,22 @@ export class DrugDiscoveryService {
     }
     /**
      * Predict Msa
-     * @param requestBody
+     * @param experimentId
+     * @param targetId
      * @returns PredictMsaResponse Successful Response
      * @throws ApiError
      */
     public static predictMsaApiV1DrugDiscoveryPredictMsaPost(
-        requestBody: PredictMsaRequest,
+        experimentId: string,
+        targetId: string,
     ): CancelablePromise<PredictMsaResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/predict-msa',
-            body: requestBody,
-            mediaType: 'application/json',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
             errors: {
                 422: `Validation Error`,
             },
@@ -300,18 +356,22 @@ export class DrugDiscoveryService {
     }
     /**
      * Predict Folding
-     * @param requestBody
+     * @param experimentId
+     * @param targetId
      * @returns PredictFoldingResponse Successful Response
      * @throws ApiError
      */
     public static predictFoldingApiV1DrugDiscoveryPredictFoldingPost(
-        requestBody: PredictFoldingRequest,
+        experimentId: string,
+        targetId: string,
     ): CancelablePromise<PredictFoldingResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/predict-folding',
-            body: requestBody,
-            mediaType: 'application/json',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
             errors: {
                 422: `Validation Error`,
             },

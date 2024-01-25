@@ -44,7 +44,7 @@ class GetTargetDataRequest:
 
 @pcdataclass.dataclass
 class GetTargetDataResponse:
-    protein_fasta: str
+    protein_sequence: str
     protein_pdb: str | None = None
 
 @pcdataclass.dataclass
@@ -140,11 +140,16 @@ class GetLigandsListResponse:
 
 @pcdataclass.dataclass
 class GetLigandDataRequest:
+    experiment_id: str
+    target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
 class GetLigandDataResponse:
+    ligand_id: str
+    ligand_name: str
     ligand_sdf: str
+    ligand_smiles: str
 
 # # #
 # Running the experiment and showing results section

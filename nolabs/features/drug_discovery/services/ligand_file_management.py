@@ -92,6 +92,7 @@ class LigandsFileManagement:
         return ligand_metadata
 
     def get_ligands_list(self, experiment_id: ExperimentId, target_id: TargetId) -> List[LigandMetaData]:
+        self.ensure_ligands_folder_exists(experiment_id, target_id)
         ligands_folder = self.ligands_folder(experiment_id, target_id)
         result_list = []
         for t_id in os.listdir(ligands_folder):
