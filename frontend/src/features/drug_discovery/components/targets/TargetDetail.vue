@@ -60,7 +60,7 @@
 
 <script>
 import { QCard, QCardSection, QBtn, QDialog, QCardActions } from 'quasar';
-import { useDrugDiscoveryStore } from '../../storage';
+import { useDrugDiscoveryStore } from 'src/features/drug_discovery/storage';
 import * as NGL from 'ngl';
 
 export default {

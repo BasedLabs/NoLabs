@@ -46,7 +46,7 @@
 <script lang="ts">
 import {defineComponent} from 'vue';
 import useProteinDesignStore from 'src/features/proteinDesign/storage';
-import {ExperimentListItem} from 'src/features/proteinDesign/types';
+import {ExperimentListItem} from "src/features/types";
 
 
 export default defineComponent({

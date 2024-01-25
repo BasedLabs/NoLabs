@@ -14,15 +14,14 @@ import {
   predictFolding,
   predictBindingPocket
   // other API functions
-} from './api';
+} from 'src/features/drug_discovery/api';
 
 import {
-  nolabs__api_models__drug_discovery__ExperimentMetadataResponse,
   Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
   Body_upload_target_api_v1_drug_discovery_upload_target_post,
   TargetMetaData,
-  LigandMetaData
-} from 'api/client';
+  LigandMetaData, ExperimentMetadataResponse
+} from 'src/api/client';
 
 export interface TargetData {
   targetId: string;
@@ -34,8 +33,8 @@ export interface TargetData {
 export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
 
   state: () => ({
-    experiments: [] as nolabs__api_models__drug_discovery__ExperimentMetadataResponse[],
-    currentExperiment: null as nolabs__api_models__drug_discovery__ExperimentMetadataResponse | null,
+    experiments: [] as ExperimentMetadataResponse[],
+    currentExperiment: null as ExperimentMetadataResponse | null,
     targets: [] as TargetMetaData[],
     currentTarget: null,
     targetData: null as TargetData | null,
@@ -61,7 +60,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
     async removeExperiment(experimentId: string) {
       try {
         await deleteExperiment(experimentId);
-        this.experiments = this.experiments.filter(exp => exp.experiment_id !== experimentId);
+        this.experiments = this.experiments.filter(exp => exp.id !== experimentId);
       } catch (error) {
         console.error('Error deleting experiment:', error);
       }

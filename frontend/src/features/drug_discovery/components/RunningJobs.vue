@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import { useDrugDiscoveryStore } from '../storage';
+import { useDrugDiscoveryStore } from 'src/features/drug_discovery/storage';
 import { QSpinner } from 'quasar';
 import { useRoute } from 'vue-router';
 

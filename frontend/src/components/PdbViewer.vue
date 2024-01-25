@@ -11,8 +11,7 @@ export default defineComponent({
     }
   },
   props: {
-    pdbFile: File,
-    style: String
+    pdbFile: File
   },
   data() {
     return {
@@ -84,7 +83,3 @@ export default defineComponent({
     </q-card-section>
   </q-card>
 </template>
-
-<style scoped>
-
-</style>

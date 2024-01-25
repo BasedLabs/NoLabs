@@ -30,9 +30,9 @@
 </template>
 
 <script>
-import TargetDetail from './TargetDetail.vue'
-import LigandDetail from '../ligands/LigandDetail.vue'
-import { useDrugDiscoveryStore } from '../../storage';
+import TargetDetail from 'src/features/drug_discovery/components/targets/TargetDetail.vue'
+import LigandDetail from 'src/features/drug_discovery/components/ligands/LigandDetail.vue'
+import { useDrugDiscoveryStore } from 'src/features/drug_discovery/storage';
 
 
 export default {

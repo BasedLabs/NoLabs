@@ -13,10 +13,10 @@
 </template>
 
 <script>
-import { useDrugDiscoveryStore } from '../storage';
+import { useDrugDiscoveryStore } from 'src/features/drug_discovery/storage';
 import { QSpinner } from 'quasar';
 import { useRoute } from 'vue-router';
-import TargetsList from './targets/TargetsList.vue'
+import TargetsList from 'src/features/drug_discovery/components/targets/TargetsList.vue'
 
 export default {
     name: 'ExperimentSetup',

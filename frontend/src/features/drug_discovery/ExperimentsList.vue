@@ -37,7 +37,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useDrugDiscoveryStore } from './storage';
+import { useDrugDiscoveryStore } from 'src/features/drug_discovery/storage';
 import { QSpinner, QBtn, QMenu, QList, QItem, QItemSection, useQuasar } from 'quasar';
 
 export default defineComponent({

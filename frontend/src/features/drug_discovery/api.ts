@@ -1,6 +1,5 @@
 import {
     DrugDiscoveryService,
-    nolabs__api_models__drug_discovery__ExperimentMetadataResponse,
     TargetMetaData,
     LigandMetaData,
     ChangeExperimentNameRequest,
@@ -11,17 +10,17 @@ import {
     PredictBindingPocketResponse,
     Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
     GetTargetDataResponse,
-    GetLigandDataResponse
-} from '../../api/client';
-import { CancelablePromise } from 'api/client/core/CancelablePromise';
+    GetLigandDataResponse, ExperimentMetadataResponse
+} from 'src/api/client';
+import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 
 // Get a list of experiments
-export function getExperiments(): CancelablePromise<Array<nolabs__api_models__drug_discovery__ExperimentMetadataResponse>> {
+export function getExperiments(): CancelablePromise<Array<ExperimentMetadataResponse>> {
     return DrugDiscoveryService.experimentsApiV1DrugDiscoveryExperimentsGet();
 }
 
 // Add a new experiment
-export function addExperiment(): CancelablePromise<nolabs__api_models__drug_discovery__ExperimentMetadataResponse> {
+export function addExperiment(): CancelablePromise<ExperimentMetadataResponse> {
     return DrugDiscoveryService.addExperimentApiV1DrugDiscoveryAddExperimentPost();
 }
 
