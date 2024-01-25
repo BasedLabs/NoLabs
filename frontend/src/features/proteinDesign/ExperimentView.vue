@@ -49,7 +49,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <InferenceFormView :on-submit="onSubmit"/>
+          <InferenceFormView :on-submit="onSubmit" :properties="experiment?.properties"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -60,9 +60,9 @@
 import {defineComponent, ref} from 'vue'
 import useProteinDesignStore from 'src/features/proteinDesign/storage';
 import {QVueGlobals, useQuasar, QSpinnerOrbit} from 'quasar';
-import PdbViewer from "src/features/proteinDesign/PdbViewer.vue";
 import InferenceFormView from "src/features/proteinDesign/InferenceFormView.vue";
 import {Experiment} from "src/features/proteinDesign/types";
+import PdbViewer from "src/components/PdbViewer.vue";
 
 
 export default defineComponent({

@@ -1,37 +1,25 @@
-import asyncio
 from typing import Annotated, Union, List
 
-from fastapi import WebSocket, APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, UploadFile, File, Form
 
-from features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.api_models.conformations import RunSimulationsRequest, RunSimulationsResponse, \
     GetExperimentResponse, IntegratorsRequest
+from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
 from nolabs.api_models.problem_details import ProblemDetailsResponse
-from nolabs.controllers.conformations.dependencies import events_queue_dependency
 from nolabs.controllers.conformations.dependencies import run_simulations_feature_dependency, \
     get_experiment_feature_dependency, delete_experiment_feature_dependency, \
-    change_experiment_name_dependency, get_experiments_feature_dependency
-from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+    change_experiment_name_dependency, get_experiments_feature_dependency, create_experiment_dependency
+from nolabs.features.conformations.get_experiment import GetExperimentFeature
+from nolabs.features.conformations.run_simulations import RunSimulationsFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
-from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
-from nolabs.features.conformations import RunSimulationsFeature, GetExperimentFeature
-from nolabs.features.events_queue import EventsQueue, EventsQueueMessageClass
-from nolabs.utils import uuid_utils
+from nolabs.features.experiment.create_experiment import CreateExperimentFeature
+from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
 router = APIRouter(
     prefix='/api/v1/conformations',
     tags=['conformations']
 )
-
-
-@router.websocket("/logs")
-async def ws(websocket: WebSocket, events_queue: Annotated[EventsQueue, Depends(events_queue_dependency)]):
-    await websocket.accept()
-    while True:
-        data = events_queue.get_json(EventsQueueMessageClass.conformations)
-        if data:
-            await websocket.send_json(data)
-        await asyncio.sleep(0.1)
 
 
 @router.post('/inference')
@@ -50,7 +38,7 @@ async def inference(
         friction_coeff: float = Form(1.0),
         ignore_missing_atoms: bool = Form(default=False),
         integrator: IntegratorsRequest = Form(default=IntegratorsRequest.langevin),
-) -> Union[RunSimulationsResponse, ProblemDetailsResponse]:
+) -> RunSimulationsResponse:
     global logs_websocket
 
     return await feature.handle(RunSimulationsRequest(
@@ -92,3 +80,7 @@ async def delete_experiment(experiment_id: str, feature: Annotated[
 async def change_experiment_name(request: ChangeExperimentNameRequest, feature: Annotated[
     ChangeExperimentNameFeature, Depends(change_experiment_name_dependency)]):
     return feature.handle(request)
+
+@router.get('/create-experiment')
+async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
+    return feature.handle()

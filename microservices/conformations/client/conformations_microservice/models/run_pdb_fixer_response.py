@@ -29,7 +29,7 @@ class RunPdbFixerResponse(BaseModel):
     """
     RunPdbFixerResponse
     """ # noqa: E501
-    errors: Optional[List[StrictStr]] = None
+    errors: List[StrictStr]
     pdb_content: Optional[StrictStr] = None
     __properties: ClassVar[List[str]] = ["errors", "pdb_content"]
 

@@ -4,8 +4,7 @@
 /* eslint-disable */
 import type { Body_inference_api_v1_solubility_inference_post } from '../models/Body_inference_api_v1_solubility_inference_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
-import type { GenerateUuidResponse } from '../models/GenerateUuidResponse';
-import type { nolabs__api_models__solubility__ExperimentMetadataResponse } from '../models/nolabs__api_models__solubility__ExperimentMetadataResponse';
+import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { nolabs__api_models__solubility__GetExperimentResponse } from '../models/nolabs__api_models__solubility__GetExperimentResponse';
 import type { RunSolubilityResponse } from '../models/RunSolubilityResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -33,10 +32,10 @@ export class SolubilityService {
     }
     /**
      * Experiments
-     * @returns nolabs__api_models__solubility__ExperimentMetadataResponse Successful Response
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static experimentsApiV1SolubilityExperimentsGet(): CancelablePromise<Array<nolabs__api_models__solubility__ExperimentMetadataResponse>> {
+    public static experimentsApiV1SolubilityExperimentsGet(): CancelablePromise<Array<ExperimentMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/solubility/experiments',
@@ -99,17 +98,6 @@ export class SolubilityService {
             errors: {
                 422: `Validation Error`,
             },
-        });
-    }
-    /**
-     * Generate Uuid
-     * @returns GenerateUuidResponse Successful Response
-     * @throws ApiError
-     */
-    public static generateUuidApiV1SolubilityGenerateIdGet(): CancelablePromise<GenerateUuidResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/solubility/generate_id',
         });
     }
 }

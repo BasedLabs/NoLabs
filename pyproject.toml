@@ -22,9 +22,9 @@ localisation-microservice = {path = "microservices/localisation/client"}
 obonet = "^1.0.0"
 setuptools = "^69.0.3"
 gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
-conformations-microservice = {path = "microservices/conformations/client"}
 rdkit = "^2023.9.4"
 protein-design-microservice = {path = "microservices/protein_design/client"}
+conformations-microservice = {path = "microservices/conformations/client"}
 
 [project]
 dependencies = [

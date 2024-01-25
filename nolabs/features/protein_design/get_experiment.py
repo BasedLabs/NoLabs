@@ -27,7 +27,7 @@ class GetExperimentFeature:
             properties=ExperimentPropertiesResponse(
                 pdb_file=properties.input_file_content,
                 contig=properties.contig,
-                number_of_desings=properties.number_of_desings,
+                number_of_designs=properties.number_of_designs,
                 hotspots=properties.hotspots,
                 timesteps=properties.timesteps,
                 pdb_file_name=properties.input_file_name

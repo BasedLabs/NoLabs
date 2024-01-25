@@ -7,7 +7,7 @@ export type Body_inference_api_v1_protein_design_inference_post = {
     experiment_id?: string;
     pdb_file: Blob;
     contig?: string;
-    number_of_desings?: number;
+    number_of_designs?: number;
     timesteps?: number;
     hotspots?: string;
 };

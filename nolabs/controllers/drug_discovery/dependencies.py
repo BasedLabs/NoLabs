@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.drug_discovery import GetExperimentsFeature, AddExperimentFeature
+from nolabs.features.drug_discovery.add_experiment import AddExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
@@ -20,6 +20,7 @@ from nolabs.features.drug_discovery.predict_binding_pocket import PredictBinding
 from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
+from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
 
 

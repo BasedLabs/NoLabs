@@ -2,13 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from nolabs.controllers.conformations.conformations import router as conformations_router
-from nolabs.controllers.solubility.solubility import router as solubility_router
-from nolabs.controllers.localisation.localisation import router as localisation_router
-from nolabs.controllers.gene_ontology.gene_ontology import router as gene_ontology_router
 from nolabs.controllers.drug_discovery.drug_discovery import router as drug_discovery_router
+from nolabs.controllers.gene_ontology.gene_ontology import router as gene_ontology_router
+from nolabs.controllers.localisation.localisation import router as localisation_router
 from nolabs.controllers.protein_design.protein_design import router as protein_design_router
+from nolabs.controllers.solubility.solubility import router as solubility_router
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
-import nolabs.infrastructure.environment
 
 pfx = '/api/v1'
 

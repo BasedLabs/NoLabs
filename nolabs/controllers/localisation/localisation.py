@@ -3,15 +3,16 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 
 from nolabs.api_models.localisation import RunLocalisationRequest, RunLocalisationResponse, ExperimentMetadataResponse, \
-    GetExperimentResponse, GenerateUuidResponse
+    GetExperimentResponse
 from nolabs.controllers.localisation.dependencies import run_localisation_feature_dependency, \
     get_experiments_feature_dependency, \
     get_experiment_feature_dependency, delete_experiment_feature_dependency, change_experiment_name_dependency
-from nolabs.features.localisation import RunLocalisationFeature, \
-    GetExperimentsFeature, GetExperimentFeature
+from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.api_models.experiment import ChangeExperimentNameRequest
+from nolabs.features.localisation.get_experiment import GetExperimentFeature
+from nolabs.features.localisation.run_localisation import RunLocalisationFeature
 from nolabs.utils import uuid_utils
 
 router = APIRouter(
@@ -58,8 +59,3 @@ async def delete_experiment(experiment_id: str, feature: Annotated[
 async def change_experiment_name(request: ChangeExperimentNameRequest, feature: Annotated[
     ChangeExperimentNameFeature, Depends(change_experiment_name_dependency)]):
     return feature.handle(request)
-
-
-@router.get('/generate_id')
-async def generate_uuid() -> GenerateUuidResponse:
-    return GenerateUuidResponse(uuid=uuid_utils.generate_uuid())

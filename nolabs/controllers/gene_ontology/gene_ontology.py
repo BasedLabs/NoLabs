@@ -5,13 +5,14 @@ from fastapi import APIRouter, Depends, Form, UploadFile, File
 from nolabs.controllers.gene_ontology.dependencies import change_experiment_name_dependency, \
     delete_experiment_feature_dependency, get_experiment_feature_dependency, get_experiments_feature_dependency, \
     run_gene_ontology_feature_dependency
-from nolabs.api_models.gene_ontology import RunGeneOntologyRequest, RunGeneOntologyResponse, ExperimentMetadataResponse, \
-    GetExperimentResponse, GenerateUuidResponse
-from nolabs.features.gene_ontology import RunGeneOntologyFeature, \
-    GetExperimentsFeature, GetExperimentFeature
+from nolabs.api_models.gene_ontology import RunGeneOntologyRequest, RunGeneOntologyResponse, \
+    GetExperimentResponse
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
-from nolabs.api_models.experiment import ChangeExperimentNameRequest
+from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
+from nolabs.features.experiment.get_experiments import GetExperimentsFeature
+from nolabs.features.gene_ontology.get_experiment import GetExperimentFeature
+from nolabs.features.gene_ontology.run_gene_ontology import RunGeneOntologyFeature
 from nolabs.utils import uuid_utils
 
 router = APIRouter(
@@ -57,8 +58,3 @@ async def delete_experiment(experiment_id: str, feature: Annotated[
 async def change_experiment_name(request: ChangeExperimentNameRequest, feature: Annotated[
     ChangeExperimentNameFeature, Depends(change_experiment_name_dependency)]):
     return feature.handle(request)
-
-
-@router.get('/generate_id')
-async def generate_uuid() -> GenerateUuidResponse:
-    return GenerateUuidResponse(uuid=uuid_utils.generate_uuid())

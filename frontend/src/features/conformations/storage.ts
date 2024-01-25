@@ -1,33 +1,41 @@
 import {defineStore} from "pinia";
-import {
-    changeExperimentName,
-    deleteExperiment,
-    getExperiments,
-    getExperiment,
-    inference,
-    createExperiment
-} from "src/features/proteinDesign/api";
-import {Experiment, ExperimentListItem, InferenceRequest, ExperimentProperties} from "src/features/proteinDesign/types";
 import {Notify} from "quasar";
 import {ErrorCodes, ErrorResponse} from "src/api/errorTypes";
 import {obtainErrorResponse} from "src/api/errorWrapper";
+import {Experiment, InferenceRequest} from "src/features/conformations/types";
+import {ConformationsService, IntegratorsRequest} from "src/api/client";
+import {ExperimentListItem} from "src/features/types";
 
 type ErrorState = {
     error: string
 }
 
-const useProteinDesignStore = defineStore("proteinDesign", {
+const useConformationsStorage = defineStore("conformations", {
     actions: {
         async inference(request: InferenceRequest): Promise<{
             experiment: Experiment | null,
             error: ErrorState | null
         }> {
-            const response = await inference(request.pdbFile, request.contig, request.numberOfDesigns, request.timesteps,
-                request.hotspots, request.experimentName, request.experimentId);
+            const response = await ConformationsService.inferenceApiV1ConformationsInferencePost(
+                {
+                    pdb_file: request.pdbFile,
+                    experiment_name: request.experimentName,
+                    experiment_id: request.experimentId,
+                    total_frames: request.totalFrames,
+                    temperature_k: request.temperatureK,
+                    take_frame_every: request.takeFrameEvery,
+                    step_size: request.stepSize,
+                    replace_non_standard_residues: request.replaceNonStandardResidues,
+                    add_missing_atoms: request.addMissingAtoms,
+                    add_missing_hydrogens: request.addMissingHydrogens,
+                    friction_coeff: request.frictionCoeff,
+                    ignore_missing_atoms: request.ignoreMissingAtoms,
+                    integrator: request.integrator,
+                }
+            )
             const errorResponse = obtainErrorResponse(response);
             if (errorResponse) {
-                debugger;
-                for(const error of errorResponse.errors){
+                for (const error of errorResponse.errors) {
                     Notify.create({
                         type: "negative",
                         closeBtn: 'Close',
@@ -36,18 +44,24 @@ const useProteinDesignStore = defineStore("proteinDesign", {
                 }
                 return {experiment: null, error: {error: errorResponse.errors[0]}};
             }
-            debugger;
             return {
                 experiment: {
                     id: response.experiment_id,
                     name: response.experiment_name,
-                    generatedPdbs: response.pdb_files.map((content, i) => new File([new Blob([content])], `Binder_${i}.pdb`)),
+                    pdbContent: new File([new Blob([response.pdb_content!])], request.pdbFile.name),
+                    timeline: response.timeline,
                     properties: {
-                        inputPdbFile: request.pdbFile,
-                        contig: request.contig,
-                        numberOfDesigns: request.numberOfDesigns,
-                        timesteps: request.timesteps,
-                        hotspots: request.hotspots
+                        pdbFile: request.pdbFile,
+                        totalFrames: request.totalFrames,
+                        temperatureK: request.temperatureK,
+                        takeFrameEvery: request.takeFrameEvery,
+                        stepSize: request.stepSize,
+                        replaceNonStandardResidues: request.replaceNonStandardResidues,
+                        addMissingAtoms: request.addMissingAtoms,
+                        addMissingHydrogens: request.addMissingHydrogens,
+                        frictionCoeff: request.frictionCoeff,
+                        ignoreMissingAtoms: request.ignoreMissingAtoms,
+                        integrator: request.integrator,
                     }
                 },
                 error: null
@@ -57,21 +71,28 @@ const useProteinDesignStore = defineStore("proteinDesign", {
             experiment: Experiment | null,
             error: ErrorState | null
         }> {
-            const response = await getExperiment(experimentId);
+            const response = await ConformationsService.getExperimentApiV1ConformationsGetExperimentGet(experimentId);
             const errorResponse = obtainErrorResponse(response);
             if (errorResponse) {
                 if (errorResponse.error_code === ErrorCodes.experiment_id_not_found) {
                     return {
                         experiment: {
-                            id: experimentId,
-                            name: "New experiment",
-                            generatedPdbs: [],
+                            id: response.experiment_id,
+                            name: response.experiment_name,
+                            pdbContent: null,
+                            timeline: [],
                             properties: {
-                                inputPdbFile: null,
-                                contig: '',
-                                numberOfDesigns: 2,
-                                timesteps: 50,
-                                hotspots: ''
+                                pdbFile: null,
+                                totalFrames: 10000,
+                                temperatureK: 273.15,
+                                takeFrameEvery: 1000,
+                                stepSize: 0.002,
+                                replaceNonStandardResidues: false,
+                                addMissingAtoms: false,
+                                addMissingHydrogens: true,
+                                frictionCoeff: 1.0,
+                                ignoreMissingAtoms: false,
+                                integrator: IntegratorsRequest.LANGEVIN_INTEGATOR
                             }
                         }, error: null
                     };
@@ -89,21 +110,26 @@ const useProteinDesignStore = defineStore("proteinDesign", {
                 experiment: {
                     id: response.experiment_id,
                     name: response.experiment_name,
-                    generatedPdbs: response.pdb_files.map((content, i) => new File([new Blob([content])], `Binder_${i}.pdb`)),
+                    pdbContent: new File([new Blob([response.pdb_file!])], response.properties.pdb_file_name),
+                    timeline: [],
                     properties: {
-                        inputPdbFile: new File([new Blob([response.properties.pdb_file], {
-                            type: 'text/plain'
-                        })], response.properties.pdb_file_name),
-                        contig: response.properties.contig,
-                        numberOfDesigns: response.properties.number_of_desings,
-                        timesteps: response.properties.timesteps ?? 50,
-                        hotspots: response.properties.hotspots ?? ''
+                        pdbFile: new File([new Blob([response.properties.pdb_file!])], response.properties.pdb_file_name),
+                        totalFrames: response.properties.total_frames,
+                        temperatureK: response.properties.temperature_k,
+                        takeFrameEvery: response.properties.take_frame_every,
+                        stepSize: response.properties.step_size,
+                        replaceNonStandardResidues: response.properties.replace_non_standard_residues,
+                        addMissingAtoms: response.properties.add_missing_atoms,
+                        addMissingHydrogens: response.properties.add_missing_hydrogens,
+                        frictionCoeff: response.properties.friction_coeff,
+                        ignoreMissingAtoms: response.properties.ignore_missing_atoms,
+                        integrator: response.properties.integrator!
                     }
                 }, error: null
             };
         },
         async getExperiments(): Promise<{ experiments: ExperimentListItem[] | null, error: ErrorState | null }> {
-            const response = await getExperiments();
+            const response = await ConformationsService.experimentsApiV1ConformationsExperimentsGet();
             const experiments: ExperimentListItem[] = [];
             for (let i = 0; i < response.length; i++) {
                 experiments.push({
@@ -117,13 +143,13 @@ const useProteinDesignStore = defineStore("proteinDesign", {
             }
         },
         async deleteExperiment(experimentId: string) {
-            await deleteExperiment(experimentId);
+            await ConformationsService.deleteExperimentApiV1ConformationsDeleteExperimentDelete(experimentId);
         },
         async changeExperimentName(experimentId: string, newName: string) {
-            await changeExperimentName(experimentId, newName);
+            await ConformationsService.changeExperimentNameApiV1ConformationsChangeExperimentNamePost({id: experimentId, name: newName});
         },
         async createExperiment(): Promise<{ experiment: ExperimentListItem | null, error: ErrorState | null }> {
-            const response = await createExperiment();
+            const response = await ConformationsService.createExperimentApiV1ConformationsCreateExperimentGet();
             return {
                 experiment: {
                     id: response.id,
@@ -134,4 +160,4 @@ const useProteinDesignStore = defineStore("proteinDesign", {
     }
 });
 
-export default useProteinDesignStore;
+export default useConformationsStorage;

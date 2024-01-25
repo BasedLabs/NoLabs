@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **gro** | **str** |  | 
 **top** | **str** |  | 
-**errors** | **List[str]** |  | [optional] 
+**errors** | **List[str]** |  | 
 
 ## Example
 

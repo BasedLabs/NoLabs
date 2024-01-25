@@ -34,7 +34,7 @@ class RunProteinDesignFeature:
                     hotspots=request.hotspots,
                     contig=request.contig,
                     timesteps=request.timesteps,
-                    number_of_designs=request.number_of_desings
+                    number_of_designs=request.number_of_designs
                 )
             )
             #response = microservice.RunRfdiffusionResponse(errors=[], pdbs_content=['asd'])

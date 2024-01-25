@@ -50,5 +50,4 @@ class GetExperimentRequest:
 
 @pcdataclass.dataclass
 class GetExperimentResponse:
-    metadata: ExperimentMetadataResponse
     amino_acids: List[AminoAcidResponse]

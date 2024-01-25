@@ -27,7 +27,7 @@ class FileManagement(ExperimentsFileManagementBase):
 
         properties = {
             'contig': request.contig,
-            'number_of_designs': request.number_of_desings,
+            'number_of_designs': request.number_of_designs,
             'input_file_name': request.pdb_file.filename,
             'timesteps': request.timesteps,
             'hotspots': request.hotspots
@@ -63,7 +63,7 @@ class FileManagement(ExperimentsFileManagementBase):
 
         return ExperimentProperties(
             contig=properties['contig'],
-            number_of_desings=properties['number_of_designs'],
+            number_of_designs=properties['number_of_designs'],
             input_file_name=properties['input_file_name'],
             timesteps=properties['timesteps'],
             hotspots=properties['hotspots'],

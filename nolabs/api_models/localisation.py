@@ -4,6 +4,8 @@ from typing import List, Optional, Any
 
 from fastapi import UploadFile, File
 
+from nolabs.api_models.experiment import ExperimentMetadataResponse
+
 
 @pcdataclass.dataclass
 class RunLocalisationRequest:
@@ -47,5 +49,4 @@ class GetExperimentRequest:
 
 @pcdataclass.dataclass
 class GetExperimentResponse:
-    metadata: ExperimentMetadataResponse
     amino_acids: List[AminoAcidResponse]

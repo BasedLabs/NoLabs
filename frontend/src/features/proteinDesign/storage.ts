@@ -1,42 +1,42 @@
 import {defineStore} from "pinia";
-import {
-    changeExperimentName,
-    deleteExperiment,
-    getExperiments,
-    getExperiment,
-    inference,
-    createExperiment
-} from "src/features/proteinDesign/api";
-import {Experiment, ExperimentListItem, InferenceRequest, ExperimentProperties} from "src/features/proteinDesign/types";
+import {Experiment, InferenceRequest} from "src/features/proteinDesign/types";
 import {Notify} from "quasar";
-import {ErrorCodes, ErrorResponse} from "src/api/errorTypes";
+import {ErrorCodes} from "src/api/errorTypes";
 import {obtainErrorResponse} from "src/api/errorWrapper";
+import {OpenAPI, ProteinDesignService} from "src/api/client";
+import apiConstants from "src/api/constants";
+import {ExperimentListItem} from "src/features/types";
 
-type ErrorState = {
-    error: string
-}
+OpenAPI.BASE = apiConstants.hostname;
 
 const useProteinDesignStore = defineStore("proteinDesign", {
     actions: {
         async inference(request: InferenceRequest): Promise<{
             experiment: Experiment | null,
-            error: ErrorState | null
+            errors: string[]
         }> {
-            const response = await inference(request.pdbFile, request.contig, request.numberOfDesigns, request.timesteps,
-                request.hotspots, request.experimentName, request.experimentId);
+            const response = await ProteinDesignService.inferenceApiV1ProteinDesignInferencePost(
+                {
+                    pdb_file: request.pdbFile,
+                    contig: request.contig,
+                    number_of_designs: request.numberOfDesigns,
+                    timesteps: request.timesteps,
+                    hotspots: request.hotspots,
+                    experiment_name: request.experimentName,
+                    experiment_id: request.experimentId
+                }
+            );
             const errorResponse = obtainErrorResponse(response);
             if (errorResponse) {
-                debugger;
-                for(const error of errorResponse.errors){
+                for (const error of errorResponse.errors) {
                     Notify.create({
                         type: "negative",
                         closeBtn: 'Close',
                         message: error
                     });
                 }
-                return {experiment: null, error: {error: errorResponse.errors[0]}};
+                return {experiment: null, errors: errorResponse.errors};
             }
-            debugger;
             return {
                 experiment: {
                     id: response.experiment_id,
@@ -50,14 +50,14 @@ const useProteinDesignStore = defineStore("proteinDesign", {
                         hotspots: request.hotspots
                     }
                 },
-                error: null
+                errors: []
             };
         },
         async getExperiment(experimentId: string): Promise<{
             experiment: Experiment | null,
-            error: ErrorState | null
+            errors: string[]
         }> {
-            const response = await getExperiment(experimentId);
+            const response = await ProteinDesignService.getExperimentApiV1ProteinDesignExperimentGet(experimentId);
             const errorResponse = obtainErrorResponse(response);
             if (errorResponse) {
                 if (errorResponse.error_code === ErrorCodes.experiment_id_not_found) {
@@ -73,7 +73,7 @@ const useProteinDesignStore = defineStore("proteinDesign", {
                                 timesteps: 50,
                                 hotspots: ''
                             }
-                        }, error: null
+                        }, errors: []
                     };
                 } else {
                     Notify.create({
@@ -82,7 +82,7 @@ const useProteinDesignStore = defineStore("proteinDesign", {
                     });
                 }
 
-                return {experiment: null, error: {error: errorResponse.errors[0]}};
+                return {experiment: null, errors: errorResponse.errors};
             }
 
             return {
@@ -95,15 +95,15 @@ const useProteinDesignStore = defineStore("proteinDesign", {
                             type: 'text/plain'
                         })], response.properties.pdb_file_name),
                         contig: response.properties.contig,
-                        numberOfDesigns: response.properties.number_of_desings,
+                        numberOfDesigns: response.properties.number_of_designs,
                         timesteps: response.properties.timesteps ?? 50,
                         hotspots: response.properties.hotspots ?? ''
                     }
-                }, error: null
+                }, errors: []
             };
         },
-        async getExperiments(): Promise<{ experiments: ExperimentListItem[] | null, error: ErrorState | null }> {
-            const response = await getExperiments();
+        async getExperiments(): Promise<{ experiments: ExperimentListItem[] | null, errors: string[] }> {
+            const response = await ProteinDesignService.experimentsApiV1ProteinDesignExperimentsMetadataGet();
             const experiments: ExperimentListItem[] = [];
             for (let i = 0; i < response.length; i++) {
                 experiments.push({
@@ -113,22 +113,25 @@ const useProteinDesignStore = defineStore("proteinDesign", {
             }
             return {
                 experiments: experiments,
-                error: null
+                errors: []
             }
         },
         async deleteExperiment(experimentId: string) {
-            await deleteExperiment(experimentId);
+            await ProteinDesignService.deleteExperimentApiV1ProteinDesignExperimentDelete(experimentId);
         },
         async changeExperimentName(experimentId: string, newName: string) {
-            await changeExperimentName(experimentId, newName);
+            await ProteinDesignService.changeExperimentNameApiV1ProteinDesignChangeExperimentNamePost({
+                id: experimentId,
+                name: newName
+            });
         },
-        async createExperiment(): Promise<{ experiment: ExperimentListItem | null, error: ErrorState | null }> {
-            const response = await createExperiment();
+        async createExperiment(): Promise<{ experiment: ExperimentListItem | null, errors: [] }> {
+            const response = await ProteinDesignService.createExperimentApiV1ProteinDesignCreateExperimentGet();
             return {
                 experiment: {
                     id: response.id,
                     name: response.name
-                }, error: null
+                }, errors: []
             }
         }
     }

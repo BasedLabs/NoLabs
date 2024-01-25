@@ -1,6 +1,6 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {PdbViews} from "src/features/proteinDesign/types";
+import {PdbViews} from "src/components/types";
 
 
 export default defineComponent({

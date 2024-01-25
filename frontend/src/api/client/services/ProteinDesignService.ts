@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { Body_inference_api_v1_protein_design_inference_post } from '../models/Body_inference_api_v1_protein_design_inference_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
-import type { nolabs__api_models__protein_design__ExperimentMetadataResponse } from '../models/nolabs__api_models__protein_design__ExperimentMetadataResponse';
+import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { nolabs__api_models__protein_design__GetExperimentResponse } from '../models/nolabs__api_models__protein_design__GetExperimentResponse';
 import type { RunProteinDesignResponse } from '../models/RunProteinDesignResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -32,10 +32,10 @@ export class ProteinDesignService {
     }
     /**
      * Experiments
-     * @returns nolabs__api_models__protein_design__ExperimentMetadataResponse Successful Response
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static experimentsApiV1ProteinDesignExperimentsMetadataGet(): CancelablePromise<Array<nolabs__api_models__protein_design__ExperimentMetadataResponse>> {
+    public static experimentsApiV1ProteinDesignExperimentsMetadataGet(): CancelablePromise<Array<ExperimentMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/protein-design/experiments-metadata',
@@ -102,10 +102,10 @@ export class ProteinDesignService {
     }
     /**
      * Create Experiment
-     * @returns nolabs__api_models__protein_design__ExperimentMetadataResponse Successful Response
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static createExperimentApiV1ProteinDesignCreateExperimentGet(): CancelablePromise<nolabs__api_models__protein_design__ExperimentMetadataResponse> {
+    public static createExperimentApiV1ProteinDesignCreateExperimentGet(): CancelablePromise<ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/protein-design/create-experiment',

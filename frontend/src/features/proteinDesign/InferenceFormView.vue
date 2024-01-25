@@ -1,40 +1,41 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
+import {ExperimentProperties} from "src/features/proteinDesign/types";
 
 interface OnSubmitType {
-  (contig: string, hotspots: string, numberOfDesigns: number, timesteps: number, pdbFile: File): Promise<void>;
+  (data: ExperimentProperties): Promise<void>;
 }
 
-interface DataType {
-  contig: string;
-  hotspots: string;
-  numberOfDesigns: number;
-  timesteps: number;
-  pdbFile: File | null;
-}
 
 export default defineComponent({
   name: "InferenceFormView",
   props: {
-    onSubmit: Function as PropType<OnSubmitType>
+    onSubmit: {
+      type: Function as PropType<OnSubmitType>,
+      required: true
+    },
+    properties: {
+      type: {} as PropType<ExperimentProperties>,
+      required: true
+    }
   },
   computed: {
     pdbFileRule() {
-      return this.pdbFile !== null;
+      return this.inputPdbFile !== null;
     }
   },
-  data() : DataType {
+  data(): ExperimentProperties {
     return {
-      contig: '',
-      hotspots: '',
-      numberOfDesigns: 2,
-      timesteps: 50,
-      pdbFile: null
+      contig: this.properties!.contig,
+      hotspots: this.properties!.hotspots,
+      numberOfDesigns: this.properties!.numberOfDesigns,
+      timesteps: this.properties!.timesteps,
+      inputPdbFile: this.properties!.inputPdbFile
     }
   },
   methods: {
-    async _onSubmit(){
-      await this.onSubmit!(this.contig, this.hotspots, this.numberOfDesigns, this.timesteps, this.pdbFile!);
+    async _onSubmit() {
+      await this.onSubmit!(this.$data);
     }
   }
 })
@@ -70,13 +71,13 @@ export default defineComponent({
         Desired iterations to generate structure.
       </q-tooltip>
     </q-input>
-    <q-file filled bottom-slots accept=".pdb" :rules="[pdbFileRule]" v-model="pdbFile"
+    <q-file filled bottom-slots accept=".pdb" :rules="[pdbFileRule]" v-model="inputPdbFile"
             label=".pdb file" counter>
       <template v-slot:prepend>
         <q-icon name="cloud_upload" @click.stop.prevent/>
       </template>
       <template v-slot:append>
-        <q-icon name="close" @click.stop.prevent="pdbFile = null" class="cursor-pointer"/>
+        <q-icon name="close" @click.stop.prevent="inputPdbFile = null" class="cursor-pointer"/>
       </template>
 
       <template v-slot:hint>

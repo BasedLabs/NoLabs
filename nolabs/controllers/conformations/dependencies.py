@@ -2,13 +2,14 @@ from typing import Annotated
 
 from fastapi import Depends
 
+from nolabs.features.conformations.get_experiment import GetExperimentFeature
+from nolabs.features.conformations.run_simulations import RunSimulationsFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
-from nolabs.features.events_queue import EventsQueue
-from nolabs.controllers.common_dependencies import settings_dependency, events_queue_dependency
-from nolabs.features.conformations import GetExperimentsFeature, GetExperimentFeature
+from nolabs.controllers.common_dependencies import settings_dependency
+from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
-from nolabs.features.conformations import RunSimulationsFeature
 from nolabs.features.conformations.services.file_management import FileManagement
+from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
 
 
@@ -17,10 +18,9 @@ def file_management_dependency(settings: Annotated[Settings, Depends(settings_de
 
 
 def run_simulations_feature_dependency(file_management: Annotated[FileManagement, Depends(file_management_dependency)],
-                                       settings: Annotated[Settings, Depends(settings_dependency)],
-                                       events_queue: Annotated[EventsQueue, Depends(events_queue_dependency)]
+                                       settings: Annotated[Settings, Depends(settings_dependency)]
                                        ) -> RunSimulationsFeature:
-    return RunSimulationsFeature(file_management=file_management, settings=settings, events_queue=events_queue)
+    return RunSimulationsFeature(file_management=file_management, settings=settings)
 
 
 def get_experiments_feature_dependency(
@@ -44,3 +44,6 @@ def change_experiment_name_dependency(
     return ChangeExperimentNameFeature(
         file_management=file_management
     )
+
+def create_experiment_dependency() -> CreateExperimentFeature:
+    return CreateExperimentFeature()

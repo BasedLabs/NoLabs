@@ -5,12 +5,14 @@ import shutil
 from typing import Dict, List
 
 from nolabs.domain.experiment import ExperimentId, ExperimentName, ExperimentMetadata
+from nolabs.features.file_magement_base import ExperimentsFileManagementBase
 from nolabs.infrastructure.settings import Settings
 from nolabs.utils import utcnow, generate_uuid
 
 
-class FileManagement:
+class FileManagement(ExperimentsFileManagementBase):
     def __init__(self, settings: Settings):
+        super().__init__('ASD', 'ASD') # TODO to change
         self._settings = settings
         self.ensure_experiments_folder_exists()
 

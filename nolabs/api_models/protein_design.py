@@ -11,7 +11,7 @@ class RunProteinDesignRequest:
     experiment_id: str
     pdb_file: UploadFile
     contig: str = '50'
-    number_of_desings: int = 1
+    number_of_designs: int = 1
     timesteps: Optional[int] = None
     hotspots: Optional[str] = None
 
@@ -28,7 +28,7 @@ class ExperimentPropertiesResponse:
     pdb_file: str
     pdb_file_name: str
     contig: str
-    number_of_desings: int
+    number_of_designs: int
     hotspots: Optional[str] = None
     timesteps: Optional[int] = None
 

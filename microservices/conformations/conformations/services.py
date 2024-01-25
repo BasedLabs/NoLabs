@@ -120,10 +120,12 @@ def run_pdb_simulation(parameters: RunPdbSimulationsRequest) -> RunSimulationsRe
         simulation.step(total_frames)
         with open(output_pdb, 'r') as f:
             pdb_content = f.read()
-        return RunSimulationsResponse(pdb_content=pdb_content, errors=[])
+        return RunSimulationsResponse(pdb_content=pdb_content,
+                                      errors=[])
     except Exception as e:
         logger.exception('Exception in pdb simulations')
-        return RunSimulationsResponse(pdb_content=None, errors=['Unable to generate simulations due to internal error', str(e)])
+        return RunSimulationsResponse(pdb_content=None,
+                                      errors=['Unable to generate simulations due to internal error', str(e)])
     finally:
         _remove_file_if_exists(output_pdb)
         _remove_file_if_exists(input_pdb)
@@ -146,7 +148,7 @@ def generate_gromacs_files(parameters: GenGroTopRequest) -> GenGroTopResponse:
         res = subprocess.run(program, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         if os.path.exists(output_gro) and os.path.exists(output_top):
             with open(output_gro, 'r') as gro, open(output_top, 'r') as top:
-                return GenGroTopResponse(gro=gro.read(), top=top.read())
+                return GenGroTopResponse(gro=gro.read(), top=top.read(), errors=[])
         return GenGroTopResponse(gro=None, top=None, errors=[res.stderr.decode('utf-8')])
     except Exception as e:
         logger.exception('Exception in generate gromacs files')

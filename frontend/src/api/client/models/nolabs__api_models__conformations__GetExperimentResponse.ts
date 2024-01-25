@@ -2,9 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { nolabs__api_models__conformations__ExperimentMetadataResponse } from './nolabs__api_models__conformations__ExperimentMetadataResponse';
+import type { nolabs__api_models__conformations__ExperimentPropertiesResponse } from './nolabs__api_models__conformations__ExperimentPropertiesResponse';
 export type nolabs__api_models__conformations__GetExperimentResponse = {
-    metadata: nolabs__api_models__conformations__ExperimentMetadataResponse;
-    data: string;
+    experiment_id: string;
+    experiment_name: string;
+    pdb_file: string;
+    properties: nolabs__api_models__conformations__ExperimentPropertiesResponse;
 };
 

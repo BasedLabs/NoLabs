@@ -4,10 +4,8 @@
 /* eslint-disable */
 import type { Body_inference_api_v1_conformations_inference_post } from '../models/Body_inference_api_v1_conformations_inference_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
-import type { GenerateUuidResponse } from '../models/GenerateUuidResponse';
-import type { nolabs__api_models__conformations__ExperimentMetadataResponse } from '../models/nolabs__api_models__conformations__ExperimentMetadataResponse';
+import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { nolabs__api_models__conformations__GetExperimentResponse } from '../models/nolabs__api_models__conformations__GetExperimentResponse';
-import type { ProblemDetailsResponse } from '../models/ProblemDetailsResponse';
 import type { RunSimulationsResponse } from '../models/RunSimulationsResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -16,12 +14,12 @@ export class ConformationsService {
     /**
      * Inference
      * @param formData
-     * @returns any Successful Response
+     * @returns RunSimulationsResponse Successful Response
      * @throws ApiError
      */
     public static inferenceApiV1ConformationsInferencePost(
         formData: Body_inference_api_v1_conformations_inference_post,
-    ): CancelablePromise<(RunSimulationsResponse | ProblemDetailsResponse)> {
+    ): CancelablePromise<RunSimulationsResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/conformations/inference',
@@ -34,10 +32,10 @@ export class ConformationsService {
     }
     /**
      * Experiments
-     * @returns nolabs__api_models__conformations__ExperimentMetadataResponse Successful Response
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static experimentsApiV1ConformationsExperimentsGet(): CancelablePromise<Array<nolabs__api_models__conformations__ExperimentMetadataResponse>> {
+    public static experimentsApiV1ConformationsExperimentsGet(): CancelablePromise<Array<ExperimentMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/conformations/experiments',
@@ -103,14 +101,14 @@ export class ConformationsService {
         });
     }
     /**
-     * Generate Uuid
-     * @returns GenerateUuidResponse Successful Response
+     * Create Experiment
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static generateUuidApiV1ConformationsGenerateIdGet(): CancelablePromise<GenerateUuidResponse> {
+    public static createExperimentApiV1ConformationsCreateExperimentGet(): CancelablePromise<ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/conformations/generate_id',
+            url: '/api/v1/conformations/create-experiment',
         });
     }
 }

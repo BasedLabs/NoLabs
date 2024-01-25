@@ -1,40 +1,54 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
+import {IntegratorsRequest} from "src/api/client";
+import {ExperimentProperties} from "src/features/conformations/types";
+
 
 interface OnSubmitType {
-  (contig: string, hotspots: string, numberOfDesigns: number, timesteps: number, pdbFile: File): Promise<void>;
+  (inputs: ExperimentProperties): Promise<void>;
 }
 
-interface DataType {
-  contig: string;
-  hotspots: string;
-  numberOfDesigns: number;
-  timesteps: number;
-  pdbFile: File | null;
-}
 
 export default defineComponent({
   name: "InferenceFormView",
   props: {
-    onSubmit: Function as PropType<OnSubmitType>
+    onSubmit: {
+      type: Function as PropType<OnSubmitType>,
+      required: true,
+    },
+    properties: {
+      type: {} as PropType<ExperimentProperties>,
+      required: true
+    }
   },
   computed: {
+    IntegratorsValues() {
+      return Object.values(IntegratorsRequest);
+    },
     pdbFileRule() {
       return this.pdbFile !== null;
     }
   },
-  data() : DataType {
+  data(): ExperimentProperties {
     return {
-      contig: '',
-      hotspots: '',
-      numberOfDesigns: 2,
-      timesteps: 50,
-      pdbFile: null
+      pdbFile: this.properties!.pdbFile,
+      totalFrames: this.properties!.totalFrames,
+      temperatureK: this.properties!.temperatureK,
+      takeFrameEvery: this.properties!.takeFrameEvery,
+      stepSize: this.properties!.stepSize,
+      replaceNonStandardResidues: this.properties!.replaceNonStandardResidues,
+      addMissingAtoms: this.properties!.addMissingAtoms,
+      addMissingHydrogens: this.properties!.addMissingHydrogens,
+      frictionCoeff: this.properties!.frictionCoeff,
+      ignoreMissingAtoms: this.properties!.ignoreMissingAtoms,
+      integrator: this.properties!.integrator,
     }
   },
   methods: {
-    async _onSubmit(){
-      await this.onSubmit!(this.contig, this.hotspots, this.numberOfDesigns, this.timesteps, this.pdbFile!);
+    async _onSubmit() {
+      await this.onSubmit!(
+          this.$data
+      );
     }
   }
 })
@@ -42,34 +56,39 @@ export default defineComponent({
 
 <template>
   <q-form @submit="_onSubmit" class="q-gutter-md">
-    <q-input filled v-model="contig" label="Contig" lazy-rules
+    <q-input filled v-model="totalFrames" label="Total frames" lazy-rules type="number"
+             :rules="[val => val && val.length > 0 || 'Please type something']">
+    </q-input>
+    <q-input filled v-model="temperatureK" label="Temperature" type="number"
              :rules="[val => val && val.length > 0 || 'Please type something']">
       <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
-        Confirm your chains have the residue numbers you're looking to diffuse over. 100 - Diffuses
-        a monomer 100 residues long. 50-100 - Diffuses a hetero-oligomer of lengths 50 and 100.
-        5-15/A10-25/30-40 - Builds 5-15 residues N-terminally of A10-25 from the input pdb, followed
-        by 30-40 residues to its C-terminus. B1-100/0 100-100 - Generates 100 residue long binders
-        to residues 1-100 of chain B.
+        Temperature of the system
       </q-tooltip>
     </q-input>
-    <q-input filled v-model="hotspots" label="Hotspots">
-      <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
-        The model optionally readily learns that it should be making an interface which involving
-        these hotspot residues. Input is ChainResidueNumber: A100 for residue 100 on chain A.
-      </q-tooltip>
-    </q-input>
-    <q-input filled type="number" v-model="numberOfDesigns" label="Number of desings"
+    <q-input filled type="number" v-model="takeFrameEvery" label="Frame snapshot rate"
              lazy-rules :rules="[val => val && val > 0 || 'Please type something']">
       <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
-        Number of designs to generate
+        Take frame every N iterations
       </q-tooltip>
     </q-input>
-    <q-input filled type="number" v-model="timesteps" label="Timesteps" lazy-rules
+    <q-input filled type="number" v-model="stepSize" label="Step size" lazy-rules
              :rules="[val => val && val > 0 || 'Please type something']">
       <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
-        Desired iterations to generate structure.
+        Simulation step size
       </q-tooltip>
     </q-input>
+    <q-input filled type="number" v-model="stepSize" label="Step size" lazy-rules
+             :rules="[val => val && val > 0 || 'Please type something']">
+      <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
+        Simulation step size
+      </q-tooltip>
+    </q-input>
+    <q-checkbox v-model="replaceNonStandardResidues" label="Replace non standard residues"/>
+    <q-checkbox v-model="addMissingAtoms" label="Add missing atoms"/>
+    <q-checkbox v-model="addMissingHydrogens" label="Add missing hydrogens"/>
+    <q-checkbox v-model="frictionCoeff" label="Friction coefficient"/>
+    <q-checkbox v-model="ignoreMissingAtoms" label="Ignore missing atoms"/>
+    <q-select v-model="integrator" :options="IntegratorsValues" label="Integrator"></q-select>
     <q-file filled bottom-slots accept=".pdb" :rules="[pdbFileRule]" v-model="pdbFile"
             label=".pdb file" counter>
       <template v-slot:prepend>

@@ -4,8 +4,7 @@
 /* eslint-disable */
 import type { Body_inference_api_v1_gene_ontology_inference_post } from '../models/Body_inference_api_v1_gene_ontology_inference_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
-import type { GenerateUuidResponse } from '../models/GenerateUuidResponse';
-import type { nolabs__api_models__gene_ontology__ExperimentMetadataResponse } from '../models/nolabs__api_models__gene_ontology__ExperimentMetadataResponse';
+import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { nolabs__api_models__gene_ontology__GetExperimentResponse } from '../models/nolabs__api_models__gene_ontology__GetExperimentResponse';
 import type { RunGeneOntologyResponse } from '../models/RunGeneOntologyResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -33,10 +32,10 @@ export class GeneOntologyService {
     }
     /**
      * Experiments
-     * @returns nolabs__api_models__gene_ontology__ExperimentMetadataResponse Successful Response
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static experimentsApiV1GeneOntologyExperimentsGet(): CancelablePromise<Array<nolabs__api_models__gene_ontology__ExperimentMetadataResponse>> {
+    public static experimentsApiV1GeneOntologyExperimentsGet(): CancelablePromise<Array<ExperimentMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/gene-ontology/experiments',
@@ -99,17 +98,6 @@ export class GeneOntologyService {
             errors: {
                 422: `Validation Error`,
             },
-        });
-    }
-    /**
-     * Generate Uuid
-     * @returns GenerateUuidResponse Successful Response
-     * @throws ApiError
-     */
-    public static generateUuidApiV1GeneOntologyGenerateIdGet(): CancelablePromise<GenerateUuidResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/gene-ontology/generate_id',
         });
     }
 }

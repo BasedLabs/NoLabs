@@ -1,5 +1,4 @@
 from pydantic import dataclasses as pcdataclass
-import datetime
 from fastapi import UploadFile
 from typing import List
 

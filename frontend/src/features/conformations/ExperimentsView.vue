@@ -45,14 +45,14 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import useProteinDesignStore from 'src/features/proteinDesign/storage';
-import {ExperimentListItem} from 'src/features/proteinDesign/types';
+import {ExperimentListItem} from "src/features/types";
+import useConformationsStorage from "src/features/conformations/storage";
 
 
 export default defineComponent({
   name: 'ExperimentsView',
   data() {
-    const store = useProteinDesignStore();
+    const store = useConformationsStorage();
     return {
       experiments: [] as ExperimentListItem[],
       store,

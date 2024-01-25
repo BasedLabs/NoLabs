@@ -17,7 +17,7 @@ class RunFoldingRequest:
 class RunFoldingResponse:
     experimentId: str
     pdbContent: str | None = None
-    errors: List[str] = pcdataclass.dataclass.field(default_factory=list)
+    errors: List[str] = pcdataclass.field(default_factory=list)
 
 
 @pcdataclass.dataclass

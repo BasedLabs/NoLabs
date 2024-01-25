@@ -109,13 +109,13 @@ class RunPdbFixerRequest(BaseModelMixin):
 
 @pydantic.dataclasses.dataclass
 class RunPdbFixerResponse(BaseModelMixin):
-    errors: List[str] = dataclasses.field(default_factory=list)
+    errors: List[str]
     pdb_content: str | None = None
 
 
 @pydantic.dataclasses.dataclass
 class RunSimulationsResponse(BaseModelMixin):
-    errors: List[str] = dataclasses.field(default_factory=list)
+    errors: List[str]
     pdb_content: str | None = None
 
 
@@ -131,4 +131,4 @@ class GenGroTopRequest(BaseModelMixin):
 class GenGroTopResponse(BaseModelMixin):
     gro: str | None
     top: str | None
-    errors: List[str] = dataclasses.field(default_factory=list)
+    errors: List[str]

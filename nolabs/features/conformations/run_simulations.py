@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 
 import conformations_microservice as microservice
 from conformations_microservice import RunPdbSimulationsRequest, OpenMmForceFields, OpenMmWaterForceFields, \
@@ -6,32 +6,24 @@ from conformations_microservice import RunPdbSimulationsRequest, OpenMmForceFiel
     GromacsForceFields
 
 import nolabs.api_models.conformations as api
-from nolabs.features.events_queue import EventsQueue, EventsQueueMessageClass
-from nolabs.infrastructure.settings import Settings
+from nolabs.domain.experiment import ExperimentId
 from nolabs.features.conformations.services.file_management import FileManagement
-from nolabs.domain.experiment import ExperimentId, ExperimentName
-from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.utils import generate_uuid
+from nolabs.infrastructure.settings import Settings
+from nolabs.utils import generate_uuid, utcnow
 
 
 class RunSimulationsFeature:
     def __init__(self,
                  file_management: FileManagement,
-                 settings: Settings,
-                 events_queue: EventsQueue):
+                 settings: Settings):
         self._file_management = file_management
         self._settings = settings
-        self._events_queue = events_queue
 
     async def handle(self,
                      request: api.RunSimulationsRequest) -> api.RunSimulationsResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id) if request.experiment_id else ExperimentId(generate_uuid())
-        experiment_name = ExperimentName(request.experiment_name)
-
-        self._file_management.create_experiment_folder(experiment_id)
-        self._file_management.update_metadata(experiment_id, experiment_name, request)
 
         configuration = microservice.Configuration(
             host=self._settings.conformations_host,
@@ -40,11 +32,16 @@ class RunSimulationsFeature:
             client = microservice.DefaultApi(api_client=_)
             file_content = (await request.pdb_file.read()).decode('utf-8')
 
-            for pdb_content in [file_content, self._fix_pdb(client, file_content, request)]:
+            timeline: List[api.TimelineResponse] = []
+
+            pdb_contents = [file_content]
+            fixed_file_content = self._fix_pdb(client, file_content, request, timelines=timeline)
+            if fixed_file_content:
+                pdb_contents.append(fixed_file_content)
+
+            for pdb_content in pdb_contents:
                 for water_ff in [GromacsWaterForceFields(wff) for wff in microservice.GromacsWaterForceFields]:
                     for ff in [GromacsForceFields(ff) for ff in microservice.GromacsForceFields]:
-                        self._enqueue_event(
-                            f'Gromacs gro top generator start, force field: {ff}, water force field: {water_ff}')
                         generate_gromacs_files_response = client.gen_gro_top_endpoint_gen_gro_top_post(
                             gen_gro_top_request=microservice.GenGroTopRequest(
                                 ignore_missing_atoms=request.ignore_missing_atoms,
@@ -53,57 +50,90 @@ class RunSimulationsFeature:
                                 pdb_content=pdb_content
                             ))
 
-                        if generate_gromacs_files_response.errors:
-                            self._enqueue_event(message='Gromacs gro top generator errors',
-                                                errors=generate_gromacs_files_response.errors)
+                        for error in generate_gromacs_files_response.errors:
+                            timeline.append(
+                                api.TimelineResponse('Generate gromacs files error', error, created_at=utcnow())
+                            )
 
                         if generate_gromacs_files_response.gro and generate_gromacs_files_response.top:
-                            f'Gromacs simulations started, force field: {ff}, water force field: {water_ff}'
+                            timeline.append(api.TimelineResponse(
+                                message=f'Gromacs simulations started, force field: {ff}, water force field: {water_ff}',
+                                error=None,
+                                created_at=utcnow()
+                            ))
                             gromacs_simulations_result = self._run_gromacs_simulations(client,
                                                                                        generate_gromacs_files_response.gro,
                                                                                        generate_gromacs_files_response.top,
                                                                                        request)
 
-                            if gromacs_simulations_result.errors:
-                                self._enqueue_event(message='Gromacs simulations errors',
-                                                    errors=gromacs_simulations_result.errors)
+                            for error in gromacs_simulations_result.errors:
+                                timeline.append(
+                                    api.TimelineResponse(
+                                        message='Gromacs simulation error',
+                                        error=error,
+                                        created_at=utcnow()
+                                    )
+                                )
 
                             if gromacs_simulations_result.pdb_content:
-                                self._file_management.save_experiment(experiment_id,
-                                                                      gromacs_simulations_result.pdb_content)
-                                self._enqueue_event('Gromacs simulations finished')
+                                await self._file_management.save_experiment(experiment_id,
+                                                                            gromacs_simulations_result.pdb_content,
+                                                                            request=request)
                                 return api.RunSimulationsResponse(experiment_id=experiment_id.value,
-                                                                  pdb_content=gromacs_simulations_result.pdb_content)
+                                                                  pdb_content=gromacs_simulations_result.pdb_content,
+                                                                  timeline=timeline)
 
                 for open_mm_water_ff in [OpenMmWaterForceFields(wff) for wff in microservice.OpenMmWaterForceFields]:
                     for open_mm_ff in [OpenMmForceFields(ff) for ff in microservice.OpenMmForceFields]:
-                        self._enqueue_event(
-                            message=f'Pdb simulations started, force field: {open_mm_ff}, water force field: {open_mm_water_ff}')
+                        timeline.append(
+                            api.TimelineResponse(
+                                message=f'Pdb simulations started, force field: {open_mm_ff}, water force field: {open_mm_water_ff}',
+                                error=None,
+                                created_at=utcnow()
+                            )
+                        )
                         pdb_simulations_result = self._run_pdb_simulations(client, pdb_content, open_mm_ff,
                                                                            open_mm_water_ff, request)
-                        self._enqueue_event('Pdb simulations finished')
 
-                        if pdb_simulations_result.errors:
-                            self._enqueue_event(message='Pdb simulations errors', errors=pdb_simulations_result.errors)
+                        timeline.append(
+                            api.TimelineResponse(
+                                message=f'Pdb simulations finish',
+                                error=None,
+                                created_at=utcnow()
+                            )
+                        )
+
+                        for error in pdb_simulations_result.errors:
+                            timeline.append(
+                                api.TimelineResponse(
+                                    message='Pdb simulations error',
+                                    error=error,
+                                    created_at=utcnow()
+                                )
+                            )
 
                         if pdb_simulations_result.pdb_content:
-                            self._file_management.save_experiment(experiment_id, pdb_simulations_result.pdb_content)
+                            await self._file_management.save_experiment(experiment_id,
+                                                                        pdb_simulations_result.pdb_content,
+                                                                        request=request)
 
                             return api.RunSimulationsResponse(experiment_id=experiment_id.value,
-                                                              pdb_content=pdb_simulations_result.pdb_content)
+                                                              pdb_content=pdb_simulations_result.pdb_content,
+                                                              timeline=timeline,
+                                                              experiment_name=request.experiment_name)
 
-            return api.RunSimulationsResponse(experiment_id=experiment_id.value,
-                                              errors=['Cannot run simulations for this pdb file'])
+            return api.RunSimulationsResponse(experiment_id=experiment_id.value, timeline=timeline, pdb_content=None,
+                                              experiment_name=request.experiment_name)
 
-    def _enqueue_event(self, message: str | None = None, errors: List[str] | None = None):
-        j = {
-            'message': message,
-            'errors': errors
-        }
-        self._events_queue.send_json(EventsQueueMessageClass.conformations, j)
-
-    def _fix_pdb(self, client: microservice.DefaultApi, pdb_content: str, request: api.RunSimulationsRequest) -> str:
-        self._enqueue_event(message='Pdb fixer started')
+    def _fix_pdb(self, client: microservice.DefaultApi, pdb_content: str, request: api.RunSimulationsRequest,
+                 timelines: List[api.TimelineResponse]) -> str | None:
+        timelines.append(
+            api.TimelineResponse(
+                message='Pdb fixer started',
+                error=None,
+                created_at=utcnow()
+            )
+        )
         pdb_fixer_request = microservice.RunPdbFixerRequest(
             replace_nonstandard_residues=request.replace_non_standard_residues,
             add_missing_atoms=request.add_missing_atoms,
@@ -111,12 +141,32 @@ class RunSimulationsFeature:
             pdb_content=pdb_content
         )
         response = client.run_pdb_fixer_endpoint_run_pdb_fixer_post(run_pdb_fixer_request=pdb_fixer_request)
-        self._enqueue_event(message='Pdb fixer finished')
+        timelines.append(
+            api.TimelineResponse(
+                message='Pdb fixer finished',
+                error=None,
+                created_at=utcnow()
+            )
+        )
+
         if not response.pdb_content:
-            raise NoLabsException('Unexpected error in pdb fixer', error_code=ErrorCodes.fix_pdb_error)
-        if response.errors:
-            self._enqueue_event(message='Pdb fixer errors', errors=response.errors)
-            raise NoLabsException(response.errors, error_code=ErrorCodes.fix_pdb_error)
+            timelines.append(
+                api.TimelineResponse(
+                    message='Pdb fixer error',
+                    error='Unexpected error in pdb fixer',
+                    created_at=utcnow()
+                )
+            )
+
+        for error in response.errors:
+            timelines.append(
+                api.TimelineResponse(
+                    message='Pdb fixer error',
+                    error=error,
+                    created_at=utcnow()
+                )
+            )
+
         return response.pdb_content
 
     def _run_gromacs_simulations(self, client: microservice.DefaultApi, gro: str, top: str,

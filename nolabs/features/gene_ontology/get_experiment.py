@@ -1,5 +1,6 @@
+from nolabs.api_models.experiment import ExperimentMetadataResponse
 from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.gene_ontology import (GetExperimentResponse, ExperimentMetadataResponse,
+from nolabs.api_models.gene_ontology import (GetExperimentResponse,
                                              AminoAcidResponse, RunGeneOntologyResponseDataNode)
 from nolabs.features.gene_ontology.services.file_management import FileManagement
 
@@ -28,10 +29,5 @@ class GetExperimentFeature:
                 )
             )
         return GetExperimentResponse(
-            metadata=ExperimentMetadataResponse(
-                id=metadata.id.value,
-                name=metadata.name.value,
-                date=metadata.date
-            ),
             amino_acids=amino_acids
         )

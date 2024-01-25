@@ -2,6 +2,8 @@ from typing import List
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from typing import Annotated
+
+from nolabs.api_models.experiment import ExperimentMetadataResponse, ChangeExperimentNameRequest
 from nolabs.controllers.drug_discovery.dependencies import (
     get_experiments_feature_dependency,
     add_experiment_feature_dependency,
@@ -20,10 +22,7 @@ from nolabs.controllers.drug_discovery.dependencies import (
     generate_msa_dependency,
     predict_docking_dependency
 )
-from nolabs.features.drug_discovery import (
-    GetExperimentsFeature,
-    AddExperimentFeature
-)
+from nolabs.features.drug_discovery.add_experiment import AddExperimentFeature
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
     GetTargetsListFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
@@ -39,7 +38,6 @@ from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 
 from nolabs.api_models.drug_discovery import (
-    ChangeExperimentNameRequest,
     UploadTargetRequest,
     UploadTargetResponse,
     DeleteTargetRequest,
@@ -63,10 +61,10 @@ from nolabs.api_models.drug_discovery import (
     PredictFoldingResponse,
     DockingRequest,
     DockingResponse,
-    ExperimentMetadataResponse,
     TargetMetaData,
     LigandMetaData
 )
+from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
 router = APIRouter(
     prefix='/api/v1/drug_discovery',

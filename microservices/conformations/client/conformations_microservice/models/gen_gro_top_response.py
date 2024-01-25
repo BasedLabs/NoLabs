@@ -31,7 +31,7 @@ class GenGroTopResponse(BaseModel):
     """ # noqa: E501
     gro: Optional[StrictStr]
     top: Optional[StrictStr]
-    errors: Optional[List[StrictStr]] = None
+    errors: List[StrictStr]
     __properties: ClassVar[List[str]] = ["gro", "top", "errors"]
 
     model_config = {

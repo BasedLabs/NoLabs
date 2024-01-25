@@ -14,28 +14,14 @@
       </q-header>
       <q-page-container>
         <div class="row" v-if="experimentHasGeneratedData">
-          <div class="col-5">
+          <div class="col-6">
             <div class="q-ma-sm">
-              <PdbViewer :pdb-file="experiment?.properties.inputPdbFile"/>
+              <PdbViewer :pdb-file="experiment?.properties.pdbFile"/>
             </div>
           </div>
-          <div class="col-2">
-            <div class="q-pl-sm q-ma-sm">
-              <q-table
-                  title="Generated pdbs"
-                  :rows="generatedPdbsTableRows"
-                  :columns="generatedPdbsTableColumns"
-                  row-key="name"
-                  @row-click="(_, row) => {generatedPdbsReload = !generatedPdbsReload; selectedGeneratedPdbIndex = row.id;}"
-                  :pagination="{rowsPerPage: 5}"
-              />
-            </div>
-
-          </div>
-          <div class="col-5">
+          <div class="col-6">
             <div class="q-mt-sm q-mb-sm q-mr-sm">
-              <PdbViewer :pdb-file="experiment!.generatedPdbs[selectedGeneratedPdbIndex]"
-                         :key="generatedPdbsReload"/>
+              <PdbViewer :pdb-file="experiment?.pdbContent"/>
             </div>
           </div>
         </div>
@@ -49,7 +35,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <InferenceFormView :on-submit="onSubmit"/>
+          <InferenceFormView :on-submit="onSubmit" :properties="experiment?.properties"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -57,78 +43,56 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, ref} from 'vue'
-import useProteinDesignStore from 'src/features/proteinDesign/storage';
+import {defineComponent} from 'vue'
 import {QVueGlobals, useQuasar, QSpinnerOrbit} from 'quasar';
-import PdbViewer from "src/features/proteinDesign/PdbViewer.vue";
-import InferenceFormView from "src/features/proteinDesign/InferenceFormView.vue";
-import {Experiment} from "src/features/proteinDesign/types";
+import PdbViewer from "src/components/PdbViewer.vue";
+import InferenceFormView from "src/features/conformations/InferenceFormView.vue";
+import useConformationsStorage from "src/features/conformations/storage";
+import {Experiment, ExperimentProperties} from "src/features/conformations/types";
+import type {IntegratorsRequest} from "src/api/client";
 
 
 export default defineComponent({
   name: 'ProteinDesignExperimentView',
   data() {
-    const store = useProteinDesignStore();
+    const store = useConformationsStorage();
 
     return {
       experiment: null as Experiment,
       showInferenceForm: false,
       store,
       quasar: null as unknown as QVueGlobals,
-      selectedGeneratedPdbIndex: 0,
-      generatedPdbsReload: false
     }
   },
   computed: {
-    generatedPdbsTableColumns() {
-      return [
-        {
-          name: 'id',
-          required: true,
-          label: '#',
-          align: 'left',
-          sortable: false,
-          field: row => row.id,
-        },
-        {
-          name: 'name',
-          required: true,
-          label: 'Name',
-          align: 'left',
-          sortable: false,
-          field: row => row.name
-        }
-      ]
-    },
-    generatedPdbsTableRows(): { id: number, name: string }[] {
-      return this.experiment ? this.experiment.generatedPdbs.map((file, i) => {
-        return {
-          id: i, name: file.name
-        }
-      }) : [];
-    },
     experimentLoaded(): boolean {
       return this.experiment !== null;
     },
     experimentHasGeneratedData(): boolean {
-      return this.experimentLoaded && this.experiment!.generatedPdbs.length > 0;
+      return this.experimentLoaded && this.experiment!.pdbContent != null;
     }
   },
   methods: {
-    async onSubmit(contig: string, hotspots: string, numberOfDesigns: number, timesteps: number, pdbFile: File) {
+    async onSubmit(properties: ExperimentProperties) {
       this.quasar.loading.show({
         spinner: QSpinnerOrbit,
         message: 'Running AI models. This can take a couple of minutes'
       });
 
       const response = await this.store.inference({
-        experimentId: this.experiment?.id,
-        experimentName: this.experiment?.name as string,
-        pdbFile: pdbFile,
-        contig: contig,
-        numberOfDesigns: numberOfDesigns,
-        timesteps: timesteps,
-        hotspots: hotspots
+        experimentId: this.experiment!.id,
+        experimentName: this.experiment!.name,
+        pdbFile: properties.pdbFile!,
+        totalFrames: properties.totalFrames!,
+        temperatureK: properties.temperatureK!,
+        takeFrameEvery: properties.takeFrameEvery!,
+        stepSize: properties.stepSize!,
+        replaceNonStandardResidues: properties.replaceNonStandardResidues!,
+        addMissingAtoms: properties.addMissingAtoms!,
+        addMissingHydrogens: properties.addMissingHydrogens!,
+        frictionCoeff: properties.frictionCoeff!,
+        ignoreMissingAtoms: properties.ignoreMissingAtoms!,
+        integrator: properties.integrator!,
       });
 
       if (response.experiment !== null) {

@@ -2,7 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type GenerateUuidResponse = {
-    uuid: string;
+export type ExperimentMetadataResponse = {
+    id: string;
+    name: string;
+    date: string;
 };
 
