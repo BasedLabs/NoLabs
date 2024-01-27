@@ -4,38 +4,56 @@
     <q-layout container style="height: 100vh">
       <q-header :class="$q.dark.isActive ? 'bg-secondary' : 'bg-black'">
         <q-toolbar>
-          <q-toolbar-title>{{ experiment.name }}
-            <q-btn round
-                   @click="changeExperimentName" color="positive" size="sm" flat icon="edit"/>
+          <q-toolbar-title
+            >{{ experiment.name }}
+            <q-btn
+              round
+              @click="changeExperimentName"
+              color="positive"
+              size="sm"
+              flat
+              icon="edit"
+            />
           </q-toolbar-title>
-          <q-btn color="positive" size="md" outline label="Binder parameters"
-                 @click="showInferenceForm = !showInferenceForm"/>
+          <q-btn
+            color="positive"
+            size="md"
+            outline
+            label="Binder parameters"
+            @click="showInferenceForm = !showInferenceForm"
+          />
         </q-toolbar>
       </q-header>
       <q-page-container>
         <div class="row" v-if="experimentHasGeneratedData">
           <div class="col-5">
             <div class="q-ma-sm">
-              <PdbViewer :pdb-file="experiment?.properties.inputPdbFile"/>
+              <PdbViewer :pdb-file="experiment?.properties.inputPdbFile" />
             </div>
           </div>
           <div class="col-2">
             <div class="q-pl-sm q-ma-sm">
               <q-table
-                  title="Generated pdbs"
-                  :rows="generatedPdbsTableRows"
-                  :columns="generatedPdbsTableColumns"
-                  row-key="name"
-                  @row-click="(_, row) => {generatedPdbsReload = !generatedPdbsReload; selectedGeneratedPdbIndex = row.id;}"
-                  :pagination="{rowsPerPage: 5}"
+                title="Generated pdbs"
+                :rows="generatedPdbsTableRows"
+                :columns="generatedPdbsTableColumns"
+                row-key="name"
+                @row-click="
+                  (_, row) => {
+                    generatedPdbsReload = !generatedPdbsReload;
+                    selectedGeneratedPdbIndex = row.id;
+                  }
+                "
+                :pagination="{ rowsPerPage: 5 }"
               />
             </div>
-
           </div>
           <div class="col-5">
             <div class="q-mt-sm q-mb-sm q-mr-sm">
-              <PdbViewer :pdb-file="experiment!.generatedPdbs[selectedGeneratedPdbIndex]"
-                         :key="generatedPdbsReload"/>
+              <PdbViewer
+                :pdb-file="experiment!.generatedPdbs[selectedGeneratedPdbIndex]"
+                :key="generatedPdbsReload"
+              />
             </div>
           </div>
         </div>
@@ -45,11 +63,14 @@
       <q-card>
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">Protein binder design parameters</div>
-          <q-space/>
-          <q-btn icon="close" flat round dense v-close-popup/>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
         <q-card-section>
-          <InferenceFormView :on-submit="onSubmit" :properties="experiment?.properties"/>
+          <InferenceFormView
+            :on-submit="onSubmit"
+            :properties="experiment?.properties"
+          />
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -57,16 +78,15 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, ref} from 'vue'
-import useProteinDesignStore from 'src/features/proteinDesign/storage';
-import {QVueGlobals, useQuasar, QSpinnerOrbit} from 'quasar';
+import { defineComponent, ref } from "vue";
+import useProteinDesignStore from "src/features/proteinDesign/storage";
+import { QVueGlobals, useQuasar, QSpinnerOrbit } from "quasar";
 import InferenceFormView from "src/features/proteinDesign/InferenceFormView.vue";
-import {Experiment} from "src/features/proteinDesign/types";
+import { Experiment } from "src/features/proteinDesign/types";
 import PdbViewer from "src/components/PdbViewer.vue";
 
-
 export default defineComponent({
-  name: 'ProteinDesignExperimentView',
+  name: "ProteinDesignExperimentView",
   data() {
     const store = useProteinDesignStore();
 
@@ -76,49 +96,58 @@ export default defineComponent({
       store,
       quasar: null as unknown as QVueGlobals,
       selectedGeneratedPdbIndex: 0,
-      generatedPdbsReload: false
-    }
+      generatedPdbsReload: false,
+    };
   },
   computed: {
     generatedPdbsTableColumns() {
       return [
         {
-          name: 'id',
+          name: "id",
           required: true,
-          label: '#',
-          align: 'left',
+          label: "#",
+          align: "left",
           sortable: false,
-          field: row => row.id,
+          field: (row) => row.id,
         },
         {
-          name: 'name',
+          name: "name",
           required: true,
-          label: 'Name',
-          align: 'left',
+          label: "Name",
+          align: "left",
           sortable: false,
-          field: row => row.name
-        }
-      ]
+          field: (row) => row.name,
+        },
+      ];
     },
-    generatedPdbsTableRows(): { id: number, name: string }[] {
-      return this.experiment ? this.experiment.generatedPdbs.map((file, i) => {
-        return {
-          id: i, name: file.name
-        }
-      }) : [];
+    generatedPdbsTableRows(): { id: number; name: string }[] {
+      return this.experiment
+        ? this.experiment.generatedPdbs.map((file, i) => {
+            return {
+              id: i,
+              name: file.name,
+            };
+          })
+        : [];
     },
     experimentLoaded(): boolean {
       return this.experiment !== null;
     },
     experimentHasGeneratedData(): boolean {
       return this.experimentLoaded && this.experiment!.generatedPdbs.length > 0;
-    }
+    },
   },
   methods: {
-    async onSubmit(contig: string, hotspots: string, numberOfDesigns: number, timesteps: number, pdbFile: File) {
+    async onSubmit(
+      contig: string,
+      hotspots: string,
+      numberOfDesigns: number,
+      timesteps: number,
+      pdbFile: File
+    ) {
       this.quasar.loading.show({
         spinner: QSpinnerOrbit,
-        message: 'Running AI models. This can take a couple of minutes'
+        message: "Running AI models. This can take a couple of minutes",
       });
 
       const response = await this.store.inference({
@@ -128,7 +157,7 @@ export default defineComponent({
         contig: contig,
         numberOfDesigns: numberOfDesigns,
         timesteps: timesteps,
-        hotspots: hotspots
+        hotspots: hotspots,
       });
 
       if (response.experiment !== null) {
@@ -140,29 +169,33 @@ export default defineComponent({
       this.quasar.loading.hide();
     },
     changeExperimentName() {
-      this.quasar.dialog({
-        color: 'positive',
-        title: 'Prompt',
-        message: 'Enter new experiment name',
-        prompt: {
-          model: this.experiment!.name,
-          required: true,
-          type: 'text' // optional
-        },
-        cancel: true,
-        persistent: true
-      }).onOk(async data => {
-        if (!data)
-          return;
-        this.quasar.loading.show({
-          spinner: QSpinnerOrbit,
-          message: 'Changing experiment name'
+      this.quasar
+        .dialog({
+          color: "positive",
+          title: "Prompt",
+          message: "Enter new experiment name",
+          prompt: {
+            model: this.experiment!.name,
+            required: true,
+            type: "text", // optional
+          },
+          cancel: true,
+          persistent: true,
+        })
+        .onOk(async (data) => {
+          if (!data) return;
+          this.quasar.loading.show({
+            spinner: QSpinnerOrbit,
+            message: "Changing experiment name",
+          });
+          await this.store.changeExperimentName(
+            this.experiment?.id as string,
+            data
+          );
+          this.experiment!.name = data;
+          this.quasar.loading.hide();
         });
-        await this.store.changeExperimentName(this.experiment?.id as string, data);
-        this.experiment!.name = data;
-        this.quasar.loading.hide();
-      });
-    }
+    },
   },
   async mounted() {
     const experimentId = this.$route.params.experimentId as string;
@@ -171,7 +204,7 @@ export default defineComponent({
 
     this.quasar.loading.show({
       spinner: QSpinnerOrbit,
-      message: `Experiment ${experimentId}`
+      message: `Experiment ${experimentId}`,
     });
 
     const response = await this.store.getExperiment(experimentId);
@@ -188,8 +221,7 @@ export default defineComponent({
   },
   components: {
     PdbViewer,
-    InferenceFormView
-  }
-})
+    InferenceFormView,
+  },
+});
 </script>
-  
