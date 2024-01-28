@@ -5,7 +5,7 @@ import {ErrorCodes} from "src/api/errorTypes";
 import {obtainErrorResponse} from "src/api/errorWrapper";
 import {OpenAPI, ProteinDesignService} from "src/api/client";
 import apiConstants from "src/api/constants";
-import {ExperimentListItem} from "src/features/types";
+import {ExperimentListItem} from "src/components/types";
 
 OpenAPI.BASE = apiConstants.hostname;
 

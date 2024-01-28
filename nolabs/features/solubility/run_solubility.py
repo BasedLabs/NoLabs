@@ -5,7 +5,6 @@ from solubility_microservice import (RunSolubilityPredictionRequest,
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.amino_acid import AminoAcid
-from nolabs.domain.solubility import SolubilityProbability
 from nolabs.infrastructure.settings import Settings
 from nolabs.api_models.solubility import RunSolubilityResponse, RunSolubilityRequest, AminoAcidResponse
 from nolabs.domain.experiment import ExperimentId, ExperimentName
@@ -23,6 +22,12 @@ class RunSolubilityFeature:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id) if request.experiment_id else ExperimentId(generate_uuid())
+
+        experiment_id = ExperimentId(request.experiment_id)
+
+        self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
+        self._file_management.cleanup_experiment(experiment_id=experiment_id)
+        await self._file_management.set_properties(experiment_id=experiment_id, request=request)
 
         configuration = Configuration(
             host=self._settings.solubility_host,
@@ -42,9 +47,9 @@ class RunSolubilityFeature:
                         if amino_acid.name not in [aa.name for aa in amino_acids]:
                             amino_acids.append(amino_acid)
 
-            results: List[Tuple[AminoAcid, SolubilityProbability]] = []
+            results: List[AminoAcidResponse] = []
             if not amino_acids:
-                raise NoLabsException('No amino acids', ErrorCodes.no_amino_acids)
+                raise NoLabsException(['No amino acids'], ErrorCodes.no_amino_acids)
             for amino_acid in amino_acids:
                 result = api_instance.run_solubility_run_solubility_prediction_post(
                     run_solubility_prediction_request=RunSolubilityPredictionRequest(
@@ -52,21 +57,19 @@ class RunSolubilityFeature:
                     )
                 )
                 if result.errors:
-                    raise NoLabsException(','.join(result.errors), ErrorCodes.amino_acid_solubility_run_error)
-                results.append((amino_acid, SolubilityProbability(result.soluble_probability)))  # type: ignore
-            self._file_management.update_metadata(experiment_id=experiment_id,
-                                                  experiment_name=ExperimentName(value=request.experiment_name),
-                                                  amino_acids=amino_acids)
-            self._file_management.save_experiment(
+                    raise NoLabsException(result.errors, ErrorCodes.amino_acid_solubility_run_error)
+                results.append(AminoAcidResponse(
+                    sequence=amino_acid.sequence,
+                    name=amino_acid.name,
+                    soluble_probability=result.soluble_probability
+                ))  # type: ignore
+            self._file_management.set_metadata(experiment_id=experiment_id,
+                                               experiment_name=ExperimentName(value=request.experiment_name))
+            self._file_management.set_result(
                 experiment_id=experiment_id,
                 data=results
             )
+            metadata = self._file_management.get_metadata(experiment_id)
             return RunSolubilityResponse(experiment_id=experiment_id.value,
-                                         amino_acids=[AminoAcidResponse(
-                                             sequence=amino_acid.sequence,
-                                             name=amino_acid.name,
-                                             soluble_probability=prob.value
-                                         ) for amino_acid, prob in results])
-
-
-
+                                         experiment_name=metadata.name.value,
+                                         amino_acids=results, errors=[])

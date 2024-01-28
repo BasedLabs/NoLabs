@@ -13,8 +13,17 @@ class ExperimentsFileManagementBase(ABC, Generic[ExperimentPropertiesT]):
     def __init__(self, experiments_folder: str, metadata_file: str):
         self._experiments_folder = experiments_folder
         self._metadata_file = metadata_file
+        self.ensure_experiments_folder_exists()
 
-    async def update_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
+    def cleanup_experiment(self, experiment_id: ExperimentId):
+        experiment_folder = self.experiment_folder(experiment_id)
+        files = glob.glob(os.path.join(experiment_folder, '*.*'))
+
+        for file in files:
+            if self._metadata_file not in file:
+                os.remove(file)
+
+    async def set_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
         self.ensure_experiment_folder_exists(experiment_id)
         j = {
             'id': experiment_id.value,
@@ -26,6 +35,18 @@ class ExperimentsFileManagementBase(ABC, Generic[ExperimentPropertiesT]):
                                           self._metadata_file)
         with open(metadata_file_path, 'w', encoding='utf-8') as f:
             json.dump(j, f, ensure_ascii=False, indent=4)
+
+    def get_metadata(self, experiment_id: ExperimentId) -> ExperimentMetadata:
+        metadata_file = os.path.join(self._experiments_folder,
+                                     experiment_id.value,
+                                     self._metadata_file)
+        metadata = json.load(open(metadata_file, 'r', encoding='utf-8'))
+        id = ExperimentId(metadata['id'])
+        return ExperimentMetadata(
+            id=id,
+            name=ExperimentName(metadata['name']),
+            date=metadata['date']
+        )
 
     def ensure_experiments_folder_exists(self):
         if not os.path.isdir(self._experiments_folder):
@@ -50,18 +71,6 @@ class ExperimentsFileManagementBase(ABC, Generic[ExperimentPropertiesT]):
 
     def experiment_exists(self, experiment_id: ExperimentId) -> bool:
         return os.path.exists(os.path.join(self.experiment_folder(experiment_id)))
-
-    def get_experiment_metadata(self, experiment_id: ExperimentId) -> ExperimentMetadata:
-        metadata_file = os.path.join(self._experiments_folder,
-                                     experiment_id.value,
-                                     self._metadata_file)
-        metadata = json.load(open(metadata_file, 'r', encoding='utf-8'))
-        id = ExperimentId(metadata['id'])
-        return ExperimentMetadata(
-            id=id,
-            name=ExperimentName(metadata['name']),
-            date=metadata['date']
-        )
 
     def change_experiment_name(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
         metadata_file = os.path.join(self.experiment_folder(experiment_id),

@@ -48,6 +48,12 @@ class Settings:
         return self._config.get('conformations', 'file_name')
 
     @property
+    def localisation_experiments_folder(self) -> str:
+        import nolabs
+        exp_folder = self._config.get('localisation', 'experiments_path')
+        return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
+
+    @property
     def conformations_experiments_folder(self) -> str:
         import nolabs
         exp_folder = self._config.get('conformations', 'experiments_path')

@@ -691,6 +691,17 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-json-logger"
+version = "2.0.7"
+description = "A python library adding a json log formatter"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "python-json-logger-2.0.7.tar.gz", hash = "sha256:23e7ec02d34237c5aa1e29a070193a4ea87583bb4e7f8fd06d3de8264c4b2e1c"},
+    {file = "python_json_logger-2.0.7-py3-none-any.whl", hash = "sha256:f380b826a991ebbe3de4d897aeec42760035ac760345e57b812938dc8b35e2bd"},
+]
+
+[[package]]
 name = "rdkit"
 version = "2023.9.4"
 description = "A collection of chemoinformatics and machine-learning software written in C++ and Python"
@@ -972,4 +983,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "9e6ebbb23c21ac95d75b1a8bd25cad39daf2fe2dacb438c4a5730a5b42656c6b"
+content-hash = "952cdaa9b1d871f1eb7faa12d9b6658c8a032b28a6505e4f414a37a49c77217c"

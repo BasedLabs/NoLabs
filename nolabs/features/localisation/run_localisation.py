@@ -5,12 +5,10 @@ from localisation_microservice import (RunLocalisationPredictionRequest,
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.amino_acid import AminoAcid
-from nolabs.domain.localisation import LocalisationProbability
 from nolabs.infrastructure.settings import Settings
 from nolabs.api_models.localisation import RunLocalisationResponse, RunLocalisationRequest, AminoAcidResponse
 from nolabs.domain.experiment import ExperimentId, ExperimentName
 from nolabs.features.localisation.services.file_management import FileManagement
-from nolabs.utils import generate_uuid
 from nolabs.utils.fasta import FastaReader
 
 
@@ -22,7 +20,11 @@ class RunLocalisationFeature:
     async def handle(self, request: RunLocalisationRequest) -> RunLocalisationResponse:
         assert request
 
-        experiment_id = ExperimentId(request.experiment_id) if request.experiment_id else ExperimentId(generate_uuid())
+        experiment_id = ExperimentId(request.experiment_id)
+
+        self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
+        self._file_management.cleanup_experiment(experiment_id=experiment_id)
+        await self._file_management.set_properties(experiment_id=experiment_id, request=request)
 
         configuration = Configuration(
             host=self._settings.localisation_host
@@ -42,10 +44,10 @@ class RunLocalisationFeature:
                         if amino_acid.name not in [aa.name for aa in amino_acids]:
                             amino_acids.append(amino_acid)
 
-            results: List[Tuple[AminoAcid, LocalisationProbability]] = []
+            results: List[AminoAcidResponse] = []
 
             if not amino_acids:
-                raise NoLabsException('No amino acids', ErrorCodes.no_amino_acids)
+                raise NoLabsException(['No amino acids'], ErrorCodes.no_amino_acids)
 
             for amino_acid in amino_acids:
                 result = api_instance.run_localisation_prediction_run_localisation_prediction_post(
@@ -54,29 +56,20 @@ class RunLocalisationFeature:
                     )
                 )
                 if result.errors:
-                    raise NoLabsException(','.join(result.errors), ErrorCodes.amino_acid_localisation_run_error)
-                results.append((amino_acid, LocalisationProbability(
+                    raise NoLabsException(result.errors, ErrorCodes.amino_acid_localisation_run_error)
+                results.append(AminoAcidResponse(
+                    sequence=amino_acid.sequence,
+                    name=amino_acid.name,
                     cytosolic_proteins=result.cytosolic_proteins,
-                    mitochondrial_proteins=result.mitochondrial_proteins,
                     extracellular_secreted_proteins=result.extracellular_secreted_proteins,
                     nuclear_proteins=result.nuclear_proteins,
-                    other_proteins=result.other_proteins
-                )))  # type: ignore
+                    other_proteins=result.other_proteins,
+                    mitochondrial_proteins=result.mitochondrial_proteins
+                ))  # type: ignore
 
-            self._file_management.update_metadata(experiment_id=experiment_id,
-                                                  experiment_name=ExperimentName(value=request.experiment_name),
-                                                  amino_acids=amino_acids)
-            self._file_management.save_experiment(
-                experiment_id=experiment_id,
-                data=results
-            )
+            self._file_management.set_metadata(experiment_id=experiment_id,
+                                               experiment_name=ExperimentName(value=request.experiment_name))
+            self._file_management.set_result(experiment_id=experiment_id, data=results)
             return RunLocalisationResponse(experiment_id=experiment_id.value,
-                                           amino_acids=[AminoAcidResponse(
-                                               sequence=amino_acid.sequence,
-                                               name=amino_acid.name,
-                                               cytosolic_proteins=prob.cytosolic_proteins,
-                                               extracellular_secreted_proteins=prob.extracellular_secreted_proteins,
-                                               nuclear_proteins=prob.nuclear_proteins,
-                                               other_proteins=prob.other_proteins,
-                                               mitochondrial_proteins=prob.mitochondrial_proteins
-                                           ) for amino_acid, prob in results])
+                                           experiment_name=request.experiment_name,
+                                           amino_acids=results)

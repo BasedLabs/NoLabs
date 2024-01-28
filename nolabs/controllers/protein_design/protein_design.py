@@ -53,7 +53,7 @@ async def experiments(feature: Annotated[GetExperimentsFeature, Depends(get_expe
 @router.get('/experiment')
 async def get_experiment(id: str, feature: Annotated[
     GetExperimentFeature, Depends(get_experiment_feature_dependency)]) -> GetExperimentResponse:
-    return feature.handle(id)
+    return await feature.handle(id)
 
 
 @router.delete('/experiment')

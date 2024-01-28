@@ -1,4 +1,5 @@
 import type {IntegratorsRequest} from "src/api/client";
+import {Timeline} from "src/components/types";
 
 export type ExperimentProperties = {
   pdbFile: File | null,
@@ -14,11 +15,7 @@ export type ExperimentProperties = {
   integrator: IntegratorsRequest,
 };
 
-export type Timeline = {
-  message: string;
-  error: (string | null);
-  created_at: string;
-}
+
 
 export type Experiment = {
   id: string;

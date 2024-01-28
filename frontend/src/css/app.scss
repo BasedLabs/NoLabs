@@ -9,3 +9,11 @@
 body {
   overflow-y: hidden;
 }
+
+.transition-all-tenth-sec{
+  transition: all 0.1s linear;
+}
+
+.no-pointer-events {
+
+}

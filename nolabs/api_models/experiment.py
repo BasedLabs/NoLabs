@@ -14,3 +14,10 @@ class ExperimentMetadataResponse:
     id: str
     name: str
     date: datetime.datetime
+
+
+@pydantic.dataclasses.dataclass
+class TimelineResponse:
+    message: str
+    error: str | None
+    created_at: datetime.datetime

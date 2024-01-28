@@ -2,16 +2,10 @@
   <div v-if="experimentLoaded">
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
-      <q-header :class="$q.dark.isActive ? 'bg-secondary' : 'bg-black'">
-        <q-toolbar>
-          <q-toolbar-title>{{ experiment.name }}
-            <q-btn round
-                   @click="changeExperimentName" color="positive" size="sm" flat icon="edit"/>
-          </q-toolbar-title>
-          <q-btn color="positive" size="md" outline label="Binder parameters"
-                 @click="showInferenceForm = !showInferenceForm"/>
-        </q-toolbar>
-      </q-header>
+      <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
+        <q-btn color="positive" size="md" outline label="Binder parameters"
+               @click="showInferenceForm = !showInferenceForm"/>
+      </ExperimentHeader>
       <q-page-container>
         <div class="row" v-if="experimentHasGeneratedData">
           <div class="col-5">
@@ -30,7 +24,6 @@
                   :pagination="{rowsPerPage: 5}"
               />
             </div>
-
           </div>
           <div class="col-5">
             <div class="q-mt-sm q-mb-sm q-mr-sm">
@@ -63,6 +56,7 @@ import {QVueGlobals, useQuasar, QSpinnerOrbit} from 'quasar';
 import InferenceFormView from "src/features/proteinDesign/InferenceFormView.vue";
 import {Experiment} from "src/features/proteinDesign/types";
 import PdbViewer from "src/components/PdbViewer.vue";
+import ExperimentHeader from "src/components/ExperimentHeader.vue";
 
 
 export default defineComponent({
@@ -115,6 +109,10 @@ export default defineComponent({
     }
   },
   methods: {
+    async onExperimentNameChange(newExperimentName: string) {
+      await this.store.changeExperimentName(this.experiment?.id as string, newExperimentName);
+      this.experiment!.name = newExperimentName;
+    },
     async onSubmit(contig: string, hotspots: string, numberOfDesigns: number, timesteps: number, pdbFile: File) {
       this.quasar.loading.show({
         spinner: QSpinnerOrbit,
@@ -187,6 +185,7 @@ export default defineComponent({
     }
   },
   components: {
+    ExperimentHeader,
     PdbViewer,
     InferenceFormView
   }

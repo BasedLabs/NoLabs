@@ -3,18 +3,18 @@ import {Notify} from "quasar";
 import {ErrorCodes, ErrorResponse} from "src/api/errorTypes";
 import {obtainErrorResponse} from "src/api/errorWrapper";
 import {Experiment, InferenceRequest} from "src/features/conformations/types";
-import {ConformationsService, IntegratorsRequest} from "src/api/client";
-import {ExperimentListItem} from "src/features/types";
+import {ConformationsService, IntegratorsRequest, OpenAPI} from "src/api/client";
+import apiConstants from "src/api/constants";
+import {ExperimentListItem} from "src/components/types";
 
-type ErrorState = {
-    error: string
-}
 
-const useConformationsStorage = defineStore("conformations", {
+OpenAPI.BASE = apiConstants.hostname;
+
+const useConformationsStore = defineStore("conformations", {
     actions: {
         async inference(request: InferenceRequest): Promise<{
             experiment: Experiment | null,
-            error: ErrorState | null
+            errors: string[]
         }> {
             const response = await ConformationsService.inferenceApiV1ConformationsInferencePost(
                 {
@@ -42,14 +42,20 @@ const useConformationsStorage = defineStore("conformations", {
                         message: error
                     });
                 }
-                return {experiment: null, error: {error: errorResponse.errors[0]}};
+                return {experiment: null, errors: errorResponse.errors};
             }
             return {
                 experiment: {
                     id: response.experiment_id,
                     name: response.experiment_name,
                     pdbContent: new File([new Blob([response.pdb_content!])], request.pdbFile.name),
-                    timeline: response.timeline,
+                    timeline: response.timeline.map(x => {
+                        return {
+                            message: x.message,
+                            error: x.error,
+                            createdAt: x.created_at
+                        };
+                    }),
                     properties: {
                         pdbFile: request.pdbFile,
                         totalFrames: request.totalFrames,
@@ -64,12 +70,12 @@ const useConformationsStorage = defineStore("conformations", {
                         integrator: request.integrator,
                     }
                 },
-                error: null
+                errors: []
             };
         },
         async getExperiment(experimentId: string): Promise<{
             experiment: Experiment | null,
-            error: ErrorState | null
+            errors: string[]
         }> {
             const response = await ConformationsService.getExperimentApiV1ConformationsGetExperimentGet(experimentId);
             const errorResponse = obtainErrorResponse(response);
@@ -77,8 +83,8 @@ const useConformationsStorage = defineStore("conformations", {
                 if (errorResponse.error_code === ErrorCodes.experiment_id_not_found) {
                     return {
                         experiment: {
-                            id: response.experiment_id,
-                            name: response.experiment_name,
+                            id: experimentId,
+                            name: 'New experiment',
                             pdbContent: null,
                             timeline: [],
                             properties: {
@@ -94,7 +100,7 @@ const useConformationsStorage = defineStore("conformations", {
                                 ignoreMissingAtoms: false,
                                 integrator: IntegratorsRequest.LANGEVIN_INTEGATOR
                             }
-                        }, error: null
+                        }, errors: []
                     };
                 } else {
                     Notify.create({
@@ -103,7 +109,7 @@ const useConformationsStorage = defineStore("conformations", {
                     });
                 }
 
-                return {experiment: null, error: {error: errorResponse.errors[0]}};
+                return {experiment: null, errors: errorResponse.errors};
             }
 
             return {
@@ -111,7 +117,13 @@ const useConformationsStorage = defineStore("conformations", {
                     id: response.experiment_id,
                     name: response.experiment_name,
                     pdbContent: new File([new Blob([response.pdb_file!])], response.properties.pdb_file_name),
-                    timeline: [],
+                    timeline: response.timeline.map(x => {
+                        return {
+                            message: x.message,
+                            error: x.error,
+                            createdAt: x.created_at
+                        };
+                    }),
                     properties: {
                         pdbFile: new File([new Blob([response.properties.pdb_file!])], response.properties.pdb_file_name),
                         totalFrames: response.properties.total_frames,
@@ -125,10 +137,10 @@ const useConformationsStorage = defineStore("conformations", {
                         ignoreMissingAtoms: response.properties.ignore_missing_atoms,
                         integrator: response.properties.integrator!
                     }
-                }, error: null
+                }, errors: []
             };
         },
-        async getExperiments(): Promise<{ experiments: ExperimentListItem[] | null, error: ErrorState | null }> {
+        async getExperiments(): Promise<{ experiments: ExperimentListItem[] | null, errors: string[] }> {
             const response = await ConformationsService.experimentsApiV1ConformationsExperimentsGet();
             const experiments: ExperimentListItem[] = [];
             for (let i = 0; i < response.length; i++) {
@@ -139,25 +151,28 @@ const useConformationsStorage = defineStore("conformations", {
             }
             return {
                 experiments: experiments,
-                error: null
+                errors: []
             }
         },
         async deleteExperiment(experimentId: string) {
             await ConformationsService.deleteExperimentApiV1ConformationsDeleteExperimentDelete(experimentId);
         },
         async changeExperimentName(experimentId: string, newName: string) {
-            await ConformationsService.changeExperimentNameApiV1ConformationsChangeExperimentNamePost({id: experimentId, name: newName});
+            await ConformationsService.changeExperimentNameApiV1ConformationsChangeExperimentNamePost({
+                id: experimentId,
+                name: newName
+            });
         },
-        async createExperiment(): Promise<{ experiment: ExperimentListItem | null, error: ErrorState | null }> {
+        async createExperiment(): Promise<{ experiment: ExperimentListItem | null, errors: string[] }> {
             const response = await ConformationsService.createExperimentApiV1ConformationsCreateExperimentGet();
             return {
                 experiment: {
                     id: response.id,
                     name: response.name
-                }, error: null
+                }, errors: []
             }
         }
     }
 });
 
-export default useConformationsStorage;
+export default useConformationsStore;

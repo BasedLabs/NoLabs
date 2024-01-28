@@ -21,7 +21,11 @@ class RunProteinDesignFeature:
         experiment_id = ExperimentId(request.experiment_id)
         experiment_name = ExperimentName(request.experiment_name)
         pdb_content = await request.pdb_file.read()
-        await request.pdb_file.seek(0)
+
+        self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
+        self._file_management.cleanup_experiment(experiment_id=experiment_id)
+        await self._file_management.set_metadata(experiment_id=experiment_id, experiment_name=experiment_name)
+        await self._file_management.set_properties(experiment_id=experiment_id, request=request)
 
         configuration = microservice.Configuration(
             host=self._settings.protein_design_host
@@ -37,20 +41,12 @@ class RunProteinDesignFeature:
                     number_of_designs=request.number_of_designs
                 )
             )
-            #response = microservice.RunRfdiffusionResponse(errors=[], pdbs_content=['asd'])
 
             if response.errors and not response.pdbs_content:
                 raise NoLabsException(response.errors, ErrorCodes.protein_design_run_error)
 
-            await self._file_management.update_metadata(
-                experiment_id=experiment_id,
-                experiment_name=experiment_name
-            )
-            await self._file_management.save_experiment(
-                experiment_id=experiment_id,
-                pdbs_content=response.pdbs_content,
-                request=request
-            )
+            await self._file_management.set_result(experiment_id=experiment_id, pdbs_content=response.pdbs_content,
+                                                   request=request)
             return RunProteinDesignResponse(
                 experiment_id=experiment_id.value,
                 experiment_name=experiment_name.value,

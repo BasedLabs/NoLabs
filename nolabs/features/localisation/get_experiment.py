@@ -1,6 +1,7 @@
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.localisation import GetExperimentResponse, ExperimentMetadataResponse, AminoAcidResponse
+from nolabs.api_models.localisation import GetExperimentResponse, AminoAcidResponse, ExperimentPropertiesResponse, \
+    ExperimentFastaPropertyResponse
 from nolabs.features.localisation.services.file_management import FileManagement
 
 
@@ -8,29 +9,28 @@ class GetExperimentFeature:
     def __init__(self, file_management: FileManagement):
         self._file_management = file_management
 
-    def handle(self, id: str) -> GetExperimentResponse:
+    async def handle(self, id: str) -> GetExperimentResponse:
         assert id
 
         experiment_id = ExperimentId(id)
 
         if not self._file_management.experiment_exists(experiment_id):
-            raise NoLabsException('This experiment not found in solubility', ErrorCodes.experiment_id_not_found)
+            raise NoLabsException(['This experiment not found in solubility'], ErrorCodes.experiment_id_not_found)
 
-        metadata = self._file_management.get_experiment_metadata(experiment_id)
-        data = self._file_management.get_experiment_data(experiment_id)
+        data = self._file_management.get_result(experiment_id)
+        properties = await self._file_management.get_properties(experiment_id)
+        metadata = self._file_management.get_metadata(experiment_id)
         return GetExperimentResponse(
-            metadata=ExperimentMetadataResponse(
-                id=metadata.id.value,
-                name=metadata.name.value,
-                date=metadata.date
-            ),
-            amino_acids=[AminoAcidResponse(
-                sequence=amino_acid.sequence,
-                name=amino_acid.name,
-                extracellular_secreted_proteins=prob.extracellular_secreted_proteins,
-                mitochondrial_proteins=prob.mitochondrial_proteins,
-                cytosolic_proteins=prob.cytosolic_proteins,
-                nuclear_proteins=prob.nuclear_proteins,
-                other_proteins=prob.other_proteins
-            ) for amino_acid, prob in data]
+            experiment_id=experiment_id.value,
+            experiment_name=metadata.name.value,
+            amino_acids=data,
+            properties=ExperimentPropertiesResponse(
+                amino_acid_sequence=properties.amino_acid_sequence,
+                fastas=[
+                    ExperimentFastaPropertyResponse(
+                        filename=f.filename,
+                        content=(await f.read()).decode('utf-8')
+                    ) for f in properties.fastas
+                ]
+            )
         )

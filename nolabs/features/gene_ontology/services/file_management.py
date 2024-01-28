@@ -19,8 +19,8 @@ class FileManagement(ExperimentsFileManagementBase):
         self._go_file_name = settings.go_file_name
         self.ensure_experiments_folder_exists()
 
-    def update_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName,
-                        amino_acids: List[AminoAcid]):
+    def set_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName,
+                     amino_acids: List[AminoAcid]):
         self.ensure_experiment_folder_exists(experiment_id)
         j = {
             'id': experiment_id.value,

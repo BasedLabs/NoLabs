@@ -50,8 +50,8 @@ class FileManagement(ExperimentsFileManagementBase):
         if not os.path.isdir(experiment_folder):
             os.mkdir(experiment_folder)
 
-        self.update_metadata(experiment_id, ExperimentName("New Experiment"))
-        metadata = self.get_experiment_metadata(experiment_id)
+        self.set_metadata(experiment_id, ExperimentName("New Experiment"))
+        metadata = self.get_metadata(experiment_id)
 
         return metadata
 
@@ -65,7 +65,7 @@ class FileManagement(ExperimentsFileManagementBase):
         experiment_folder = self.experiment_folder(experiment_id)
         shutil.rmtree(experiment_folder, ignore_errors=True)
 
-    def get_experiment_metadata(self, experiment_id: ExperimentId) -> ExperimentMetadata:
+    def get_metadata(self, experiment_id: ExperimentId) -> ExperimentMetadata:
         metadata_file = os.path.join(self.experiment_folder(experiment_id),
                                      self._settings.drug_discovery_experiment_metadata_file_name)
         metadata = json.load(open(metadata_file, 'r', encoding='utf-8'))
@@ -81,12 +81,12 @@ class FileManagement(ExperimentsFileManagementBase):
         experiments_list = []
         for exp_id in os.listdir(self._settings.drug_discovery_experiments_folder):
             experiment_id = ExperimentId(exp_id)
-            metadata = self.get_experiment_metadata(experiment_id)
+            metadata = self.get_metadata(experiment_id)
             experiments_list.append(metadata)
 
         return experiments_list
 
-    def update_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
+    def set_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
         j = {
             'id': experiment_id.value,
             'name': experiment_name.value,

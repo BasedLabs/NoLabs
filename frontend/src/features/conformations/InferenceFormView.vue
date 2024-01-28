@@ -17,7 +17,7 @@ export default defineComponent({
       required: true,
     },
     properties: {
-      type: {} as PropType<ExperimentProperties>,
+      type: Object as PropType<ExperimentProperties>,
       required: true
     }
   },
@@ -56,11 +56,11 @@ export default defineComponent({
 
 <template>
   <q-form @submit="_onSubmit" class="q-gutter-md">
-    <q-input filled v-model="totalFrames" label="Total frames" lazy-rules type="number"
-             :rules="[val => val && val.length > 0 || 'Please type something']">
+    <q-input filled v-model="totalFrames" label="Total frames" type="number" step="1"
+             :rules="[val => val && val > 0 || 'Please type something']">
     </q-input>
     <q-input filled v-model="temperatureK" label="Temperature" type="number"
-             :rules="[val => val && val.length > 0 || 'Please type something']">
+             :rules="[val => val && val > 0 || 'Please type something']" mask="#.##" step="any">
       <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
         Temperature of the system
       </q-tooltip>
@@ -72,13 +72,13 @@ export default defineComponent({
       </q-tooltip>
     </q-input>
     <q-input filled type="number" v-model="stepSize" label="Step size" lazy-rules
-             :rules="[val => val && val > 0 || 'Please type something']">
+             :rules="[val => val && val > 0 || 'Please type something']" step="any" mask="#.###">
       <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
         Simulation step size
       </q-tooltip>
     </q-input>
-    <q-input filled type="number" v-model="stepSize" label="Step size" lazy-rules
-             :rules="[val => val && val > 0 || 'Please type something']">
+    <q-input filled type="number" v-model="frictionCoeff" label="Friction coefficient"  lazy-rules
+             :rules="[val => val && val > 0 || 'Please type something']" mask="#.#" step="0.1">
       <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
         Simulation step size
       </q-tooltip>
@@ -86,7 +86,6 @@ export default defineComponent({
     <q-checkbox v-model="replaceNonStandardResidues" label="Replace non standard residues"/>
     <q-checkbox v-model="addMissingAtoms" label="Add missing atoms"/>
     <q-checkbox v-model="addMissingHydrogens" label="Add missing hydrogens"/>
-    <q-checkbox v-model="frictionCoeff" label="Friction coefficient"/>
     <q-checkbox v-model="ignoreMissingAtoms" label="Ignore missing atoms"/>
     <q-select v-model="integrator" :options="IntegratorsValues" label="Integrator"></q-select>
     <q-file filled bottom-slots accept=".pdb" :rules="[pdbFileRule]" v-model="pdbFile"
@@ -103,7 +102,7 @@ export default defineComponent({
       </template>
     </q-file>
     <div>
-      <q-btn label="Run inference" size="large" type="submit" color="positive"/>
+      <q-btn label="Run computation" size="large" type="submit" color="positive"/>
     </div>
   </q-form>
 </template>

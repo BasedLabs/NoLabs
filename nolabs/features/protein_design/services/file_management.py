@@ -1,17 +1,18 @@
 import glob
 import json
 import os.path
+from io import BytesIO
 from typing import List
 
 import pathlib
 
+from fastapi import UploadFile
+
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.api_models.protein_design import RunProteinDesignRequest
 from nolabs.domain.experiment import ExperimentId, ExperimentName
-from nolabs.domain.protein_design import ExperimentProperties
 from nolabs.features.file_magement_base import ExperimentsFileManagementBase
 from nolabs.infrastructure.settings import Settings
-from nolabs.utils import utcnow
 
 
 class FileManagement(ExperimentsFileManagementBase):
@@ -21,29 +22,44 @@ class FileManagement(ExperimentsFileManagementBase):
         self.ensure_experiments_folder_exists()
         self._experiment_properties_filename = 'properties.json'
 
-    async def save_experiment(self, experiment_id: ExperimentId, pdbs_content: List[str], request: RunProteinDesignRequest):
+    async def set_properties(self, experiment_id: ExperimentId, request: RunProteinDesignRequest):
         if not request or not request.pdb_file or not request.pdb_file.filename:
             raise NoLabsException(['No PDB file provided'], error_code=ErrorCodes.protein_design_update_metadata_error)
 
-        properties = {
-            'contig': request.contig,
-            'number_of_designs': request.number_of_designs,
-            'input_file_name': request.pdb_file.filename,
-            'timesteps': request.timesteps,
-            'hotspots': request.hotspots
-        }
+        await request.pdb_file.seek(0)
+
+        try:
+            properties = {
+                'contig': request.contig,
+                'number_of_designs': request.number_of_designs,
+                'input_file_name': request.pdb_file.filename,
+                'timesteps': request.timesteps,
+                'hotspots': request.hotspots
+            }
+
+            experiment_folder = self.experiment_folder(experiment_id)
+
+            pdb_files = glob.glob(os.path.join(experiment_folder, '*.pdb'))
+            for pdb_file in pdb_files:
+                os.remove(pdb_file)
+
+            with open(os.path.join(experiment_folder, self._experiment_properties_filename), 'w') as f:
+                json.dump(properties, f, ensure_ascii=False, indent=4)
+
+            with open(os.path.join(experiment_folder, request.pdb_file.filename), 'wb') as f:
+                f.write(await request.pdb_file.read())
+        finally:
+            await request.pdb_file.seek(0)
+
+    async def set_result(self, experiment_id: ExperimentId, pdbs_content: List[str], request: RunProteinDesignRequest):
+        if not request or not request.pdb_file or not request.pdb_file.filename:
+            raise NoLabsException(['No PDB file provided'], error_code=ErrorCodes.protein_design_update_metadata_error)
 
         experiment_folder = self.experiment_folder(experiment_id)
 
         pdb_files = glob.glob(os.path.join(experiment_folder, '*.pdb'))
         for pdb_file in pdb_files:
             os.remove(pdb_file)
-
-        with open(os.path.join(experiment_folder, self._experiment_properties_filename), 'w') as f:
-            json.dump(properties, f, ensure_ascii=False, indent=4)
-
-        with open(os.path.join(experiment_folder, request.pdb_file.filename), 'wb') as f:
-            f.write(await request.pdb_file.read())
 
         file = pathlib.Path(request.pdb_file.filename)
 
@@ -53,24 +69,29 @@ class FileManagement(ExperimentsFileManagementBase):
             with open(results_pdb_path, 'w', encoding='utf-8') as protein_design_f:
                 protein_design_f.write(pdb_content)
 
-    def experiment_properties(self, experiment_id) -> ExperimentProperties:
+        await request.pdb_file.seek(0)
+
+    def get_properties(self, experiment_id: ExperimentId) -> RunProteinDesignRequest:
         experiment_folder = self.experiment_folder(experiment_id)
+
+        metadata = self.get_metadata(experiment_id=experiment_id)
+
         with open(os.path.join(experiment_folder, self._experiment_properties_filename), 'r') as f:
             properties = json.load(f)
 
-        with open(os.path.join(experiment_folder, properties['input_file_name']), 'r') as f:
-            input_pdb_file = f.read()
-
-        return ExperimentProperties(
+        return RunProteinDesignRequest(
+            pdb_file=UploadFile(
+                BytesIO(open(os.path.join(experiment_folder, properties['input_file_name']), 'rb').read()),
+                filename=properties['input_file_name']),
             contig=properties['contig'],
             number_of_designs=properties['number_of_designs'],
-            input_file_name=properties['input_file_name'],
             timesteps=properties['timesteps'],
             hotspots=properties['hotspots'],
-            input_file_content=input_pdb_file
+            experiment_name=metadata.name.value,
+            experiment_id=experiment_id.value
         )
 
-    def get_experiment_data(self, experiment_id: ExperimentId) -> List[str]:
+    def get_result(self, experiment_id: ExperimentId) -> List[str]:
         experiment_folder = self.experiment_folder(experiment_id)
         result = []
         for i, pdb_file in enumerate(glob.glob(os.path.join(experiment_folder, '*_generated_*.pdb'))):

@@ -2,26 +2,41 @@
   <div v-if="experimentLoaded">
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
-      <q-header :class="$q.dark.isActive ? 'bg-secondary' : 'bg-black'">
-        <q-toolbar>
-          <q-toolbar-title>{{ experiment.name }}
-            <q-btn round
-                   @click="changeExperimentName" color="positive" size="sm" flat icon="edit"/>
-          </q-toolbar-title>
-          <q-btn color="positive" size="md" outline label="Binder parameters"
-                 @click="showInferenceForm = !showInferenceForm"/>
-        </q-toolbar>
-      </q-header>
+      <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
+        <q-btn color="positive" size="md" outline label="Simulation parameters"
+               @click="showInferenceForm = !showInferenceForm"/>
+      </ExperimentHeader>
       <q-page-container>
-        <div class="row" v-if="experimentHasGeneratedData">
-          <div class="col-6">
+        <div class="row">
+          <div :class="tiles.one.current"
+               style="transition: all .1s linear;">
             <div class="q-ma-sm">
-              <PdbViewer :pdb-file="experiment?.properties.pdbFile"/>
+              <q-btn size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+                     @click="expandTile('one');"/>
+              <PdbViewer v-if="experimentHasInputData" :pdb-file="experiment?.properties.pdbFile"
+                         :key="experiment?.pdbContent?.name"/>
             </div>
           </div>
-          <div class="col-6">
+          <div :class="tiles.two.current"
+               style="transition: all .1s linear;">
+            <div class="q-pl-sm q-ma-sm">
+              <q-btn size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+                     @click="expandTile('two');"/>
+              <TimelineView :timeline="experiment?.timeline"/>
+            </div>
+          </div>
+          <div :class="tiles.three.current" style="transition: all .1s linear;">
             <div class="q-mt-sm q-mb-sm q-mr-sm">
-              <PdbViewer :pdb-file="experiment?.pdbContent"/>
+              <q-btn on-click="" size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+                     @click="expandTile('three');"/>
+              <h6 v-if="simulationCriticalError" class="q-ma-md">
+                <q-icon name="warning" color="warning" size="4rem"/>
+                Simulations error. Fix errors (check them in table) and restart simulation.
+              </h6>
+              <PdbViewer v-if="!simulationCriticalError && experimentHasGeneratedData"
+                         :key="experiment?.pdbContent?.name"
+                         :pdb-file="experiment?.pdbContent" :simulation="true"
+                         pdb-file-name-prefix="Simulation"/>
             </div>
           </div>
         </div>
@@ -30,7 +45,7 @@
     <q-dialog v-model="showInferenceForm" position="right" :maximized="true">
       <q-card>
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">Protein binder design parameters</div>
+          <div class="text-h6">Simulation parameters</div>
           <q-space/>
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
@@ -47,36 +62,79 @@ import {defineComponent} from 'vue'
 import {QVueGlobals, useQuasar, QSpinnerOrbit} from 'quasar';
 import PdbViewer from "src/components/PdbViewer.vue";
 import InferenceFormView from "src/features/conformations/InferenceFormView.vue";
-import useConformationsStorage from "src/features/conformations/storage";
+import useConformationsStore from "src/features/conformations/storage";
 import {Experiment, ExperimentProperties} from "src/features/conformations/types";
-import type {IntegratorsRequest} from "src/api/client";
+import TimelineView from "src/components/Timeline.vue";
+import ExperimentHeader from "src/components/ExperimentHeader.vue";
 
 
 export default defineComponent({
-  name: 'ProteinDesignExperimentView',
+  name: 'ConformationExperimentView',
   data() {
-    const store = useConformationsStorage();
+    const store = useConformationsStore();
 
     return {
       experiment: null as Experiment,
       showInferenceForm: false,
       store,
       quasar: null as unknown as QVueGlobals,
+      tiles: {
+        one: {
+          current: 'col-4',
+          hover: 'col-6',
+          leave: 'col-4',
+          otherHover: 'col-3'
+        },
+        two: {
+          current: 'col-4',
+          hover: 'col-6',
+          leave: 'col-4',
+          otherHover: 'col-3'
+        },
+        three: {
+          current: 'col-4',
+          hover: 'col-6',
+          leave: 'col-4',
+          otherHover: 'col-3'
+        }
+      } as { [index: string]: { current: String, hover: String, leave: String, otherHover: String } }
     }
   },
   computed: {
     experimentLoaded(): boolean {
       return this.experiment !== null;
     },
+    experimentHasInputData(): boolean {
+      return this.experimentLoaded && this.experiment!.properties.pdbFile != null;
+    },
     experimentHasGeneratedData(): boolean {
-      return this.experimentLoaded && this.experiment!.pdbContent != null;
+      return this.experimentLoaded && this.experiment!.pdbContent != null && this.experiment!.pdbContent!.size > 4;
+    },
+    simulationCriticalError(): boolean {
+      return this.experimentLoaded && this.experiment?.timeline.length > 0 && (this.experiment?.pdbContent == null || this.experiment?.pdbContent.size <= 4);
     }
   },
   methods: {
+    expandTile(index: string) {
+      if (this.tiles[index].current === this.tiles[index].hover) {
+        for (const key in this.tiles) {
+          this.tiles[key].current = this.tiles[key].leave;
+        }
+        return;
+      }
+
+      for (const key in this.tiles) {
+        if (key == index) {
+          this.tiles[key].current = this.tiles[key].hover;
+        } else {
+          this.tiles[key].current = this.tiles[key].otherHover;
+        }
+      }
+    },
     async onSubmit(properties: ExperimentProperties) {
       this.quasar.loading.show({
         spinner: QSpinnerOrbit,
-        message: 'Running AI models. This can take a couple of minutes'
+        message: 'Running computations'
       });
 
       const response = await this.store.inference({
@@ -103,29 +161,9 @@ export default defineComponent({
 
       this.quasar.loading.hide();
     },
-    changeExperimentName() {
-      this.quasar.dialog({
-        color: 'positive',
-        title: 'Prompt',
-        message: 'Enter new experiment name',
-        prompt: {
-          model: this.experiment!.name,
-          required: true,
-          type: 'text' // optional
-        },
-        cancel: true,
-        persistent: true
-      }).onOk(async data => {
-        if (!data)
-          return;
-        this.quasar.loading.show({
-          spinner: QSpinnerOrbit,
-          message: 'Changing experiment name'
-        });
-        await this.store.changeExperimentName(this.experiment?.id as string, data);
-        this.experiment!.name = data;
-        this.quasar.loading.hide();
-      });
+    async onExperimentNameChange(newExperimentName: string) {
+      await this.store.changeExperimentName(this.experiment?.id as string, newExperimentName);
+      this.experiment!.name = newExperimentName;
     }
   },
   async mounted() {
@@ -146,11 +184,13 @@ export default defineComponent({
 
     this.quasar.loading.hide();
 
-    if (!this.experimentHasGeneratedData) {
+    if (!this.experimentHasInputData) {
       this.showInferenceForm = true;
     }
   },
   components: {
+    ExperimentHeader,
+    TimelineView,
     PdbViewer,
     InferenceFormView
   }

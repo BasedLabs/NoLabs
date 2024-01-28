@@ -16,7 +16,7 @@ class GetExperimentFeature:
         if not self._file_management.experiment_exists(experiment_id):
             raise NoLabsException('This experiment not found in solubility', ErrorCodes.experiment_id_not_found)
 
-        metadata = self._file_management.get_experiment_metadata(experiment_id)
+        metadata = self._file_management.get_metadata(experiment_id)
         data = self._file_management.get_experiment_data(experiment_id)
         return GetExperimentResponse(
             metadata=ExperimentMetadataResponse(

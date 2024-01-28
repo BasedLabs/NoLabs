@@ -45,18 +45,18 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import useProteinDesignStore from 'src/features/proteinDesign/storage';
-import {ExperimentListItem} from "src/features/types";
+import {ExperimentListItem} from "src/components/types";
+import useConformationsStorage from "src/features/conformations/storage";
+import useProteinDesignStore from "src/features/proteinDesign/storage";
 
 
 export default defineComponent({
   name: 'ExperimentsView',
   data() {
-    const store = useProteinDesignStore();
     return {
       experiments: [] as ExperimentListItem[],
-      store,
       filter: '',
+      store: useProteinDesignStore(),
       selected: [],
       loading: false,
       initialPagination: {
@@ -86,10 +86,15 @@ export default defineComponent({
   },
   methods: {
     async addExperimentClick() {
-      await this.store.createExperiment();
+      const response = await this.store.createExperiment();
+      this.experiments.push({
+        id: response.experiment!.id,
+        name: response.experiment!.name
+      })
     },
     async removeExperimentClick(experimentId: string) {
       await this.store.deleteExperiment(experimentId);
+      this.experiments = this.experiments.filter(x => x.id !== experimentId);
     }
   },
   async mounted() {

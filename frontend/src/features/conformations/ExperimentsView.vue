@@ -30,7 +30,7 @@
             </q-list>
             <q-card-actions align="right">
               <router-link style="text-decoration: none;"
-                           :to="{ name: 'ProteinDesignExperimentView', params: { experimentId: props.row.id } }">
+                           :to="{ name: 'ConformationsExperimentView', params: { experimentId: props.row.id } }">
                 <q-btn outline color="positive" label="Open"/>
               </router-link>
               <q-btn outline class="q-mx-md" color="negative" label="Remove"
@@ -45,18 +45,17 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import {ExperimentListItem} from "src/features/types";
-import useConformationsStorage from "src/features/conformations/storage";
+import {ExperimentListItem} from "src/components/types";
+import useConformationsStore from "src/features/conformations/storage";
 
 
 export default defineComponent({
   name: 'ExperimentsView',
   data() {
-    const store = useConformationsStorage();
     return {
       experiments: [] as ExperimentListItem[],
-      store,
       filter: '',
+      store: useConformationsStore(),
       selected: [],
       loading: false,
       initialPagination: {
@@ -86,10 +85,15 @@ export default defineComponent({
   },
   methods: {
     async addExperimentClick() {
-      await this.store.createExperiment();
+      const response = await this.store.createExperiment();
+      this.experiments.push({
+        id: response.experiment!.id,
+        name: response.experiment!.name
+      })
     },
     async removeExperimentClick(experimentId: string) {
       await this.store.deleteExperiment(experimentId);
+      this.experiments = this.experiments.filter(x => x.id !== experimentId);
     }
   },
   async mounted() {

@@ -13,7 +13,7 @@ class GetExperimentFeature:
         assert id
 
         experiment_id = ExperimentId(id)
-        metadata = self._file_management.get_experiment_metadata(experiment_id)
+        metadata = self._file_management.get_metadata(experiment_id)
         data = self._file_management.get_experiment_data(experiment_id)
         amino_acids = []
         for amino_acid, obo_nodes in data:

@@ -9,7 +9,7 @@ class GetExperimentFeature:
     def __init__(self, file_management: FileManagement):
         self._file_management = file_management
 
-    def handle(self, id: str) -> GetExperimentResponse:
+    async def handle(self, id: str) -> GetExperimentResponse:
         assert id
 
         experiment_id = ExperimentId(id)
@@ -17,19 +17,19 @@ class GetExperimentFeature:
         if not self._file_management.experiment_exists(experiment_id):
             raise NoLabsException(messages=["Experiment does not exist"], error_code=ErrorCodes.experiment_id_not_found)
 
-        metadata = self._file_management.get_experiment_metadata(experiment_id)
-        properties = self._file_management.experiment_properties(experiment_id)
-        data = self._file_management.get_experiment_data(experiment_id)
+        metadata = self._file_management.get_metadata(experiment_id)
+        properties = self._file_management.get_properties(experiment_id)
+        data = self._file_management.get_result(experiment_id)
         return GetExperimentResponse(
             experiment_id=experiment_id.value,
             experiment_name=metadata.name.value,
             pdb_files=data,
             properties=ExperimentPropertiesResponse(
-                pdb_file=properties.input_file_content,
+                pdb_file=(await properties.pdb_file.read()).decode('utf-8'),
                 contig=properties.contig,
                 number_of_designs=properties.number_of_designs,
                 hotspots=properties.hotspots,
                 timesteps=properties.timesteps,
-                pdb_file_name=properties.input_file_name
+                pdb_file_name=properties.pdb_file.filename
             )
         )

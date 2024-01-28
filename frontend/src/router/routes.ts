@@ -1,3 +1,5 @@
+import ExperimentsView from "src/components/ExperimentsView.vue";
+
 const drugDiscoveryRoutes = [
     {
         path: 'drug-discovery',
@@ -29,12 +31,25 @@ const drugDiscoveryRoutes = [
 const proteinDesignRoutes = [
     {
         path: 'protein-design',
-        component: () => import("src/features/proteinDesign/ExperimentsView.vue")
+        component: () => import('src/features/proteinDesign/ExperimentsView.vue'),
     },
     {
         path: 'protein-design/experiment/:experimentId',
         component: () => import('src/features/proteinDesign/ExperimentView.vue'),
         name: 'ProteinDesignExperimentView',
+        props: true
+    },
+];
+
+const localisationRoutes = [
+    {
+        path: 'localisation',
+        component: () => import('src/features/localisation/ExperimentsView.vue'),
+    },
+    {
+        path: 'localisation/experiment/:experimentId',
+        component: () => import('src/features/localisation/ExperimentView.vue'),
+        name: 'LocalisationExperimentView',
         props: true
     },
 ];
@@ -60,7 +75,8 @@ const routes = [
         children: [
             ...drugDiscoveryRoutes,
             ...proteinDesignRoutes,
-            ...conformationsRoutes
+            ...conformationsRoutes,
+            ...localisationRoutes
         ]
     }
 ];

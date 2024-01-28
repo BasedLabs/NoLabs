@@ -100,4 +100,15 @@ export class SolubilityService {
             },
         });
     }
+    /**
+     * Create Experiment
+     * @returns ExperimentMetadataResponse Successful Response
+     * @throws ApiError
+     */
+    public static createExperimentApiV1SolubilityCreateExperimentGet(): CancelablePromise<ExperimentMetadataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/solubility/create-experiment',
+        });
+    }
 }

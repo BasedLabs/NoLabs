@@ -10,7 +10,7 @@ from nolabs.api_models.experiment import ExperimentMetadataResponse
 @pcdataclass.dataclass
 class RunSolubilityRequest:
     experiment_name: str
-    experiment_id: Optional[str]
+    experiment_id: str
     amino_acid_sequence: Optional[str]
     fastas: Optional[List[UploadFile]]
 
@@ -34,16 +34,26 @@ class AminoAcidResponse:
 @pcdataclass.dataclass
 class RunSolubilityResponse:
     experiment_id: str
+    experiment_name: str
     amino_acids: List[AminoAcidResponse]
     errors: List[str] = pcdataclass.Field(default_factory=list)
 
 
 @pcdataclass.dataclass
-class GetExperimentRequest:
-    experiment_id: str
+class ExperimentFastaPropertyResponse:
+    filename: str
+    content: str
+
+
+@pcdataclass.dataclass
+class ExperimentPropertiesResponse:
+    amino_acid_sequence: str | None
+    fastas: List[ExperimentFastaPropertyResponse]
 
 
 @pcdataclass.dataclass
 class GetExperimentResponse:
-    metadata: ExperimentMetadataResponse
+    experiment_id: str
+    experiment_name: str
     amino_acids: List[AminoAcidResponse]
+    properties: ExperimentPropertiesResponse

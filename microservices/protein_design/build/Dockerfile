@@ -6,8 +6,8 @@ ARG rfdiffusion_path=/app/protein_design/RFdiffusion
 WORKDIR /app/protein_design
 WORKDIR /app
 RUN apt-get update
-RUN apt-get -y install wget
-COPY protein_design/RFdiffusion /app/protein_design/RFdiffusion
+RUN apt-get -y install wget git
+RUN git clone https://github.com/RosettaCommons/RFdiffusion $rfdiffusion_path
 RUN mkdir $rfdiffusion_path/models
 RUN ls -l $rfdiffusion_path
 WORKDIR $rfdiffusion_path/scripts

@@ -1,5 +1,5 @@
 export const PdbViews = {
-    default: { key: 'default', title: 'Default representation' },
+    default: { key: 'base', title: 'Default' },
     cartoon: { key: 'cartoon', title: 'Cartoon' },
     backbone: { key: 'backbone', title: 'Backbone' },
     ballsAndSticks: { key: 'ball+stick', title: 'Balls and sticks' },
@@ -13,3 +13,14 @@ export const PdbViews = {
     spacefill: { key: 'spacefill', title: 'Spacefill' },
     unitcell: { key: 'unitcell', title: 'Unitcell' }
 };
+
+export type ExperimentListItem = {
+    id: string;
+    name: string;
+} | null;
+
+export type Timeline = {
+    message: string;
+    error: (string | null);
+    createdAt: string;
+}

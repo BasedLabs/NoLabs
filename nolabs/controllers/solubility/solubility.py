@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form
 from nolabs.api_models.solubility import RunSolubilityRequest, RunSolubilityResponse, GetExperimentResponse
 from nolabs.controllers.solubility.dependencies import run_solubility_feature_dependency, \
     get_experiments_feature_dependency, \
-    get_experiment_feature_dependency, delete_experiment_feature_dependency, change_experiment_name_dependency
+    get_experiment_feature_dependency, delete_experiment_feature_dependency, change_experiment_name_dependency, \
+    create_experiment_dependency
+from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
@@ -57,3 +59,8 @@ async def delete_experiment(experiment_id: str, feature: Annotated[
 async def change_experiment_name(request: ChangeExperimentNameRequest, feature: Annotated[
     ChangeExperimentNameFeature, Depends(change_experiment_name_dependency)]):
     return feature.handle(request)
+
+@router.get('/create-experiment')
+async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
+    return feature.handle()
+

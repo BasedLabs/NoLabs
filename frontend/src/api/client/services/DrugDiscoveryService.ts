@@ -9,13 +9,13 @@ import type { DeleteLigandResponse } from '../models/DeleteLigandResponse';
 import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
 import type { DockingRequest } from '../models/DockingRequest';
 import type { DockingResponse } from '../models/DockingResponse';
+import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { GetFoldingRequest } from '../models/GetFoldingRequest';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
 import type { GetLigandDataResponse } from '../models/GetLigandDataResponse';
 import type { GetTargetBindingPocketResponse } from '../models/GetTargetBindingPocketResponse';
 import type { GetTargetDataResponse } from '../models/GetTargetDataResponse';
 import type { LigandMetaData } from '../models/LigandMetaData';
-import type { nolabs__api_models__drug_discovery__ExperimentMetadataResponse } from '../models/nolabs__api_models__drug_discovery__ExperimentMetadataResponse';
 import type { PredictBindingPocketResponse } from '../models/PredictBindingPocketResponse';
 import type { PredictFoldingResponse } from '../models/PredictFoldingResponse';
 import type { PredictMsaResponse } from '../models/PredictMsaResponse';
@@ -28,10 +28,10 @@ import { request as __request } from '../core/request';
 export class DrugDiscoveryService {
     /**
      * Experiments
-     * @returns nolabs__api_models__drug_discovery__ExperimentMetadataResponse Successful Response
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static experimentsApiV1DrugDiscoveryExperimentsGet(): CancelablePromise<Array<nolabs__api_models__drug_discovery__ExperimentMetadataResponse>> {
+    public static experimentsApiV1DrugDiscoveryExperimentsGet(): CancelablePromise<Array<ExperimentMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/drug_discovery/experiments',
@@ -39,10 +39,10 @@ export class DrugDiscoveryService {
     }
     /**
      * Add Experiment
-     * @returns nolabs__api_models__drug_discovery__ExperimentMetadataResponse Successful Response
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static addExperimentApiV1DrugDiscoveryAddExperimentPost(): CancelablePromise<nolabs__api_models__drug_discovery__ExperimentMetadataResponse> {
+    public static addExperimentApiV1DrugDiscoveryAddExperimentPost(): CancelablePromise<ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/add-experiment',
@@ -71,12 +71,12 @@ export class DrugDiscoveryService {
     /**
      * Change Experiment Name
      * @param requestBody
-     * @returns nolabs__api_models__drug_discovery__ExperimentMetadataResponse Successful Response
+     * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
     public static changeExperimentNameApiV1DrugDiscoveryChangeExperimentNamePost(
         requestBody: ChangeExperimentNameRequest,
-    ): CancelablePromise<nolabs__api_models__drug_discovery__ExperimentMetadataResponse> {
+    ): CancelablePromise<ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/change-experiment-name',

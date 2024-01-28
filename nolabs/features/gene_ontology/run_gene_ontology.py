@@ -116,9 +116,8 @@ class RunGeneOntologyFeature:
                     amino_acid,
                     [v for v in self._read_obo([(g.name, g.confidence) for g in result.go_confidence]).values()]
                 ))
-            self._file_management.update_metadata(experiment_id=experiment_id,
-                                                  experiment_name=ExperimentName(value=request.experiment_name),
-                                                  amino_acids=amino_acids)
+            self._file_management.set_metadata(experiment_id=experiment_id,
+                                               experiment_name=ExperimentName(value=request.experiment_name))
             self._file_management.save_experiment(
                 experiment_id=experiment_id,
                 data=results

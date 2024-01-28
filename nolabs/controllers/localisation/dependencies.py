@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
+from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
@@ -45,3 +46,7 @@ def change_experiment_name_dependency(
     return ChangeExperimentNameFeature(
         file_management=file_management
     )
+
+
+def create_experiment_dependency() -> CreateExperimentFeature:
+    return CreateExperimentFeature()
