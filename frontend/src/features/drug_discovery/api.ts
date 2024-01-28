@@ -9,6 +9,7 @@ import {
     PredictFoldingResponse,
     PredictBindingPocketResponse,
     Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
+    UploadTargetResponse,
     GetTargetDataResponse,
     GetLigandDataResponse, ExperimentMetadataResponse
 } from 'src/api/client';
@@ -35,7 +36,7 @@ export function changeExperimentName(requestBody: ChangeExperimentNameRequest): 
 }
 
 // Upload a target
-export function uploadTarget(formData: Body_upload_target_api_v1_drug_discovery_upload_target_post): CancelablePromise<any> {
+export function uploadTarget(formData: Body_upload_target_api_v1_drug_discovery_upload_target_post): CancelablePromise<UploadTargetResponse> {
     return DrugDiscoveryService.uploadTargetApiV1DrugDiscoveryUploadTargetPost(formData);
 }
 

@@ -1,26 +1,25 @@
-import { defineStore } from 'pinia';
+import {defineStore} from 'pinia';
 import {
   addExperiment,
   deleteExperiment,
-  getExperiments,
-  uploadTarget,
-  deleteTarget,
-  getTargetsList,
-  uploadLigand,
   deleteLigand,
+  deleteTarget,
+  getExperiments,
+  getLigandData,
   getLigandsList,
   getTargetData,
-  getLigandData,
+  getTargetsList,
+  predictBindingPocket,
   predictFolding,
-  predictBindingPocket
-  // other API functions
+  uploadLigand,
+  uploadTarget
 } from 'src/features/drug_discovery/api';
 
 import {
   Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
   Body_upload_target_api_v1_drug_discovery_upload_target_post,
-  TargetMetaData,
-  LigandMetaData, ExperimentMetadataResponse
+  ExperimentMetadataResponse,
+  TargetMetaData
 } from 'src/api/client';
 
 export interface TargetData {
@@ -43,8 +42,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
   actions: {
     async fetchExperiments() {
       try {
-        const response = await getExperiments();
-        this.experiments = response;
+        this.experiments = await getExperiments();
       } catch (error) {
         console.error('Error fetching experiments:', error);
       }
@@ -68,11 +66,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
     async uploadTargetToExperiment(experimentId: string, targetFile: File) {
       try {
         const targetData: Body_upload_target_api_v1_drug_discovery_upload_target_post = {
-          experimentId: experimentId,
-          fastaFile: targetFile
+          experiment_id: experimentId,
+          fasta: targetFile
         };
-
         const response = await uploadTarget(targetData);
+        response.result.map(target => (
+          this.targets.push(target)
+        ));
+        return response.result;
       } catch (error) {
         console.error('Error uploading target:', error);
       }
@@ -88,9 +89,9 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
     async uploadLigandToTarget(experimentId: string, targetId: string, sdfFile: File) {
       try {
         const ligandData: Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post = {
-          experimentId: experimentId,
-          targetId: targetId,
-          sdfFile: sdfFile
+          experiment_id: experimentId,
+          target_id: targetId,
+          sdf_file: sdfFile
         };
         const response = await uploadLigand(ligandData);
         // Updatethe ligands list for the specific target
@@ -106,25 +107,16 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         console.error('Error deleting ligand:', error);
       }
     },
-    async fetchTargetsForExperiment(experimentId: string) {
+    fetchTargetsForExperiment: async function (experimentId: string) {
       try {
-        const response = await getTargetsList(experimentId);
-        this.targets = response.map(target => ({
-          targetId: target.target_id,
-          targetName: target.target_name
-        }));
-        // Optionally set the currentExperiment to the selected one
+        this.targets = await getTargetsList(experimentId);
       } catch (error) {
         console.error('Error fetching targets:', error);
       }
     },
     async fetchLigandsForTarget(experimentId: string, targetId: string) {
       try {
-        const response = await getLigandsList(experimentId, targetId);
-        return response.map(ligand => ({
-          ligandId: ligand.ligand_id,
-          ligandName: ligand.ligand_name
-        }));
+        return await getLigandsList(experimentId, targetId);
         // Optionally set the currentTarget to the selected one
       } catch (error) {
         console.error('Error fetching ligands:', error);

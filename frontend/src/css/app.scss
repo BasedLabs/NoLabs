@@ -1,19 +1,11 @@
 // app global css in SCSS form
 
 .grid-style-transition:hover {
-  transition: transform .28s, background-color .28s;
+  transition: transform 0.28s, background-color 0.28s;
   border-radius: 4px;
   background-color: #5c5c5c;
 }
 
-body {
-  overflow-y: hidden;
-}
-
 .transition-all-tenth-sec{
   transition: all 0.1s linear;
-}
-
-.no-pointer-events {
-
 }
