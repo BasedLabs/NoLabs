@@ -67,15 +67,14 @@ configuration = umol_microservice.Configuration(
 with umol_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = umol_microservice.DefaultApi(api_client)
-    run_umol_prediction_request = umol_microservice.RunUmolPredictionRequest() # RunUmolPredictionRequest | 
 
     try:
-        # Predict
-        api_response = api_instance.predict_run_umol_post(run_umol_prediction_request)
-        print("The response of DefaultApi->predict_run_umol_post:\n")
+        # Get Running Jobs
+        api_response = api_instance.get_running_jobs_jobs_running_get()
+        print("The response of DefaultApi->get_running_jobs_jobs_running_get:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DefaultApi->predict_run_umol_post: %s\n" % e)
+        print("Exception when calling DefaultApi->get_running_jobs_jobs_running_get: %s\n" % e)
 
 ```
 
@@ -85,6 +84,8 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*DefaultApi* | [**get_running_jobs_jobs_running_get**](docs/DefaultApi.md#get_running_jobs_jobs_running_get) | **GET** /jobs/running | Get Running Jobs
+*DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
 *DefaultApi* | [**predict_run_umol_post**](docs/DefaultApi.md#predict_run_umol_post) | **POST** /run-umol | Predict
 
 
