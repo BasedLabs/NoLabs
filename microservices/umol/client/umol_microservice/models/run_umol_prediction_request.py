@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictInt, StrictStr
 try:
     from typing import Self
@@ -33,7 +33,8 @@ class RunUmolPredictionRequest(BaseModel):
     ligand_smiles: StrictStr
     msa_content: StrictStr
     pocket_ids: List[StrictInt]
-    __properties: ClassVar[List[str]] = ["protein_sequence", "ligand_smiles", "msa_content", "pocket_ids"]
+    job_id: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["protein_sequence", "ligand_smiles", "msa_content", "pocket_ids", "job_id"]
 
     model_config = {
         "populate_by_name": True,
@@ -87,7 +88,8 @@ class RunUmolPredictionRequest(BaseModel):
             "protein_sequence": obj.get("protein_sequence"),
             "ligand_smiles": obj.get("ligand_smiles"),
             "msa_content": obj.get("msa_content"),
-            "pocket_ids": obj.get("pocket_ids")
+            "pocket_ids": obj.get("pocket_ids"),
+            "job_id": obj.get("job_id")
         })
         return _obj
 
