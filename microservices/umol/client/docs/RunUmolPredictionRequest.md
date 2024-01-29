@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **ligand_smiles** | **str** |  | 
 **msa_content** | **str** |  | 
 **pocket_ids** | **List[int]** |  | 
+**job_id** | **str** |  | [optional] 
 
 ## Example
 
