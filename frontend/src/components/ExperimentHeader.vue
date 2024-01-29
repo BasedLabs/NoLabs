@@ -45,6 +45,7 @@ export default defineComponent({
           message: 'Changing experiment name'
         });
         await this.onExperimentNameChangeSubmit(data);
+        this.experimentNameData = data;
         this.quasar.loading.hide();
       });
     }

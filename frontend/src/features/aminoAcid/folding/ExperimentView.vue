@@ -15,7 +15,7 @@
           </div>
           <div class="col-6">
             <div class="q-pl-sm q-ma-sm">
-              <PdbViewer :pdb-file="activeAminoAcid?.pdbFile"/>
+              <PdbViewer :pdb-file="activeAminoAcid?.pdbFile" :key="activeAminoAcid?.name"/>
             </div>
           </div>
         </div>
