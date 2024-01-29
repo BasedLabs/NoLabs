@@ -60,11 +60,6 @@ class ExperimentsFileManagementBase(ABC, Generic[ExperimentPropertiesT]):
     def experiment_folder(self, experiment_id: ExperimentId) -> str:
         return os.path.join(self._experiments_folder, experiment_id.value)
 
-    def create_experiment_folder(self, experiment_id: ExperimentId):
-        experiment_folder = self.experiment_folder(experiment_id)
-        if not os.path.isdir(experiment_folder):
-            os.mkdir(experiment_folder)
-
     def delete_experiment_folder(self, experiment_id: ExperimentId):
         experiment_folder = self.experiment_folder(experiment_id)
         shutil.rmtree(experiment_folder, ignore_errors=True)

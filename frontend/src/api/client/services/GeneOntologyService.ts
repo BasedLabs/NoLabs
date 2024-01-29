@@ -5,7 +5,7 @@
 import type { Body_inference_api_v1_gene_ontology_inference_post } from '../models/Body_inference_api_v1_gene_ontology_inference_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
-import type { nolabs__api_models__gene_ontology__GetExperimentResponse } from '../models/nolabs__api_models__gene_ontology__GetExperimentResponse';
+import type { nolabs__api_models__amino_acid__gene_ontology__GetExperimentResponse } from '../models/nolabs__api_models__amino_acid__gene_ontology__GetExperimentResponse';
 import type { RunGeneOntologyResponse } from '../models/RunGeneOntologyResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -44,12 +44,12 @@ export class GeneOntologyService {
     /**
      * Get Experiment
      * @param experimentId
-     * @returns nolabs__api_models__gene_ontology__GetExperimentResponse Successful Response
+     * @returns nolabs__api_models__amino_acid__gene_ontology__GetExperimentResponse Successful Response
      * @throws ApiError
      */
     public static getExperimentApiV1GeneOntologyGetExperimentGet(
         experimentId: string,
-    ): CancelablePromise<nolabs__api_models__gene_ontology__GetExperimentResponse> {
+    ): CancelablePromise<nolabs__api_models__amino_acid__gene_ontology__GetExperimentResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/gene-ontology/get-experiment',
@@ -64,12 +64,12 @@ export class GeneOntologyService {
     /**
      * Delete Experiment
      * @param experimentId
-     * @returns nolabs__api_models__gene_ontology__GetExperimentResponse Successful Response
+     * @returns nolabs__api_models__amino_acid__gene_ontology__GetExperimentResponse Successful Response
      * @throws ApiError
      */
     public static deleteExperimentApiV1GeneOntologyDeleteExperimentDelete(
         experimentId: string,
-    ): CancelablePromise<nolabs__api_models__gene_ontology__GetExperimentResponse> {
+    ): CancelablePromise<nolabs__api_models__amino_acid__gene_ontology__GetExperimentResponse> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/gene-ontology/delete-experiment',

@@ -7,8 +7,6 @@ import type { Body_upload_target_api_v1_drug_discovery_upload_target_post } from
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
 import type { DeleteLigandResponse } from '../models/DeleteLigandResponse';
 import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
-import type { DockingRequest } from '../models/DockingRequest';
-import type { DockingResponse } from '../models/DockingResponse';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { GetFoldingRequest } from '../models/GetFoldingRequest';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
@@ -19,6 +17,8 @@ import type { LigandMetaData } from '../models/LigandMetaData';
 import type { PredictBindingPocketResponse } from '../models/PredictBindingPocketResponse';
 import type { PredictFoldingResponse } from '../models/PredictFoldingResponse';
 import type { PredictMsaResponse } from '../models/PredictMsaResponse';
+import type { RunDockingJobRequest } from '../models/RunDockingJobRequest';
+import type { RunDockingJobResponse } from '../models/RunDockingJobResponse';
 import type { TargetMetaData } from '../models/TargetMetaData';
 import type { UploadLigandResponse } from '../models/UploadLigandResponse';
 import type { UploadTargetResponse } from '../models/UploadTargetResponse';
@@ -38,14 +38,14 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Add Experiment
+     * Create Experiment
      * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static addExperimentApiV1DrugDiscoveryAddExperimentPost(): CancelablePromise<ExperimentMetadataResponse> {
+    public static createExperimentApiV1DrugDiscoveryCreateExperimentGet(): CancelablePromise<ExperimentMetadataResponse> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/drug_discovery/add-experiment',
+            method: 'GET',
+            url: '/api/v1/drug_discovery/create-experiment',
         });
     }
     /**
@@ -380,12 +380,12 @@ export class DrugDiscoveryService {
     /**
      * Perform Docking
      * @param requestBody
-     * @returns DockingResponse Successful Response
+     * @returns RunDockingJobResponse Successful Response
      * @throws ApiError
      */
     public static performDockingApiV1DrugDiscoveryPredictDockingPost(
-        requestBody: DockingRequest,
-    ): CancelablePromise<DockingResponse> {
+        requestBody: RunDockingJobRequest,
+    ): CancelablePromise<RunDockingJobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/predict-docking',

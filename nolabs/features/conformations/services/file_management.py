@@ -1,4 +1,3 @@
-import datetime
 import glob
 import json
 import os.path
@@ -18,9 +17,7 @@ from nolabs.infrastructure.settings import Settings
 
 class FileManagement(ExperimentsFileManagementBase):
     def __init__(self, settings: Settings):
-        super().__init__(settings.conformations_experiments_folder, 'metadata.json')
-        self._settings = settings
-        self.ensure_experiments_folder_exists()
+        super().__init__(settings.conformations_experiments_folder, settings.conformations_metadata_file_name)
         self._experiment_properties_filename = 'properties.json'
         self._timeline_path = 'timeline.json'
 

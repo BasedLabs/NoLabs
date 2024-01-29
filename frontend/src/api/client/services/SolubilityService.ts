@@ -5,7 +5,7 @@
 import type { Body_inference_api_v1_solubility_inference_post } from '../models/Body_inference_api_v1_solubility_inference_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
-import type { nolabs__api_models__solubility__GetExperimentResponse } from '../models/nolabs__api_models__solubility__GetExperimentResponse';
+import type { nolabs__api_models__amino_acid__solubility__GetExperimentResponse } from '../models/nolabs__api_models__amino_acid__solubility__GetExperimentResponse';
 import type { RunSolubilityResponse } from '../models/RunSolubilityResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -44,12 +44,12 @@ export class SolubilityService {
     /**
      * Get Experiment
      * @param experimentId
-     * @returns nolabs__api_models__solubility__GetExperimentResponse Successful Response
+     * @returns nolabs__api_models__amino_acid__solubility__GetExperimentResponse Successful Response
      * @throws ApiError
      */
     public static getExperimentApiV1SolubilityGetExperimentGet(
         experimentId: string,
-    ): CancelablePromise<nolabs__api_models__solubility__GetExperimentResponse> {
+    ): CancelablePromise<nolabs__api_models__amino_acid__solubility__GetExperimentResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/solubility/get-experiment',

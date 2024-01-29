@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.drug_discovery.add_experiment import AddExperimentFeature
+from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
@@ -141,3 +141,7 @@ def predict_docking_dependency(
                                  ligand_file_management=ligand_file_management,
                                  result_file_management=result_file_management,
                                  settings=settings)
+
+def create_experiment_dependency(
+        file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> CreateExperimentFeature:
+    return CreateExperimentFeature(file_management=file_management)

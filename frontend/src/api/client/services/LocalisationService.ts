@@ -5,7 +5,7 @@
 import type { Body_inference_api_v1_localisation_inference_post } from '../models/Body_inference_api_v1_localisation_inference_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
-import type { nolabs__api_models__localisation__GetExperimentResponse } from '../models/nolabs__api_models__localisation__GetExperimentResponse';
+import type { nolabs__api_models__amino_acid__localisation__GetExperimentResponse } from '../models/nolabs__api_models__amino_acid__localisation__GetExperimentResponse';
 import type { RunLocalisationResponse } from '../models/RunLocalisationResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -44,12 +44,12 @@ export class LocalisationService {
     /**
      * Get Experiment
      * @param experimentId
-     * @returns nolabs__api_models__localisation__GetExperimentResponse Successful Response
+     * @returns nolabs__api_models__amino_acid__localisation__GetExperimentResponse Successful Response
      * @throws ApiError
      */
     public static getExperimentApiV1LocalisationGetExperimentGet(
         experimentId: string,
-    ): CancelablePromise<nolabs__api_models__localisation__GetExperimentResponse> {
+    ): CancelablePromise<nolabs__api_models__amino_acid__localisation__GetExperimentResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/localisation/get-experiment',

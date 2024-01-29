@@ -29,7 +29,7 @@
             </q-list>
             <q-card-actions align="right">
               <router-link style="text-decoration: none;"
-                           :to="{ name: this.experimentPath, params: { experimentId: props.row.id } }">
+                           :to="{ name: this.pathToExperimentPage, params: { experimentId: props.row.id } }">
                 <q-btn outline color="positive" label="Open"/>
               </router-link>
               <q-btn outline class="q-mx-md" color="negative" label="Remove"
@@ -61,7 +61,7 @@ export default defineComponent({
       type: Object as PropType<Store>,
       required: true
     },
-    experimentPath: {
+    pathToExperimentPage: {
       type: String,
       required: true
     }

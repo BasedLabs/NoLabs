@@ -25,8 +25,8 @@ export function getExperiments(): CancelablePromise<Array<ExperimentMetadataResp
 }
 
 // Add a new experiment
-export function addExperiment(): CancelablePromise<ExperimentMetadataResponse> {
-    return DrugDiscoveryService.addExperimentApiV1DrugDiscoveryAddExperimentPost();
+export function createExperiment(): CancelablePromise<ExperimentMetadataResponse> {
+    return DrugDiscoveryService.createExperimentApiV1DrugDiscoveryCreateExperimentGet();
 }
 
 // Delete an experiment

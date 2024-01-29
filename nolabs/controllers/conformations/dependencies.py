@@ -45,5 +45,6 @@ def change_experiment_name_dependency(
         file_management=file_management
     )
 
-def create_experiment_dependency() -> CreateExperimentFeature:
-    return CreateExperimentFeature()
+def create_experiment_dependency(
+        file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> CreateExperimentFeature:
+    return CreateExperimentFeature(file_management=file_management)

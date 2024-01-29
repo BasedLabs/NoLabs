@@ -22,9 +22,8 @@ from nolabs.controllers.drug_discovery.dependencies import (
     predict_folding_dependency,
     get_folded_structure_dependency,
     generate_msa_dependency,
-    predict_docking_dependency
+    predict_docking_dependency, create_experiment_dependency
 )
-from nolabs.features.drug_discovery.add_experiment import AddExperimentFeature
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
     GetTargetsListFeature, GetTargetDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
@@ -35,6 +34,7 @@ from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
     GetLigandsListFeature, GetLigandDataFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
+from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
@@ -81,10 +81,9 @@ async def experiments(feature: Annotated[GetExperimentsFeature,
                       Depends(get_experiments_feature_dependency)]) -> List[ExperimentMetadataResponse]:
     return feature.handle()
 
-@router.post('/add-experiment')
-async def add_experiment(feature: Annotated[
-    AddExperimentFeature, Depends(add_experiment_feature_dependency)]) -> ExperimentMetadataResponse:
-    return feature.handle()
+@router.get('/create-experiment')
+async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
+    return await feature.handle()
 
 @router.delete('/delete-experiment')
 async def delete_experiment(experiment_id: str, feature: Annotated[

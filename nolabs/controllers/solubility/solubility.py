@@ -63,5 +63,5 @@ async def change_experiment_name(request: ChangeExperimentNameRequest, feature: 
 
 @router.get('/create-experiment')
 async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
-    return feature.handle()
+    return await feature.handle()
 

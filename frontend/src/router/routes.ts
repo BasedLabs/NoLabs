@@ -1,15 +1,13 @@
-import ExperimentsView from "src/components/ExperimentsView.vue";
-
 const drugDiscoveryRoutes = [
     {
         path: 'drug-discovery',
         name: 'DrugDiscovery',
-        component: () => import('src/features/drug_discovery/ExperimentsList.vue')
+        component: () => import('src/features/drug_discovery/ExperimentsView.vue')
     },
     {
         path: 'drug-discovery/experiment/:experimentId',
         component: () => import('src/features/drug_discovery/ExperimentNavigation.vue'),
-        name: 'ExperimentNavigation',
+        name: 'DrugDiscoveryExperiment',
         props: true,
         children: [
             {
@@ -38,7 +36,7 @@ const proteinDesignRoutes = [
     {
         path: 'protein-design/experiment/:experimentId',
         component: () => import('src/features/proteinDesign/ExperimentView.vue'),
-        name: 'ProteinDesignExperimentView',
+        name: 'ProteinDesignExperiment',
         props: true
     },
 ];
@@ -52,7 +50,7 @@ const foldingRoutes = [
     {
         path: 'folding/experiment/:experimentId',
         component: () => import('src/features/aminoAcid/folding/ExperimentView.vue'),
-        name: 'FoldingExperimentView',
+        name: 'FoldingExperiment',
         props: true
     },
 ];
@@ -66,7 +64,7 @@ const localisationRoutes = [
     {
         path: 'localisation/experiment/:experimentId',
         component: () => import('src/features/aminoAcid/localisation/ExperimentView.vue'),
-        name: 'LocalisationExperimentView',
+        name: 'LocalisationExperiment',
         props: true
     },
 ];
@@ -80,7 +78,7 @@ const geneOntologyRoutes = [
     {
         path: 'gene-ontology/experiment/:experimentId',
         component: () => import('src/features/aminoAcid/geneOntology/ExperimentView.vue'),
-        name: 'GeneOntologyExperimentView',
+        name: 'GeneOntologyExperiment',
         props: true
     },
 ];
@@ -94,7 +92,7 @@ const solubilityRoutes = [
     {
         path: 'solubility/experiment/:experimentId',
         component: () => import('src/features/aminoAcid/solubility/ExperimentView.vue'),
-        name: 'SolubilityExperimentView',
+        name: 'SolubilityExperiment',
         props: true
     },
 ];
@@ -108,7 +106,7 @@ const conformationsRoutes = [
     {
         path: 'conformations/experiment/:experimentId',
         component: () => import('src/features/conformations/ExperimentView.vue'),
-        name: 'ConformationsExperimentView',
+        name: 'ConformationsExperiment',
         props: true
     }
 ]

@@ -310,7 +310,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="row q-ma-sm">
+  <div class="row">
     <div class="col-md-4">
       <q-table
           title="Gene ontology"
@@ -355,7 +355,7 @@ export default defineComponent({
     </div>
     <div class="col-md-8">
       <div id="tooltip" style="position: fixed; display: none; color: black;"></div>
-      <div id="geneOntologyContainer" style="background-color: white"></div>
+      <div id="geneOntologyContainer" class="q-ma-sm" style="background-color: white"></div>
     </div>
   </div>
 </template>

@@ -18,7 +18,8 @@ def file_management_dependency(settings: Annotated[Settings, Depends(settings_de
 
 
 def run_folding_feature_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
-                                      file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> RunFoldingFeature:
+                                   file_management: Annotated[
+                                       FileManagement, Depends(file_management_dependency)]) -> RunFoldingFeature:
     return RunFoldingFeature(
         settings=settings,
         file_management=file_management
@@ -48,5 +49,6 @@ def change_experiment_name_dependency(
     )
 
 
-def create_experiment_dependency() -> CreateExperimentFeature:
-    return CreateExperimentFeature()
+def create_experiment_dependency(
+        file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> CreateExperimentFeature:
+    return CreateExperimentFeature(file_management=file_management)
