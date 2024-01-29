@@ -82,6 +82,16 @@ class Settings:
         return self._config.get('go', 'file_name')
 
     @property
+    def folding_experiments_folder(self) -> str:
+        import nolabs
+        exp_folder = self._config.get('folding', 'experiments_path')
+        return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
+
+    @property
+    def folding_metadata_file_name(self) -> str:
+        return self._config.get('folding', 'metadata_file_name')
+
+    @property
     def go_experiments_folder(self) -> str:
         import nolabs
         exp_folder = self._config.get('go', 'experiments_path')
@@ -126,6 +136,10 @@ class Settings:
     @property
     def drug_discovery_pocket_file_name(self) -> str:
         return self._config.get('drug-discovery', 'pocket_file_name')
+
+    @property
+    def folding_host(self) -> str:
+        return self._config.get('microservices', 'esmfold_host')
 
     @property
     def drug_discovery_self_hosted_msa(self) -> str:

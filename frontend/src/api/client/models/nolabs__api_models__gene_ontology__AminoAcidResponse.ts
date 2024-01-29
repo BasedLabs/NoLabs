@@ -6,6 +6,6 @@ import type { RunGeneOntologyResponseDataNode } from './RunGeneOntologyResponseD
 export type nolabs__api_models__gene_ontology__AminoAcidResponse = {
     sequence: string;
     name: string;
-    go: Array<RunGeneOntologyResponseDataNode>;
+    go: Record<string, RunGeneOntologyResponseDataNode>;
 };
 

@@ -36,7 +36,7 @@
               <PdbViewer v-if="!simulationCriticalError && experimentHasGeneratedData"
                          :key="experiment?.pdbContent?.name"
                          :pdb-file="experiment?.pdbContent" :simulation="true"
-                         pdb-file-name-prefix="Simulation"/>
+                         file-name-prefix="Simulation"/>
             </div>
           </div>
         </div>

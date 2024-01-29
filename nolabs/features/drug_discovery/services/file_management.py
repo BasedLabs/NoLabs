@@ -86,18 +86,6 @@ class FileManagement(ExperimentsFileManagementBase):
 
         return experiments_list
 
-    def set_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
-        j = {
-            'id': experiment_id.value,
-            'name': experiment_name.value,
-            'date': str(utcnow()),
-            'properties': {}
-        }
-        metadata_file = os.path.join(self.experiment_folder(experiment_id),
-                                     self._settings.drug_discovery_experiment_metadata_file_name)
-        with open(metadata_file, 'w', encoding='utf-8') as f:
-            json.dump(j, f, ensure_ascii=False, indent=4)
-
     def change_experiment_name(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
         metadata_file = os.path.join(self.experiment_folder(experiment_id),
                                      self._settings.drug_discovery_experiment_metadata_file_name)

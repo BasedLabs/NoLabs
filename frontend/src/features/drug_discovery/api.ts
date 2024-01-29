@@ -11,9 +11,12 @@ import {
     Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
     UploadTargetResponse,
     GetTargetDataResponse,
-    GetLigandDataResponse, ExperimentMetadataResponse
+    GetLigandDataResponse, ExperimentMetadataResponse, OpenAPI
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
+import apiConstants from "src/api/constants";
+
+OpenAPI.BASE = apiConstants.hostname;
 
 // Get a list of experiments
 export function getExperiments(): CancelablePromise<Array<ExperimentMetadataResponse>> {

@@ -7,6 +7,7 @@ from io import BytesIO
 from typing import List, Tuple
 
 from fastapi import UploadFile
+from slugify import slugify
 
 from nolabs.api_models.localisation import RunLocalisationRequest, AminoAcidResponse
 from nolabs.exceptions import NoLabsException, ErrorCodes
@@ -22,19 +23,6 @@ class FileManagement(ExperimentsFileManagementBase):
         self._settings = settings
         self.ensure_experiments_folder_exists()
         self._experiment_properties_filename = 'properties.json'
-
-    def set_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
-        self.ensure_experiment_folder_exists(experiment_id)
-        j = {
-            'id': experiment_id.value,
-            'name': experiment_name.value,
-            'date': str(utcnow())
-        }
-
-        metadata_file_path = os.path.join(self.experiment_folder(experiment_id),
-                                          self._settings.solubility_metadata_file_name)
-        with open(metadata_file_path, 'w', encoding='utf-8') as f:
-            json.dump(j, f, ensure_ascii=False, indent=4)
 
     async def get_properties(self, experiment_id: ExperimentId) -> RunLocalisationRequest:
         experiment_folder = self.experiment_folder(experiment_id)
@@ -84,9 +72,8 @@ class FileManagement(ExperimentsFileManagementBase):
 
     def set_result(self, experiment_id: ExperimentId, data: List[AminoAcidResponse]):
         experiment_folder = self.experiment_folder(experiment_id)
-        previous_files = glob.glob(os.path.join(experiment_folder, '*aminoacid.json'))
         for amino_acid in data:
-            results_path = os.path.join(experiment_folder, f'{amino_acid.name}_aminoacid.json')
+            results_path = os.path.join(experiment_folder, f'{slugify(amino_acid.name)}_aminoacid.json')
             with open(results_path, 'w', encoding='utf-8') as localisation_f:
                 localisation_f.write(json.dumps({
                     'name': amino_acid.name,
@@ -97,8 +84,6 @@ class FileManagement(ExperimentsFileManagementBase):
                     'other_proteins': amino_acid.other_proteins,
                     'extracellular_secreted_proteins': amino_acid.extracellular_secreted_proteins
                 }))
-        for file in previous_files:
-            os.remove(file)
 
     def get_result(self, experiment_id: ExperimentId) -> List[AminoAcidResponse]:
         experiment_folder = self.experiment_folder(experiment_id)

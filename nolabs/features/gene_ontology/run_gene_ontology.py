@@ -1,5 +1,7 @@
 import numbers
 import os
+import pprint
+
 # noinspection PyUnresolvedReferences
 import obonet
 import pickle
@@ -30,10 +32,10 @@ class RunGeneOntologyFeature:
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         pickled_file = os.path.join(__location__, 'services', 'go.pickle')
 
-        #f = os.path.join(__location__, 'services', 'go.obo')
-        #graph = obonet.read_obo(f)
+        # f = os.path.join(__location__, 'services', 'go.obo')
+        # graph = obonet.read_obo(f)
 
-        #with open(pickled_file, 'wb') as handle_w:
+        # with open(pickled_file, 'wb') as handle_w:
         #    pickle.dump(graph, handle_w, protocol=pickle.HIGHEST_PROTOCOL)
         with open(pickled_file, 'rb') as handle_r:
             graph = pickle.load(handle_r)
@@ -75,6 +77,8 @@ class RunGeneOntologyFeature:
                 edge_data = get_attributes(graph.get_edge_data(node, out_edge[1]))
                 shaped_graph[out_node].edges[node] = edge_data
 
+        pprint.pprint(shaped_graph, compact=False)
+
         return shaped_graph
 
     async def handle(self,
@@ -82,6 +86,12 @@ class RunGeneOntologyFeature:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id) if request.experiment_id else ExperimentId(generate_uuid())
+
+        self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
+        self._file_management.cleanup_experiment(experiment_id=experiment_id)
+        await self._file_management.set_metadata(experiment_id=experiment_id,
+                                                 experiment_name=ExperimentName(request.experiment_name))
+        await self._file_management.set_properties(experiment_id=experiment_id, request=request)
 
         configuration = Configuration(
             host=self._settings.gene_ontology_host,
@@ -101,46 +111,38 @@ class RunGeneOntologyFeature:
                         if amino_acid.name not in [aa.name for aa in amino_acids]:
                             amino_acids.append(amino_acid)
 
-            results: List[Tuple[AminoAcid, List[OboNode]]] = []
+            results: List[AminoAcidResponse] = []
             if not amino_acids:
-                raise NoLabsException('No amino acids', ErrorCodes.no_amino_acids)
+                raise NoLabsException(['No amino acids'], ErrorCodes.no_amino_acids)
             for amino_acid in amino_acids:
                 result = api_instance.run_go_prediction_run_go_prediction_post(
                     run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
                         amino_acid_sequence=amino_acid.sequence
                     )
                 )
+
                 if result.errors:
-                    raise NoLabsException(','.join(result.errors), ErrorCodes.amino_acid_solubility_run_error)
-                results.append((
-                    amino_acid,
-                    [v for v in self._read_obo([(g.name, g.confidence) for g in result.go_confidence]).values()]
-                ))
-            self._file_management.set_metadata(experiment_id=experiment_id,
-                                               experiment_name=ExperimentName(value=request.experiment_name))
-            self._file_management.save_experiment(
-                experiment_id=experiment_id,
-                data=results
-            )
-            amino_acids_response: List[AminoAcidResponse] = []
-            for amino_acid, prob in results:
-                go: List[RunGeneOntologyResponseDataNode] = []
+                    raise NoLabsException(result.errors, ErrorCodes.amino_acid_solubility_run_error)
 
-                for p in prob:
-                    go.append(
-                        RunGeneOntologyResponseDataNode(
-                            name=p.name,
-                            namespace=p.namespace,
-                            edges=p.edges
-                        )
-                    )
+                confidences = [(g.name, g.confidence) for g in result.go_confidence]
 
-                amino_acid_response = AminoAcidResponse(
+
+                print(confidences)
+                results.append(AminoAcidResponse(
                     sequence=amino_acid.sequence,
                     name=amino_acid.name,
-                    go=go
-                )
+                    go={key: RunGeneOntologyResponseDataNode(
+                        name=value.name,
+                        namespace=value.namespace,
+                        edges=value.edges
+                    ) for key, value in self._read_obo(confidences).items()}
+                ))
 
-                amino_acids_response.append(amino_acid_response)
+            self._file_management.set_result(experiment_id=experiment_id,
+                                             data=results)
+
+            metadata = self._file_management.get_metadata(experiment_id=experiment_id)
             return RunGeneOntologyResponse(experiment_id=experiment_id.value,
-                                           amino_acids=amino_acids_response)
+                                           experiment_name=metadata.name.value,
+                                           amino_acids=results
+                                           )

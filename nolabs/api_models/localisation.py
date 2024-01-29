@@ -40,7 +40,6 @@ class RunLocalisationResponse:
     experiment_id: str
     experiment_name: str
     amino_acids: List[AminoAcidResponse]
-    errors: List[str] = pcdataclass.Field(default_factory=list)
 
 
 @pcdataclass.dataclass
@@ -53,6 +52,7 @@ class ExperimentFastaPropertyResponse:
 class ExperimentPropertiesResponse:
     amino_acid_sequence: str | None
     fastas: List[ExperimentFastaPropertyResponse]
+
 
 @pcdataclass.dataclass
 class GetExperimentResponse:

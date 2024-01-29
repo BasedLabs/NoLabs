@@ -48,6 +48,7 @@ export default defineComponent({
         sortBy: 'createdAt',
         descending: true,
       }"
+      :rows-per-page-options="[3, 5, 10]"
   >
 
     <template v-slot:header="props">

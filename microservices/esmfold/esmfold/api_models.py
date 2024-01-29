@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import List, Optional
+
 from esmfold.mixins import BaseModelMixin
 
 
@@ -10,4 +12,5 @@ class RunEsmFoldPredictionRequest(BaseModelMixin):
 
 @dataclasses.dataclass
 class RunEsmFoldPredictionResponse(BaseModelMixin):
-    pdb_content: str
+    errors: List[str]
+    pdb_content: Optional[str] = None

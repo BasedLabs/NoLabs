@@ -13,7 +13,7 @@ class GetResultsFeature:
         assert id
 
         experiment_id = ExperimentId(id)
-        gene_ontology_data = self._file_management.get_experiment_data(experiment_id)
+        gene_ontology_data = self._file_management.get_result(experiment_id)
 
         res: Dict[str, RunGeneOntologyResponseDataNode] = {}
         for key in gene_ontology_data.keys():

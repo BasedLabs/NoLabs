@@ -9,3 +9,26 @@
 .transition-all-tenth-sec{
   transition: all 0.1s linear;
 }
+
+#tooltip {
+  background: cornsilk;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+body {
+  overflow-y: hidden;
+}
+
+.hover-finger {
+  cursor:pointer;
+}
+
+header {
+  position: relative !important;
+}
+
+.q-page-container {
+  padding-top: 10px !important;
+}

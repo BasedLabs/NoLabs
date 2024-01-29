@@ -1,36 +1,59 @@
+from pydantic import dataclasses as pcdataclass, model_validator
 import datetime
-from typing import List
+from typing import List, Optional, Any
 
-from pydantic import dataclasses as pcdataclass
-from fastapi import UploadFile
+from fastapi import UploadFile, File
+
+from nolabs.api_models.experiment import ExperimentMetadataResponse
 
 
 @pcdataclass.dataclass
 class RunFoldingRequest:
-    experimentName: str
-    experimentId: str | None
-    aminoAcidSequence: str | None = None
-    fasta: UploadFile | None = None
+    experiment_name: str
+    experiment_id: str
+    amino_acid_sequence: Optional[str]
+    fastas: Optional[List[UploadFile]]
+
+    @model_validator(mode='after')
+    @classmethod
+    def check_inputs(cls, data: Any) -> Any:
+        if not isinstance(data, RunFoldingRequest):
+            raise ValueError('Incorrect data type')
+        if not data.amino_acid_sequence and not data.fastas:
+            raise ValueError('Either specify aminoacid sequence or fastas files')
+        return data
+
+
+@pcdataclass.dataclass
+class AminoAcidResponse:
+    sequence: str
+    name: str
+    pdb_file_name: str
+    pdb_file: str
 
 
 @pcdataclass.dataclass
 class RunFoldingResponse:
-    experimentId: str
-    pdbContent: str | None = None
-    errors: List[str] = pcdataclass.field(default_factory=list)
+    experiment_id: str
+    experiment_name: str
+    amino_acids: List[AminoAcidResponse]
 
 
 @pcdataclass.dataclass
-class GetExperimentRequest:
-    experimentId: str
+class ExperimentFastaPropertyResponse:
+    filename: str
+    content: str
 
 
 @pcdataclass.dataclass
-class DeleteExperimentRequest:
-    id: str
+class ExperimentPropertiesResponse:
+    amino_acid_sequence: str | None
+    fastas: List[ExperimentFastaPropertyResponse]
 
 
 @pcdataclass.dataclass
 class GetExperimentResponse:
-    metaData: ExperimentMetadataResponse
-    solubleProbability: float
+    experiment_id: str
+    experiment_name: str
+    amino_acids: List[AminoAcidResponse]
+    properties: ExperimentPropertiesResponse

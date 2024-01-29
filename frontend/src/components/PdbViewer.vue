@@ -1,6 +1,6 @@
 <script lang="ts">
-import {defineComponent} from 'vue'
-import {PdbColorSchemas, PdbViews} from "src/components/types";
+import {defineComponent, PropType} from 'vue'
+import {PdbViews} from "src/components/types";
 
 
 export default defineComponent({
@@ -9,18 +9,29 @@ export default defineComponent({
     PdbViews(): any {
       return PdbViews
     },
-    PdbFileName(): string {
-      if(this.pdbFileNamePrefix){
-        return `${this.pdbFileNamePrefix} - ${this.pdbFile!.name}`;
+    FileName(): string {
+      if (this.fileNamePrefix) {
+        return `${this.fileNamePrefix} - ${this.pdbFile != null ? this.pdbFile!.name : this.sdfFile!.name}`;
       }
 
       return this.pdbFile!.name;
     }
   },
   props: {
-    pdbFile: File,
+    pdbFile: {
+      type: Object as PropType<File | null>,
+      required: false
+    },
+    sdfFile: {
+      type: Object as PropType<File | null>,
+      required: false
+    },
+    pocketIds: {
+      type: [] as PropType<Array<number>>,
+      required: false
+    },
     simulation: Boolean,
-    pdbFileNamePrefix: {
+    fileNamePrefix: {
       type: String,
       required: false
     }
@@ -41,6 +52,25 @@ export default defineComponent({
     }
   },
   methods: {
+    highlightSelectedResidues() {
+      if (!this.viewer || !this.target.data.pdbContents) {
+        return;
+      }
+      // Update the 3D viewer to highlight the selected residues
+      const component = this.viewer.compList[0];
+      component.removeAllRepresentations();
+      component.addRepresentation("cartoon");
+
+      // Convert pocketIds to a format suitable for NGL selection (1-indexed)
+      const selectionString = this.target.data.pocketIds
+          .map((id) => (id + 1).toString())
+          .join(" or ");
+      component.addRepresentation("ball+stick", {
+        sele: selectionString,
+        color: "blue",
+      });
+      component.autoView();
+    },
     savePdb() {
       if (window.navigator.msSaveOrOpenBlob) {
         window.navigator.msSaveBlob(this.pdbFile!, this.pdbFile!.name);
@@ -78,18 +108,34 @@ export default defineComponent({
       }, 100);
     },
     async loadFileIntoStage(stage: any, selectedRepresentation: string, asTrajectory: boolean = false) {
-      let pdbComponent: any;
-      if (selectedRepresentation === PdbViews.default.key) {
-        pdbComponent = await stage.loadFile(this.pdbFile, {defaultRepresentation: true, asTrajectory});
-      } else {
-        pdbComponent = await stage.loadFile(this.pdbFile, {asTrajectory});
+      let component: any;
+      if (this.pdbFile != null) {
+        if (selectedRepresentation === PdbViews.default.key) {
+          component = await stage.loadFile(this.pdbFile, {defaultRepresentation: true, asTrajectory});
+        } else {
+          component = await stage.loadFile(this.pdbFile, {asTrajectory});
+        }
+
+        if (selectedRepresentation !== PdbViews.default.key) {
+          component.addRepresentation(selectedRepresentation);
+        }
       }
 
-      if (selectedRepresentation !== PdbViews.default.key) {
-        pdbComponent.addRepresentation(selectedRepresentation);
+      if (this.sdfFile != null) {
+        component = await stage.loadFile(this.sdfFile, {})
       }
 
-      return pdbComponent;
+      if(this.pocketIds && this.pocketIds.length > 0){
+        const selectionString = this.pocketIds
+            .map((id) => (id + 1).toString())
+            .join(" or ");
+        component.addRepresentation("ball+stick", {
+          sele: selectionString,
+          color: "blue",
+        });
+      }
+
+      return component;
     },
     async renderStatic(selectedRepresentation: string) {
       setTimeout(async () => {
@@ -103,7 +149,7 @@ export default defineComponent({
       }, 50);
     },
     async render(selectedRepresentation: string) {
-      if(this.stage){
+      if (this.stage) {
         this.stage.dispose();
       }
 
@@ -115,6 +161,16 @@ export default defineComponent({
     }
   },
   async mounted() {
+    if (this.pdbFile == null && this.sdfFile == null) {
+      console.error('Specify pdbFile or sdfFile, or both');
+      return;
+    }
+
+    if (this.sdfFile != null && this.simulation) {
+      console.error('Cannot run simulation for sdf file');
+      return;
+    }
+
     await this.render(this.selectedRepresentation.key);
     new ResizeObserver(async () => {
       setTimeout(async () => {
@@ -130,13 +186,13 @@ export default defineComponent({
     <q-card-section ref="card">
       <div class="row items-center">
         <div class="col">
-          <div class="text-h6">{{ PdbFileName }}</div>
+          <div class="text-h6">{{ FileName }}</div>
         </div>
-        <div class="col">
+        <div class="col" v-if="pdbFile != null">
           <q-btn color="positive" size="md" outline label="Save pdb" @click="savePdb"/>
         </div>
         <div class="col">
-          <q-checkbox v-model="blackBackground" label="Black background" />
+          <q-checkbox v-model="blackBackground" label="Black background"/>
         </div>
         <div class="col">
           <q-select v-model="selectedRepresentation"

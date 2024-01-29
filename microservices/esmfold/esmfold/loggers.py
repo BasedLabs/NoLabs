@@ -25,5 +25,11 @@ class Log:
         _logger.info('Run folding on hardware response', extra=d)
 
     @staticmethod
+    def cuda_is_avaialable(availability: bool):
+        _logger.info('Cuda is available', extra={
+            'availability': availability
+        })
+
+    @staticmethod
     def exception():
         _logger.exception('Exception occured in esmfold')

@@ -18,23 +18,10 @@ from nolabs.utils.datetime_utils import utcnow
 
 class FileManagement(ExperimentsFileManagementBase):
     def __init__(self, settings: Settings):
-        super().__init__(settings.localisation_experiments_folder, settings.solubility_metadata_file_name)
+        super().__init__(settings.solubility_experiments_folder, settings.solubility_metadata_file_name)
         self._settings = settings
         self.ensure_experiments_folder_exists()
         self._experiment_properties_filename = 'properties.json'
-
-    def set_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
-        self.ensure_experiment_folder_exists(experiment_id)
-        j = {
-            'id': experiment_id.value,
-            'name': experiment_name.value,
-            'date': str(utcnow())
-        }
-
-        metadata_file_path = os.path.join(self.experiment_folder(experiment_id),
-                                          self._settings.solubility_metadata_file_name)
-        with open(metadata_file_path, 'w', encoding='utf-8') as f:
-            json.dump(j, f, ensure_ascii=False, indent=4)
 
     async def get_properties(self, experiment_id: ExperimentId) -> RunSolubilityRequest:
         experiment_folder = self.experiment_folder(experiment_id)

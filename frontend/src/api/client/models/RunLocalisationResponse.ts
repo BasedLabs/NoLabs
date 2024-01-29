@@ -7,6 +7,5 @@ export type RunLocalisationResponse = {
     experiment_id: string;
     experiment_name: string;
     amino_acids: Array<nolabs__api_models__localisation__AminoAcidResponse>;
-    errors?: Array<string>;
 };
 

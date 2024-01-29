@@ -21,12 +21,12 @@ class RunSolubilityFeature:
     async def handle(self, request: RunSolubilityRequest) -> RunSolubilityResponse:
         assert request
 
-        experiment_id = ExperimentId(request.experiment_id) if request.experiment_id else ExperimentId(generate_uuid())
-
         experiment_id = ExperimentId(request.experiment_id)
 
         self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
         self._file_management.cleanup_experiment(experiment_id=experiment_id)
+        await self._file_management.set_metadata(experiment_id=experiment_id,
+                                           experiment_name=ExperimentName(request.experiment_name))
         await self._file_management.set_properties(experiment_id=experiment_id, request=request)
 
         configuration = Configuration(
@@ -63,8 +63,6 @@ class RunSolubilityFeature:
                     name=amino_acid.name,
                     soluble_probability=result.soluble_probability
                 ))  # type: ignore
-            self._file_management.set_metadata(experiment_id=experiment_id,
-                                               experiment_name=ExperimentName(value=request.experiment_name))
             self._file_management.set_result(
                 experiment_id=experiment_id,
                 data=results

@@ -12,6 +12,7 @@
           :columns="columns"
           row-key="id"
           v-model:expanded="expanded"
+          :rows-per-page-options="[3, 5, 10]"
         >
           <template v-slot:header="props">
             <q-tr :props="props">

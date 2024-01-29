@@ -1,8 +1,11 @@
 from esmfold.model import Folding
 from esmfold.api_models import RunEsmFoldPredictionRequest, RunEsmFoldPredictionResponse
 from esmfold.loggers import Log
+import torch
 
-__all__ = ['run_folding', 'run_facebook_api_folding']
+__all__ = ['run_folding']
+
+Log.cuda_is_avaialable(torch.cuda.is_available())
 
 def run_folding(parameters: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionResponse:
     try:
@@ -11,21 +14,8 @@ def run_folding(parameters: RunEsmFoldPredictionRequest) -> RunEsmFoldPrediction
         pdb_content = model.predict(
             sequence=parameters.protein_sequence
         )
-        return RunEsmFoldPredictionResponse(pdb_content=pdb_content)
+        return RunEsmFoldPredictionResponse(pdb_content=pdb_content, errors=[])
     except Exception as e:
         Log.exception()
         return RunEsmFoldPredictionResponse(pdb_content=None,
                                          errors=['Unable to run esmfold. Internal error', str(e)])
-
-
-def run_facebook_api_folding(parameters: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionResponse:
-    try:
-        model = APIFolding()
-        pdb_content = model.predict(
-            sequence=parameters.protein_sequence
-        )
-        return RunEsmFoldPredictionResponse(pdb_content=pdb_content)
-    except Exception as e:
-        Log.exception()
-        return RunEsmFoldPredictionResponse(pdb_content=None,
-                                            errors=['Unable to run esmfold. Internal error', str(e)])

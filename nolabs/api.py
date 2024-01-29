@@ -7,6 +7,7 @@ from nolabs.controllers.gene_ontology.gene_ontology import router as gene_ontolo
 from nolabs.controllers.localisation.localisation import router as localisation_router
 from nolabs.controllers.protein_design.protein_design import router as protein_design_router
 from nolabs.controllers.solubility.solubility import router as solubility_router
+from nolabs.controllers.folding.folding import router as folding_router
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
 
 pfx = '/api/v1'
@@ -26,6 +27,7 @@ app.include_router(localisation_router)
 app.include_router(gene_ontology_router)
 app.include_router(drug_discovery_router)
 app.include_router(protein_design_router)
+app.include_router(folding_router)
 add_domain_exception_middleware(app)
 
 app.add_middleware(
@@ -35,8 +37,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-
 
 
 print('Go to /api/v1/docs to see Swagger')

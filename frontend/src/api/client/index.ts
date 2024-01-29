@@ -8,6 +8,7 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { Body_inference_api_v1_conformations_inference_post } from './models/Body_inference_api_v1_conformations_inference_post';
+export type { Body_inference_api_v1_folding_inference_post } from './models/Body_inference_api_v1_folding_inference_post';
 export type { Body_inference_api_v1_gene_ontology_inference_post } from './models/Body_inference_api_v1_gene_ontology_inference_post';
 export type { Body_inference_api_v1_localisation_inference_post } from './models/Body_inference_api_v1_localisation_inference_post';
 export type { Body_inference_api_v1_protein_design_inference_post } from './models/Body_inference_api_v1_protein_design_inference_post';
@@ -31,7 +32,11 @@ export { IntegratorsRequest } from './models/IntegratorsRequest';
 export type { LigandMetaData } from './models/LigandMetaData';
 export type { nolabs__api_models__conformations__ExperimentPropertiesResponse } from './models/nolabs__api_models__conformations__ExperimentPropertiesResponse';
 export type { nolabs__api_models__conformations__GetExperimentResponse } from './models/nolabs__api_models__conformations__GetExperimentResponse';
+export type { nolabs__api_models__folding__AminoAcidResponse } from './models/nolabs__api_models__folding__AminoAcidResponse';
+export type { nolabs__api_models__folding__ExperimentPropertiesResponse } from './models/nolabs__api_models__folding__ExperimentPropertiesResponse';
+export type { nolabs__api_models__folding__GetExperimentResponse } from './models/nolabs__api_models__folding__GetExperimentResponse';
 export type { nolabs__api_models__gene_ontology__AminoAcidResponse } from './models/nolabs__api_models__gene_ontology__AminoAcidResponse';
+export type { nolabs__api_models__gene_ontology__ExperimentPropertiesResponse } from './models/nolabs__api_models__gene_ontology__ExperimentPropertiesResponse';
 export type { nolabs__api_models__gene_ontology__GetExperimentResponse } from './models/nolabs__api_models__gene_ontology__GetExperimentResponse';
 export type { nolabs__api_models__localisation__AminoAcidResponse } from './models/nolabs__api_models__localisation__AminoAcidResponse';
 export type { nolabs__api_models__localisation__ExperimentPropertiesResponse } from './models/nolabs__api_models__localisation__ExperimentPropertiesResponse';
@@ -44,6 +49,7 @@ export type { nolabs__api_models__solubility__GetExperimentResponse } from './mo
 export type { PredictBindingPocketResponse } from './models/PredictBindingPocketResponse';
 export type { PredictFoldingResponse } from './models/PredictFoldingResponse';
 export type { PredictMsaResponse } from './models/PredictMsaResponse';
+export type { RunFoldingResponse } from './models/RunFoldingResponse';
 export type { RunGeneOntologyResponse } from './models/RunGeneOntologyResponse';
 export type { RunGeneOntologyResponseDataNode } from './models/RunGeneOntologyResponseDataNode';
 export type { RunLocalisationResponse } from './models/RunLocalisationResponse';
@@ -58,6 +64,7 @@ export type { ValidationError } from './models/ValidationError';
 
 export { ConformationsService } from './services/ConformationsService';
 export { DrugDiscoveryService } from './services/DrugDiscoveryService';
+export { FoldingService } from './services/FoldingService';
 export { GeneOntologyService } from './services/GeneOntologyService';
 export { LocalisationService } from './services/LocalisationService';
 export { ProteinDesignService } from './services/ProteinDesignService';

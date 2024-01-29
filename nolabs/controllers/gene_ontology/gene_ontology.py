@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, Form, UploadFile, File
 
 from nolabs.controllers.gene_ontology.dependencies import change_experiment_name_dependency, \
     delete_experiment_feature_dependency, get_experiment_feature_dependency, get_experiments_feature_dependency, \
-    run_gene_ontology_feature_dependency
+    run_gene_ontology_feature_dependency, create_experiment_dependency
 from nolabs.api_models.gene_ontology import RunGeneOntologyRequest, RunGeneOntologyResponse, \
     GetExperimentResponse
+from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
@@ -45,7 +46,7 @@ async def experiments(feature: Annotated[GetExperimentsFeature, Depends(get_expe
 @router.get('/get-experiment')
 async def get_experiment(experiment_id: str, feature: Annotated[
     GetExperimentFeature, Depends(get_experiment_feature_dependency)]) -> GetExperimentResponse:
-    return feature.handle(experiment_id)
+    return await feature.handle(experiment_id)
 
 
 @router.delete('/delete-experiment')
@@ -58,3 +59,8 @@ async def delete_experiment(experiment_id: str, feature: Annotated[
 async def change_experiment_name(request: ChangeExperimentNameRequest, feature: Annotated[
     ChangeExperimentNameFeature, Depends(change_experiment_name_dependency)]):
     return feature.handle(request)
+
+
+@router.get('/create-experiment')
+async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
+    return feature.handle()

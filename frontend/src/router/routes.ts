@@ -41,15 +41,54 @@ const proteinDesignRoutes = [
     },
 ];
 
+const foldingRoutes = [
+    {
+        path: 'folding',
+        component: () => import('src/features/aminoAcid/folding/ExperimentsView.vue'),
+    },
+    {
+        path: 'folding/experiment/:experimentId',
+        component: () => import('src/features/aminoAcid/folding/ExperimentView.vue'),
+        name: 'FoldingExperimentView',
+        props: true
+    },
+];
+
 const localisationRoutes = [
     {
         path: 'localisation',
-        component: () => import('src/features/localisation/ExperimentsView.vue'),
+        component: () => import('src/features/aminoAcid/localisation/ExperimentsView.vue'),
     },
     {
         path: 'localisation/experiment/:experimentId',
-        component: () => import('src/features/localisation/ExperimentView.vue'),
+        component: () => import('src/features/aminoAcid/localisation/ExperimentView.vue'),
         name: 'LocalisationExperimentView',
+        props: true
+    },
+];
+
+const geneOntologyRoutes = [
+    {
+        path: 'gene-ontology',
+        component: () => import('src/features/aminoAcid/geneOntology/ExperimentsView.vue'),
+    },
+    {
+        path: 'gene-ontology/experiment/:experimentId',
+        component: () => import('src/features/aminoAcid/geneOntology/ExperimentView.vue'),
+        name: 'GeneOntologyExperimentView',
+        props: true
+    },
+];
+
+const solubilityRoutes = [
+    {
+        path: 'solubility',
+        component: () => import('src/features/aminoAcid/solubility/ExperimentsView.vue'),
+    },
+    {
+        path: 'solubility/experiment/:experimentId',
+        component: () => import('src/features/aminoAcid/solubility/ExperimentView.vue'),
+        name: 'SolubilityExperimentView',
         props: true
     },
 ];
@@ -76,7 +115,10 @@ const routes = [
             ...drugDiscoveryRoutes,
             ...proteinDesignRoutes,
             ...conformationsRoutes,
-            ...localisationRoutes
+            ...localisationRoutes,
+            ...solubilityRoutes,
+            ...geneOntologyRoutes,
+            ...foldingRoutes
         ]
     }
 ];

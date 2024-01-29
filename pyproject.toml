@@ -9,7 +9,6 @@ readme = "README.md"
 python = "^3.10"
 solubility-microservice = {path = "microservices/solubility/client"}
 p2rank-microservice = {path = "microservices/p2rank/client"}
-esmfold-microservice = {path = "microservices/esmfold/client"}
 esmfold_light-microservice = {path = "microservices/esmfold_light/client"}
 umol-microservice = {path = "microservices/umol/client"}
 msa_light-microservice = {path = "microservices/msa_light/client"}
@@ -27,6 +26,8 @@ protein-design-microservice = {path = "microservices/protein_design/client"}
 conformations-microservice = {path = "microservices/conformations/client"}
 python-json-logger = "^2.0.7"
 python-dateutil = "^2.8.2"
+python-slugify = "^8.0.2"
+esmfold-microservice = {path = "microservices/esmfold/client"}
 
 [project]
 dependencies = [

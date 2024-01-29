@@ -100,4 +100,15 @@ export class GeneOntologyService {
             },
         });
     }
+    /**
+     * Create Experiment
+     * @returns ExperimentMetadataResponse Successful Response
+     * @throws ApiError
+     */
+    public static createExperimentApiV1GeneOntologyCreateExperimentGet(): CancelablePromise<ExperimentMetadataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/gene-ontology/create-experiment',
+        });
+    }
 }

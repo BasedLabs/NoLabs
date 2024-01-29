@@ -5,7 +5,7 @@
 import type { nolabs__api_models__gene_ontology__AminoAcidResponse } from './nolabs__api_models__gene_ontology__AminoAcidResponse';
 export type RunGeneOntologyResponse = {
     experiment_id: string;
+    experiment_name: string;
     amino_acids: Array<nolabs__api_models__gene_ontology__AminoAcidResponse>;
-    errors?: Array<string>;
 };
 
