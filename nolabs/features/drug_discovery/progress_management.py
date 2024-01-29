@@ -1,7 +1,6 @@
 from typing import List
 
-from nolabs.features.drug_discovery.data_models.ligand import LigandId
-from nolabs.features.drug_discovery.data_models.result import DockingResultData, JobId
+from nolabs.features.drug_discovery.data_models.result import JobId
 from nolabs.infrastructure.settings import Settings
 
 # TODO: Add self-hosted MSA microservice
@@ -33,7 +32,7 @@ else:
     from esmfold_microservice import ApiClient as FoldingApiClient
     from esmfold_microservice import Configuration as FoldingConfiguration
 
-from nolabs.api_models.drug_discovery import RunDockingJobRequest, RunDockingJobResponse
+from nolabs.api_models.drug_discovery import CheckJobIsRunningRequest, CheckJobIsRunningResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 
@@ -41,12 +40,9 @@ class CheckUmolRunningFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
 
-    def handle(self, request: RunDockingJobRequest) -> RunDockingJobResponse:
+    def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
         assert request
 
-        experiment_id = ExperimentId(request.experiment_id)
-        target_id = TargetId(request.target_id)
-        ligand_id = LigandId(request.ligand_id)
         job_id = JobId(request.job_id)
 
         configuration = UmolConfiguration(
@@ -54,19 +50,26 @@ class CheckUmolRunningFeature:
         )
         with UmolApiClient(configuration=configuration) as client:
             api_instance = UmolDefaultApi(client)
-            response = api_instance.(run_umol_prediction_request=request)
+            response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value)
 
-        predicted_pdb = response.pdb_contents
-        predicted_sdf = response.sdf_contents
-        plddt_array = response.plddt_array
+        return CheckJobIsRunningResponse(is_running=False)
 
-        result_data = DockingResultData(predicted_pdb=predicted_pdb,
-                                        predicted_sdf=predicted_sdf,
-                                        plddt_array=plddt_array)
+class CheckMsaRunningFeature:
+    def __init__(self, settings: Settings):
+        self._settings = settings
 
-        self._result_file_management.store_result_data(experiment_id, target_id, ligand_id, result_data)
+    def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
 
-        return RunDockingJobResponse(predicted_pdb=predicted_pdb, predicted_sdf=predicted_sdf, plddt_array=plddt_array, job_id=job_id.value)
+        job_id = JobId(request.job_id)
+
+        configuration = MsaConfiguration(
+            host=self._settings.msa_light_host,
+        )
+        with MsaApiClient(configuration=configuration) as client:
+            api_instance = MsaDefaultApi(client)
+            response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value).is_running
+
+        return CheckJobIsRunningResponse(is_running=response)
 
     def get_folding(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> str:
         if not self._target_file_management.get_pdb_contents(experiment_id, target_id):

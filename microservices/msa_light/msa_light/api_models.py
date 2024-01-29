@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, List
 
 import dataclasses
 
@@ -13,3 +13,7 @@ class RunMsaPredictionRequest:
 @dataclasses.dataclass
 class RunMsaPredictionResponse:
     msa_contents: str = None
+
+@dataclasses.dataclass
+class IsJobRunningResponse:
+    is_running: bool

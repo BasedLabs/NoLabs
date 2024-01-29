@@ -874,6 +874,25 @@ files = [
 ]
 
 [[package]]
+name = "umol-microservice"
+version = "1.0.0"
+description = "Umol"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/umol/client"
+
+[[package]]
 name = "urllib3"
 version = "2.1.0"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -992,4 +1011,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "6852264a2ca9ca6420bf266ed5bf5cea10c67a6fee52e8d978e0eccb9e746f81"
+content-hash = "5be2c23893c26fdcad50b514bd04b137fc218d16b5762173755329c73c1dd53e"

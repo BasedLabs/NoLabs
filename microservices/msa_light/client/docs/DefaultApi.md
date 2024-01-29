@@ -73,7 +73,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **is_job_running_job_job_id_is_running_get**
-> object is_job_running_job_job_id_is_running_get(job_id)
+> IsJobRunningResponse is_job_running_job_job_id_is_running_get(job_id)
 
 Is Job Running
 
@@ -84,6 +84,7 @@ Is Job Running
 import time
 import os
 import msa_light_microservice
+from msa_light_microservice.models.is_job_running_response import IsJobRunningResponse
 from msa_light_microservice.rest import ApiException
 from pprint import pprint
 
@@ -120,7 +121,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**object**
+[**IsJobRunningResponse**](IsJobRunningResponse.md)
 
 ### Authorization
 
