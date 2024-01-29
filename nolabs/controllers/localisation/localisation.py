@@ -2,7 +2,8 @@ from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 
-from nolabs.api_models.localisation import RunLocalisationRequest, RunLocalisationResponse, ExperimentMetadataResponse, \
+from nolabs.api_models.amino_acid.common_models import RunAminoAcidRequest
+from nolabs.api_models.amino_acid.localisation import RunLocalisationResponse, ExperimentMetadataResponse, \
     GetExperimentResponse
 from nolabs.controllers.localisation.dependencies import run_localisation_feature_dependency, \
     get_experiments_feature_dependency, \
@@ -13,9 +14,8 @@ from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.api_models.experiment import ChangeExperimentNameRequest
-from nolabs.features.localisation.get_experiment import GetExperimentFeature
-from nolabs.features.localisation.run_localisation import RunLocalisationFeature
-from nolabs.utils import uuid_utils
+from nolabs.features.amino_acid.localisation.get_experiment import GetExperimentFeature
+from nolabs.features.amino_acid.localisation.run_localisation import RunLocalisationFeature
 
 router = APIRouter(
     prefix='/api/v1/localisation',
@@ -31,7 +31,7 @@ async def inference(
         amino_acid_sequence: str = Form(None),
         fastas: List[UploadFile] = File(default_factory=list)
 ) -> RunLocalisationResponse:
-    return await feature.handle(RunLocalisationRequest(
+    return await feature.handle(RunAminoAcidRequest(
         experiment_name=experiment_name,
         experiment_id=experiment_id,
         amino_acid_sequence=amino_acid_sequence,

@@ -7,9 +7,9 @@ from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
-from nolabs.features.localisation.get_experiment import GetExperimentFeature
-from nolabs.features.localisation.run_localisation import RunLocalisationFeature
-from nolabs.features.localisation.services.file_management import FileManagement
+from nolabs.features.amino_acid.localisation.get_experiment import GetExperimentFeature
+from nolabs.features.amino_acid.localisation.run_localisation import RunLocalisationFeature
+from nolabs.features.amino_acid.localisation.services.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings
 
 

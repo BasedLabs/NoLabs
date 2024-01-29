@@ -2,6 +2,7 @@ build/cpu.Dockerfile
 build/Dockerfile
 conformations/build/Dockerfile
 protein_design/build/Dockerfile
+microservices/esmfold/build/Dockerfile
 .dockerignore
 .github
 .git

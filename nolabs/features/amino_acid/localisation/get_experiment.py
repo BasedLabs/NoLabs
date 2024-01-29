@@ -1,9 +1,8 @@
-from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.gene_ontology import (GetExperimentResponse, ExperimentPropertiesResponse,
-                                             ExperimentFastaPropertyResponse)
-from nolabs.domain.experiment import ExperimentId
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.features.gene_ontology.services.file_management import FileManagement
+from nolabs.domain.experiment import ExperimentId
+from nolabs.api_models.amino_acid.localisation import GetExperimentResponse, ExperimentPropertiesResponse, \
+    ExperimentFastaPropertyResponse
+from nolabs.features.amino_acid.localisation.services.file_management import FileManagement
 
 
 class GetExperimentFeature:
@@ -18,10 +17,12 @@ class GetExperimentFeature:
         if not self._file_management.experiment_exists(experiment_id):
             raise NoLabsException(['This experiment not found in localisation data'], ErrorCodes.experiment_id_not_found)
 
-        metadata = self._file_management.get_metadata(experiment_id)
         data = self._file_management.get_result(experiment_id)
         properties = await self._file_management.get_properties(experiment_id)
+        metadata = self._file_management.get_metadata(experiment_id)
         return GetExperimentResponse(
+            experiment_id=experiment_id.value,
+            experiment_name=metadata.name.value,
             amino_acids=data,
             properties=ExperimentPropertiesResponse(
                 amino_acid_sequence=properties.amino_acid_sequence,
@@ -31,7 +32,5 @@ class GetExperimentFeature:
                         content=(await f.read()).decode('utf-8')
                     ) for f in properties.fastas
                 ]
-            ),
-            experiment_id=experiment_id.value,
-            experiment_name=metadata.name.value
+            )
         )

@@ -122,7 +122,15 @@ export default defineComponent({
       }
 
       if (this.sdfFile != null) {
-        component = await stage.loadFile(this.sdfFile, {})
+        if (selectedRepresentation === PdbViews.default.key) {
+          component = await stage.loadFile(this.sdfFile, {defaultRepresentation: true});
+        } else {
+          component = await stage.loadFile(this.sdfFile, {asTrajectory});
+        }
+
+        if (selectedRepresentation !== PdbViews.default.key) {
+          component.addRepresentation(selectedRepresentation);
+        }
       }
 
       if(this.pocketIds && this.pocketIds.length > 0){

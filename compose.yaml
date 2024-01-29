@@ -38,3 +38,29 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+  localisation:
+    build: microservices/localisation/build
+    working_dir: microservices/localisation
+    ports:
+      - "5787:5787"
+    command: --host=0.0.0.0 --port=5787
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+  gene_ontology:
+    build: microservices/gene_ontology/build
+    working_dir: microservices/gene_ontology
+    ports:
+      - "5788:5788"
+    command: --host=0.0.0.0 --port=5788
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]

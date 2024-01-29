@@ -1,5 +1,5 @@
 from nolabs.api_models.experiment import ChangeExperimentNameRequest
-from nolabs.features.file_magement_base import ExperimentsFileManagementBase
+from nolabs.features.file_management_base import ExperimentsFileManagementBase
 from nolabs.domain.experiment import ExperimentId, ExperimentName
 from nolabs.exceptions import NoLabsException, ErrorCodes
 

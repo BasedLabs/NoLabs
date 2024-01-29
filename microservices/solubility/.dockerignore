@@ -11,7 +11,7 @@
 
 # Docker
 docker-compose.yml
-Dockerfile
+build/Dockerfile
 .docker
 .dockerignore
 

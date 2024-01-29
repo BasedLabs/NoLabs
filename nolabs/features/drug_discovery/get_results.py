@@ -2,7 +2,7 @@ from typing import Dict
 
 from nolabs.features.gene_ontology.services.file_management import FileManagement
 from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.gene_ontology import RunGeneOntologyResponse, RunGeneOntologyResponseDataNode
+from nolabs.api_models.amino_acid.gene_ontology import RunGeneOntologyResponse, RunGeneOntologyResponseDataNode
 
 
 class GetResultsFeature:

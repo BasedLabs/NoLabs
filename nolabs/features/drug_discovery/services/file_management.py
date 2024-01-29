@@ -5,7 +5,7 @@ import shutil
 from typing import Dict, List
 
 from nolabs.domain.experiment import ExperimentId, ExperimentName, ExperimentMetadata
-from nolabs.features.file_magement_base import ExperimentsFileManagementBase
+from nolabs.features.file_management_base import ExperimentsFileManagementBase
 from nolabs.infrastructure.settings import Settings
 from nolabs.utils import utcnow, generate_uuid
 

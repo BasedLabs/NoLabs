@@ -7,9 +7,9 @@ from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
-from nolabs.features.gene_ontology.get_experiment import GetExperimentFeature
-from nolabs.features.gene_ontology.run_gene_ontology import RunGeneOntologyFeature
-from nolabs.features.gene_ontology.services.file_management import FileManagement
+from nolabs.features.amino_acid.gene_ontology.get_experiment import GetExperimentFeature
+from nolabs.features.amino_acid.gene_ontology.run_gene_ontology import RunGeneOntologyFeature
+from nolabs.features.amino_acid.gene_ontology.services.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings
 
 

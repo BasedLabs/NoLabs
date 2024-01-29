@@ -1,8 +1,8 @@
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from nolabs.api_models.amino_acid.folding import GetExperimentResponse, ExperimentPropertiesResponse, \
+    ExperimentFastaPropertyResponse
 from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.solubility import GetExperimentResponse, ExperimentMetadataResponse, AminoAcidResponse, \
-    ExperimentPropertiesResponse, ExperimentFastaPropertyResponse
-from nolabs.features.solubility.services.file_management import FileManagement
+from nolabs.exceptions import NoLabsException, ErrorCodes
+from nolabs.features.amino_acid.folding.services.file_management import FileManagement
 
 
 class GetExperimentFeature:
@@ -15,7 +15,7 @@ class GetExperimentFeature:
         experiment_id = ExperimentId(id)
 
         if not self._file_management.experiment_exists(experiment_id):
-            raise NoLabsException(['This experiment not found in localisation data'], ErrorCodes.experiment_id_not_found)
+            raise NoLabsException(['This experiment not found in folding data'], ErrorCodes.experiment_id_not_found)
 
         data = self._file_management.get_result(experiment_id)
         properties = await self._file_management.get_properties(experiment_id)

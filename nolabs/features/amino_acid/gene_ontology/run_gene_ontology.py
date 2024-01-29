@@ -9,22 +9,24 @@ from typing import Dict, List, Tuple
 
 from gene_ontology_microservice import Configuration, ApiClient, DefaultApi, RunGeneOntologyPredictionRequest
 
+from nolabs.api_models.amino_acid.common_models import RunAminoAcidRequest
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.amino_acid import AminoAcid
 from nolabs.domain.experiment import ExperimentId, ExperimentName
-from nolabs.features.gene_ontology.services.file_management import FileManagement
+from nolabs.features.amino_acid.gene_ontology.services.file_management import FileManagement
+from nolabs.features.amino_acid.run_aa_inference_feature_base import RunAminoAcidInferenceFeature
 from nolabs.infrastructure.settings import Settings
 from nolabs.domain.gene_ontology import OboNode
-from nolabs.api_models.gene_ontology import RunGeneOntologyRequest, RunGeneOntologyResponse, AminoAcidResponse, \
+from nolabs.api_models.amino_acid.gene_ontology import RunGeneOntologyResponse, AminoAcidResponse, \
     RunGeneOntologyResponseDataNode
 from nolabs.utils import generate_uuid
 from nolabs.utils.fasta import FastaReader
 
 
-class RunGeneOntologyFeature:
+class RunGeneOntologyFeature(RunAminoAcidInferenceFeature[FileManagement]):
     def __init__(self, settings: Settings, file_management: FileManagement):
+        super().__init__(file_management)
         self._settings = settings
-        self._file_management = file_management
 
     def _read_obo(self, obo: List[Tuple[str, float]]) -> Dict[str, OboNode]:
         ids_dict = {name: prob for name, prob in obo}
@@ -82,16 +84,12 @@ class RunGeneOntologyFeature:
         return shaped_graph
 
     async def handle(self,
-                     request: RunGeneOntologyRequest) -> RunGeneOntologyResponse:
+                     request: RunAminoAcidRequest) -> RunGeneOntologyResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id) if request.experiment_id else ExperimentId(generate_uuid())
 
-        self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
-        self._file_management.cleanup_experiment(experiment_id=experiment_id)
-        await self._file_management.set_metadata(experiment_id=experiment_id,
-                                                 experiment_name=ExperimentName(request.experiment_name))
-        await self._file_management.set_properties(experiment_id=experiment_id, request=request)
+        await self._setup_experiment(experiment_id, request)
 
         configuration = Configuration(
             host=self._settings.gene_ontology_host,

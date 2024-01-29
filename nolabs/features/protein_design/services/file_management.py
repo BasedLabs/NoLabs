@@ -11,7 +11,7 @@ from fastapi import UploadFile
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.api_models.protein_design import RunProteinDesignRequest
 from nolabs.domain.experiment import ExperimentId, ExperimentName
-from nolabs.features.file_magement_base import ExperimentsFileManagementBase
+from nolabs.features.file_management_base import ExperimentsFileManagementBase
 from nolabs.infrastructure.settings import Settings
 
 

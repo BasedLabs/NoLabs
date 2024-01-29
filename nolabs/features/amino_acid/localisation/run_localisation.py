@@ -1,31 +1,30 @@
-from typing import List, Tuple
+from typing import List
 
 from localisation_microservice import (RunLocalisationPredictionRequest,
                                        ApiClient, DefaultApi, Configuration)
 
+from nolabs.api_models.amino_acid.common_models import RunAminoAcidRequest
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.amino_acid import AminoAcid
+from nolabs.features.amino_acid.run_aa_inference_feature_base import RunAminoAcidInferenceFeature
 from nolabs.infrastructure.settings import Settings
-from nolabs.api_models.localisation import RunLocalisationResponse, RunLocalisationRequest, AminoAcidResponse
+from nolabs.api_models.amino_acid.localisation import RunLocalisationResponse, AminoAcidResponse
 from nolabs.domain.experiment import ExperimentId, ExperimentName
-from nolabs.features.localisation.services.file_management import FileManagement
+from nolabs.features.amino_acid.localisation.services.file_management import FileManagement
 from nolabs.utils.fasta import FastaReader
 
 
-class RunLocalisationFeature:
+class RunLocalisationFeature(RunAminoAcidInferenceFeature[FileManagement]):
     def __init__(self, settings: Settings, file_management: FileManagement):
+        super().__init__(file_management)
         self._settings = settings
-        self._file_management = file_management
 
-    async def handle(self, request: RunLocalisationRequest) -> RunLocalisationResponse:
+    async def handle(self, request: RunAminoAcidRequest) -> RunLocalisationResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
 
-        self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
-        self._file_management.cleanup_experiment(experiment_id=experiment_id)
-        await self._file_management.set_metadata(experiment_id=experiment_id, experiment_name=ExperimentName(request.experiment_name))
-        await self._file_management.set_properties(experiment_id=experiment_id, request=request)
+        await self._setup_experiment(experiment_id=experiment_id, request=request)
 
         configuration = Configuration(
             host=self._settings.localisation_host
@@ -68,8 +67,6 @@ class RunLocalisationFeature:
                     mitochondrial_proteins=result.mitochondrial_proteins
                 ))  # type: ignore
 
-            self._file_management.set_metadata(experiment_id=experiment_id,
-                                               experiment_name=ExperimentName(value=request.experiment_name))
             self._file_management.set_result(experiment_id=experiment_id, data=results)
             return RunLocalisationResponse(experiment_id=experiment_id.value,
                                            experiment_name=request.experiment_name,

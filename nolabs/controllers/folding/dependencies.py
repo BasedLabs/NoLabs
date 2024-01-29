@@ -7,9 +7,9 @@ from nolabs.features.experiment.change_experiment_name import ChangeExperimentNa
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
-from nolabs.features.folding.get_experiment import GetExperimentFeature
-from nolabs.features.folding.run_folding import RunFoldingFeature
-from nolabs.features.folding.services.file_management import FileManagement
+from nolabs.features.amino_acid.folding.get_experiment import GetExperimentFeature
+from nolabs.features.amino_acid.folding.run_folding import RunFoldingFeature
+from nolabs.features.amino_acid.folding.services.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings
 
 

@@ -1,20 +1,20 @@
-from typing import Annotated, Dict, List
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, Form, UploadFile, File
 
+from nolabs.api_models.amino_acid.common_models import RunAminoAcidRequest
 from nolabs.controllers.gene_ontology.dependencies import change_experiment_name_dependency, \
     delete_experiment_feature_dependency, get_experiment_feature_dependency, get_experiments_feature_dependency, \
     run_gene_ontology_feature_dependency, create_experiment_dependency
-from nolabs.api_models.gene_ontology import RunGeneOntologyRequest, RunGeneOntologyResponse, \
+from nolabs.api_models.amino_acid.gene_ontology import RunGeneOntologyResponse, \
     GetExperimentResponse
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
-from nolabs.features.gene_ontology.get_experiment import GetExperimentFeature
-from nolabs.features.gene_ontology.run_gene_ontology import RunGeneOntologyFeature
-from nolabs.utils import uuid_utils
+from nolabs.features.amino_acid.gene_ontology.get_experiment import GetExperimentFeature
+from nolabs.features.amino_acid.gene_ontology.run_gene_ontology import RunGeneOntologyFeature
 
 router = APIRouter(
     prefix='/api/v1/gene-ontology',
@@ -29,7 +29,7 @@ async def inference(feature: Annotated[RunGeneOntologyFeature, Depends(run_gene_
                     amino_acid_sequence: str = Form(None),
                     fastas: List[UploadFile] = File(default_factory=list)
                     ) -> RunGeneOntologyResponse:
-    return await feature.handle(RunGeneOntologyRequest(
+    return await feature.handle(RunAminoAcidRequest(
         experiment_name=experiment_name,
         experiment_id=experiment_id,
         amino_acid_sequence=amino_acid_sequence,

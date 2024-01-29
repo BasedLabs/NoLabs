@@ -1,36 +1,34 @@
 from typing import List
 
-from esmfold_microservice import (ApiClient, DefaultApi, Configuration, RunEsmFoldPredictionResponse,
-                                  RunEsmFoldPredictionRequest)
+from esmfold_microservice import (ApiClient, DefaultApi, Configuration, RunEsmFoldPredictionRequest)
 from slugify import slugify
 
-from nolabs.api_models.folding import RunFoldingRequest, RunFoldingResponse, AminoAcidResponse
+from nolabs.api_models.amino_acid.common_models import RunAminoAcidRequest
+from nolabs.api_models.amino_acid.folding import RunFoldingResponse, AminoAcidResponse
 from nolabs.domain.amino_acid import AminoAcid
 from nolabs.domain.experiment import ExperimentId, ExperimentName
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.features.folding.services.file_management import FileManagement
+from nolabs.features.amino_acid.folding.services.file_management import FileManagement
+
+from nolabs.features.amino_acid.run_aa_inference_feature_base import RunAminoAcidInferenceFeature
 from nolabs.infrastructure.settings import Settings
 from nolabs.utils.fasta import FastaReader
 
 
-class RunFoldingFeature:
+class RunFoldingFeature(RunAminoAcidInferenceFeature[FileManagement]):
     def __init__(self, settings: Settings, file_management: FileManagement):
+        super().__init__(file_management)
         self._settings = settings
-        self._file_management = file_management
 
-    async def handle(self, request: RunFoldingRequest) -> RunFoldingResponse:
+    async def handle(self, request: RunAminoAcidRequest) -> RunFoldingResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
 
-        self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
-        self._file_management.cleanup_experiment(experiment_id=experiment_id)
-        await self._file_management.set_metadata(experiment_id=experiment_id,
-                                                 experiment_name=ExperimentName(request.experiment_name))
-        await self._file_management.set_properties(experiment_id=experiment_id, request=request)
+        await self._setup_experiment(experiment_id, request)
 
         configuration = Configuration(
-            host=self._settings.folding_host
+            host=self._settings.folding_host,
         )
         with ApiClient(configuration=configuration) as client:
             api_instance = DefaultApi(client)
@@ -56,7 +54,7 @@ class RunFoldingFeature:
                 result = api_instance.predict_run_folding_post(
                     run_esm_fold_prediction_request=RunEsmFoldPredictionRequest(
                         protein_sequence=amino_acid.sequence
-                    )
+                    ), _request_timeout=(1000.0, 1000.0)
                 )
                 results.append(AminoAcidResponse(
                     sequence=amino_acid.sequence,

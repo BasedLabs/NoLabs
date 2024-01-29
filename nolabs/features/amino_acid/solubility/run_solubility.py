@@ -1,33 +1,30 @@
-from typing import List, Tuple
+from typing import List
 
 from solubility_microservice import (RunSolubilityPredictionRequest,
                                      ApiClient, DefaultApi, Configuration)
 
+from nolabs.api_models.amino_acid.common_models import RunAminoAcidRequest
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.amino_acid import AminoAcid
+from nolabs.features.amino_acid.run_aa_inference_feature_base import RunAminoAcidInferenceFeature
 from nolabs.infrastructure.settings import Settings
-from nolabs.api_models.solubility import RunSolubilityResponse, RunSolubilityRequest, AminoAcidResponse
+from nolabs.api_models.amino_acid.solubility import RunSolubilityResponse, AminoAcidResponse
 from nolabs.domain.experiment import ExperimentId, ExperimentName
-from nolabs.features.solubility.services.file_management import FileManagement
-from nolabs.utils import generate_uuid
+from nolabs.features.amino_acid.solubility.services.file_management import FileManagement
 from nolabs.utils.fasta import FastaReader
 
 
-class RunSolubilityFeature:
+class RunSolubilityFeature(RunAminoAcidInferenceFeature[FileManagement]):
     def __init__(self, settings: Settings, file_management: FileManagement):
+        super().__init__(file_management)
         self._settings = settings
-        self._file_management = file_management
 
-    async def handle(self, request: RunSolubilityRequest) -> RunSolubilityResponse:
+    async def handle(self, request: RunAminoAcidRequest) -> RunSolubilityResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
 
-        self._file_management.ensure_experiment_folder_exists(experiment_id=experiment_id)
-        self._file_management.cleanup_experiment(experiment_id=experiment_id)
-        await self._file_management.set_metadata(experiment_id=experiment_id,
-                                           experiment_name=ExperimentName(request.experiment_name))
-        await self._file_management.set_properties(experiment_id=experiment_id, request=request)
+        await self._setup_experiment(experiment_id, request)
 
         configuration = Configuration(
             host=self._settings.solubility_host,

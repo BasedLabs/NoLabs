@@ -12,7 +12,7 @@ from fastapi import UploadFile
 from nolabs.api_models.conformations import RunSimulationsRequest, TimelineResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.features.file_magement_base import ExperimentsFileManagementBase
+from nolabs.features.file_management_base import ExperimentsFileManagementBase
 from nolabs.infrastructure.settings import Settings
 
 

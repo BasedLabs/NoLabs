@@ -1,3 +1,3 @@
 FROM python:3.10-alpine
 
-ENTRYPOINT ["echo", "'hello'"]
+ENTRYPOINT ["uvicorn", "nolabs.api:app"]

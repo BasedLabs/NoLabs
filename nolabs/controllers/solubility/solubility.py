@@ -1,8 +1,9 @@
-from typing import Annotated, Optional, List, Union
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 
-from nolabs.api_models.solubility import RunSolubilityRequest, RunSolubilityResponse, GetExperimentResponse
+from nolabs.api_models.amino_acid.common_models import RunAminoAcidRequest
+from nolabs.api_models.amino_acid.solubility import RunSolubilityResponse, GetExperimentResponse
 from nolabs.controllers.solubility.dependencies import run_solubility_feature_dependency, \
     get_experiments_feature_dependency, \
     get_experiment_feature_dependency, delete_experiment_feature_dependency, change_experiment_name_dependency, \
@@ -12,8 +13,8 @@ from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
-from nolabs.features.solubility.get_experiment import GetExperimentFeature
-from nolabs.features.solubility.run_solubility import RunSolubilityFeature
+from nolabs.features.amino_acid.solubility.get_experiment import GetExperimentFeature
+from nolabs.features.amino_acid.solubility.run_solubility import RunSolubilityFeature
 
 router = APIRouter(
     prefix='/api/v1/solubility',
@@ -29,7 +30,7 @@ async def inference(
         amino_acid_sequence: str = Form(None),
         fastas: List[UploadFile] = File(default_factory=list)
 ) -> RunSolubilityResponse:
-        return await feature.handle(RunSolubilityRequest(
+        return await feature.handle(RunAminoAcidRequest(
             experiment_name=experiment_name,
             experiment_id=experiment_id,
             amino_acid_sequence=amino_acid_sequence,

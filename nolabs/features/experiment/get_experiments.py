@@ -1,6 +1,6 @@
 from typing import List
 
-from nolabs.features.file_magement_base import ExperimentsFileManagementBase
+from nolabs.features.file_management_base import ExperimentsFileManagementBase
 from nolabs.api_models.experiment import ExperimentMetadataResponse
 
 
