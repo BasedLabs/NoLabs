@@ -11,7 +11,7 @@
           <div :class="tiles.one.current"
                style="transition: all .1s linear;">
             <div class="q-ma-sm">
-              <q-btn size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+              <q-btn size="xs" flat color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('one');"/>
               <AminoAcidTable :on-amino-acid-open="setActiveAminoAcid" :rows="experiment?.aminoAcids"/>
             </div>
@@ -19,7 +19,7 @@
           <div :class="tiles.two.current"
                style="transition: all .1s linear;">
             <div class="q-ma-sm">
-              <q-btn size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+              <q-btn size="xs" flat color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('two');"/>
               <GeneOntologyTree :obo-graph="activeAminoAcid?.go" :key="activeAminoAcid?.name"/>
             </div>

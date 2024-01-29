@@ -23,5 +23,10 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "MainLayout",
+  mounted(){
+    if(this.$route.name === 'Main'){
+      this.$router.push({name: 'Labs'});
+    }
+  }
 });
 </script>

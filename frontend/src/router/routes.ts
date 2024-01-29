@@ -3,6 +3,7 @@ import ExperimentsView from "src/components/ExperimentsView.vue";
 const drugDiscoveryRoutes = [
     {
         path: 'drug-discovery',
+        name: 'DrugDiscovery',
         component: () => import('src/features/drug_discovery/ExperimentsList.vue')
     },
     {
@@ -31,6 +32,7 @@ const drugDiscoveryRoutes = [
 const proteinDesignRoutes = [
     {
         path: 'protein-design',
+        name: 'ProteinDesign',
         component: () => import('src/features/proteinDesign/ExperimentsView.vue'),
     },
     {
@@ -44,6 +46,7 @@ const proteinDesignRoutes = [
 const foldingRoutes = [
     {
         path: 'folding',
+        name: 'Folding',
         component: () => import('src/features/aminoAcid/folding/ExperimentsView.vue'),
     },
     {
@@ -57,6 +60,7 @@ const foldingRoutes = [
 const localisationRoutes = [
     {
         path: 'localisation',
+        name: 'Localisation',
         component: () => import('src/features/aminoAcid/localisation/ExperimentsView.vue'),
     },
     {
@@ -70,6 +74,7 @@ const localisationRoutes = [
 const geneOntologyRoutes = [
     {
         path: 'gene-ontology',
+        name: 'GeneOntology',
         component: () => import('src/features/aminoAcid/geneOntology/ExperimentsView.vue'),
     },
     {
@@ -83,6 +88,7 @@ const geneOntologyRoutes = [
 const solubilityRoutes = [
     {
         path: 'solubility',
+        name: 'Solubility',
         component: () => import('src/features/aminoAcid/solubility/ExperimentsView.vue'),
     },
     {
@@ -96,6 +102,7 @@ const solubilityRoutes = [
 const conformationsRoutes = [
     {
         path: 'conformations',
+        name: 'Conformations',
         component: () => import("src/features/conformations/ExperimentsView.vue")
     },
     {
@@ -106,12 +113,21 @@ const conformationsRoutes = [
     }
 ]
 
+const labsRoute = [
+    {
+        path: 'labs',
+        name: 'Labs',
+        component: () => import("src/components/LabsView.vue")
+    },
+];
+
 const routes = [
     {
-        path: '/labs',
-        name: 'Labs',
+        path: '/',
+        name: 'Main',
         component: () => import('src/layouts/MainLayout.vue'),
         children: [
+            ...labsRoute,
             ...drugDiscoveryRoutes,
             ...proteinDesignRoutes,
             ...conformationsRoutes,

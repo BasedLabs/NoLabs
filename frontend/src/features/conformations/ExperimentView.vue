@@ -11,7 +11,7 @@
           <div :class="tiles.one.current"
                style="transition: all .1s linear;">
             <div class="q-ma-sm">
-              <q-btn size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+              <q-btn size="xs" flat color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('one');"/>
               <PdbViewer v-if="experimentHasInputData" :pdb-file="experiment?.properties.pdbFile"
                          :key="experiment?.pdbContent?.name"/>
@@ -20,14 +20,14 @@
           <div :class="tiles.two.current"
                style="transition: all .1s linear;">
             <div class="q-pl-sm q-ma-sm">
-              <q-btn size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+              <q-btn size="xs" flat color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('two');"/>
               <TimelineView :timeline="experiment?.timeline"/>
             </div>
           </div>
           <div :class="tiles.three.current" style="transition: all .1s linear;">
             <div class="q-mt-sm q-mb-sm q-mr-sm">
-              <q-btn on-click="" size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+              <q-btn flat size="xs" color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('three');"/>
               <h6 v-if="simulationCriticalError" class="q-ma-md">
                 <q-icon name="warning" color="warning" size="4rem"/>
