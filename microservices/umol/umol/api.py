@@ -21,3 +21,10 @@ async def predict(request: RunUmolPredictionRequest) -> RunUmolPredictionRespons
     logger.umol_response(result)
     return result
 
+@app.get("/job/{job_id}/is-running")
+def is_job_running(job_id: str):
+    return {"is_running": job_state_manager.is_job_running(job_id)}
+
+@app.get("/jobs/running")
+def get_running_jobs():
+    return {"running_jobs": job_state_manager.get_running_jobs()}
