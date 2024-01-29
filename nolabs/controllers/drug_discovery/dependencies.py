@@ -21,6 +21,7 @@ from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingF
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
+from nolabs.features.drug_discovery.get_results import GetDockingResultsFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
 
@@ -152,6 +153,10 @@ def predict_docking_dependency(
                                  ligand_file_management=ligand_file_management,
                                  result_file_management=result_file_management,
                                  settings=settings)
+
+def get_docking_result_dependency(result_file_management: Annotated[ResultsFileManagement,
+        Depends(result_file_management_dependency)]) -> GetDockingResultsFeature:
+    return GetDockingResultsFeature(result_file_management=result_file_management)
 
 def create_experiment_dependency(
         file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> CreateExperimentFeature:

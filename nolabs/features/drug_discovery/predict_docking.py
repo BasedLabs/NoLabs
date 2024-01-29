@@ -66,7 +66,7 @@ class PredictDockingFeature:
                                                                   ligand_id,
                                                                   job_id,
                                                                   pocket_ids[:])
-        _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
+        fasta_contents = self._target_file_management.get_fasta_contents(experiment_id, target_id)
         _, _, ligand_smiles = self._ligand_file_management.get_ligand_data(experiment_id, target_id, ligand_id)
 
         configuration = UmolConfiguration(
@@ -74,7 +74,7 @@ class PredictDockingFeature:
         )
         with UmolApiClient(configuration=configuration) as client:
             api_instance = UmolDefaultApi(client)
-            request = umol_microservice.RunUmolPredictionRequest(protein_sequence=sequence,
+            request = umol_microservice.RunUmolPredictionRequest(protein_sequence=fasta_contents,
                                                                  msa_content=msa_contents,
                                                                  pocket_ids=pocket_ids,
                                                                  ligand_smiles=ligand_smiles)
@@ -90,7 +90,7 @@ class PredictDockingFeature:
 
         self._result_file_management.store_result_data(experiment_id, target_id, ligand_id, result_data)
 
-        return RunDockingJobResponse(predicted_pdb=predicted_pdb, predicted_sdf=predicted_sdf, plddt_array=plddt_array)
+        return RunDockingJobResponse(predicted_pdb=predicted_pdb, predicted_sdf=predicted_sdf, plddt_array=plddt_array, job_id=job_id.value)
 
     def get_folding(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> str:
         if not self._target_file_management.get_pdb_contents(experiment_id, target_id):
