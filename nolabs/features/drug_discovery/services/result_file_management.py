@@ -13,7 +13,7 @@ from nolabs.utils.sdf import SDFReader, SDFWriter
 from nolabs.utils.uuid_utils import generate_uuid
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.data_models.ligand import LigandId
-from nolabs.features.drug_discovery.data_models.result import ResultId, ResultMetaData, DockingResultData
+from nolabs.features.drug_discovery.data_models.result import JobId, ResultMetaData, DockingResultData
 from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
 
 
@@ -31,8 +31,8 @@ class ResultsFileManagement:
             os.mkdir(self.results_folder(experiment_id, target_id, ligand_id))
 
     def ensure_result_folder_exists(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
-                                    result_id: ResultId):
-        result_folder = self.result_folder(experiment_id, target_id, ligand_id, result_id)
+                                    job_id: JobId):
+        result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
         if not os.path.isdir(result_folder):
             os.mkdir(result_folder)
 
@@ -41,30 +41,30 @@ class ResultsFileManagement:
         return os.path.join(parent_ligand_folder, 'results')
 
     def result_folder(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
-                      result_id: ResultId) -> str:
-        return os.path.join(self.results_folder(experiment_id, target_id, ligand_id), result_id.value)
+                      job_id: JobId) -> str:
+        return os.path.join(self.results_folder(experiment_id, target_id, ligand_id), job_id.value)
 
     def create_result_folder(
             self, experiment_id: ExperimentId,
             target_id: TargetId,
             ligand_id: LigandId,
-            result_id: ResultId
+            job_id: JobId
     ):
         self.ensure_results_folder_exists(experiment_id, target_id, ligand_id)
         results_dir = self.results_folder(experiment_id, target_id, ligand_id)
-        os.mkdir(os.path.join(results_dir, result_id.value))
-        self.update_result_metadata(experiment_id, target_id, ligand_id, result_id, "target_id", target_id.value)
-        self.update_result_metadata(experiment_id, target_id, ligand_id, result_id, "ligand_id", ligand_id.value)
-        self.update_result_metadata(experiment_id, target_id, ligand_id, result_id, "result_id", result_id.value
+        os.mkdir(os.path.join(results_dir, job_id.value))
+        self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "target_id", target_id.value)
+        self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "ligand_id", ligand_id.value)
+        self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "job_id", job_id.value
                                     )
 
     def store_result_data(self, experiment_id: ExperimentId,
                           target_id: TargetId,
                           ligand_id: LigandId,
                           result_data: DockingResultData) -> ResultMetaData:
-        result_id = ResultId(generate_uuid())
-        self.create_result_folder(experiment_id, target_id, ligand_id, result_id)
-        result_folder = self.result_folder(experiment_id, target_id, ligand_id, result_id)
+        job_id = JobId(generate_uuid())
+        self.create_result_folder(experiment_id, target_id, ligand_id, job_id)
+        result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
 
         sdf_file_name = self._settings.drug_discovery_docking_result_sdf_file_name
         sdf_file_path = os.path.join(result_folder, sdf_file_name)
@@ -81,22 +81,22 @@ class ResultsFileManagement:
         plddt_list = result_data.plddt_array
         np.save(plddt_file_path, np.asarray(plddt_list))
 
-        return ResultMetaData(result_id=result_id.value, target_id=target_id.value, ligand_id=ligand_id.value)
+        return ResultMetaData(job_id=job_id.value, target_id=target_id.value, ligand_id=ligand_id.value)
 
     def delete_result(self, experiment_id: ExperimentId,
                       target_id: TargetId,
                       ligand_id: LigandId,
-                      result_id: ResultId) -> ResultId:
+                      job_id: JobId) -> JobId:
         self.results_folder(experiment_id, target_id, ligand_id)
-        self.result_folder(experiment_id, target_id, ligand_id, result_id)
-        result_folder = self.result_folder(experiment_id, target_id, ligand_id, result_id)
+        self.result_folder(experiment_id, target_id, ligand_id, job_id)
+        result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
         shutil.rmtree(result_folder)
 
-        return result_id
+        return job_id
 
     def update_result_metadata(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
-                               result_id: ResultId, key: str, value: str):
-        metadata_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, result_id),
+                               job_id: JobId, key: str, value: str):
+        metadata_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, job_id),
                                      self._settings.drug_discovery_docking_result_metadata_filename_name)
         if os.path.exists(metadata_file):
             metadata = json.load(open(metadata_file))
@@ -107,11 +107,11 @@ class ResultsFileManagement:
             json.dump(metadata, open(metadata_file, 'w'))
 
     def get_result_metadata(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
-                            result_id: ResultId) -> ResultMetaData:
-        metadata_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, result_id),
+                            job_id: JobId) -> ResultMetaData:
+        metadata_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, job_id),
                                      self._settings.drug_discovery_ligand_metadata_file_name)
         metadata = json.load(open(metadata_file))
-        result_metadata = ResultMetaData(result_id=metadata["result_id"],
+        result_metadata = ResultMetaData(job_id=metadata["job_id"],
                                          target_id=metadata["target_id"],
                                          ligand_id=metadata["ligand_id"])
         return result_metadata
@@ -122,17 +122,17 @@ class ResultsFileManagement:
         result_list = []
         for t_id in os.listdir(results_folder):
             if os.path.isdir(os.path.join(results_folder, t_id)):
-                result_id = ResultId(t_id)
-                ligand_metadata = self.get_result_metadata(experiment_id, target_id, ligand_id, result_id)
-                result_list.append(ligand_metadata)
+                job_id = JobId(t_id)
+                if self.check_result_data_available(experiment_id, target_id, ligand_id, job_id):
+                    result_list.append(self.get_result_metadata(experiment_id, target_id, ligand_id, job_id))
 
         return result_list
 
     def get_docking_result_data(self,
                                 experiment_id: ExperimentId,
                                 target_id: TargetId, ligand_id: LigandId,
-                                result_id: ResultId) -> DockingResultData:
-        result_folder = self.result_folder(experiment_id, target_id, ligand_id, result_id)
+                                job_id: JobId) -> DockingResultData:
+        result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
 
         sdf_file_name = self._settings.drug_discovery_docking_result_sdf_file_name
         sdf_file_path = os.path.join(result_folder, sdf_file_name)
@@ -147,4 +147,30 @@ class ResultsFileManagement:
         plddt_list = np.load(plddt_file_path).tolist()
 
         return DockingResultData(predicted_pdb=pdb_contents, predicted_sdf=sdf_contents, plddt_array=plddt_list)
+
+    def check_result_data_available(self, experiment_id: ExperimentId,
+                                    target_id: TargetId,
+                                    ligand_id: LigandId,
+                                    job_id: JobId) -> bool:
+        result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
+        if not os.path.exists(result_folder):
+            return False
+
+        sdf_file_name = self._settings.drug_discovery_docking_result_sdf_file_name
+        sdf_file_path = os.path.join(result_folder, sdf_file_name)
+        if not os.path.exists(sdf_file_path):
+            return False
+
+        pdb_file_name = self._settings.drug_discovery_docking_result_pdb_file_name
+        pdb_file_path = os.path.join(result_folder, pdb_file_name)
+        if not os.path.exists(pdb_file_path):
+            return False
+
+        plddt_file_name = self._settings.drug_discovery_docking_result_plddt_file_name
+        plddt_file_path = os.path.join(result_folder, plddt_file_name)
+        if not os.path.exists(plddt_file_path):
+            return False
+
+        return True
+
 

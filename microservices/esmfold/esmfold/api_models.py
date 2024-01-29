@@ -9,6 +9,7 @@ from esmfold.mixins import BaseModelMixin
 @dataclasses.dataclass
 class RunEsmFoldPredictionRequest(BaseModelMixin):
     protein_sequence: str
+    job_id: str = None
 
 @dataclasses.dataclass
 class RunEsmFoldPredictionResponse(BaseModelMixin):

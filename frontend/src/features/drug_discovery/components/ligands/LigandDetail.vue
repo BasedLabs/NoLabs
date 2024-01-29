@@ -17,7 +17,8 @@
   <q-card v-if="ligand">
     <q-card-section>
       <div class="text-h6">Ligand: {{ ligand.ligand_name }}</div>
-      <div ref="viewerContainer" class="ligand-viewer"></div>
+      <div class="text-subtitle1">SMILES: {{ ligand.data.smiles }}</div>
+      <PdbViewer :sdf-file="ligand.data.sdf_file" />
     </q-card-section>
   </q-card>
 </template>
@@ -26,9 +27,12 @@
 import { QCard, QCardSection } from "quasar";
 import * as NGL from "ngl";
 
+import PdbViewer from 'src/components/PdbViewer.vue'
+
 export default {
   name: "LigandDetail",
   components: {
+    PdbViewer,
     QCard,
     QCardSection,
   },
@@ -45,24 +49,9 @@ export default {
     };
   },
   methods: {
-    createViewer() {
-      if (this.viewer || !this.ligand.data.sdf_file) {
-        return;
-      }
-      setTimeout(async () => {
-        this.viewer = new NGL.Stage(this.$refs.viewerContainer);
-        const stringBlob = new Blob([this.ligand.data.sdf_file], {
-          type: "text/plain",
-        });
-        this.viewer.loadFile(stringBlob, { ext: "sdf" }).then((component) => {
-          component.addRepresentation("ball+stick");
-          component.autoView();
-        });
-      }, 100);
-    },
   },
   mounted() {
-    this.createViewer();
+    this.ligand.data.sdf_file = new File([new Blob([this.ligand.data.sdf_file])], "ligand.sdf");
   },
   beforeUnmount() {
     if (this.viewer) {

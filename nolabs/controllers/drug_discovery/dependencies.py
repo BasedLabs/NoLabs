@@ -67,9 +67,10 @@ def result_file_management_dependency(settings: Annotated[Settings, Depends(sett
     return ResultsFileManagement(settings=settings, ligand_file_management=ligand_file_management)
 
 
-def generate_msa_dependency(target_file_management: Annotated[TargetsFileManagement,
-Depends(target_file_management_dependency)]) -> GenerateMsaFeature:
-    return GenerateMsaFeature(file_management=target_file_management)
+def generate_msa_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                            target_file_management: Annotated[TargetsFileManagement,
+                            Depends(target_file_management_dependency)]) -> GenerateMsaFeature:
+    return GenerateMsaFeature(file_management=target_file_management, settings=settings)
 
 
 def upload_target_dependency(target_file_management: Annotated[TargetsFileManagement,
@@ -96,9 +97,10 @@ Depends(target_file_management_dependency)]) -> GetBindingPocketFeature:
     return GetBindingPocketFeature(file_management=target_file_management)
 
 
-def predict_binding_pocket_dependency(target_file_management: Annotated[TargetsFileManagement,
-Depends(target_file_management_dependency)]) -> PredictBindingPocketFeature:
-    return PredictBindingPocketFeature(file_management=target_file_management)
+def predict_binding_pocket_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                                      target_file_management: Annotated[TargetsFileManagement,
+                                      Depends(target_file_management_dependency)]) -> PredictBindingPocketFeature:
+    return PredictBindingPocketFeature(file_management=target_file_management, settings=settings)
 
 
 def get_folded_structure_dependency(target_file_management: Annotated[TargetsFileManagement,
@@ -129,10 +131,13 @@ def get_ligand_data_dependency(ligand_file_management: Annotated[LigandsFileMana
 Depends(ligand_file_management_dependency)]) -> GetLigandDataFeature:
     return GetLigandDataFeature(file_management=ligand_file_management)
 
-def predict_docking_dependency(target_file_management: Annotated[TargetsFileManagement,
-Depends(target_file_management_dependency)], ligand_file_management: Annotated[LigandsFileManagement,
-Depends(ligand_file_management_dependency)], result_file_management: Annotated[ResultsFileManagement,
-Depends(result_file_management_dependency)]) -> PredictDockingFeature:
+def predict_docking_dependency(
+        settings: Annotated[Settings, Depends(settings_dependency)],
+        target_file_management: Annotated[TargetsFileManagement,
+        Depends(target_file_management_dependency)], ligand_file_management: Annotated[LigandsFileManagement,
+        Depends(ligand_file_management_dependency)], result_file_management: Annotated[ResultsFileManagement,
+        Depends(result_file_management_dependency)]) -> PredictDockingFeature:
     return PredictDockingFeature(target_file_management=target_file_management,
                                  ligand_file_management=ligand_file_management,
-                                 result_file_management=result_file_management)
+                                 result_file_management=result_file_management,
+                                 settings=settings)

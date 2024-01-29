@@ -5,7 +5,7 @@ from pydantic.dataclasses import dataclass
 
 @dataclasses.dataclass
 @dataclass
-class ResultId:
+class JobId:
     value: str
 
     def __eq__(self, other):
@@ -23,7 +23,7 @@ class ResultId:
 @dataclasses.dataclass
 @dataclass
 class ResultMetaData:
-    result_id: str
+    job_id: str
     target_id: str
     ligand_id: str
 

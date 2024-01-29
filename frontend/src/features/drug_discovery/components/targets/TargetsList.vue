@@ -2,7 +2,7 @@
   <q-list bordered separator>
     <q-item-label header>Targets</q-item-label>
     <q-item>
-      <q-btn push class="full-width" color="green">
+      <q-btn push class="full-width" color="green" @click="uploadToAllTargets = true; uploadLigandDialog = true;">
         + add ligands to all targets
       </q-btn>
     </q-item>
@@ -15,19 +15,30 @@
       :label="target.target_name"
       @show="() => selectTarget(target)"
     >
+      <q-btn color="negative" @click="deleteTarget(target)" icon="delete" flat>
+      Delete target
+      </q-btn>
       <TargetDetail v-if="target.data" :experiment-id="experimentId" :original-target="target"> </TargetDetail>
-      <q-btn push class="full-width" color="green"> + add ligand </q-btn>
+
+      <q-btn push class="full-width" color="green" @click="openLigandUploadDialog(target)">
+        + add ligands
+      </q-btn>
       <div v-if="target.loadingLigands">
         <q-spinner color="primary" />
       </div>
-      <q-list bordered v-else>
+      <q-list bordered separator v-else>
+        <q-item-label header>Ligands</q-item-label>
         <q-expansion-item
+          expand-separator
           v-for="ligand in target.ligands"
           :key="ligand.ligand_id"
           clickable
           :label="ligand.ligand_name"
           @show="() => getLigandData(target, ligand)"
         >
+          <q-btn color="negative" @click="deleteLigand(target, ligand)" icon="delete" flat>
+            Delete ligand
+          </q-btn>
           <LigandDetail v-if="ligand.data" :originalLigand="ligand"> </LigandDetail>
         </q-expansion-item>
       </q-list>
@@ -49,6 +60,20 @@
       <q-card-actions align="right">
         <q-btn flat label="Close" color="primary" @click="uploadTargetDialog = false" />
         <q-btn flat label="Upload" color="primary" @click="handleTargetFileUpload" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="uploadLigandDialog">
+    <q-card>
+      <q-card-section>
+        <div class="text-h6">Upload Ligand Files</div>
+        <q-file v-model="uploadingLigandFiles" multiple label="Choose files" />
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn flat label="Close" color="primary" @click="uploadLigandDialog = false" />
+        <q-btn flat label="Upload" color="primary" @click="() => handleLigandFileUpload(selectedTarget)" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -80,9 +105,17 @@ export default {
       targets: this.originalTargets,
       uploadTargetDialog: false,
       uploadingTargetFiles: [],
+      uploadLigandDialog: false,
+      uploadingLigandFiles: [],
+      selectedTarget: null,
+      uploadToAllTargets: false,
     };
   },
   methods: {
+    openLigandUploadDialog(target) {
+      this.selectedTarget = target;
+      this.uploadLigandDialog = true;
+    },
     async selectTarget(target) {
       await this.getLigandsForTarget(target);
       await this.getTargetData(target);
@@ -109,7 +142,19 @@ export default {
       for (let file of this.uploadingTargetFiles) {
         await store.uploadTargetToExperiment(this.experimentId, file);
       }
-      this.uploadTargetDialog = false; // Close the dialog after upload
+      this.uploadTargetDialog = false;
+    },
+    async handleLigandFileUpload(target) {
+      const store = useDrugDiscoveryStore();
+      const targets = this.uploadToAllTargets ? this.targets : [target];
+
+      for (let t of targets) {
+        for (let file of this.uploadingLigandFiles) {
+          await store.uploadLigandToTarget(this.experimentId, t.target_id, file);
+        }
+      }
+      this.uploadLigandDialog = false;
+      this.uploadToAllTargets = false; // Reset the flag
     },
     async getTargetData(target) {
       const store = useDrugDiscoveryStore();
@@ -140,7 +185,25 @@ export default {
       } finally {
         ligand.loadingLigandData = false;
       }
-    }
+    },
+    async deleteTarget(targetToDelete) {
+      const store = useDrugDiscoveryStore();
+      try {
+        await store.deleteTargetFromExperiment(this.experimentId, targetToDelete.target_id);
+        this.targets = this.targets.filter(target => target.target_id !== targetToDelete.target_id);
+      } catch (error) {
+        console.error('Error deleting target:', error);
+      }
+    },
+    async deleteLigand(target, ligandToDelete) {
+      const store = useDrugDiscoveryStore();
+      try {
+        await store.deleteLigandFromTarget(this.experimentId, target.target_id, ligandToDelete.ligand_id);
+        target.ligands = target.ligands.filter(ligand => ligand.ligand_id !== ligandToDelete.ligand_id);
+      } catch (error) {
+        console.error('Error deleting ligand:', error);
+      }
+    },
   },
 };
 </script>

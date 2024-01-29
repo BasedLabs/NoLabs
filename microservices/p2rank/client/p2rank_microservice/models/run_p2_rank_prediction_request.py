@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictStr
 try:
     from typing import Self
@@ -30,7 +30,8 @@ class RunP2RankPredictionRequest(BaseModel):
     RunP2RankPredictionRequest
     """ # noqa: E501
     pdb_contents: StrictStr
-    __properties: ClassVar[List[str]] = ["pdb_contents"]
+    job_id: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["pdb_contents", "job_id"]
 
     model_config = {
         "populate_by_name": True,
@@ -81,7 +82,8 @@ class RunP2RankPredictionRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "pdb_contents": obj.get("pdb_contents")
+            "pdb_contents": obj.get("pdb_contents"),
+            "job_id": obj.get("job_id")
         })
         return _obj
 

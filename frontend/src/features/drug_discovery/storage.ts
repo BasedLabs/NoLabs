@@ -10,6 +10,7 @@ import {
   getTargetData,
   getTargetsList,
   predictBindingPocket,
+  getTargetBindingPocket,
   predictFolding,
   uploadLigand,
   uploadTarget
@@ -93,8 +94,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
           target_id: targetId,
           sdf_file: sdfFile
         };
-        const response = await uploadLigand(ligandData);
-        // Updatethe ligands list for the specific target
+        return await uploadLigand(ligandData);
       } catch (error) {
         console.error('Error uploading ligand:', error);
       }
@@ -139,6 +139,15 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
       try {
         const response = await predictFolding(experimentId, targetId);
         return response.pdb_content;
+        // Optionally set the currentTarget to the selected one
+      } catch (error) {
+        console.error('Error fetching ligands:', error);
+      }
+    },
+    async fetchPocketForTarget(experimentId: string, targetId: string) {
+      try {
+        const response = await getTargetBindingPocket(experimentId, targetId);
+        return response.pocket_ids;
         // Optionally set the currentTarget to the selected one
       } catch (error) {
         console.error('Error fetching ligands:', error);

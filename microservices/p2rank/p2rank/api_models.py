@@ -11,7 +11,7 @@ from p2rank.mixins import BaseModelMixin
 @dataclasses.dataclass
 class RunP2RankPredictionRequest(BaseModelMixin):
     pdb_contents: str
-
+    job_id: str = None
 
 @pydantic.dataclasses.dataclass
 @dataclasses.dataclass

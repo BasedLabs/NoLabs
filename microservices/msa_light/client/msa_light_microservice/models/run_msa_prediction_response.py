@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictStr
 try:
     from typing import Self
@@ -29,7 +29,7 @@ class RunMsaPredictionResponse(BaseModel):
     """
     RunMsaPredictionResponse
     """ # noqa: E501
-    msa_contents: StrictStr
+    msa_contents: Optional[StrictStr] = None
     __properties: ClassVar[List[str]] = ["msa_contents"]
 
     model_config = {

@@ -1,6 +1,7 @@
 import requests
 from msa_light.api_models import RunMsaPredictionRequest, RunMsaPredictionResponse
 from msa_light.loggers import Log
+from msa_light.job_state_manager import job_state_manager
 
 __all__ = ['predict_msa_service']
 
@@ -14,10 +15,8 @@ def predict_msa_service(parameters: RunMsaPredictionRequest) -> RunMsaPrediction
 
         # Check if the request was successful
         if response.status_code == 200:
-            return RunMsaPredictionResponse(msa_contents= response.json()['alignment'])
-        return RunMsaPredictionResponse(msa_contents=None,
-                                            errors=['Unable to run esmfold. The api server returned a status code: ', str(response.status_code)])
+            return RunMsaPredictionResponse(msa_contents=response.json()['alignment'])
+        return RunMsaPredictionResponse(msa_contents=None)
     except Exception as e:
         Log.exception()
-        return RunMsaPredictionResponse(msa_contents=None,
-                                            errors=['Unable to run esmfold. Internal error', str(e)])
+        return RunMsaPredictionResponse(msa_contents=None)

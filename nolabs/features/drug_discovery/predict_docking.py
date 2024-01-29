@@ -1,22 +1,41 @@
 from typing import List
 
 from nolabs.features.drug_discovery.data_models.ligand import LigandId
-from nolabs.features.drug_discovery.data_models.result import DockingResultData
+from nolabs.features.drug_discovery.data_models.result import DockingResultData, JobId
 from nolabs.infrastructure.settings import Settings
-import p2rank_microservice
-import umol_microservice
-
-settings = Settings()
-if settings.is_light_infrastructure:
-    import esmfold_light_microservice as folding_microservice
-else:
-    import esmfold_microservice as folding_microservice
 
 # TODO: Add self-hosted MSA microservice
 # if settings.drug_discovery_self_hosted_msa:
 import msa_light_microservice as msa_microservice
+from msa_light_microservice import DefaultApi as MsaDefaultAPI
+from msa_light_microservice import ApiClient as MsaApiClient
+from msa_light_microservice import Configuration as MsaConfiguration
 
-from nolabs.api_models.drug_discovery import DockingRequest, DockingResponse
+
+import p2rank_microservice
+from p2rank_microservice import DefaultApi as P2RankDefaultAPI
+from p2rank_microservice import ApiClient as P2RankApiClient
+from p2rank_microservice import Configuration as P2RankConfiguration
+
+
+import umol_microservice
+from umol_microservice import DefaultApi as UmolDefaultApi
+from umol_microservice import ApiClient as UmolApiClient
+from umol_microservice import Configuration as UmolConfiguration
+
+settings = Settings()
+if settings.is_light_infrastructure:
+    import esmfold_light_microservice as folding_microservice
+    from esmfold_light_microservice import DefaultApi as FoldingDefaultApi
+    from esmfold_light_microservice import ApiClient as FoldingApiClient
+    from esmfold_light_microservice import Configuration as FoldingConfiguration
+else:
+    import esmfold_microservice as folding_microservice
+    from esmfold_microservice import DefaultApi as FoldingDefaultApi
+    from esmfold_microservice import ApiClient as FoldingApiClient
+    from esmfold_microservice import Configuration as FoldingConfiguration
+
+from nolabs.api_models.drug_discovery import RunDockingJobRequest, RunDockingJobResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
@@ -27,29 +46,36 @@ from nolabs.features.drug_discovery.services.result_file_management import Resul
 class PredictDockingFeature:
     def __init__(self, target_file_management: TargetsFileManagement,
                  ligand_file_management: LigandsFileManagement,
-                 result_file_management: ResultsFileManagement):
+                 result_file_management: ResultsFileManagement,
+                 settings: Settings):
         self._target_file_management = target_file_management
         self._ligand_file_management = ligand_file_management
         self._result_file_management = result_file_management
+        self._settings = settings
 
-    def handle(self, request: DockingRequest) -> DockingResponse:
+    def handle(self, request: RunDockingJobRequest) -> RunDockingJobResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
         ligand_id = LigandId(request.ligand_id)
+        job_id = JobId(request.job_id)
 
-        msa_contents = self.get_msa(experiment_id, target_id)
-        pocket_ids = self.get_pocket_ids(experiment_id, target_id)
+        msa_contents = self.get_msa(experiment_id, target_id, job_id)
+        pocket_ids = self.get_pocket_ids(experiment_id, target_id, job_id)
         _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
         ligand_smiles = self._ligand_file_management.get_ligand_data(experiment_id, target_id, ligand_id)
 
-        client = umol_microservice.DefaultApi(api_client=umol_microservice.ApiClient())
-        request = umol_microservice.RunUmolPredictionRequest(protein_sequence=sequence,
-                                                             msa_content=msa_contents,
-                                                             pocket_ids=pocket_ids,
-                                                             ligand_smiles=ligand_smiles)
-        response = client.predict_run_umol_post(request=request)
+        configuration = UmolConfiguration(
+            host=self._settings.umol_host,
+        )
+        with UmolApiClient(configuration=configuration) as client:
+            api_instance = UmolDefaultApi(client)
+            request = umol_microservice.RunUmolPredictionRequest(protein_sequence=sequence,
+                                                                 msa_content=msa_contents,
+                                                                 pocket_ids=pocket_ids,
+                                                                 ligand_smiles=ligand_smiles)
+            response = api_instance.predict_run_umol_post(request=request)
 
         predicted_pdb = response.pdb_contents
         predicted_sdf = response.sdf_contents
@@ -61,32 +87,38 @@ class PredictDockingFeature:
 
         self._result_file_management.store_result_data(experiment_id, target_id, ligand_id, result_data)
 
-        return DockingResponse(predicted_pdb=predicted_pdb, predicted_sdf=predicted_sdf, plddt_array=plddt_array)
+        return RunDockingJobResponse(predicted_pdb=predicted_pdb, predicted_sdf=predicted_sdf, plddt_array=plddt_array)
 
-    def get_folding(self, experiment_id: ExperimentId, target_id: TargetId) -> str:
+    def get_folding(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> str:
         if not self._target_file_management.get_pdb_contents(experiment_id, target_id):
-            client = folding_microservice.DefaultApi(api_client=folding_microservice.ApiClient())
             _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
-            request = folding_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence)
-            pdb_contents = client.predict_through_api_run_folding_post(request=request).pdb_content
+            configuration = FoldingConfiguration(
+                host=self._settings.umol_host,
+            )
+            with FoldingApiClient(configuration=configuration) as client:
+                api_instance = FoldingDefaultApi(client)
+                # TODO: add job_id (need to re-build a docker container on a gpu instance)
+                request = folding_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence)
+                pdb_contents = api_instance.predict_through_api_run_folding_post(request=request).pdb_content
             self._target_file_management.store_pdb_contents(experiment_id, target_id, pdb_contents)
             return pdb_contents
         else:
             return self._target_file_management.get_pdb_contents(experiment_id, target_id)
 
-    def get_msa(self, experiment_id: ExperimentId, target_id: TargetId) -> str:
+    def get_msa(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> str:
         if not self._target_file_management.get_msa(experiment_id, target_id):
             client = msa_microservice.DefaultApi(api_client=msa_microservice.ApiClient())
             fasta_contents = self._target_file_management.get_fasta_contents(experiment_id, target_id)
             msa_server_url = self._target_file_management.get_msa_api_url()
-            request = msa_microservice.RunMsaPredictionRequest(api_url=msa_server_url, fasta_contents=fasta_contents)
+            request = msa_microservice.RunMsaPredictionRequest(api_url=msa_server_url,
+                                                               fasta_contents=fasta_contents)
             msa_contents = client.predict_msa_predict_msa_post(request=request).msa_contents
             self._target_file_management.store_msa(experiment_id, target_id, msa_contents)
             return msa_contents
         else:
             return self._target_file_management.get_msa(experiment_id, target_id)
 
-    def get_pocket_ids(self, experiment_id: ExperimentId, target_id: TargetId) -> List[int]:
+    def get_pocket_ids(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> List[int]:
         if not self._target_file_management.get_binding_pocket(experiment_id, target_id):
             client = p2rank_microservice.DefaultApi(api_client=p2rank_microservice.ApiClient())
             pdb_contents = self._target_file_management.get_pdb_contents(experiment_id, target_id)
