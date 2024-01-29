@@ -17,9 +17,6 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_is_job_running_response.py
-test/test_run_umol_prediction_request.py
-test/test_run_umol_prediction_response.py
 tox.ini
 umol_microservice/__init__.py
 umol_microservice/api/__init__.py
