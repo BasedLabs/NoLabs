@@ -58,6 +58,19 @@ class ResultsFileManagement:
         self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "job_id", job_id.value
                                     )
 
+    def store_result_input_pocketIds(self,
+                                     experiment_id: ExperimentId,
+                                     target_id: TargetId,
+                                     ligand_id: LigandId,
+                                     job_id: JobId,
+                                     pocket_ids: List[int]):
+        self.ensure_results_folder_exists(experiment_id, target_id, ligand_id)
+        result_dir = self.result_folder(experiment_id, target_id, ligand_id, job_id)
+        pocket_file = os.path.join(result_dir, self._settings.drug_discovery_running_jobs_pocket_file_name)
+        pocket_arr = np.asarray(pocket_ids)
+        np.save(pocket_file, pocket_arr)
+
+
     def store_result_data(self, experiment_id: ExperimentId,
                           target_id: TargetId,
                           ligand_id: LigandId,

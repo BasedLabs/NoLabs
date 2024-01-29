@@ -6,11 +6,14 @@ from nolabs.api_models.drug_discovery import PredictFoldingRequest, PredictFoldi
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
+from nolabs.infrastructure.settings import Settings
 
 
 class PredictFoldingFeature:
-    def __init__(self, file_management: TargetsFileManagement):
+    def __init__(self, file_management: TargetsFileManagement,
+                 settings: Settings):
         self._file_management = file_management
+        self._settings = settings
 
     def handle(self, request: PredictFoldingRequest) -> PredictFoldingResponse:
         assert request
@@ -19,7 +22,7 @@ class PredictFoldingFeature:
         target_id = TargetId(request.target_id)
 
         configuration = Configuration(
-            host="http://127.0.0.1:5733",
+            host=self._settings.esmfold_light_host,
         )
         with ApiClient(configuration=configuration) as client:
             api_instance = DefaultApi(client)

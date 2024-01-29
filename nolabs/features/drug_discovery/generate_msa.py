@@ -30,7 +30,7 @@ class GenerateMsaFeature:
             request = microservice.RunMsaPredictionRequest(
                 api_url=self._settings.drug_discovery_msa_remote_prediction_url,
                 fasta_contents=fasta_contents)
-            msa_contents = api_instance.predict_msa_predict_msa_post(request=request).msa_contents
+            msa_contents = api_instance.predict_msa_predict_msa_post(predict_msa_predict_msa_post=request).msa_contents
 
         self._file_management.store_msa(experiment_id, target_id, msa_contents)
 

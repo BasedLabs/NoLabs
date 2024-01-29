@@ -19,6 +19,7 @@ from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFe
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
 from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
+from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
@@ -87,6 +88,7 @@ def get_targets_list_dependency(target_file_management: Annotated[TargetsFileMan
 Depends(target_file_management_dependency)]) -> GetTargetsListFeature:
     return GetTargetsListFeature(file_management=target_file_management)
 
+
 def get_target_data_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)]) -> GetTargetDataFeature:
     return GetTargetDataFeature(file_management=target_file_management)
@@ -109,8 +111,10 @@ Depends(target_file_management_dependency)]) -> GetFoldedStructureFeature:
 
 
 def predict_folding_dependency(target_file_management: Annotated[TargetsFileManagement,
-Depends(target_file_management_dependency)]) -> PredictFoldingFeature:
-    return PredictFoldingFeature(file_management=target_file_management)
+                               Depends(target_file_management_dependency)],
+                               settings: Annotated[Settings,
+                               Depends(settings_dependency)]) -> PredictFoldingFeature:
+    return PredictFoldingFeature(file_management=target_file_management, settings=settings)
 
 
 def upload_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
@@ -127,9 +131,16 @@ def get_ligands_list_dependency(ligand_file_management: Annotated[LigandsFileMan
 Depends(ligand_file_management_dependency)]) -> GetLigandsListFeature:
     return GetLigandsListFeature(file_management=ligand_file_management)
 
+
 def get_ligand_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
 Depends(ligand_file_management_dependency)]) -> GetLigandDataFeature:
     return GetLigandDataFeature(file_management=ligand_file_management)
+
+
+def register_docking_job_dependency(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]):
+    return RegisterDockingJobFeature(file_management=result_file_management)
+
 
 def predict_docking_dependency(
         settings: Annotated[Settings, Depends(settings_dependency)],

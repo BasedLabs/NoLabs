@@ -7,16 +7,14 @@ from nolabs.infrastructure.settings import Settings
 # TODO: Add self-hosted MSA microservice
 # if settings.drug_discovery_self_hosted_msa:
 import msa_light_microservice as msa_microservice
-from msa_light_microservice import DefaultApi as MsaDefaultAPI
+from msa_light_microservice import DefaultApi as MsaDefaultApi
 from msa_light_microservice import ApiClient as MsaApiClient
 from msa_light_microservice import Configuration as MsaConfiguration
 
-
 import p2rank_microservice
-from p2rank_microservice import DefaultApi as P2RankDefaultAPI
+from p2rank_microservice import DefaultApi as P2RankDefaultApi
 from p2rank_microservice import ApiClient as P2RankApiClient
 from p2rank_microservice import Configuration as P2RankConfiguration
-
 
 import umol_microservice
 from umol_microservice import DefaultApi as UmolDefaultApi
@@ -63,8 +61,13 @@ class PredictDockingFeature:
 
         msa_contents = self.get_msa(experiment_id, target_id, job_id)
         pocket_ids = self.get_pocket_ids(experiment_id, target_id, job_id)
+        self._result_file_management.store_result_input_pocketIds(experiment_id,
+                                                                  target_id,
+                                                                  ligand_id,
+                                                                  job_id,
+                                                                  pocket_ids[:])
         _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
-        ligand_smiles = self._ligand_file_management.get_ligand_data(experiment_id, target_id, ligand_id)
+        _, _, ligand_smiles = self._ligand_file_management.get_ligand_data(experiment_id, target_id, ligand_id)
 
         configuration = UmolConfiguration(
             host=self._settings.umol_host,
@@ -75,7 +78,7 @@ class PredictDockingFeature:
                                                                  msa_content=msa_contents,
                                                                  pocket_ids=pocket_ids,
                                                                  ligand_smiles=ligand_smiles)
-            response = api_instance.predict_run_umol_post(request=request)
+            response = api_instance.predict_run_umol_post(run_umol_prediction_request=request)
 
         predicted_pdb = response.pdb_contents
         predicted_sdf = response.sdf_contents
@@ -93,13 +96,12 @@ class PredictDockingFeature:
         if not self._target_file_management.get_pdb_contents(experiment_id, target_id):
             _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
             configuration = FoldingConfiguration(
-                host=self._settings.umol_host,
+                host=self._settings.folding_host,
             )
             with FoldingApiClient(configuration=configuration) as client:
                 api_instance = FoldingDefaultApi(client)
-                # TODO: add job_id (need to re-build a docker container on a gpu instance)
                 request = folding_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence)
-                pdb_contents = api_instance.predict_through_api_run_folding_post(request=request).pdb_content
+                pdb_contents = api_instance.predict_through_api_run_folding_post(run_esm_fold_prediction_request=request).pdb_content
             self._target_file_management.store_pdb_contents(experiment_id, target_id, pdb_contents)
             return pdb_contents
         else:
@@ -107,12 +109,19 @@ class PredictDockingFeature:
 
     def get_msa(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> str:
         if not self._target_file_management.get_msa(experiment_id, target_id):
-            client = msa_microservice.DefaultApi(api_client=msa_microservice.ApiClient())
+
             fasta_contents = self._target_file_management.get_fasta_contents(experiment_id, target_id)
-            msa_server_url = self._target_file_management.get_msa_api_url()
-            request = msa_microservice.RunMsaPredictionRequest(api_url=msa_server_url,
-                                                               fasta_contents=fasta_contents)
-            msa_contents = client.predict_msa_predict_msa_post(request=request).msa_contents
+
+            configuration = MsaConfiguration(
+                host=self._settings.msa_light_host,
+            )
+            with MsaApiClient(configuration=configuration) as client:
+                api_instance = MsaDefaultApi(client)
+                request = msa_microservice.RunMsaPredictionRequest(
+                    api_url=self._settings.drug_discovery_msa_remote_prediction_url,
+                    fasta_contents=fasta_contents,
+                )
+                msa_contents = api_instance.predict_msa_predict_msa_post(run_msa_prediction_request=request).msa_contents
             self._target_file_management.store_msa(experiment_id, target_id, msa_contents)
             return msa_contents
         else:
@@ -120,11 +129,15 @@ class PredictDockingFeature:
 
     def get_pocket_ids(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> List[int]:
         if not self._target_file_management.get_binding_pocket(experiment_id, target_id):
-            client = p2rank_microservice.DefaultApi(api_client=p2rank_microservice.ApiClient())
-            pdb_contents = self._target_file_management.get_pdb_contents(experiment_id, target_id)
-            pdb_fixer_request = p2rank_microservice.RunP2RankPredictionRequest(pdb_contents=pdb_contents)
-            pocket_ids = client.predict_run_p2rank_post(request=pdb_fixer_request).pocket_ids
-            self._target_file_management.store_binding_pocket(experiment_id, target_id, pocket_ids)
+            configuration = P2RankConfiguration(
+                host=self._settings.p2rank_host,
+            )
+            with P2RankApiClient(configuration=configuration) as client:
+                api_instance = P2RankDefaultApi(client)
+                pdb_contents = self._target_file_management.get_pdb_contents(experiment_id, target_id)
+                pdb_fixer_request = p2rank_microservice.RunP2RankPredictionRequest(pdb_contents=pdb_contents)
+                pocket_ids = api_instance.predict_run_p2rank_post(run_p2_rank_prediction_request=pdb_fixer_request).pocket_ids
+                self._target_file_management.store_binding_pocket(experiment_id, target_id, pocket_ids)
             return pocket_ids
         else:
             return self._target_file_management.get_binding_pocket(experiment_id, target_id)
