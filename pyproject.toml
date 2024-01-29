@@ -8,7 +8,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 solubility-microservice = {path = "microservices/solubility/client"}
-p2rank-microservice = {path = "microservices/p2rank/client"}
 esmfold_light-microservice = {path = "microservices/esmfold_light/client"}
 websockets = "^12.0"
 uvicorn = "^0.25.0"
@@ -26,8 +25,9 @@ python-json-logger = "^2.0.7"
 python-dateutil = "^2.8.2"
 python-slugify = "^8.0.2"
 esmfold-microservice = {path = "microservices/esmfold/client"}
-umol-microservice = {path = "microservices/umol/client"}
 msa-light-microservice = {path = "microservices/msa_light/client"}
+p2rank-microservice = {path = "microservices/p2rank/client"}
+umol-microservice = {path = "microservices/umol/client"}
 
 [project]
 dependencies = [
