@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from pydantic import BaseModel, StrictStr
 try:
     from typing import Self
@@ -31,7 +31,8 @@ class RunMsaPredictionRequest(BaseModel):
     """ # noqa: E501
     api_url: StrictStr
     fasta_contents: StrictStr
-    __properties: ClassVar[List[str]] = ["api_url", "fasta_contents"]
+    job_id: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["api_url", "fasta_contents", "job_id"]
 
     model_config = {
         "populate_by_name": True,
@@ -83,7 +84,8 @@ class RunMsaPredictionRequest(BaseModel):
 
         _obj = cls.model_validate({
             "api_url": obj.get("api_url"),
-            "fasta_contents": obj.get("fasta_contents")
+            "fasta_contents": obj.get("fasta_contents"),
+            "job_id": obj.get("job_id")
         })
         return _obj
 

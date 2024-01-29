@@ -7,6 +7,7 @@ import {
     DockingRequest,
     GetFoldingRequest,
     PredictFoldingResponse,
+    GetTargetBindingPocketResponse,
     PredictBindingPocketResponse,
     Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
     UploadTargetResponse,
@@ -77,7 +78,7 @@ export function getLigandData(experimentId: string, targetId: string, ligandId: 
 }
 
 // Get target binding pocket
-export function getTargetBindingPocket(experimentId: string, targetId: string): CancelablePromise<any> {
+export function getTargetBindingPocket(experimentId: string, targetId: string): CancelablePromise<GetTargetBindingPocketResponse> {
     return DrugDiscoveryService.getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(experimentId, targetId);
 }
 

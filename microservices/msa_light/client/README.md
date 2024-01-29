@@ -67,15 +67,14 @@ configuration = msa_light_microservice.Configuration(
 with msa_light_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = msa_light_microservice.DefaultApi(api_client)
-    run_msa_prediction_request = msa_light_microservice.RunMsaPredictionRequest() # RunMsaPredictionRequest | 
 
     try:
-        # Predict Msa
-        api_response = api_instance.predict_msa_predict_msa_post(run_msa_prediction_request)
-        print("The response of DefaultApi->predict_msa_predict_msa_post:\n")
+        # Get Running Jobs
+        api_response = api_instance.get_running_jobs_jobs_running_get()
+        print("The response of DefaultApi->get_running_jobs_jobs_running_get:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DefaultApi->predict_msa_predict_msa_post: %s\n" % e)
+        print("Exception when calling DefaultApi->get_running_jobs_jobs_running_get: %s\n" % e)
 
 ```
 
@@ -85,6 +84,8 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*DefaultApi* | [**get_running_jobs_jobs_running_get**](docs/DefaultApi.md#get_running_jobs_jobs_running_get) | **GET** /jobs/running | Get Running Jobs
+*DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
 *DefaultApi* | [**predict_msa_predict_msa_post**](docs/DefaultApi.md#predict_msa_predict_msa_post) | **POST** /predict-msa | Predict Msa
 
 

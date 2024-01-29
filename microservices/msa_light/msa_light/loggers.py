@@ -24,4 +24,4 @@ class Log:
 
     @staticmethod
     def exception():
-        _logger.exception()
+        _logger.exception(msg='Something went wrong')

@@ -6,10 +6,14 @@ from nolabs.api_models.drug_discovery import PredictBindingPocketRequest, Predic
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
+from nolabs.infrastructure.settings import Settings
+
 
 class PredictBindingPocketFeature:
-    def __init__(self, file_management: TargetsFileManagement):
+    def __init__(self, file_management: TargetsFileManagement,
+                 settings: Settings):
         self._file_management = file_management
+        self._settings = settings
 
     def handle(self, request: PredictBindingPocketRequest) -> PredictBindingPocketResponse:
         assert request
@@ -18,7 +22,7 @@ class PredictBindingPocketFeature:
         target_id = TargetId(request.target_id)
 
         configuration = Configuration(
-            host="http://127.0.0.1:5731",
+            host=self._settings.p2rank_host,
         )
         with ApiClient(configuration=configuration) as client:
             api_instance = DefaultApi(client)
@@ -27,7 +31,5 @@ class PredictBindingPocketFeature:
             pocket_ids = api_instance.predict_run_p2rank_post(run_p2_rank_prediction_request=p2rank_request).pocket_ids
 
             self._file_management.store_binding_pocket(experiment_id, target_id, pocket_ids)
-
-
 
         return PredictBindingPocketResponse(pocket_ids=pocket_ids)

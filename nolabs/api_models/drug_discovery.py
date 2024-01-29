@@ -156,21 +156,59 @@ class GetLigandDataResponse:
 # # #
 @pcdataclass.dataclass
 class ResultMetaData:
-    result_id: str
-    protein_id: str
-    ligand_ids: List[str]
+    experiment_id: str
+    job_id: str
+    target_id: str
+    ligand_id: str
 
 @pcdataclass.dataclass
-class DockingRequest:
+class RegisterDockingJobRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
-class DockingResponse:
+class RegisterDockingJobResponse:
+    job_id: str
+
+@pcdataclass.dataclass
+class RunDockingJobRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class RunDockingJobResponse:
     predicted_pdb: str
     predicted_sdf: str
     plddt_array: List[int]
+    job_id: str
+
+@pcdataclass.dataclass
+class CheckResultDataAvailableRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class CheckResultDataAvailableResponse:
+    result_available: bool
+
+@pcdataclass.dataclass
+class GetResultDataRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class GetResultDataResponse:
+    predicted_pdb: str
+    predicted_sdf: str
+    plddt_array: List[int]
+    job_id: str
 
 @pcdataclass.dataclass
 class GetResultsListRequest:
@@ -178,7 +216,7 @@ class GetResultsListRequest:
 
 @pcdataclass.dataclass
 class GetResultsListResponse:
-    results_list: List
+    results_list: List[ResultMetaData]
 
 
 

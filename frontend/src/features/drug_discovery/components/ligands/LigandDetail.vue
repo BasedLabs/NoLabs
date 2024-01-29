@@ -17,6 +17,7 @@
   <q-card v-if="ligand">
     <q-card-section>
       <div class="text-h6">Ligand: {{ ligand.ligand_name }}</div>
+      <div class="text-subtitle1">SMILES: {{ ligand.data.smiles }}</div>
       <div ref="viewerContainer" class="ligand-viewer"></div>
     </q-card-section>
   </q-card>

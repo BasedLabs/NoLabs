@@ -6,6 +6,7 @@ import dataclasses
 @dataclasses.dataclass
 class RunEsmFoldPredictionRequest:
     protein_sequence: str
+    job_id: str = None
 
 
 @dataclasses.dataclass

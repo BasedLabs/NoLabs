@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **api_url** | **str** |  | 
 **fasta_contents** | **str** |  | 
+**job_id** | **str** |  | [optional] 
 
 ## Example
 

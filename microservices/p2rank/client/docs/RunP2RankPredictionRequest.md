@@ -6,6 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **pdb_contents** | **str** |  | 
+**job_id** | **str** |  | [optional] 
 
 ## Example
 

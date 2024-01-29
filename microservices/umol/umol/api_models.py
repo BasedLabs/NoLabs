@@ -4,7 +4,6 @@ import dataclasses
 from typing import List, Optional
 
 import pydantic
-from fastapi import UploadFile
 
 from umol.mixins import BaseModelMixin, ErrorResponseMixin
 
@@ -16,6 +15,7 @@ class RunUmolPredictionRequest(BaseModelMixin):
     ligand_smiles: str
     msa_content: str
     pocket_ids: List[int]
+    job_id: str = None
 
 
 @pydantic.dataclasses.dataclass

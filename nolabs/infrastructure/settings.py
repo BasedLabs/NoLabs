@@ -44,6 +44,18 @@ class Settings:
         return self._config.get('microservices', 'gene_ontology_host')
 
     @property
+    def p2rank_host(self) -> str:
+        return self._config.get('microservices', 'p2rank_host')
+
+    @property
+    def msa_light_host(self) -> str:
+        return self._config.get('microservices', 'msa_light_host')
+
+    @property
+    def umol_host(self) -> str:
+        return self._config.get('microservices', 'umol_host')
+
+    @property
     def conformations_simulations_file_name(self) -> str:
         return self._config.get('conformations', 'file_name')
 
@@ -146,11 +158,30 @@ class Settings:
         return self._config.get('drug-discovery', 'self_hosted_msa')
 
     @property
-    def drug_discovery_msa_url(self) -> str:
+    def drug_discovery_msa_remote_prediction_url(self) -> str:
         return self._config.get('drug-discovery', 'msa_server_url')
     @property
     def drug_discovery_msa_file_name(self) -> str:
         return self._config.get('drug-discovery', 'msa_file_name')
+    @property
+    def drug_discovery_running_jobs_dir_name(self) -> str:
+        return self._config.get('drug-discovery', 'running_job_dir_name')
+
+    @property
+    def drug_discovery_running_jobs_config_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'running_jobs_config_name')
+
+    @property
+    def drug_discovery_running_jobs_metadata_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'jobs_metadata_file_name')
+
+    @property
+    def drug_discovery_running_jobs_pocket_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'job_pocket_file_name')
+
+    @property
+    def drug_discovery_running_jobs_progress_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'job_progress_file')
 
     @property
     def drug_discovery_docking_result_directory_name(self) -> str:

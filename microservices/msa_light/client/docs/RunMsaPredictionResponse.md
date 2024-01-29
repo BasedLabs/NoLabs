@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**msa_contents** | **str** |  | 
+**msa_contents** | **str** |  | [optional] 
 
 ## Example
 
