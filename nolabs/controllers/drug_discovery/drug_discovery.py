@@ -63,8 +63,8 @@ from nolabs.api_models.drug_discovery import (
     GetFoldingResponse,
     PredictFoldingRequest,
     PredictFoldingResponse,
-    DockingRequest,
-    DockingResponse,
+    RunDockingJobRequest,
+    RunDockingJobResponse,
     TargetMetaData,
     LigandMetaData, GetLigandDataRequest
 )
@@ -210,6 +210,6 @@ async def predict_folding(feature: Annotated[
 
 # Docking
 @router.post('/predict-docking')
-async def perform_docking(request: DockingRequest, feature: Annotated[
-    PredictDockingFeature, Depends(predict_docking_dependency)]) -> DockingResponse:
+async def perform_docking(request: RunDockingJobRequest, feature: Annotated[
+    PredictDockingFeature, Depends(predict_docking_dependency)]) -> RunDockingJobResponse:
     return feature.handle(request)

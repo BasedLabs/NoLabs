@@ -10,11 +10,12 @@ export default defineComponent({
       return PdbViews
     },
     FileName(): string {
+      const name = this.pdbFile != null ? this.pdbFile!.name : this.sdfFile!.name;
       if (this.fileNamePrefix) {
-        return `${this.fileNamePrefix} - ${this.pdbFile != null ? this.pdbFile!.name : this.sdfFile!.name}`;
+        return `${this.fileNamePrefix} - ${name}`;
       }
 
-      return this.pdbFile!.name;
+      return name;
     }
   },
   props: {
@@ -107,36 +108,25 @@ export default defineComponent({
 
       }, 100);
     },
-    async loadFileIntoStage(stage: any, selectedRepresentation: string, asTrajectory: boolean = false) {
-      let component: any;
-      if (this.pdbFile != null) {
-        if (selectedRepresentation === PdbViews.default.key) {
-          component = await stage.loadFile(this.pdbFile, {defaultRepresentation: true, asTrajectory});
-        } else {
-          component = await stage.loadFile(this.pdbFile, {asTrajectory});
-        }
-
+    async loadFileIntoStage(stage: any, selectedRepresentation: string, asTrajectory: boolean = false) {  let component: any;
+      if (this.pdbFile != null) {    if (selectedRepresentation === PdbViews.default.key) {
+        component = await stage.loadFile(this.pdbFile, {defaultRepresentation: true, asTrajectory});    } else {
+        component = await stage.loadFile(this.pdbFile, {asTrajectory});    }
         if (selectedRepresentation !== PdbViews.default.key) {
-          component.addRepresentation(selectedRepresentation);
-        }
+          component.addRepresentation(selectedRepresentation);    }
       }
-
-      if (this.sdfFile != null) {
-        component = await stage.loadFile(this.sdfFile, {})
+      if (this.sdfFile != null) {    if (selectedRepresentation === PdbViews.default.key) {
+        component = await stage.loadFile(this.sdfFile, {defaultRepresentation: true});    } else {
+        component = await stage.loadFile(this.sdfFile, {asTrajectory});    }
+        if (selectedRepresentation !== PdbViews.default.key) {
+          component.addRepresentation(selectedRepresentation);    }
       }
-
-      if(this.pocketIds && this.pocketIds.length > 0){
-        const selectionString = this.pocketIds
-            .map((id) => (id + 1).toString())
-            .join(" or ");
-        component.addRepresentation("ball+stick", {
-          sele: selectionString,
-          color: "blue",
-        });
+      if(this.pocketIds && this.pocketIds.length > 0){    const selectionString = this.pocketIds
+        .map((id) => (id + 1).toString())        .join(" or ");
+        component.addRepresentation("ball+stick", {      sele: selectionString,
+          color: "blue",    });
       }
-
-      return component;
-    },
+      return component;},
     async renderStatic(selectedRepresentation: string) {
       setTimeout(async () => {
         this.$refs.viewport!.innerHTML = '';

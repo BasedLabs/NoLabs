@@ -33,7 +33,7 @@
       <q-btn v-if="!hasPdb" color="accent" @click="predictStructure">
         Predict 3D structure
       </q-btn>
-      <div v-else ref="viewerContainer" class="protein-viewer" />
+      <PdbViewer v-if="hasPdb && this.target.data.pdb_file" :pdb-file="this.target.data.pdb_file" :pocket-ids="this.target.data.pocketIds" :key="this.target.data.pocketIds" />
       <q-btn v-if="hasPdb && !bindingPocketAvailable" color="secondary" @click="fetchAndShowPocket">
         Show Binding Pocket
       </q-btn>
@@ -55,8 +55,8 @@
           </q-card-section>
 
           <q-card-actions align="right">
-            <q-btn flat label="Close" color="primary" @click="showNoPocketModal = false" />
-            <q-btn flat label="Predict" color="primary" @click="predictBindingPocket" />
+            <q-btn flat label="Close" color="white" @click="showNoPocketModal = false" />
+            <q-btn flat label="Predict" color="white" @click="predictBindingPocket" />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -67,6 +67,7 @@
 <script>
 import { QCard, QCardSection, QBtn, QDialog, QCardActions } from "quasar";
 import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
+import PdbViewer from "src/components/PdbViewer.vue";
 import * as NGL from "ngl";
 
 export default {
@@ -77,6 +78,7 @@ export default {
     QBtn,
     QDialog,
     QCardActions,
+    PdbViewer
   },
   props: {
     experimentId: {
@@ -106,22 +108,6 @@ export default {
     };
   },
   methods: {
-    createViewer() {
-      if (this.viewer || !this.target.data.pdbContents) {
-        this.loading3DView = false; // Ensure loading state is cleared even if conditions aren't met
-        return;
-      }
-      setTimeout(async () => {
-        this.viewer = new NGL.Stage(this.$refs.viewerContainer);
-
-        const stringBlob = new Blob([this.target.data.pdbContents], { type: "text/plain" });
-        const proteinFile = new File([stringBlob], 'protein.pdb', { type: 'text/plain' });
-        this.viewer.loadFile(proteinFile, { defaultRepresentation: true }).then((component) => {
-          component.autoView();
-          this.loading3DView = false;
-        });
-      }, 100);
-    },
     predictStructure() {
       const store = useDrugDiscoveryStore();
       if (this.target) {
@@ -221,7 +207,7 @@ export default {
     },
   },
   mounted() {
-   this.createViewer();
+    this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
   },
   beforeUnmount() {
     if (this.viewer) {
@@ -278,9 +264,4 @@ export default {
   padding: 10px;
 }
 
-
-.protein-viewer {
-  width: 100%;
-  height: 400px;
-}
 </style>
