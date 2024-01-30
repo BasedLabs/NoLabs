@@ -67,7 +67,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 }, errors: []
             };
         },
-        async removeExperiment(experimentId: string) {
+        async deleteExperiment(experimentId: string) {
             try {
                 await deleteExperiment(experimentId);
                 this.experiments = this.experiments.filter(exp => exp.id !== experimentId);

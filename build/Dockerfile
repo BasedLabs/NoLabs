@@ -16,6 +16,10 @@ ENV PYTHONBUFFERED=1
 
 RUN poetry install --no-root
 WORKDIR /app
+USER root
 RUN chmod +x build/start_server.sh
 
-ENTRYPOINT ["./build/start_server.sh"]
+RUN pip install uvicorn
+
+RUN ls -la
+ENTRYPOINT ["sh", "./build/start_server.sh"]

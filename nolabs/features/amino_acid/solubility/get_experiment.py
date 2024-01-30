@@ -14,7 +14,7 @@ class GetExperimentFeature:
         experiment_id = ExperimentId(id)
 
         if not self._file_management.experiment_exists(experiment_id):
-            raise NoLabsException(['This experiment not found in localisation data'], ErrorCodes.experiment_id_not_found)
+            raise NoLabsException(['This experiment not found'], ErrorCodes.experiment_id_not_found)
 
         data = self._file_management.get_result(experiment_id)
         properties = await self._file_management.get_properties(experiment_id)

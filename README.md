@@ -90,32 +90,12 @@ Hosting:
 # Clone this project
 $ git clone https://github.com/BasedLabs/nolabs
 
-# Access
-$ cd nolabs
+$ docker compose up
 
-# Build conformations
-$ cd conformations
-$ sudo docker buildx build --progress=plain -t conformations -f Dockerfile .
+# Or if you want to run single feature run
+$ docker compose -up nolabs [gene_ontology|localisation|protein_design|solubility|conformations]
 
-$ cd ..
-# Build protein design lab
-$ cd protein_design
-$ sudo docker buildx build --progress=plain -t protein-design -f Dockerfile .
-
-$ cd ../build
-# Build the docker image
-$ sudo docker buildx build --progress=plain -t nolabs -f build/Dockerfile .
-# or build/cpu.Dockerfile for inference on cpu
-
-# Run the images and expose the 5000 port
-$ docker run --name protein-design --gpus all --net=host protein-design
-$ docker run --name conformations --gpus all --net=host conformations
-$ docker run --net=host nolabs --test
-# Run without --test if you want to run models on GPU
-# Protein design lab is GPU only
-# check 'Requirements' section for more information
-
-# The website will be available on <http://localhost:5173>
+# Server will be available on http://localhost:9000
 ```
 
 ## Technologies ##
@@ -125,7 +105,7 @@ The following tools were used in this project:
 - [Pytorch](https://pytorch.org/)
 - [Jax](https://jax.readthedocs.io/en/latest/index.html)
 - [Transformers](https://huggingface.co/transformers)
-- [Flask](https://pypi.org/project/Flask/)
+- [FastAPI](https://pypi.org/project/Flask/)
 - [Docker](https://www.docker.com/)
 
 ## Requirements ##

@@ -2,7 +2,7 @@
   <q-list bordered separator>
     <q-item-label header>Targets</q-item-label>
     <q-item>
-      <q-btn push class="full-width" color="green" @click="uploadToAllTargets = true; uploadLigandDialog = true;">
+      <q-btn push  class="full-width" color="green" @click="uploadToAllTargets = true; uploadLigandDialog = true;">
         + add ligands to all targets
       </q-btn>
     </q-item>
@@ -20,7 +20,7 @@
       </q-btn>
       <TargetDetail v-if="target.data" :experiment-id="experimentId" :original-target="target"> </TargetDetail>
 
-      <q-btn push class="full-width" color="green" @click="openLigandUploadDialog(target)">
+      <q-btn push class="full-width"  color="green" @click="openLigandUploadDialog(target)">
         + add ligands
       </q-btn>
       <div v-if="target.loadingLigands">
@@ -54,12 +54,12 @@
     <q-card>
       <q-card-section>
         <div class="text-h6">Upload Target Files</div>
-        <q-file v-model="uploadingTargetFiles" multiple label="Choose files" />
+        <q-file v-model="uploadingTargetFiles" accept=".fasta" multiple label="Choose files" />
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="primary" @click="uploadTargetDialog = false" />
-        <q-btn flat label="Upload" color="primary" @click="handleTargetFileUpload" />
+        <q-btn flat label="Close" color="negative" @click="uploadTargetDialog = false" />
+        <q-btn flat label="Upload" color="positive" @click="handleTargetFileUpload" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -68,7 +68,7 @@
     <q-card>
       <q-card-section>
         <div class="text-h6">Upload Ligand Files</div>
-        <q-file v-model="uploadingLigandFiles" multiple label="Choose files" />
+        <q-file v-model="uploadingLigandFiles" accept=".sdf" multiple label="Choose files" />
       </q-card-section>
 
       <q-card-actions align="right">

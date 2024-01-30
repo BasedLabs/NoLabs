@@ -28,6 +28,7 @@ python-json-logger = "^2.0.7"
 python-dateutil = "^2.8.2"
 python-slugify = "^8.0.2"
 esmfold-microservice = {path = "microservices/esmfold/client"}
+python-multipart = "^0.0.6"
 
 [project]
 dependencies = [

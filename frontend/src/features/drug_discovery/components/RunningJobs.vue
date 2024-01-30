@@ -28,7 +28,7 @@
               <q-td auto-width>
                 <q-btn
                   size="sm"
-                  color="accent"
+                  color="positive"
                   round
                   dense
                   @click="props.expand = !props.expand"
