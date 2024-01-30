@@ -36,6 +36,7 @@ from nolabs.api_models.drug_discovery import CheckJobIsRunningRequest, CheckJobI
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 
+
 class CheckUmolRunningFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
@@ -50,16 +51,16 @@ class CheckUmolRunningFeature:
         )
         with UmolApiClient(configuration=configuration) as client:
             api_instance = UmolDefaultApi(client)
-            response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value)
+            response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value).is_running
 
-        return CheckJobIsRunningResponse(is_running=False)
+        return CheckJobIsRunningResponse(is_running=response)
+
 
 class CheckMsaRunningFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
 
     def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
-
         job_id = JobId(request.job_id)
 
         configuration = MsaConfiguration(
@@ -70,6 +71,7 @@ class CheckMsaRunningFeature:
             response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value).is_running
 
         return CheckJobIsRunningResponse(is_running=response)
+
 
 class CheckP2RankRunningFeature:
     def __init__(self, settings: Settings):

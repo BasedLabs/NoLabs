@@ -5,6 +5,7 @@
 README.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
+docs/IsJobRunningResponse.md
 docs/RunUmolPredictionRequest.md
 docs/RunUmolPredictionResponse.md
 docs/ValidationError.md
@@ -16,6 +17,7 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
+test/test_is_job_running_response.py
 tox.ini
 umol_microservice/__init__.py
 umol_microservice/api/__init__.py
@@ -26,6 +28,7 @@ umol_microservice/configuration.py
 umol_microservice/exceptions.py
 umol_microservice/models/__init__.py
 umol_microservice/models/http_validation_error.py
+umol_microservice/models/is_job_running_response.py
 umol_microservice/models/run_umol_prediction_request.py
 umol_microservice/models/run_umol_prediction_response.py
 umol_microservice/models/validation_error.py

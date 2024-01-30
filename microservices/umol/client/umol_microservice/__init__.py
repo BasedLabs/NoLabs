@@ -32,6 +32,7 @@ from umol_microservice.exceptions import ApiException
 
 # import models into sdk package
 from umol_microservice.models.http_validation_error import HTTPValidationError
+from umol_microservice.models.is_job_running_response import IsJobRunningResponse
 from umol_microservice.models.run_umol_prediction_request import RunUmolPredictionRequest
 from umol_microservice.models.run_umol_prediction_response import RunUmolPredictionResponse
 from umol_microservice.models.validation_error import ValidationError
