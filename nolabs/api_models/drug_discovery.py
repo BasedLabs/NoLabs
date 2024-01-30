@@ -219,6 +219,22 @@ class CheckJobIsRunningResponse:
     is_running: bool
 
 @pcdataclass.dataclass
+class CheckMsaAvailableRequest:
+    experimentId: str
+    target_id: str
+
+@pcdataclass.dataclass
+class CheckMsaAvailableResponse:
+    is_available: bool
+
+@pcdataclass.dataclass
+class CheckResultAvailableRequest:
+    experimentId: str
+    target_id: str
+    ligandId: str
+    job_id: str
+
+@pcdataclass.dataclass
 class GetResultsListRequest:
     experiment_id: str
 
@@ -226,7 +242,12 @@ class GetResultsListRequest:
 class GetResultsListResponse:
     results_list: List[ResultMetaData]
 
+@pcdataclass.dataclass
+class GetResultsListForTargetLigandRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
 
-
-
-
+@pcdataclass.dataclass
+class GetResultsListForTargetLigandResponse:
+    results_list: List[ResultMetaData]

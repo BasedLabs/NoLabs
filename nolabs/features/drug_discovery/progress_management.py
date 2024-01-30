@@ -15,27 +15,11 @@ from p2rank_microservice import DefaultApi as P2RankDefaultApi
 from p2rank_microservice import ApiClient as P2RankApiClient
 from p2rank_microservice import Configuration as P2RankConfiguration
 
-import umol_microservice
 from umol_microservice import DefaultApi as UmolDefaultApi
 from umol_microservice import ApiClient as UmolApiClient
 from umol_microservice import Configuration as UmolConfiguration
 
-settings = Settings()
-if settings.is_light_infrastructure:
-    import esmfold_light_microservice as folding_microservice
-    from esmfold_light_microservice import DefaultApi as FoldingDefaultApi
-    from esmfold_light_microservice import ApiClient as FoldingApiClient
-    from esmfold_light_microservice import Configuration as FoldingConfiguration
-else:
-    import esmfold_microservice as folding_microservice
-    from esmfold_microservice import DefaultApi as FoldingDefaultApi
-    from esmfold_microservice import ApiClient as FoldingApiClient
-    from esmfold_microservice import Configuration as FoldingConfiguration
-
 from nolabs.api_models.drug_discovery import CheckJobIsRunningRequest, CheckJobIsRunningResponse
-from nolabs.domain.experiment import ExperimentId
-from nolabs.features.drug_discovery.data_models.target import TargetId
-
 
 class CheckUmolRunningFeature:
     def __init__(self, settings: Settings):
