@@ -56,6 +56,14 @@ class Settings:
         return self._config.get('microservices', 'umol_host')
 
     @property
+    def esmfold_light_host(self) -> str:
+        return self._config.get('microservices', 'esmfold_light_host')
+
+    @property
+    def esmfold_host(self) -> str:
+        return self._config.get('microservices', 'esmfold_host')
+
+    @property
     def conformations_simulations_file_name(self) -> str:
         return self._config.get('conformations', 'file_name')
 

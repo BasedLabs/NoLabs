@@ -22,7 +22,9 @@ from nolabs.controllers.drug_discovery.dependencies import (
     predict_folding_dependency,
     get_folded_structure_dependency,
     generate_msa_dependency,
-    predict_docking_dependency, create_experiment_dependency
+    register_docking_job_dependency,
+    predict_docking_dependency,
+    get_docking_result_dependency, create_experiment_dependency
 )
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
     GetTargetsListFeature, GetTargetDataFeature
@@ -33,8 +35,10 @@ from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
     GetLigandsListFeature, GetLigandDataFeature
+from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
+from nolabs.features.drug_discovery.get_results import GetDockingResultsFeature
 
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
@@ -63,10 +67,15 @@ from nolabs.api_models.drug_discovery import (
     GetFoldingResponse,
     PredictFoldingRequest,
     PredictFoldingResponse,
+    RegisterDockingJobRequest,
+    RegisterDockingJobResponse,
     RunDockingJobRequest,
     RunDockingJobResponse,
+    GetDockingResultDataRequest,
+    GetDockingResultDataResponse,
     TargetMetaData,
-    LigandMetaData, GetLigandDataRequest
+    LigandMetaData,
+    GetLigandDataRequest
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -84,6 +93,7 @@ async def experiments(feature: Annotated[GetExperimentsFeature,
 @router.get('/create-experiment')
 async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
     return await feature.handle()
+
 
 @router.delete('/delete-experiment')
 async def delete_experiment(experiment_id: str, feature: Annotated[
@@ -148,10 +158,10 @@ async def delete_ligand(feature: Annotated[
 
 @router.get('/get-ligand-data')
 async def get_ligand_data(feature: Annotated[
-                        GetLigandDataFeature, Depends(get_ligand_data_dependency)],
-                        experiment_id: str,
-                        target_id: str,
-                        ligand_id: str) -> GetLigandDataResponse:
+    GetLigandDataFeature, Depends(get_ligand_data_dependency)],
+                          experiment_id: str,
+                          target_id: str,
+                          ligand_id: str) -> GetLigandDataResponse:
     return feature.handle(GetLigandDataRequest(experiment_id, target_id, ligand_id))
 
 
@@ -193,8 +203,8 @@ async def predict_msa(feature: Annotated[
 
 @router.get('/get-folded-structure')
 async def get_folded_structure(request: GetFoldingRequest,
-                              feature: Annotated[GetFoldedStructureFeature,
-                              Depends(get_folded_structure_dependency)]) -> GetFoldingResponse:
+                               feature: Annotated[GetFoldedStructureFeature,
+                               Depends(get_folded_structure_dependency)]) -> GetFoldingResponse:
     return feature.handle(request)
 
 
@@ -207,8 +217,19 @@ async def predict_folding(feature: Annotated[
     return feature.handle(PredictFoldingRequest(experiment_id, target_id))
 
 
+@router.post('/register-docking-job')
+async def register_docking_job(request: RegisterDockingJobRequest, feature: Annotated[RegisterDockingJobFeature
+, Depends(register_docking_job_dependency)]) -> RegisterDockingJobResponse:
+    return feature.handle(request)
+
+
 # Docking
-@router.post('/predict-docking')
+@router.post('/run-docking-job')
 async def perform_docking(request: RunDockingJobRequest, feature: Annotated[
     PredictDockingFeature, Depends(predict_docking_dependency)]) -> RunDockingJobResponse:
+    return feature.handle(request)
+
+@router.get('/get-docking-result-data')
+async def perform_docking(request: GetDockingResultDataRequest, feature: Annotated[
+    GetDockingResultsFeature, Depends(get_docking_result_dependency)]) -> GetDockingResultDataResponse:
     return feature.handle(request)

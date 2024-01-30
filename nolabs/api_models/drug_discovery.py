@@ -197,18 +197,26 @@ class CheckResultDataAvailableResponse:
     result_available: bool
 
 @pcdataclass.dataclass
-class GetResultDataRequest:
+class GetDockingResultDataRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
     job_id: str
 
 @pcdataclass.dataclass
-class GetResultDataResponse:
+class GetDockingResultDataResponse:
     predicted_pdb: str
     predicted_sdf: str
     plddt_array: List[int]
     job_id: str
+
+@pcdataclass.dataclass
+class CheckJobIsRunningRequest:
+    job_id: str
+
+@pcdataclass.dataclass
+class CheckJobIsRunningResponse:
+    is_running: bool
 
 @pcdataclass.dataclass
 class GetResultsListRequest:

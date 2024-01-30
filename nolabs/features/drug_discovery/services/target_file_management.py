@@ -165,10 +165,6 @@ class TargetsFileManagement:
             pocket_arr = np.asarray(pocket_ids)
             np.save(pocket_file, pocket_arr)
 
-
-    def get_msa_api_url(self) -> str:
-        return self._settings.drug_discovery_msa_url
-
     def get_msa(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
         msa_file_path = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,

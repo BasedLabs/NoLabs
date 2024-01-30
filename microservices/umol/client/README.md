@@ -92,6 +92,7 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [RunUmolPredictionRequest](docs/RunUmolPredictionRequest.md)
  - [RunUmolPredictionResponse](docs/RunUmolPredictionResponse.md)
  - [ValidationError](docs/ValidationError.md)

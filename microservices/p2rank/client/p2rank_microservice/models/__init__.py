@@ -15,6 +15,7 @@
 
 # import models into model package
 from p2rank_microservice.models.http_validation_error import HTTPValidationError
+from p2rank_microservice.models.is_job_running_response import IsJobRunningResponse
 from p2rank_microservice.models.run_p2_rank_prediction_request import RunP2RankPredictionRequest
 from p2rank_microservice.models.run_p2_rank_prediction_response import RunP2RankPredictionResponse
 from p2rank_microservice.models.validation_error import ValidationError

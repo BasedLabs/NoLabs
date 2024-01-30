@@ -17,3 +17,7 @@ class RunP2RankPredictionRequest(BaseModelMixin):
 @dataclasses.dataclass
 class RunP2RankPredictionResponse(BaseModelMixin):
     pocket_ids: List[int]
+
+@dataclasses.dataclass
+class IsJobRunningResponse:
+    is_running: bool

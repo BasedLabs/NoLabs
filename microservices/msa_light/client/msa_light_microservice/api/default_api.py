@@ -27,6 +27,7 @@ from pydantic import StrictStr
 
 from typing import Any
 
+from msa_light_microservice.models.is_job_running_response import IsJobRunningResponse
 from msa_light_microservice.models.run_msa_prediction_request import RunMsaPredictionRequest
 from msa_light_microservice.models.run_msa_prediction_response import RunMsaPredictionResponse
 
@@ -303,7 +304,7 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> object:
+    ) -> IsJobRunningResponse:
         """Is Job Running
 
 
@@ -340,7 +341,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "IsJobRunningResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -370,7 +371,7 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[object]:
+    ) -> ApiResponse[IsJobRunningResponse]:
         """Is Job Running
 
 
@@ -407,7 +408,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "IsJobRunningResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -474,7 +475,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            '200': "IsJobRunningResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(

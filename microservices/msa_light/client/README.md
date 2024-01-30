@@ -92,6 +92,7 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [RunMsaPredictionRequest](docs/RunMsaPredictionRequest.md)
  - [RunMsaPredictionResponse](docs/RunMsaPredictionResponse.md)
  - [ValidationError](docs/ValidationError.md)

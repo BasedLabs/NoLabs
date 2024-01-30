@@ -15,6 +15,7 @@
 
 # import models into model package
 from msa_light_microservice.models.http_validation_error import HTTPValidationError
+from msa_light_microservice.models.is_job_running_response import IsJobRunningResponse
 from msa_light_microservice.models.run_msa_prediction_request import RunMsaPredictionRequest
 from msa_light_microservice.models.run_msa_prediction_response import RunMsaPredictionResponse
 from msa_light_microservice.models.validation_error import ValidationError
