@@ -27,7 +27,6 @@ from pydantic import StrictStr
 
 from typing import Any
 
-from esmfold_microservice.models.is_job_running_response import IsJobRunningResponse
 from esmfold_microservice.models.run_esm_fold_prediction_request import RunEsmFoldPredictionRequest
 from esmfold_microservice.models.run_esm_fold_prediction_response import RunEsmFoldPredictionResponse
 
@@ -304,7 +303,7 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> IsJobRunningResponse:
+    ) -> object:
         """Is Job Running
 
 
@@ -341,7 +340,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "IsJobRunningResponse",
+            '200': "object",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -371,7 +370,7 @@ class DefaultApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[IsJobRunningResponse]:
+    ) -> ApiResponse[object]:
         """Is Job Running
 
 
@@ -408,7 +407,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "IsJobRunningResponse",
+            '200': "object",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -475,7 +474,7 @@ class DefaultApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "IsJobRunningResponse",
+            '200': "object",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(

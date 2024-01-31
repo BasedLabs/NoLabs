@@ -19,19 +19,19 @@ import json
 
 
 from typing import Any, ClassVar, Dict, List, Optional
-from pydantic import BaseModel, StrictStr
+from pydantic import BaseModel
+from esmfold_microservice.models.validation_error import ValidationError
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class RunEsmFoldPredictionResponse(BaseModel):
+class HTTPValidationError(BaseModel):
     """
-    RunEsmFoldPredictionResponse
+    HTTPValidationError
     """ # noqa: E501
-    errors: List[StrictStr]
-    pdb_content: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["errors", "pdb_content"]
+    detail: Optional[List[ValidationError]] = None
+    __properties: ClassVar[List[str]] = ["detail"]
 
     model_config = {
         "populate_by_name": True,
@@ -51,7 +51,7 @@ class RunEsmFoldPredictionResponse(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of RunEsmFoldPredictionResponse from a JSON string"""
+        """Create an instance of HTTPValidationError from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -70,16 +70,18 @@ class RunEsmFoldPredictionResponse(BaseModel):
             },
             exclude_none=True,
         )
-        # set to None if pdb_content (nullable) is None
-        # and model_fields_set contains the field
-        if self.pdb_content is None and "pdb_content" in self.model_fields_set:
-            _dict['pdb_content'] = None
-
+        # override the default output from pydantic by calling `to_dict()` of each item in detail (list)
+        _items = []
+        if self.detail:
+            for _item in self.detail:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['detail'] = _items
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of RunEsmFoldPredictionResponse from a dict"""
+        """Create an instance of HTTPValidationError from a dict"""
         if obj is None:
             return None
 
@@ -87,8 +89,7 @@ class RunEsmFoldPredictionResponse(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "errors": obj.get("errors"),
-            "pdb_content": obj.get("pdb_content")
+            "detail": [ValidationError.from_dict(_item) for _item in obj.get("detail")] if obj.get("detail") is not None else None
         })
         return _obj
 

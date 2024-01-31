@@ -1,26 +1,55 @@
 <template>
- <q-page class="q-pa-md">
-      <q-toolbar>
-        <!-- Tab Menu -->
-        <q-tabs
-          aligned="justify"
-          class="text-grey bg-white full-width"
-          active-color="primary"
-          indicator-color="primary"
-        >
-          <q-tab
-            name="tab1"
-            label="Experiment setup"
-            @click="openExperimentSetup"
-          />
-          <q-tab name="tab2" label="Running jobs" @click="openRunningJobs" />
-          <q-tab name="tab3" label="Completed" />
-          <!-- Add more tabs as needed -->
-        </q-tabs>
-      </q-toolbar>
-      <router-view></router-view>
-      <!-- This tag renders the active route component -->
- </q-page>
+  <q-page class="q-pa-md">
+    <q-stepper
+      v-model="step"
+      ref="stepper"
+      color="positive"
+      animated
+    >
+      <q-step
+        :name="1"
+        title="Upload targets"
+        icon="gesture"
+        color="info"
+        :done="step > 1"
+      >
+        <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
+          <q-space />
+          <q-btn flat label="Continue" @click="openNextStep('UploadLigands')" />
+        </div>
+
+          <router-view></router-view>
+      </q-step>
+
+      <q-step
+        :name="2"
+        title="Add ligands"
+        color="info"
+        icon=hub
+        :done="step > 2"
+      >
+        <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
+          <q-btn flat label="Back" @click="openPreviousStep('UploadTargets')" />
+          <q-space />
+          <q-btn flat label="Continue" @click="openNextStep('RunDocking')" />
+        </div>
+         <router-view></router-view>
+      </q-step>
+
+      <q-step
+        :name="3"
+        title="Run docking"
+        color="info"
+        icon="gesture"
+        :done="step > 3"
+      >
+        <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
+          <q-btn flat label="Back" @click="openPreviousStep('UploadLigands')" />
+        </div>
+          <router-view></router-view>
+      </q-step>
+    </q-stepper>
+  </q-page>
 </template>
 
 <script>
@@ -28,25 +57,23 @@ export default {
   name: "ExperimentNavigation",
   data() {
     return {
-      experimentId: null,
+      step: 1, // This can be a reactive property based on the current route if needed
     };
   },
   methods: {
-    openExperimentSetup() {
-      this.$router.push({
-        name: "ExperimentSetup",
-        params: { expId: this.experimentId },
-      });
+    openNextStep(stepName) {
+      this.$refs.stepper.next();
+      this.$router.push({ name: stepName, params: { experimentId: this.$route.params.experimentId } });
     },
-    openRunningJobs() {
-      this.$router.push({
-        name: "RunningJobs",
-        params: { expId: this.experimentId },
-      });
+    openPreviousStep(stepName) {
+      this.$refs.stepper.previous();
+      this.$router.push({ name: stepName, params: { experimentId: this.$route.params.experimentId } });
     },
-  },
-  mounted() {
-    this.experimentId = this.$route.params.experimentId;
-  },
+    isStepDone(stepName) {
+      // Implement logic to determine if a step is done based on your application's state
+      // For example, checking if the current route's name matches the stepName
+      return this.$route.name === stepName;
+    }
+  }
 };
 </script>

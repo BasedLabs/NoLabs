@@ -96,6 +96,7 @@ class TargetsFileManagement:
         return target_metadata
 
     def get_targets_list(self, experiment_id: ExperimentId) -> List[TargetMetaData]:
+        self.ensure_targets_folder_exists(experiment_id)
         targets_folder = self.targets_folder(experiment_id)
         result_list = []
         for t_id in os.listdir(targets_folder):
@@ -130,7 +131,7 @@ class TargetsFileManagement:
         target_folder = self.target_folder(experiment_id, target_id)
         target_metadata = self.get_target_metadata(experiment_id, target_id)
         target_name = target_metadata.target_name
-        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, target_name + ".pdb"),)
+        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, target_name + ".pdb"), )
 
     def get_fasta_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
@@ -182,3 +183,15 @@ class TargetsFileManagement:
                                      self._settings.drug_discovery_msa_file_name)
         with open(msa_file_path, "w") as f:
             f.write(msa_contents)
+
+    def check_msa_exists(self, experiment_id: ExperimentId, target_id: TargetId) -> bool:
+        target_folder = self.target_folder(experiment_id, target_id)
+        msa_file_path = os.path.join(target_folder,
+                                     self._settings.drug_discovery_msa_file_name)
+        return os.path.exists(msa_file_path)
+
+    def check_binding_pocket_exist(self, experiment_id: ExperimentId, target_id: TargetId) -> bool:
+        target_folder = self.target_folder(experiment_id, target_id)
+        pocket_file = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
+                                   self._settings.drug_discovery_pocket_file_name)
+        return os.path.exists(pocket_file)

@@ -29,25 +29,28 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_results_list_for_target_ligand_feature,
     get_all_results_list_dependency,
     predict_docking_dependency,
-    get_docking_result_dependency, create_experiment_dependency
+    get_docking_result_dependency, create_experiment_dependency, get_target_meta_data_dependency,
+    get_ligand_meta_data_dependency, check_msa_data_available_dependency, check_pocket_data_available_dependency,
+    check_folding_data_available_dependency
 )
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
-    GetAllResultsListFeature, GetResultsListForTargetLigandFeature
+    GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
+    CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
-    GetTargetsListFeature, GetTargetDataFeature
+    GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
 from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
-    GetLigandsListFeature, GetLigandDataFeature
+    GetLigandsListFeature, GetLigandDataFeature, GetLigandMetaDataFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.drug_discovery.get_results import GetDockingResultsFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
-    CheckP2RankRunningFeature, CheckUmolRunningFeature
+    CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckFoldingRunningFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 
@@ -91,7 +94,10 @@ from nolabs.api_models.drug_discovery import (
     GetResultsListForTargetLigandRequest,
     GetResultsListForTargetLigandResponse,
     GetAllResultsListRequest,
-    GetAllResultsListResponse
+    GetAllResultsListResponse, GetTargetMetaDataResponse, GetTargetMetaDataRequest, GetLigandMetaDataResponse,
+    GetLigandMetaDataRequest, CheckMsaDataAvailableResponse, CheckMsaDataAvailableRequest,
+    CheckPocketDataAvailableResponse, CheckPocketDataAvailableRequest, CheckFoldingDataAvailableResponse,
+    CheckFoldingDataAvailableRequest
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -148,12 +154,22 @@ async def get_targets_list(experiment_id: str, feature: Annotated[
     return feature.handle(GetTargetsListRequest(experiment_id)).targets
 
 
+@router.get('/get-target-meta-data')
+async def get_target_meta_data(feature: Annotated[
+    GetTargetMetaDataFeature, Depends(get_target_meta_data_dependency)],
+                               experiment_id: str,
+                               target_id: str,
+                               ) -> GetTargetMetaDataResponse:
+    result = feature.handle(GetTargetMetaDataRequest(experiment_id, target_id))
+    return GetTargetMetaDataResponse(target_id=result.target_id, target_name=result.target_name)
+
+
 @router.get('/get-target-data')
-async def get_targets_list(feature: Annotated[
+async def get_target_data(feature: Annotated[
     GetTargetDataFeature, Depends(get_target_data_dependency)],
-                           experiment_id: str,
-                           target_id: str,
-                           ) -> GetTargetDataResponse:
+                          experiment_id: str,
+                          target_id: str,
+                          ) -> GetTargetDataResponse:
     result = feature.handle(GetTargetDataRequest(experiment_id, target_id))
     return GetTargetDataResponse(protein_sequence=result.protein_sequence, protein_pdb=result.protein_pdb)
 
@@ -175,6 +191,15 @@ async def delete_ligand(feature: Annotated[
                         target_id: str,
                         ligand_id: str) -> DeleteLigandResponse:
     return feature.handle(DeleteLigandRequest(experiment_id, target_id, ligand_id))
+
+
+@router.get('/get-ligand-meta-data')
+async def get_ligand_data(feature: Annotated[
+    GetLigandMetaDataFeature, Depends(get_ligand_meta_data_dependency)],
+                          experiment_id: str,
+                          target_id: str,
+                          ligand_id: str) -> GetLigandMetaDataResponse:
+    return feature.handle(GetLigandMetaDataRequest(experiment_id, target_id, ligand_id))
 
 
 @router.get('/get-ligand-data')
@@ -240,9 +265,19 @@ async def predict_folding(feature: Annotated[
 
 
 @router.post('/register-docking-job')
-async def register_docking_job(request: RegisterDockingJobRequest, feature: Annotated[RegisterDockingJobFeature
-, Depends(register_docking_job_dependency)]) -> RegisterDockingJobResponse:
-    return feature.handle(request)
+async def register_docking_job(experiment_id: str,
+                               target_id: str,
+                               ligand_id: str, feature: Annotated[RegisterDockingJobFeature
+        , Depends(register_docking_job_dependency)]) -> RegisterDockingJobResponse:
+    return feature.handle(RegisterDockingJobRequest(experiment_id, target_id, ligand_id))
+
+
+@router.get('/check-msa-data-available')
+async def check_msa_data_available(experiment_id: str,
+                                   target_id: str, feature: Annotated[
+            CheckMsaDataAvailableFeature, Depends(
+                check_msa_data_available_dependency)]) -> CheckMsaDataAvailableResponse:
+    return feature.handle(CheckMsaDataAvailableRequest(experiment_id, target_id))
 
 
 @router.get('/check-msa-job-running')
@@ -251,9 +286,32 @@ async def check_msa_job_running(job_id: str, feature: Annotated[
     return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
 
 
+@router.get('/check-pocket-data-available')
+async def check_pocket_data_available(experiment_id: str,
+                                      target_id: str,
+                                      ligand_id: str,
+                                      job_id: str,
+                                      feature: Annotated[
+                                          CheckBindingPocketDataAvailableFeature, Depends(
+                                              check_pocket_data_available_dependency)]) -> CheckPocketDataAvailableResponse:
+    return feature.handle(CheckPocketDataAvailableRequest(experiment_id, target_id, ligand_id, job_id))
+
+
 @router.get('/check-p2rank-job-running')
 async def check_p2rank_job_running(job_id: str, feature: Annotated[
     CheckP2RankRunningFeature, Depends(check_p2rank_running_dependency)]) -> CheckJobIsRunningResponse:
+    return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+
+@router.get('/check-folding-data-available')
+async def check_folding_data_available(experiment_id: str,
+                                   target_id: str, feature: Annotated[
+            CheckFoldingDataAvailableFeature, Depends(
+                check_folding_data_available_dependency)]) -> CheckFoldingDataAvailableResponse:
+    return feature.handle(CheckFoldingDataAvailableRequest(experiment_id, target_id))
+
+@router.get('/check-folding-job-running')
+async def check_folding_job_running(job_id: str, feature: Annotated[
+    CheckFoldingRunningFeature, Depends(check_umol_running_dependency)]) -> CheckJobIsRunningResponse:
     return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
 
 
@@ -278,9 +336,15 @@ async def check_result_data_available(experiment_id: str,
 
 # Docking
 @router.post('/run-docking-job')
-def perform_docking(request: RunDockingJobRequest, feature: Annotated[
-    PredictDockingFeature, Depends(predict_docking_dependency)]) -> RunDockingJobResponse:
-    return feature.handle(request)
+def perform_docking(experiment_id: str,
+                    target_id: str,
+                    ligand_id: str,
+                    job_id: str
+                    , feature: Annotated[
+            PredictDockingFeature, Depends(predict_docking_dependency)]) -> RunDockingJobResponse:
+    return feature.handle(RunDockingJobRequest(experiment_id=experiment_id,
+                                               target_id=target_id,
+                                               ligand_id=ligand_id, job_id=job_id))
 
 
 @router.get('/get-results-list-for-target-ligand')
@@ -295,11 +359,11 @@ async def get_results_list_for_target_ligand(experiment_id: str,
 
 @router.get('/get-all-results-list')
 async def get_all_results_list(experiment_id: str,
-                                             feature: Annotated[GetAllResultsListFeature,
-                                             Depends(
-                                                 get_all_results_list_dependency
-                                                     )
-                                             ]) -> \
+                               feature: Annotated[GetAllResultsListFeature,
+                               Depends(
+                                   get_all_results_list_dependency
+                               )
+                               ]) -> \
         GetAllResultsListResponse:
     return feature.handle(GetAllResultsListRequest(experiment_id=experiment_id))
 

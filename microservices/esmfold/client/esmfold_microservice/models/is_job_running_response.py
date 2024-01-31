@@ -18,20 +18,19 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, ClassVar, Dict, List, Optional
-from pydantic import BaseModel, StrictStr
+from typing import Any, ClassVar, Dict, List
+from pydantic import BaseModel, StrictBool
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class RunEsmFoldPredictionResponse(BaseModel):
+class IsJobRunningResponse(BaseModel):
     """
-    RunEsmFoldPredictionResponse
+    IsJobRunningResponse
     """ # noqa: E501
-    errors: List[StrictStr]
-    pdb_content: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["errors", "pdb_content"]
+    is_running: StrictBool
+    __properties: ClassVar[List[str]] = ["is_running"]
 
     model_config = {
         "populate_by_name": True,
@@ -51,7 +50,7 @@ class RunEsmFoldPredictionResponse(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of RunEsmFoldPredictionResponse from a JSON string"""
+        """Create an instance of IsJobRunningResponse from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -70,16 +69,11 @@ class RunEsmFoldPredictionResponse(BaseModel):
             },
             exclude_none=True,
         )
-        # set to None if pdb_content (nullable) is None
-        # and model_fields_set contains the field
-        if self.pdb_content is None and "pdb_content" in self.model_fields_set:
-            _dict['pdb_content'] = None
-
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of RunEsmFoldPredictionResponse from a dict"""
+        """Create an instance of IsJobRunningResponse from a dict"""
         if obj is None:
             return None
 
@@ -87,8 +81,7 @@ class RunEsmFoldPredictionResponse(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "errors": obj.get("errors"),
-            "pdb_content": obj.get("pdb_content")
+            "is_running": obj.get("is_running")
         })
         return _obj
 

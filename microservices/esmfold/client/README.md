@@ -67,15 +67,14 @@ configuration = esmfold_microservice.Configuration(
 with esmfold_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = esmfold_microservice.DefaultApi(api_client)
-    run_esm_fold_prediction_request = esmfold_microservice.RunEsmFoldPredictionRequest() # RunEsmFoldPredictionRequest | 
 
     try:
-        # Predict
-        api_response = api_instance.predict_run_folding_post(run_esm_fold_prediction_request)
-        print("The response of DefaultApi->predict_run_folding_post:\n")
+        # Get Running Jobs
+        api_response = api_instance.get_running_jobs_jobs_running_get()
+        print("The response of DefaultApi->get_running_jobs_jobs_running_get:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DefaultApi->predict_run_folding_post: %s\n" % e)
+        print("Exception when calling DefaultApi->get_running_jobs_jobs_running_get: %s\n" % e)
 
 ```
 
@@ -85,12 +84,15 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*DefaultApi* | [**get_running_jobs_jobs_running_get**](docs/DefaultApi.md#get_running_jobs_jobs_running_get) | **GET** /jobs/running | Get Running Jobs
+*DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
 *DefaultApi* | [**predict_run_folding_post**](docs/DefaultApi.md#predict_run_folding_post) | **POST** /run-folding | Predict
 
 
 ## Documentation For Models
 
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [RunEsmFoldPredictionRequest](docs/RunEsmFoldPredictionRequest.md)
  - [RunEsmFoldPredictionResponse](docs/RunEsmFoldPredictionResponse.md)
  - [ValidationError](docs/ValidationError.md)
