@@ -12,7 +12,3 @@ class RunEsmFoldPredictionRequest:
 @dataclasses.dataclass
 class RunEsmFoldPredictionResponse:
     pdb_content: str
-
-@dataclasses.dataclass
-class IsJobRunningResponse:
-    is_running: bool

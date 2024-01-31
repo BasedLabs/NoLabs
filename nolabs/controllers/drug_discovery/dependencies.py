@@ -4,8 +4,7 @@ from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
-    GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
-    CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature
+    GetAllResultsListFeature, GetResultsListForTargetLigandFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
@@ -15,16 +14,16 @@ from nolabs.features.drug_discovery.services.target_file_management import Targe
 from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
 from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
-    GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature
+    GetTargetsListFeature, GetTargetDataFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
-    GetLigandsListFeature, GetLigandDataFeature, GetLigandMetaDataFeature
+    GetLigandsListFeature, GetLigandDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
 from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
-    CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckFoldingRunningFeature
+    CheckP2RankRunningFeature, CheckUmolRunningFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
 from nolabs.features.drug_discovery.get_results import GetDockingResultsFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
@@ -91,11 +90,6 @@ Depends(target_file_management_dependency)]) -> GetTargetsListFeature:
     return GetTargetsListFeature(file_management=target_file_management)
 
 
-def get_target_meta_data_dependency(target_file_management: Annotated[TargetsFileManagement,
-Depends(target_file_management_dependency)]) -> GetTargetMetaDataFeature:
-    return GetTargetMetaDataFeature(file_management=target_file_management)
-
-
 def get_target_data_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)]) -> GetTargetDataFeature:
     return GetTargetDataFeature(file_management=target_file_management)
@@ -139,11 +133,6 @@ Depends(ligand_file_management_dependency)]) -> GetLigandsListFeature:
     return GetLigandsListFeature(file_management=ligand_file_management)
 
 
-def get_ligand_meta_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
-Depends(ligand_file_management_dependency)]) -> GetLigandMetaDataFeature:
-    return GetLigandMetaDataFeature(file_management=ligand_file_management)
-
-
 def get_ligand_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
 Depends(ligand_file_management_dependency)]) -> GetLigandDataFeature:
     return GetLigandDataFeature(file_management=ligand_file_management)
@@ -153,33 +142,21 @@ def register_docking_job_dependency(result_file_management: Annotated[ResultsFil
 Depends(result_file_management_dependency)]):
     return RegisterDockingJobFeature(file_management=result_file_management)
 
-def check_msa_data_available_dependency(target_file_management: Annotated[TargetsFileManagement,
-        Depends(target_file_management_dependency)]) -> CheckMsaDataAvailableFeature:
-    return CheckMsaDataAvailableFeature(file_management=target_file_management)
 
 def check_msa_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckMsaRunningFeature:
     return CheckMsaRunningFeature(settings=settings)
 
-def check_pocket_data_available_dependency(target_file_management: Annotated[TargetsFileManagement,
-        Depends(target_file_management_dependency)]) -> CheckBindingPocketDataAvailableFeature:
-    return CheckBindingPocketDataAvailableFeature(file_management=target_file_management)
 
 def check_p2rank_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckP2RankRunningFeature:
     return CheckP2RankRunningFeature(settings=settings)
 
-def check_folding_data_available_dependency(target_file_management: Annotated[TargetsFileManagement,
-        Depends(target_file_management_dependency)]) -> CheckFoldingDataAvailableFeature:
-    return CheckFoldingDataAvailableFeature(file_management=target_file_management)
-
-def check_folding_running_dependency(settings: Annotated[Settings,
-Depends(settings_dependency)]) -> CheckFoldingRunningFeature:
-    return CheckFoldingRunningFeature(settings=settings)
 
 def check_umol_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolRunningFeature:
     return CheckUmolRunningFeature(settings=settings)
+
 
 def check_result_data_available_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> CheckResultDataAvailableFeature:

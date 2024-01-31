@@ -6,7 +6,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **protein_sequence** | **str** |  | 
-**job_id** | **str** |  | [optional] 
 
 ## Example
 

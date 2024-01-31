@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List
 from pydantic import BaseModel, StrictStr
 try:
     from typing import Self
@@ -30,8 +30,7 @@ class RunEsmFoldPredictionRequest(BaseModel):
     RunEsmFoldPredictionRequest
     """ # noqa: E501
     protein_sequence: StrictStr
-    job_id: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["protein_sequence", "job_id"]
+    __properties: ClassVar[List[str]] = ["protein_sequence"]
 
     model_config = {
         "populate_by_name": True,
@@ -82,8 +81,7 @@ class RunEsmFoldPredictionRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "protein_sequence": obj.get("protein_sequence"),
-            "job_id": obj.get("job_id")
+            "protein_sequence": obj.get("protein_sequence")
         })
         return _obj
 

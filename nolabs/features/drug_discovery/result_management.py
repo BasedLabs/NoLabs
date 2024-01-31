@@ -4,10 +4,7 @@ from nolabs.features.drug_discovery.services.result_file_management import Resul
 from nolabs.api_models.drug_discovery import GetResultsListForTargetLigandRequest, \
     GetResultsListForTargetLigandResponse, \
     GetAllResultsListRequest, GetAllResultsListResponse, ResultMetaData, \
-    CheckResultDataAvailableRequest, CheckResultDataAvailableResponse, \
-    CheckMsaDataAvailableResponse, CheckMsaDataAvailableRequest, \
-    CheckPocketDataAvailableRequest, CheckPocketDataAvailableResponse, CheckFoldingDataAvailableResponse, \
-    CheckFoldingDataAvailableRequest
+    CheckResultDataAvailableRequest, CheckResultDataAvailableResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.data_models.ligand import LigandId
@@ -76,40 +73,3 @@ class CheckResultDataAvailableFeature:
                                                                          job_id)
 
         return CheckResultDataAvailableResponse(result_available=is_available)
-
-class CheckMsaDataAvailableFeature:
-    def __init__(self, file_management: TargetsFileManagement):
-        self._file_management = file_management
-
-    def handle(self, request: CheckMsaDataAvailableRequest) -> CheckMsaDataAvailableResponse:
-        experiment_id = ExperimentId(request.experiment_id)
-        target_id = TargetId(request.target_id)
-
-        is_available = self._file_management.check_msa_exists(experiment_id, target_id)
-
-        return CheckMsaDataAvailableResponse(is_available=is_available)
-
-
-class CheckBindingPocketDataAvailableFeature:
-    def __init__(self, file_management: TargetsFileManagement):
-        self._file_management = file_management
-
-    def handle(self, request: CheckPocketDataAvailableRequest) -> CheckPocketDataAvailableResponse:
-        experiment_id = ExperimentId(request.experiment_id)
-        target_id = TargetId(request.target_id)
-
-        is_available = self._file_management.check_binding_pocket_exist(experiment_id, target_id)
-
-        return CheckPocketDataAvailableResponse(is_available=is_available)
-
-class CheckFoldingDataAvailableFeature:
-    def __init__(self, file_management: TargetsFileManagement):
-        self._file_management = file_management
-
-    def handle(self, request: CheckFoldingDataAvailableRequest) -> CheckFoldingDataAvailableResponse:
-        experiment_id = ExperimentId(request.experiment_id)
-        target_id = TargetId(request.target_id)
-
-        is_available = self._file_management.check_binding_pocket_exist(experiment_id, target_id)
-
-        return CheckFoldingDataAvailableResponse(is_available=is_available)

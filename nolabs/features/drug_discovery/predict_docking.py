@@ -102,8 +102,7 @@ class PredictDockingFeature:
             with FoldingApiClient(configuration=configuration) as client:
                 api_instance = FoldingDefaultApi(client)
                 request = folding_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence)
-                pdb_contents = api_instance.predict_through_api_run_folding_post(run_esm_fold_prediction_request=request,
-                                                                                 job_id=job_id.value).pdb_content
+                pdb_contents = api_instance.predict_through_api_run_folding_post(run_esm_fold_prediction_request=request).pdb_content
             self._target_file_management.store_pdb_contents(experiment_id, target_id, pdb_contents)
             return pdb_contents
         else:

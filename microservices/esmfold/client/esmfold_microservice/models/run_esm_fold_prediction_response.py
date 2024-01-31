@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List
 from pydantic import BaseModel, StrictStr
 try:
     from typing import Self
@@ -29,9 +29,8 @@ class RunEsmFoldPredictionResponse(BaseModel):
     """
     RunEsmFoldPredictionResponse
     """ # noqa: E501
-    errors: List[StrictStr]
-    pdb_content: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["errors", "pdb_content"]
+    pdb_content: StrictStr
+    __properties: ClassVar[List[str]] = ["pdb_content"]
 
     model_config = {
         "populate_by_name": True,
@@ -70,11 +69,6 @@ class RunEsmFoldPredictionResponse(BaseModel):
             },
             exclude_none=True,
         )
-        # set to None if pdb_content (nullable) is None
-        # and model_fields_set contains the field
-        if self.pdb_content is None and "pdb_content" in self.model_fields_set:
-            _dict['pdb_content'] = None
-
         return _dict
 
     @classmethod
@@ -87,7 +81,6 @@ class RunEsmFoldPredictionResponse(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "errors": obj.get("errors"),
             "pdb_content": obj.get("pdb_content")
         })
         return _obj

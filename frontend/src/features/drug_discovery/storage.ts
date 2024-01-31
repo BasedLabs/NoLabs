@@ -1,39 +1,26 @@
 import {defineStore} from 'pinia';
 import {
-  checkDockingResultAvailableApi,
-  checkFoldingDataAvailableApi,
-  checkFoldingJobIsRunningApi,
-  checkMsaDataAvailableApi,
-  checkMsaJobIsRunningApi,
-  checkP2RankJobIsRunningApi,
-  checkPocketDataAvailableApi,
-  checkUmolJobIsRunningApi,
-  createExperimentApi,
-  deleteExperimentApi,
-  deleteLigandApi,
-  deleteTargetApi, getAllDockingResultsListApi,
-  getDockingJobResultDataApi, getDockingResultsListForTargetLigandApi,
-  getExperimentsApi,
-  getLigandDataApi,
-  getLigandMetaDataApi,
-  getLigandsListApi,
-  getTargetBindingPocketApi,
-  getTargetDataApi,
-  getTargetMetaDataApi,
-  getTargetsListApi,
-  predictBindingPocketApi,
-  predictFoldingApi,
-  registerDockingJobApi,
-  runDockingJobApi,
-  uploadLigandApi,
-  uploadTargetApi
+    createExperiment,
+    deleteExperiment,
+    deleteLigand,
+    deleteTarget,
+    getExperiments,
+    getLigandData,
+    getLigandsList,
+    getTargetData,
+    getTargetsList,
+    predictBindingPocket,
+    getTargetBindingPocket,
+    predictFolding,
+    uploadLigand,
+    uploadTarget
 } from 'src/features/drug_discovery/api';
 
 import {
-  Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
-  Body_upload_target_api_v1_drug_discovery_upload_target_post,
-  ExperimentMetadataResponse,
-  TargetMetaData
+    Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
+    Body_upload_target_api_v1_drug_discovery_upload_target_post,
+    ExperimentMetadataResponse,
+    TargetMetaData
 } from 'src/api/client';
 import {ExperimentListItem} from "src/components/types";
 
@@ -56,7 +43,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
     }),
     actions: {
         async getExperiments(): Promise<{ experiments: ExperimentListItem[] | null, errors: string[] }> {
-            const response = await getExperimentsApi();
+            const response = await getExperiments();
             this.experiments = response;
             const experiments: ExperimentListItem[] = [];
             for (let i = 0; i < response.length; i++) {
@@ -71,7 +58,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             }
         },
         async createExperiment(): Promise<{ experiment: ExperimentListItem | null, errors: [] }> {
-            const response = await createExperimentApi();
+            const response = await createExperiment();
             this.experiments.push(response);
             return {
                 experiment: {
@@ -82,7 +69,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async deleteExperiment(experimentId: string) {
             try {
-                await deleteExperimentApi(experimentId);
+                await deleteExperiment(experimentId);
                 this.experiments = this.experiments.filter(exp => exp.id !== experimentId);
             } catch (error) {
                 console.error('Error deleting experiment:', error);
@@ -94,7 +81,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                     experiment_id: experimentId,
                     fasta: targetFile
                 };
-                const response = await uploadTargetApi(targetData);
+                const response = await uploadTarget(targetData);
                 response.result.map(target => (
                     this.targets.push(target)
                 ));
@@ -105,7 +92,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async deleteTargetFromExperiment(experimentId: string, targetId: string) {
             try {
-                await deleteTargetApi(experimentId, targetId);
+                await deleteTarget(experimentId, targetId);
                 // Update the targets list for the specific experiment
             } catch (error) {
                 console.error('Error deleting target:', error);
@@ -118,16 +105,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                     target_id: targetId,
                     sdf_file: sdfFile
                 };
-                const response = await uploadLigandApi(ligandData);
-                return {ligand_id: response.ligand_meta_data.ligand_id,
-                        ligand_name: response.ligand_meta_data.ligand_name}
+                return await uploadLigand(ligandData);
             } catch (error) {
                 console.error('Error uploading ligand:', error);
             }
         },
         async deleteLigandFromTarget(experimentId: string, targetId: string, ligandId: string) {
             try {
-                await deleteLigandApi(experimentId, targetId, ligandId);
+                await deleteLigand(experimentId, targetId, ligandId);
                 // Update the ligands list for the specific target
             } catch (error) {
                 console.error('Error deleting ligand:', error);
@@ -135,30 +120,22 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         fetchTargetsForExperiment: async function (experimentId: string) {
             try {
-                this.targets = await getTargetsListApi(experimentId);
+                this.targets = await getTargetsList(experimentId);
             } catch (error) {
                 console.error('Error fetching targets:', error);
             }
         },
         async fetchLigandsForTarget(experimentId: string, targetId: string) {
             try {
-                return await getLigandsListApi(experimentId, targetId);
+                return await getLigandsList(experimentId, targetId);
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async fetchTargetMetaData(experimentId: string, targetId: string) {
-          try {
-            return await getTargetMetaDataApi(experimentId, targetId);
-            // Optionally set the currentTarget to the selected one
-          } catch (error) {
-            console.error('Error fetching ligands:', error);
-          }
-        },
         async fetchTargetData(experimentId: string, targetId: string) {
             try {
-                const response = await getTargetDataApi(experimentId, targetId);
+                const response = await getTargetData(experimentId, targetId);
                 return {
                     targetId: targetId,
                     sequence: response.protein_sequence,
@@ -171,7 +148,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async predictFoldingForTarget(experimentId: string, targetId: string) {
             try {
-                const response = await predictFoldingApi(experimentId, targetId);
+                const response = await predictFolding(experimentId, targetId);
                 return response.pdb_content;
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
@@ -180,7 +157,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async fetchPocketForTarget(experimentId: string, targetId: string) {
             try {
-                const response = await getTargetBindingPocketApi(experimentId, targetId);
+                const response = await getTargetBindingPocket(experimentId, targetId);
                 return response.pocket_ids;
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
@@ -189,24 +166,16 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async predictPocketForTarget(experimentId: string, targetId: string) {
             try {
-                const response = await predictBindingPocketApi(experimentId, targetId);
+                const response = await predictBindingPocket(experimentId, targetId);
                 return response.pocket_ids;
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async fetchLigandMetaData(experimentId: string, targetId: string, ligandId: string) {
-          try {
-            return await getLigandMetaDataApi(experimentId, targetId, ligandId);
-            // Optionally set the currentTarget to the selected one
-          } catch (error) {
-            console.error('Error fetching ligands:', error);
-          }
-        },
         async fetchLigandData(experimentId: string, targetId: string, ligandId: string) {
             try {
-                const response = await getLigandDataApi(experimentId, targetId, ligandId);
+                const response = await getLigandData(experimentId, targetId, ligandId);
                 return {
                     ligandId: ligandId,
                     ligandName: response.ligand_name,
@@ -217,119 +186,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
-        },
-        async registerDockingJob(experimentId: string, targetId: string, ligandId: string) {
-          try {
-            return await registerDockingJobApi(experimentId, targetId, ligandId);
-          } catch (error) {
-            console.error("Error registering docking job:", error);
-            return null;
-          }
-        },
-
-        async runDockingJob(experimentId: string, targetId: string, ligandId: string, jobId: string) {
-          try {
-            return await runDockingJobApi(experimentId, targetId, ligandId, jobId);
-          } catch (error) {
-            console.error("Error running docking job:", error);
-            return null;
-          }
-        },
-
-        async getDockingJobResultData(experimentId: string, targetId: string, ligandId: string, jobId: string) {
-          try {
-            return await getDockingJobResultDataApi(experimentId, targetId, ligandId, jobId);
-          } catch (error) {
-            console.error("Error getting docking job result data:", error);
-            return null;
-          }
-        },
-
-        async checkDockingResultAvailable(experimentId: string, targetId: string, ligandId: string, jobId: string) {
-          try {
-            return await checkDockingResultAvailableApi(experimentId, targetId, ligandId, jobId);
-          } catch (error) {
-            console.error("Error checking docking result availability:", error);
-            return null;
-          }
-        },
-
-        async checkMsaDataAvailable(experimentId: string, targetId: string) {
-          try {
-            return await checkMsaDataAvailableApi(experimentId, targetId);
-          } catch (error) {
-            console.error("Error checking MSA data availability:", error);
-            return null;
-          }
-        },
-
-        async checkMsaJobIsRunning(jobId: string) {
-          try {
-            return await checkMsaJobIsRunningApi(jobId);
-          } catch (error) {
-            console.error("Error checking if MSA job is running:", error);
-            return null;
-          }
-        },
-
-        async checkFoldingDataAvailable(experimentId: string, targetId: string) {
-          try {
-            return await checkFoldingDataAvailableApi(experimentId, targetId);
-          } catch (error) {
-            console.error("Error checking folding data availability:", error);
-            return null;
-          }
-        },
-
-        async checkFoldingJobIsRunning(jobId: string) {
-          try {
-            return await checkFoldingJobIsRunningApi(jobId);
-          } catch (error) {
-            console.error("Error checking if folding job is running:", error);
-            return null;
-          }
-        },
-
-        async checkPocketDataAvailable(experimentId: string, targetId: string, ligandId: string, jobId: string) {
-          try {
-            return await checkPocketDataAvailableApi(experimentId, targetId, ligandId, jobId);
-          } catch (error) {
-            console.error("Error checking pocket data availability:", error);
-            return null;
-          }
-        },
-
-        async checkP2RankJobIsRunning(jobId: string) {
-          try {
-            return await checkP2RankJobIsRunningApi(jobId);
-          } catch (error) {
-            console.error("Error checking if P2Rank job is running:", error);
-            return null;
-          }
-        },
-        async checkUmolJobIsRunning(jobId: string) {
-          try {
-            return await checkUmolJobIsRunningApi(jobId);
-          } catch (error) {
-            console.error("Error checking if Umol job is running:", error);
-            return null;
-          }
-        },
-        async getAllDockingResultsList(experimentId: string) {
-          try {
-            return await getAllDockingResultsListApi(experimentId);
-          } catch (error) {
-            console.error("Error checking if Umol job is running:", error);
-            return null;
-          }
-        },
-        async getDockingResultsListForTargetLigand(experimentId: string) {
-          try {
-            return await getDockingResultsListForTargetLigandApi(experimentId);
-          } catch (error) {
-            console.error("Error checking if Umol job is running:", error);
-            return null;
-          }
         },
     }
 });
