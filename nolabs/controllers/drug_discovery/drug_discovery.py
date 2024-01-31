@@ -6,7 +6,6 @@ from typing import Annotated
 from nolabs.api_models.experiment import ExperimentMetadataResponse, ChangeExperimentNameRequest
 from nolabs.controllers.drug_discovery.dependencies import (
     get_experiments_feature_dependency,
-    add_experiment_feature_dependency,
     delete_experiment_feature_dependency,
     change_experiment_name_dependency,
     upload_target_dependency,
@@ -23,9 +22,17 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_folded_structure_dependency,
     generate_msa_dependency,
     register_docking_job_dependency,
+    check_msa_running_dependency,
+    check_p2rank_running_dependency,
+    check_umol_running_dependency,
+    check_result_data_available_dependency,
+    get_results_list_for_target_ligand_feature,
+    get_all_results_list_dependency,
     predict_docking_dependency,
     get_docking_result_dependency, create_experiment_dependency
 )
+from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
+    GetAllResultsListFeature, GetResultsListForTargetLigandFeature
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
     GetTargetsListFeature, GetTargetDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
@@ -39,7 +46,8 @@ from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJ
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.drug_discovery.get_results import GetDockingResultsFeature
-
+from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
+    CheckP2RankRunningFeature, CheckUmolRunningFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 
@@ -67,15 +75,23 @@ from nolabs.api_models.drug_discovery import (
     GetFoldingResponse,
     PredictFoldingRequest,
     PredictFoldingResponse,
+    CheckJobIsRunningRequest,
+    CheckJobIsRunningResponse,
     RegisterDockingJobRequest,
     RegisterDockingJobResponse,
     RunDockingJobRequest,
     RunDockingJobResponse,
+    CheckResultDataAvailableRequest,
+    CheckResultDataAvailableResponse,
     GetDockingResultDataRequest,
     GetDockingResultDataResponse,
     TargetMetaData,
     LigandMetaData,
-    GetLigandDataRequest
+    GetLigandDataRequest,
+    GetResultsListForTargetLigandRequest,
+    GetResultsListForTargetLigandResponse,
+    GetAllResultsListRequest,
+    GetAllResultsListResponse
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -87,11 +103,13 @@ router = APIRouter(
 
 @router.get('/experiments')
 async def experiments(feature: Annotated[GetExperimentsFeature,
-                      Depends(get_experiments_feature_dependency)]) -> List[ExperimentMetadataResponse]:
+Depends(get_experiments_feature_dependency)]) -> List[ExperimentMetadataResponse]:
     return feature.handle()
 
+
 @router.get('/create-experiment')
-async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
+async def create_experiment(feature: Annotated[
+    CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
     return await feature.handle()
 
 
@@ -129,6 +147,7 @@ async def get_targets_list(experiment_id: str, feature: Annotated[
     GetTargetsListFeature, Depends(get_targets_list_dependency)]) -> List[TargetMetaData]:
     return feature.handle(GetTargetsListRequest(experiment_id)).targets
 
+
 @router.get('/get-target-data')
 async def get_targets_list(feature: Annotated[
     GetTargetDataFeature, Depends(get_target_data_dependency)],
@@ -137,6 +156,7 @@ async def get_targets_list(feature: Annotated[
                            ) -> GetTargetDataResponse:
     result = feature.handle(GetTargetDataRequest(experiment_id, target_id))
     return GetTargetDataResponse(protein_sequence=result.protein_sequence, protein_pdb=result.protein_pdb)
+
 
 # Ligand Management
 @router.post('/upload-ligand')
@@ -150,11 +170,12 @@ async def upload_ligand(feature: Annotated[UploadLigandFeature, Depends(upload_l
 
 @router.delete('/delete-ligand')
 async def delete_ligand(feature: Annotated[
-                        DeleteLigandFeature, Depends(delete_ligand_dependency)],
+    DeleteLigandFeature, Depends(delete_ligand_dependency)],
                         experiment_id: str,
                         target_id: str,
                         ligand_id: str) -> DeleteLigandResponse:
     return feature.handle(DeleteLigandRequest(experiment_id, target_id, ligand_id))
+
 
 @router.get('/get-ligand-data')
 async def get_ligand_data(feature: Annotated[
@@ -202,10 +223,11 @@ async def predict_msa(feature: Annotated[
 
 
 @router.get('/get-folded-structure')
-async def get_folded_structure(request: GetFoldingRequest,
+async def get_folded_structure(experiment_id: str,
+                               target_id: str,
                                feature: Annotated[GetFoldedStructureFeature,
                                Depends(get_folded_structure_dependency)]) -> GetFoldingResponse:
-    return feature.handle(request)
+    return feature.handle(GetFoldingRequest(experiment_id, target_id))
 
 
 @router.post('/predict-folding')
@@ -223,13 +245,70 @@ async def register_docking_job(request: RegisterDockingJobRequest, feature: Anno
     return feature.handle(request)
 
 
+@router.get('/check-msa-job-running')
+async def check_msa_job_running(job_id: str, feature: Annotated[
+    CheckMsaRunningFeature, Depends(check_msa_running_dependency)]) -> CheckJobIsRunningResponse:
+    return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+
+
+@router.get('/check-p2rank-job-running')
+async def check_p2rank_job_running(job_id: str, feature: Annotated[
+    CheckP2RankRunningFeature, Depends(check_p2rank_running_dependency)]) -> CheckJobIsRunningResponse:
+    return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+
+
+@router.get('/check-umol-job-running')
+async def check_umol_job_running(job_id: str, feature: Annotated[
+    CheckUmolRunningFeature, Depends(check_umol_running_dependency)]) -> CheckJobIsRunningResponse:
+    return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+
+
+@router.get('/check-result-data-available')
+async def check_result_data_available(experiment_id: str,
+                                      target_id: str,
+                                      ligand_id: str,
+                                      job_id: str, feature: Annotated[
+            CheckResultDataAvailableFeature, Depends(
+                check_result_data_available_dependency)]) -> CheckResultDataAvailableResponse:
+    return feature.handle(CheckResultDataAvailableRequest(experiment_id=experiment_id,
+                                                          target_id=target_id,
+                                                          ligand_id=ligand_id,
+                                                          job_id=job_id))
+
+
 # Docking
 @router.post('/run-docking-job')
-async def perform_docking(request: RunDockingJobRequest, feature: Annotated[
+def perform_docking(request: RunDockingJobRequest, feature: Annotated[
     PredictDockingFeature, Depends(predict_docking_dependency)]) -> RunDockingJobResponse:
     return feature.handle(request)
 
+
+@router.get('/get-results-list-for-target-ligand')
+async def get_results_list_for_target_ligand(experiment_id: str,
+                                             target_id: str,
+                                             ligand_id: str,
+                                             feature: Annotated[GetResultsListForTargetLigandFeature,
+                                             Depends(get_results_list_for_target_ligand_feature)]) -> \
+        GetResultsListForTargetLigandResponse:
+    return feature.handle(GetResultsListForTargetLigandRequest(experiment_id, target_id, ligand_id))
+
+
+@router.get('/get-all-results-list')
+async def get_all_results_list(experiment_id: str,
+                                             feature: Annotated[GetAllResultsListFeature,
+                                             Depends(
+                                                 get_all_results_list_dependency
+                                                     )
+                                             ]) -> \
+        GetAllResultsListResponse:
+    return feature.handle(GetAllResultsListRequest(experiment_id=experiment_id))
+
+
 @router.get('/get-docking-result-data')
-async def perform_docking(request: GetDockingResultDataRequest, feature: Annotated[
-    GetDockingResultsFeature, Depends(get_docking_result_dependency)]) -> GetDockingResultDataResponse:
-    return feature.handle(request)
+async def get_docking_result_data(experiment_id: str,
+                                  target_id: str,
+                                  ligand_id: str,
+                                  job_id: str, feature: Annotated[
+            GetDockingResultsFeature, Depends(get_docking_result_dependency)]) -> \
+        GetDockingResultDataResponse:
+    return feature.handle(GetDockingResultDataRequest(experiment_id, target_id, ligand_id, job_id))

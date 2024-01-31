@@ -10,7 +10,7 @@ from esmfold.loggers import Log
 from esmfold.job_state_manager import job_state_manager
 
 @app.post("/run-folding")
-async def predict(request: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionResponse:
+def predict(request: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionResponse:
     Log.folding_request(request)
     if request.job_id:
         job_state_manager.start_job(request.job_id)

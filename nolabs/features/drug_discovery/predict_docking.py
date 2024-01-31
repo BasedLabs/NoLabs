@@ -77,7 +77,8 @@ class PredictDockingFeature:
             request = umol_microservice.RunUmolPredictionRequest(protein_sequence=fasta_contents,
                                                                  msa_content=msa_contents,
                                                                  pocket_ids=pocket_ids,
-                                                                 ligand_smiles=ligand_smiles)
+                                                                 ligand_smiles=ligand_smiles,
+                                                                 job_id=job_id.value)
             response = api_instance.predict_run_umol_post(run_umol_prediction_request=request)
 
         predicted_pdb = response.pdb_contents
@@ -88,7 +89,7 @@ class PredictDockingFeature:
                                         predicted_sdf=predicted_sdf,
                                         plddt_array=plddt_array)
 
-        self._result_file_management.store_result_data(experiment_id, target_id, ligand_id, result_data)
+        self._result_file_management.store_result_data(experiment_id, target_id, ligand_id, job_id, result_data)
 
         return RunDockingJobResponse(predicted_pdb=predicted_pdb, predicted_sdf=predicted_sdf, plddt_array=plddt_array, job_id=job_id.value)
 
@@ -120,6 +121,7 @@ class PredictDockingFeature:
                 request = msa_microservice.RunMsaPredictionRequest(
                     api_url=self._settings.drug_discovery_msa_remote_prediction_url,
                     fasta_contents=fasta_contents,
+                    job_id=job_id.value
                 )
                 msa_contents = api_instance.predict_msa_predict_msa_post(run_msa_prediction_request=request).msa_contents
             self._target_file_management.store_msa(experiment_id, target_id, msa_contents)
@@ -135,7 +137,8 @@ class PredictDockingFeature:
             with P2RankApiClient(configuration=configuration) as client:
                 api_instance = P2RankDefaultApi(client)
                 pdb_contents = self._target_file_management.get_pdb_contents(experiment_id, target_id)
-                pdb_fixer_request = p2rank_microservice.RunP2RankPredictionRequest(pdb_contents=pdb_contents)
+                pdb_fixer_request = p2rank_microservice.RunP2RankPredictionRequest(pdb_contents=pdb_contents,
+                                                                                   job_id=job_id.value)
                 pocket_ids = api_instance.predict_run_p2rank_post(run_p2_rank_prediction_request=pdb_fixer_request).pocket_ids
                 self._target_file_management.store_binding_pocket(experiment_id, target_id, pocket_ids)
             return pocket_ids

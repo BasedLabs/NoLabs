@@ -3,22 +3,23 @@ from nolabs.features.drug_discovery.services.ligand_file_management import Ligan
 from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
 from nolabs.api_models.drug_discovery import GetResultsListForTargetLigandRequest, \
     GetResultsListForTargetLigandResponse, \
-    GetResultsListRequest, GetResultsListResponse, ResultMetaData, \
+    GetAllResultsListRequest, GetAllResultsListResponse, ResultMetaData, \
     CheckResultDataAvailableRequest, CheckResultDataAvailableResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.data_models.ligand import LigandId
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
 
+
 class GetAllResultsListFeature:
     def __init__(self, results_file_management: ResultsFileManagement,
-                 targets_file_management: TargetsFileManagement,
+                 target_file_management: TargetsFileManagement,
                  ligand_file_management: LigandsFileManagement):
         self._results_file_management = results_file_management
-        self._targets_file_management = targets_file_management
+        self._targets_file_management = target_file_management
         self._ligands_file_management = ligand_file_management
 
-    def handle(self, request: GetResultsListRequest) -> GetResultsListResponse:
+    def handle(self, request: GetAllResultsListRequest) -> GetAllResultsListResponse:
         experiment_id = ExperimentId(request.experiment_id)
 
         results_list = []
@@ -30,17 +31,15 @@ class GetAllResultsListFeature:
                 for result in self._results_file_management.get_results_list(experiment_id, target_id, ligand_id):
                     results_list.append(ResultMetaData(job_id=result.job_id,
                                                        target_id=target_id.value,
-                                                       ligand_id=ligand_id.value))
+                                                       ligand_id=ligand_id.value,
+                                                       experiment_id=experiment_id.value))
 
-        return GetResultsListResponse(results_list=results_list)
+        return GetAllResultsListResponse(results_list=results_list)
+
 
 class GetResultsListForTargetLigandFeature:
-    def __init__(self, results_file_management: ResultsFileManagement,
-                 targets_file_management: TargetsFileManagement,
-                 ligand_file_management: LigandsFileManagement):
+    def __init__(self, results_file_management: ResultsFileManagement):
         self._results_file_management = results_file_management
-        self._targets_file_management = targets_file_management
-        self._ligands_file_management = ligand_file_management
 
     def handle(self, request: GetResultsListForTargetLigandRequest) -> GetResultsListForTargetLigandResponse:
         experiment_id = ExperimentId(request.experiment_id)
@@ -52,13 +51,13 @@ class GetResultsListForTargetLigandFeature:
         for result in self._results_file_management.get_results_list(experiment_id, target_id, ligand_id):
             results_list.append(ResultMetaData(job_id=result.job_id,
                                                target_id=target_id.value,
-                                               ligand_id=ligand_id.value))
+                                               ligand_id=ligand_id.value,
+                                               experiment_id=experiment_id.value))
 
         return GetResultsListForTargetLigandResponse(results_list=results_list)
 
 
-
-class CheckResultAvailable:
+class CheckResultDataAvailableFeature:
     def __init__(self, file_management: ResultsFileManagement):
         self._file_management = file_management
 

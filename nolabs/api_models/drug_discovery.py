@@ -235,11 +235,11 @@ class CheckResultAvailableRequest:
     job_id: str
 
 @pcdataclass.dataclass
-class GetResultsListRequest:
+class GetAllResultsListRequest:
     experiment_id: str
 
 @pcdataclass.dataclass
-class GetResultsListResponse:
+class GetAllResultsListResponse:
     results_list: List[ResultMetaData]
 
 @pcdataclass.dataclass

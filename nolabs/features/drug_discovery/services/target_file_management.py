@@ -167,7 +167,7 @@ class TargetsFileManagement:
 
     def get_msa(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
-        msa_file_path = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
+        msa_file_path = os.path.join(target_folder,
                                      self._settings.drug_discovery_msa_file_name)
         if os.path.exists(msa_file_path):
             with open(msa_file_path, "r") as f:
@@ -178,8 +178,7 @@ class TargetsFileManagement:
 
     def store_msa(self, experiment_id: ExperimentId, target_id: TargetId, msa_contents: str):
         target_folder = self.target_folder(experiment_id, target_id)
-        msa_file_path = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
+        msa_file_path = os.path.join(target_folder,
                                      self._settings.drug_discovery_msa_file_name)
-        if os.path.exists(msa_file_path):
-            with open(msa_file_path, "w") as f:
-                f.write(msa_contents)
+        with open(msa_file_path, "w") as f:
+            f.write(msa_contents)

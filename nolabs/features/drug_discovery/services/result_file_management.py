@@ -74,8 +74,8 @@ class ResultsFileManagement:
     def store_result_data(self, experiment_id: ExperimentId,
                           target_id: TargetId,
                           ligand_id: LigandId,
+                          job_id: JobId,
                           result_data: DockingResultData) -> ResultMetaData:
-        job_id = JobId(generate_uuid())
         self.create_result_folder(experiment_id, target_id, ligand_id, job_id)
         result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
 
@@ -133,11 +133,12 @@ class ResultsFileManagement:
                          target_id: TargetId, ligand_id: LigandId) -> List[ResultMetaData]:
         results_folder = self.results_folder(experiment_id, target_id, ligand_id)
         result_list = []
+        if not os.path.exists(results_folder):
+            return result_list
         for t_id in os.listdir(results_folder):
             if os.path.isdir(os.path.join(results_folder, t_id)):
                 job_id = JobId(t_id)
-                if self.check_result_data_available(experiment_id, target_id, ligand_id, job_id):
-                    result_list.append(self.get_result_metadata(experiment_id, target_id, ligand_id, job_id))
+                result_list.append(self.get_result_metadata(experiment_id, target_id, ligand_id, job_id))
 
         return result_list
 

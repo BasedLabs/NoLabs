@@ -9,7 +9,7 @@ app = FastAPI()
 from p2rank.loggers import logger
 
 @app.post("/run-p2rank")
-async def predict(request: RunP2RankPredictionRequest) -> RunP2RankPredictionResponse:
+def predict(request: RunP2RankPredictionRequest) -> RunP2RankPredictionResponse:
     logger.p2rank_request(request)
     if request.job_id:
         job_state_manager.start_job(request.job_id)

@@ -9,7 +9,7 @@ from esmfold_light.loggers import Log
 from esmfold_light.services import run_facebook_api_folding
 
 @app.post("/run-folding")
-async def predict_through_api(request: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionResponse:
+def predict_through_api(request: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionResponse:
     Log.folding_through_api_request(request)
     if request.job_id:
         job_state_manager.start_job(request.job_id)

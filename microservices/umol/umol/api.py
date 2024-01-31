@@ -11,7 +11,7 @@ app = FastAPI(
 from umol.loggers import logger
 
 @app.post("/run-umol")
-async def predict(request: RunUmolPredictionRequest) -> RunUmolPredictionResponse:
+def predict(request: RunUmolPredictionRequest) -> RunUmolPredictionResponse:
     logger.umol_request(request)
     if request.job_id:
         job_state_manager.start_job(request.job_id)

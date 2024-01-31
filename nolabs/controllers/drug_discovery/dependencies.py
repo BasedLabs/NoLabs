@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
+from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
+    GetAllResultsListFeature, GetResultsListForTargetLigandFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
@@ -20,6 +22,8 @@ from nolabs.features.drug_discovery.predict_binding_pocket import PredictBinding
 from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
+from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
+    CheckP2RankRunningFeature, CheckUmolRunningFeature
 from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
 from nolabs.features.drug_discovery.get_results import GetDockingResultsFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
@@ -28,10 +32,6 @@ from nolabs.infrastructure.settings import Settings
 
 def file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)]) -> FileManagement:
     return FileManagement(settings=settings)
-
-
-def add_experiment_feature_dependency(file_management: Annotated[FileManagement, Depends(file_management_dependency)]):
-    return AddExperimentFeature(file_management=file_management)
 
 
 def get_experiments_feature_dependency(
@@ -112,7 +112,7 @@ Depends(target_file_management_dependency)]) -> GetFoldedStructureFeature:
 
 
 def predict_folding_dependency(target_file_management: Annotated[TargetsFileManagement,
-                               Depends(target_file_management_dependency)],
+Depends(target_file_management_dependency)],
                                settings: Annotated[Settings,
                                Depends(settings_dependency)]) -> PredictFoldingFeature:
     return PredictFoldingFeature(file_management=target_file_management, settings=settings)
@@ -143,6 +143,41 @@ Depends(result_file_management_dependency)]):
     return RegisterDockingJobFeature(file_management=result_file_management)
 
 
+def check_msa_running_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckMsaRunningFeature:
+    return CheckMsaRunningFeature(settings=settings)
+
+
+def check_p2rank_running_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckP2RankRunningFeature:
+    return CheckP2RankRunningFeature(settings=settings)
+
+
+def check_umol_running_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckUmolRunningFeature:
+    return CheckUmolRunningFeature(settings=settings)
+
+
+def check_result_data_available_dependency(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> CheckResultDataAvailableFeature:
+    return CheckResultDataAvailableFeature(file_management=result_file_management)
+
+
+def get_all_results_list_dependency(
+        target_file_management: Annotated[TargetsFileManagement,
+        Depends(target_file_management_dependency)], ligand_file_management: Annotated[LigandsFileManagement,
+        Depends(ligand_file_management_dependency)], result_file_management: Annotated[ResultsFileManagement,
+        Depends(result_file_management_dependency)]) -> GetAllResultsListFeature:
+    return GetAllResultsListFeature(target_file_management=target_file_management,
+                                    ligand_file_management=ligand_file_management,
+                                    results_file_management=result_file_management, )
+
+
+def get_results_list_for_target_ligand_feature(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> GetResultsListForTargetLigandFeature:
+    return GetResultsListForTargetLigandFeature(results_file_management=result_file_management)
+
+
 def predict_docking_dependency(
         settings: Annotated[Settings, Depends(settings_dependency)],
         target_file_management: Annotated[TargetsFileManagement,
@@ -154,9 +189,11 @@ def predict_docking_dependency(
                                  result_file_management=result_file_management,
                                  settings=settings)
 
+
 def get_docking_result_dependency(result_file_management: Annotated[ResultsFileManagement,
-        Depends(result_file_management_dependency)]) -> GetDockingResultsFeature:
+Depends(result_file_management_dependency)]) -> GetDockingResultsFeature:
     return GetDockingResultsFeature(result_file_management=result_file_management)
+
 
 def create_experiment_dependency(
         file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> CreateExperimentFeature:
