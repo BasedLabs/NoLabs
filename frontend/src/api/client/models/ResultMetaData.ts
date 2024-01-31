@@ -2,10 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type RunDockingJobRequest = {
+export type ResultMetaData = {
     experiment_id: string;
+    job_id: string;
     target_id: string;
     ligand_id: string;
-    job_id: string;
 };
 

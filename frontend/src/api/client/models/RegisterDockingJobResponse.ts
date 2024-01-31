@@ -2,8 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type GetFoldingRequest = {
-    experiment_id: string;
-    targe_id: string;
+export type RegisterDockingJobResponse = {
+    job_id: string;
 };
 

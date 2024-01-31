@@ -38,6 +38,16 @@ class DeleteTargetResponse:
     target_id: str
 
 @pcdataclass.dataclass
+class GetTargetMetaDataRequest:
+    experiment_id: str
+    targe_id: str
+
+@pcdataclass.dataclass
+class GetTargetMetaDataResponse:
+    target_id: str
+    target_name: str
+
+@pcdataclass.dataclass
 class GetTargetDataRequest:
     experiment_id: str
     targe_id: str
@@ -81,6 +91,40 @@ class PredictMsaRequest:
 @pcdataclass.dataclass
 class PredictMsaResponse:
     msa_contents: str
+
+@pcdataclass.dataclass
+class CheckPocketDataAvailableRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+
+@pcdataclass.dataclass
+class CheckPocketDataAvailableResponse:
+    is_available: bool
+
+
+@pcdataclass.dataclass
+class CheckMsaDataAvailableRequest:
+    experiment_id: str
+    target_id: str
+
+
+@pcdataclass.dataclass
+class CheckMsaDataAvailableResponse:
+    is_available: bool
+
+
+@pcdataclass.dataclass
+class CheckFoldingDataAvailableRequest:
+    experiment_id: str
+    target_id: str
+
+
+@pcdataclass.dataclass
+class CheckFoldingDataAvailableResponse:
+    is_available: bool
 
 @pcdataclass.dataclass
 class GetFoldingRequest:
@@ -139,6 +183,17 @@ class GetLigandsListResponse:
     ligands: List[LigandMetaData]
 
 @pcdataclass.dataclass
+class GetLigandMetaDataRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class GetLigandMetaDataResponse:
+    ligand_id: str
+    ligand_name: str
+
+@pcdataclass.dataclass
 class GetLigandDataRequest:
     experiment_id: str
     target_id: str
@@ -185,6 +240,7 @@ class RunDockingJobResponse:
     plddt_array: List[int]
     job_id: str
 
+
 @pcdataclass.dataclass
 class CheckResultDataAvailableRequest:
     experiment_id: str
@@ -219,17 +275,8 @@ class CheckJobIsRunningResponse:
     is_running: bool
 
 @pcdataclass.dataclass
-class CheckMsaAvailableRequest:
-    experimentId: str
-    target_id: str
-
-@pcdataclass.dataclass
-class CheckMsaAvailableResponse:
-    is_available: bool
-
-@pcdataclass.dataclass
 class CheckResultAvailableRequest:
-    experimentId: str
+    experiment_id: str
     target_id: str
     ligandId: str
     job_id: str

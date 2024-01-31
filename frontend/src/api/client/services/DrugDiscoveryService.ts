@@ -5,19 +5,28 @@
 import type { Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post } from '../models/Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post';
 import type { Body_upload_target_api_v1_drug_discovery_upload_target_post } from '../models/Body_upload_target_api_v1_drug_discovery_upload_target_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
+import type { CheckFoldingDataAvailableResponse } from '../models/CheckFoldingDataAvailableResponse';
+import type { CheckJobIsRunningResponse } from '../models/CheckJobIsRunningResponse';
+import type { CheckMsaDataAvailableResponse } from '../models/CheckMsaDataAvailableResponse';
+import type { CheckPocketDataAvailableResponse } from '../models/CheckPocketDataAvailableResponse';
+import type { CheckResultDataAvailableResponse } from '../models/CheckResultDataAvailableResponse';
 import type { DeleteLigandResponse } from '../models/DeleteLigandResponse';
 import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
-import type { GetFoldingRequest } from '../models/GetFoldingRequest';
+import type { GetAllResultsListResponse } from '../models/GetAllResultsListResponse';
+import type { GetDockingResultDataResponse } from '../models/GetDockingResultDataResponse';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
 import type { GetLigandDataResponse } from '../models/GetLigandDataResponse';
+import type { GetLigandMetaDataResponse } from '../models/GetLigandMetaDataResponse';
+import type { GetResultsListForTargetLigandResponse } from '../models/GetResultsListForTargetLigandResponse';
 import type { GetTargetBindingPocketResponse } from '../models/GetTargetBindingPocketResponse';
 import type { GetTargetDataResponse } from '../models/GetTargetDataResponse';
+import type { GetTargetMetaDataResponse } from '../models/GetTargetMetaDataResponse';
 import type { LigandMetaData } from '../models/LigandMetaData';
 import type { PredictBindingPocketResponse } from '../models/PredictBindingPocketResponse';
 import type { PredictFoldingResponse } from '../models/PredictFoldingResponse';
 import type { PredictMsaResponse } from '../models/PredictMsaResponse';
-import type { RunDockingJobRequest } from '../models/RunDockingJobRequest';
+import type { RegisterDockingJobResponse } from '../models/RegisterDockingJobResponse';
 import type { RunDockingJobResponse } from '../models/RunDockingJobResponse';
 import type { TargetMetaData } from '../models/TargetMetaData';
 import type { UploadLigandResponse } from '../models/UploadLigandResponse';
@@ -150,13 +159,36 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Get Targets List
+     * Get Target Meta Data
+     * @param experimentId
+     * @param targetId
+     * @returns GetTargetMetaDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getTargetMetaDataApiV1DrugDiscoveryGetTargetMetaDataGet(
+        experimentId: string,
+        targetId: string,
+    ): CancelablePromise<GetTargetMetaDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-target-meta-data',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Target Data
      * @param experimentId
      * @param targetId
      * @returns GetTargetDataResponse Successful Response
      * @throws ApiError
      */
-    public static getTargetsListApiV1DrugDiscoveryGetTargetDataGet(
+    public static getTargetDataApiV1DrugDiscoveryGetTargetDataGet(
         experimentId: string,
         targetId: string,
     ): CancelablePromise<GetTargetDataResponse> {
@@ -207,6 +239,32 @@ export class DrugDiscoveryService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/drug_discovery/delete-ligand',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Ligand Data
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @returns GetLigandMetaDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getLigandDataApiV1DrugDiscoveryGetLigandMetaDataGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+    ): CancelablePromise<GetLigandMetaDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-ligand-meta-data',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
@@ -337,18 +395,22 @@ export class DrugDiscoveryService {
     }
     /**
      * Get Folded Structure
-     * @param requestBody
+     * @param experimentId
+     * @param targetId
      * @returns GetFoldingResponse Successful Response
      * @throws ApiError
      */
     public static getFoldedStructureApiV1DrugDiscoveryGetFoldedStructureGet(
-        requestBody: GetFoldingRequest,
+        experimentId: string,
+        targetId: string,
     ): CancelablePromise<GetFoldingResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/drug_discovery/get-folded-structure',
-            body: requestBody,
-            mediaType: 'application/json',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
             errors: {
                 422: `Validation Error`,
             },
@@ -378,19 +440,314 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Register Docking Job
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @returns RegisterDockingJobResponse Successful Response
+     * @throws ApiError
+     */
+    public static registerDockingJobApiV1DrugDiscoveryRegisterDockingJobPost(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+    ): CancelablePromise<RegisterDockingJobResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/register-docking-job',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Msa Data Available
+     * @param experimentId
+     * @param targetId
+     * @returns CheckMsaDataAvailableResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkMsaDataAvailableApiV1DrugDiscoveryCheckMsaDataAvailableGet(
+        experimentId: string,
+        targetId: string,
+    ): CancelablePromise<CheckMsaDataAvailableResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-msa-data-available',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Msa Job Running
+     * @param jobId
+     * @returns CheckJobIsRunningResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkMsaJobRunningApiV1DrugDiscoveryCheckMsaJobRunningGet(
+        jobId: string,
+    ): CancelablePromise<CheckJobIsRunningResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-msa-job-running',
+            query: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Pocket Data Available
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @returns CheckPocketDataAvailableResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkPocketDataAvailableApiV1DrugDiscoveryCheckPocketDataAvailableGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+    ): CancelablePromise<CheckPocketDataAvailableResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-pocket-data-available',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check P2Rank Job Running
+     * @param jobId
+     * @returns CheckJobIsRunningResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkP2RankJobRunningApiV1DrugDiscoveryCheckP2RankJobRunningGet(
+        jobId: string,
+    ): CancelablePromise<CheckJobIsRunningResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-p2rank-job-running',
+            query: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Folding Data Available
+     * @param experimentId
+     * @param targetId
+     * @returns CheckFoldingDataAvailableResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkFoldingDataAvailableApiV1DrugDiscoveryCheckFoldingDataAvailableGet(
+        experimentId: string,
+        targetId: string,
+    ): CancelablePromise<CheckFoldingDataAvailableResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-folding-data-available',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Folding Job Running
+     * @param jobId
+     * @returns CheckJobIsRunningResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkFoldingJobRunningApiV1DrugDiscoveryCheckFoldingJobRunningGet(
+        jobId: string,
+    ): CancelablePromise<CheckJobIsRunningResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-folding-job-running',
+            query: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Umol Job Running
+     * @param jobId
+     * @returns CheckJobIsRunningResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkUmolJobRunningApiV1DrugDiscoveryCheckUmolJobRunningGet(
+        jobId: string,
+    ): CancelablePromise<CheckJobIsRunningResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-umol-job-running',
+            query: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Result Data Available
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @returns CheckResultDataAvailableResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkResultDataAvailableApiV1DrugDiscoveryCheckResultDataAvailableGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+    ): CancelablePromise<CheckResultDataAvailableResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-result-data-available',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Perform Docking
-     * @param requestBody
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
      * @returns RunDockingJobResponse Successful Response
      * @throws ApiError
      */
-    public static performDockingApiV1DrugDiscoveryPredictDockingPost(
-        requestBody: RunDockingJobRequest,
+    public static performDockingApiV1DrugDiscoveryRunDockingJobPost(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
     ): CancelablePromise<RunDockingJobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/drug_discovery/predict-docking',
-            body: requestBody,
-            mediaType: 'application/json',
+            url: '/api/v1/drug_discovery/run-docking-job',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Results List For Target Ligand
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @returns GetResultsListForTargetLigandResponse Successful Response
+     * @throws ApiError
+     */
+    public static getResultsListForTargetLigandApiV1DrugDiscoveryGetResultsListForTargetLigandGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+    ): CancelablePromise<GetResultsListForTargetLigandResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-results-list-for-target-ligand',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get All Results List
+     * @param experimentId
+     * @returns GetAllResultsListResponse Successful Response
+     * @throws ApiError
+     */
+    public static getAllResultsListApiV1DrugDiscoveryGetAllResultsListGet(
+        experimentId: string,
+    ): CancelablePromise<GetAllResultsListResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-all-results-list',
+            query: {
+                'experiment_id': experimentId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Docking Result Data
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @returns GetDockingResultDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getDockingResultDataApiV1DrugDiscoveryGetDockingResultDataGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+    ): CancelablePromise<GetDockingResultDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-docking-result-data',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
             errors: {
                 422: `Validation Error`,
             },
