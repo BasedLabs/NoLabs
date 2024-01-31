@@ -15,3 +15,7 @@ class RunEsmFoldPredictionRequest(BaseModelMixin):
 class RunEsmFoldPredictionResponse(BaseModelMixin):
     errors: List[str]
     pdb_content: Optional[str] = None
+
+@dataclasses.dataclass
+class IsJobRunningResponse:
+    is_running: bool
