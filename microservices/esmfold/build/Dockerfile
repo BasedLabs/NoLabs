@@ -21,4 +21,4 @@ RUN python3.8 -c "from transformers import EsmForProteinFolding; EsmForProteinFo
 COPY ./esmfold /app/esmfold
 
 # Set the command to run the FastAPI app
-ENTRYPOINT ["uvicorn", "esmfold.api:app", "--log-level","trace"]
+ENTRYPOINT uvicorn esmfold.api:app --host $HOST --port $PORT
