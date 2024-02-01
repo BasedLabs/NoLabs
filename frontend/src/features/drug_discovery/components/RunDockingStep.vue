@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-card flat bordered class="q-pa-sm">
+    <q-card v-if="currentJob" flat bordered class="q-pa-sm">
       <q-item-label v-if="currentJob" class="text-h6 q-pa-sm"> Current job running: {{ currentJob.job_id }} </q-item-label>
       <q-item-label v-if="currentJob" class="text-h8 q-pa-sm"> TargetId: {{ currentJob.target_id }} </q-item-label>
       <q-item-label v-if="currentJob" class="text-h8 q-pa-sm"> LigandId: {{ currentJob.ligand_id }} </q-item-label>
@@ -15,7 +15,7 @@
                   <q-spinner class="spinner" color="primary" size="20px" />
                 </template>
                 <template v-else-if="currentJob && currentJob[`${step.key}Available`]">
-                  <q-icon name="check" class="check-mark" color="green" />
+                  <q-icon name="check" class="check-mark" color="info" />
                 </template>
               </div>
             </q-card-section>
@@ -169,26 +169,47 @@ export default {
 
     async updateCurrentJob() {
       const store = useDrugDiscoveryStore();
-      // Logic to select the current job to track. For example, the first job in the queue.
       this.currentJob = this.jobsInQueue.length ? this.jobsInQueue[0] : null;
 
       if (this.currentJob) {
-        // Update the progress for the current job
-        this.currentJob.progress = await this.calculateProgress(this.currentJob);
+        // Check if data is available for each step
+        const msaAvailableResp = await store.checkMsaDataAvailable(this.experimentId, this.currentJob.target_id);
+        this.currentJob.msaAvailable = msaAvailableResp.is_available;
+
+        const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId, this.currentJob.target_id);
+        this.currentJob.foldingAvailable = foldingAvailableResp.is_available;
+
+        const pocketAvailableResp = await store.checkPocketDataAvailable(this.experimentId, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
+        this.currentJob.pocketAvailable = pocketAvailableResp.is_available;
+
+        const dockingResultAvailableResp = await store.checkDockingResultAvailable(this.experimentId, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
+        this.currentJob.dockingAvailable = dockingResultAvailableResp.result_available;
 
         // Update the running status for each step
-        this.currentJob.msaRunning = await store.checkMsaJobIsRunning(this.currentJob.job_id);
-        this.currentJob.pocketRunning = await store.checkP2RankJobIsRunning(this.currentJob.job_id);
-        this.currentJob.foldingRunning = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
-        this.currentJob.dockingRunning = await store.checkUmolJobIsRunning(this.currentJob.job_id);
+        const msaRunningResp = await store.checkMsaJobIsRunning(this.currentJob.job_id);
+        this.currentJob.msaRunning = msaRunningResp.is_running;
+
+        const foldingRunningResp = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
+        this.currentJob.foldingRunning = foldingRunningResp.is_running;
+
+        const p2RankRunningResp = await store.checkP2RankJobIsRunning(this.currentJob.job_id);
+        this.currentJob.pocketRunning = p2RankRunningResp.is_running;
+
+        const umolRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
+        this.currentJob.dockingRunning = umolRunningResp.is_running;
       }
     },
+
     getStepClass(job, step) {
-      return {
-        'bg-grey text-black': !job || !job[`${step}Available`],
-        'bg-info text-white': job && job[`${step}Available`],
-        'q-ma-md': true,
-      };
+      if (!job) return 'bg-grey-3 text-black q-ma-md';
+
+      if (job[`${step}Running`]) {
+        return 'bg-primary text-white q-ma-md';
+      } else if (job[`${step}Available`]) {
+        return 'bg-green-3 text-black q-ma-md';
+      } else {
+        return 'bg-grey-3 text-black q-ma-md';
+      }
     },
   },
   mounted() {

@@ -9,7 +9,7 @@
       <q-step
         :name="1"
         title="Upload targets"
-        icon="gesture"
+        icon=polymer
         color="info"
         :done="step > 1"
       >
