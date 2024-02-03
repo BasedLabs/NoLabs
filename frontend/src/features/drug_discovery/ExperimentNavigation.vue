@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-md ">
     <q-stepper
       v-model="step"
       ref="stepper"
@@ -13,12 +13,12 @@
         color="info"
         :done="step > 1"
       >
+        <q-item-label class="text-h5 q-pa-md">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
         <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
           <q-space />
           <q-btn flat label="Continue" @click="openNextStep('UploadLigands')" />
         </div>
-
-          <router-view></router-view>
+        <router-view></router-view>
       </q-step>
 
       <q-step
@@ -28,6 +28,7 @@
         icon=hub
         :done="step > 2"
       >
+        <q-item-label class="text-h5 q-pa-md">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
         <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
           <q-btn flat label="Back" @click="openPreviousStep('UploadTargets')" />
           <q-space />
@@ -43,6 +44,7 @@
         icon="gesture"
         :done="step > 3"
       >
+        <q-item-label class="text-h5">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
         <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
           <q-btn flat label="Back" @click="openPreviousStep('UploadLigands')" />
         </div>
@@ -60,7 +62,25 @@ export default {
       step: 1, // This can be a reactive property based on the current route if needed
     };
   },
+  mounted() {
+    this.setStepBasedOnRoute();
+  },
   methods: {
+    setStepBasedOnRoute() {
+      switch (this.$route.name) {
+        case 'UploadTargets':
+          this.step = 1;
+          break;
+        case 'UploadLigands':
+          this.step = 2;
+          break;
+        case 'RunDocking':
+          this.step = 3;
+          break;
+        default:
+          this.step = 1; // Default step if the route name doesn't match
+      }
+    },
     openNextStep(stepName) {
       this.$refs.stepper.next();
       this.$router.push({ name: stepName, params: { experimentId: this.$route.params.experimentId } });

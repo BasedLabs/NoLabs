@@ -227,6 +227,17 @@ class RegisterDockingJobResponse:
     job_id: str
 
 @pcdataclass.dataclass
+class DeleteDockingJobRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class DeleteDockingJobResponse:
+    job_id: str
+
+@pcdataclass.dataclass
 class RunDockingJobRequest:
     experiment_id: str
     target_id: str

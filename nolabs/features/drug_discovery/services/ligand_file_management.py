@@ -77,17 +77,21 @@ class LigandsFileManagement:
         metadata_file = os.path.join(self.ligand_folder(experiment_id, target_id, ligand_id),
                                      self._settings.drug_discovery_ligand_metadata_file_name)
         if os.path.exists(metadata_file):
-            metadata = json.load(open(metadata_file))
-            metadata[key] = value
-            json.dump(metadata, open(metadata_file, 'w'))
+            with open(metadata_file, "r") as f:
+                metadata = json.load(f)
+                metadata[key] = value
+            with open(metadata_file, "w") as f:
+                json.dump(metadata, f)
         else:
             metadata = {key: value}
-            json.dump(metadata, open(metadata_file, 'w'))
+            with open(metadata_file, "w") as f:
+                json.dump(metadata, f)
 
     def get_ligand_metadata(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId) -> LigandMetaData:
         metadata_file = os.path.join(self.ligand_folder(experiment_id, target_id, ligand_id),
                                      self._settings.drug_discovery_ligand_metadata_file_name)
-        metadata = json.load(open(metadata_file))
+        with open(metadata_file, "r") as f:
+            metadata = json.load(f)
         ligand_metadata = LigandMetaData(ligand_id=metadata["id"], ligand_name=metadata["name"])
         return ligand_metadata
 

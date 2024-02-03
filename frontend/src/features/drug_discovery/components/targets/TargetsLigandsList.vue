@@ -1,8 +1,8 @@
 <template>
-  <q-list bordered separator>
+  <q-list bordered separator class="bg-black">
     <q-item-label header>Upload Ligands</q-item-label>
     <q-item>
-      <q-btn push  class="full-width" color="green" @click="uploadToAllTargets = true; uploadLigandDialog = true;">
+      <q-btn push  class="full-width" color="info" @click="uploadToAllTargets = true; uploadLigandDialog = true;">
         + add ligands to all targets
       </q-btn>
     </q-item>
@@ -26,14 +26,16 @@
       ><TargetDetail v-if="target.data" :experiment-id="experimentId" :original-target="target"> </TargetDetail>
       </q-expansion-item>
 
-      <q-btn push class="full-width"  color="green" @click="openLigandUploadDialog(target)">
-        + add ligands
-      </q-btn>
       <div v-if="target.loadingLigands">
         <q-spinner color="primary" />
       </div>
       <q-list bordered separator v-else>
         <q-item-label header>Ligands</q-item-label>
+        <q-item>
+          <q-btn push class="full-width" color="info" @click="openLigandUploadDialog(target)">
+            + add ligands
+          </q-btn>
+        </q-item>
         <q-expansion-item
           expand-separator
           v-for="ligand in target.ligands"
@@ -50,25 +52,6 @@
       </q-list>
     </q-expansion-item>
   </q-list>
-  <q-page-sticky position="bottom-right" :offset="[100, 50]">
-    <q-btn size="lg" round color="green" icon="add" @click="uploadTargetDialog = true">
-      <q-tooltip>Add targets to the experiment</q-tooltip>
-    </q-btn>
-  </q-page-sticky>
-
-  <q-dialog v-model="uploadTargetDialog">
-    <q-card>
-      <q-card-section>
-        <div class="text-h6">Upload Target Files</div>
-        <q-file v-model="uploadingTargetFiles" accept=".fasta" multiple label="Choose files" />
-      </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn flat label="Close" color="negative" @click="uploadTargetDialog = false" />
-        <q-btn flat label="Upload" color="positive" @click="handleTargetFileUpload" />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
 
   <q-dialog v-model="uploadLigandDialog">
     <q-card>
@@ -142,13 +125,6 @@ export default {
       } finally {
         target.loadingLigands = false;
       }
-    },
-    async handleTargetFileUpload() {
-      const store = useDrugDiscoveryStore();
-      for (let file of this.uploadingTargetFiles) {
-        await store.uploadTargetToExperiment(this.experimentId, file);
-      }
-      this.uploadTargetDialog = false;
     },
     async handleLigandFileUpload(target) {
       const store = useDrugDiscoveryStore();

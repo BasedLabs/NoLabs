@@ -1,6 +1,12 @@
 <template>
-  <q-list bordered separator>
+  <q-list bordered separator class="bg-black">
     <q-item-label header>Upload targets</q-item-label>
+    <q-item>
+      <q-btn size="md" class="full-width q-pm-sm" push color="info" @click="uploadTargetDialog = true">
+        + upload targets
+        <q-tooltip>Add targets to the experiment</q-tooltip>
+      </q-btn>
+    </q-item>
     <q-expansion-item
       popup
       expand-separator
@@ -17,7 +23,7 @@
     </q-expansion-item>
   </q-list>
   <q-page-sticky position="bottom-right" :offset="[100, 50]">
-    <q-btn size="lg" round color="green" icon="add" @click="uploadTargetDialog = true">
+    <q-btn size="lg" push round color="info" icon="add" @click="uploadTargetDialog = true">
       <q-tooltip>Add targets to the experiment</q-tooltip>
     </q-btn>
   </q-page-sticky>

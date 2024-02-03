@@ -31,8 +31,9 @@ from nolabs.controllers.drug_discovery.dependencies import (
     predict_docking_dependency,
     get_docking_result_dependency, create_experiment_dependency, get_target_meta_data_dependency,
     get_ligand_meta_data_dependency, check_msa_data_available_dependency, check_pocket_data_available_dependency,
-    check_folding_data_available_dependency
+    check_folding_data_available_dependency, delete_docking_job_dependency
 )
+from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
     CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature
@@ -97,7 +98,7 @@ from nolabs.api_models.drug_discovery import (
     GetAllResultsListResponse, GetTargetMetaDataResponse, GetTargetMetaDataRequest, GetLigandMetaDataResponse,
     GetLigandMetaDataRequest, CheckMsaDataAvailableResponse, CheckMsaDataAvailableRequest,
     CheckPocketDataAvailableResponse, CheckPocketDataAvailableRequest, CheckFoldingDataAvailableResponse,
-    CheckFoldingDataAvailableRequest
+    CheckFoldingDataAvailableRequest, DeleteDockingJobRequest, DeleteDockingJobResponse
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -271,6 +272,14 @@ async def register_docking_job(experiment_id: str,
         , Depends(register_docking_job_dependency)]) -> RegisterDockingJobResponse:
     return feature.handle(RegisterDockingJobRequest(experiment_id, target_id, ligand_id))
 
+@router.delete('/delete-docking-job')
+async def delete_docking_job(experiment_id: str,
+                               target_id: str,
+                               ligand_id: str,
+                               job_id: str,
+                             feature: Annotated[DeleteJobFeature
+        , Depends(delete_docking_job_dependency)]) -> DeleteDockingJobResponse:
+    return feature.handle(DeleteDockingJobRequest(experiment_id, target_id, ligand_id, job_id))
 
 @router.get('/check-msa-data-available')
 async def check_msa_data_available(experiment_id: str,

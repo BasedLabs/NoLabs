@@ -9,6 +9,31 @@
           :experimentId="this.experimentId"
           :originalTargets="this.targets"
         />
+        <q-expansion-item
+          icon="info"
+          label="Step 1: Upload target files for which you discover the drugs"
+          class="q-mt-md"
+          expand-icon="eye"
+          expanded-icon="minimize"
+          :dense="true"
+        >
+          <q-card-section class="q-pa-md">
+            <p>
+              Upload the <strong>.fasta</strong> files of the proteins to which you want to design drugs. If you don't have protein files prepared,
+              you can visit <a style="color: #31ccec" href="https://www.rcsb.org/" target="_blank">https://www.rcsb.org/</a> to download .fasta files of your interest.
+            </p>
+            <p class="q-mt-md">
+              <strong>Warning:</strong> If you have a light infrastructure set in your <code>nolabs/infrastructure/settings.ini</code> file, then sequences longer than 400 amino acids will not be processed.
+            </p>
+            <p class="q-mt-md">
+              Binding pockets can be set via UI when a user clicks on the target, or they will be predicted automatically.
+            </p>
+            <div class="q-pa-md q-gutter-sm row justify-center">
+              <q-img :src="'/drugDiscovery/Protein_grey_1.png'" class="col" style="max-width: 200px" />
+              <q-img :src="'/drugDiscovery/Protein_grey_2.png'" class="col" style="max-width: 200px" />
+            </div>
+          </q-card-section>
+        </q-expansion-item>
       </div>
     </q-page>
 </template>

@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
+from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
     CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature
@@ -153,33 +154,46 @@ def register_docking_job_dependency(result_file_management: Annotated[ResultsFil
 Depends(result_file_management_dependency)]):
     return RegisterDockingJobFeature(file_management=result_file_management)
 
+
+def delete_docking_job_dependency(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]):
+    return DeleteJobFeature(file_management=result_file_management)
+
+
 def check_msa_data_available_dependency(target_file_management: Annotated[TargetsFileManagement,
-        Depends(target_file_management_dependency)]) -> CheckMsaDataAvailableFeature:
+Depends(target_file_management_dependency)]) -> CheckMsaDataAvailableFeature:
     return CheckMsaDataAvailableFeature(file_management=target_file_management)
+
 
 def check_msa_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckMsaRunningFeature:
     return CheckMsaRunningFeature(settings=settings)
 
+
 def check_pocket_data_available_dependency(target_file_management: Annotated[TargetsFileManagement,
-        Depends(target_file_management_dependency)]) -> CheckBindingPocketDataAvailableFeature:
+Depends(target_file_management_dependency)]) -> CheckBindingPocketDataAvailableFeature:
     return CheckBindingPocketDataAvailableFeature(file_management=target_file_management)
+
 
 def check_p2rank_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckP2RankRunningFeature:
     return CheckP2RankRunningFeature(settings=settings)
 
+
 def check_folding_data_available_dependency(target_file_management: Annotated[TargetsFileManagement,
-        Depends(target_file_management_dependency)]) -> CheckFoldingDataAvailableFeature:
+Depends(target_file_management_dependency)]) -> CheckFoldingDataAvailableFeature:
     return CheckFoldingDataAvailableFeature(file_management=target_file_management)
+
 
 def check_folding_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckFoldingRunningFeature:
     return CheckFoldingRunningFeature(settings=settings)
 
+
 def check_umol_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolRunningFeature:
     return CheckUmolRunningFeature(settings=settings)
+
 
 def check_result_data_available_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> CheckResultDataAvailableFeature:

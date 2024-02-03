@@ -52,10 +52,11 @@ class ResultsFileManagement:
     ):
         self.ensure_results_folder_exists(experiment_id, target_id, ligand_id)
         results_dir = self.results_folder(experiment_id, target_id, ligand_id)
-        os.mkdir(os.path.join(results_dir, job_id.value))
-        self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "target_id", target_id.value)
-        self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "ligand_id", ligand_id.value)
-        self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "job_id", job_id.value
+        if not os.path.exists(os.path.join(results_dir, job_id.value)):
+            os.mkdir(os.path.join(results_dir, job_id.value))
+            self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "target_id", target_id.value)
+            self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "ligand_id", ligand_id.value)
+            self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "job_id", job_id.value
                                     )
 
     def store_result_input_pocketIds(self,
@@ -76,6 +77,7 @@ class ResultsFileManagement:
                           ligand_id: LigandId,
                           job_id: JobId,
                           result_data: DockingResultData) -> ResultMetaData:
+
         self.create_result_folder(experiment_id, target_id, ligand_id, job_id)
         result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
 
@@ -112,18 +114,22 @@ class ResultsFileManagement:
         metadata_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, job_id),
                                      self._settings.drug_discovery_docking_result_metadata_filename_name)
         if os.path.exists(metadata_file):
-            metadata = json.load(open(metadata_file))
-            metadata[key] = value
-            json.dump(metadata, open(metadata_file, 'w'))
+            with open(metadata_file, 'r') as f:
+                metadata = json.load(f)
+                metadata[key] = value
+            with open(metadata_file, 'w') as f:
+                json.dump(metadata, f)
         else:
             metadata = {key: value}
-            json.dump(metadata, open(metadata_file, 'w'))
+            with open(metadata_file, 'w') as f:
+                json.dump(metadata, f)
 
     def get_result_metadata(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
                             job_id: JobId) -> ResultMetaData:
         metadata_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, job_id),
                                      self._settings.drug_discovery_ligand_metadata_file_name)
-        metadata = json.load(open(metadata_file))
+        with open(metadata_file, 'r') as f:
+            metadata = json.load(f)
         result_metadata = ResultMetaData(job_id=metadata["job_id"],
                                          target_id=metadata["target_id"],
                                          ligand_id=metadata["ligand_id"])
