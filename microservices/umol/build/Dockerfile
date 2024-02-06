@@ -32,4 +32,4 @@ RUN ls -l /app/umol
 RUN ls -l /app/umol/umol_source
 
 # Set the command to run the FastAPI app
-ENTRYPOINT uvicorn umol.api:app --host $HOST --port $PORT
+ENTRYPOINT ["uvicorn", "umol.api:app"]

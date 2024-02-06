@@ -23,4 +23,4 @@ RUN curl -o p2rank.tar.gz -L "https://github.com/rdk/p2rank/releases/download/2.
 
 
 # Set the command to run the FastAPI app
-ENTRYPOINT uvicorn p2rank.api:app --host $HOST --port $PORT
+ENTRYPOINT ["uvicorn", "p2rank.api:app"]

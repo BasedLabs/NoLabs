@@ -18,4 +18,4 @@ RUN python3.8 -m pip install --default-timeout=100 -r requirements.txt
 COPY ./esmfold_light /app/esmfold_light
 
 # Set the command to run the FastAPI app
-ENTRYPOINT uvicorn esmfold_light.api:app --host $HOST --port $PORT
+ENTRYPOINT ["uvicorn", "esmfold_light.api:app"]

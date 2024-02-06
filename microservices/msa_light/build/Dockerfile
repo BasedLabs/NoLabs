@@ -18,4 +18,4 @@ RUN python3.8 -m pip install --default-timeout=100 -r requirements.txt
 COPY ./msa_light /app/msa_light
 
 # Set the command to run the FastAPI app
-ENTRYPOINT uvicorn msa_light.api:app --host $HOST --port $PORT
+ENTRYPOINT ["uvicorn", "msa_light.api:app"]

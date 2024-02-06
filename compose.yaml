@@ -90,13 +90,6 @@ services:
     ports:
       - "5731:5731"
     command: --host=0.0.0.0 --port=5731
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ cpu ]
   msa_light:
     build:
       context: microservices/msa_light
@@ -104,13 +97,6 @@ services:
     ports:
       - "5734:5734"
     command: --host=0.0.0.0 --port=5734
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ cpu ]
   nolabs:
     build:
       context: .
@@ -119,10 +105,3 @@ services:
       - "8000:8000"
       - "9000:9000"
     command: --host=0.0.0.0 --port=5788
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
