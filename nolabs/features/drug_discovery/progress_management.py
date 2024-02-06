@@ -25,14 +25,14 @@ else:
     from esmfold_microservice import ApiClient as FoldingApiClient
     from esmfold_microservice import Configuration as FoldingConfiguration
 
-
 from nolabs.api_models.drug_discovery import CheckJobIsRunningRequest, CheckJobIsRunningResponse
+
 
 class CheckUmolRunningFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
 
-    def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
+    async def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
         assert request
 
         job_id = JobId(request.job_id)
@@ -42,21 +42,30 @@ class CheckUmolRunningFeature:
         )
         with UmolApiClient(configuration=configuration) as client:
             api_instance = UmolDefaultApi(client)
-            response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value).is_running
+            response = api_instance.is_job_running_job_job_id_is_running_get(
+                job_id=job_id.value).is_running
 
         return CheckJobIsRunningResponse(is_running=response)
+
 
 class CheckFoldingRunningFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
 
-    def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
+    async def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
         assert request
 
         job_id = JobId(request.job_id)
 
+        host = None
+
+        if self._settings.is_light_infrastructure:
+            host = self._settings.esmfold_light_host
+        else:
+            host = self._settings.esmfold_host
+
         configuration = FoldingConfiguration(
-            host=self._settings.umol_host,
+            host=host,
         )
         with FoldingApiClient(configuration=configuration) as client:
             api_instance = FoldingDefaultApi(client)
@@ -65,12 +74,11 @@ class CheckFoldingRunningFeature:
         return CheckJobIsRunningResponse(is_running=response)
 
 
-
 class CheckMsaRunningFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
 
-    def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
+    async def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
         job_id = JobId(request.job_id)
 
         configuration = MsaConfiguration(
@@ -87,7 +95,7 @@ class CheckP2RankRunningFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
 
-    def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
+    async def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
         job_id = JobId(request.job_id)
 
         configuration = P2RankConfiguration(

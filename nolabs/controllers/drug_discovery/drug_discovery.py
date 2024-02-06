@@ -31,8 +31,12 @@ from nolabs.controllers.drug_discovery.dependencies import (
     predict_docking_dependency,
     get_docking_result_dependency, create_experiment_dependency, get_target_meta_data_dependency,
     get_ligand_meta_data_dependency, check_msa_data_available_dependency, check_pocket_data_available_dependency,
-    check_folding_data_available_dependency, delete_docking_job_dependency
+    check_folding_data_available_dependency, delete_docking_job_dependency, check_msa_service_health_dependency,
+    check_p2rank_service_health_dependency, check_folding_service_health_dependency,
+    check_umol_service_health_dependency
 )
+from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
+    CheckP2RankServiceHealthFeature, CheckFoldingServiceHealthFeature, CheckUmolServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
@@ -98,7 +102,7 @@ from nolabs.api_models.drug_discovery import (
     GetAllResultsListResponse, GetTargetMetaDataResponse, GetTargetMetaDataRequest, GetLigandMetaDataResponse,
     GetLigandMetaDataRequest, CheckMsaDataAvailableResponse, CheckMsaDataAvailableRequest,
     CheckPocketDataAvailableResponse, CheckPocketDataAvailableRequest, CheckFoldingDataAvailableResponse,
-    CheckFoldingDataAvailableRequest, DeleteDockingJobRequest, DeleteDockingJobResponse
+    CheckFoldingDataAvailableRequest, DeleteDockingJobRequest, DeleteDockingJobResponse, CheckServiceHealthyResponse
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -288,6 +292,11 @@ async def check_msa_data_available(experiment_id: str,
                 check_msa_data_available_dependency)]) -> CheckMsaDataAvailableResponse:
     return feature.handle(CheckMsaDataAvailableRequest(experiment_id, target_id))
 
+@router.get('/check-msa-service-health')
+async def check_msa_service_health(feature: Annotated[
+    CheckMsaServiceHealthFeature, Depends(check_msa_service_health_dependency)]) -> CheckServiceHealthyResponse:
+    return feature.handle()
+
 
 @router.get('/check-msa-job-running')
 async def check_msa_job_running(job_id: str, feature: Annotated[
@@ -305,6 +314,11 @@ async def check_pocket_data_available(experiment_id: str,
                                               check_pocket_data_available_dependency)]) -> CheckPocketDataAvailableResponse:
     return feature.handle(CheckPocketDataAvailableRequest(experiment_id, target_id, ligand_id, job_id))
 
+@router.get('/check-p2rank-service-health')
+async def check_p2rank_service_health(feature: Annotated[
+    CheckP2RankServiceHealthFeature, Depends(check_p2rank_service_health_dependency)]) -> CheckServiceHealthyResponse:
+    return feature.handle()
+
 
 @router.get('/check-p2rank-job-running')
 async def check_p2rank_job_running(job_id: str, feature: Annotated[
@@ -318,10 +332,20 @@ async def check_folding_data_available(experiment_id: str,
                 check_folding_data_available_dependency)]) -> CheckFoldingDataAvailableResponse:
     return feature.handle(CheckFoldingDataAvailableRequest(experiment_id, target_id))
 
+@router.get('/check-folding-service-health')
+async def check_folding_service_health(feature: Annotated[
+    CheckFoldingServiceHealthFeature, Depends(check_folding_service_health_dependency)]) -> CheckServiceHealthyResponse:
+    return feature.handle()
+
 @router.get('/check-folding-job-running')
 async def check_folding_job_running(job_id: str, feature: Annotated[
     CheckFoldingRunningFeature, Depends(check_umol_running_dependency)]) -> CheckJobIsRunningResponse:
     return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+
+@router.get('/check-umol-service-health')
+async def check_umol_service_health(feature: Annotated[
+    CheckUmolServiceHealthFeature, Depends(check_umol_service_health_dependency)]) -> CheckServiceHealthyResponse:
+    return feature.handle()
 
 
 @router.get('/check-umol-job-running')

@@ -18,7 +18,7 @@
     <q-card-section>
       <div class="text-h6">Ligand: {{ ligand.ligand_name }}</div>
       <div class="text-subtitle1">SMILES: {{ ligand.data.smiles }}</div>
-      <PdbViewer :sdf-file="ligand.data.sdf_file" />
+      <PdbViewer v-if="ligand.data.sdf_file" :sdf-file="ligand.data.sdf_file" />
     </q-card-section>
   </q-card>
 </template>

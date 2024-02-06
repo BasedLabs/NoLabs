@@ -8,7 +8,7 @@ import {
   checkP2RankJobIsRunningApi,
   checkPocketDataAvailableApi,
   checkUmolJobIsRunningApi,
-  createExperimentApi,
+  createExperimentApi, deleteDockingJobApi,
   deleteExperimentApi,
   deleteLigandApi,
   deleteTargetApi, getAllDockingResultsListApi,
@@ -323,13 +323,21 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             return null;
           }
         },
-        async getDockingResultsListForTargetLigand(experimentId: string) {
+        async getDockingResultsListForTargetLigand(experimentId: string, targetId: string, ligandId: string) {
           try {
-            return await getDockingResultsListForTargetLigandApi(experimentId);
+            return await getDockingResultsListForTargetLigandApi(experimentId, targetId, ligandId);
           } catch (error) {
             console.error("Error checking if Umol job is running:", error);
             return null;
           }
         },
+      async deleteDockingJob(experimentId: string, targetId: string, ligandId: string, jobId: string) {
+        try {
+          return await deleteDockingJobApi(experimentId, targetId, ligandId, jobId);
+        } catch (error) {
+          console.error("Error checking if Umol job is running:", error);
+          return null;
+        }
+      },
     }
 });

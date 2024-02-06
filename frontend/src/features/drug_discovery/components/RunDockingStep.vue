@@ -60,18 +60,24 @@
       class="q-pa-md bg-black"
     >
       <template v-slot:body="props">
-        <q-tr :props="props" @click.stop="fetchResultDataForRow(props.row)">
-          <q-td v-for="col in resultsColumns" :key="col.name" :props="props">
+        <q-tr :props="props" @click="() => fetchResultDataForRow(props.row)">
+          <q-td
+            v-for="col in resultsColumns.filter(col => col.name !== 'delete')"
+            :key="col.name"
+            :props="props"
+          >
             {{ props.row[col.field] }}
           </q-td>
+          <q-td auto-width>
+            <q-btn icon="delete" color="negative" flat @click.stop="deleteDockingJob(props.row)" />
+          </q-td>
         </q-tr>
-        <q-tr v-if="props.row.expanded" :props="props">
+        <q-tr v-show="props.row.expanded" :props="props">
           <q-td colspan="100%">
             <div class="q-pa-md">
               <div v-if="props.row.resultData">
-                <!-- Display docking job result data -->
                 <PdbViewer v-if="props.row.resultData.predicted_sdf_file" :pdb-file="props.row.resultData.predicted_pdb_file" :sdf-file="props.row.resultData.predicted_sdf_file"/>
-                <div><strong>PLDDT Array:</strong> {{ props.row.resultData.plddt_array.join(', ') }}</div>
+                <div v-if="props.row.resultData.plddt_array"><strong>PLDDT Array:</strong> {{ props.row.resultData.plddt_array.join(', ') }}</div>
               </div>
               <div v-else>
                 <q-spinner color="info" label="Loading..." />
@@ -101,6 +107,9 @@
           <q-td v-for="col in queueColumns" :key="col.name" :props="props">
             <template v-if="col.field === 'progress'">
               {{ props.row.progress }}/4
+            </template>
+            <template v-else-if="col.field === 'delete'">
+              <q-btn icon="delete" color="negative" flat @click.stop="deleteDockingJob(props.row)" />
             </template>
             <template v-else>
               {{ props.row[col.field] }}
@@ -142,12 +151,14 @@ export default {
         { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
         { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
         { name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left' },
+        { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
       ],
       queueColumns: [
         { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
         { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
         { name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left' },
         { name: 'progress', label: 'Progress', field: 'progress', align: 'left', sortable: true },
+        { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
       ],
       currentJob: null,
       steps: [
@@ -166,26 +177,47 @@ export default {
       for (const result of results.results_list) {
         const targetMeta = await store.fetchTargetMetaData(this.experimentId, result.target_id);
         const ligandMeta = await store.fetchLigandMetaData(this.experimentId, result.target_id, result.ligand_id);
-
-        const dockingResult = {
-          ...result,
-          target_name: targetMeta.target_name,
-          ligand_name: ligandMeta.ligand_name,
-          resultData: null, // Initialize resultData as null
-        };
-
-        this.dockingResults.push(dockingResult);
+        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId,
+          result.target_id,
+          result.ligand_id,
+          result.job_id);
+        if (isDataAvailableResponse.result_available) {
+          const dockingResult = {
+            ...result,
+            target_name: targetMeta.target_name,
+            ligand_name: ligandMeta.ligand_name,
+            resultData: null, // Initialize resultData as null
+          };
+          this.dockingResults.push(dockingResult);
+        }
       }
     },
 
+    async deleteDockingJob(row) {
+      const store = useDrugDiscoveryStore();
+      await store.deleteDockingJob(this.experimentId, row.target_id, row.ligand_id, row.job_id);
+      // Refresh the lists to reflect the deletion
+      this.fetchDockingResults();
+      this.fetchJobsInQueue();
+    },
+
     async fetchResultDataForRow(row) {
-      if (!row.expanded && !row.resultData) {
-        const store = useDrugDiscoveryStore();
-        row.resultData = await store.getDockingJobResultData(this.experimentId, row.target_id, row.ligand_id, row.job_id);
-        row.resultData.predicted_pdb_file = new File([new Blob([row.resultData.predicted_pdb])], "protein.pdb");
-        row.resultData.predicted_sdf_file = new File([new Blob([row.resultData.predicted_sdf])], "ligand.sdf");
+      if (!row.expanded) {
+        // Expand the row
+        row.expanded = true;
+
+        // Check if resultData has already been fetched
+        if (!row.resultData) {
+          // Fetch result data here using your store method
+          const store = useDrugDiscoveryStore();
+          row.resultData = await store.getDockingJobResultData(this.experimentId, row.target_id, row.ligand_id, row.job_id);
+          row.resultData.predicted_pdb_file = new File([new Blob([row.resultData.predicted_pdb])], "protein.pdb");
+          row.resultData.predicted_sdf_file = new File([new Blob([row.resultData.predicted_sdf])], "ligand.sdf");
+        }
+      } else {
+        // Collapse the row if it's already expanded
+        row.expanded = false;
       }
-      row.expanded = !row.expanded; // Toggle row expansion
     },
 
     async fetchJobsInQueue() {
@@ -272,7 +304,7 @@ export default {
         const umolRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
         this.currentJob.dockingRunning = umolRunningResp.is_running;
 
-        this.currentJob.isAnyJobRunning = this.currentJob.dockingRunning || this.currentJob.foldingRunning.is_running || this.currentJob.pocketRunning.is_running || this.currentJob.dockingRunning.is_running;
+        this.currentJob.isAnyJobRunning = this.currentJob.dockingRunning || this.currentJob.foldingRunning || this.currentJob.pocketRunning || this.currentJob.msaRunning;
       }
     },
 

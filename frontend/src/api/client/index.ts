@@ -21,6 +21,8 @@ export type { CheckJobIsRunningResponse } from './models/CheckJobIsRunningRespon
 export type { CheckMsaDataAvailableResponse } from './models/CheckMsaDataAvailableResponse';
 export type { CheckPocketDataAvailableResponse } from './models/CheckPocketDataAvailableResponse';
 export type { CheckResultDataAvailableResponse } from './models/CheckResultDataAvailableResponse';
+export type { CheckServiceHealthyResponse } from './models/CheckServiceHealthyResponse';
+export type { DeleteDockingJobResponse } from './models/DeleteDockingJobResponse';
 export type { DeleteLigandResponse } from './models/DeleteLigandResponse';
 export type { DeleteTargetResponse } from './models/DeleteTargetResponse';
 export type { ExperimentFastaPropertyResponse } from './models/ExperimentFastaPropertyResponse';

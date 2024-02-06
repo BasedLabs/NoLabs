@@ -48,6 +48,26 @@
             Delete ligand
           </q-btn>
           <LigandDetail v-if="ligand.data" :originalLigand="ligand"> </LigandDetail>
+
+          <q-card-section>
+            <q-btn
+              label="Register a job with current parameters"
+              color="info"
+              class="q-pa-md"
+              @click="() => registerJob(target, ligand)"
+            />
+          </q-card-section>
+          <q-card-section>
+            <div class="text-subtitle2 q-pa-md">Docking Jobs:</div>
+            <q-list v-if="ligand.jobs && ligand.jobs.length > 0">
+              <q-item v-for="(job, jobIndex) in ligand.jobs" :key="job.job_id" class="q-pa-md">
+                <q-item-section>Job ID: {{ job.job_id }}</q-item-section>
+                <q-item-section side top>
+                  <q-btn icon="delete" color="negative" flat @click="deleteJob(target, ligand, job, jobIndex)" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card-section>
         </q-expansion-item>
       </q-list>
     </q-expansion-item>
@@ -61,8 +81,8 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="primary" @click="uploadLigandDialog = false" />
-        <q-btn flat label="Upload" color="primary" @click="() => handleLigandFileUpload(selectedTarget)" />
+        <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false" />
+        <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload(selectedTarget)" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -71,7 +91,7 @@
 <script>
 import TargetDetail from "src/features/drug_discovery/components/targets/TargetDetail.vue";
 import LigandDetail from "src/features/drug_discovery/components/ligands/LigandDetail.vue";
-import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
+import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 
 export default {
   name: "TargetsList",
@@ -139,6 +159,23 @@ export default {
       this.uploadLigandDialog = false;
       this.uploadToAllTargets = false; // Reset the flag
     },
+    async registerJob(target, ligand) {
+      const store = useDrugDiscoveryStore();
+      const response = await store.registerDockingJob(this.experimentId, target.target_id, ligand.ligand_id);
+      if (response && response.job_id) {
+        if (!ligand.jobs) {
+          this.$set(ligand, 'jobs', []);
+        }
+        ligand.jobs.push({ job_id: response.job_id });
+      }
+    },
+    async deleteJob(target, ligand, job, jobIndex) {
+      const store = useDrugDiscoveryStore();
+      const response = await store.deleteDockingJob(this.experimentId, target.target_id, ligand.ligand_id, job.job_id);
+      if (response) {
+        ligand.jobs.splice(jobIndex, 1); // Remove the job from the list
+      }
+    },
     async getTargetData(target) {
       const store = useDrugDiscoveryStore();
       target.loadingTargetData = true;
@@ -163,8 +200,10 @@ export default {
           sdf_file: data.ligandSdf,
           smiles: data.ligandSmiles,
         };
+        const jobs = await store.getDockingResultsListForTargetLigand(this.experimentId, target.target_id, ligand.ligand_id);
+        ligand.jobs = jobs.results_list;// Store the jobs in the ligand object
       } catch (error) {
-        console.error('Error fetching target data:', error);
+        console.error('Error fetching ligand data:', error);
       } finally {
         ligand.loadingLigandData = false;
       }

@@ -10,6 +10,8 @@ import type { CheckJobIsRunningResponse } from '../models/CheckJobIsRunningRespo
 import type { CheckMsaDataAvailableResponse } from '../models/CheckMsaDataAvailableResponse';
 import type { CheckPocketDataAvailableResponse } from '../models/CheckPocketDataAvailableResponse';
 import type { CheckResultDataAvailableResponse } from '../models/CheckResultDataAvailableResponse';
+import type { CheckServiceHealthyResponse } from '../models/CheckServiceHealthyResponse';
+import type { DeleteDockingJobResponse } from '../models/DeleteDockingJobResponse';
 import type { DeleteLigandResponse } from '../models/DeleteLigandResponse';
 import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
@@ -466,6 +468,35 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Delete Docking Job
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @returns DeleteDockingJobResponse Successful Response
+     * @throws ApiError
+     */
+    public static deleteDockingJobApiV1DrugDiscoveryDeleteDockingJobDelete(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+    ): CancelablePromise<DeleteDockingJobResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/drug_discovery/delete-docking-job',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Check Msa Data Available
      * @param experimentId
      * @param targetId
@@ -486,6 +517,17 @@ export class DrugDiscoveryService {
             errors: {
                 422: `Validation Error`,
             },
+        });
+    }
+    /**
+     * Check Msa Service Health
+     * @returns CheckServiceHealthyResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkMsaServiceHealthApiV1DrugDiscoveryCheckMsaServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-msa-service-health',
         });
     }
     /**
@@ -538,6 +580,17 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Check P2Rank Service Health
+     * @returns CheckServiceHealthyResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkP2RankServiceHealthApiV1DrugDiscoveryCheckP2RankServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-p2rank-service-health',
+        });
+    }
+    /**
      * Check P2Rank Job Running
      * @param jobId
      * @returns CheckJobIsRunningResponse Successful Response
@@ -581,6 +634,17 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Check Folding Service Health
+     * @returns CheckServiceHealthyResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkFoldingServiceHealthApiV1DrugDiscoveryCheckFoldingServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-folding-service-health',
+        });
+    }
+    /**
      * Check Folding Job Running
      * @param jobId
      * @returns CheckJobIsRunningResponse Successful Response
@@ -598,6 +662,17 @@ export class DrugDiscoveryService {
             errors: {
                 422: `Validation Error`,
             },
+        });
+    }
+    /**
+     * Check Umol Service Health
+     * @returns CheckServiceHealthyResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkUmolServiceHealthApiV1DrugDiscoveryCheckUmolServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-umol-service-health',
         });
     }
     /**

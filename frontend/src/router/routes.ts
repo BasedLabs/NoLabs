@@ -11,19 +11,19 @@ const drugDiscoveryRoutes = [
         props: true,
         children: [
             {
-                path: 'drug-discovery/experiment/:experimentId/upload-targets',
+                path: '/drug-discovery/experiment/:experimentId/upload-targets',
                 component: () => import('../features/drug_discovery/components/UploadTargetsStep.vue'),
                 name: 'UploadTargets',
                 props: true
             },
             {
-                path: 'drug-discovery/experiment/:experimentId/upload-ligands',
+                path: '/drug-discovery/experiment/:experimentId/upload-ligands',
                 component: () => import('../features/drug_discovery/components/UploadLigandsStep.vue'),
                 name: 'UploadLigands',
                 props: true
             },
             {
-              path: 'drug-discovery/experiment/:experimentId/run-docking',
+              path: '/drug-discovery/experiment/:experimentId/run-docking',
               component: () => import('../features/drug_discovery/components/RunDockingStep.vue'),
               name: 'RunDocking',
               props: true

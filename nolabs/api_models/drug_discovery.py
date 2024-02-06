@@ -309,3 +309,7 @@ class GetResultsListForTargetLigandRequest:
 @pcdataclass.dataclass
 class GetResultsListForTargetLigandResponse:
     results_list: List[ResultMetaData]
+
+@pcdataclass.dataclass
+class CheckServiceHealthyResponse:
+    is_healthy: bool

@@ -25,7 +25,7 @@ import {
   CheckFoldingDataAvailableResponse,
   CheckPocketDataAvailableResponse,
   GetAllResultsListResponse,
-  GetResultsListForTargetLigandResponse
+  GetResultsListForTargetLigandResponse, DeleteDockingJobResponse
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 import apiConstants from "src/api/constants";
@@ -161,6 +161,10 @@ export function getAllDockingResultsListApi(experimentId: string): CancelablePro
   return DrugDiscoveryService.getAllResultsListApiV1DrugDiscoveryGetAllResultsListGet(experimentId);
 }
 
-export function getDockingResultsListForTargetLigandApi(experimentId: string): CancelablePromise<GetAllResultsListResponse> {
-  return DrugDiscoveryService.getAllResultsListApiV1DrugDiscoveryGetAllResultsListGet(experimentId);
+export function getDockingResultsListForTargetLigandApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetResultsListForTargetLigandResponse> {
+  return DrugDiscoveryService.getResultsListForTargetLigandApiV1DrugDiscoveryGetResultsListForTargetLigandGet(experimentId, targetId, ligandId);
+}
+
+export function deleteDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<DeleteDockingJobResponse> {
+  return DrugDiscoveryService.deleteDockingJobApiV1DrugDiscoveryDeleteDockingJobDelete(experimentId, targetId, ligandId, jobId)
 }

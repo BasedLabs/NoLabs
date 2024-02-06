@@ -53,25 +53,6 @@ export default defineComponent({
     }
   },
   methods: {
-    highlightSelectedResidues() {
-      if (!this.viewer || !this.target.data.pdbContents) {
-        return;
-      }
-      // Update the 3D viewer to highlight the selected residues
-      const component = this.viewer.compList[0];
-      component.removeAllRepresentations();
-      component.addRepresentation("cartoon");
-
-      // Convert pocketIds to a format suitable for NGL selection (1-indexed)
-      const selectionString = this.target.data.pocketIds
-          .map((id) => (id + 1).toString())
-          .join(" or ");
-      component.addRepresentation("ball+stick", {
-        sele: selectionString,
-        color: "blue",
-      });
-      component.autoView();
-    },
     savePdb() {
       if (window.navigator.msSaveOrOpenBlob) {
         window.navigator.msSaveBlob(this.pdbFile!, this.pdbFile!.name);
@@ -136,7 +117,7 @@ export default defineComponent({
 
         const component = await this.loadFileIntoStage(stage, selectedRepresentation);
         component.autoView();
-      }, 50);
+      }, 100);
     },
     async render(selectedRepresentation: string) {
       if (this.stage) {

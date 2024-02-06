@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
+from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
+    CheckP2RankServiceHealthFeature, CheckFoldingServiceHealthFeature, CheckUmolServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
@@ -164,6 +166,10 @@ def check_msa_data_available_dependency(target_file_management: Annotated[Target
 Depends(target_file_management_dependency)]) -> CheckMsaDataAvailableFeature:
     return CheckMsaDataAvailableFeature(file_management=target_file_management)
 
+def check_msa_service_health_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckMsaServiceHealthFeature:
+    return CheckMsaServiceHealthFeature(settings=settings)
+
 
 def check_msa_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckMsaRunningFeature:
@@ -175,6 +181,11 @@ Depends(target_file_management_dependency)]) -> CheckBindingPocketDataAvailableF
     return CheckBindingPocketDataAvailableFeature(file_management=target_file_management)
 
 
+def check_p2rank_service_health_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckP2RankServiceHealthFeature:
+    return CheckP2RankServiceHealthFeature(settings=settings)
+
+
 def check_p2rank_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckP2RankRunningFeature:
     return CheckP2RankRunningFeature(settings=settings)
@@ -184,11 +195,17 @@ def check_folding_data_available_dependency(target_file_management: Annotated[Ta
 Depends(target_file_management_dependency)]) -> CheckFoldingDataAvailableFeature:
     return CheckFoldingDataAvailableFeature(file_management=target_file_management)
 
+def check_folding_service_health_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckFoldingServiceHealthFeature:
+    return CheckFoldingServiceHealthFeature(settings=settings)
 
 def check_folding_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckFoldingRunningFeature:
     return CheckFoldingRunningFeature(settings=settings)
 
+def check_umol_service_health_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckUmolServiceHealthFeature:
+    return CheckUmolServiceHealthFeature(settings=settings)
 
 def check_umol_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolRunningFeature:

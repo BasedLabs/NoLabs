@@ -16,29 +16,38 @@
   </q-card>
   <q-card v-if="target.data">
     <q-card-section>
-      <div class="text-h6">Target: {{ this.target.metaData.target_name }}</div>
-      <div class="amino-acid-sequence">
-        <span
-          v-for="(acid, index) in fastaSequence"
-          :key="index"
-          :class="{ selected: selectedResidues.has(index) }"
-          @click="toggleFastaResidueSelection(index)"
-        >
-          {{ acid }}
-        </span>
+      <div class="text-h6 q-pa-sm">Target: {{ this.target.metaData.target_name }}</div>
+      <q-card-section class="rounded-borders bg-black">
+        <div class="text-h7 q-pl-md">Sequence: </div>
+        <div class="fasta-sequence q-gutter-sm q-pa-md">
+          <div v-for="row in wrappedFastaSequence" :key="row.index" class="row">
+            <span
+              v-for="(acid, index) in row.sequence"
+              :key="index"
+              :class="{ 'selected': isResidueSelected(row.startIndex + index) }"
+              @click="toggleResidueSelection(row.startIndex + index)"
+            >
+              {{ acid }}
+              <q-tooltip>{{`Residue ID: ${row.startIndex + index}` }}</q-tooltip>
+            </span>
+          </div>
+        </div>
+      </q-card-section>
+      <div v-if="predictingFolding">
+        <q-spinner color="info" size="lg" label="Loading 3D View..." />
       </div>
-      <div v-if="predictingFolding" class="loading-indicator">
-        <q-spinner color="primary" label="Loading 3D View..." />
-      </div>
-      <q-btn v-if="!hasPdb" color="accent" @click="predictStructure">
+      <q-btn v-if="!hasPdb" color="info" @click="predictStructure">
         Predict 3D structure
       </q-btn>
       <PdbViewer v-if="hasPdb && this.target.data.pdb_file" :pdb-file="this.target.data.pdb_file" :pocket-ids="this.target.data.pocketIds" :key="this.target.data.pocketIds" />
       <q-btn v-if="hasPdb && !bindingPocketAvailable" color="secondary" @click="fetchAndShowPocket">
         Show Binding Pocket
       </q-btn>
-      <q-btn v-if="hasPdb" color="accent" @click="toggleSelectionMode">
+      <q-btn v-if="hasPdb && bindingPocketAvailable && !selectionMode" color="info" @click="toggleSelectionMode">
         Edit Binding Pocket
+      </q-btn>
+      <q-btn v-if="hasPdb && selectionMode" color="negative" @click="toggleSelectionMode">
+        Cancel
       </q-btn>
       <q-btn
         v-if="selectionMode"
@@ -47,14 +56,21 @@
       >
         Confirm Selection
       </q-btn>
+      <q-btn v-if="bindingPocketAvailable && !selectionMode" color="primary" @click="clearBindingPocket">
+        Hide Binding Pocket
+      </q-btn>
+
       <q-dialog v-model="showNoPocketModal">
         <q-card>
           <q-card-section>
             <div class="text-h6">Binding Pocket Not Found</div>
             <p>You don't have a binding pocket for this protein. Do you wish it to be predicted?</p>
+            <div v-if="predictingPocket" class="q-mt-md">
+              <q-spinner color="info" size="md" /> Predicting pocket...
+            </div>
           </q-card-section>
 
-          <q-card-actions align="right">
+          <q-card-actions align="right" v-if="!predictingPocket">
             <q-btn flat label="Close" color="white" @click="showNoPocketModal = false" />
             <q-btn flat label="Predict" color="white" @click="predictBindingPocket" />
           </q-card-actions>
@@ -68,7 +84,6 @@
 import { QCard, QCardSection, QBtn, QDialog, QCardActions } from "quasar";
 import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
 import PdbViewer from "src/components/PdbViewer.vue";
-import * as NGL from "ngl";
 
 export default {
   name: "TargetDetail",
@@ -98,6 +113,7 @@ export default {
       viewer: null,
       loading3DView: true,
       predictingFolding: false,
+      predictingPocket: false,
       target: {
         metaData: {
           target_id: this.originalTarget.target_id,
@@ -116,8 +132,8 @@ export default {
           .predictFoldingForTarget(this.experimentId, this.target.metaData.target_id)
           .then((response) => {
             this.target.data.pdbContents = response;
+            this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
             // Re-render 3D structure with new PDB data, if applicable
-            this.createViewer();
           })
           .catch((error) => {
             console.error("Error predicting structure:", error);
@@ -130,13 +146,25 @@ export default {
     toggleSelectionMode() {
       this.selectionMode = !this.selectionMode;
     },
-    toggleFastaResidueSelection(index) {
-      if (this.selectedResidues.has(index)) {
-        this.selectedResidues.delete(index);
-      } else {
-        this.selectedResidues.add(index);
+    toggleResidueSelection(index) {
+      if (this.selectionMode) {
+        let newPocketIds = [...this.target.data.pocketIds]; // Create a copy of the pocketIds array
+        const pocketIndex = newPocketIds.indexOf(index);
+
+        if (pocketIndex > -1) {
+          newPocketIds.splice(pocketIndex, 1); // Remove the index
+        } else {
+          newPocketIds.push(index); // Add the index
+        }
+
+        this.target.data.pocketIds = newPocketIds; // Assign the new array back to pocketIds to trigger reactivity
       }
-      this.highlightSelectedResidues(); // Update the 3D view to reflect the selection
+    },
+    isResidueSelected(index) {
+      return this.target.data.pocketIds && this.target.data.pocketIds.includes(index);
+    },
+    clearBindingPocket() {
+      this.target.data.pocketIds = [];
     },
     async fetchAndShowPocket() {
       const store = useDrugDiscoveryStore();
@@ -144,7 +172,6 @@ export default {
         const pocketIds = await store.fetchPocketForTarget(this.experimentId, this.target.metaData.target_id);
         if (pocketIds && pocketIds.length > 0) {
           this.target.data.pocketIds = pocketIds;
-          this.highlightSelectedResidues();
         } else {
           this.showNoPocketModal = true; // Show modal to ask for prediction
         }
@@ -154,29 +181,19 @@ export default {
     },
     async predictBindingPocket() {
       const store = useDrugDiscoveryStore();
-      this.target.data.pocketIds = await store.predictPocketForTarget(this.experimentId,
-        this.target.metaData.target_id);
-      this.bindingPocketAvailable = true;
-      this.highlightSelectedResidues(); // Update 3D view to reflect the new selection
-    },
-    highlightSelectedResidues() {
-      if (!this.viewer || !this.target.data.pdbContents) {
-        return;
+      this.predictingPocket = true; // Start the spinner
+      try {
+        const pocketIds = await store.predictPocketForTarget(this.experimentId, this.target.metaData.target_id);
+        if (pocketIds) {
+          this.target.data.pocketIds = pocketIds;
+          this.bindingPocketAvailable = true;
+        }
+      } catch (error) {
+        console.error('Error predicting binding pocket:', error);
+      } finally {
+        this.predictingPocket = false; // Stop the spinner
+        this.showNoPocketModal = false; // Close the modal after prediction
       }
-      // Update the 3D viewer to highlight the selected residues
-      const component = this.viewer.compList[0];
-      component.removeAllRepresentations();
-      component.addRepresentation("cartoon");
-
-      // Convert pocketIds to a format suitable for NGL selection (1-indexed)
-      const selectionString = this.target.data.pocketIds
-        .map((id) => (id + 1).toString())
-        .join(" or ");
-      component.addRepresentation("ball+stick", {
-        sele: selectionString,
-        color: "blue",
-      });
-      component.autoView();
     },
     sendSelectedResidues() {
       const store = useDrugDiscoveryStore();
@@ -202,8 +219,17 @@ export default {
     bindingPocketAvailable() {
       return this.target.data.pocketIds && this.target.data.pocketIds.length > 0;
     },
-    fastaSequence() {
-      return this.target.data.proteinSequence ? this.target.data.proteinSequence.split('') : [];
+    wrappedFastaSequence() {
+      const sequence = this.target.data.proteinSequence || '';
+      const wrapLength = 400; // Adjust based on your layout
+      const wrapped = [];
+      for (let i = 0; i < sequence.length; i += wrapLength) {
+        wrapped.push({
+          sequence: sequence.substring(i, i + wrapLength),
+          startIndex: i,
+        });
+      }
+      return wrapped;
     },
   },
   mounted() {
@@ -218,50 +244,21 @@ export default {
 </script>
 
 <style>
-.amino-acid-sequence {
-  overflow-x: auto;
-  /* Allows horizontal scrolling for long sequences */
-  white-space: nowrap;
-  /* Ensures the sequence is in one line */
-  font-family: monospace;
-  /* Gives a uniform look to the sequence characters */
-  margin-bottom: 10px;
-  /* Spacing below the sequence */
-  border: 1px solid #ddd;
-  /* Border around the sequence */
-  border-radius: 5px;
-  /* Rounded corners for the border */
-  padding: 10px;
-  /* Padding inside the border */
-  background-color: #000000;
-  /* Light background for the sequence */
-}
-
-.amino-acid-sequence span {
-  display: inline-block;
-  /* Each amino acid is an inline-block element */
-  padding: 2px 5px;
-  /* Padding around each amino acid */
-  cursor: pointer;
-  /* Indicates the amino acid can be clicked */
-  border-radius: 3px;
-  /* Rounded corners for each amino acid span */
-  margin-right: 2px;
-  /* Space between amino acids */
-}
-
-.amino-acid-sequence span.selected {
-  background-color: blue;
-  /* Background color for selected amino acids */
-  color: white;
-  /* Text color for selected amino acids */
-}
-
-.loading-indicator {
+.fasta-sequence {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
+  flex-wrap: wrap;
 }
-
+.fasta-sequence .row {
+  display: flex;
+  flex-wrap: wrap;
+}
+.fasta-sequence span {
+  padding: 2px;
+  margin-right: 1px;
+  cursor: pointer;
+}
+.fasta-sequence span.selected {
+  background-color: blue;
+  color: white;
+}
 </style>
