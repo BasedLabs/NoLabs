@@ -5,6 +5,7 @@
 README.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
+docs/IsJobRunningResponse.md
 docs/RunEsmFoldPredictionRequest.md
 docs/RunEsmFoldPredictionResponse.md
 docs/ValidationError.md
@@ -18,6 +19,7 @@ esmfold_light_microservice/configuration.py
 esmfold_light_microservice/exceptions.py
 esmfold_light_microservice/models/__init__.py
 esmfold_light_microservice/models/http_validation_error.py
+esmfold_light_microservice/models/is_job_running_response.py
 esmfold_light_microservice/models/run_esm_fold_prediction_request.py
 esmfold_light_microservice/models/run_esm_fold_prediction_response.py
 esmfold_light_microservice/models/validation_error.py
@@ -31,4 +33,5 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
+test/test_is_job_running_response.py
 tox.ini

@@ -14,6 +14,10 @@
                 <q-card-section :class="getStepClass(currentJob, step.key)">
                   <div class="step-content">
                     {{ step.label }}
+                    <q-icon v-if="!getServiceHealth(step.key)" name="warning" color="negative" class="text-warning" />
+                    <q-tooltip v-if="!getServiceHealth(step.key)">
+                      The {{ step.label }} service is not responding. Check if it's running.
+                    </q-tooltip>
                     <template v-if="currentJob[`${step.key}Available`]">
                       <q-icon name="check" class="check-mark" color="green" />
                     </template>
@@ -40,8 +44,11 @@
                 color="info"
                 @click="runCurrentJob"
                 :loading="currentJob.isAnyJobRunning"
-                :disable="currentJob.isAnyJobRunning"
+                :disable="currentJob.isAnyJobRunning || isAnyServiceUnhealthy"
               />
+              <q-tooltip v-if="isAnyServiceUnhealthy">
+                Fix the services which are not responding to run the docking.
+              </q-tooltip>
             </div>
             <div class="q-pa-md" v-else>
               <q-spinner size="xl"></q-spinner>
@@ -120,15 +127,23 @@
               label="Run"
               color="info"
               @click.stop="runDockingJob(props.row)"
-              :disabled="props.row.isRunning"
+              :disabled="isAnyServiceUnhealthy"
             />
+            <q-tooltip v-if="isAnyServiceUnhealthy">
+              Fix the services which are not responding to run the docking.
+            </q-tooltip>
             <q-btn icon="expand_more" @click.stop="props.expand = !props.expand" />
           </q-td>
         </q-tr>
         <q-tr v-if="props.expand" :props="props">
           <q-td colspan="100%">
             <!-- Expanded row content -->
-            Job input parameters for {{ props.row.job_id }}
+            <div v-if="props.row.pocketIds">
+              <div><strong>Pocket IDs:</strong> {{ props.row.pocketIds.join(', ') }}</div>
+            </div>
+            <div v-else>
+              Binding pocket was not set manually, will be predicted
+            </div>
           </q-td>
         </q-tr>
       </template>
@@ -167,9 +182,39 @@ export default {
         { key: 'folding', label: 'Step 3. Folding' },
         { key: 'docking', label: 'Step 4. Docking' },
       ],
+      msaServiceHealthy: true,
+      p2RankServiceHealthy: true,
+      foldingServiceHealthy: true,
+      umolServiceHealthy: true,
     };
   },
   methods: {
+    async updateServiceHealth() {
+      const store = useDrugDiscoveryStore();
+      const msaServiceHealthyResponse = await store.checkMsaServiceHealth();
+      const p2RankServiceHealthyResponse = await store.checkP2RankServiceHealth();
+      const foldingServiceHealthyResponse = await store.checkFoldingServiceHealth();
+      const umolServiceHealthyResponse = await store.checkUmolServiceHealth();
+
+      this.msaServiceHealthy = msaServiceHealthyResponse.is_healthy;
+      this.p2RankServiceHealthy = p2RankServiceHealthyResponse.is_healthy;
+      this.foldingServiceHealthy = foldingServiceHealthyResponse.is_healthy;
+      this.umolServiceHealthy = umolServiceHealthyResponse.is_healthy;
+    },
+    getServiceHealth(key) {
+      switch (key) {
+        case 'msa':
+          return this.msaServiceHealthy;
+        case 'pocket':
+          return this.p2RankServiceHealthy;
+        case 'folding':
+          return this.foldingServiceHealthy;
+        case 'docking':
+          return this.umolServiceHealthy;
+        default:
+          return true; // Default to healthy if the service key is not recognized
+      }
+    },
     async fetchDockingResults() {
       const store = useDrugDiscoveryStore();
       const results = await store.getAllDockingResultsList(this.experimentId);
@@ -181,12 +226,17 @@ export default {
           result.target_id,
           result.ligand_id,
           result.job_id);
+        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId, result.target_id, result.ligand_id, result.job_id);
+        if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
+          result.pocketIds = pocketIdsResponse.pocket_ids;
+        }
         if (isDataAvailableResponse.result_available) {
           const dockingResult = {
             ...result,
             target_name: targetMeta.target_name,
             ligand_name: ligandMeta.ligand_name,
             resultData: null, // Initialize resultData as null
+            pocketIds: result.pocketIds || null,
           };
           this.dockingResults.push(dockingResult);
         }
@@ -231,12 +281,17 @@ export default {
           result.target_id,
           result.ligand_id,
           result.job_id);
+        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId, result.target_id, result.ligand_id, result.job_id);
+        if (pocketIdsResponse && pocketIdsResponse.pocketIds) {
+          result.pocketIds = pocketIdsResponse.pocketIds;
+        }
         if (!isDataAvailableResponse.result_available) {
           this.jobsInQueue.push({
             ...result,
             target_name: targetMeta.target_name,
             ligand_name: ligandMeta.ligand_name,
-            progress: await this.calculateProgress(result)
+            progress: await this.calculateProgress(result),
+            pocketIds: result.pocketIds || null,
           });
         }
       }
@@ -275,39 +330,64 @@ export default {
 
     async updateCurrentJob() {
       const store = useDrugDiscoveryStore();
+      await this.updateServiceHealth(); // Update the health status of each service
       this.currentJob = this.jobsInQueue.length ? this.jobsInQueue[0] : null;
 
-      if (this.currentJob) {
-        // Check if data is available for each step
+      if (!this.currentJob) return;
+
+      let allDataAvailable = false;
+
+      // Check if data is available for each step only if the respective service is healthy
+      if (this.msaServiceHealthy) {
         const msaAvailableResp = await store.checkMsaDataAvailable(this.experimentId, this.currentJob.target_id);
         this.currentJob.msaAvailable = msaAvailableResp.is_available;
+        if (!this.currentJob.msaAvailable) {
+          const msaRunningResp = await store.checkMsaJobIsRunning(this.currentJob.job_id);
+          this.currentJob.msaRunning = msaRunningResp.is_running;
+        }
+      }
 
-        const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId, this.currentJob.target_id);
-        this.currentJob.foldingAvailable = foldingAvailableResp.is_available;
-
+      if (this.p2RankServiceHealthy) {
         const pocketAvailableResp = await store.checkPocketDataAvailable(this.experimentId, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
         this.currentJob.pocketAvailable = pocketAvailableResp.is_available;
+        if (!this.currentJob.pocketAvailable) {
+          const p2RankRunningResp = await store.checkP2RankJobIsRunning(this.currentJob.job_id);
+          this.currentJob.pocketRunning = p2RankRunningResp.is_running;
+        }
+      }
 
+      if (this.foldingServiceHealthy) {
+        const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId, this.currentJob.target_id);
+        this.currentJob.foldingAvailable = foldingAvailableResp.is_available;
+        if (!this.currentJob.foldingAvailable) {
+          const foldingRunningResp = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
+          this.currentJob.foldingRunning = foldingRunningResp.is_running;
+        }
+      }
+
+      if (this.umolServiceHealthy) {
         const dockingResultAvailableResp = await store.checkDockingResultAvailable(this.experimentId, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
         this.currentJob.dockingAvailable = dockingResultAvailableResp.result_available;
+        if (!this.currentJob.dockingAvailable) {
+          const umolRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
+          this.currentJob.dockingRunning = umolRunningResp.is_running;
+        }
+      }
 
-        // Update the running status for each step
-        const msaRunningResp = await store.checkMsaJobIsRunning(this.currentJob.job_id);
-        this.currentJob.msaRunning = msaRunningResp.is_running;
+      // Update the overall running status based on individual service running status
+      this.currentJob.isAnyJobRunning = this.currentJob.msaRunning || this.currentJob.pocketRunning || this.currentJob.foldingRunning || this.currentJob.dockingRunning;
 
-        const foldingRunningResp = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
-        this.currentJob.foldingRunning = foldingRunningResp.is_running;
+      allDataAvailable = this.currentJob.msaAvailable && this.currentJob.pocketAvailable && this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
+      // If all data is available, refresh the current job and results
+      if (allDataAvailable) {
+        this.dockingResults = [];
+        this.jobsInQueue = [];
 
-        const p2RankRunningResp = await store.checkP2RankJobIsRunning(this.currentJob.job_id);
-        this.currentJob.pocketRunning = p2RankRunningResp.is_running;
-
-        const umolRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
-        this.currentJob.dockingRunning = umolRunningResp.is_running;
-
-        this.currentJob.isAnyJobRunning = this.currentJob.dockingRunning || this.currentJob.foldingRunning || this.currentJob.pocketRunning || this.currentJob.msaRunning;
+        // Refresh the docking results and the job queue
+        await this.fetchDockingResults();
+        await this.fetchJobsInQueue();
       }
     },
-
     getStepClass(job, step) {
       if (!job) return 'bg-grey-3 text-black q-ma-md';
 
@@ -320,6 +400,12 @@ export default {
         return 'bg-grey-3 text-black q-ma-md';
       }
     },
+  },
+  computed: {
+    isAnyServiceUnhealthy() {
+      // Computed property to check if any service is unhealthy
+      return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.umolServiceHealthy;
+    }
   },
   mounted() {
     const route = useRoute();

@@ -60,6 +60,7 @@ class PredictDockingFeature:
         job_id = JobId(request.job_id)
 
         msa_contents = self.get_msa(experiment_id, target_id, job_id)
+        pdb_contents = self.get_folding(experiment_id, target_id, job_id)
         pocket_ids = self.get_pocket_ids(experiment_id, target_id, job_id)
         self._result_file_management.store_result_input_pocketIds(experiment_id,
                                                                   target_id,
@@ -96,14 +97,22 @@ class PredictDockingFeature:
     def get_folding(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> str:
         if not self._target_file_management.get_pdb_contents(experiment_id, target_id):
             _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
+
+            host = None
+
+            if self._settings.is_light_infrastructure:
+                host = self._settings.esmfold_light_host
+            else:
+                host = self._settings.esmfold_host
+
             configuration = FoldingConfiguration(
-                host=self._settings.folding_host,
+                host=host,
             )
             with FoldingApiClient(configuration=configuration) as client:
                 api_instance = FoldingDefaultApi(client)
-                request = folding_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence)
-                pdb_contents = api_instance.predict_through_api_run_folding_post(run_esm_fold_prediction_request=request,
-                                                                                 job_id=job_id.value).pdb_content
+                request = folding_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence,
+                                                                           job_id=job_id.value)
+                pdb_contents = api_instance.predict_through_api_run_folding_post(run_esm_fold_prediction_request=request).pdb_content
             self._target_file_management.store_pdb_contents(experiment_id, target_id, pdb_contents)
             return pdb_contents
         else:

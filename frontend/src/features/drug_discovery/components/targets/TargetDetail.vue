@@ -199,12 +199,13 @@ export default {
       const store = useDrugDiscoveryStore();
       if (this.target.data.pocketIds) {
         store
-          .setBindingPocket(
+          .setPocketForTarget(
+            this.experimentId,
             this.target.metaData.target_id,
-            Array.from(this.selectedResidues)
+            Array.from(this.target.data.pocketIds)
           )
           .then(() => {
-            // Handle success
+            this.selectionMode = !this.selectionMode
           })
           .catch((error) => {
             console.error("Error setting binding pocket:", error);

@@ -8,7 +8,8 @@ from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceH
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
-    CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature
+    CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature
+from nolabs.features.drug_discovery.set_binding_pocket import SetBindingPocketFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
@@ -109,6 +110,11 @@ Depends(target_file_management_dependency)]) -> GetBindingPocketFeature:
     return GetBindingPocketFeature(file_management=target_file_management)
 
 
+def set_binding_pocket_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> SetBindingPocketFeature:
+    return SetBindingPocketFeature(file_management=target_file_management)
+
+
 def predict_binding_pocket_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
                                       target_file_management: Annotated[TargetsFileManagement,
                                       Depends(target_file_management_dependency)]) -> PredictBindingPocketFeature:
@@ -176,10 +182,13 @@ Depends(settings_dependency)]) -> CheckMsaRunningFeature:
     return CheckMsaRunningFeature(settings=settings)
 
 
-def check_pocket_data_available_dependency(target_file_management: Annotated[TargetsFileManagement,
-Depends(target_file_management_dependency)]) -> CheckBindingPocketDataAvailableFeature:
-    return CheckBindingPocketDataAvailableFeature(file_management=target_file_management)
+def check_pocket_data_available_dependency(results_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> CheckBindingPocketDataAvailableFeature:
+    return CheckBindingPocketDataAvailableFeature(file_management=results_file_management)
 
+def get_job_binding_pocket_dependency(results_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> GetBJobBindingPocketDataFeature:
+    return GetBJobBindingPocketDataFeature(file_management=results_file_management)
 
 def check_p2rank_service_health_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckP2RankServiceHealthFeature:

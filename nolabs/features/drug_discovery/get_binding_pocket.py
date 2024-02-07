@@ -3,6 +3,7 @@ from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
 
+
 class GetBindingPocketFeature:
     def __init__(self, file_management: TargetsFileManagement):
         self._file_management = file_management
@@ -11,7 +12,7 @@ class GetBindingPocketFeature:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
-        target_id = TargetId(request.targe_id)
+        target_id = TargetId(request.target_id)
 
         pocket_ids = self._file_management.get_binding_pocket(experiment_id, target_id)
 

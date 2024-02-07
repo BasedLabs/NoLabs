@@ -33,14 +33,15 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_ligand_meta_data_dependency, check_msa_data_available_dependency, check_pocket_data_available_dependency,
     check_folding_data_available_dependency, delete_docking_job_dependency, check_msa_service_health_dependency,
     check_p2rank_service_health_dependency, check_folding_service_health_dependency,
-    check_umol_service_health_dependency
+    check_umol_service_health_dependency, get_job_binding_pocket_dependency, set_binding_pocket_dependency
 )
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckFoldingServiceHealthFeature, CheckUmolServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
-    CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature
+    CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature
+from nolabs.features.drug_discovery.set_binding_pocket import SetBindingPocketFeature
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
     GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
@@ -102,7 +103,8 @@ from nolabs.api_models.drug_discovery import (
     GetAllResultsListResponse, GetTargetMetaDataResponse, GetTargetMetaDataRequest, GetLigandMetaDataResponse,
     GetLigandMetaDataRequest, CheckMsaDataAvailableResponse, CheckMsaDataAvailableRequest,
     CheckPocketDataAvailableResponse, CheckPocketDataAvailableRequest, CheckFoldingDataAvailableResponse,
-    CheckFoldingDataAvailableRequest, DeleteDockingJobRequest, DeleteDockingJobResponse, CheckServiceHealthyResponse
+    CheckFoldingDataAvailableRequest, DeleteDockingJobRequest, DeleteDockingJobResponse, CheckServiceHealthyResponse,
+    GetJobBindingPocketDataRequest, GetJobBindingPocketDataResponse, SetTargetBindingPocketRequest
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -232,6 +234,14 @@ async def get_target_binding_pocket(feature: Annotated[GetBindingPocketFeature, 
                                     ) -> GetTargetBindingPocketResponse:
     return feature.handle(GetTargetBindingPocketRequest(experiment_id, target_id))
 
+@router.post('/set-target-binding-pocket')
+async def set_target_binding_pocket(feature: Annotated[SetBindingPocketFeature, Depends(set_binding_pocket_dependency)],
+                                    experiment_id: str,
+                                    target_id: str,
+                                    pocket_ids: List[int]
+                                    ):
+    return feature.handle(SetTargetBindingPocketRequest(experiment_id, target_id, pocket_ids))
+
 
 @router.post('/predict-binding-pocket')
 async def predict_binding_pocket(feature: Annotated[
@@ -301,7 +311,7 @@ async def check_msa_service_health(feature: Annotated[
 @router.get('/check-msa-job-running')
 async def check_msa_job_running(job_id: str, feature: Annotated[
     CheckMsaRunningFeature, Depends(check_msa_running_dependency)]) -> CheckJobIsRunningResponse:
-    return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+    return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
 
 
 @router.get('/check-pocket-data-available')
@@ -314,6 +324,16 @@ async def check_pocket_data_available(experiment_id: str,
                                               check_pocket_data_available_dependency)]) -> CheckPocketDataAvailableResponse:
     return feature.handle(CheckPocketDataAvailableRequest(experiment_id, target_id, ligand_id, job_id))
 
+@router.get('/get-job-pocket-data')
+async def get_job_pocket_data(experiment_id: str,
+                                      target_id: str,
+                                      ligand_id: str,
+                                      job_id: str,
+                                      feature: Annotated[
+                                          GetBJobBindingPocketDataFeature, Depends(
+                                              get_job_binding_pocket_dependency)]) -> GetJobBindingPocketDataResponse:
+    return feature.handle(GetJobBindingPocketDataRequest(experiment_id, target_id, ligand_id, job_id))
+
 @router.get('/check-p2rank-service-health')
 async def check_p2rank_service_health(feature: Annotated[
     CheckP2RankServiceHealthFeature, Depends(check_p2rank_service_health_dependency)]) -> CheckServiceHealthyResponse:
@@ -323,7 +343,7 @@ async def check_p2rank_service_health(feature: Annotated[
 @router.get('/check-p2rank-job-running')
 async def check_p2rank_job_running(job_id: str, feature: Annotated[
     CheckP2RankRunningFeature, Depends(check_p2rank_running_dependency)]) -> CheckJobIsRunningResponse:
-    return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+    return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
 
 @router.get('/check-folding-data-available')
 async def check_folding_data_available(experiment_id: str,
@@ -340,7 +360,7 @@ async def check_folding_service_health(feature: Annotated[
 @router.get('/check-folding-job-running')
 async def check_folding_job_running(job_id: str, feature: Annotated[
     CheckFoldingRunningFeature, Depends(check_umol_running_dependency)]) -> CheckJobIsRunningResponse:
-    return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+    return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
 
 @router.get('/check-umol-service-health')
 async def check_umol_service_health(feature: Annotated[
@@ -351,7 +371,7 @@ async def check_umol_service_health(feature: Annotated[
 @router.get('/check-umol-job-running')
 async def check_umol_job_running(job_id: str, feature: Annotated[
     CheckUmolRunningFeature, Depends(check_umol_running_dependency)]) -> CheckJobIsRunningResponse:
-    return feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+    return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
 
 
 @router.get('/check-result-data-available')

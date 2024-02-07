@@ -154,6 +154,7 @@ export default {
         for (let file of this.uploadingLigandFiles) {
           const ligand = await store.uploadLigandToTarget(this.experimentId, t.target_id, file);
           t.ligands.push(ligand);
+          await this.registerJob(t, ligand);
         }
       }
       this.uploadLigandDialog = false;

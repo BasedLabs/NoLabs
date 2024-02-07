@@ -25,7 +25,10 @@ import {
   CheckFoldingDataAvailableResponse,
   CheckPocketDataAvailableResponse,
   GetAllResultsListResponse,
-  GetResultsListForTargetLigandResponse, DeleteDockingJobResponse
+  GetResultsListForTargetLigandResponse,
+  DeleteDockingJobResponse,
+  CheckServiceHealthyResponse,
+  GetJobBindingPocketDataResponse
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 import apiConstants from "src/api/constants";
@@ -103,6 +106,11 @@ export function getTargetBindingPocketApi(experimentId: string, targetId: string
     return DrugDiscoveryService.getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(experimentId, targetId);
 }
 
+export function setTargetBindingPocketApi(experimentId: string, targetId: string, pocketIds: Array<number>) {
+  return DrugDiscoveryService.setTargetBindingPocketApiV1DrugDiscoverySetTargetBindingPocketPost(experimentId, targetId, pocketIds);
+}
+
+
 // Predict binding pocket
 export function predictBindingPocketApi(experimentId: string, targetId: string): CancelablePromise<PredictBindingPocketResponse> {
     return DrugDiscoveryService.predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(experimentId, targetId);
@@ -166,5 +174,25 @@ export function getDockingResultsListForTargetLigandApi(experimentId: string, ta
 }
 
 export function deleteDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<DeleteDockingJobResponse> {
-  return DrugDiscoveryService.deleteDockingJobApiV1DrugDiscoveryDeleteDockingJobDelete(experimentId, targetId, ligandId, jobId)
+  return DrugDiscoveryService.deleteDockingJobApiV1DrugDiscoveryDeleteDockingJobDelete(experimentId, targetId, ligandId, jobId);
+}
+
+export function checkMsaServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkMsaServiceHealthApiV1DrugDiscoveryCheckMsaServiceHealthGet();
+}
+
+export function checkP2RankServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkP2RankServiceHealthApiV1DrugDiscoveryCheckP2RankServiceHealthGet();
+}
+
+export function checkFoldingServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkFoldingServiceHealthApiV1DrugDiscoveryCheckFoldingServiceHealthGet();
+}
+
+export function checkUmolServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkUmolServiceHealthApiV1DrugDiscoveryCheckUmolServiceHealthGet();
+}
+
+export function getJobPocketDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetJobBindingPocketDataResponse> {
+  return DrugDiscoveryService.getJobPocketDataApiV1DrugDiscoveryGetJobPocketDataGet(experimentId, targetId, ligandId, jobId);
 }

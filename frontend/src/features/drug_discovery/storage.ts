@@ -2,18 +2,18 @@ import {defineStore} from 'pinia';
 import {
   checkDockingResultAvailableApi,
   checkFoldingDataAvailableApi,
-  checkFoldingJobIsRunningApi,
+  checkFoldingJobIsRunningApi, checkFoldingServiceHealthApi,
   checkMsaDataAvailableApi,
-  checkMsaJobIsRunningApi,
-  checkP2RankJobIsRunningApi,
+  checkMsaJobIsRunningApi, checkMsaServiceHealthApi,
+  checkP2RankJobIsRunningApi, checkP2RankServiceHealthApi,
   checkPocketDataAvailableApi,
-  checkUmolJobIsRunningApi,
+  checkUmolJobIsRunningApi, checkUmolServiceHealthApi,
   createExperimentApi, deleteDockingJobApi,
   deleteExperimentApi,
   deleteLigandApi,
   deleteTargetApi, getAllDockingResultsListApi,
   getDockingJobResultDataApi, getDockingResultsListForTargetLigandApi,
-  getExperimentsApi,
+  getExperimentsApi, getJobPocketDataApi,
   getLigandDataApi,
   getLigandMetaDataApi,
   getLigandsListApi,
@@ -24,7 +24,7 @@ import {
   predictBindingPocketApi,
   predictFoldingApi,
   registerDockingJobApi,
-  runDockingJobApi,
+  runDockingJobApi, setTargetBindingPocketApi,
   uploadLigandApi,
   uploadTargetApi
 } from 'src/features/drug_discovery/api';
@@ -187,6 +187,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
+        async setPocketForTarget(experimentId: string, targetId: string, pocketIds: Array<number>) {
+          try {
+            await setTargetBindingPocketApi(experimentId, targetId, pocketIds);
+            // Optionally set the currentTarget to the selected one
+          } catch (error) {
+            console.error('Error fetching ligands:', error);
+          }
+        },
         async predictPocketForTarget(experimentId: string, targetId: string) {
             try {
                 const response = await predictBindingPocketApi(experimentId, targetId);
@@ -319,7 +327,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
           try {
             return await getAllDockingResultsListApi(experimentId);
           } catch (error) {
-            console.error("Error checking if Umol job is running:", error);
+            console.error("Error getting all results list:", error);
             return null;
           }
         },
@@ -327,7 +335,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
           try {
             return await getDockingResultsListForTargetLigandApi(experimentId, targetId, ligandId);
           } catch (error) {
-            console.error("Error checking if Umol job is running:", error);
+            console.error("Error getting results list for ligand-target:", error);
             return null;
           }
         },
@@ -335,7 +343,47 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         try {
           return await deleteDockingJobApi(experimentId, targetId, ligandId, jobId);
         } catch (error) {
-          console.error("Error checking if Umol job is running:", error);
+          console.error("Error deleting docking job:", error);
+          return null;
+        }
+      },
+      async getJobPocketIds(experimentId: string, targetId: string, ligandId: string, jobId: string) {
+        try {
+          return await getJobPocketDataApi(experimentId, targetId, ligandId, jobId);
+        } catch (error) {
+          console.error("Error getting result pocket Ids:", error);
+          return null;
+        }
+      },
+      async checkMsaServiceHealth() {
+        try {
+          return await checkMsaServiceHealthApi();
+        } catch (error) {
+          console.error("Error checking if msa service is healthy:", error);
+          return null;
+        }
+      },
+      async checkP2RankServiceHealth() {
+        try {
+          return await checkP2RankServiceHealthApi();
+        } catch (error) {
+          console.error("Error checking if p2rank service is healthy:", error);
+          return null;
+        }
+      },
+      async checkFoldingServiceHealth() {
+        try {
+          return await checkFoldingServiceHealthApi();
+        } catch (error) {
+          console.error("Error checking if folding service is healthy:", error);
+          return null;
+        }
+      },
+      async checkUmolServiceHealth() {
+        try {
+          return await checkUmolServiceHealthApi();
+        } catch (error) {
+          console.error("Error checking if Umol service is healthy:", error);
           return null;
         }
       },

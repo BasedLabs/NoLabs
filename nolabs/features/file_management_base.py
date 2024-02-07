@@ -25,6 +25,7 @@ class ExperimentsFileManagementBase(ABC, Generic[ExperimentPropertiesT]):
 
     async def set_metadata(self, experiment_id: ExperimentId, experiment_name: ExperimentName):
         self.ensure_experiment_folder_exists(experiment_id)
+        print("experimentId", experiment_id.value)
         j = {
             'id': experiment_id.value,
             'name': experiment_name.value,

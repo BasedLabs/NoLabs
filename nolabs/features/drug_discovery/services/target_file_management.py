@@ -160,6 +160,8 @@ class TargetsFileManagement:
         target_folder = self.target_folder(experiment_id, target_id)
         pocket_file = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
                                    self._settings.drug_discovery_pocket_file_name)
+
+        print("POCKET IDS: ", pocket_ids)
         if os.path.exists(pocket_file):
             pocket_arr = np.asarray(pocket_ids)
             np.save(pocket_file, pocket_arr)

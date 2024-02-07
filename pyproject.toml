@@ -26,9 +26,9 @@ python-slugify = "^8.0.2"
 python-multipart = "^0.0.6"
 msa-light-microservice = {path = "microservices/msa_light/client"}
 p2rank-microservice = {path = "microservices/p2rank/client"}
-esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 umol-microservice = {path = "microservices/umol/client"}
+esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 
 [project]
 dependencies = [

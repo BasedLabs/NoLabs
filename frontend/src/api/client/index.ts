@@ -30,6 +30,7 @@ export type { ExperimentMetadataResponse } from './models/ExperimentMetadataResp
 export type { GetAllResultsListResponse } from './models/GetAllResultsListResponse';
 export type { GetDockingResultDataResponse } from './models/GetDockingResultDataResponse';
 export type { GetFoldingResponse } from './models/GetFoldingResponse';
+export type { GetJobBindingPocketDataResponse } from './models/GetJobBindingPocketDataResponse';
 export type { GetLigandDataResponse } from './models/GetLigandDataResponse';
 export type { GetLigandMetaDataResponse } from './models/GetLigandMetaDataResponse';
 export type { GetResultsListForTargetLigandResponse } from './models/GetResultsListForTargetLigandResponse';

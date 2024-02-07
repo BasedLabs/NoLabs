@@ -15,7 +15,7 @@ class CheckUmolServiceHealthFeature:
         host = self._settings.umol_host
         # Attempt to ping the host briefly to check if it's healthy
         try:
-            response = requests.get(f"{host}/docs", timeout=0.05)  # Timeout set to 5 seconds
+            response = requests.get(f"{host}/docs", timeout=0.5)  # Timeout set to 5 seconds
             # A 2xx status code indicates success
             is_healthy = response.status_code // 100 == 2
         except RequestException:
@@ -38,7 +38,7 @@ class CheckFoldingServiceHealthFeature:
             host = self._settings.esmfold_host
 
         try:
-            response = requests.get(f"{host}/docs", timeout=0.05)  # Timeout set to 0.1 seconds
+            response = requests.get(f"{host}/docs", timeout=0.5)  # Timeout set to 0.1 seconds
             # A 2xx status code indicates success
             is_healthy = response.status_code // 100 == 2
         except RequestException:
@@ -57,7 +57,7 @@ class CheckMsaServiceHealthFeature:
         host = self._settings.msa_light_host
 
         try:
-            response = requests.get(f"{host}/docs", timeout=0.05)  # Timeout set to 0.1 seconds
+            response = requests.get(f"{host}/docs", timeout=0.5)  # Timeout set to 0.1 seconds
             # A 2xx status code indicates success
             is_healthy = response.status_code // 100 == 2
         except RequestException:
@@ -75,7 +75,7 @@ class CheckP2RankServiceHealthFeature:
         host = self._settings.p2rank_host
 
         try:
-            response = requests.get(f"{host}/docs", timeout=0.05)  # Timeout set to 0.1 seconds
+            response = requests.get(f"{host}/docs", timeout=0.5)  # Timeout set to 0.1 seconds
             # A 2xx status code indicates success
             is_healthy = response.status_code // 100 == 2
         except RequestException:

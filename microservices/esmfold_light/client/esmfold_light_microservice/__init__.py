@@ -32,6 +32,7 @@ from esmfold_light_microservice.exceptions import ApiException
 
 # import models into sdk package
 from esmfold_light_microservice.models.http_validation_error import HTTPValidationError
+from esmfold_light_microservice.models.is_job_running_response import IsJobRunningResponse
 from esmfold_light_microservice.models.run_esm_fold_prediction_request import RunEsmFoldPredictionRequest
 from esmfold_light_microservice.models.run_esm_fold_prediction_response import RunEsmFoldPredictionResponse
 from esmfold_light_microservice.models.validation_error import ValidationError

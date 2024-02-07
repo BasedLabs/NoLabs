@@ -40,7 +40,7 @@ class DeleteTargetResponse:
 @pcdataclass.dataclass
 class GetTargetMetaDataRequest:
     experiment_id: str
-    targe_id: str
+    target_id: str
 
 @pcdataclass.dataclass
 class GetTargetMetaDataResponse:
@@ -50,7 +50,7 @@ class GetTargetMetaDataResponse:
 @pcdataclass.dataclass
 class GetTargetDataRequest:
     experiment_id: str
-    targe_id: str
+    target_id: str
 
 @pcdataclass.dataclass
 class GetTargetDataResponse:
@@ -68,11 +68,17 @@ class GetTargetsListResponse:
 @pcdataclass.dataclass
 class GetTargetBindingPocketRequest:
     experiment_id: str
-    targe_id: str
+    target_id: str
 
 @pcdataclass.dataclass
 class GetTargetBindingPocketResponse:
     pocket_ids: List[int] | None
+
+@pcdataclass.dataclass
+class SetTargetBindingPocketRequest:
+    experiment_id: str
+    target_id: str
+    pocket_ids: List[int]
 
 @pcdataclass.dataclass
 class PredictBindingPocketRequest:
@@ -104,6 +110,17 @@ class CheckPocketDataAvailableRequest:
 class CheckPocketDataAvailableResponse:
     is_available: bool
 
+@pcdataclass.dataclass
+class GetJobBindingPocketDataRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class GetJobBindingPocketDataResponse:
+    pocket_ids: List[int] | None
+
 
 @pcdataclass.dataclass
 class CheckMsaDataAvailableRequest:
@@ -129,7 +146,7 @@ class CheckFoldingDataAvailableResponse:
 @pcdataclass.dataclass
 class GetFoldingRequest:
     experiment_id: str
-    targe_id: str
+    target_id: str
 
 @pcdataclass.dataclass
 class GetFoldingResponse:

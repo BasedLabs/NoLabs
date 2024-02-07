@@ -57,7 +57,7 @@ class ResultsFileManagement:
             self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "target_id", target_id.value)
             self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "ligand_id", ligand_id.value)
             self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "job_id", job_id.value
-                                    )
+                                        )
 
     def store_result_input_pocketIds(self,
                                      experiment_id: ExperimentId,
@@ -71,6 +71,21 @@ class ResultsFileManagement:
         pocket_arr = np.asarray(pocket_ids)
         np.save(pocket_file, pocket_arr)
 
+    def get_result_input_pocketIds(self,
+                                   experiment_id: ExperimentId,
+                                   target_id: TargetId,
+                                   ligand_id: LigandId,
+                                   job_id: JobId):
+        self.ensure_results_folder_exists(experiment_id, target_id, ligand_id)
+        result_dir = self.result_folder(experiment_id, target_id, ligand_id, job_id)
+        pocket_file = os.path.join(result_dir, self._settings.drug_discovery_running_jobs_pocket_file_name)
+        np.load(pocket_file)
+
+    def check_binding_pocket_exist(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
+                                   job_id: JobId) -> bool:
+        result_dir = self.result_folder(experiment_id, target_id, ligand_id, job_id)
+        pocket_file = os.path.join(result_dir, self._settings.drug_discovery_running_jobs_pocket_file_name)
+        return os.path.exists(pocket_file)
 
     def store_result_data(self, experiment_id: ExperimentId,
                           target_id: TargetId,
@@ -192,5 +207,3 @@ class ResultsFileManagement:
             return False
 
         return True
-
-

@@ -18,20 +18,19 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, ClassVar, Dict, List, Optional
-from pydantic import BaseModel, StrictStr
+from typing import Any, ClassVar, Dict, List
+from pydantic import BaseModel, StrictBool
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
-class RunEsmFoldPredictionRequest(BaseModel):
+class IsJobRunningResponse(BaseModel):
     """
-    RunEsmFoldPredictionRequest
+    IsJobRunningResponse
     """ # noqa: E501
-    protein_sequence: StrictStr
-    job_id: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["protein_sequence", "job_id"]
+    is_running: StrictBool
+    __properties: ClassVar[List[str]] = ["is_running"]
 
     model_config = {
         "populate_by_name": True,
@@ -51,7 +50,7 @@ class RunEsmFoldPredictionRequest(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of RunEsmFoldPredictionRequest from a JSON string"""
+        """Create an instance of IsJobRunningResponse from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -74,7 +73,7 @@ class RunEsmFoldPredictionRequest(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of RunEsmFoldPredictionRequest from a dict"""
+        """Create an instance of IsJobRunningResponse from a dict"""
         if obj is None:
             return None
 
@@ -82,8 +81,7 @@ class RunEsmFoldPredictionRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "protein_sequence": obj.get("protein_sequence"),
-            "job_id": obj.get("job_id")
+            "is_running": obj.get("is_running")
         })
         return _obj
 

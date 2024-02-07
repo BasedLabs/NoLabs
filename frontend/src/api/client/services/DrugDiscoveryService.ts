@@ -18,6 +18,7 @@ import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataRes
 import type { GetAllResultsListResponse } from '../models/GetAllResultsListResponse';
 import type { GetDockingResultDataResponse } from '../models/GetDockingResultDataResponse';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
+import type { GetJobBindingPocketDataResponse } from '../models/GetJobBindingPocketDataResponse';
 import type { GetLigandDataResponse } from '../models/GetLigandDataResponse';
 import type { GetLigandMetaDataResponse } from '../models/GetLigandMetaDataResponse';
 import type { GetResultsListForTargetLigandResponse } from '../models/GetResultsListForTargetLigandResponse';
@@ -350,6 +351,33 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Set Target Binding Pocket
+     * @param experimentId
+     * @param targetId
+     * @param requestBody
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static setTargetBindingPocketApiV1DrugDiscoverySetTargetBindingPocketPost(
+        experimentId: string,
+        targetId: string,
+        requestBody: Array<number>,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/set-target-binding-pocket',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Predict Binding Pocket
      * @param experimentId
      * @param targetId
@@ -568,6 +596,35 @@ export class DrugDiscoveryService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/drug_discovery/check-pocket-data-available',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Job Pocket Data
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @returns GetJobBindingPocketDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getJobPocketDataApiV1DrugDiscoveryGetJobPocketDataGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+    ): CancelablePromise<GetJobBindingPocketDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-job-pocket-data',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,

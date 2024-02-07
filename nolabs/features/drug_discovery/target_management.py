@@ -54,7 +54,7 @@ class GetTargetMetaDataFeature:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
-        target_id = TargetId(request.targe_id)
+        target_id = TargetId(request.target_id)
 
         target_metadata = self._file_management.get_target_metadata(experiment_id, target_id)
 
@@ -68,7 +68,7 @@ class GetTargetDataFeature:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
-        target_id = TargetId(request.targe_id)
+        target_id = TargetId(request.target_id)
 
         target_name, sequence, pdb_content = self._file_management.get_target_data(experiment_id, target_id)
 
