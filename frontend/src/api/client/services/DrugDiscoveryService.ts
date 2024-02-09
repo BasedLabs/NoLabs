@@ -453,13 +453,36 @@ export class DrugDiscoveryService {
      * @returns PredictFoldingResponse Successful Response
      * @throws ApiError
      */
-    public static predictFoldingApiV1DrugDiscoveryPredictFoldingPost(
+    public static predictFoldingApiV1DrugDiscoveryPredictEsmfoldLightPost(
         experimentId: string,
         targetId: string,
     ): CancelablePromise<PredictFoldingResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/drug_discovery/predict-folding',
+            url: '/api/v1/drug_discovery/predict-esmfold-light',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Predict Folding
+     * @param experimentId
+     * @param targetId
+     * @returns PredictFoldingResponse Successful Response
+     * @throws ApiError
+     */
+    public static predictFoldingApiV1DrugDiscoveryPredictEsmfoldPost(
+        experimentId: string,
+        targetId: string,
+    ): CancelablePromise<PredictFoldingResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/predict-esmfold',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,

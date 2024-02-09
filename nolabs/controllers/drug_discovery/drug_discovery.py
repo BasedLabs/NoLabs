@@ -18,7 +18,8 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_ligands_list_dependency,
     get_binding_pocket_dependency,
     predict_binding_pocket_dependency,
-    predict_folding_dependency,
+    predict_esmfold_light_dependency,
+    predict_esmfold_dependency,
     get_folded_structure_dependency,
     generate_msa_dependency,
     register_docking_job_dependency,
@@ -38,6 +39,7 @@ from nolabs.controllers.drug_discovery.dependencies import (
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckFoldingServiceHealthFeature, CheckUmolServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
+from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
     CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature
@@ -46,7 +48,7 @@ from nolabs.features.drug_discovery.target_management import UploadTargetFeature
     GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
-from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
+from nolabs.features.drug_discovery.predict_light_folding import PredictEsmFoldLightFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
@@ -270,9 +272,18 @@ async def get_folded_structure(experiment_id: str,
     return feature.handle(GetFoldingRequest(experiment_id, target_id))
 
 
-@router.post('/predict-folding')
+@router.post('/predict-esmfold-light')
 async def predict_folding(feature: Annotated[
-    PredictFoldingFeature, Depends(predict_folding_dependency)],
+    PredictEsmFoldLightFeature, Depends(predict_esmfold_light_dependency)],
+                          experiment_id: str,
+                          target_id: str
+                          ) -> PredictFoldingResponse:
+    return feature.handle(PredictFoldingRequest(experiment_id, target_id))
+
+
+@router.post('/predict-esmfold')
+async def predict_folding(feature: Annotated[
+    PredictEsmFoldFeature, Depends(predict_esmfold_light_dependency)],
                           experiment_id: str,
                           target_id: str
                           ) -> PredictFoldingResponse:

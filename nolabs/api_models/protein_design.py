@@ -9,7 +9,7 @@ from pydantic import dataclasses
 class RunProteinDesignRequest:
     experiment_name: str
     experiment_id: str
-    pdb_file: UploadFile
+    pdb_file: Optional[UploadFile] = None
     contig: str = '50'
     number_of_designs: int = 1
     timesteps: Optional[int] = None

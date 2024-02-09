@@ -6,6 +6,7 @@ from nolabs.controllers.common_dependencies import settings_dependency
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckFoldingServiceHealthFeature, CheckUmolServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
+from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
     CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature
@@ -24,7 +25,7 @@ from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature
     GetLigandsListFeature, GetLigandDataFeature, GetLigandMetaDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
-from nolabs.features.drug_discovery.predict_light_folding import PredictFoldingFeature
+from nolabs.features.drug_discovery.predict_light_folding import PredictEsmFoldLightFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
@@ -126,12 +127,17 @@ Depends(target_file_management_dependency)]) -> GetFoldedStructureFeature:
     return GetFoldedStructureFeature(file_management=target_file_management)
 
 
-def predict_folding_dependency(target_file_management: Annotated[TargetsFileManagement,
+def predict_esmfold_light_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)],
                                settings: Annotated[Settings,
-                               Depends(settings_dependency)]) -> PredictFoldingFeature:
-    return PredictFoldingFeature(file_management=target_file_management, settings=settings)
+                               Depends(settings_dependency)]) -> PredictEsmFoldLightFeature:
+    return PredictEsmFoldLightFeature(file_management=target_file_management, settings=settings)
 
+def predict_esmfold_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)],
+                               settings: Annotated[Settings,
+                               Depends(settings_dependency)]) -> PredictEsmFoldFeature:
+    return PredictEsmFoldFeature(file_management=target_file_management, settings=settings)
 
 def upload_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
 Depends(ligand_file_management_dependency)]) -> UploadLigandFeature:

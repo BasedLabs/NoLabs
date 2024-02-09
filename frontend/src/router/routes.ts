@@ -125,21 +125,12 @@ const labsRoute = [
     },
 ];
 
-const dt = [
-    {
-        path: 'drug-target2',
-        name: 'DrugTarget2',
-        component: () => import("src/features/drugTarget2/MainDrugTarget.vue")
-    }
-];
-
 const routes = [
     {
         path: '/',
         name: 'Main',
         component: () => import('src/layouts/MainLayout.vue'),
         children: [
-            ...dt,
             ...labsRoute,
             ...drugDiscoveryRoutes,
             ...proteinDesignRoutes,

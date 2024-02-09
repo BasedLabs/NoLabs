@@ -117,8 +117,12 @@ export function predictBindingPocketApi(experimentId: string, targetId: string):
 }
 
 // Predict folding
+export function predictLightFoldingApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
+    return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictEsmfoldLightPost(experimentId, targetId);
+}
+
 export function predictFoldingApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
-    return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictFoldingPost(experimentId, targetId);
+  return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictEsmfoldPost(experimentId, targetId);
 }
 
 export function registerDockingJobApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<RegisterDockingJobResponse> {

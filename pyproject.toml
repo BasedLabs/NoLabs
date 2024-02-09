@@ -7,7 +7,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-solubility-microservice = {path = "microservices/solubility/client"}
 websockets = "^12.0"
 uvicorn = "^0.25.0"
 fastapi = "^0.109.0"
@@ -29,6 +28,8 @@ p2rank-microservice = {path = "microservices/p2rank/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 umol-microservice = {path = "microservices/umol/client"}
 esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
+solubility-microservice = {path = "microservices/solubility/client"}
+jupyter = "^1.0.0"
 
 [project]
 dependencies = [

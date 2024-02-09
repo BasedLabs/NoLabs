@@ -13,6 +13,27 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+  esmfold:
+    build:
+      context: microservices/esmfold
+      dockerfile: build/Dockerfile
+    ports:
+      - "5736:5736"
+    command: --host=0.0.0.0 --port=5736
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+  esmfold_light:
+    build:
+      context: microservices/esmfold_light
+      dockerfile: build/Dockerfile
+    ports:
+      - "5733:5733"
+    command: --host=0.0.0.0 --port=5733
   solubility:
     build:
       context: microservices/solubility
