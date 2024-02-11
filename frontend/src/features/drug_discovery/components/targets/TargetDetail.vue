@@ -16,7 +16,9 @@
   </q-card>
   <q-card v-if="target.data">
     <q-card-section>
-      <div class="text-h6 q-pa-sm">Target: {{ this.target.metaData.target_name }}</div>
+      <div class="text-h6 q-pa-sm">Target: {{ this.target.metaData.target_name }}
+        <q-btn round @click="changeTargetName"
+                color="positive" size="sm" flat icon="edit"/></div>
       <q-card-section class="rounded-borders bg-black">
         <div class="text-h7 q-pl-md">Sequence: </div>
         <div class="fasta-sequence q-gutter-sm q-pa-md">
@@ -35,6 +37,19 @@
       </q-card-section>
       <div v-if="predictingFolding">
         <q-spinner color="info" size="lg" label="Loading 3D View..." />
+      </div>
+      <div class="q-pa-md">
+        <q-select
+          v-if="!this.target.data.pdbContents"
+          v-model="selectedFoldingOption"
+          :options="foldingOptions"
+          label="Select folding method"
+          outlined
+          dense
+          class="text-white"
+        emit-value
+        map-options
+        ></q-select>
       </div>
       <q-btn v-if="!hasPdb" color="info" @click="predictStructure">
         Predict 3D structure
@@ -81,9 +96,10 @@
 </template>
 
 <script>
-import { QCard, QCardSection, QBtn, QDialog, QCardActions } from "quasar";
+import {QCard, QCardSection, QBtn, QDialog, QCardActions, Notify, QSpinnerOrbit, useQuasar} from "quasar";
 import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
 import PdbViewer from "src/components/PdbViewer.vue";
+import {obtainErrorResponse} from "../../../../api/errorWrapper";
 
 export default {
   name: "TargetDetail",
@@ -121,19 +137,26 @@ export default {
         },
         data: this.originalTarget.data
       },
+      selectedFoldingOption: '',
+      foldingOptions: [
+        { label: 'Esmfold_light (up to 400 amino acids)', value: 'light' },
+        { label: 'Esmfold', value: 'full' },
+      ],
     };
   },
   methods: {
-    predictStructure() {
+    async predictStructure() {
       const store = useDrugDiscoveryStore();
       if (this.target) {
         this.predictingFolding = true; // Start loading
-        store
-          .predictFoldingForTarget(this.experimentId, this.target.metaData.target_id)
+        const predictionMethod = this.selectedFoldingOption === 'light' ? store.predictLightFoldingForTarget : store.predictFoldingForTarget;
+
+        predictionMethod(this.experimentId, this.target.metaData.target_id)
           .then((response) => {
-            this.target.data.pdbContents = response;
-            this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
-            // Re-render 3D structure with new PDB data, if applicable
+            if (response) {
+              this.target.data.pdbContents = response;
+              this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
+            }
           })
           .catch((error) => {
             console.error("Error predicting structure:", error);
@@ -212,6 +235,31 @@ export default {
           });
       }
     },
+    changeTargetName() {
+      const store = useDrugDiscoveryStore();
+      this.quasar.dialog({
+        color: 'positive',
+        title: 'Prompt',
+        message: 'Enter new target name',
+        prompt: {
+          model: this.target.metaData.target_name,
+          required: true,
+          type: 'text' // optional
+        },
+        cancel: true,
+        persistent: true
+      }).onOk(async data => {
+        if (!data)
+          return;
+        this.quasar.loading.show({
+          spinner: QSpinnerOrbit,
+          message: 'Changing target name'
+        });
+        await store.changeTargetName(this.experimentId, this.target.metaData.target_id, data);
+        this.target.metaData.target_name = data;
+        this.quasar.loading.hide();
+      });
+    }
   },
   computed: {
     hasPdb() {
@@ -235,6 +283,7 @@ export default {
   },
   mounted() {
     this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
+    this.quasar = useQuasar();
   },
   beforeUnmount() {
     if (this.viewer) {

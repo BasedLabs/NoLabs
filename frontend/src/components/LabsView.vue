@@ -1,57 +1,56 @@
+<template>
+  <div class="q-pa-md">
+    <!-- Logo at the top, centered -->
+    <div class="q-pb-lg flex justify-center">
+      <img src="public/logo.png" alt="Logo" style="width: 20vw;">
+    </div>
+
+    <!-- Vertical list of cards -->
+    <div class="q-gutter-md">
+      <div v-for="lab in labs" :key="lab.name" class="q-mb-md">
+        <q-card class="flex q-pa-md row" flat bordered>
+          <q-img class="q-mr-md" width="102px" height="102px" :src="lab.imagePath" alt="Lab Picture" />
+          <div class="col">
+            <div class="text-h6 q-pt-md q-mb-sm">{{ lab.name }}</div>
+            <div class="q-mb-md">{{ lab.description }}</div> <!-- Placeholder for description -->
+          </div>
+          <div class="column items-center">
+            <div class="col">
+            <q-btn class="q-ma-lg q-pa-md" :label="'Launch ' + lab.name" color="info" @click="() => launchLab(lab.routeName)" />
+            </div>
+          </div>
+        </q-card>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script lang="ts">
-import {defineComponent} from 'vue'
+import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: "LabsView"
+  name: "LabsView",
+  data() {
+    return {
+      labs: [
+        { name: 'Drug Discovery Lab', description: 'Fold proteins, predict binding pockets and run docking', routeName: 'DrugDiscovery', imagePath: 'public/docking_pic.png' },
+        { name: 'Folding Lab', description: 'Fold proteins with the latest state-of-the-art models', routeName: 'Folding', imagePath: 'public/folding_pic.png' },
+        { name: 'Gene Ontology Lab', description: 'Predict gene ontology of proteins', routeName: 'GeneOntology', imagePath: 'public/gene_ontology_pic.png' },
+        { name: 'Localisation Lab', description: 'Predict localisation of proteins', routeName: 'Localisation', imagePath: 'public/localisation_pic.png' },
+        { name: 'Solubility Lab', description: 'Predict solubility of proteins', routeName: 'Solubility', imagePath: 'public/solubility_pic.png' },
+        { name: 'Conformations Lab', description: 'Run simulations using GROMACS', routeName: 'Conformations', imagePath: 'public/conformations_pic.png' },
+        { name: 'Protein Design Lab', description: 'Design binders using RF-Diffusion', routeName: 'ProteinDesign', imagePath: 'public/rf_diffusion_pic.png' }
+      ]
+    }
+  },
+  methods: {
+    launchLab(routeName: string) {
+      this.$router.push({ name: routeName });
+    }
+  }
 })
 </script>
 
-<template>
-  <div class="q-pa-md row items-start q-gutter-md justify-center">
-    <q-card flat bordered class="my-card">
-      <q-card-section>
-        <q-btn size="xl" color="positive"  label="Folding lab"
-               @click="() => {this.$router.push({name: 'Folding experiments'})}"/>
-      </q-card-section>
-    </q-card>
-    <q-card flat bordered class="my-card">
-      <q-card-section>
-        <q-btn size="xl" color="positive"  label="Gene ontology lab"
-               @click="() => {this.$router.push({name: 'Gene ontology experiment'})}"/>
-      </q-card-section>
-    </q-card>
-    <q-card flat bordered class="my-card">
-      <q-card-section>
-        <q-btn size="xl" color="positive"  label="Localisation lab"
-               @click="() => {this.$router.push({name: 'Localisation experiments'})}"/>
-      </q-card-section>
-    </q-card>
-    <q-card flat bordered class="my-card">
-      <q-card-section>
-        <q-btn size="xl" color="positive"  label="Solubility lab"
-               @click="() => {this.$router.push({name: 'Solubility experiments'})}"/>
-      </q-card-section>
-    </q-card>
-    <q-card flat bordered class="my-card">
-      <q-card-section>
-        <q-btn size="xl" color="positive"  label="Conformations lab"
-               @click="() => {this.$router.push({name: 'Conformations experiments'})}"/>
-      </q-card-section>
-    </q-card>
-    <q-card flat bordered class="my-card">
-      <q-card-section>
-        <q-btn size="xl" color="positive"  label="Drug discovery lab"
-               @click="() => {this.$router.push({name: 'Drug discovery experiments'})}"/>
-      </q-card-section>
-    </q-card>
-    <q-card flat bordered class="my-card">
-      <q-card-section>
-        <q-btn size="xl" color="positive"  label="Protein design lab"
-               @click="() => {this.$router.push({name: 'Protein design experiments'})}"/>
-      </q-card-section>
-    </q-card>
-  </div>
-</template>
 
 <style scoped>
 

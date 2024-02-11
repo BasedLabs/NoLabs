@@ -4,7 +4,6 @@
 /* eslint-disable */
 import type { Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post } from '../models/Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post';
 import type { Body_upload_target_api_v1_drug_discovery_upload_target_post } from '../models/Body_upload_target_api_v1_drug_discovery_upload_target_post';
-import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
 import type { CheckFoldingDataAvailableResponse } from '../models/CheckFoldingDataAvailableResponse';
 import type { CheckJobIsRunningResponse } from '../models/CheckJobIsRunningResponse';
 import type { CheckMsaDataAvailableResponse } from '../models/CheckMsaDataAvailableResponse';
@@ -81,19 +80,43 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Get Experiment Metadata
+     * @param experimentId
+     * @returns ExperimentMetadataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getExperimentMetadataApiV1DrugDiscoveryGetExperimentMetadataGet(
+        experimentId: string,
+    ): CancelablePromise<ExperimentMetadataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-experiment-metadata',
+            query: {
+                'experiment_id': experimentId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Change Experiment Name
-     * @param requestBody
+     * @param experimentId
+     * @param experimentName
      * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
     public static changeExperimentNameApiV1DrugDiscoveryChangeExperimentNamePost(
-        requestBody: ChangeExperimentNameRequest,
+        experimentId: string,
+        experimentName: string,
     ): CancelablePromise<ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/change-experiment-name',
-            body: requestBody,
-            mediaType: 'application/json',
+            query: {
+                'experiment_id': experimentId,
+                'experiment_name': experimentName,
+            },
             errors: {
                 422: `Validation Error`,
             },
@@ -178,6 +201,32 @@ export class DrugDiscoveryService {
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Update Target Name
+     * @param experimentId
+     * @param targetId
+     * @param targetName
+     * @returns GetTargetMetaDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateTargetNameApiV1DrugDiscoveryUpdateTargetNamePost(
+        experimentId: string,
+        targetId: string,
+        targetName: string,
+    ): CancelablePromise<GetTargetMetaDataResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/update-target-name',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'target_name': targetName,
             },
             errors: {
                 422: `Validation Error`,

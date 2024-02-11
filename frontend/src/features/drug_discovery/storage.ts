@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia';
 import {
+  changeExperimentNameApi, changeTargetNameApi,
   checkDockingResultAvailableApi,
   checkFoldingDataAvailableApi,
   checkFoldingJobIsRunningApi, checkFoldingServiceHealthApi,
@@ -12,7 +13,7 @@ import {
   deleteExperimentApi,
   deleteLigandApi,
   deleteTargetApi, getAllDockingResultsListApi,
-  getDockingJobResultDataApi, getDockingResultsListForTargetLigandApi,
+  getDockingJobResultDataApi, getDockingResultsListForTargetLigandApi, getExperimentMetadataApi,
   getExperimentsApi, getJobPocketDataApi,
   getLigandDataApi,
   getLigandMetaDataApi,
@@ -22,7 +23,7 @@ import {
   getTargetMetaDataApi,
   getTargetsListApi,
   predictBindingPocketApi,
-  predictFoldingApi,
+  predictFoldingApi, predictLightFoldingApi,
   registerDockingJobApi,
   runDockingJobApi, setTargetBindingPocketApi,
   uploadLigandApi,
@@ -36,6 +37,8 @@ import {
   TargetMetaData
 } from 'src/api/client';
 import {ExperimentListItem} from "src/components/types";
+import {obtainErrorResponse} from "../../api/errorWrapper";
+import {Notify} from "quasar";
 
 export interface TargetData {
     targetId: string;
@@ -87,6 +90,20 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             } catch (error) {
                 console.error('Error deleting experiment:', error);
             }
+        },
+        async changeExperimentName(experimentId: string, experimentName: string) {
+          try {
+            return await changeExperimentNameApi(experimentId, experimentName);
+          } catch (error) {
+            console.error('Error deleting experiment:', error);
+          }
+        },
+        async getExperimentMetaData(experimentId: string) {
+          try {
+            return await getExperimentMetadataApi(experimentId);
+          } catch (error) {
+            console.error('Error deleting experiment:', error);
+          }
         },
         async uploadTargetToExperiment(experimentId: string, targetFile: File) {
             try {
@@ -156,6 +173,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             console.error('Error fetching ligands:', error);
           }
         },
+        async changeTargetName(experimentId: string, targetId: string, targetName: string) {
+          try {
+            return await changeTargetNameApi(experimentId, targetId, targetName);
+            // Optionally set the currentTarget to the selected one
+          } catch (error) {
+            console.error('Error fetching ligands:', error);
+          }
+        },
         async fetchTargetData(experimentId: string, targetId: string) {
             try {
                 const response = await getTargetDataApi(experimentId, targetId);
@@ -168,6 +193,25 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
+        },
+        async predictLightFoldingForTarget(experimentId: string, targetId: string) {
+          try {
+            const response = await predictLightFoldingApi(experimentId, targetId);
+            const errorResponse = obtainErrorResponse(response);
+            if (errorResponse) {
+              for (const error of errorResponse.errors) {
+                Notify.create({
+                  type: "negative",
+                  closeBtn: 'Close',
+                  message: error
+                });
+              }
+            }
+              return response.pdb_content;
+            // Optionally set the currentTarget to the selected one
+          } catch (error) {
+            console.error('Error fetching ligands:', error);
+          }
         },
         async predictFoldingForTarget(experimentId: string, targetId: string) {
             try {

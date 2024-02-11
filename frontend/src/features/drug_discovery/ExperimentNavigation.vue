@@ -13,8 +13,8 @@
         color="info"
         :done="step > 1"
       >
-        <q-item-label class="text-h5 q-pa-md">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
-        <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
+        <ExperimentHeader v-if="experiment.metadata" :meta-data="experiment.metadata" :on-experiment-name-change-submit="onExperimentNameChange" />
+        <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
           <q-space />
           <q-btn flat label="Continue" @click="openNextStep('Upload ligands')" />
         </div>
@@ -28,8 +28,8 @@
         icon=hub
         :done="step > 2"
       >
-        <q-item-label class="text-h5 q-pa-md">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
-        <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
+
+        <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
           <q-btn flat label="Back" @click="openPreviousStep('Upload targets')" />
           <q-space />
           <q-btn flat label="Continue" @click="openNextStep('Run docking')" />
@@ -44,8 +44,7 @@
         icon="gesture"
         :done="step > 3"
       >
-        <q-item-label class="text-h5">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
-        <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
+        <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
           <q-btn flat label="Back" @click="openPreviousStep('Upload ligands')" />
         </div>
           <router-view></router-view>
@@ -55,16 +54,23 @@
 </template>
 
 <script>
+import ExperimentHeader from "src/features/drug_discovery/components/ExperimentHeader.vue";
+import {useDrugDiscoveryStore} from "./storage";
+
 export default {
   name: "ExperimentNavigation",
+  components: {ExperimentHeader},
   data() {
     return {
       step: 1, // This can be a reactive property based on the current route if needed
+      experiment: {},
     };
   },
-  mounted() {
-    document.title = 'DTI';
+  async mounted() {
+    const store = useDrugDiscoveryStore();
     this.setStepBasedOnRoute();
+    this.experiment.experimentId = this.$route.params.experimentId;
+    this.experiment.metadata = await store.getExperimentMetaData(this.experiment.experimentId);
   },
   methods: {
     setStepBasedOnRoute() {
@@ -90,10 +96,10 @@ export default {
       this.$refs.stepper.previous();
       this.$router.push({ name: stepName, params: { experimentId: this.$route.params.experimentId } });
     },
-    isStepDone(stepName) {
-      // Implement logic to determine if a step is done based on your application's state
-      // For example, checking if the current route's name matches the stepName
-      return this.$route.name === stepName;
+    async onExperimentNameChange(newExperimentName) {
+      const store = useDrugDiscoveryStore();
+      await store.changeExperimentName(this.experiment.experimentId, newExperimentName);
+      this.experiment.name = newExperimentName;
     }
   }
 };

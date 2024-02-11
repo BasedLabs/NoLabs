@@ -8,6 +8,9 @@ class ChangeExperimentNameRequest:
     id: str
     name: str
 
+@pydantic.dataclasses.dataclass
+class ExperimentMetadataRequest:
+    id: str
 
 @pydantic.dataclasses.dataclass
 class ExperimentMetadataResponse:
