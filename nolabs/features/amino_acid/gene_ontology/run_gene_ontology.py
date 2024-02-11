@@ -124,8 +124,6 @@ class RunGeneOntologyFeature(RunAminoAcidInferenceFeature[FileManagement]):
 
                 confidences = [(g.name, g.confidence) for g in result.go_confidence]
 
-
-                print(confidences)
                 results.append(AminoAcidResponse(
                     sequence=amino_acid.sequence,
                     name=amino_acid.name,

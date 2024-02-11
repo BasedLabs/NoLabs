@@ -11,43 +11,43 @@ export default defineComponent({
     <q-card flat bordered class="my-card">
       <q-card-section>
         <q-btn size="xl" color="positive"  label="Folding lab"
-               @click="() => {this.$router.push({name: 'Folding'})}"/>
+               @click="() => {this.$router.push({name: 'Folding experiments'})}"/>
       </q-card-section>
     </q-card>
     <q-card flat bordered class="my-card">
       <q-card-section>
         <q-btn size="xl" color="positive"  label="Gene ontology lab"
-               @click="() => {this.$router.push({name: 'GeneOntology'})}"/>
+               @click="() => {this.$router.push({name: 'Gene ontology experiment'})}"/>
       </q-card-section>
     </q-card>
     <q-card flat bordered class="my-card">
       <q-card-section>
         <q-btn size="xl" color="positive"  label="Localisation lab"
-               @click="() => {this.$router.push({name: 'Localisation'})}"/>
+               @click="() => {this.$router.push({name: 'Localisation experiments'})}"/>
       </q-card-section>
     </q-card>
     <q-card flat bordered class="my-card">
       <q-card-section>
         <q-btn size="xl" color="positive"  label="Solubility lab"
-               @click="() => {this.$router.push({name: 'Solubility'})}"/>
+               @click="() => {this.$router.push({name: 'Solubility experiments'})}"/>
       </q-card-section>
     </q-card>
     <q-card flat bordered class="my-card">
       <q-card-section>
         <q-btn size="xl" color="positive"  label="Conformations lab"
-               @click="() => {this.$router.push({name: 'Conformations'})}"/>
+               @click="() => {this.$router.push({name: 'Conformations experiments'})}"/>
       </q-card-section>
     </q-card>
     <q-card flat bordered class="my-card">
       <q-card-section>
         <q-btn size="xl" color="positive"  label="Drug discovery lab"
-               @click="() => {this.$router.push({name: 'DrugDiscovery'})}"/>
+               @click="() => {this.$router.push({name: 'Drug discovery experiments'})}"/>
       </q-card-section>
     </q-card>
     <q-card flat bordered class="my-card">
       <q-card-section>
         <q-btn size="xl" color="positive"  label="Protein design lab"
-               @click="() => {this.$router.push({name: 'ProteinDesign'})}"/>
+               @click="() => {this.$router.push({name: 'Protein design experiments'})}"/>
       </q-card-section>
     </q-card>
   </div>

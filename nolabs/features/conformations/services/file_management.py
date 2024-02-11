@@ -21,6 +21,9 @@ class FileManagement(ExperimentsFileManagementBase):
         self._experiment_properties_filename = 'properties.json'
         self._timeline_path = 'timeline.json'
 
+    def properties_exists(self, experiment_id: ExperimentId) -> bool:
+        return os.path.exists(os.path.join(self.experiment_folder(experiment_id), self._experiment_properties_filename))
+
     async def set_properties(self, experiment_id: ExperimentId, request: RunSimulationsRequest):
         if not request or not request.pdb_file or not request.pdb_file.filename:
             raise NoLabsException(['No PDB file provided'], error_code=ErrorCodes.conformations_update_metadata_error)

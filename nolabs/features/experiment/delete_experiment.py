@@ -12,7 +12,7 @@ class DeleteExperimentFeature:
 
         experiment_id = ExperimentId(id)
 
-        if not self._file_management.experiment_exists(experiment_id):
+        if not self._file_management.metadata_exists(experiment_id):
             raise NoLabsException(messages=["This experiment not found"], error_code=ErrorCodes.experiment_id_not_found)
 
         self._file_management.delete_experiment_folder(experiment_id)

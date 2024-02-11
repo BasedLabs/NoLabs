@@ -52,7 +52,7 @@
 <script lang="ts">
 import {defineComponent, ref} from 'vue'
 import useProteinDesignStore from 'src/features/proteinDesign/storage';
-import {QVueGlobals, useQuasar, QSpinnerOrbit} from 'quasar';
+import {QVueGlobals, QSpinnerOrbit} from 'quasar';
 import InferenceFormView from "src/features/proteinDesign/InferenceFormView.vue";
 import {Experiment} from "src/features/proteinDesign/types";
 import PdbViewer from "src/components/PdbViewer.vue";
@@ -68,7 +68,6 @@ export default defineComponent({
       experiment: null as Experiment,
       showInferenceForm: false,
       store,
-      quasar: null as unknown as QVueGlobals,
       selectedGeneratedPdbIndex: 0,
       generatedPdbsReload: false
     }
@@ -114,7 +113,7 @@ export default defineComponent({
       this.experiment!.name = newExperimentName;
     },
     async onSubmit(contig: string, hotspots: string, numberOfDesigns: number, timesteps: number, pdbFile: File) {
-      this.quasar.loading.show({
+      this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: 'Running AI models. This can take a couple of minutes'
       });
@@ -135,10 +134,10 @@ export default defineComponent({
 
       this.showInferenceForm = false;
 
-      this.quasar.loading.hide();
+      this.$q.loading.hide();
     },
     changeExperimentName() {
-      this.quasar.dialog({
+      this.$q.dialog({
         color: 'positive',
         title: 'Prompt',
         message: 'Enter new experiment name',
@@ -152,22 +151,20 @@ export default defineComponent({
       }).onOk(async data => {
         if (!data)
           return;
-        this.quasar.loading.show({
+        this.$q.loading.show({
           spinner: QSpinnerOrbit,
           message: 'Changing experiment name'
         });
         await this.store.changeExperimentName(this.experiment?.id as string, data);
         this.experiment!.name = data;
-        this.quasar.loading.hide();
+        this.$q.loading.hide();
       });
     }
   },
   async mounted() {
     const experimentId = this.$route.params.experimentId as string;
 
-    this.quasar = useQuasar();
-
-    this.quasar.loading.show({
+    this.$q.loading.show({
       spinner: QSpinnerOrbit,
       message: `Experiment ${experimentId}`
     });
@@ -178,7 +175,7 @@ export default defineComponent({
       this.experiment = response.experiment;
     }
 
-    this.quasar.loading.hide();
+    this.$q.loading.hide();
 
     if (!this.experimentHasGeneratedData) {
       this.showInferenceForm = true;

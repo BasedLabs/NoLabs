@@ -12,11 +12,11 @@ class RunAminoAcidRequest:
     amino_acid_sequence: Optional[str]
     fastas: Optional[List[UploadFile]]
 
-    @model_validator(mode='after')
     @classmethod
+    @model_validator(mode='after')
     def check_inputs(cls, data: Any) -> Any:
         if not isinstance(data, RunAminoAcidRequest):
             raise ValueError('Incorrect data type')
-        #if not data.amino_acid_sequence and not data.fastas:
-        #    raise ValueError('Either specify aminoacid sequence or fastas files')
+        if not data.amino_acid_sequence and not data.fastas:
+            raise ValueError('Either specify aminoacid sequence or fastas files')
         return data

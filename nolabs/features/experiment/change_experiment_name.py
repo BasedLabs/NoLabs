@@ -14,7 +14,7 @@ class ChangeExperimentNameFeature:
         experiment_id = ExperimentId(request.id)
         experiment_name = ExperimentName(request.name)
 
-        if not self._file_management.experiment_exists(experiment_id):
+        if not self._file_management.metadata_exists(experiment_id):
             raise NoLabsException(messages=["Experiment does not exist"], error_code=ErrorCodes.experiment_id_not_found)
 
         self._file_management.change_experiment_name(experiment_id, experiment_name)

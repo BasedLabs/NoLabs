@@ -17,10 +17,13 @@ from nolabs.infrastructure.settings import Settings
 
 class FileManagement(ExperimentsFileManagementBase):
     def __init__(self, settings: Settings):
-        super().__init__('protein_design', 'metadata.json')
+        super().__init__(settings.protein_design_experiments_folder, settings.protein_design_experiments_folder)
         self._settings = settings
         self.ensure_experiments_folder_exists()
         self._experiment_properties_filename = 'properties.json'
+
+    def properties_exists(self, experiment_id: ExperimentId) -> bool:
+        return os.path.exists(os.path.join(self.experiment_folder(experiment_id), self._experiment_properties_filename))
 
     async def set_properties(self, experiment_id: ExperimentId, request: RunProteinDesignRequest):
         if not request or not request.pdb_file or not request.pdb_file.filename:

@@ -16,7 +16,7 @@
         <q-item-label class="text-h5 q-pa-md">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
         <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
           <q-space />
-          <q-btn flat label="Continue" @click="openNextStep('UploadLigands')" />
+          <q-btn flat label="Continue" @click="openNextStep('Upload ligands')" />
         </div>
         <router-view></router-view>
       </q-step>
@@ -24,15 +24,15 @@
       <q-step
         :name="2"
         title="Add ligands"
-        color="info"
+        :color="step > 2 ? 'info' : 'grey'"
         icon=hub
         :done="step > 2"
       >
         <q-item-label class="text-h5 q-pa-md">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
         <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
-          <q-btn flat label="Back" @click="openPreviousStep('UploadTargets')" />
+          <q-btn flat label="Back" @click="openPreviousStep('Upload targets')" />
           <q-space />
-          <q-btn flat label="Continue" @click="openNextStep('RunDocking')" />
+          <q-btn flat label="Continue" @click="openNextStep('Run docking')" />
         </div>
          <router-view></router-view>
       </q-step>
@@ -40,13 +40,13 @@
       <q-step
         :name="3"
         title="Run docking"
-        color="info"
+        :color="step > 3 ? 'info' : 'grey'"
         icon="gesture"
         :done="step > 3"
       >
         <q-item-label class="text-h5">ExperimentId: {{ this.$route.params.experimentId }}</q-item-label>
         <div class="row no-wrap items-center q-mt-md text-white rounded-borders">
-          <q-btn flat label="Back" @click="openPreviousStep('UploadLigands')" />
+          <q-btn flat label="Back" @click="openPreviousStep('Upload ligands')" />
         </div>
           <router-view></router-view>
       </q-step>
@@ -63,18 +63,19 @@ export default {
     };
   },
   mounted() {
+    document.title = 'DTI';
     this.setStepBasedOnRoute();
   },
   methods: {
     setStepBasedOnRoute() {
       switch (this.$route.name) {
-        case 'UploadTargets':
+        case 'Upload targets':
           this.step = 1;
           break;
-        case 'UploadLigands':
+        case 'Upload ligands':
           this.step = 2;
           break;
-        case 'RunDocking':
+        case 'Run docking':
           this.step = 3;
           break;
         default:

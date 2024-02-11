@@ -65,7 +65,7 @@ class ExperimentsFileManagementBase(ABC, Generic[ExperimentPropertiesT]):
         experiment_folder = self.experiment_folder(experiment_id)
         shutil.rmtree(experiment_folder, ignore_errors=True)
 
-    def experiment_exists(self, experiment_id: ExperimentId) -> bool:
+    def metadata_exists(self, experiment_id: ExperimentId) -> bool:
         return os.path.exists(os.path.join(self.experiment_folder(experiment_id)))
 
     def change_experiment_name(self, experiment_id: ExperimentId, experiment_name: ExperimentName):

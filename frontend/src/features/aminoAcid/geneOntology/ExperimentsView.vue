@@ -1,5 +1,5 @@
 <template>
-  <ExperimentsView :store="store" path-to-experiment-page="GeneOntologyExperiment"/>
+  <ExperimentsView :store="store" path-to-experiment-page="Gene ontology"/>
 </template>
 
 <script lang="ts">

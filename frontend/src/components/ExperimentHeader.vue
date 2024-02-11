@@ -1,6 +1,6 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {QSpinnerOrbit, QVueGlobals, useQuasar} from "quasar";
+import {QSpinnerOrbit} from "quasar";
 
 export default defineComponent({
   name: "ExperimentHeader",
@@ -17,16 +17,12 @@ export default defineComponent({
   data() {
     return {
       experimentNameData: this.experimentName,
-      quasar: null as unknown as QVueGlobals,
       showInferenceForm: false
     }
   },
-  mounted() {
-    this.quasar = useQuasar();
-  },
   methods: {
     changeExperimentName() {
-      this.quasar.dialog({
+      this.$q.dialog({
         color: 'positive',
         title: 'Prompt',
         message: 'Enter new experiment name',
@@ -40,13 +36,13 @@ export default defineComponent({
       }).onOk(async data => {
         if (!data)
           return;
-        this.quasar.loading.show({
+        this.$q.loading.show({
           spinner: QSpinnerOrbit,
           message: 'Changing experiment name'
         });
         await this.onExperimentNameChangeSubmit(data);
         this.experimentNameData = data;
-        this.quasar.loading.hide();
+        this.$q.loading.hide();
       });
     }
   }

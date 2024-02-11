@@ -8,18 +8,18 @@
       </q-btn>
     </q-item>
     <q-expansion-item
-      popup
-      expand-separator
-      :content-inset-level="1"
-      v-for="target in targets"
-      :key="target.target_id"
-      :label="target.target_name"
-      @show="() => selectTarget(target)"
+        popup
+        expand-separator
+        :content-inset-level="1"
+        v-for="target in targets"
+        :key="target.target_id"
+        :label="target.target_name"
+        @show="() => selectTarget(target)"
     >
       <q-btn color="negative" @click="deleteTarget(target)" icon="delete" flat>
-      Delete target
+        Delete target
       </q-btn>
-      <TargetDetail v-if="target.data" :experiment-id="experimentId" :original-target="target"> </TargetDetail>
+      <TargetDetail v-if="target.data" :experiment-id="experimentId" :original-target="target"></TargetDetail>
     </q-expansion-item>
   </q-list>
   <q-page-sticky position="bottom-right" :offset="[100, 50]">
@@ -32,20 +32,21 @@
     <q-card>
       <q-card-section>
         <div class="text-h6">Upload Target Files</div>
-        <q-file v-model="uploadingTargetFiles" accept=".fasta" multiple label="Choose files" />
+        <q-file v-model="uploadingTargetFiles" accept=".fasta" multiple label="Choose files"/>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="negative" @click="uploadTargetDialog = false" />
-        <q-btn flat label="Upload" color="positive" @click="handleTargetFileUpload" />
+        <q-btn flat label="Close" color="negative" @click="uploadTargetDialog = false"/>
+        <q-btn flat label="Upload" color="positive" @click="handleTargetFileUpload"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
+<script lang="ts">
 import TargetDetail from "src/features/drug_discovery/components/targets/TargetDetail.vue";
-import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
+import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
+import {QSpinnerOrbit} from "quasar";
 
 export default {
   name: "TargetsList",
@@ -70,7 +71,7 @@ export default {
       uploadLigandDialog: false,
       uploadingLigandFiles: [],
       selectedTarget: null,
-      uploadToAllTargets: false,
+      uploadToAllTargets: false
     };
   },
   methods: {
@@ -86,8 +87,8 @@ export default {
       target.loadingLigands = true;
       try {
         target.ligands = await store.fetchLigandsForTarget(
-          this.experimentId,
-          target.target_id
+            this.experimentId,
+            target.target_id
         );
       } catch (error) {
         console.error("Error fetching ligands:", error);
@@ -97,10 +98,18 @@ export default {
     },
     async handleTargetFileUpload() {
       const store = useDrugDiscoveryStore();
+
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: `Uploading target files`
+      });
+
       for (let file of this.uploadingTargetFiles) {
         await store.uploadTargetToExperiment(this.experimentId, file);
       }
+
       this.uploadTargetDialog = false;
+      this.$q.loading.hide();
     },
     async getTargetData(target) {
       const store = useDrugDiscoveryStore();
@@ -119,11 +128,18 @@ export default {
     },
     async deleteTarget(targetToDelete) {
       const store = useDrugDiscoveryStore();
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: `Deleting target`
+      });
       try {
         await store.deleteTargetFromExperiment(this.experimentId, targetToDelete.target_id);
         this.targets = this.targets.filter(target => target.target_id !== targetToDelete.target_id);
       } catch (error) {
         console.error('Error deleting target:', error);
+      }
+      finally{
+        this.$q.loading.hide();
       }
     },
   },

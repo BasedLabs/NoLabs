@@ -92,6 +92,7 @@
 import TargetDetail from "src/features/drug_discovery/components/targets/TargetDetail.vue";
 import LigandDetail from "src/features/drug_discovery/components/ligands/LigandDetail.vue";
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
+import {QSpinnerOrbit} from "quasar";
 
 export default {
   name: "TargetsList",
@@ -117,7 +118,7 @@ export default {
       uploadLigandDialog: false,
       uploadingLigandFiles: [],
       selectedTarget: null,
-      uploadToAllTargets: false,
+      uploadToAllTargets: false
     };
   },
   methods: {
@@ -126,8 +127,17 @@ export default {
       this.uploadLigandDialog = true;
     },
     async selectTarget(target) {
-      await this.getLigandsForTarget(target);
-      await this.getTargetData(target);
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: `Deleting target`
+      });
+      try {
+        await this.getLigandsForTarget(target);
+        await this.getTargetData(target);
+      }
+      finally{
+        this.$q.loading.hide();
+      }
     },
     async getLigandsForTarget(target) {
       if (target.ligands && target.ligands.length > 0) {
@@ -150,15 +160,25 @@ export default {
       const store = useDrugDiscoveryStore();
       const targets = this.uploadToAllTargets ? this.targets : [target];
 
-      for (let t of targets) {
-        for (let file of this.uploadingLigandFiles) {
-          const ligand = await store.uploadLigandToTarget(this.experimentId, t.target_id, file);
-          t.ligands.push(ligand);
-          await this.registerJob(t, ligand);
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: `Deleting target`
+      });
+
+      try {
+        for (let t of targets) {
+          for (let file of this.uploadingLigandFiles) {
+            const ligand = await store.uploadLigandToTarget(this.experimentId, t.target_id, file);
+            t.ligands.push(ligand);
+            await this.registerJob(t, ligand);
+          }
         }
+        this.uploadLigandDialog = false;
+        this.uploadToAllTargets = false; // Reset the flag
       }
-      this.uploadLigandDialog = false;
-      this.uploadToAllTargets = false; // Reset the flag
+      finally{
+        this.$q.loading.hide();
+      }
     },
     async registerJob(target, ligand) {
       const store = useDrugDiscoveryStore();
@@ -211,20 +231,34 @@ export default {
     },
     async deleteTarget(targetToDelete) {
       const store = useDrugDiscoveryStore();
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: `Deleting target`
+      });
       try {
         await store.deleteTargetFromExperiment(this.experimentId, targetToDelete.target_id);
         this.targets = this.targets.filter(target => target.target_id !== targetToDelete.target_id);
       } catch (error) {
         console.error('Error deleting target:', error);
       }
+      finally {
+        this.$q.loading.hide();
+      }
     },
     async deleteLigand(target, ligandToDelete) {
       const store = useDrugDiscoveryStore();
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: `Deleting ligand`
+      });
       try {
         await store.deleteLigandFromTarget(this.experimentId, target.target_id, ligandToDelete.ligand_id);
         target.ligands = target.ligands.filter(ligand => ligand.ligand_id !== ligandToDelete.ligand_id);
       } catch (error) {
         console.error('Error deleting ligand:', error);
+      }
+      finally{
+        this.$q.loading.hide();
       }
     },
   },

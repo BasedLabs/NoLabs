@@ -59,7 +59,7 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {QVueGlobals, useQuasar, QSpinnerOrbit} from 'quasar';
+import {QVueGlobals, QSpinnerOrbit} from 'quasar';
 import PdbViewer from "src/components/PdbViewer.vue";
 import InferenceFormView from "src/features/conformations/InferenceFormView.vue";
 import useConformationsStore from "src/features/conformations/storage";
@@ -77,7 +77,6 @@ export default defineComponent({
       experiment: null as Experiment,
       showInferenceForm: false,
       store,
-      quasar: null as unknown as QVueGlobals,
       tiles: {
         one: {
           current: 'col-4',
@@ -132,7 +131,7 @@ export default defineComponent({
       }
     },
     async onSubmit(properties: ExperimentProperties) {
-      this.quasar.loading.show({
+      this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: 'Running computations'
       });
@@ -159,7 +158,7 @@ export default defineComponent({
 
       this.showInferenceForm = false;
 
-      this.quasar.loading.hide();
+      this.$q.loading.hide();
     },
     async onExperimentNameChange(newExperimentName: string) {
       await this.store.changeExperimentName(this.experiment?.id as string, newExperimentName);
@@ -169,9 +168,7 @@ export default defineComponent({
   async mounted() {
     const experimentId = this.$route.params.experimentId as string;
 
-    this.quasar = useQuasar();
-
-    this.quasar.loading.show({
+    this.$q.loading.show({
       spinner: QSpinnerOrbit,
       message: `Experiment ${experimentId}`
     });
@@ -182,7 +179,7 @@ export default defineComponent({
       this.experiment = response.experiment;
     }
 
-    this.quasar.loading.hide();
+    this.$q.loading.hide();
 
     if (!this.experimentHasInputData) {
       this.showInferenceForm = true;

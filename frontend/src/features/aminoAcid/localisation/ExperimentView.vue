@@ -33,7 +33,6 @@
             <div class="q-pl-sm q-ma-sm">
               <q-img
                   :src="activeImage"
-                  :loading="false"
                   style="height: 500px; max-width: 500px;"
               />
             </div>
@@ -58,7 +57,7 @@
 
 <script lang="ts">
 import {defineComponent, ref} from 'vue'
-import {QVueGlobals, useQuasar, QSpinnerOrbit} from 'quasar';
+import {QVueGlobals, QSpinnerOrbit} from 'quasar';
 import ExperimentHeader from "src/components/ExperimentHeader.vue";
 import useLocalisationStore from "src/features/aminoAcid/localisation/storage";
 import {AminoAcid} from "src/features/aminoAcid/localisation/types";
@@ -85,7 +84,6 @@ export default defineComponent({
       experiment: null as Experiment<AminoAcid>,
       showInferenceForm: false,
       store,
-      quasar: null as unknown as QVueGlobals,
       activeImage: images.original,
       listItemData: [] as Array<{
         key: string,
@@ -161,7 +159,7 @@ export default defineComponent({
       this.experiment!.name = newExperimentName;
     },
     async onSubmit(data: { aminoAcidSequence: string, fastas: Array<File> }) {
-      this.quasar.loading.show({
+      this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: 'Running AI models. This can take a couple of minutes'
       });
@@ -177,15 +175,13 @@ export default defineComponent({
 
       this.showInferenceForm = false;
 
-      this.quasar.loading.hide();
+      this.$q.loading.hide();
     },
   },
   async mounted() {
     const experimentId = this.$route.params.experimentId as string;
 
-    this.quasar = useQuasar();
-
-    this.quasar.loading.show({
+    this.$q.loading.show({
       spinner: QSpinnerOrbit,
       message: `Experiment ${experimentId}`
     });
@@ -194,7 +190,7 @@ export default defineComponent({
 
     this.setExperiment(response.experiment);
 
-    this.quasar.loading.hide();
+    this.$q.loading.hide();
 
     if (!this.experimentHasGeneratedData) {
       this.showInferenceForm = true;

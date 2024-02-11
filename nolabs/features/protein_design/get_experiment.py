@@ -14,7 +14,8 @@ class GetExperimentFeature:
 
         experiment_id = ExperimentId(id)
 
-        if not self._file_management.experiment_exists(experiment_id):
+        if not self._file_management.metadata_exists(experiment_id) or not self._file_management.properties_exists(
+                experiment_id):
             raise NoLabsException(messages=["Experiment does not exist"], error_code=ErrorCodes.experiment_id_not_found)
 
         metadata = self._file_management.get_metadata(experiment_id)

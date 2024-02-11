@@ -1,6 +1,7 @@
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.amino_acid.solubility import GetExperimentResponse, ExperimentPropertiesResponse, ExperimentFastaPropertyResponse
+from nolabs.api_models.amino_acid.solubility import GetExperimentResponse, ExperimentPropertiesResponse, \
+    ExperimentFastaPropertyResponse
 from nolabs.features.amino_acid.solubility.services.file_management import FileManagement
 
 
@@ -13,7 +14,8 @@ class GetExperimentFeature:
 
         experiment_id = ExperimentId(id)
 
-        if not self._file_management.experiment_exists(experiment_id):
+        if not self._file_management.metadata_exists(experiment_id) or not self._file_management.properties_exists(
+                experiment_id):
             raise NoLabsException(['This experiment not found'], ErrorCodes.experiment_id_not_found)
 
         data = self._file_management.get_result(experiment_id)
