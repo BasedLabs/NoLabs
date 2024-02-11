@@ -59,7 +59,8 @@ export default {
       message: `Fetching targets for experiment`
     });
     try {
-      this.targets = await store.fetchTargetsForExperiment(this.experimentId);
+      await store.fetchTargetsForExperiment(this.experimentId);
+      this.targets = store.targets;
     } catch (e) {
       Notify.create({
         type: "negative",

@@ -1,7 +1,6 @@
 import esmfold_light_microservice as microservice
 
 from esmfold_light_microservice import ApiClient, DefaultApi, Configuration
-from mypy.errorcodes import ErrorCode
 
 from nolabs.api_models.drug_discovery import PredictFoldingRequest, PredictFoldingResponse
 from nolabs.domain.experiment import ExperimentId

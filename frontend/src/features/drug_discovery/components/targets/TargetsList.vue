@@ -43,7 +43,7 @@
   </q-dialog>
 </template>
 
-<script lang="ts">
+<script>
 import TargetDetail from "src/features/drug_discovery/components/targets/TargetDetail.vue";
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";

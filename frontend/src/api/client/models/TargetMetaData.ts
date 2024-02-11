@@ -5,5 +5,6 @@
 export type TargetMetaData = {
     target_id: string;
     target_name: string;
+    ligands: Array<any>
 };
 

@@ -129,7 +129,7 @@ export default {
     async selectTarget(target) {
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
-        message: `Deleting target`
+        message: `Selecting target`
       });
       try {
         await this.getLigandsForTarget(target);
@@ -162,7 +162,7 @@ export default {
 
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
-        message: `Deleting target`
+        message: `Uploading ligand`
       });
 
       try {
@@ -184,9 +184,6 @@ export default {
       const store = useDrugDiscoveryStore();
       const response = await store.registerDockingJob(this.experimentId, target.target_id, ligand.ligand_id);
       if (response && response.job_id) {
-        if (!ligand.jobs) {
-          this.$set(ligand, 'jobs', []);
-        }
         ligand.jobs.push({ job_id: response.job_id });
       }
     },
@@ -233,7 +230,7 @@ export default {
       const store = useDrugDiscoveryStore();
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
-        message: `Deleting target`
+        message: `Loading ligands`
       });
       try {
         await store.deleteTargetFromExperiment(this.experimentId, targetToDelete.target_id);

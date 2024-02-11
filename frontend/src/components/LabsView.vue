@@ -33,13 +33,13 @@ export default defineComponent({
   data() {
     return {
       labs: [
-        { name: 'Drug Discovery Lab', description: 'Fold proteins, predict binding pockets and run docking', routeName: 'DrugDiscovery', imagePath: 'public/docking_pic.png' },
-        { name: 'Folding Lab', description: 'Fold proteins with the latest state-of-the-art models', routeName: 'Folding', imagePath: 'public/folding_pic.png' },
-        { name: 'Gene Ontology Lab', description: 'Predict gene ontology of proteins', routeName: 'GeneOntology', imagePath: 'public/gene_ontology_pic.png' },
-        { name: 'Localisation Lab', description: 'Predict localisation of proteins', routeName: 'Localisation', imagePath: 'public/localisation_pic.png' },
-        { name: 'Solubility Lab', description: 'Predict solubility of proteins', routeName: 'Solubility', imagePath: 'public/solubility_pic.png' },
-        { name: 'Conformations Lab', description: 'Run simulations using GROMACS', routeName: 'Conformations', imagePath: 'public/conformations_pic.png' },
-        { name: 'Protein Design Lab', description: 'Design binders using RF-Diffusion', routeName: 'ProteinDesign', imagePath: 'public/rf_diffusion_pic.png' }
+        { name: 'Drug Discovery Lab', description: 'Fold proteins, predict binding pockets and run docking', routeName: 'Drug discovery experiments', imagePath: 'public/docking_pic.png' },
+        { name: 'Folding Lab', description: 'Fold proteins with the latest state-of-the-art models', routeName: 'Folding experiments', imagePath: 'public/folding_pic.png' },
+        { name: 'Gene Ontology Lab', description: 'Predict gene ontology of proteins', routeName: 'Gene ontology experiments', imagePath: 'public/gene_ontology_pic.png' },
+        { name: 'Localisation Lab', description: 'Predict localisation of proteins', routeName: 'Localisation experiments', imagePath: 'public/localisation_pic.png' },
+        { name: 'Solubility Lab', description: 'Predict solubility of proteins', routeName: 'Solubility experiments', imagePath: 'public/solubility_pic.png' },
+        { name: 'Conformations Lab', description: 'Run simulations using GROMACS', routeName: 'Conformations experiments', imagePath: 'public/conformations_pic.png' },
+        { name: 'Protein Design Lab', description: 'Design binders using RF-Diffusion', routeName: 'Protein design experiments', imagePath: 'public/rf_diffusion_pic.png' }
       ]
     }
   },

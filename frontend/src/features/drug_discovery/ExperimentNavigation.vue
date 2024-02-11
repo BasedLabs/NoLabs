@@ -10,7 +10,7 @@
         :name="1"
         title="Upload targets"
         icon=polymer
-        color="info"
+        :color="step > 0 ? 'info' : 'grey'"
         :done="step > 1"
       >
         <ExperimentHeader v-if="experiment.metadata" :meta-data="experiment.metadata" :on-experiment-name-change-submit="onExperimentNameChange" />
@@ -24,7 +24,7 @@
       <q-step
         :name="2"
         title="Add ligands"
-        :color="step > 2 ? 'info' : 'grey'"
+        :color="step > 1 ? 'info' : 'grey'"
         icon=hub
         :done="step > 2"
       >
@@ -40,7 +40,7 @@
       <q-step
         :name="3"
         title="Run docking"
-        :color="step > 3 ? 'info' : 'grey'"
+        :color="step > 2 ? 'info' : 'grey'"
         icon="gesture"
         :done="step > 3"
       >
