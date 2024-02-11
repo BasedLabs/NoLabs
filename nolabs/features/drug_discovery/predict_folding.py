@@ -22,8 +22,9 @@ class PredictEsmFoldFeature:
         target_id = TargetId(request.target_id)
 
         configuration = Configuration(
-            host=self._settings.esmfold_light_host,
+            host=self._settings.esmfold_host,
         )
+        print(self._settings.esmfold_host)
         with ApiClient(configuration=configuration) as client:
             api_instance = DefaultApi(client)
             _, sequence, _ = self._file_management.get_target_data(experiment_id, target_id)

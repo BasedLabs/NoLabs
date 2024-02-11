@@ -51,9 +51,14 @@ export function deleteExperimentApi(experimentId: string): CancelablePromise<any
 }
 
 // Change the name of an experiment
-export function changeExperimentNameApi(requestBody: ChangeExperimentNameRequest): CancelablePromise<any> {
-    return DrugDiscoveryService.changeExperimentNameApiV1DrugDiscoveryChangeExperimentNamePost(requestBody);
+export function changeExperimentNameApi(experimentId: string, experimentName: string): CancelablePromise<any> {
+    return DrugDiscoveryService.changeExperimentNameApiV1DrugDiscoveryChangeExperimentNamePost(experimentId, experimentName);
 }
+
+export function getExperimentMetadataApi(experimentId: string): CancelablePromise<any> {
+  return DrugDiscoveryService.getExperimentMetadataApiV1DrugDiscoveryGetExperimentMetadataGet(experimentId);
+}
+
 
 // Upload a target
 export function uploadTargetApi(formData: Body_upload_target_api_v1_drug_discovery_upload_target_post): CancelablePromise<UploadTargetResponse> {
@@ -72,6 +77,10 @@ export function getTargetsListApi(experimentId: string): CancelablePromise<Array
 
 export function getTargetMetaDataApi(experimentId: string, targetId: string): CancelablePromise<GetTargetMetaDataResponse> {
   return DrugDiscoveryService.getTargetMetaDataApiV1DrugDiscoveryGetTargetMetaDataGet(experimentId, targetId);
+}
+
+export function changeTargetNameApi(experimentId: string, targetId: string, targetName: string): CancelablePromise<GetTargetMetaDataResponse> {
+  return DrugDiscoveryService.updateTargetNameApiV1DrugDiscoveryUpdateTargetNamePost(experimentId, targetId, targetName);
 }
 
 export function getTargetDataApi(experimentId: string, targetId: string): CancelablePromise<GetTargetDataResponse> {

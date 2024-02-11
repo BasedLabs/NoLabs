@@ -48,6 +48,12 @@ class GetTargetMetaDataResponse:
     target_name: str
 
 @pcdataclass.dataclass
+class UpdateTargetNameRequest:
+    experiment_id: str
+    target_id: str
+    target_name: str
+
+@pcdataclass.dataclass
 class GetTargetDataRequest:
     experiment_id: str
     target_id: str

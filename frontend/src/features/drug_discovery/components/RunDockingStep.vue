@@ -127,7 +127,7 @@
               label="Run"
               color="info"
               @click.stop="runDockingJob(props.row)"
-              :disabled="isAnyServiceUnhealthy"
+              :disabled="isAnyServiceUnhealthy || isAnyJobRunning"
             />
             <q-tooltip v-if="isAnyServiceUnhealthy">
               Fix the services which are not responding to run the docking.
@@ -245,10 +245,19 @@ export default {
 
     async deleteDockingJob(row) {
       const store = useDrugDiscoveryStore();
+      // Call the API to delete the docking job
       await store.deleteDockingJob(this.experimentId, row.target_id, row.ligand_id, row.job_id);
-      // Refresh the lists to reflect the deletion
-      this.fetchDockingResults();
-      this.fetchJobsInQueue();
+
+      // Remove the job from the dockingResults array
+      this.dockingResults = this.dockingResults.filter(job => job.job_id !== row.job_id);
+
+      // Remove the job from the jobsInQueue array
+      this.jobsInQueue = this.jobsInQueue.filter(job => job.job_id !== row.job_id);
+
+      // You might want to check if the currentJob needs to be updated
+      if (this.currentJob && this.currentJob.job_id === row.job_id) {
+        this.currentJob = null; // or set it to another job as per your logic
+      }
     },
 
     async fetchResultDataForRow(row) {
@@ -323,15 +332,28 @@ export default {
     },
 
     async runDockingJob(row) {
+      if (this.isAnyJobRunning) return;
+
+      // Mark the selected job as running
+      this.jobsInQueue = this.jobsInQueue.map(job => ({
+        ...job,
+        isRunning: job.job_id === row.job_id
+      }));
+
+      // Call the store method to start the job
       const store = useDrugDiscoveryStore();
       await store.runDockingJob(this.experimentId, row.target_id, row.ligand_id, row.job_id);
+
+      // Update the current job
+      await this.updateCurrentJob();
       // You might want to refresh the job list or perform some other action upon starting the job.
     },
 
     async updateCurrentJob() {
       const store = useDrugDiscoveryStore();
       await this.updateServiceHealth(); // Update the health status of each service
-      this.currentJob = this.jobsInQueue.length ? this.jobsInQueue[0] : null;
+      const runningJob = this.jobsInQueue.find(job => job.isRunning);
+      this.currentJob = runningJob || this.jobsInQueue[0] || null;
 
       if (!this.currentJob) return;
 
@@ -405,7 +427,10 @@ export default {
     isAnyServiceUnhealthy() {
       // Computed property to check if any service is unhealthy
       return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.umolServiceHealthy;
-    }
+    },
+    isAnyJobRunning() {
+      return this.jobsInQueue.some(job => job.isRunning);
+    },
   },
   mounted() {
     const route = useRoute();

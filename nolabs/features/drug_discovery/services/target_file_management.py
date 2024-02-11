@@ -58,7 +58,7 @@ class TargetsFileManagement:
             target_folder = self.target_folder(experiment_id, target_id)
 
             self.fasta_writer.write_single_fasta(target_name, sequence,
-                                                 os.path.join(target_folder, target_name + ".fasta"))
+                                                 os.path.join(target_folder, "target.fasta"))
 
             self.update_target_metadata(experiment_id, target_id, "id", target_id.value)
             self.update_target_metadata(experiment_id, target_id, "name", target_name)
@@ -80,12 +80,15 @@ class TargetsFileManagement:
     def update_target_metadata(self, experiment_id: ExperimentId, target_id: TargetId, key: str, value: str):
         metadata_file = os.path.join(self.target_folder(experiment_id, target_id),
                                      self._settings.drug_discovery_target_metadata_file_name)
+        print(os.path.exists(metadata_file), key, value)
         if os.path.exists(metadata_file):
             with open(metadata_file, "r") as f:
                 metadata = json.load(f)
                 metadata[key] = value
             with open(metadata_file, "w") as f:
                 json.dump(metadata, f)
+            target_metadata = TargetMetaData(target_id=metadata["id"], target_name=metadata["name"])
+            return target_metadata
         else:
             metadata = {key: value}
             with open(metadata_file, "w") as f:
@@ -98,6 +101,9 @@ class TargetsFileManagement:
             metadata = json.load(f)
         target_metadata = TargetMetaData(target_id=metadata["id"], target_name=metadata["name"])
         return target_metadata
+
+    def update_target_name(self, experiment_id: ExperimentId, target_id: TargetId, target_name: str) -> TargetMetaData:
+        return self.update_target_metadata(experiment_id, target_id, 'name', target_name)
 
     def get_targets_list(self, experiment_id: ExperimentId) -> List[TargetMetaData]:
         self.ensure_targets_folder_exists(experiment_id)
@@ -116,33 +122,27 @@ class TargetsFileManagement:
         target_metadata = self.get_target_metadata(experiment_id, target_id)
         target_name = target_metadata.target_name
 
-        ids2sequences = self.fasta_reader.get_ids2seqs_from_path(os.path.join(target_folder, target_name + ".fasta"))
-        sequence = [amino_acid.sequence for amino_acid in ids2sequences if amino_acid.name == target_name][0]
+        ids2sequences = self.fasta_reader.get_ids2seqs_from_path(os.path.join(target_folder, "target.fasta"))
+        sequence = [amino_acid.sequence for amino_acid in ids2sequences][0]
         pdb_content = self.get_pdb_contents(experiment_id, target_id)
 
         return target_name, sequence, pdb_content
 
     def get_pdb_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
-        target_metadata = self.get_target_metadata(experiment_id, target_id)
-        target_name = target_metadata.target_name
-        if os.path.exists(os.path.join(target_folder, target_name + ".pdb")):
-            return self.pdb_reader.read_pdb(os.path.join(target_folder, target_name + ".pdb"))
+        if os.path.exists(os.path.join(target_folder, "target.pdb")):
+            return self.pdb_reader.read_pdb(os.path.join(target_folder, "target.pdb"))
 
         return None
 
     def store_pdb_contents(self, experiment_id: ExperimentId, target_id: TargetId, pdb_content: str) -> None:
         target_folder = self.target_folder(experiment_id, target_id)
-        target_metadata = self.get_target_metadata(experiment_id, target_id)
-        target_name = target_metadata.target_name
-        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, target_name + ".pdb"), )
+        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, "target.pdb"), )
 
     def get_fasta_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
-        target_metadata = self.get_target_metadata(experiment_id, target_id)
-        target_name = target_metadata.target_name
-        if os.path.exists(os.path.join(target_folder, target_name + ".fasta")):
-            return self.fasta_reader.get_contents_from_path(os.path.join(target_folder, target_name + ".fasta"))
+        if os.path.exists(os.path.join(target_folder, "target.fasta")):
+            return self.fasta_reader.get_contents_from_path(os.path.join(target_folder, "target.fasta"))
 
         return None
 

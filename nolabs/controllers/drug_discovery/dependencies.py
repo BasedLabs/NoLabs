@@ -6,6 +6,7 @@ from nolabs.controllers.common_dependencies import settings_dependency
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckFoldingServiceHealthFeature, CheckUmolServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
+from nolabs.features.drug_discovery.gert_experiment_metadata import GetExperimentMetaDataFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
@@ -20,7 +21,7 @@ from nolabs.features.drug_discovery.services.target_file_management import Targe
 from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
 from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
-    GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature
+    GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature, UpdateTargetNameFeature
 from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
     GetLigandsListFeature, GetLigandDataFeature, GetLigandMetaDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
@@ -43,6 +44,12 @@ def file_management_dependency(settings: Annotated[Settings, Depends(settings_de
 def get_experiments_feature_dependency(
         file_management: Annotated[FileManagement, Depends(file_management_dependency)]) -> GetExperimentsFeature:
     return GetExperimentsFeature(file_management=file_management)
+
+
+def get_experiment_metadata_dependency(
+        file_management: Annotated[
+            FileManagement, Depends(file_management_dependency)]) -> GetExperimentMetaDataFeature:
+    return GetExperimentMetaDataFeature(file_management=file_management)
 
 
 def delete_experiment_feature_dependency(
@@ -100,6 +107,10 @@ def get_target_meta_data_dependency(target_file_management: Annotated[TargetsFil
 Depends(target_file_management_dependency)]) -> GetTargetMetaDataFeature:
     return GetTargetMetaDataFeature(file_management=target_file_management)
 
+def update_target_name_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)]) -> UpdateTargetNameFeature:
+    return UpdateTargetNameFeature(file_management=target_file_management)
+
 
 def get_target_data_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)]) -> GetTargetDataFeature:
@@ -129,15 +140,17 @@ Depends(target_file_management_dependency)]) -> GetFoldedStructureFeature:
 
 def predict_esmfold_light_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)],
-                               settings: Annotated[Settings,
-                               Depends(settings_dependency)]) -> PredictEsmFoldLightFeature:
+                                     settings: Annotated[Settings,
+                                     Depends(settings_dependency)]) -> PredictEsmFoldLightFeature:
     return PredictEsmFoldLightFeature(file_management=target_file_management, settings=settings)
+
 
 def predict_esmfold_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)],
                                settings: Annotated[Settings,
                                Depends(settings_dependency)]) -> PredictEsmFoldFeature:
     return PredictEsmFoldFeature(file_management=target_file_management, settings=settings)
+
 
 def upload_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
 Depends(ligand_file_management_dependency)]) -> UploadLigandFeature:
@@ -178,6 +191,7 @@ def check_msa_data_available_dependency(target_file_management: Annotated[Target
 Depends(target_file_management_dependency)]) -> CheckMsaDataAvailableFeature:
     return CheckMsaDataAvailableFeature(file_management=target_file_management)
 
+
 def check_msa_service_health_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckMsaServiceHealthFeature:
     return CheckMsaServiceHealthFeature(settings=settings)
@@ -192,9 +206,11 @@ def check_pocket_data_available_dependency(results_file_management: Annotated[Re
 Depends(result_file_management_dependency)]) -> CheckBindingPocketDataAvailableFeature:
     return CheckBindingPocketDataAvailableFeature(file_management=results_file_management)
 
+
 def get_job_binding_pocket_dependency(results_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> GetBJobBindingPocketDataFeature:
     return GetBJobBindingPocketDataFeature(file_management=results_file_management)
+
 
 def check_p2rank_service_health_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckP2RankServiceHealthFeature:
@@ -210,17 +226,21 @@ def check_folding_data_available_dependency(target_file_management: Annotated[Ta
 Depends(target_file_management_dependency)]) -> CheckFoldingDataAvailableFeature:
     return CheckFoldingDataAvailableFeature(file_management=target_file_management)
 
+
 def check_folding_service_health_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckFoldingServiceHealthFeature:
     return CheckFoldingServiceHealthFeature(settings=settings)
+
 
 def check_folding_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckFoldingRunningFeature:
     return CheckFoldingRunningFeature(settings=settings)
 
+
 def check_umol_service_health_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolServiceHealthFeature:
     return CheckUmolServiceHealthFeature(settings=settings)
+
 
 def check_umol_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolRunningFeature:
