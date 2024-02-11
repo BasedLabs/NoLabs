@@ -57,6 +57,7 @@ We are working on expanding both and adding a cell biolab and genetic biolab, an
 ```bash
 # Clone this project
 $ git clone https://github.com/BasedLabs/nolabs
+$ cd nolabs
 ```
 
 ```bash
@@ -72,8 +73,37 @@ Server will be available on http://localhost:9000
 
 ## Microservices ##
 
-We also provide an individual docker container backed by FastAPI for each feature. Check /microservices folder. You can use them individually as API.
+We provide individual Docker containers backed by FastAPI for each feature, which are available in the `/microservices` folder. You can use them individually as APIs.
 
+For example, to run the `esmfold` service, you can use Docker Compose:
+
+```bash
+$ docker compose up esmfold
+```
+
+Once the service is up, you can make a POST request to perform a task, such as predicting a protein's folded structure. Here's a simple Python example:
+
+```python
+import requests
+
+# Define the API endpoint
+url = 'http://127.0.0.1:5736/run-folding'
+
+# Specify the protein sequence in the request body
+data = {
+  'protein_sequence': 'YOUR_PROTEIN_SEQUENCE_HERE'
+}
+
+# Make the POST request and get the response
+response = requests.post(url, json=data)
+
+# Extract the PDB content from the response
+pdb_content = response.json().get('pdb_content', '')
+
+
+print(pdb_content)
+```
+This Python script makes a POST request to the esmfold microservice with a protein sequence and prints the predicted PDB content.
 
 
 ## Technologies ##
@@ -85,6 +115,7 @@ The following tools were used in this project:
 - [Transformers](https://huggingface.co/transformers)
 - [FastAPI](https://pypi.org/project/Flask/)
 - [Docker](https://www.docker.com/)
+- [Vue.js](https://vuejs.org/)
 
 ## Requirements ##
 
@@ -92,7 +123,7 @@ The following tools were used in this project:
 - RAM > 16GB
 - [Optional] GPU memory >= 16GB (REALLY speeds up the inference)
 
-**[Recommended for powerful workstations]** Else, if you want to host everything on your machine and have faster inference:
+**[Recommended for powerful workstations]** Else, if you want to host everything on your machine and have faster inference (also a requirement for folding sequences > 400 amino acids in length):
 - RAM > 30GB
 - [Optional] GPU memory >= 40GB (REALLY speeds up the inference)
 
