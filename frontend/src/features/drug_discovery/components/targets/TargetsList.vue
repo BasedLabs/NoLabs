@@ -62,7 +62,7 @@ export default defineComponent({
       required: true,
     },
     originalTargets: {
-      type: Array as () => TargetMetaData[],
+      type: Array<TargetMetaData>,
       required: true,
     },
   },
@@ -94,12 +94,31 @@ export default defineComponent({
         message: `Uploading target files`
       });
 
-      for (let file of this.uploadingTargetFiles) {
-        await store.uploadTargetToExperiment(this.experimentId, file);
-      }
+      try {
+        // Assuming uploadTargetToExperiment can handle multiple files and returns an array of TargetMetaData
+        const uploadedTargets: TargetMetaData[] = [];
+        for (let file of this.uploadingTargetFiles) {
+          const uploadResp = await store.uploadTargetToExperiment(this.experimentId, file);
+          if (uploadResp) {
+            uploadedTargets.push(...uploadResp);
+          }
+        }
 
-      this.uploadTargetDialog = false;
-      this.$q.loading.hide();
+        // Add additional properties to each uploaded target and push them into the targets array
+        const extendedTargets = uploadedTargets.map(target => ({
+          ...target,
+          loadingLigands: false,
+          ligands: [],
+          loadingTargetData: false,
+        })) as ExtendedTargetMetaData[];
+
+        this.targets.push(...extendedTargets);
+      } catch (error) {
+        console.error('Error uploading target files:', error);
+      } finally {
+        this.uploadTargetDialog = false;
+        this.$q.loading.hide();
+      }
     },
     async getTargetData(target: ExtendedTargetMetaData) {
       const store = useDrugDiscoveryStore();

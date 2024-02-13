@@ -13,7 +13,7 @@ export interface ExtendedTargetMetaData extends TargetMetaData {
 
 export interface ExtendedLigandMetaData extends LigandMetaData {
   loadingLigandData: boolean;
-  jobs: any[]; // Define a more specific type if possible
+  jobs: Array<{ job_id: string }>;
   data?: {
     sdf_file?: string;
     smiles?: string;

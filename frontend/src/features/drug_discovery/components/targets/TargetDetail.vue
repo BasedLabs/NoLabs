@@ -96,7 +96,7 @@
 </template>
 
 <script lang="ts">
-import {QCard, QCardSection, QBtn, QDialog, QCardActions, QSpinnerOrbit, useQuasar, QVueGlobals} from "quasar";
+import {QCard, QCardSection, QBtn, QDialog, QCardActions, QSpinnerOrbit, QVueGlobals} from "quasar";
 import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
 import PdbViewer from "src/components/PdbViewer.vue";
 import {defineComponent} from "vue";
@@ -237,7 +237,7 @@ export default defineComponent({
     },
     changeTargetName() {
       const store = useDrugDiscoveryStore();
-      this.quasar?.dialog({
+      this.$q.dialog({
         color: 'positive',
         title: 'Prompt',
         message: 'Enter new target name',
@@ -251,13 +251,13 @@ export default defineComponent({
       }).onOk(async data => {
         if (!data)
           return;
-        this.quasar?.loading.show({
+        this.$q.loading.show({
           spinner: QSpinnerOrbit,
           message: 'Changing target name'
         });
         await store.changeTargetName(this.experimentId, this.target.metaData.target_id, data);
         this.target.metaData.target_name = data;
-        this.quasar?.loading.hide();
+        this.$q.loading.hide();
       });
     }
   },
@@ -283,7 +283,6 @@ export default defineComponent({
   },
   mounted() {
     this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
-    this.quasar = useQuasar();
   },
 })
 </script>

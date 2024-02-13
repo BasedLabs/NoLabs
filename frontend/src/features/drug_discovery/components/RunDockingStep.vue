@@ -202,7 +202,7 @@ export default defineComponent({
   components: {PdbViewer},
   data() {
     return {
-      experimentId: '' as string,
+      experimentId: null as string | null,
       dockingResults: [] as DockingResult[],
       jobsInQueue: [] as Job[],
       resultsColumns: [
@@ -260,17 +260,18 @@ export default defineComponent({
       }
     },
     async fetchDockingResults() {
+      // experimentId is definitely not null here so can use "!"
       const store = useDrugDiscoveryStore();
-      const results = await store.getAllDockingResultsList(this.experimentId);
+      const results = await store.getAllDockingResultsList(this.experimentId!);
 
       for (const result of results?.results_list ?? []) {
-        const targetMeta = await store.fetchTargetMetaData(this.experimentId, result.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId, result.target_id, result.ligand_id);
-        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId,
+        const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
+        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
+        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId!,
           result.target_id,
           result.ligand_id,
           result.job_id);
-        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId, result.target_id, result.ligand_id, result.job_id);
+        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
 
         let pocketIds = null;
 
@@ -294,7 +295,7 @@ export default defineComponent({
     async deleteDockingJob(row: DockingResult) {
       const store = useDrugDiscoveryStore();
       // Call the API to delete the docking job
-      await store.deleteDockingJob(this.experimentId, row.target_id, row.ligand_id, row.job_id);
+      await store.deleteDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
 
       // Remove the job from the dockingResults array
       this.dockingResults = this.dockingResults.filter(job => job.job_id !== row.job_id);
@@ -318,7 +319,7 @@ export default defineComponent({
           // Fetch result data here using your store method
           const store = useDrugDiscoveryStore();
           try {
-            const response = await store.getDockingJobResultData(this.experimentId, row.target_id, row.ligand_id, row.job_id);
+            const response = await store.getDockingJobResultData(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
             if (response) {
               // Assuming response contains properties predicted_pdb and predicted_sdf
               // Assign the created ResultData object to the row
@@ -342,16 +343,16 @@ export default defineComponent({
 
     async fetchJobsInQueue() {
       const store = useDrugDiscoveryStore();
-      const results = await store.getAllDockingResultsList(this.experimentId);
+      const results = await store.getAllDockingResultsList(this.experimentId!);
 
       for (const result of results?.results_list ?? []) {
-        const targetMeta = await store.fetchTargetMetaData(this.experimentId, result.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId, result.target_id, result.ligand_id);
-        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId,
+        const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
+        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
+        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId!,
           result.target_id,
           result.ligand_id,
           result.job_id);
-        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId, result.target_id, result.ligand_id, result.job_id);
+        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
 
         let pocketIds = null;
         if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
@@ -374,16 +375,16 @@ export default defineComponent({
       const store = useDrugDiscoveryStore();
       let progress = 0;
 
-      const msaAvailable = await store.checkMsaDataAvailable(this.experimentId, result.target_id);
+      const msaAvailable = await store.checkMsaDataAvailable(this.experimentId!, result.target_id);
       if (msaAvailable?.is_available) progress++;
 
-      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId, result.target_id);
+      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId!, result.target_id);
       if (foldingAvailable?.is_available) progress++;
 
-      const pocketAvailable = await store.checkPocketDataAvailable(this.experimentId, result.target_id, result.ligand_id, result.job_id);
+      const pocketAvailable = await store.checkPocketDataAvailable(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
       if (pocketAvailable?.is_available) progress++;
 
-      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId, result.target_id, result.ligand_id, result.job_id);
+      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
       if (dockingAvailable?.result_available) progress++;
 
       return progress;
@@ -407,7 +408,7 @@ export default defineComponent({
 
       // Call the store method to start the job
       const store = useDrugDiscoveryStore();
-      await store.runDockingJob(this.experimentId, row.target_id, row.ligand_id, row.job_id);
+      await store.runDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
 
       // Update the current job
       await this.updateCurrentJob();
@@ -422,28 +423,28 @@ export default defineComponent({
 
       if (!this.currentJob) return;
 
-      const msaAvailableResp = await store.checkMsaDataAvailable(this.experimentId, this.currentJob.target_id);
+      const msaAvailableResp = await store.checkMsaDataAvailable(this.experimentId!, this.currentJob.target_id);
       this.currentJob.msaAvailable = msaAvailableResp?.is_available ?? false;
       if (!this.currentJob.msaAvailable && this.msaServiceHealthy) {
         const msaRunningResp = await store.checkMsaJobIsRunning(this.currentJob.job_id);
         this.currentJob.msaRunning = msaRunningResp?.is_running ?? false;
       }
 
-      const pocketAvailableResp = await store.checkPocketDataAvailable(this.experimentId, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
+      const pocketAvailableResp = await store.checkPocketDataAvailable(this.experimentId!, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
       this.currentJob.pocketAvailable = pocketAvailableResp?.is_available ?? false;
       if (!this.currentJob.pocketAvailable && this.p2RankServiceHealthy) {
         const p2RankRunningResp = await store.checkP2RankJobIsRunning(this.currentJob.job_id);
         this.currentJob.pocketRunning = p2RankRunningResp?.is_running ?? false;
       }
 
-      const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId, this.currentJob.target_id);
+      const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId!, this.currentJob.target_id);
       this.currentJob.foldingAvailable = foldingAvailableResp?.is_available ?? false;
       if (!this.currentJob.foldingAvailable && this.foldingServiceHealthy) {
         const foldingRunningResp = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
         this.currentJob.foldingRunning = foldingRunningResp?.is_running ?? false;
       }
 
-      const dockingResultAvailableResp = await store.checkDockingResultAvailable(this.experimentId, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
+      const dockingResultAvailableResp = await store.checkDockingResultAvailable(this.experimentId!, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
       this.currentJob.dockingAvailable = dockingResultAvailableResp?.result_available ?? false;
       if (!this.currentJob.dockingAvailable && this.umolServiceHealthy) {
         const umolRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);

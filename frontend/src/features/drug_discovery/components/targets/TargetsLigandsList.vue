@@ -63,7 +63,7 @@
               <q-item v-for="(job, jobIndex) in ligand.jobs" :key="job.job_id" class="q-pa-md">
                 <q-item-section>Job ID: {{ job.job_id }}</q-item-section>
                 <q-item-section side top>
-                  <q-btn icon="delete" color="negative" flat @click="deleteJob(target, ligand, job, jobIndex)" />
+                  <q-btn icon="delete" color="negative" flat @click="deleteJob(target, ligand, job.job_id, jobIndex)" />
                 </q-item-section>
               </q-item>
             </q-list>
@@ -82,7 +82,7 @@
 
       <q-card-actions align="right">
         <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false" />
-        <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload(selectedTarget)" />
+        <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload(selectedTarget!)" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -111,7 +111,7 @@ export default defineComponent({
       required: true,
     },
     originalTargets: {
-      type: Array as () => TargetMetaData[],
+      type: Array<TargetMetaData>,
       required: true,
     },
   },
@@ -207,9 +207,9 @@ export default defineComponent({
         ligand.jobs.push({ job_id: response.job_id });
       }
     },
-    async deleteJob(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData, job: ResultMetaData, jobIndex: number) {
+    async deleteJob(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData, job_id: string, jobIndex: number) {
       const store = useDrugDiscoveryStore();
-      const response = await store.deleteDockingJob(this.experimentId, target.target_id, ligand.ligand_id, job.job_id);
+      const response = await store.deleteDockingJob(this.experimentId, target.target_id, ligand.ligand_id, job_id);
       if (response) {
         ligand.jobs.splice(jobIndex, 1); // Remove the job from the list
       }
