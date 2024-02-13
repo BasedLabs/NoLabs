@@ -129,6 +129,6 @@ class CheckFoldingDataAvailableFeature:
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
 
-        is_available = self._file_management.check_binding_pocket_exist(experiment_id, target_id)
+        is_available = self._file_management.check_folding_exist(experiment_id, target_id)
 
         return CheckFoldingDataAvailableResponse(is_available=is_available)

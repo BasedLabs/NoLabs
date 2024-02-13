@@ -33,13 +33,15 @@
   </q-page>
 </template>
 
-<script>
+<script lang="ts">
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
-import {Notify, QSpinner, QSpinnerOrbit} from "quasar";
+import {Notify, QSpinnerOrbit} from "quasar";
 import {useRoute} from "vue-router";
 import TargetsLigandsList from "src/features/drug_discovery/components/targets/TargetsLigandsList.vue";
+import {TargetMetaData} from "src/api/client/models/TargetMetaData.ts";
+import {defineComponent} from "vue";
 
-export default {
+export default defineComponent({
   name: "ExperimentSetup",
   components: {
     TargetsLigandsList,
@@ -47,13 +49,14 @@ export default {
   data() {
     return {
       loading: true,
-      targets: null
+      targets: [] as TargetMetaData[],
+      experimentId: null as string | null
     };
   },
   async mounted() {
     const store = useDrugDiscoveryStore();
     const route = useRoute();
-    this.experimentId = route.params.experimentId;
+    this.experimentId = route.params.experimentId as string;
     this.$q.loading.show({
       spinner: QSpinnerOrbit,
       message: `Fetching targets for experiment`
@@ -72,5 +75,5 @@ export default {
       this.$q.loading.hide();
     }
   },
-};
+})
 </script>

@@ -137,7 +137,7 @@ class TargetsFileManagement:
 
     def store_pdb_contents(self, experiment_id: ExperimentId, target_id: TargetId, pdb_content: str) -> None:
         target_folder = self.target_folder(experiment_id, target_id)
-        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, "target.pdb"), )
+        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, "target.pdb"))
 
     def get_fasta_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
@@ -201,3 +201,8 @@ class TargetsFileManagement:
         pocket_file = os.path.join(target_folder, self._settings.drug_discovery_pocket_directory_name,
                                    self._settings.drug_discovery_pocket_file_name)
         return os.path.exists(pocket_file)
+
+    def check_folding_exist(self, experiment_id: ExperimentId, target_id: TargetId) -> bool:
+        target_folder = self.target_folder(experiment_id, target_id)
+        pdb_file = os.path.join(os.path.join(target_folder, "target.pdb"))
+        return os.path.exists(pdb_file)

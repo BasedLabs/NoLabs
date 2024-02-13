@@ -95,13 +95,13 @@
   </q-card>
 </template>
 
-<script>
-import {QCard, QCardSection, QBtn, QDialog, QCardActions, Notify, QSpinnerOrbit, useQuasar} from "quasar";
+<script lang="ts">
+import {QCard, QCardSection, QBtn, QDialog, QCardActions, QSpinnerOrbit, useQuasar, QVueGlobals} from "quasar";
 import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
 import PdbViewer from "src/components/PdbViewer.vue";
-import {obtainErrorResponse} from "../../../../api/errorWrapper";
+import {defineComponent} from "vue";
 
-export default {
+export default defineComponent({
   name: "TargetDetail",
   components: {
     QCard,
@@ -126,7 +126,6 @@ export default {
       selectedResidues: new Set(),
       showNoPocketModal: false,
       selectionMode: false,
-      viewer: null,
       loading3DView: true,
       predictingFolding: false,
       predictingPocket: false,
@@ -142,6 +141,7 @@ export default {
         { label: 'Esmfold_light (up to 400 amino acids)', value: 'light' },
         { label: 'Esmfold', value: 'full' },
       ],
+      quasar: null as QVueGlobals | null,
     };
   },
   methods: {
@@ -169,7 +169,7 @@ export default {
     toggleSelectionMode() {
       this.selectionMode = !this.selectionMode;
     },
-    toggleResidueSelection(index) {
+    toggleResidueSelection(index: number) {
       if (this.selectionMode) {
         let newPocketIds = [...this.target.data.pocketIds]; // Create a copy of the pocketIds array
         const pocketIndex = newPocketIds.indexOf(index);
@@ -183,7 +183,7 @@ export default {
         this.target.data.pocketIds = newPocketIds; // Assign the new array back to pocketIds to trigger reactivity
       }
     },
-    isResidueSelected(index) {
+    isResidueSelected(index: number) {
       return this.target.data.pocketIds && this.target.data.pocketIds.includes(index);
     },
     clearBindingPocket() {
@@ -237,7 +237,7 @@ export default {
     },
     changeTargetName() {
       const store = useDrugDiscoveryStore();
-      this.quasar.dialog({
+      this.quasar?.dialog({
         color: 'positive',
         title: 'Prompt',
         message: 'Enter new target name',
@@ -251,13 +251,13 @@ export default {
       }).onOk(async data => {
         if (!data)
           return;
-        this.quasar.loading.show({
+        this.quasar?.loading.show({
           spinner: QSpinnerOrbit,
           message: 'Changing target name'
         });
         await store.changeTargetName(this.experimentId, this.target.metaData.target_id, data);
         this.target.metaData.target_name = data;
-        this.quasar.loading.hide();
+        this.quasar?.loading.hide();
       });
     }
   },
@@ -285,12 +285,7 @@ export default {
     this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
     this.quasar = useQuasar();
   },
-  beforeUnmount() {
-    if (this.viewer) {
-      this.viewer.dispose();
-    }
-  },
-};
+})
 </script>
 
 <style>
