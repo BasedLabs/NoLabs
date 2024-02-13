@@ -18,18 +18,19 @@
     <q-card-section>
       <div class="text-h6">Ligand: {{ ligand.ligand_name }}</div>
       <div class="text-subtitle1">SMILES: {{ ligand.data.smiles }}</div>
-      <PdbViewer v-if="ligand.data.sdf_file" :sdf-file="ligand.data.sdf_file" />
+      <PdbViewer v-if="sdfFile" :sdf-file="sdfFile" />
     </q-card-section>
   </q-card>
 </template>
 
-<script>
+<script lang="ts">
 import { QCard, QCardSection } from "quasar";
-import * as NGL from "ngl";
 
 import PdbViewer from 'src/components/PdbViewer.vue'
+import {defineComponent, PropType} from "vue";
+import {ExtendedLigandMetaData} from "../targets/types";
 
-export default {
+export default defineComponent({
   name: "LigandDetail",
   components: {
     PdbViewer,
@@ -38,32 +39,22 @@ export default {
   },
   props: {
     originalLigand: {
-      type: Object,
+      type: Object as PropType<ExtendedLigandMetaData>,
       required: true
     },
   },
   data() {
     return {
-      viewer: null,
-      ligand: this.originalLigand
+      ligand: this.originalLigand,
+      sdfFile: null as File | null
     };
   },
   methods: {
   },
   mounted() {
-    this.ligand.data.sdf_file = new File([new Blob([this.ligand.data.sdf_file])], "ligand.sdf");
-  },
-  beforeUnmount() {
-    if (this.viewer) {
-      this.viewer.dispose();
+    if (this.ligand.data?.sdf_file) {
+      this.sdfFile= new File([new Blob([this.ligand.data.sdf_file])], "ligand.sdf");
     }
   },
-};
+})
 </script>
-
-<style>
-.ligand-viewer {
-  width: 100%;
-  height: 400px;
-}
-</style>

@@ -150,18 +150,61 @@
     </q-table>
 </template>
 
-<script>
-import { useDrugDiscoveryStore } from 'src/features/drug_discovery/storage';
+<script lang="ts">
+import {useDrugDiscoveryStore} from 'src/features/drug_discovery/storage';
 import {useRoute} from "vue-router";
 import PdbViewer from "src/components/PdbViewer.vue";
+import {ResultMetaData} from "src/api/client/models/ResultMetaData.ts";
+import {defineComponent} from "vue";
 
-export default {
+interface Job {
+  job_id: string;
+  target_name: string | undefined;
+  ligand_name: string | undefined;
+  target_id: string;
+  ligand_id: string;
+  progress?: number;
+  isRunning?: boolean;
+  msaAvailable?: boolean;
+  pocketAvailable?: boolean;
+  foldingAvailable?: boolean;
+  dockingAvailable?: boolean;
+  msaRunning?: boolean;
+  pocketRunning?: boolean;
+  foldingRunning?: boolean;
+  dockingRunning?: boolean;
+  pocketIds: number[] | null;
+  isAnyJobRunning: boolean;
+  [key: string]: any; // Add this line to allow dynamic keys
+}
+
+interface ResultData {
+  predicted_pdb?: string;
+  predicted_sdf?: string;
+  predicted_pdb_file?: File;
+  predicted_sdf_file?: File;
+}
+
+interface DockingResult {
+  target_name: string | undefined;
+  ligand_name: string | undefined;
+  resultData?: ResultData | null;
+  pocketIds: number[] | null;
+  experiment_id: string;
+  job_id: string;
+  target_id: string;
+  ligand_id: string;
+  expanded: boolean;
+}
+
+export default defineComponent({
   name: 'RunDocking',
   components: {PdbViewer},
   data() {
     return {
-      dockingResults: [],
-      jobsInQueue: [],
+      experimentId: null as string | null,
+      dockingResults: [] as DockingResult[],
+      jobsInQueue: [] as Job[],
       resultsColumns: [
         { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
         { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
@@ -175,7 +218,7 @@ export default {
         { name: 'progress', label: 'Progress', field: 'progress', align: 'left', sortable: true },
         { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
       ],
-      currentJob: null,
+      currentJob: null as Job | null,
       steps: [
         { key: 'msa', label: 'Step 1. MSA' },
         { key: 'pocket', label: 'Step 2. Binding Pocket' },
@@ -186,6 +229,7 @@ export default {
       p2RankServiceHealthy: true,
       foldingServiceHealthy: true,
       umolServiceHealthy: true,
+      polling: null as number | null,
     };
   },
   methods: {
@@ -196,12 +240,12 @@ export default {
       const foldingServiceHealthyResponse = await store.checkFoldingServiceHealth();
       const umolServiceHealthyResponse = await store.checkUmolServiceHealth();
 
-      this.msaServiceHealthy = msaServiceHealthyResponse.is_healthy;
-      this.p2RankServiceHealthy = p2RankServiceHealthyResponse.is_healthy;
-      this.foldingServiceHealthy = foldingServiceHealthyResponse.is_healthy;
-      this.umolServiceHealthy = umolServiceHealthyResponse.is_healthy;
+      this.msaServiceHealthy = msaServiceHealthyResponse?.is_healthy ?? false;
+      this.p2RankServiceHealthy = p2RankServiceHealthyResponse?.is_healthy ?? false;
+      this.foldingServiceHealthy = foldingServiceHealthyResponse?.is_healthy ?? false;
+      this.umolServiceHealthy = umolServiceHealthyResponse?.is_healthy ?? false;
     },
-    getServiceHealth(key) {
+    getServiceHealth(key: string) {
       switch (key) {
         case 'msa':
           return this.msaServiceHealthy;
@@ -216,37 +260,42 @@ export default {
       }
     },
     async fetchDockingResults() {
+      // experimentId is definitely not null here so can use "!"
       const store = useDrugDiscoveryStore();
-      const results = await store.getAllDockingResultsList(this.experimentId);
+      const results = await store.getAllDockingResultsList(this.experimentId!);
 
-      for (const result of results.results_list) {
-        const targetMeta = await store.fetchTargetMetaData(this.experimentId, result.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId, result.target_id, result.ligand_id);
-        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId,
+      for (const result of results?.results_list ?? []) {
+        const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
+        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
+        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId!,
           result.target_id,
           result.ligand_id,
           result.job_id);
-        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId, result.target_id, result.ligand_id, result.job_id);
+        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+
+        let pocketIds = null;
+
         if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
-          result.pocketIds = pocketIdsResponse.pocket_ids;
+          pocketIds = pocketIdsResponse.pocket_ids;
         }
-        if (isDataAvailableResponse.result_available) {
+        if (isDataAvailableResponse?.result_available) {
           const dockingResult = {
             ...result,
-            target_name: targetMeta.target_name,
-            ligand_name: ligandMeta.ligand_name,
+            target_name: targetMeta?.target_name,
+            ligand_name: ligandMeta?.ligand_name,
             resultData: null, // Initialize resultData as null
-            pocketIds: result.pocketIds || null,
+            pocketIds: pocketIds || null,
+            expanded: false,
           };
           this.dockingResults.push(dockingResult);
         }
       }
     },
 
-    async deleteDockingJob(row) {
+    async deleteDockingJob(row: DockingResult) {
       const store = useDrugDiscoveryStore();
       // Call the API to delete the docking job
-      await store.deleteDockingJob(this.experimentId, row.target_id, row.ligand_id, row.job_id);
+      await store.deleteDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
 
       // Remove the job from the dockingResults array
       this.dockingResults = this.dockingResults.filter(job => job.job_id !== row.job_id);
@@ -260,7 +309,7 @@ export default {
       }
     },
 
-    async fetchResultDataForRow(row) {
+    async fetchResultDataForRow(row: DockingResult) {
       if (!row.expanded) {
         // Expand the row
         row.expanded = true;
@@ -269,9 +318,22 @@ export default {
         if (!row.resultData) {
           // Fetch result data here using your store method
           const store = useDrugDiscoveryStore();
-          row.resultData = await store.getDockingJobResultData(this.experimentId, row.target_id, row.ligand_id, row.job_id);
-          row.resultData.predicted_pdb_file = new File([new Blob([row.resultData.predicted_pdb])], "protein.pdb");
-          row.resultData.predicted_sdf_file = new File([new Blob([row.resultData.predicted_sdf])], "ligand.sdf");
+          try {
+            const response = await store.getDockingJobResultData(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
+            if (response) {
+              // Assuming response contains properties predicted_pdb and predicted_sdf
+              // Assign the created ResultData object to the row
+              row.resultData = {
+                predicted_pdb: response.predicted_pdb,
+                predicted_sdf: response.predicted_sdf,
+                predicted_pdb_file: response.predicted_pdb ? new File([new Blob([response.predicted_pdb])], "protein.pdb") : undefined,
+                predicted_sdf_file: response.predicted_sdf ? new File([new Blob([response.predicted_sdf])], "ligand.sdf") : undefined,
+              };
+            }
+          } catch (error) {
+            console.error("Error fetching result data for row:", error);
+            // Handle error, possibly set resultData to a default state or show an error message
+          }
         }
       } else {
         // Collapse the row if it's already expanded
@@ -281,57 +343,61 @@ export default {
 
     async fetchJobsInQueue() {
       const store = useDrugDiscoveryStore();
-      const results = await store.getAllDockingResultsList(this.experimentId);
+      const results = await store.getAllDockingResultsList(this.experimentId!);
 
-      for (const result of results.results_list) {
-        const targetMeta = await store.fetchTargetMetaData(this.experimentId, result.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId, result.target_id, result.ligand_id);
-        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId,
+      for (const result of results?.results_list ?? []) {
+        const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
+        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
+        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId!,
           result.target_id,
           result.ligand_id,
           result.job_id);
-        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId, result.target_id, result.ligand_id, result.job_id);
-        if (pocketIdsResponse && pocketIdsResponse.pocketIds) {
-          result.pocketIds = pocketIdsResponse.pocketIds;
+        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+
+        let pocketIds = null;
+        if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
+          pocketIds = pocketIdsResponse.pocket_ids;
         }
-        if (!isDataAvailableResponse.result_available) {
+        if (!isDataAvailableResponse?.result_available) {
           this.jobsInQueue.push({
             ...result,
-            target_name: targetMeta.target_name,
-            ligand_name: ligandMeta.ligand_name,
+            target_name: targetMeta?.target_name,
+            ligand_name: ligandMeta?.ligand_name,
             progress: await this.calculateProgress(result),
-            pocketIds: result.pocketIds || null,
+            pocketIds: pocketIds || null,
+            isAnyJobRunning: false
           });
         }
       }
     },
 
-    async calculateProgress(result) {
+    async calculateProgress(result: ResultMetaData) {
       const store = useDrugDiscoveryStore();
       let progress = 0;
 
-      const msaAvailable = await store.checkMsaDataAvailable(this.experimentId, result.target_id);
-      if (msaAvailable.is_available) progress++;
+      const msaAvailable = await store.checkMsaDataAvailable(this.experimentId!, result.target_id);
+      if (msaAvailable?.is_available) progress++;
 
-      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId, result.target_id);
-      if (foldingAvailable.is_available) progress++;
+      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId!, result.target_id);
+      if (foldingAvailable?.is_available) progress++;
 
-      const pocketAvailable = await store.checkPocketDataAvailable(this.experimentId, result.target_id, result.ligand_id, result.job_id);
-      if (pocketAvailable.is_available) progress++;
+      const pocketAvailable = await store.checkPocketDataAvailable(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+      if (pocketAvailable?.is_available) progress++;
 
-      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId, result.target_id, result.ligand_id, result.job_id);
-      if (dockingAvailable.result_available) progress++;
+      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+      if (dockingAvailable?.result_available) progress++;
 
       return progress;
     },
 
     runCurrentJob() {
-      if (!this.currentJob.isAnyJobRunning) {
+      if (!this.currentJob?.isAnyJobRunning) {
+        if (this.currentJob != null)
         this.runDockingJob(this.currentJob);
       }
     },
 
-    async runDockingJob(row) {
+    async runDockingJob(row: Job) {
       if (this.isAnyJobRunning) return;
 
       // Mark the selected job as running
@@ -342,7 +408,7 @@ export default {
 
       // Call the store method to start the job
       const store = useDrugDiscoveryStore();
-      await store.runDockingJob(this.experimentId, row.target_id, row.ligand_id, row.job_id);
+      await store.runDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
 
       // Update the current job
       await this.updateCurrentJob();
@@ -357,49 +423,40 @@ export default {
 
       if (!this.currentJob) return;
 
-      let allDataAvailable = false;
-
-      // Check if data is available for each step only if the respective service is healthy
-      if (this.msaServiceHealthy) {
-        const msaAvailableResp = await store.checkMsaDataAvailable(this.experimentId, this.currentJob.target_id);
-        this.currentJob.msaAvailable = msaAvailableResp.is_available;
-        if (!this.currentJob.msaAvailable) {
-          const msaRunningResp = await store.checkMsaJobIsRunning(this.currentJob.job_id);
-          this.currentJob.msaRunning = msaRunningResp.is_running;
-        }
+      const msaAvailableResp = await store.checkMsaDataAvailable(this.experimentId!, this.currentJob.target_id);
+      this.currentJob.msaAvailable = msaAvailableResp?.is_available ?? false;
+      if (!this.currentJob.msaAvailable && this.msaServiceHealthy) {
+        const msaRunningResp = await store.checkMsaJobIsRunning(this.currentJob.job_id);
+        this.currentJob.msaRunning = msaRunningResp?.is_running ?? false;
       }
 
-      if (this.p2RankServiceHealthy) {
-        const pocketAvailableResp = await store.checkPocketDataAvailable(this.experimentId, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
-        this.currentJob.pocketAvailable = pocketAvailableResp.is_available;
-        if (!this.currentJob.pocketAvailable) {
-          const p2RankRunningResp = await store.checkP2RankJobIsRunning(this.currentJob.job_id);
-          this.currentJob.pocketRunning = p2RankRunningResp.is_running;
-        }
+      const pocketAvailableResp = await store.checkPocketDataAvailable(this.experimentId!, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
+      this.currentJob.pocketAvailable = pocketAvailableResp?.is_available ?? false;
+      if (!this.currentJob.pocketAvailable && this.p2RankServiceHealthy) {
+        const p2RankRunningResp = await store.checkP2RankJobIsRunning(this.currentJob.job_id);
+        this.currentJob.pocketRunning = p2RankRunningResp?.is_running ?? false;
       }
 
-      if (this.foldingServiceHealthy) {
-        const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId, this.currentJob.target_id);
-        this.currentJob.foldingAvailable = foldingAvailableResp.is_available;
-        if (!this.currentJob.foldingAvailable) {
-          const foldingRunningResp = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
-          this.currentJob.foldingRunning = foldingRunningResp.is_running;
-        }
+      const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId!, this.currentJob.target_id);
+      this.currentJob.foldingAvailable = foldingAvailableResp?.is_available ?? false;
+      if (!this.currentJob.foldingAvailable && this.foldingServiceHealthy) {
+        const foldingRunningResp = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
+        this.currentJob.foldingRunning = foldingRunningResp?.is_running ?? false;
       }
 
-      if (this.umolServiceHealthy) {
-        const dockingResultAvailableResp = await store.checkDockingResultAvailable(this.experimentId, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
-        this.currentJob.dockingAvailable = dockingResultAvailableResp.result_available;
-        if (!this.currentJob.dockingAvailable) {
-          const umolRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
-          this.currentJob.dockingRunning = umolRunningResp.is_running;
-        }
+      const dockingResultAvailableResp = await store.checkDockingResultAvailable(this.experimentId!, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
+      this.currentJob.dockingAvailable = dockingResultAvailableResp?.result_available ?? false;
+      if (!this.currentJob.dockingAvailable && this.umolServiceHealthy) {
+        const umolRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
+        this.currentJob.dockingRunning = umolRunningResp?.is_running ?? false;
       }
 
       // Update the overall running status based on individual service running status
-      this.currentJob.isAnyJobRunning = this.currentJob.msaRunning || this.currentJob.pocketRunning || this.currentJob.foldingRunning || this.currentJob.dockingRunning;
+      if (this.currentJob) {
+        this.currentJob.isAnyJobRunning = (this.currentJob.msaRunning || this.currentJob.pocketRunning || this.currentJob.foldingRunning || this.currentJob.dockingRunning) ?? false;
+      }
 
-      allDataAvailable = this.currentJob.msaAvailable && this.currentJob.pocketAvailable && this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
+      let allDataAvailable = this.currentJob.msaAvailable && this.currentJob.pocketAvailable && this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
       // If all data is available, refresh the current job and results
       if (allDataAvailable) {
         this.dockingResults = [];
@@ -410,7 +467,7 @@ export default {
         await this.fetchJobsInQueue();
       }
     },
-    getStepClass(job, step) {
+    getStepClass(job: Job | null, step: string) {
       if (!job) return 'bg-grey-3 text-black q-ma-md';
 
       if (job[`${step}Available`]) {
@@ -434,13 +491,16 @@ export default {
   },
   mounted() {
     const route = useRoute();
-    this.experimentId = route.params.experimentId;
+    this.experimentId = route.params.experimentId as string;
     this.fetchDockingResults();
     this.fetchJobsInQueue();
-    this.polling = setInterval(this.updateCurrentJob, 1000);
+    this.polling = window.setInterval(this.updateCurrentJob, 1000);
   },
   beforeUnmount() {
-    clearInterval(this.polling); // Clear polling interval when component is destroyed
+    if (this.polling !== null) {
+      clearInterval(this.polling); // TypeScript knows this.polling is not null here
+      this.polling = null;
+    }
   },
-};
+})
 </script>

@@ -53,23 +53,27 @@
   </q-page>
 </template>
 
-<script>
+<script lang="ts">
 import ExperimentHeader from "src/features/drug_discovery/components/ExperimentHeader.vue";
 import {useDrugDiscoveryStore} from "./storage";
+import {defineComponent} from "vue";
 
-export default {
+export default defineComponent({
   name: "ExperimentNavigation",
   components: {ExperimentHeader},
   data() {
     return {
       step: 1, // This can be a reactive property based on the current route if needed
-      experiment: {},
+      experiment: {
+        experimentId: null as string | null,
+        metadata: null
+      },
     };
   },
   async mounted() {
     const store = useDrugDiscoveryStore();
     this.setStepBasedOnRoute();
-    this.experiment.experimentId = this.$route.params.experimentId;
+    this.experiment.experimentId = this.$route.params.experimentId as string;
     this.experiment.metadata = await store.getExperimentMetaData(this.experiment.experimentId);
   },
   methods: {
@@ -88,19 +92,19 @@ export default {
           this.step = 1; // Default step if the route name doesn't match
       }
     },
-    openNextStep(stepName) {
+    openNextStep(stepName: string) {
       this.$refs.stepper.next();
       this.$router.push({ name: stepName, params: { experimentId: this.$route.params.experimentId } });
     },
-    openPreviousStep(stepName) {
+    openPreviousStep(stepName: string) {
       this.$refs.stepper.previous();
       this.$router.push({ name: stepName, params: { experimentId: this.$route.params.experimentId } });
     },
-    async onExperimentNameChange(newExperimentName) {
+    async onExperimentNameChange(newExperimentName: string) {
       const store = useDrugDiscoveryStore();
-      await store.changeExperimentName(this.experiment.experimentId, newExperimentName);
-      this.experiment.name = newExperimentName;
+      await store.changeExperimentName(this.experiment.experimentId as string, newExperimentName);
     }
   }
-};
+}
+)
 </script>

@@ -43,12 +43,15 @@
   </q-dialog>
 </template>
 
-<script>
+<script lang="ts">
 import TargetDetail from "src/features/drug_discovery/components/targets/TargetDetail.vue";
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
+import {defineComponent} from "vue";
+import {ExtendedTargetMetaData} from "./types";
+import {TargetMetaData} from "../../../../api/client";
 
-export default {
+export default defineComponent({
   name: "TargetsList",
   components: {
     TargetDetail,
@@ -59,13 +62,18 @@ export default {
       required: true,
     },
     originalTargets: {
-      type: Array,
+      type: Array<TargetMetaData>,
       required: true,
     },
   },
   data() {
     return {
-      targets: this.originalTargets,
+      targets: this.originalTargets.map(target => ({
+      ...target,
+      loadingLigands: false,
+      ligands: [],
+      loadingTargetData: false,
+      })) as ExtendedTargetMetaData[],
       uploadTargetDialog: false,
       uploadingTargetFiles: [],
       uploadLigandDialog: false,
@@ -75,26 +83,8 @@ export default {
     };
   },
   methods: {
-    async selectTarget(target) {
-      await this.getLigandsForTarget(target);
+    async selectTarget(target: ExtendedTargetMetaData) {
       await this.getTargetData(target);
-    },
-    async getLigandsForTarget(target) {
-      if (target.ligands && target.ligands.length > 0) {
-        return;
-      }
-      const store = useDrugDiscoveryStore();
-      target.loadingLigands = true;
-      try {
-        target.ligands = await store.fetchLigandsForTarget(
-            this.experimentId,
-            target.target_id
-        );
-      } catch (error) {
-        console.error("Error fetching ligands:", error);
-      } finally {
-        target.loadingLigands = false;
-      }
     },
     async handleTargetFileUpload() {
       const store = useDrugDiscoveryStore();
@@ -104,21 +94,40 @@ export default {
         message: `Uploading target files`
       });
 
-      for (let file of this.uploadingTargetFiles) {
-        await store.uploadTargetToExperiment(this.experimentId, file);
-      }
+      try {
+        // Assuming uploadTargetToExperiment can handle multiple files and returns an array of TargetMetaData
+        const uploadedTargets: TargetMetaData[] = [];
+        for (let file of this.uploadingTargetFiles) {
+          const uploadResp = await store.uploadTargetToExperiment(this.experimentId, file);
+          if (uploadResp) {
+            uploadedTargets.push(...uploadResp);
+          }
+        }
 
-      this.uploadTargetDialog = false;
-      this.$q.loading.hide();
+        // Add additional properties to each uploaded target and push them into the targets array
+        const extendedTargets = uploadedTargets.map(target => ({
+          ...target,
+          loadingLigands: false,
+          ligands: [],
+          loadingTargetData: false,
+        })) as ExtendedTargetMetaData[];
+
+        this.targets.push(...extendedTargets);
+      } catch (error) {
+        console.error('Error uploading target files:', error);
+      } finally {
+        this.uploadTargetDialog = false;
+        this.$q.loading.hide();
+      }
     },
-    async getTargetData(target) {
+    async getTargetData(target: ExtendedTargetMetaData) {
       const store = useDrugDiscoveryStore();
       target.loadingTargetData = true;
       try {
         const data = await store.fetchTargetData(this.experimentId, target.target_id);
         target.data = {
-          proteinSequence: data.sequence,
-          pdbContents: data.pdbContents,
+          proteinSequence: data?.sequence,
+          pdbContents: data?.pdbContents,
         };
       } catch (error) {
         console.error('Error fetching target data:', error);
@@ -126,7 +135,7 @@ export default {
         target.loadingTargetData = false;
       }
     },
-    async deleteTarget(targetToDelete) {
+    async deleteTarget(targetToDelete: ExtendedTargetMetaData) {
       const store = useDrugDiscoveryStore();
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
@@ -143,5 +152,6 @@ export default {
       }
     },
   },
-};
+}
+)
 </script>
