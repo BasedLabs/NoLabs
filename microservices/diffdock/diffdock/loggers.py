@@ -15,12 +15,12 @@ _logger.addHandler(_logHandler)
 
 class Log:
     @staticmethod
-    def folding_request(request: RunEsmFoldPredictionRequest):
+    def folding_request(request: RunDiffDockPredictionRequest):
         d = request.as_log_dict()
         _logger.info('Run folding on hardware request', extra=d)
 
     @staticmethod
-    def folding_response(response: RunEsmFoldPredictionResponse):
+    def folding_response(response: RunDiffDockPredictionResponse):
         d = response.as_log_dict()
         _logger.info('Run folding on hardware response', extra=d)
 

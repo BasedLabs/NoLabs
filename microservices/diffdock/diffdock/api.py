@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from diffdock.services import run_folding
+from diffdock.services import run_docking
 from diffdock.api_models import RunDiffDockPredictionRequest, RunDiffDockPredictionResponse, IsJobRunningResponse
 
 app = FastAPI(
@@ -14,7 +14,7 @@ def predict(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionRespo
     Log.folding_request(request)
     if request.job_id:
         job_state_manager.start_job(request.job_id)
-    result = run_folding(request)
+    result = run_docking(request)
     if request.job_id:
         job_state_manager.finish_job(request.job_id)
     Log.folding_response(result)

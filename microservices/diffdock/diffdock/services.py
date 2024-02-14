@@ -1,5 +1,6 @@
 import tempfile
 import subprocess
+import os
 from fastapi import HTTPException
 from diffdock.api_models import RunDiffDockPredictionRequest, RunDiffDockPredictionResponse
 
@@ -18,7 +19,7 @@ def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionR
 
             # Construct the command
             cmd = [
-                "python", "-m", "inference",
+                "python", "-m", "diffdock_src/inference",
                 "--protein_path", protein_file.name,
                 "--ligand_path", ligand_file.name,
                 "--inference_steps", str(request.inference_steps),
