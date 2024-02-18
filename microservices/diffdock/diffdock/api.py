@@ -11,13 +11,11 @@ from diffdock.job_state_manager import job_state_manager
 
 @app.post("/run-docking")
 def predict(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionResponse:
-    Log.folding_request(request)
     if request.job_id:
         job_state_manager.start_job(request.job_id)
     result = run_docking(request)
     if request.job_id:
         job_state_manager.finish_job(request.job_id)
-    Log.folding_response(result)
     return result
 
 @app.get("/job/{job_id}/is-running")

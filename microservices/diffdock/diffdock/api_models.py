@@ -18,9 +18,18 @@ class RunDiffDockPredictionRequest(BaseModelMixin):
     job_id: str = None  # Optional job ID if you want to track the job status
 
 @dataclasses.dataclass
+class SDFResult(BaseModelMixin):
+    sdf_content: str
+    confidence: float
+    scored_affinity: float
+    minimized_affinity: float
+
+@dataclasses.dataclass
 class RunDiffDockPredictionResponse(BaseModelMixin):
-    errors: List[str]
-    pdb_content: Optional[str] = None
+    success: bool
+    message: str
+    pdb_contents: str
+    sdf_results: List[SDFResult]
 
 @dataclasses.dataclass
 class IsJobRunningResponse:
