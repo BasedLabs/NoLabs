@@ -13,6 +13,7 @@ WORKDIR /app/frontend
 RUN npm install
 
 ENV PYTHONBUFFERED=1
+ENV COMPOSE=1
 
 RUN poetry install --no-root
 WORKDIR /app

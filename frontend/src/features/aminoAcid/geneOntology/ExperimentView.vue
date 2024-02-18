@@ -3,7 +3,7 @@
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
       <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
-        <q-btn color="positive" size="md" outline label="Localisation parameters"
+        <q-btn color="positive" size="md" outline label="Gene ontology parameters"
                @click="showInferenceForm = !showInferenceForm"/>
       </ExperimentHeader>
       <q-page-container>
@@ -30,7 +30,7 @@
     <q-dialog v-model="showInferenceForm" position="right" :maximized="true">
       <q-card>
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">Localisation parameters</div>
+          <div class="text-h6">Gene ontology parameters</div>
           <q-space/>
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
@@ -170,4 +170,3 @@ export default defineComponent({
   }
 })
 </script>
-  
