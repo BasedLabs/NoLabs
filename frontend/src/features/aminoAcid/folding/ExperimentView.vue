@@ -3,7 +3,7 @@
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
       <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
-        <q-btn color="positive" size="md" outline label="Localisation parameters"
+        <q-btn color="positive" size="md" outline label="Folding parameters"
                @click="showInferenceForm = !showInferenceForm"/>
       </ExperimentHeader>
       <q-page-container>
@@ -134,4 +134,3 @@ export default defineComponent({
   }
 })
 </script>
-  

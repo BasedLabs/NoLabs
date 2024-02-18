@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-json-logger
+mypy
+pydantic
+numpy
+requests
+types-requests
+

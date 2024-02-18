@@ -10,3 +10,7 @@ if 'NOLABS_ENVIRONMENT' not in os.environ:
 
 def is_dev() -> bool:
     return os.environ.get('NOLABS_ENVIRONMENT') == 'dev'
+
+
+def is_compose() -> bool:
+    return os.environ.get('COMPOSE') == '1'
