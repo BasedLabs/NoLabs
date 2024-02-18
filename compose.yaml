@@ -81,8 +81,8 @@ services:
       context: microservices/gene_ontology
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5788
-    expose:
-      - "5788"
+    ports:
+      - "5788:5788"
     deploy:
       resources:
         reservations:
@@ -126,5 +126,3 @@ services:
       - "8000:8000"
       - "9000:9000"
     command: --host=0.0.0.0
-    depends_on:
-      - gene_ontology
