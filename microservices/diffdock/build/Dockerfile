@@ -21,7 +21,7 @@ RUN git clone https://github.com/gcorso/DiffDock.git && \
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
-    pip install --quiet pyg==0.7.1 \
+    pip install pyg==0.7.1 \
                         pyyaml==6.0 \
                         scipy==1.7.3 \
                         networkx==2.6.3 \

@@ -102,6 +102,7 @@ def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionR
 
                     # Append the result for this SDF file
                     sdf_results.append(SDFResult(
+                        sdf_file_name=os.path.basename(sdf_file),
                         sdf_content=sdf_content,
                         confidence=confidence,
                         scored_affinity=scored_affinity,

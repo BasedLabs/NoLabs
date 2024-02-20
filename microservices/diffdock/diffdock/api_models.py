@@ -19,6 +19,7 @@ class RunDiffDockPredictionRequest(BaseModelMixin):
 
 @dataclasses.dataclass
 class SDFResult(BaseModelMixin):
+    sdf_file_name: str
     sdf_content: str
     confidence: float
     scored_affinity: float
