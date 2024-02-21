@@ -7,7 +7,9 @@ from nolabs.api_models.drug_discovery import GetResultsListForTargetLigandReques
     CheckResultDataAvailableRequest, CheckResultDataAvailableResponse, \
     CheckMsaDataAvailableResponse, CheckMsaDataAvailableRequest, \
     CheckPocketDataAvailableRequest, CheckPocketDataAvailableResponse, CheckFoldingDataAvailableResponse, \
-    CheckFoldingDataAvailableRequest, GetJobBindingPocketDataRequest, GetJobBindingPocketDataResponse
+    CheckFoldingDataAvailableRequest, GetJobBindingPocketDataRequest, GetJobBindingPocketDataResponse, \
+    GetAllJobsListRequest, GetAllJobsListResponse, JobMetaData, GetJobsListForTargetLigandRequest, \
+    GetJobsListForTargetLigandResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.data_models.ligand import LigandId
@@ -31,13 +33,53 @@ class GetAllResultsListFeature:
             target_id = TargetId(target.target_id)
             for ligand in self._ligands_file_management.get_ligands_list(experiment_id, target_id):
                 ligand_id = LigandId(ligand.ligand_id)
-                for result in self._results_file_management.get_results_list(experiment_id, target_id, ligand_id):
-                    results_list.append(ResultMetaData(job_id=result.job_id,
-                                                       target_id=target_id.value,
-                                                       ligand_id=ligand_id.value,
-                                                       experiment_id=experiment_id.value))
+                for result in self._results_file_management.get_jobs_list(experiment_id, target_id, ligand_id):
+                    is_available = self._results_file_management.check_result_data_available(experiment_id,
+                                                                                             target_id,
+                                                                                             ligand_id,
+                                                                                             JobId(result.job_id))
+
+                    if is_available:
+                        results_list.append(ResultMetaData(job_id=result.job_id,
+                                                           target_id=target_id.value,
+                                                           ligand_id=ligand_id.value,
+                                                           experiment_id=experiment_id.value))
 
         return GetAllResultsListResponse(results_list=results_list)
+
+
+class GetAllJobsListFeature:
+    def __init__(self, results_file_management: ResultsFileManagement,
+                 target_file_management: TargetsFileManagement,
+                 ligand_file_management: LigandsFileManagement):
+        self._results_file_management = results_file_management
+        self._targets_file_management = target_file_management
+        self._ligands_file_management = ligand_file_management
+
+    def handle(self, request: GetAllJobsListRequest) -> GetAllJobsListResponse:
+        experiment_id = ExperimentId(request.experiment_id)
+
+        jobs_list = []
+
+        for target in self._targets_file_management.get_targets_list(experiment_id):
+            target_id = TargetId(target.target_id)
+            for ligand in self._ligands_file_management.get_ligands_list(experiment_id, target_id):
+                ligand_id = LigandId(ligand.ligand_id)
+                for job in self._results_file_management.get_jobs_list(experiment_id, target_id, ligand_id):
+                    is_available = self._results_file_management.check_result_data_available(experiment_id,
+                                                                                             target_id,
+                                                                                             ligand_id,
+                                                                                             JobId(job.job_id))
+
+                    if not is_available:
+                        jobs_list.append(JobMetaData(job_id=job.job_id,
+                                                     target_id=target_id.value,
+                                                     ligand_id=ligand_id.value,
+                                                     experiment_id=experiment_id.value,
+                                                     folding_method=job.folding_method,
+                                                     docking_method=job.docking_method))
+
+        return GetAllJobsListResponse(jobs_list=jobs_list)
 
 
 class GetResultsListForTargetLigandFeature:
@@ -51,13 +93,47 @@ class GetResultsListForTargetLigandFeature:
 
         results_list = []
 
-        for result in self._results_file_management.get_results_list(experiment_id, target_id, ligand_id):
-            results_list.append(ResultMetaData(job_id=result.job_id,
-                                               target_id=target_id.value,
-                                               ligand_id=ligand_id.value,
-                                               experiment_id=experiment_id.value))
+        for result in self._results_file_management.get_jobs_list(experiment_id, target_id, ligand_id):
+            is_available = self._results_file_management.check_result_data_available(experiment_id,
+                                                                                     target_id,
+                                                                                     ligand_id,
+                                                                                     JobId(result.job_id))
+
+            if is_available:
+                results_list.append(ResultMetaData(job_id=result.job_id,
+                                                   target_id=target_id.value,
+                                                   ligand_id=ligand_id.value,
+                                                   experiment_id=experiment_id.value))
 
         return GetResultsListForTargetLigandResponse(results_list=results_list)
+
+
+class GetJobsListForTargetLigandFeature:
+    def __init__(self, results_file_management: ResultsFileManagement):
+        self._results_file_management = results_file_management
+
+    def handle(self, request: GetJobsListForTargetLigandRequest) -> GetJobsListForTargetLigandResponse:
+        experiment_id = ExperimentId(request.experiment_id)
+        target_id = TargetId(request.target_id)
+        ligand_id = LigandId(request.ligand_id)
+
+        jobs_list = []
+
+        for job in self._results_file_management.get_jobs_list(experiment_id, target_id, ligand_id):
+            is_available = self._results_file_management.check_result_data_available(experiment_id,
+                                                                                     target_id,
+                                                                                     ligand_id,
+                                                                                     JobId(job.job_id))
+
+            if not is_available:
+                jobs_list.append(JobMetaData(job_id=job.job_id,
+                                             target_id=target_id.value,
+                                             ligand_id=ligand_id.value,
+                                             experiment_id=experiment_id.value,
+                                             folding_method=job.folding_method,
+                                             docking_method=job.docking_method))
+
+        return GetJobsListForTargetLigandResponse(jobs_list=jobs_list)
 
 
 class CheckResultDataAvailableFeature:
@@ -128,7 +204,8 @@ class CheckFoldingDataAvailableFeature:
     def handle(self, request: CheckFoldingDataAvailableRequest) -> CheckFoldingDataAvailableResponse:
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
+        folding_method = request.folding_method
 
-        is_available = self._file_management.check_folding_exist(experiment_id, target_id)
+        is_available = self._file_management.check_folding_exist(experiment_id, target_id, folding_method)
 
         return CheckFoldingDataAvailableResponse(is_available=is_available)

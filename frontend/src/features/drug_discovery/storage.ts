@@ -1,33 +1,47 @@
 import {defineStore} from 'pinia';
 import {
-    changeExperimentNameApi, changeTargetNameApi,
-    checkDockingResultAvailableApi,
-    checkFoldingDataAvailableApi,
-    checkFoldingJobIsRunningApi, checkFoldingServiceHealthApi,
-    checkMsaDataAvailableApi,
-    checkMsaJobIsRunningApi, checkMsaServiceHealthApi,
-    checkP2RankJobIsRunningApi, checkP2RankServiceHealthApi,
-    checkPocketDataAvailableApi,
-    checkUmolJobIsRunningApi, checkUmolServiceHealthApi,
-    createExperimentApi, deleteDockingJobApi,
-    deleteExperimentApi,
-    deleteLigandApi,
-    deleteTargetApi, getAllDockingResultsListApi,
-    getDockingJobResultDataApi, getDockingResultsListForTargetLigandApi, getExperimentMetadataApi,
-    getExperimentsApi, getJobPocketDataApi,
-    getLigandDataApi,
-    getLigandMetaDataApi,
-    getLigandsListApi,
-    getTargetBindingPocketApi,
-    getTargetDataApi,
-    getTargetMetaDataApi,
-    getTargetsListApi,
-    predictBindingPocketApi,
-    predictFoldingApi, predictLightFoldingApi,
-    registerDockingJobApi,
-    runDockingJobApi, setTargetBindingPocketApi,
-    uploadLigandApi,
-    uploadTargetApi
+  changeExperimentNameApi,
+  changeTargetNameApi,
+  checkDockingResultAvailableApi,
+  checkFoldingDataAvailableApi,
+  checkFoldingJobIsRunningApi,
+  checkFoldingServiceHealthApi,
+  checkMsaDataAvailableApi,
+  checkMsaJobIsRunningApi,
+  checkMsaServiceHealthApi,
+  checkP2RankJobIsRunningApi,
+  checkP2RankServiceHealthApi,
+  checkPocketDataAvailableApi,
+  checkUmolJobIsRunningApi,
+  checkUmolServiceHealthApi,
+  createExperimentApi,
+  deleteDockingJobApi,
+  deleteExperimentApi,
+  deleteLigandApi,
+  deleteTargetApi,
+  getAllDockingJobsListApi,
+  getAllDockingResultsListApi,
+  getDockingJobResultDataApi,
+  getDockingJobsListForTargetLigandApi,
+  getDockingResultsListForTargetLigandApi,
+  getExperimentMetadataApi,
+  getExperimentsApi,
+  getJobPocketDataApi,
+  getLigandDataApi,
+  getLigandMetaDataApi,
+  getLigandsListApi,
+  getTargetBindingPocketApi,
+  getTargetDataApi,
+  getTargetMetaDataApi,
+  getTargetsListApi,
+  predictBindingPocketApi,
+  predictFoldingApi,
+  predictLightFoldingApi,
+  registerDockingJobApi,
+  runDockingJobApi,
+  setTargetBindingPocketApi,
+  uploadLigandApi,
+  uploadTargetApi
 } from 'src/features/drug_discovery/api';
 
 import {
@@ -273,9 +287,9 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async registerDockingJob(experimentId: string, targetId: string, ligandId: string) {
+        async registerDockingJob(experimentId: string, targetId: string, ligandId: string, foldingMethod: string) {
             try {
-                return await registerDockingJobApi(experimentId, targetId, ligandId);
+                return await registerDockingJobApi(experimentId, targetId, ligandId, foldingMethod);
             } catch (error) {
                 console.error("Error registering docking job:", error);
                 return null;
@@ -327,9 +341,9 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             }
         },
 
-        async checkFoldingDataAvailable(experimentId: string, targetId: string) {
+        async checkFoldingDataAvailable(experimentId: string, targetId: string, foldingMethod: string) {
             try {
-                return await checkFoldingDataAvailableApi(experimentId, targetId);
+                return await checkFoldingDataAvailableApi(experimentId, targetId, foldingMethod);
             } catch (error) {
                 console.error("Error checking folding data availability:", error);
                 return null;
@@ -378,6 +392,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 return null;
             }
         },
+        async getAllDockingJobsList(experimentId: string) {
+          try {
+            return await getAllDockingJobsListApi(experimentId);
+          } catch (error) {
+            console.error("Error getting all results list:", error);
+            return null;
+          }
+        },
         async getDockingResultsListForTargetLigand(experimentId: string, targetId: string, ligandId: string) {
             try {
                 return await getDockingResultsListForTargetLigandApi(experimentId, targetId, ligandId);
@@ -385,6 +407,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error("Error getting results list for ligand-target:", error);
                 return null;
             }
+        },
+        async getDockingJobsListForTargetLigand(experimentId: string, targetId: string, ligandId: string) {
+          try {
+            return await getDockingJobsListForTargetLigandApi(experimentId, targetId, ligandId);
+          } catch (error) {
+            console.error("Error getting results list for ligand-target:", error);
+            return null;
+          }
         },
         async deleteDockingJob(experimentId: string, targetId: string, ligandId: string, jobId: string) {
             try {

@@ -14,10 +14,12 @@ import type { DeleteDockingJobResponse } from '../models/DeleteDockingJobRespons
 import type { DeleteLigandResponse } from '../models/DeleteLigandResponse';
 import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
+import type { GetAllJobsListResponse } from '../models/GetAllJobsListResponse';
 import type { GetAllResultsListResponse } from '../models/GetAllResultsListResponse';
 import type { GetDockingResultDataResponse } from '../models/GetDockingResultDataResponse';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
 import type { GetJobBindingPocketDataResponse } from '../models/GetJobBindingPocketDataResponse';
+import type { GetJobsListForTargetLigandResponse } from '../models/GetJobsListForTargetLigandResponse';
 import type { GetLigandDataResponse } from '../models/GetLigandDataResponse';
 import type { GetLigandMetaDataResponse } from '../models/GetLigandMetaDataResponse';
 import type { GetResultsListForTargetLigandResponse } from '../models/GetResultsListForTargetLigandResponse';
@@ -546,6 +548,7 @@ export class DrugDiscoveryService {
      * @param experimentId
      * @param targetId
      * @param ligandId
+     * @param foldingMethod
      * @returns RegisterDockingJobResponse Successful Response
      * @throws ApiError
      */
@@ -553,6 +556,7 @@ export class DrugDiscoveryService {
         experimentId: string,
         targetId: string,
         ligandId: string,
+        foldingMethod: string,
     ): CancelablePromise<RegisterDockingJobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -561,6 +565,7 @@ export class DrugDiscoveryService {
                 'experiment_id': experimentId,
                 'target_id': targetId,
                 'ligand_id': ligandId,
+                'folding_method': foldingMethod,
             },
             errors: {
                 422: `Validation Error`,
@@ -743,12 +748,14 @@ export class DrugDiscoveryService {
      * Check Folding Data Available
      * @param experimentId
      * @param targetId
+     * @param foldingMethod
      * @returns CheckFoldingDataAvailableResponse Successful Response
      * @throws ApiError
      */
     public static checkFoldingDataAvailableApiV1DrugDiscoveryCheckFoldingDataAvailableGet(
         experimentId: string,
         targetId: string,
+        foldingMethod: string,
     ): CancelablePromise<CheckFoldingDataAvailableResponse> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -756,6 +763,7 @@ export class DrugDiscoveryService {
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
+                'folding_method': foldingMethod,
             },
             errors: {
                 422: `Validation Error`,
@@ -909,6 +917,32 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Get Jobs List For Target Ligand
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @returns GetJobsListForTargetLigandResponse Successful Response
+     * @throws ApiError
+     */
+    public static getJobsListForTargetLigandApiV1DrugDiscoveryGetJobsListForTargetLigandGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+    ): CancelablePromise<GetJobsListForTargetLigandResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-jobs-list-for-target-ligand',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Get All Results List
      * @param experimentId
      * @returns GetAllResultsListResponse Successful Response
@@ -920,6 +954,26 @@ export class DrugDiscoveryService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/drug_discovery/get-all-results-list',
+            query: {
+                'experiment_id': experimentId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get All Jobs List
+     * @param experimentId
+     * @returns GetAllJobsListResponse Successful Response
+     * @throws ApiError
+     */
+    public static getAllJobsListApiV1DrugDiscoveryGetAllJobsListGet(
+        experimentId: string,
+    ): CancelablePromise<GetAllJobsListResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-all-jobs-list',
             query: {
                 'experiment_id': experimentId,
             },

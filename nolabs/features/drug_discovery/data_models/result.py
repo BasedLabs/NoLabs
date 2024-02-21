@@ -22,14 +22,45 @@ class JobId:
 
 @dataclasses.dataclass
 @dataclass
-class ResultMetaData:
+class UmolResultMetaData:
     job_id: str
     target_id: str
     ligand_id: str
 
+
 @dataclasses.dataclass
 @dataclass
-class DockingResultData:
+class JobMetaData:
+    job_id: str
+    target_id: str
+    ligand_id: str
+    folding_method: str
+    docking_method: str
+
+
+@dataclasses.dataclass
+@dataclass
+class UmolDockingResultData:
     predicted_pdb: str
     predicted_sdf: str
     plddt_array: List[int]
+
+@dataclasses.dataclass
+@dataclass
+class DiffDockDockingResultData:
+    predicted_pdb: str
+    predicted_sdf_file_name: str
+    predicted_sdf_contents: str
+    confidence: float
+    scored_affinity: float
+    minimized_affinity: float
+
+
+@dataclasses.dataclass
+@dataclass
+class DiffDockResultMetaData:
+    job_id: str
+    target_id: str
+    ligand_id: str
+    ligand_file_name: str
+    confidence: float
