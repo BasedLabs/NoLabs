@@ -98,6 +98,7 @@ import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
 import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "./types";
+import {JobMetaData} from "../../../../api/client";
 
 export default defineComponent({
   name: "TargetsLigandsList",
@@ -202,7 +203,7 @@ export default defineComponent({
     },
     async registerJob(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData) {
       const store = useDrugDiscoveryStore();
-      const response = await store.registerDockingJob(this.experimentId, target.target_id, ligand.ligand_id);
+      const response = await store.registerDockingJob(this.experimentId, target.target_id, ligand.ligand_id, target.folding_method);
       if (response && response.job_id) {
         ligand.jobs.push({ job_id: response.job_id });
       }
@@ -238,8 +239,8 @@ export default defineComponent({
           sdf_file: data?.ligandSdf,
           smiles: data?.ligandSmiles,
         };
-        const jobs = await store.getDockingResultsListForTargetLigand(this.experimentId, target.target_id, ligand.ligand_id);
-        ligand.jobs = jobs?.results_list as ResultMetaData[];// Store the jobs in the ligand object
+        const jobs = await store.getDockingJobsListForTargetLigand(this.experimentId, target.target_id, ligand.ligand_id);
+        ligand.jobs = jobs?.jobs_list as JobMetaData[];// Store the jobs in the ligand object
       } catch (error) {
         console.error('Error fetching ligand data:', error);
       } finally {
@@ -262,7 +263,7 @@ export default defineComponent({
         this.$q.loading.hide();
       }
     },
-    async deleteLigand(target: TargetMetaData, ligandToDelete: LigandMetaData) {
+    async deleteLigand(target: ExtendedTargetMetaData, ligandToDelete: ExtendedLigandMetaData) {
       const store = useDrugDiscoveryStore();
       this.$q.loading.show({
         spinner: QSpinnerOrbit,

@@ -513,6 +513,25 @@ files = [
 ]
 
 [[package]]
+name = "diffdock-microservice"
+version = "1.0.0"
+description = "Diff Dock"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/diffdock/client"
+
+[[package]]
 name = "esmfold-light-microservice"
 version = "1.0.0"
 description = "FastAPI"
@@ -2877,4 +2896,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3fc949ac8ad65db2549fdfd5b6ca252fd27be9c9034fce84fdb520be12a7ce81"
+content-hash = "84cfe5cd0f982bb0edb61051c0fa06b413fad41175f3cc9b67d3dbe54e235820"

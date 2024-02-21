@@ -36,6 +36,7 @@ class PredictEsmFoldLightFeature:
                 request = microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence)
                 pdb_content = api_instance.predict_through_api_run_folding_post(run_esm_fold_prediction_request=request).pdb_content
 
-                self._file_management.store_pdb_contents(experiment_id, target_id, pdb_content)
+                self._file_management.store_pdb_contents(experiment_id, target_id, pdb_content, "esmfold_light")
+                self._file_management.update_target_metadata(experiment_id, target_id, "folding_method", "esmfold_light")
 
         return PredictFoldingResponse(pdb_content=pdb_content)

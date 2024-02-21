@@ -1,6 +1,6 @@
 from pydantic import dataclasses as pcdataclass
 from fastapi import UploadFile
-from typing import List
+from typing import List, Optional
 
 
 @pcdataclass.dataclass
@@ -15,6 +15,7 @@ class GetExperimentRequest:
 class TargetMetaData:
     target_id: str
     target_name: str
+    folding_method: Optional[str] = None
 
 @pcdataclass.dataclass
 class UploadTargetRequest:
@@ -143,6 +144,7 @@ class CheckMsaDataAvailableResponse:
 class CheckFoldingDataAvailableRequest:
     experiment_id: str
     target_id: str
+    folding_method: str
 
 
 @pcdataclass.dataclass
@@ -240,10 +242,20 @@ class ResultMetaData:
     ligand_id: str
 
 @pcdataclass.dataclass
+class JobMetaData:
+    experiment_id: str
+    job_id: str
+    target_id: str
+    ligand_id: str
+    folding_method: str
+    docking_method: str
+
+@pcdataclass.dataclass
 class RegisterDockingJobRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
+    folding_method: str
 
 @pcdataclass.dataclass
 class RegisterDockingJobResponse:
@@ -261,19 +273,40 @@ class DeleteDockingJobResponse:
     job_id: str
 
 @pcdataclass.dataclass
-class RunDockingJobRequest:
+class RunUmolDockingJobRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
     job_id: str
 
 @pcdataclass.dataclass
-class RunDockingJobResponse:
+class RunUmolDockingJobResponse:
     predicted_pdb: str
     predicted_sdf: str
     plddt_array: List[int]
     job_id: str
 
+@pcdataclass.dataclass
+class RunDiffDockDockingJobRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class DiffDockLigandMetaData:
+    job_id: str
+    target_id: str
+    ligand_id: str
+    ligand_file_name: str
+    confidence: float
+    minimized_affinity: float
+    scored_affinity: float
+
+@pcdataclass.dataclass
+class RunDiffDockDockingJobResponse:
+    predicted_pdb: str
+    predicted_ligands: List[DiffDockLigandMetaData]
 
 @pcdataclass.dataclass
 class CheckResultDataAvailableRequest:
@@ -324,6 +357,14 @@ class GetAllResultsListResponse:
     results_list: List[ResultMetaData]
 
 @pcdataclass.dataclass
+class GetAllJobsListRequest:
+    experiment_id: str
+
+@pcdataclass.dataclass
+class GetAllJobsListResponse:
+    jobs_list: List[JobMetaData]
+
+@pcdataclass.dataclass
 class GetResultsListForTargetLigandRequest:
     experiment_id: str
     target_id: str
@@ -332,6 +373,16 @@ class GetResultsListForTargetLigandRequest:
 @pcdataclass.dataclass
 class GetResultsListForTargetLigandResponse:
     results_list: List[ResultMetaData]
+
+@pcdataclass.dataclass
+class GetJobsListForTargetLigandRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class GetJobsListForTargetLigandResponse:
+    jobs_list: List[JobMetaData]
 
 @pcdataclass.dataclass
 class CheckServiceHealthyResponse:

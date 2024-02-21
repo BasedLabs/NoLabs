@@ -56,6 +56,10 @@ class Settings:
         return self._config.get('microservices', 'umol_host')
 
     @property
+    def diffdock_host(self) -> str:
+        return self._config.get('microservices', 'diffdock_host')
+
+    @property
     def esmfold_light_host(self) -> str:
         return self._config.get('microservices', 'esmfold_light_host')
 
@@ -200,14 +204,21 @@ class Settings:
         return self._config.get('drug-discovery', 'docking_result_metadata_file_name')
 
     @property
-    def drug_discovery_docking_result_sdf_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_sdf_file_name')
+    def drug_discovery_umol_docking_result_sdf_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_sdf_file_name')
 
     @property
-    def drug_discovery_docking_result_pdb_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_pdb_file_name')
+    def drug_discovery_umol_docking_result_pdb_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_pdb_file_name')
 
     @property
-    def drug_discovery_docking_result_plddt_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_plddt_file_name')
+    def drug_discovery_umol_docking_result_plddt_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_plddt_file_name')
 
+    @property
+    def drug_discovery_diffdock_docking_result_pdb_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'diffdock_docking_result_pdb_file_name')
+
+    @property
+    def drug_discovery_diffdock_docking_results_metadata_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'diffdock_docking_results_metadata_file_name')

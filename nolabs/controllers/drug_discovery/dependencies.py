@@ -6,11 +6,12 @@ from nolabs.controllers.common_dependencies import settings_dependency
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckFoldingServiceHealthFeature, CheckUmolServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
-from nolabs.features.drug_discovery.gert_experiment_metadata import GetExperimentMetaDataFeature
+from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
-    CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature
+    CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature, \
+    GetAllJobsListFeature, GetJobsListForTargetLigandFeature
 from nolabs.features.drug_discovery.set_binding_pocket import SetBindingPocketFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
@@ -30,8 +31,8 @@ from nolabs.features.drug_discovery.predict_light_folding import PredictEsmFoldL
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
-    CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckFoldingRunningFeature
-from nolabs.features.drug_discovery.predict_docking import PredictDockingFeature
+    CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature
+from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
 from nolabs.features.drug_discovery.get_results import GetDockingResultsFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
@@ -106,6 +107,7 @@ Depends(target_file_management_dependency)]) -> GetTargetsListFeature:
 def get_target_meta_data_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)]) -> GetTargetMetaDataFeature:
     return GetTargetMetaDataFeature(file_management=target_file_management)
+
 
 def update_target_name_dependency(target_file_management: Annotated[TargetsFileManagement,
 Depends(target_file_management_dependency)]) -> UpdateTargetNameFeature:
@@ -232,10 +234,13 @@ Depends(settings_dependency)]) -> CheckFoldingServiceHealthFeature:
     return CheckFoldingServiceHealthFeature(settings=settings)
 
 
-def check_folding_running_dependency(settings: Annotated[Settings,
-Depends(settings_dependency)]) -> CheckFoldingRunningFeature:
-    return CheckFoldingRunningFeature(settings=settings)
+def check_esmfold_running_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckEsmFoldRunningFeature:
+    return CheckEsmFoldRunningFeature(settings=settings)
 
+def check_esmfold_light_running_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckEsmFoldLightRunningFeature:
+    return CheckEsmFoldLightRunningFeature(settings=settings)
 
 def check_umol_service_health_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolServiceHealthFeature:
@@ -259,7 +264,17 @@ def get_all_results_list_dependency(
         Depends(result_file_management_dependency)]) -> GetAllResultsListFeature:
     return GetAllResultsListFeature(target_file_management=target_file_management,
                                     ligand_file_management=ligand_file_management,
-                                    results_file_management=result_file_management, )
+                                    results_file_management=result_file_management)
+
+
+def get_all_jobs_list_dependency(
+        target_file_management: Annotated[TargetsFileManagement,
+        Depends(target_file_management_dependency)], ligand_file_management: Annotated[LigandsFileManagement,
+        Depends(ligand_file_management_dependency)], result_file_management: Annotated[ResultsFileManagement,
+        Depends(result_file_management_dependency)]) -> GetAllJobsListFeature:
+    return GetAllJobsListFeature(target_file_management=target_file_management,
+                                 ligand_file_management=ligand_file_management,
+                                 results_file_management=result_file_management)
 
 
 def get_results_list_for_target_ligand_feature(result_file_management: Annotated[ResultsFileManagement,
@@ -267,13 +282,18 @@ Depends(result_file_management_dependency)]) -> GetResultsListForTargetLigandFea
     return GetResultsListForTargetLigandFeature(results_file_management=result_file_management)
 
 
-def predict_docking_dependency(
+def get_jobs_list_for_target_ligand_feature(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> GetJobsListForTargetLigandFeature:
+    return GetJobsListForTargetLigandFeature(results_file_management=result_file_management)
+
+
+def predict_umol_docking_dependency(
         settings: Annotated[Settings, Depends(settings_dependency)],
         target_file_management: Annotated[TargetsFileManagement,
         Depends(target_file_management_dependency)], ligand_file_management: Annotated[LigandsFileManagement,
         Depends(ligand_file_management_dependency)], result_file_management: Annotated[ResultsFileManagement,
-        Depends(result_file_management_dependency)]) -> PredictDockingFeature:
-    return PredictDockingFeature(target_file_management=target_file_management,
+        Depends(result_file_management_dependency)]) -> PredictUmolDockingFeature:
+    return PredictUmolDockingFeature(target_file_management=target_file_management,
                                  ligand_file_management=ligand_file_management,
                                  result_file_management=result_file_management,
                                  settings=settings)

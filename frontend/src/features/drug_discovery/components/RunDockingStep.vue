@@ -112,7 +112,13 @@
       <template v-slot:body="props">
         <q-tr :props="props" @click.stop="props.expand = !props.expand">
           <q-td v-for="col in queueColumns" :key="col.name" :props="props">
-            <template v-if="col.field === 'progress'">
+            <template v-if="col.field === 'folding_method'">
+              <q-select filled v-model="props.row.folding_method" :options="['esmfold_light', 'esmfold']" @input="handleFoldingChange(props.row.job_id, props.row.folding_method)" />
+            </template>
+            <template v-else-if="col.field === 'docking_method'">
+              <q-select filled v-model="props.row.docking_method" :options="['diffdock', 'umol']" @input="handleDockingChange(props.row.job_id, props.row.docking_method)" />
+            </template>
+            <template v-else-if="col.field === 'progress'">
               {{ props.row.progress }}/4
             </template>
             <template v-else-if="col.field === 'delete'">
@@ -156,6 +162,7 @@ import {useRoute} from "vue-router";
 import PdbViewer from "src/components/PdbViewer.vue";
 import {ResultMetaData} from "src/api/client/models/ResultMetaData.ts";
 import {defineComponent} from "vue";
+import {JobMetaData} from "../../../api/client";
 
 interface Job {
   job_id: string;
@@ -163,6 +170,8 @@ interface Job {
   ligand_name: string | undefined;
   target_id: string;
   ligand_id: string;
+  folding_method: string;
+  docking_method: string;
   progress?: number;
   isRunning?: boolean;
   msaAvailable?: boolean;
@@ -215,6 +224,8 @@ export default defineComponent({
         { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
         { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
         { name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left' },
+        { name: 'folding_method', label: 'Folding Method', field: 'folding_method', align: 'center' },
+        { name: 'docking_method', label: 'Docking Method', field: 'docking_method', align: 'center' },
         { name: 'progress', label: 'Progress', field: 'progress', align: 'left', sortable: true },
         { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
       ],
@@ -267,10 +278,6 @@ export default defineComponent({
       for (const result of results?.results_list ?? []) {
         const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
         const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
-        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId!,
-          result.target_id,
-          result.ligand_id,
-          result.job_id);
         const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
 
         let pocketIds = null;
@@ -278,17 +285,15 @@ export default defineComponent({
         if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
           pocketIds = pocketIdsResponse.pocket_ids;
         }
-        if (isDataAvailableResponse?.result_available) {
-          const dockingResult = {
-            ...result,
-            target_name: targetMeta?.target_name,
-            ligand_name: ligandMeta?.ligand_name,
-            resultData: null, // Initialize resultData as null
-            pocketIds: pocketIds || null,
-            expanded: false,
-          };
-          this.dockingResults.push(dockingResult);
-        }
+        const dockingResult = {
+          ...result,
+          target_name: targetMeta?.target_name,
+          ligand_name: ligandMeta?.ligand_name,
+          resultData: null, // Initialize resultData as null
+          pocketIds: pocketIds || null,
+          expanded: false,
+        };
+        this.dockingResults.push(dockingResult);
       }
     },
 
@@ -343,48 +348,42 @@ export default defineComponent({
 
     async fetchJobsInQueue() {
       const store = useDrugDiscoveryStore();
-      const results = await store.getAllDockingResultsList(this.experimentId!);
+      const jobs = await store.getAllDockingJobsList(this.experimentId!);
 
-      for (const result of results?.results_list ?? []) {
-        const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
-        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId!,
-          result.target_id,
-          result.ligand_id,
-          result.job_id);
-        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+      for (const job of jobs?.jobs_list ?? []) {
+        const targetMeta = await store.fetchTargetMetaData(this.experimentId!, job.target_id);
+        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, job.target_id, job.ligand_id);
+        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, job.target_id, job.ligand_id, job.job_id);
 
         let pocketIds = null;
         if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
           pocketIds = pocketIdsResponse.pocket_ids;
         }
-        if (!isDataAvailableResponse?.result_available) {
-          this.jobsInQueue.push({
-            ...result,
-            target_name: targetMeta?.target_name,
-            ligand_name: ligandMeta?.ligand_name,
-            progress: await this.calculateProgress(result),
-            pocketIds: pocketIds || null,
-            isAnyJobRunning: false
-          });
-        }
+        this.jobsInQueue.push({
+          ...job,
+          target_name: targetMeta?.target_name,
+          ligand_name: ligandMeta?.ligand_name,
+          progress: await this.calculateProgress(job),
+          pocketIds: pocketIds || null,
+          isAnyJobRunning: false
+        });
       }
     },
 
-    async calculateProgress(result: ResultMetaData) {
+    async calculateProgress(job: JobMetaData) {
       const store = useDrugDiscoveryStore();
       let progress = 0;
 
-      const msaAvailable = await store.checkMsaDataAvailable(this.experimentId!, result.target_id);
+      const msaAvailable = await store.checkMsaDataAvailable(this.experimentId!, job.target_id);
       if (msaAvailable?.is_available) progress++;
 
-      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId!, result.target_id);
+      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId!, job.target_id, job.folding_method);
       if (foldingAvailable?.is_available) progress++;
 
-      const pocketAvailable = await store.checkPocketDataAvailable(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+      const pocketAvailable = await store.checkPocketDataAvailable(this.experimentId!, job.target_id, job.ligand_id, job.job_id);
       if (pocketAvailable?.is_available) progress++;
 
-      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId!, job.target_id, job.ligand_id, job.job_id);
       if (dockingAvailable?.result_available) progress++;
 
       return progress;
@@ -415,6 +414,15 @@ export default defineComponent({
       // You might want to refresh the job list or perform some other action upon starting the job.
     },
 
+    handleFoldingChange(job_id: string, folding_backend: string) {
+      console.log('Folding method selected for', job_id, ':', folding_backend);
+      // Implement your logic here
+    },
+    handleDockingChange(job_id: string, docking_method: string) {
+      console.log('Docking method selected for', job_id, ':', docking_method);
+      // Implement your logic here
+    },
+
     async updateCurrentJob() {
       const store = useDrugDiscoveryStore();
       await this.updateServiceHealth(); // Update the health status of each service
@@ -437,7 +445,7 @@ export default defineComponent({
         this.currentJob.pocketRunning = p2RankRunningResp?.is_running ?? false;
       }
 
-      const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId!, this.currentJob.target_id);
+      const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId!, this.currentJob.target_id, this.currentJob.folding_method);
       this.currentJob.foldingAvailable = foldingAvailableResp?.is_available ?? false;
       if (!this.currentJob.foldingAvailable && this.foldingServiceHealthy) {
         const foldingRunningResp = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
