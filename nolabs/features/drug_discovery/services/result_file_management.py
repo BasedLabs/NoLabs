@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import os.path
 import shutil
@@ -13,7 +14,8 @@ from nolabs.utils.sdf import SDFReader, SDFWriter
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.data_models.ligand import LigandId
 from nolabs.features.drug_discovery.data_models.result import JobId, UmolResultMetaData, \
-    UmolDockingResultData, JobMetaData, DiffDockDockingResultData, DiffDockResultMetaData
+    UmolDockingResultData, JobMetaData, DiffDockDockingResultData, DiffDockResultMetaData, DiffDockLigandResultData, \
+    DiffDockModelParams
 from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
 
 
@@ -54,21 +56,21 @@ class ResultsFileManagement:
         results_dir = self.results_folder(experiment_id, target_id, ligand_id)
         if not os.path.exists(os.path.join(results_dir, job_id.value)):
             os.mkdir(os.path.join(results_dir, job_id.value))
-            self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "target_id", target_id.value)
-            self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "ligand_id", ligand_id.value)
-            self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "job_id", job_id.value)
+            self.update_job_metadata(experiment_id, target_id, ligand_id, job_id, "target_id", target_id.value)
+            self.update_job_metadata(experiment_id, target_id, ligand_id, job_id, "ligand_id", ligand_id.value)
+            self.update_job_metadata(experiment_id, target_id, ligand_id, job_id, "job_id", job_id.value)
 
     def update_job_folding_method(self, experiment_id: ExperimentId,
                                   target_id: TargetId,
                                   ligand_id: LigandId,
                                   job_id: JobId, folding_method: str):
-        self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "folding_method", folding_method)
+        self.update_job_metadata(experiment_id, target_id, ligand_id, job_id, "folding_method", folding_method)
 
     def update_job_docking_method(self, experiment_id: ExperimentId,
                                   target_id: TargetId,
                                   ligand_id: LigandId,
                                   job_id: JobId, docking_method: str):
-        self.update_result_metadata(experiment_id, target_id, ligand_id, job_id, "docking_method", docking_method)
+        self.update_job_metadata(experiment_id, target_id, ligand_id, job_id, "docking_method", docking_method)
 
     def store_result_input_pocketIds(self,
                                      experiment_id: ExperimentId,
@@ -99,10 +101,10 @@ class ResultsFileManagement:
         return os.path.exists(pocket_file)
 
     def store_umol_result_data(self, experiment_id: ExperimentId,
-                          target_id: TargetId,
-                          ligand_id: LigandId,
-                          job_id: JobId,
-                          result_data: UmolDockingResultData) -> UmolResultMetaData:
+                               target_id: TargetId,
+                               ligand_id: LigandId,
+                               job_id: JobId,
+                               result_data: UmolDockingResultData) -> UmolResultMetaData:
 
         self.create_result_folder(experiment_id, target_id, ligand_id, job_id)
         result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
@@ -125,10 +127,10 @@ class ResultsFileManagement:
         return UmolResultMetaData(job_id=job_id.value, target_id=target_id.value, ligand_id=ligand_id.value)
 
     def store_diffdock_result_data(self, experiment_id: ExperimentId,
-                          target_id: TargetId,
-                          ligand_id: LigandId,
-                          job_id: JobId,
-                          result_data: DiffDockDockingResultData) -> DiffDockResultMetaData:
+                                   target_id: TargetId,
+                                   ligand_id: LigandId,
+                                   job_id: JobId,
+                                   result_data: DiffDockDockingResultData) -> DiffDockResultMetaData:
 
         self.create_result_folder(experiment_id, target_id, ligand_id, job_id)
         result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
@@ -168,6 +170,18 @@ class ResultsFileManagement:
                                       confidence=result_data.confidence,
                                       ligand_file_name=result_data.predicted_sdf_file_name)
 
+    def get_diffdock_ligand_data(self, experiment_id: ExperimentId, target_id: TargetId,
+                                 ligand_id: LigandId,
+                                 job_id: JobId,
+                                 sdf_file_name: str) -> DiffDockLigandResultData:
+
+        self.create_result_folder(experiment_id, target_id, ligand_id, job_id)
+        result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
+        sdf_file_path = os.path.join(result_folder, sdf_file_name)
+        sdf_contents = self.sdf_reader.read_sdf(sdf_file_path)
+
+        return DiffDockLigandResultData(predicted_sdf_contents=sdf_contents)
+
     def delete_result(self, experiment_id: ExperimentId,
                       target_id: TargetId,
                       ligand_id: LigandId,
@@ -179,7 +193,7 @@ class ResultsFileManagement:
 
         return job_id
 
-    def update_result_metadata(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
+    def update_job_metadata(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
                                job_id: JobId, key: str, value: str):
         metadata_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, job_id),
                                      self._settings.drug_discovery_docking_result_metadata_filename_name)
@@ -218,8 +232,40 @@ class ResultsFileManagement:
                                       docking_method=metadata["docking_method"])
         return result_metadata
 
+
+    def get_diffdock_params(self, experiment_id: ExperimentId,
+                            target_id: TargetId,
+                            ligand_id: LigandId,
+                            job_id: JobId) -> DiffDockModelParams:
+        params_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, job_id),
+                                   self._settings.drug_discovery_diffdock_params_file_name)
+
+        if not os.path.exists(params_file):
+            default_params = {
+                "inference_steps": 20,
+                "samples_per_complex": 1,
+                "batch_size": 10,
+                "actual_steps": 18
+            }
+            with open(params_file, 'w') as f:
+                json.dump(default_params, f)
+
+        with open(params_file, 'r') as f:
+            params = json.load(f)
+
+        return DiffDockModelParams(**params)
+
+    def update_diffdock_params(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
+                               job_id: JobId, new_params: DiffDockModelParams):
+        params_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, job_id),
+                                   self._settings.drug_discovery_diffdock_params_file_name)
+
+        with open(params_file, 'w') as f:
+            # Convert the DiffDockModelParams instance to a dictionary and save it as JSON
+            json.dump(dataclasses.asdict(new_params), f)
+
     def get_jobs_list(self, experiment_id: ExperimentId,
-                         target_id: TargetId, ligand_id: LigandId) -> List[JobMetaData]:
+                      target_id: TargetId, ligand_id: LigandId) -> List[JobMetaData]:
         results_folder = self.results_folder(experiment_id, target_id, ligand_id)
         jobs_list = []
         if not os.path.exists(results_folder):
@@ -231,10 +277,10 @@ class ResultsFileManagement:
 
         return jobs_list
 
-    def get_docking_result_data(self,
-                                experiment_id: ExperimentId,
-                                target_id: TargetId, ligand_id: LigandId,
-                                job_id: JobId) -> UmolDockingResultData:
+    def get_umol_docking_result_data(self,
+                                     experiment_id: ExperimentId,
+                                     target_id: TargetId, ligand_id: LigandId,
+                                     job_id: JobId) -> UmolDockingResultData:
         result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
 
         sdf_file_name = self._settings.drug_discovery_umol_docking_result_sdf_file_name

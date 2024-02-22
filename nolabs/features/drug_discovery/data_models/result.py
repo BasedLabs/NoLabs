@@ -64,3 +64,17 @@ class DiffDockResultMetaData:
     ligand_id: str
     ligand_file_name: str
     confidence: float
+
+@dataclasses.dataclass
+@dataclass
+class DiffDockLigandResultData:
+    predicted_sdf_contents: str
+
+
+@dataclasses.dataclass
+@dataclass
+class DiffDockModelParams:
+    inference_steps: int = 20
+    samples_per_complex: int = 1
+    batch_size: int = 10
+    actual_steps: int = 18

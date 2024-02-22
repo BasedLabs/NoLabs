@@ -4,9 +4,11 @@ from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
-    CheckP2RankServiceHealthFeature, CheckFoldingServiceHealthFeature, CheckUmolServiceHealthFeature
+    CheckP2RankServiceHealthFeature, CheckUmolServiceHealthFeature, \
+    CheckEsmFoldServiceHealthFeature, CheckEsmFoldLightServiceHealthFeature, CheckDiffDockServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
+from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
@@ -31,9 +33,10 @@ from nolabs.features.drug_discovery.predict_light_folding import PredictEsmFoldL
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
-    CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature
+    CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature, \
+    CheckDiffDockRunningFeature
 from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
-from nolabs.features.drug_discovery.get_results import GetDockingResultsFeature
+from nolabs.features.drug_discovery.get_results import GetUmolDockingResultsFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
 
@@ -229,18 +232,25 @@ Depends(target_file_management_dependency)]) -> CheckFoldingDataAvailableFeature
     return CheckFoldingDataAvailableFeature(file_management=target_file_management)
 
 
-def check_folding_service_health_dependency(settings: Annotated[Settings,
-Depends(settings_dependency)]) -> CheckFoldingServiceHealthFeature:
-    return CheckFoldingServiceHealthFeature(settings=settings)
+def check_esmfold_service_health_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckEsmFoldServiceHealthFeature:
+    return CheckEsmFoldServiceHealthFeature(settings=settings)
+
+
+def check_esmfold_light_service_health_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckEsmFoldLightServiceHealthFeature:
+    return CheckEsmFoldLightServiceHealthFeature(settings=settings)
 
 
 def check_esmfold_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckEsmFoldRunningFeature:
     return CheckEsmFoldRunningFeature(settings=settings)
 
+
 def check_esmfold_light_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckEsmFoldLightRunningFeature:
     return CheckEsmFoldLightRunningFeature(settings=settings)
+
 
 def check_umol_service_health_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolServiceHealthFeature:
@@ -250,6 +260,16 @@ Depends(settings_dependency)]) -> CheckUmolServiceHealthFeature:
 def check_umol_running_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolRunningFeature:
     return CheckUmolRunningFeature(settings=settings)
+
+
+def check_diffdock_service_health_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckDiffDockServiceHealthFeature:
+    return CheckDiffDockServiceHealthFeature(settings=settings)
+
+
+def check_diffdock_running_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckDiffDockRunningFeature:
+    return CheckDiffDockRunningFeature(settings=settings)
 
 
 def check_result_data_available_dependency(result_file_management: Annotated[ResultsFileManagement,
@@ -294,14 +314,26 @@ def predict_umol_docking_dependency(
         Depends(ligand_file_management_dependency)], result_file_management: Annotated[ResultsFileManagement,
         Depends(result_file_management_dependency)]) -> PredictUmolDockingFeature:
     return PredictUmolDockingFeature(target_file_management=target_file_management,
-                                 ligand_file_management=ligand_file_management,
-                                 result_file_management=result_file_management,
-                                 settings=settings)
+                                     ligand_file_management=ligand_file_management,
+                                     result_file_management=result_file_management,
+                                     settings=settings)
 
 
-def get_docking_result_dependency(result_file_management: Annotated[ResultsFileManagement,
-Depends(result_file_management_dependency)]) -> GetDockingResultsFeature:
-    return GetDockingResultsFeature(result_file_management=result_file_management)
+def predict_diffdock_docking_dependency(
+        settings: Annotated[Settings, Depends(settings_dependency)],
+        target_file_management: Annotated[TargetsFileManagement,
+        Depends(target_file_management_dependency)], ligand_file_management: Annotated[LigandsFileManagement,
+        Depends(ligand_file_management_dependency)], result_file_management: Annotated[ResultsFileManagement,
+        Depends(result_file_management_dependency)]) -> PredictDiffDockDockingFeature:
+    return PredictDiffDockDockingFeature(target_file_management=target_file_management,
+                                         ligand_file_management=ligand_file_management,
+                                         result_file_management=result_file_management,
+                                         settings=settings)
+
+
+def get_umol_docking_result_dependency(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> GetUmolDockingResultsFeature:
+    return GetUmolDockingResultsFeature(result_file_management=result_file_management)
 
 
 def create_experiment_dependency(

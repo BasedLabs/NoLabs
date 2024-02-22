@@ -327,7 +327,7 @@ class GetDockingResultDataRequest:
     job_id: str
 
 @pcdataclass.dataclass
-class GetDockingResultDataResponse:
+class GetUmolDockingResultDataResponse:
     predicted_pdb: str
     predicted_sdf: str
     plddt_array: List[int]
