@@ -2,7 +2,6 @@ import {
   DrugDiscoveryService,
   TargetMetaData,
   LigandMetaData,
-  ChangeExperimentNameRequest,
   Body_upload_target_api_v1_drug_discovery_upload_target_post,
   PredictFoldingResponse,
   GetTargetBindingPocketResponse,
@@ -17,8 +16,8 @@ import {
   GetTargetMetaDataResponse,
   GetLigandMetaDataResponse,
   RegisterDockingJobResponse,
-  RunDockingJobResponse,
-  GetDockingResultDataResponse,
+  RunUmolDockingJobResponse,
+  GetUmolDockingResultDataResponse,
   CheckResultDataAvailableResponse,
   CheckJobIsRunningResponse,
   CheckMsaDataAvailableResponse,
@@ -28,7 +27,10 @@ import {
   GetResultsListForTargetLigandResponse,
   DeleteDockingJobResponse,
   CheckServiceHealthyResponse,
-  GetJobBindingPocketDataResponse, GetAllJobsListResponse, GetJobsListForTargetLigandResponse
+  GetJobBindingPocketDataResponse,
+  GetAllJobsListResponse,
+  GetJobsListForTargetLigandResponse,
+  RunDiffDockDockingJobResponse
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 import apiConstants from "src/api/constants";
@@ -138,12 +140,17 @@ export function registerDockingJobApi(experimentId: string, targetId: string, li
   return DrugDiscoveryService.registerDockingJobApiV1DrugDiscoveryRegisterDockingJobPost(experimentId, targetId, ligandId, foldingMethod);
 }
 
-export function runDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<RunDockingJobResponse> {
-  return DrugDiscoveryService.performDockingApiV1DrugDiscoveryRunDockingJobPost(experimentId, targetId, ligandId, jobId);
+export function runUmolDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<RunUmolDockingJobResponse> {
+  return DrugDiscoveryService.runUmolDockingApiV1DrugDiscoveryRunUmolDockingJobPost(experimentId, targetId, ligandId, jobId);
 }
 
-export function getDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetDockingResultDataResponse> {
-  return DrugDiscoveryService.getDockingResultDataApiV1DrugDiscoveryGetDockingResultDataGet(experimentId, targetId, ligandId, jobId);
+export function runDiffDockDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<RunDiffDockDockingJobResponse> {
+  return DrugDiscoveryService.runDiffdockDockingApiV1DrugDiscoveryRunDiffdockDockingJobPost(experimentId, targetId, ligandId, jobId);
+}
+
+
+export function getUmolDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetUmolDockingResultDataResponse> {
+  return DrugDiscoveryService.getUmolDockingResultDataApiV1DrugDiscoveryGetUmolDockingResultDataGet(experimentId, targetId, ligandId, jobId);
 }
 
 export function checkDockingResultAvailableApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<CheckResultDataAvailableResponse> {
@@ -162,8 +169,12 @@ export function checkFoldingDataAvailableApi(experimentId: string, targetId: str
   return DrugDiscoveryService.checkFoldingDataAvailableApiV1DrugDiscoveryCheckFoldingDataAvailableGet(experimentId, targetId, foldingMethod);
 }
 
-export function checkFoldingJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
-  return DrugDiscoveryService.checkFoldingJobRunningApiV1DrugDiscoveryCheckFoldingJobRunningGet(jobId);
+export function checkEsmFoldJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
+  return DrugDiscoveryService.checkEsmfoldJobRunningApiV1DrugDiscoveryCheckEsmfoldJobRunningGet(jobId);
+}
+
+export function checkEsmFoldLightJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
+  return DrugDiscoveryService.checkEsmfoldLightJobRunningApiV1DrugDiscoveryCheckEsmfoldLightJobRunningGet(jobId);
 }
 
 export function checkPocketDataAvailableApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<CheckPocketDataAvailableResponse> {
@@ -176,6 +187,10 @@ export function checkP2RankJobIsRunningApi(jobId: string): CancelablePromise<Che
 
 export function checkUmolJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
   return DrugDiscoveryService.checkUmolJobRunningApiV1DrugDiscoveryCheckUmolJobRunningGet(jobId);
+}
+
+export function checkDiffDockJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
+  return DrugDiscoveryService.checkDiffdockJobRunningApiV1DrugDiscoveryCheckDiffdockJobRunningGet(jobId);
 }
 
 export function getAllDockingResultsListApi(experimentId: string): CancelablePromise<GetAllResultsListResponse> {
@@ -206,12 +221,20 @@ export function checkP2RankServiceHealthApi(): CancelablePromise<CheckServiceHea
   return DrugDiscoveryService.checkP2RankServiceHealthApiV1DrugDiscoveryCheckP2RankServiceHealthGet();
 }
 
-export function checkFoldingServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
-  return DrugDiscoveryService.checkFoldingServiceHealthApiV1DrugDiscoveryCheckFoldingServiceHealthGet();
+export function checkEsmFoldServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkEsmfoldServiceHealthApiV1DrugDiscoveryCheckEsmfoldServiceHealthGet();
+}
+
+export function checkEsmFoldLightServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkEsmfoldLightServiceHealthApiV1DrugDiscoveryCheckEsmfoldLightServiceHealthGet();
 }
 
 export function checkUmolServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
   return DrugDiscoveryService.checkUmolServiceHealthApiV1DrugDiscoveryCheckUmolServiceHealthGet();
+}
+
+export function checkDiffDockServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkDiffdockServiceHealthApiV1DrugDiscoveryCheckDiffdockServiceHealthGet();
 }
 
 export function getJobPocketDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetJobBindingPocketDataResponse> {

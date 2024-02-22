@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type RunDockingJobResponse = {
+export type RunUmolDockingJobResponse = {
     predicted_pdb: string;
     predicted_sdf: string;
     plddt_array: Array<number>;

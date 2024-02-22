@@ -4,8 +4,10 @@ import {
   changeTargetNameApi,
   checkDockingResultAvailableApi,
   checkFoldingDataAvailableApi,
-  checkFoldingJobIsRunningApi,
-  checkFoldingServiceHealthApi,
+  checkEsmFoldJobIsRunningApi,
+  checkEsmFoldLightJobIsRunningApi,
+  checkEsmFoldServiceHealthApi,
+  checkEsmFoldLightServiceHealthApi,
   checkMsaDataAvailableApi,
   checkMsaJobIsRunningApi,
   checkMsaServiceHealthApi,
@@ -21,7 +23,7 @@ import {
   deleteTargetApi,
   getAllDockingJobsListApi,
   getAllDockingResultsListApi,
-  getDockingJobResultDataApi,
+  getUmolDockingJobResultDataApi,
   getDockingJobsListForTargetLigandApi,
   getDockingResultsListForTargetLigandApi,
   getExperimentMetadataApi,
@@ -38,10 +40,10 @@ import {
   predictFoldingApi,
   predictLightFoldingApi,
   registerDockingJobApi,
-  runDockingJobApi,
+  runUmolDockingJobApi,
   setTargetBindingPocketApi,
   uploadLigandApi,
-  uploadTargetApi
+  uploadTargetApi, checkDiffDockServiceHealthApi, checkDiffDockJobIsRunningApi, runDiffDockDockingJobApi
 } from 'src/features/drug_discovery/api';
 
 import {
@@ -296,18 +298,27 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             }
         },
 
-        async runDockingJob(experimentId: string, targetId: string, ligandId: string, jobId: string) {
+        async runUmolDockingJob(experimentId: string, targetId: string, ligandId: string, jobId: string) {
             try {
-                return await runDockingJobApi(experimentId, targetId, ligandId, jobId);
+                return await runUmolDockingJobApi(experimentId, targetId, ligandId, jobId);
             } catch (error) {
                 console.error("Error running docking job:", error);
                 return null;
             }
         },
 
+        async runDiffDockDockingJob(experimentId: string, targetId: string, ligandId: string, jobId: string) {
+          try {
+            return await runDiffDockDockingJobApi(experimentId, targetId, ligandId, jobId);
+          } catch (error) {
+            console.error("Error running docking job:", error);
+            return null;
+          }
+        },
+
         async getDockingJobResultData(experimentId: string, targetId: string, ligandId: string, jobId: string) {
             try {
-                return await getDockingJobResultDataApi(experimentId, targetId, ligandId, jobId);
+                return await getUmolDockingJobResultDataApi(experimentId, targetId, ligandId, jobId);
             } catch (error) {
                 console.error("Error getting docking job result data:", error);
                 return null;
@@ -350,13 +361,22 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             }
         },
 
-        async checkFoldingJobIsRunning(jobId: string) {
+        async checkEsmFoldJobIsRunning(jobId: string) {
             try {
-                return await checkFoldingJobIsRunningApi(jobId);
+                return await checkEsmFoldJobIsRunningApi(jobId);
             } catch (error) {
                 console.error("Error checking if folding job is running:", error);
                 return null;
             }
+        },
+
+        async checkEsmFoldLightJobIsRunning(jobId: string) {
+          try {
+            return await checkEsmFoldLightJobIsRunningApi(jobId);
+          } catch (error) {
+            console.error("Error checking if folding job is running:", error);
+            return null;
+          }
         },
 
         async checkPocketDataAvailable(experimentId: string, targetId: string, ligandId: string, jobId: string) {
@@ -383,6 +403,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error("Error checking if Umol job is running:", error);
                 return null;
             }
+        },
+        async checkDiffDockJobIsRunning(jobId: string) {
+          try {
+            return await checkDiffDockJobIsRunningApi(jobId);
+          } catch (error) {
+            console.error("Error checking if Umol job is running:", error);
+            return null;
+          }
         },
         async getAllDockingResultsList(experimentId: string) {
             try {
@@ -448,13 +476,21 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 return null;
             }
         },
-        async checkFoldingServiceHealth() {
+        async checkEsmFoldServiceHealth() {
             try {
-                return await checkFoldingServiceHealthApi();
+                return await checkEsmFoldServiceHealthApi();
             } catch (error) {
                 console.error("Error checking if folding service is healthy:", error);
                 return null;
             }
+        },
+        async checkEsmFoldLightServiceHealth() {
+          try {
+            return await checkEsmFoldLightServiceHealthApi();
+          } catch (error) {
+            console.error("Error checking if folding service is healthy:", error);
+            return null;
+          }
         },
         async checkUmolServiceHealth() {
             try {
@@ -463,6 +499,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error("Error checking if Umol service is healthy:", error);
                 return null;
             }
+        },
+        async checkDiffDockServiceHealth() {
+          try {
+            return await checkDiffDockServiceHealthApi();
+          } catch (error) {
+            console.error("Error checking if Umol service is healthy:", error);
+            return null;
+          }
         },
     }
 });

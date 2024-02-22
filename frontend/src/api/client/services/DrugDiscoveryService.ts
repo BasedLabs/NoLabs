@@ -16,7 +16,6 @@ import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { GetAllJobsListResponse } from '../models/GetAllJobsListResponse';
 import type { GetAllResultsListResponse } from '../models/GetAllResultsListResponse';
-import type { GetDockingResultDataResponse } from '../models/GetDockingResultDataResponse';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
 import type { GetJobBindingPocketDataResponse } from '../models/GetJobBindingPocketDataResponse';
 import type { GetJobsListForTargetLigandResponse } from '../models/GetJobsListForTargetLigandResponse';
@@ -26,12 +25,14 @@ import type { GetResultsListForTargetLigandResponse } from '../models/GetResults
 import type { GetTargetBindingPocketResponse } from '../models/GetTargetBindingPocketResponse';
 import type { GetTargetDataResponse } from '../models/GetTargetDataResponse';
 import type { GetTargetMetaDataResponse } from '../models/GetTargetMetaDataResponse';
+import type { GetUmolDockingResultDataResponse } from '../models/GetUmolDockingResultDataResponse';
 import type { LigandMetaData } from '../models/LigandMetaData';
 import type { PredictBindingPocketResponse } from '../models/PredictBindingPocketResponse';
 import type { PredictFoldingResponse } from '../models/PredictFoldingResponse';
 import type { PredictMsaResponse } from '../models/PredictMsaResponse';
 import type { RegisterDockingJobResponse } from '../models/RegisterDockingJobResponse';
-import type { RunDockingJobResponse } from '../models/RunDockingJobResponse';
+import type { RunDiffDockDockingJobResponse } from '../models/RunDiffDockDockingJobResponse';
+import type { RunUmolDockingJobResponse } from '../models/RunUmolDockingJobResponse';
 import type { TargetMetaData } from '../models/TargetMetaData';
 import type { UploadLigandResponse } from '../models/UploadLigandResponse';
 import type { UploadTargetResponse } from '../models/UploadTargetResponse';
@@ -771,28 +772,59 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Check Folding Service Health
+     * Check Esmfold Service Health
      * @returns CheckServiceHealthyResponse Successful Response
      * @throws ApiError
      */
-    public static checkFoldingServiceHealthApiV1DrugDiscoveryCheckFoldingServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
+    public static checkEsmfoldServiceHealthApiV1DrugDiscoveryCheckEsmfoldServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/drug_discovery/check-folding-service-health',
+            url: '/api/v1/drug_discovery/check-esmfold-service-health',
         });
     }
     /**
-     * Check Folding Job Running
+     * Check Esmfold Light Service Health
+     * @returns CheckServiceHealthyResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkEsmfoldLightServiceHealthApiV1DrugDiscoveryCheckEsmfoldLightServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-esmfold-light-service-health',
+        });
+    }
+    /**
+     * Check Esmfold Job Running
      * @param jobId
      * @returns CheckJobIsRunningResponse Successful Response
      * @throws ApiError
      */
-    public static checkFoldingJobRunningApiV1DrugDiscoveryCheckFoldingJobRunningGet(
+    public static checkEsmfoldJobRunningApiV1DrugDiscoveryCheckEsmfoldJobRunningGet(
         jobId: string,
     ): CancelablePromise<CheckJobIsRunningResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/drug_discovery/check-folding-job-running',
+            url: '/api/v1/drug_discovery/check-esmfold-job-running',
+            query: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Esmfold Light Job Running
+     * @param jobId
+     * @returns CheckJobIsRunningResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkEsmfoldLightJobRunningApiV1DrugDiscoveryCheckEsmfoldLightJobRunningGet(
+        jobId: string,
+    ): CancelablePromise<CheckJobIsRunningResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-esmfold-light-job-running',
             query: {
                 'job_id': jobId,
             },
@@ -833,6 +865,37 @@ export class DrugDiscoveryService {
         });
     }
     /**
+     * Check Diffdock Service Health
+     * @returns CheckServiceHealthyResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkDiffdockServiceHealthApiV1DrugDiscoveryCheckDiffdockServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-diffdock-service-health',
+        });
+    }
+    /**
+     * Check Diffdock Job Running
+     * @param jobId
+     * @returns CheckJobIsRunningResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkDiffdockJobRunningApiV1DrugDiscoveryCheckDiffdockJobRunningGet(
+        jobId: string,
+    ): CancelablePromise<CheckJobIsRunningResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-diffdock-job-running',
+            query: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Check Result Data Available
      * @param experimentId
      * @param targetId
@@ -862,23 +925,52 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Perform Docking
+     * Run Umol Docking
      * @param experimentId
      * @param targetId
      * @param ligandId
      * @param jobId
-     * @returns RunDockingJobResponse Successful Response
+     * @returns RunUmolDockingJobResponse Successful Response
      * @throws ApiError
      */
-    public static performDockingApiV1DrugDiscoveryRunDockingJobPost(
+    public static runUmolDockingApiV1DrugDiscoveryRunUmolDockingJobPost(
         experimentId: string,
         targetId: string,
         ligandId: string,
         jobId: string,
-    ): CancelablePromise<RunDockingJobResponse> {
+    ): CancelablePromise<RunUmolDockingJobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/drug_discovery/run-docking-job',
+            url: '/api/v1/drug_discovery/run-umol-docking-job',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Run Diffdock Docking
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @returns RunDiffDockDockingJobResponse Successful Response
+     * @throws ApiError
+     */
+    public static runDiffdockDockingApiV1DrugDiscoveryRunDiffdockDockingJobPost(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+    ): CancelablePromise<RunDiffDockDockingJobResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/run-diffdock-docking-job',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
@@ -983,23 +1075,23 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Get Docking Result Data
+     * Get Umol Docking Result Data
      * @param experimentId
      * @param targetId
      * @param ligandId
      * @param jobId
-     * @returns GetDockingResultDataResponse Successful Response
+     * @returns GetUmolDockingResultDataResponse Successful Response
      * @throws ApiError
      */
-    public static getDockingResultDataApiV1DrugDiscoveryGetDockingResultDataGet(
+    public static getUmolDockingResultDataApiV1DrugDiscoveryGetUmolDockingResultDataGet(
         experimentId: string,
         targetId: string,
         ligandId: string,
         jobId: string,
-    ): CancelablePromise<GetDockingResultDataResponse> {
+    ): CancelablePromise<GetUmolDockingResultDataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/drug_discovery/get-docking-result-data',
+            url: '/api/v1/drug_discovery/get-umol-docking-result-data',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
