@@ -7,9 +7,9 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **sdf_file_name** | **str** |  | 
 **sdf_content** | **str** |  | 
-**confidence** | **float** |  | 
 **scored_affinity** | **float** |  | 
 **minimized_affinity** | **float** |  | 
+**confidence** | **float** |  | [optional] 
 
 ## Example
 

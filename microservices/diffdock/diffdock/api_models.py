@@ -21,9 +21,9 @@ class RunDiffDockPredictionRequest(BaseModelMixin):
 class SDFResult(BaseModelMixin):
     sdf_file_name: str
     sdf_content: str
-    confidence: float
     scored_affinity: float
     minimized_affinity: float
+    confidence: float = None
 
 @dataclasses.dataclass
 class RunDiffDockPredictionResponse(BaseModelMixin):
