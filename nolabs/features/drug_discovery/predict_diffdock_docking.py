@@ -60,6 +60,7 @@ class PredictDiffDockDockingFeature:
             api_instance = DiffDockDefaultApi(client)
             request = diffdock_microservice.RunDiffDockPredictionRequest(pdb_contents=pdb_content,
                                                                          sdf_contents=sdf_contents,
+                                                                         samples_per_complex=2,
                                                                          job_id=job_id.value,
                                                                          )
             response = api_instance.predict_run_docking_post(run_diff_dock_prediction_request=request)
@@ -70,8 +71,8 @@ class PredictDiffDockDockingFeature:
             confidence = ligand_result.confidence
             minimised_affinity = ligand_result.minimized_affinity
             scored_affinity = ligand_result.scored_affinity
-            ligand_file_name = ligand_result.ligand_file_name
-            ligand_sdf = ligand_result.ligand_sdf
+            ligand_file_name = ligand_result.sdf_file_name
+            ligand_sdf = ligand_result.sdf_content
             result_data = DiffDockDockingResultData(confidence=confidence,
                                                     scored_affinity=scored_affinity,
                                                     minimized_affinity=minimised_affinity,

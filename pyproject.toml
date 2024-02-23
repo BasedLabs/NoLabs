@@ -28,9 +28,9 @@ p2rank-microservice = {path = "microservices/p2rank/client"}
 solubility-microservice = {path = "microservices/solubility/client"}
 jupyter = "^1.0.0"
 umol-microservice = {path = "microservices/umol/client"}
-diffdock-microservice = {path = "microservices/diffdock/client"}
 esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
+diffdock-microservice = {path = "microservices/diffdock/client"}
 
 [project]
 dependencies = [

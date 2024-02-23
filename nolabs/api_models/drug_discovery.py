@@ -299,9 +299,9 @@ class DiffDockLigandMetaData:
     target_id: str
     ligand_id: str
     ligand_file_name: str
-    confidence: float
     minimized_affinity: float
     scored_affinity: float
+    confidence: float | None = None
 
 @pcdataclass.dataclass
 class RunDiffDockDockingJobResponse:

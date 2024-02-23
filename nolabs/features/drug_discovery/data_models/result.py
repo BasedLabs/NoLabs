@@ -51,9 +51,9 @@ class DiffDockDockingResultData:
     predicted_pdb: str
     predicted_sdf_file_name: str
     predicted_sdf_contents: str
-    confidence: float
     scored_affinity: float
     minimized_affinity: float
+    confidence: float | None = None
 
 
 @dataclasses.dataclass
@@ -63,7 +63,7 @@ class DiffDockResultMetaData:
     target_id: str
     ligand_id: str
     ligand_file_name: str
-    confidence: float
+    confidence: float | None = None
 
 @dataclasses.dataclass
 @dataclass

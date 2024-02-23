@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Union
+from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -28,10 +28,10 @@ class SDFResult(BaseModel):
     """ # noqa: E501
     sdf_file_name: StrictStr
     sdf_content: StrictStr
-    confidence: Union[StrictFloat, StrictInt]
     scored_affinity: Union[StrictFloat, StrictInt]
     minimized_affinity: Union[StrictFloat, StrictInt]
-    __properties: ClassVar[List[str]] = ["sdf_file_name", "sdf_content", "confidence", "scored_affinity", "minimized_affinity"]
+    confidence: Optional[Union[StrictFloat, StrictInt]] = None
+    __properties: ClassVar[List[str]] = ["sdf_file_name", "sdf_content", "scored_affinity", "minimized_affinity", "confidence"]
 
     model_config = {
         "populate_by_name": True,
@@ -86,9 +86,9 @@ class SDFResult(BaseModel):
         _obj = cls.model_validate({
             "sdf_file_name": obj.get("sdf_file_name"),
             "sdf_content": obj.get("sdf_content"),
-            "confidence": obj.get("confidence"),
             "scored_affinity": obj.get("scored_affinity"),
-            "minimized_affinity": obj.get("minimized_affinity")
+            "minimized_affinity": obj.get("minimized_affinity"),
+            "confidence": obj.get("confidence")
         })
         return _obj
 
