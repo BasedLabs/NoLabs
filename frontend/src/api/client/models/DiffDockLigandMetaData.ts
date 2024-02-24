@@ -6,9 +6,9 @@ export type DiffDockLigandMetaData = {
     job_id: string;
     target_id: string;
     ligand_id: string;
-    ligand_file_name: string;
-    confidence: number;
+    predicted_ligand_file_name: string;
     minimized_affinity: number;
     scored_affinity: number;
+    confidence?: (number | null);
 };
 

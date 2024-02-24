@@ -16,6 +16,8 @@ import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { GetAllJobsListResponse } from '../models/GetAllJobsListResponse';
 import type { GetAllResultsListResponse } from '../models/GetAllResultsListResponse';
+import type { GetDiffDockDockingResultDataResponse } from '../models/GetDiffDockDockingResultDataResponse';
+import type { GetDiffDockLigandSdfResponse } from '../models/GetDiffDockLigandSdfResponse';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
 import type { GetJobBindingPocketDataResponse } from '../models/GetJobBindingPocketDataResponse';
 import type { GetJobsListForTargetLigandResponse } from '../models/GetJobsListForTargetLigandResponse';
@@ -1097,6 +1099,67 @@ export class DrugDiscoveryService {
                 'target_id': targetId,
                 'ligand_id': ligandId,
                 'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Diffdock Docking Result Data
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @returns GetDiffDockDockingResultDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getDiffdockDockingResultDataApiV1DrugDiscoveryGetDiffdockDockingResultDataGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+    ): CancelablePromise<GetDiffDockDockingResultDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-diffdock-docking-result-data',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Diffdock Ligand Sdf
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @param sdfFileName
+     * @returns GetDiffDockLigandSdfResponse Successful Response
+     * @throws ApiError
+     */
+    public static getDiffdockLigandSdfApiV1DrugDiscoveryGetDiffdockLigandSdfGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+        sdfFileName: string,
+    ): CancelablePromise<GetDiffDockLigandSdfResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-diffdock-ligand_sdf',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+                'sdf_file_name': sdfFileName,
             },
             errors: {
                 422: `Validation Error`,

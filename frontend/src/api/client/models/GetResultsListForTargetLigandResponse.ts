@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ResultMetaData } from './ResultMetaData';
+import type { JobMetaData } from './JobMetaData';
 export type GetResultsListForTargetLigandResponse = {
-    results_list: Array<ResultMetaData>;
+    results_list: Array<JobMetaData>;
 };
 

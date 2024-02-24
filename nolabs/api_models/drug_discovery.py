@@ -298,7 +298,7 @@ class DiffDockLigandMetaData:
     job_id: str
     target_id: str
     ligand_id: str
-    ligand_file_name: str
+    predicted_ligand_file_name: str
     minimized_affinity: float
     scored_affinity: float
     confidence: float | None = None
@@ -334,6 +334,24 @@ class GetUmolDockingResultDataResponse:
     job_id: str
 
 @pcdataclass.dataclass
+class GetDiffDockDockingResultDataResponse:
+    predicted_pdb: str
+    predicted_ligands: List[DiffDockLigandMetaData]
+
+@pcdataclass.dataclass
+class GetDiffDockLigandSdfRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+    ligand_file_name: str
+
+@pcdataclass.dataclass
+class GetDiffDockLigandSdfResponse:
+    sdf_contents: str
+
+
+@pcdataclass.dataclass
 class CheckJobIsRunningRequest:
     job_id: str
 
@@ -354,7 +372,7 @@ class GetAllResultsListRequest:
 
 @pcdataclass.dataclass
 class GetAllResultsListResponse:
-    results_list: List[ResultMetaData]
+    results_list: List[JobMetaData]
 
 @pcdataclass.dataclass
 class GetAllJobsListRequest:
@@ -372,7 +390,7 @@ class GetResultsListForTargetLigandRequest:
 
 @pcdataclass.dataclass
 class GetResultsListForTargetLigandResponse:
-    results_list: List[ResultMetaData]
+    results_list: List[JobMetaData]
 
 @pcdataclass.dataclass
 class GetJobsListForTargetLigandRequest:

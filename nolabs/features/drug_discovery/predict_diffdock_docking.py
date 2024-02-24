@@ -69,30 +69,31 @@ class PredictDiffDockDockingFeature:
         predicted_ligands_list = []
         for ligand_result in response.sdf_results:
             confidence = ligand_result.confidence
-            minimised_affinity = ligand_result.minimized_affinity
-            scored_affinity = ligand_result.scored_affinity
-            ligand_file_name = ligand_result.sdf_file_name
-            ligand_sdf = ligand_result.sdf_content
-            result_data = DiffDockDockingResultData(confidence=confidence,
-                                                    scored_affinity=scored_affinity,
-                                                    minimized_affinity=minimised_affinity,
-                                                    predicted_sdf_file_name=ligand_file_name,
-                                                    predicted_sdf_contents=ligand_sdf,
-                                                    predicted_pdb=predicted_pdb)
+            if confidence:
+                minimised_affinity = ligand_result.minimized_affinity
+                scored_affinity = ligand_result.scored_affinity
+                ligand_file_name = ligand_result.sdf_file_name
+                ligand_sdf = ligand_result.sdf_content
+                result_data = DiffDockDockingResultData(confidence=confidence,
+                                                        scored_affinity=scored_affinity,
+                                                        minimized_affinity=minimised_affinity,
+                                                        predicted_sdf_file_name=ligand_file_name,
+                                                        predicted_sdf_contents=ligand_sdf,
+                                                        predicted_pdb=predicted_pdb)
 
-            self._result_file_management.store_diffdock_result_data(experiment_id,
-                                                                    target_id,
-                                                                    ligand_id,
-                                                                    job_id,
-                                                                    result_data)
+                self._result_file_management.store_diffdock_result_data(experiment_id,
+                                                                        target_id,
+                                                                        ligand_id,
+                                                                        job_id,
+                                                                        result_data)
 
-            predicted_ligands_list.append(DiffDockLigandMetaData(target_id=target_id.value,
-                                                                 ligand_id=ligand_id.value,
-                                                                 job_id=job_id.value,
-                                                                 scored_affinity=result_data.scored_affinity,
-                                                                 minimized_affinity=result_data.minimized_affinity,
-                                                                 confidence=result_data.confidence,
-                                                                 ligand_file_name=result_data.predicted_sdf_file_name))
+                predicted_ligands_list.append(DiffDockLigandMetaData(target_id=target_id.value,
+                                                                     ligand_id=ligand_id.value,
+                                                                     job_id=job_id.value,
+                                                                     scored_affinity=result_data.scored_affinity,
+                                                                     minimized_affinity=result_data.minimized_affinity,
+                                                                     confidence=result_data.confidence,
+                                                                     ligand_file_name=result_data.predicted_sdf_file_name))
 
         return RunDiffDockDockingJobResponse(predicted_pdb=predicted_pdb,
                                              predicted_ligands=predicted_ligands_list)
