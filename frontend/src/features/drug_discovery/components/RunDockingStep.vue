@@ -123,7 +123,7 @@
             <template v-else-if="col.field === 'docking_method'">
               <q-select filled v-model="props.row.docking_method" :options="['diffdock', 'umol']" @update:modelValue="handleDockingChange(props.row.job_id, props.row.docking_method)" />
               <template v-if="props.row.docking_method === 'diffdock'">
-                <q-input filled type="number" v-model="props.row.samples_per_complex" label="Samples per Complex" />
+                <q-input  filled type="number" v-model="props.row.samples_per_complex" label="Samples per Complex" @change="() => updateDiffDockParams(props.row, props.row.samples_per_complex)" />
               </template>
               <template v-else-if="props.row.docking_method === 'umol'">
                 <!-- Placeholder for Pocket IDs Input Field -->
@@ -177,6 +177,7 @@ import {useRoute} from "vue-router";
 import PdbViewer from "src/components/PdbViewer.vue";
 import DiffDockResult from "src/features/drug_discovery/components/results/DiffDockResult.vue";
 import {defineComponent} from "vue";
+import {JobMetaData} from "../../../api/client";
 
 interface Job {
   job_id: string;
@@ -314,6 +315,26 @@ export default defineComponent({
         };
         this.dockingResults.push(dockingResult);
       }
+    },
+
+    async populateDiffDockParamsForJobs() {
+      for (let job of this.jobsInQueue) {
+        if (job.docking_method === 'diffdock') {
+          await this.loadDiffDockParams(job);
+        }
+      }
+    },
+
+    async loadDiffDockParams(job: Job) {
+      const store = useDrugDiscoveryStore();
+      const params = await store.getDiffDockParams(this.experimentId!, job.target_id, job.ligand_id, job.job_id);
+      if (params && params.samples_per_complex !== undefined) {
+        job.samples_per_complex = params.samples_per_complex;
+      }
+    },
+    async updateDiffDockParams(job: JobMetaData, samplesPerComplex: number) {
+      const store = useDrugDiscoveryStore();
+      await store.updateDiffDockParams(this.experimentId!, job.target_id, job.ligand_id, job.job_id, samplesPerComplex);
     },
 
     async deleteDockingJob(row: DockingResult) {
@@ -565,11 +586,12 @@ export default defineComponent({
       }
     }
   },
-  mounted() {
+  async mounted() {
     const route = useRoute();
     this.experimentId = route.params.experimentId as string;
-    this.fetchDockingResults();
-    this.fetchJobsInQueue();
+    await this.fetchDockingResults();
+    await this.fetchJobsInQueue();
+    await this.populateDiffDockParamsForJobs();
     this.polling = window.setInterval(this.updateCurrentJob, 1000);
   },
   beforeUnmount() {

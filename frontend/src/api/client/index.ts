@@ -32,6 +32,7 @@ export type { GetAllJobsListResponse } from './models/GetAllJobsListResponse';
 export type { GetAllResultsListResponse } from './models/GetAllResultsListResponse';
 export type { GetDiffDockDockingResultDataResponse } from './models/GetDiffDockDockingResultDataResponse';
 export type { GetDiffDockLigandSdfResponse } from './models/GetDiffDockLigandSdfResponse';
+export type { GetDiffDockParamsResponse } from './models/GetDiffDockParamsResponse';
 export type { GetFoldingResponse } from './models/GetFoldingResponse';
 export type { GetJobBindingPocketDataResponse } from './models/GetJobBindingPocketDataResponse';
 export type { GetJobsListForTargetLigandResponse } from './models/GetJobsListForTargetLigandResponse';

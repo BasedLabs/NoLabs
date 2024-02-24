@@ -49,6 +49,7 @@ class PredictDiffDockDockingFeature:
         job_id = JobId(request.job_id)
 
         job_metadata = self._result_file_management.get_job_metadata(experiment_id, target_id, ligand_id, job_id)
+        params = self._result_file_management.get_diffdock_params(experiment_id, target_id, ligand_id, job_id)
 
         pdb_content = self.get_folding(experiment_id, target_id, job_id, job_metadata.folding_method)
         _, sdf_contents, _ = self._ligand_file_management.get_ligand_data(experiment_id, target_id, ligand_id)
@@ -60,7 +61,7 @@ class PredictDiffDockDockingFeature:
             api_instance = DiffDockDefaultApi(client)
             request = diffdock_microservice.RunDiffDockPredictionRequest(pdb_contents=pdb_content,
                                                                          sdf_contents=sdf_contents,
-                                                                         samples_per_complex=2,
+                                                                         samples_per_complex=params.samples_per_complex,
                                                                          job_id=job_id.value,
                                                                          )
             response = api_instance.predict_run_docking_post(run_diff_dock_prediction_request=request)
@@ -93,7 +94,7 @@ class PredictDiffDockDockingFeature:
                                                                      scored_affinity=result_data.scored_affinity,
                                                                      minimized_affinity=result_data.minimized_affinity,
                                                                      confidence=result_data.confidence,
-                                                                     ligand_file_name=result_data.predicted_sdf_file_name))
+                                                                     predicted_ligand_file_name=result_data.predicted_sdf_file_name))
 
         return RunDiffDockDockingJobResponse(predicted_pdb=predicted_pdb,
                                              predicted_ligands=predicted_ligands_list)

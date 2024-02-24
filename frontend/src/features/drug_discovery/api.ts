@@ -30,7 +30,10 @@ import {
   GetJobBindingPocketDataResponse,
   GetAllJobsListResponse,
   GetJobsListForTargetLigandResponse,
-  RunDiffDockDockingJobResponse, GetDiffDockDockingResultDataResponse, GetDiffDockLigandSdfResponse
+  RunDiffDockDockingJobResponse,
+  GetDiffDockDockingResultDataResponse,
+  GetDiffDockLigandSdfResponse,
+  GetDiffDockParamsResponse
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 import apiConstants from "src/api/constants";
@@ -151,6 +154,14 @@ export function runDiffDockDockingJobApi(experimentId: string, targetId: string,
 
 export function getUmolDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetUmolDockingResultDataResponse> {
   return DrugDiscoveryService.getUmolDockingResultDataApiV1DrugDiscoveryGetUmolDockingResultDataGet(experimentId, targetId, ligandId, jobId);
+}
+
+export function getDiffDockParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetDiffDockParamsResponse> {
+  return DrugDiscoveryService.getDiffdockParamsApiV1DrugDiscoveryGetDiffdockParamsGet(experimentId, targetId, ligandId, jobId);
+}
+
+export function updateDiffDockParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string, samples_per_complex: number): CancelablePromise<GetDiffDockParamsResponse> {
+  return DrugDiscoveryService.updateDiffdockParamsApiV1DrugDiscoveryUpdateDiffdockParamsPost(experimentId, targetId, ligandId, jobId, samples_per_complex);
 }
 
 export function getDiffDockDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetDiffDockDockingResultDataResponse> {
