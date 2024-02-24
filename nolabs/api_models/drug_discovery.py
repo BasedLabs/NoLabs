@@ -333,6 +333,28 @@ class GetUmolDockingResultDataResponse:
     plddt_array: List[int]
     job_id: str
 
+
+@pcdataclass.dataclass
+class GetDiffDockParamsRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class GetDiffDockParamsResponse:
+    samples_per_complex: int
+
+
+@pcdataclass.dataclass
+class UpdateDiffDockParamsRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+    samples_per_complex: int
+
+
 @pcdataclass.dataclass
 class GetDiffDockDockingResultDataResponse:
     predicted_pdb: str
