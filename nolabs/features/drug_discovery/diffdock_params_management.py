@@ -22,7 +22,7 @@ class GetDiffDockParamsFeature:
         return GetDiffDockParamsResponse(samples_per_complex=params.samples_per_complex)
 
 
-class UpdatDateiffDockParamsFeature:
+class UpdateDiffDockParamsFeature:
     def __init__(self, file_management: ResultsFileManagement):
         self._file_management = file_management
 
