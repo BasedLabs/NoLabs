@@ -47,7 +47,7 @@ import {
   checkDiffDockServiceHealthApi,
   checkDiffDockJobIsRunningApi,
   runDiffDockDockingJobApi,
-  getDiffDockDockingJobResultDataApi, getDiffDockLigandSdfApi
+  getDiffDockDockingJobResultDataApi, getDiffDockLigandSdfApi, getDiffDockParamsApi, updateDiffDockParamsApi
 } from 'src/features/drug_discovery/api';
 
 import {
@@ -332,6 +332,24 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async getDiffDockDockingJobResultData(experimentId: string, targetId: string, ligandId: string, jobId: string) {
           try {
             return await getDiffDockDockingJobResultDataApi(experimentId, targetId, ligandId, jobId);
+          } catch (error) {
+            console.error("Error getting docking job result data:", error);
+            return null;
+          }
+        },
+
+        async getDiffDockParams(experimentId: string, targetId: string, ligandId: string, jobId: string) {
+          try {
+            return await getDiffDockParamsApi(experimentId, targetId, ligandId, jobId);
+          } catch (error) {
+            console.error("Error getting docking job result data:", error);
+            return null;
+          }
+        },
+
+        async updateDiffDockParams(experimentId: string, targetId: string, ligandId: string, jobId: string, samples_per_complex: number) {
+          try {
+            return await updateDiffDockParamsApi(experimentId, targetId, ligandId, jobId, samples_per_complex);
           } catch (error) {
             console.error("Error getting docking job result data:", error);
             return null;

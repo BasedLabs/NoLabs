@@ -18,6 +18,7 @@ import type { GetAllJobsListResponse } from '../models/GetAllJobsListResponse';
 import type { GetAllResultsListResponse } from '../models/GetAllResultsListResponse';
 import type { GetDiffDockDockingResultDataResponse } from '../models/GetDiffDockDockingResultDataResponse';
 import type { GetDiffDockLigandSdfResponse } from '../models/GetDiffDockLigandSdfResponse';
+import type { GetDiffDockParamsResponse } from '../models/GetDiffDockParamsResponse';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
 import type { GetJobBindingPocketDataResponse } from '../models/GetJobBindingPocketDataResponse';
 import type { GetJobsListForTargetLigandResponse } from '../models/GetJobsListForTargetLigandResponse';
@@ -978,6 +979,67 @@ export class DrugDiscoveryService {
                 'target_id': targetId,
                 'ligand_id': ligandId,
                 'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Diffdock Params
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @returns GetDiffDockParamsResponse Successful Response
+     * @throws ApiError
+     */
+    public static getDiffdockParamsApiV1DrugDiscoveryGetDiffdockParamsGet(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+    ): CancelablePromise<GetDiffDockParamsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-diffdock-params',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Update Diffdock Params
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @param samplesPerComplex
+     * @returns GetDiffDockParamsResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateDiffdockParamsApiV1DrugDiscoveryUpdateDiffdockParamsPost(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+        samplesPerComplex: number,
+    ): CancelablePromise<GetDiffDockParamsResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/update-diffdock-params',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+                'samples_per_complex': samplesPerComplex,
             },
             errors: {
                 422: `Validation Error`,
