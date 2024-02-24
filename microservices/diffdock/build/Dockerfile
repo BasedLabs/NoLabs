@@ -65,4 +65,4 @@ RUN wget https://github.com/gnina/gnina/releases/download/v1.0.3/gnina -O /app/D
 # Copy the application files into the container
 COPY ./diffdock /app/diffdock
 
-ENTRYPOINT uvicorn diffdock.api:app --host $HOST --port $PORT
+ENTRYPOINT ["uvicorn", "diffdock.api:app"]
