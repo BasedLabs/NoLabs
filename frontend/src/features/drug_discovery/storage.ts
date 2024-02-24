@@ -43,7 +43,11 @@ import {
   runUmolDockingJobApi,
   setTargetBindingPocketApi,
   uploadLigandApi,
-  uploadTargetApi, checkDiffDockServiceHealthApi, checkDiffDockJobIsRunningApi, runDiffDockDockingJobApi
+  uploadTargetApi,
+  checkDiffDockServiceHealthApi,
+  checkDiffDockJobIsRunningApi,
+  runDiffDockDockingJobApi,
+  getDiffDockDockingJobResultDataApi, getDiffDockLigandSdfApi
 } from 'src/features/drug_discovery/api';
 
 import {
@@ -316,13 +320,31 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
           }
         },
 
-        async getDockingJobResultData(experimentId: string, targetId: string, ligandId: string, jobId: string) {
+        async getUmolDockingJobResultData(experimentId: string, targetId: string, ligandId: string, jobId: string) {
             try {
                 return await getUmolDockingJobResultDataApi(experimentId, targetId, ligandId, jobId);
             } catch (error) {
                 console.error("Error getting docking job result data:", error);
                 return null;
             }
+        },
+
+        async getDiffDockDockingJobResultData(experimentId: string, targetId: string, ligandId: string, jobId: string) {
+          try {
+            return await getDiffDockDockingJobResultDataApi(experimentId, targetId, ligandId, jobId);
+          } catch (error) {
+            console.error("Error getting docking job result data:", error);
+            return null;
+          }
+        },
+
+        async getDiffDockLigandSdf(experimentId: string, targetId: string, ligandId: string, jobId: string, ligandFileName: string) {
+          try {
+            return await getDiffDockLigandSdfApi(experimentId, targetId, ligandId, jobId, ligandFileName);
+          } catch (error) {
+            console.error("Error getting docking job result data:", error);
+            return null;
+          }
         },
 
         async checkDockingResultAvailable(experimentId: string, targetId: string, ligandId: string, jobId: string) {

@@ -39,7 +39,8 @@ from nolabs.controllers.drug_discovery.dependencies import (
     check_umol_service_health_dependency, get_job_binding_pocket_dependency, set_binding_pocket_dependency,
     get_experiment_metadata_dependency, update_target_name_dependency, get_all_jobs_list_dependency,
     get_jobs_list_for_target_ligand_feature, check_esmfold_running_dependency, check_esmfold_light_running_dependency,
-    predict_diffdock_docking_dependency, check_diffdock_running_dependency, check_diffdock_service_health_dependency
+    predict_diffdock_docking_dependency, check_diffdock_running_dependency, check_diffdock_service_health_dependency,
+    get_diffdock_ligand_sdf_dependency, get_diffdock_docking_result_dependency
 )
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckEsmFoldServiceHealthFeature, \
@@ -65,7 +66,8 @@ from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.drug_discovery.get_results import GetUmolDockingResultsFeature
+from nolabs.features.drug_discovery.get_results import GetUmolDockingResultsFeature, GetDiffDockLigandSdfFeature, \
+    GetDiffDockDockingResultsFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
     CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature, \
     CheckDiffDockRunningFeature
@@ -118,7 +120,8 @@ from nolabs.api_models.drug_discovery import (
     CheckFoldingDataAvailableRequest, DeleteDockingJobRequest, DeleteDockingJobResponse, CheckServiceHealthyResponse,
     GetJobBindingPocketDataRequest, GetJobBindingPocketDataResponse, SetTargetBindingPocketRequest,
     UpdateTargetNameRequest, GetAllJobsListResponse, GetAllJobsListRequest, GetJobsListForTargetLigandResponse,
-    GetJobsListForTargetLigandRequest, RunDiffDockDockingJobResponse, RunDiffDockDockingJobRequest
+    GetJobsListForTargetLigandRequest, RunDiffDockDockingJobResponse, RunDiffDockDockingJobRequest,
+    GetDiffDockLigandSdfResponse, GetDiffDockLigandSdfRequest, GetDiffDockDockingResultDataResponse
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -538,3 +541,23 @@ async def get_umol_docking_result_data(experiment_id: str,
             GetUmolDockingResultsFeature, Depends(get_umol_docking_result_dependency)]) -> \
         GetUmolDockingResultDataResponse:
     return feature.handle(GetDockingResultDataRequest(experiment_id, target_id, ligand_id, job_id))
+
+@router.get('/get-diffdock-docking-result-data')
+async def get_diffdock_docking_result_data(experiment_id: str,
+                                  target_id: str,
+                                  ligand_id: str,
+                                  job_id: str, feature: Annotated[
+            GetDiffDockDockingResultsFeature, Depends(get_diffdock_docking_result_dependency)]) -> \
+        GetDiffDockDockingResultDataResponse:
+    return feature.handle(GetDockingResultDataRequest(experiment_id, target_id, ligand_id, job_id))
+
+@router.get('/get-diffdock-ligand_sdf')
+async def get_diffdock_ligand_sdf(experiment_id: str,
+                                  target_id: str,
+                                  ligand_id: str,
+                                  job_id: str,
+                                  sdf_file_name: str,
+                                  feature: Annotated[
+            GetDiffDockLigandSdfFeature, Depends(get_diffdock_ligand_sdf_dependency)]) -> \
+        GetDiffDockLigandSdfResponse:
+    return feature.handle(GetDiffDockLigandSdfRequest(experiment_id, target_id, ligand_id, job_id, sdf_file_name))

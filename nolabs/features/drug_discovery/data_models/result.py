@@ -63,6 +63,8 @@ class DiffDockResultMetaData:
     target_id: str
     ligand_id: str
     ligand_file_name: str
+    minimized_affinity: float
+    scored_affinity: float
     confidence: float | None = None
 
 @dataclasses.dataclass

@@ -84,12 +84,15 @@
         <q-tr v-show="props.row.expanded" :props="props">
           <q-td colspan="100%">
             <div class="q-pa-md">
+              <DiffDockResult
+                :experimentId="experimentId"
+                :targetId="props.row.target_id"
+                :ligandId="props.row.ligand_id"
+                :jobId="props.row.job_id"
+              />
               <div v-if="props.row.resultData">
                 <PdbViewer v-if="props.row.resultData.predicted_sdf_file" :pdb-file="props.row.resultData.predicted_pdb_file" :sdf-file="props.row.resultData.predicted_sdf_file"/>
                 <div v-if="props.row.resultData.plddt_array"><strong>PLDDT Array:</strong> {{ props.row.resultData.plddt_array.join(', ') }}</div>
-              </div>
-              <div v-else>
-                <q-spinner color="info" label="Loading..." />
               </div>
             </div>
           </q-td>
@@ -172,6 +175,7 @@
 import {useDrugDiscoveryStore} from 'src/features/drug_discovery/storage';
 import {useRoute} from "vue-router";
 import PdbViewer from "src/components/PdbViewer.vue";
+import DiffDockResult from "src/features/drug_discovery/components/results/DiffDockResult.vue";
 import {defineComponent} from "vue";
 
 interface Job {
@@ -208,8 +212,9 @@ interface ResultData {
 interface DockingResult {
   target_name: string | undefined;
   ligand_name: string | undefined;
+  folding_method: string;
+  docking_method: string;
   resultData?: ResultData | null;
-  pocketIds: number[] | null;
   experiment_id: string;
   job_id: string;
   target_id: string;
@@ -219,7 +224,7 @@ interface DockingResult {
 
 export default defineComponent({
   name: 'RunDocking',
-  components: {PdbViewer},
+  components: {PdbViewer, DiffDockResult},
   data() {
     return {
       experimentId: null as string | null,
@@ -229,6 +234,8 @@ export default defineComponent({
         { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
         { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
         { name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left' },
+        { name: 'folding_method', label: 'Folding Method', field: 'folding_method', align: 'center' },
+        { name: 'docking_method', label: 'Docking Method', field: 'docking_method', align: 'center' },
         { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
       ],
       queueColumns: [
@@ -297,19 +304,12 @@ export default defineComponent({
       for (const result of results?.results_list ?? []) {
         const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
         const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
-        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
 
-        let pocketIds = null;
-
-        if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
-          pocketIds = pocketIdsResponse.pocket_ids;
-        }
         const dockingResult = {
           ...result,
           target_name: targetMeta?.target_name,
           ligand_name: ligandMeta?.ligand_name,
           resultData: null, // Initialize resultData as null
-          pocketIds: pocketIds || null,
           expanded: false,
         };
         this.dockingResults.push(dockingResult);
@@ -339,11 +339,11 @@ export default defineComponent({
         row.expanded = true;
 
         // Check if resultData has already been fetched
-        if (!row.resultData) {
+        /*if (!row.resultData) {
           // Fetch result data here using your store method
           const store = useDrugDiscoveryStore();
           try {
-            const response = await store.getDockingJobResultData(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
+            const response = await store.getUmolDockingJobResultData(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
             if (response) {
               // Assuming response contains properties predicted_pdb and predicted_sdf
               // Assign the created ResultData object to the row
@@ -358,7 +358,7 @@ export default defineComponent({
             console.error("Error fetching result data for row:", error);
             // Handle error, possibly set resultData to a default state or show an error message
           }
-        }
+        }*/
       } else {
         // Collapse the row if it's already expanded
         row.expanded = false;
@@ -499,7 +499,7 @@ export default defineComponent({
         let dockingRunningResp;
         if (this.currentJob.docking_method === 'diffdock') {
           dockingRunningResp = await store.checkDiffDockJobIsRunning(this.currentJob.job_id);
-        } else if (this.currentJob.folding_method === 'esmfold_light') {
+        } else if (this.currentJob.docking_method === 'umol') {
           dockingRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
         }
         this.currentJob.dockingRunning = dockingRunningResp?.is_running ?? false;
@@ -510,7 +510,14 @@ export default defineComponent({
         this.currentJob.isAnyJobRunning = (this.currentJob.msaRunning || this.currentJob.pocketRunning || this.currentJob.foldingRunning || this.currentJob.dockingRunning) ?? false;
       }
 
-      let allDataAvailable = this.currentJob.msaAvailable && this.currentJob.pocketAvailable && this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
+      let allDataAvailable;
+
+      if (this.currentJob.docking_method === 'diffdock') {
+        allDataAvailable = this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
+      } else if (this.currentJob.docking_method === 'umol') {
+        allDataAvailable = this.currentJob.msaAvailable && this.currentJob.pocketAvailable && this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
+      }
+
       // If all data is available, refresh the current job and results
       if (allDataAvailable) {
         this.dockingResults = [];

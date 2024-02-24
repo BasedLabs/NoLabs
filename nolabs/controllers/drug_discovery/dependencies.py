@@ -36,7 +36,8 @@ from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFe
     CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature, \
     CheckDiffDockRunningFeature
 from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
-from nolabs.features.drug_discovery.get_results import GetUmolDockingResultsFeature
+from nolabs.features.drug_discovery.get_results import GetUmolDockingResultsFeature, GetDiffDockDockingResultsFeature, \
+    GetDiffDockLigandSdfFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
 
@@ -334,6 +335,14 @@ def predict_diffdock_docking_dependency(
 def get_umol_docking_result_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> GetUmolDockingResultsFeature:
     return GetUmolDockingResultsFeature(result_file_management=result_file_management)
+
+def get_diffdock_docking_result_dependency(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> GetDiffDockDockingResultsFeature:
+    return GetDiffDockDockingResultsFeature(result_file_management=result_file_management)
+
+def get_diffdock_ligand_sdf_dependency(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> GetDiffDockLigandSdfFeature:
+    return GetDiffDockLigandSdfFeature(result_file_management=result_file_management)
 
 
 def create_experiment_dependency(

@@ -2,7 +2,7 @@ import dataclasses
 import json
 import os.path
 import shutil
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -145,7 +145,8 @@ class ResultsFileManagement:
             self.pdb_writer.write_pdb(pdb_contents, pdb_file_path)
 
         # Check if the JSON file already exists and has content
-        json_file_path = self._settings.drug_discovery_diffdock_docking_results_metadata_file_name
+        json_file_path = os.path.join(result_folder,
+                                      self._settings.drug_discovery_diffdock_docking_results_metadata_file_name)
         if os.path.exists(json_file_path) and os.path.getsize(json_file_path) > 0:
             # Load the existing content
             with open(json_file_path, 'r') as json_file:
@@ -167,6 +168,8 @@ class ResultsFileManagement:
         return DiffDockResultMetaData(job_id=job_id.value,
                                       target_id=target_id.value,
                                       ligand_id=ligand_id.value,
+                                      scored_affinity=result_data.scored_affinity,
+                                      minimized_affinity=result_data.minimized_affinity,
                                       confidence=result_data.confidence,
                                       ligand_file_name=result_data.predicted_sdf_file_name)
 
@@ -194,7 +197,7 @@ class ResultsFileManagement:
         return job_id
 
     def update_job_metadata(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
-                               job_id: JobId, key: str, value: str):
+                            job_id: JobId, key: str, value: str):
         metadata_file = os.path.join(self.result_folder(experiment_id, target_id, ligand_id, job_id),
                                      self._settings.drug_discovery_docking_result_metadata_filename_name)
         if os.path.exists(metadata_file):
@@ -231,7 +234,6 @@ class ResultsFileManagement:
                                       folding_method=metadata["folding_method"],
                                       docking_method=metadata["docking_method"])
         return result_metadata
-
 
     def get_diffdock_params(self, experiment_id: ExperimentId,
                             target_id: TargetId,
@@ -297,10 +299,10 @@ class ResultsFileManagement:
 
         return UmolDockingResultData(predicted_pdb=pdb_contents, predicted_sdf=sdf_contents, plddt_array=plddt_list)
 
-    def check_result_data_available(self, experiment_id: ExperimentId,
-                                    target_id: TargetId,
-                                    ligand_id: LigandId,
-                                    job_id: JobId) -> bool:
+    def check_umol_result_data_available(self, experiment_id: ExperimentId,
+                                         target_id: TargetId,
+                                         ligand_id: LigandId,
+                                         job_id: JobId) -> bool:
         result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
         if not os.path.exists(result_folder):
             return False
@@ -321,3 +323,66 @@ class ResultsFileManagement:
             return False
 
         return True
+
+    def check_diffdock_result_data_available(self, experiment_id: ExperimentId,
+                                             target_id: TargetId,
+                                             ligand_id: LigandId,
+                                             job_id: JobId) -> bool:
+        result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
+        if not os.path.exists(result_folder):
+            return False
+
+        pdb_file_name = self._settings.drug_discovery_diffdock_docking_result_pdb_file_name
+        pdb_file_path = os.path.join(result_folder, pdb_file_name)
+        if not os.path.exists(pdb_file_path):
+            return False
+
+        docking_metadata_file = self._settings.drug_discovery_diffdock_docking_results_metadata_file_name
+        docking_metadata_file_path = os.path.join(result_folder, docking_metadata_file)
+        if not os.path.exists(docking_metadata_file_path):
+            return False
+
+        return True
+
+    def get_diffdock_docking_result_data(self,
+                                         experiment_id: ExperimentId,
+                                         target_id: TargetId, ligand_id: LigandId,
+                                         job_id: JobId) -> Tuple[str, List[DiffDockResultMetaData]]:
+        result_folder = self.result_folder(experiment_id, target_id, ligand_id, job_id)
+
+        # Path to the JSON metadata file
+        json_file_path = os.path.join(result_folder,
+                                      self._settings.drug_discovery_diffdock_docking_results_metadata_file_name)
+
+        # Path to the PDB file
+        pdb_file_name = self._settings.drug_discovery_diffdock_docking_result_pdb_file_name
+        pdb_file_path = os.path.join(result_folder, pdb_file_name)
+
+        if not os.path.exists(json_file_path):
+            raise FileNotFoundError(f"No results metadata found for the specified IDs at {json_file_path}")
+
+        if not os.path.exists(pdb_file_path):
+            raise FileNotFoundError(f"No PDB file found for the specified IDs at {pdb_file_path}")
+
+        # Read the PDB file contents
+        with open(pdb_file_path, 'r') as pdb_file:
+            predicted_pdb = pdb_file.read()
+
+        # Read the JSON metadata file
+        with open(json_file_path, 'r') as json_file:
+            docking_results = json.load(json_file)
+
+        ligand_metadata_list = []
+        for ligand_file_name, data in docking_results.items():
+            ligand_metadata = DiffDockResultMetaData(
+                job_id=job_id.value,
+                target_id=target_id.value,
+                ligand_id=ligand_id.value,
+                ligand_file_name=ligand_file_name,
+                minimized_affinity=data["minimized_affinity"],
+                scored_affinity=data["scored_affinity"],
+                confidence=data.get("confidence")  # Use .get() in case "confidence" key might be missing
+            )
+            ligand_metadata_list.append(ligand_metadata)
+
+        return predicted_pdb, ligand_metadata_list

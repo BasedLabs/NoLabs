@@ -30,6 +30,8 @@ export type { ExperimentFastaPropertyResponse } from './models/ExperimentFastaPr
 export type { ExperimentMetadataResponse } from './models/ExperimentMetadataResponse';
 export type { GetAllJobsListResponse } from './models/GetAllJobsListResponse';
 export type { GetAllResultsListResponse } from './models/GetAllResultsListResponse';
+export type { GetDiffDockDockingResultDataResponse } from './models/GetDiffDockDockingResultDataResponse';
+export type { GetDiffDockLigandSdfResponse } from './models/GetDiffDockLigandSdfResponse';
 export type { GetFoldingResponse } from './models/GetFoldingResponse';
 export type { GetJobBindingPocketDataResponse } from './models/GetJobBindingPocketDataResponse';
 export type { GetJobsListForTargetLigandResponse } from './models/GetJobsListForTargetLigandResponse';
@@ -64,7 +66,6 @@ export type { PredictBindingPocketResponse } from './models/PredictBindingPocket
 export type { PredictFoldingResponse } from './models/PredictFoldingResponse';
 export type { PredictMsaResponse } from './models/PredictMsaResponse';
 export type { RegisterDockingJobResponse } from './models/RegisterDockingJobResponse';
-export type { ResultMetaData } from './models/ResultMetaData';
 export type { RunDiffDockDockingJobResponse } from './models/RunDiffDockDockingJobResponse';
 export type { RunFoldingResponse } from './models/RunFoldingResponse';
 export type { RunGeneOntologyResponse } from './models/RunGeneOntologyResponse';

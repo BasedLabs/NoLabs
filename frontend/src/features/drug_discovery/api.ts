@@ -30,7 +30,7 @@ import {
   GetJobBindingPocketDataResponse,
   GetAllJobsListResponse,
   GetJobsListForTargetLigandResponse,
-  RunDiffDockDockingJobResponse
+  RunDiffDockDockingJobResponse, GetDiffDockDockingResultDataResponse, GetDiffDockLigandSdfResponse
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 import apiConstants from "src/api/constants";
@@ -152,6 +152,15 @@ export function runDiffDockDockingJobApi(experimentId: string, targetId: string,
 export function getUmolDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetUmolDockingResultDataResponse> {
   return DrugDiscoveryService.getUmolDockingResultDataApiV1DrugDiscoveryGetUmolDockingResultDataGet(experimentId, targetId, ligandId, jobId);
 }
+
+export function getDiffDockDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetDiffDockDockingResultDataResponse> {
+  return DrugDiscoveryService.getDiffdockDockingResultDataApiV1DrugDiscoveryGetDiffdockDockingResultDataGet(experimentId, targetId, ligandId, jobId);
+}
+
+export function getDiffDockLigandSdfApi(experimentId: string, targetId: string, ligandId: string, jobId: string, ligandFileName: string): CancelablePromise<GetDiffDockLigandSdfResponse> {
+  return DrugDiscoveryService.getDiffdockLigandSdfApiV1DrugDiscoveryGetDiffdockLigandSdfGet(experimentId, targetId, ligandId, jobId, ligandFileName);
+}
+
 
 export function checkDockingResultAvailableApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<CheckResultDataAvailableResponse> {
   return DrugDiscoveryService.checkResultDataAvailableApiV1DrugDiscoveryCheckResultDataAvailableGet(experimentId, targetId, ligandId, jobId);
