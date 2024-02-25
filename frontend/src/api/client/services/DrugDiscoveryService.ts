@@ -19,6 +19,7 @@ import type { GetAllResultsListResponse } from '../models/GetAllResultsListRespo
 import type { GetDiffDockDockingResultDataResponse } from '../models/GetDiffDockDockingResultDataResponse';
 import type { GetDiffDockLigandSdfResponse } from '../models/GetDiffDockLigandSdfResponse';
 import type { GetDiffDockParamsResponse } from '../models/GetDiffDockParamsResponse';
+import type { GetDockingParamsResponse } from '../models/GetDockingParamsResponse';
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
 import type { GetJobBindingPocketDataResponse } from '../models/GetJobBindingPocketDataResponse';
 import type { GetJobsListForTargetLigandResponse } from '../models/GetJobsListForTargetLigandResponse';
@@ -1008,6 +1009,41 @@ export class DrugDiscoveryService {
                 'target_id': targetId,
                 'ligand_id': ligandId,
                 'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Update Docking Params
+     * @param experimentId
+     * @param targetId
+     * @param ligandId
+     * @param jobId
+     * @param foldingMethod
+     * @param dockingMethod
+     * @returns GetDockingParamsResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateDockingParamsApiV1DrugDiscoveryUpdateDockingParamsPost(
+        experimentId: string,
+        targetId: string,
+        ligandId: string,
+        jobId: string,
+        foldingMethod: string,
+        dockingMethod: string,
+    ): CancelablePromise<GetDockingParamsResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/update-docking-params',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+                'ligand_id': ligandId,
+                'job_id': jobId,
+                'folding_method': foldingMethod,
+                'docking_method': dockingMethod,
             },
             errors: {
                 422: `Validation Error`,

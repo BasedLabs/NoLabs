@@ -333,6 +333,28 @@ class GetUmolDockingResultDataResponse:
     plddt_array: List[int]
     job_id: str
 
+@pcdataclass.dataclass
+class GetDockingParamsRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class GetDockingParamsResponse:
+    folding_method: str
+    docking_method: str
+
+@pcdataclass.dataclass
+class UpdateDockingParamsRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+    folfing_method: str
+    docking_method: str
+
+
 
 @pcdataclass.dataclass
 class GetDiffDockParamsRequest:

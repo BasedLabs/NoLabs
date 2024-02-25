@@ -41,7 +41,7 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_jobs_list_for_target_ligand_feature, check_esmfold_running_dependency, check_esmfold_light_running_dependency,
     predict_diffdock_docking_dependency, check_diffdock_running_dependency, check_diffdock_service_health_dependency,
     get_diffdock_ligand_sdf_dependency, get_diffdock_docking_result_dependency, update_diffdock_params_dependency,
-    get_diffdock_params_dependency
+    get_diffdock_params_dependency, update_docking_params_dependency
 )
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckEsmFoldServiceHealthFeature, \
@@ -49,6 +49,7 @@ from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceH
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.diffdock_params_management import UpdateDiffDockParamsFeature, \
     GetDiffDockParamsFeature
+from nolabs.features.drug_discovery.docking_params_management import UpdateDockingParamsFeature
 from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
 from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
@@ -125,7 +126,8 @@ from nolabs.api_models.drug_discovery import (
     UpdateTargetNameRequest, GetAllJobsListResponse, GetAllJobsListRequest, GetJobsListForTargetLigandResponse,
     GetJobsListForTargetLigandRequest, RunDiffDockDockingJobResponse, RunDiffDockDockingJobRequest,
     GetDiffDockLigandSdfResponse, GetDiffDockLigandSdfRequest, GetDiffDockDockingResultDataResponse,
-    UpdateDiffDockParamsRequest, GetDiffDockParamsResponse, GetDiffDockParamsRequest
+    UpdateDiffDockParamsRequest, GetDiffDockParamsResponse, GetDiffDockParamsRequest, GetDockingParamsResponse,
+    UpdateDockingParamsRequest
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -506,6 +508,23 @@ def get_diffdock_params(experiment_id: str,
                                                        target_id=target_id,
                                                        ligand_id=ligand_id,
                                                        job_id=job_id))
+
+@router.post('/update-docking-params')
+def update_docking_params(experiment_id: str,
+                    target_id: str,
+                    ligand_id: str,
+                    job_id: str,
+                    folding_method: str,
+                    docking_method: str,
+                    feature: Annotated[
+            UpdateDockingParamsFeature, Depends(update_docking_params_dependency)]) -> GetDockingParamsResponse:
+    return feature.handle(UpdateDockingParamsRequest(experiment_id=experiment_id,
+                                                       target_id=target_id,
+                                                       ligand_id=ligand_id,
+                                                       job_id=job_id,
+                                                       folfing_method=folding_method,
+                                                       docking_method=docking_method))
+
 
 @router.post('/update-diffdock-params')
 def update_diffdock_params(experiment_id: str,
