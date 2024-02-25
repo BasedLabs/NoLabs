@@ -442,10 +442,7 @@ export default defineComponent({
       } else if (row.docking_method === 'umol') {
         await store.runUmolDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
       }
-
-      // Update the current job
-      await this.updateCurrentJob();
-      // You might want to refresh the job list or perform some other action upon starting the job.
+      
     },
 
     async handleFoldingChange(job_id: string, folding_method: string) {

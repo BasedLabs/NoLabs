@@ -26,12 +26,14 @@ We are working on expanding both and adding a cell biolab and genetic biolab, an
 ## Features ##
 
 **Drug discovery lab (State of the art):**
-- Drug-target interaction prediction, high throughput virtual screening (HTVS) based on [uMol](https://github.com/patrickbryant1/Umol)
+- Drug-target interaction prediction, high throughput virtual screening (HTVS) based on:
+  - [DiffDock](https://github.com/gcorso/DiffDock)
+  - [uMol](https://github.com/patrickbryant1/Umol)
 - Automatic pocket prediction via [P2Rank](https://github.com/rdk/p2rank)
 - Automatic MSA generation via [HH-suite3](https://github.com/soedinglab/hh-suite)
 
 <br>
-<img src="media/dti.gif" width="100%">
+<img src="media/Docking.gif" width="100%">
 
 **Protein lab:**
 
@@ -71,7 +73,7 @@ $ docker compose -up nolabs [gene_ontology|localisation|protein_design|solubilit
 
 Server will be available on http://localhost:9000
 
-## Microservices ##
+## APIs ##
 
 We provide individual Docker containers backed by FastAPI for each feature, which are available in the `/microservices` folder. You can use them individually as APIs.
 
