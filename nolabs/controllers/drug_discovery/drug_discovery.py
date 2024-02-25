@@ -272,7 +272,7 @@ async def get_ligands_list(feature: Annotated[
 @router.get('/get-target-binding-pocket')
 async def get_target_binding_pocket(feature: Annotated[GetBindingPocketFeature, Depends(get_binding_pocket_dependency)],
                                     experiment_id: str,
-                                    target_id: str
+                                    target_id: str,
                                     ) -> GetTargetBindingPocketResponse:
     return feature.handle(GetTargetBindingPocketRequest(experiment_id, target_id))
 
@@ -308,9 +308,10 @@ async def predict_msa(feature: Annotated[
 @router.get('/get-folded-structure')
 async def get_folded_structure(experiment_id: str,
                                target_id: str,
+                               folding_method: str,
                                feature: Annotated[GetFoldedStructureFeature,
                                Depends(get_folded_structure_dependency)]) -> GetFoldingResponse:
-    return feature.handle(GetFoldingRequest(experiment_id, target_id))
+    return feature.handle(GetFoldingRequest(experiment_id, target_id, folding_method))
 
 
 @router.post('/predict-esmfold-light')

@@ -116,8 +116,8 @@ export function getLigandDataApi(experimentId: string, targetId: string, ligandI
 }
 
 // Get target binding pocket
-export function getTargetBindingPocketApi(experimentId: string, targetId: string): CancelablePromise<GetTargetBindingPocketResponse> {
-    return DrugDiscoveryService.getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(experimentId, targetId);
+export function getTargetBindingPocketApi(experimentId: string, targetId: string, folding_method: string): CancelablePromise<GetTargetBindingPocketResponse> {
+    return DrugDiscoveryService.getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(experimentId, targetId, folding_method);
 }
 
 export function setTargetBindingPocketApi(experimentId: string, targetId: string, pocketIds: Array<number>) {
@@ -126,8 +126,8 @@ export function setTargetBindingPocketApi(experimentId: string, targetId: string
 
 
 // Predict binding pocket
-export function predictBindingPocketApi(experimentId: string, targetId: string): CancelablePromise<PredictBindingPocketResponse> {
-    return DrugDiscoveryService.predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(experimentId, targetId);
+export function predictBindingPocketApi(experimentId: string, targetId: string, folding_method: string): CancelablePromise<PredictBindingPocketResponse> {
+    return DrugDiscoveryService.predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(experimentId, targetId, folding_method);
 }
 
 // Predict folding

@@ -398,14 +398,14 @@ export default defineComponent({
       const store = useDrugDiscoveryStore();
       let progress = 0;
 
+      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId!, target_id, folding_method);
+      if (foldingAvailable?.is_available) progress++;
+
+      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId!, target_id, ligand_id, job_id);
+      if (dockingAvailable?.result_available) progress++;
+
       // For diffdock, only consider folding and docking results
       if (docking_method === 'diffdock') {
-        const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId!, target_id, folding_method);
-        if (foldingAvailable?.is_available) progress++;
-
-        const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId!, target_id, ligand_id, job_id);
-        if (dockingAvailable?.result_available) progress++;
-
         return progress;
       }
 
@@ -442,7 +442,7 @@ export default defineComponent({
       } else if (row.docking_method === 'umol') {
         await store.runUmolDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
       }
-      
+
     },
 
     async handleFoldingChange(job_id: string, folding_method: string) {
