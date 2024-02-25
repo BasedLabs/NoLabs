@@ -79,7 +79,7 @@ class Settings:
 
     @property
     def diffdock_host(self) -> str:
-        return self._config.get('microservices', 'diffdock_host')
+        return self._config.get('microservices', 'diffdock')
 
     @property
     def esmfold_light_host(self) -> str:

@@ -131,12 +131,12 @@ Next, update the nolabs/infrastructure/settings.ini file on your primary machine
 
 ```ini
 ...
-p2rank_host=http://127.0.0.1:5731
-esmfold_host=http://127.0.0.1:5736
-esmfold_light_host=http://127.0.0.1:5733
-msa_light_host=http://127.0.0.1:5734
-umol_host=http://127.0.0.1:5735
-diffdock_host=http://127.0.0.1:5737 -> http://74.82.28.227:5737
+p2rank=http://127.0.0.1:5731
+esmfold=http://127.0.0.1:5736
+esmfold_light=http://127.0.0.1:5733
+msa_light=http://127.0.0.1:5734
+umol=http://127.0.0.1:5735
+diffdock=http://127.0.0.1:5737 -> http://74.82.28.227:5737
 ...
 ```
 
