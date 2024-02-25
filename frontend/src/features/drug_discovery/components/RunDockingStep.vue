@@ -84,16 +84,22 @@
         <q-tr v-show="props.row.expanded" :props="props">
           <q-td colspan="100%">
             <div class="q-pa-md">
-              <DiffDockResult
-                :experimentId="experimentId"
-                :targetId="props.row.target_id"
-                :ligandId="props.row.ligand_id"
-                :jobId="props.row.job_id"
-              />
-              <div v-if="props.row.resultData">
-                <PdbViewer v-if="props.row.resultData.predicted_sdf_file" :pdb-file="props.row.resultData.predicted_pdb_file" :sdf-file="props.row.resultData.predicted_sdf_file"/>
-                <div v-if="props.row.resultData.plddt_array"><strong>PLDDT Array:</strong> {{ props.row.resultData.plddt_array.join(', ') }}</div>
-              </div>
+              <template v-if="props.row.docking_method === 'diffdock'">
+                <DiffDockResult
+                  :experimentId="experimentId"
+                  :targetId="props.row.target_id"
+                  :ligandId="props.row.ligand_id"
+                  :jobId="props.row.job_id"
+                />
+              </template>
+              <template v-else-if="props.row.docking_method === 'umol'">
+                <UmolResult
+                  :experimentId="experimentId"
+                  :targetId="props.row.target_id"
+                  :ligandId="props.row.ligand_id"
+                  :jobId="props.row.job_id"
+                />
+              </template>
             </div>
           </q-td>
         </q-tr>
@@ -174,8 +180,8 @@
 <script lang="ts">
 import {useDrugDiscoveryStore} from 'src/features/drug_discovery/storage';
 import {useRoute} from "vue-router";
-import PdbViewer from "src/components/PdbViewer.vue";
 import DiffDockResult from "src/features/drug_discovery/components/results/DiffDockResult.vue";
+import UmolResult from "src/features/drug_discovery/components/results/UmolResult.vue";
 import {defineComponent} from "vue";
 import {JobMetaData} from "../../../api/client";
 
@@ -225,7 +231,7 @@ interface DockingResult {
 
 export default defineComponent({
   name: 'RunDocking',
-  components: {PdbViewer, DiffDockResult},
+  components: {DiffDockResult, UmolResult},
   data() {
     return {
       experimentId: null as string | null,
@@ -268,7 +274,7 @@ export default defineComponent({
       if (this.currentJob?.docking_method === 'diffdock') {
         const diffdockServiceHealthyResponse = await store.checkDiffDockServiceHealth();
         this.dockingServiceHealthy = diffdockServiceHealthyResponse?.is_healthy ?? false;
-      } else if (this.currentJob?.folding_method === 'umol') {
+      } else if (this.currentJob?.docking_method === 'umol') {
         const umolServiceHealthyResponse = await store.checkUmolServiceHealth();
         this.dockingServiceHealthy = umolServiceHealthyResponse?.is_healthy ?? false;
       }
@@ -358,28 +364,6 @@ export default defineComponent({
       if (!row.expanded) {
         // Expand the row
         row.expanded = true;
-
-        // Check if resultData has already been fetched
-        /*if (!row.resultData) {
-          // Fetch result data here using your store method
-          const store = useDrugDiscoveryStore();
-          try {
-            const response = await store.getUmolDockingJobResultData(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
-            if (response) {
-              // Assuming response contains properties predicted_pdb and predicted_sdf
-              // Assign the created ResultData object to the row
-              row.resultData = {
-                predicted_pdb: response.predicted_pdb,
-                predicted_sdf: response.predicted_sdf,
-                predicted_pdb_file: response.predicted_pdb ? new File([new Blob([response.predicted_pdb])], "protein.pdb") : undefined,
-                predicted_sdf_file: response.predicted_sdf ? new File([new Blob([response.predicted_sdf])], "ligand.sdf") : undefined,
-              };
-            }
-          } catch (error) {
-            console.error("Error fetching result data for row:", error);
-            // Handle error, possibly set resultData to a default state or show an error message
-          }
-        }*/
       } else {
         // Collapse the row if it's already expanded
         row.expanded = false;
@@ -465,15 +449,19 @@ export default defineComponent({
     },
 
     async handleFoldingChange(job_id: string, folding_method: string) {
+      const store = useDrugDiscoveryStore();
       const job = this.jobsInQueue.find(j => j.job_id === job_id);
       if (job) {
+        await store.updateDockingParams(this.experimentId!, job.target_id, job.ligand_id, job.job_id, folding_method, job.docking_method);
         job.folding_method = folding_method;
         job.progress = await this.calculateProgress(job.target_id, job.ligand_id, job.job_id, job.docking_method, job.folding_method);
       }
     },
     async handleDockingChange(job_id: string, docking_method: string) {
+      const store = useDrugDiscoveryStore();
       const job = this.jobsInQueue.find(j => j.job_id === job_id);
       if (job) {
+        await store.updateDockingParams(this.experimentId!, job.target_id, job.ligand_id, job.job_id, job.folding_method, docking_method);
         job.docking_method = docking_method;
         job.progress = await this.calculateProgress(job.target_id, job.ligand_id, job.job_id, job.docking_method, job.folding_method);
       }

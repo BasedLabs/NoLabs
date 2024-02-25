@@ -33,7 +33,7 @@ import {
   RunDiffDockDockingJobResponse,
   GetDiffDockDockingResultDataResponse,
   GetDiffDockLigandSdfResponse,
-  GetDiffDockParamsResponse
+  GetDiffDockParamsResponse, GetDockingParamsResponse
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 import apiConstants from "src/api/constants";
@@ -159,6 +159,11 @@ export function getUmolDockingJobResultDataApi(experimentId: string, targetId: s
 export function getDiffDockParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetDiffDockParamsResponse> {
   return DrugDiscoveryService.getDiffdockParamsApiV1DrugDiscoveryGetDiffdockParamsGet(experimentId, targetId, ligandId, jobId);
 }
+
+export function updateDockingParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string, folding_method: string, docking_method: string): CancelablePromise<GetDockingParamsResponse> {
+  return DrugDiscoveryService.updateDockingParamsApiV1DrugDiscoveryUpdateDockingParamsPost(experimentId, targetId, ligandId, jobId, folding_method, docking_method);
+}
+
 
 export function updateDiffDockParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string, samples_per_complex: number): CancelablePromise<GetDiffDockParamsResponse> {
   return DrugDiscoveryService.updateDiffdockParamsApiV1DrugDiscoveryUpdateDiffdockParamsPost(experimentId, targetId, ligandId, jobId, samples_per_complex);

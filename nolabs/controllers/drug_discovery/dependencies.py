@@ -9,6 +9,7 @@ from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceH
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.diffdock_params_management import GetDiffDockParamsFeature, \
     UpdateDiffDockParamsFeature
+from nolabs.features.drug_discovery.docking_params_management import UpdateDockingParamsFeature
 from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
 from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
@@ -320,6 +321,10 @@ def predict_umol_docking_dependency(
                                      ligand_file_management=ligand_file_management,
                                      result_file_management=result_file_management,
                                      settings=settings)
+
+def update_docking_params_dependency(result_file_management: Annotated[ResultsFileManagement,
+Depends(result_file_management_dependency)]) -> UpdateDockingParamsFeature:
+    return UpdateDockingParamsFeature(file_management=result_file_management)
 
 
 def get_diffdock_params_dependency(result_file_management: Annotated[ResultsFileManagement,
