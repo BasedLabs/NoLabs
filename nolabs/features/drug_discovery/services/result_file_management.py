@@ -88,11 +88,11 @@ class ResultsFileManagement:
                                    experiment_id: ExperimentId,
                                    target_id: TargetId,
                                    ligand_id: LigandId,
-                                   job_id: JobId):
+                                   job_id: JobId) -> List[int]:
         self.ensure_results_folder_exists(experiment_id, target_id, ligand_id)
         result_dir = self.result_folder(experiment_id, target_id, ligand_id, job_id)
         pocket_file = os.path.join(result_dir, self._settings.drug_discovery_running_jobs_pocket_file_name)
-        np.load(pocket_file)
+        return np.load(pocket_file)
 
     def check_binding_pocket_exist(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,
                                    job_id: JobId) -> bool:

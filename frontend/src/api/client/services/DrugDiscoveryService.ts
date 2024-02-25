@@ -387,12 +387,14 @@ export class DrugDiscoveryService {
      * Get Target Binding Pocket
      * @param experimentId
      * @param targetId
+     * @param foldingMethod
      * @returns GetTargetBindingPocketResponse Successful Response
      * @throws ApiError
      */
     public static getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(
         experimentId: string,
         targetId: string,
+        foldingMethod: string,
     ): CancelablePromise<GetTargetBindingPocketResponse> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -400,6 +402,7 @@ export class DrugDiscoveryService {
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
+                'folding_method': foldingMethod,
             },
             errors: {
                 422: `Validation Error`,
@@ -437,12 +440,14 @@ export class DrugDiscoveryService {
      * Predict Binding Pocket
      * @param experimentId
      * @param targetId
+     * @param foldingMethod
      * @returns PredictBindingPocketResponse Successful Response
      * @throws ApiError
      */
     public static predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(
         experimentId: string,
         targetId: string,
+        foldingMethod: string,
     ): CancelablePromise<PredictBindingPocketResponse> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -450,6 +455,7 @@ export class DrugDiscoveryService {
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
+                'folding_method': foldingMethod,
             },
             errors: {
                 422: `Validation Error`,
@@ -483,12 +489,14 @@ export class DrugDiscoveryService {
      * Get Folded Structure
      * @param experimentId
      * @param targetId
+     * @param foldingMethod
      * @returns GetFoldingResponse Successful Response
      * @throws ApiError
      */
     public static getFoldedStructureApiV1DrugDiscoveryGetFoldedStructureGet(
         experimentId: string,
         targetId: string,
+        foldingMethod: string,
     ): CancelablePromise<GetFoldingResponse> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -496,6 +504,7 @@ export class DrugDiscoveryService {
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
+                'folding_method': foldingMethod,
             },
             errors: {
                 422: `Validation Error`,

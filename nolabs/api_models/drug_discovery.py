@@ -155,6 +155,7 @@ class CheckFoldingDataAvailableResponse:
 class GetFoldingRequest:
     experiment_id: str
     target_id: str
+    folding_method: str
 
 @pcdataclass.dataclass
 class GetFoldingResponse:
