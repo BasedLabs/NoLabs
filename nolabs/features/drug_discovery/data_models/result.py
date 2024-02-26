@@ -1,9 +1,7 @@
-import dataclasses
 from typing import List
 
 from pydantic.dataclasses import dataclass
 
-@dataclasses.dataclass
 @dataclass
 class JobId:
     value: str
@@ -20,7 +18,6 @@ class JobId:
     def __hash__(self):
         return self.value.__hash__()
 
-@dataclasses.dataclass
 @dataclass
 class UmolResultMetaData:
     job_id: str
@@ -28,7 +25,6 @@ class UmolResultMetaData:
     ligand_id: str
 
 
-@dataclasses.dataclass
 @dataclass
 class JobMetaData:
     job_id: str
@@ -38,14 +34,12 @@ class JobMetaData:
     docking_method: str
 
 
-@dataclasses.dataclass
 @dataclass
 class UmolDockingResultData:
     predicted_pdb: str
     predicted_sdf: str
     plddt_array: List[int]
 
-@dataclasses.dataclass
 @dataclass
 class DiffDockDockingResultData:
     predicted_pdb: str
@@ -56,7 +50,6 @@ class DiffDockDockingResultData:
     confidence: float | None = None
 
 
-@dataclasses.dataclass
 @dataclass
 class DiffDockResultMetaData:
     job_id: str
@@ -67,13 +60,11 @@ class DiffDockResultMetaData:
     scored_affinity: float
     confidence: float | None = None
 
-@dataclasses.dataclass
 @dataclass
 class DiffDockLigandResultData:
     predicted_sdf_contents: str
 
 
-@dataclasses.dataclass
 @dataclass
 class DiffDockModelParams:
     inference_steps: int = 20

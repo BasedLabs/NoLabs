@@ -70,7 +70,8 @@ from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.drug_discovery.get_results import GetUmolDockingResultsFeature, GetDiffDockLigandSdfFeature, \
+from nolabs.features.drug_discovery.get_umol_results import GetUmolDockingResultsFeature
+from nolabs.features.drug_discovery.get_diffdock_results import GetDiffDockLigandSdfFeature, \
     GetDiffDockDockingResultsFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
     CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature, \

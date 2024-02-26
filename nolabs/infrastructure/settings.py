@@ -25,10 +25,6 @@ class Settings:
         return self._config.getboolean('features', 'test')
 
     @property
-    def is_light_infrastructure(self) -> str:
-        return self._config.get('features', 'light')
-
-    @property
     def solubility_host(self) -> str:
         host = self._config.get('microservices', 'solubility')
         if environment.is_compose():

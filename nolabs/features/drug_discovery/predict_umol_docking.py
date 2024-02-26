@@ -1,5 +1,6 @@
 from typing import List
 
+from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.features.drug_discovery.data_models.ligand import LigandId
 from nolabs.features.drug_discovery.data_models.result import JobId, UmolDockingResultData
 from nolabs.infrastructure.settings import Settings
@@ -21,17 +22,15 @@ from umol_microservice import DefaultApi as UmolDefaultApi
 from umol_microservice import ApiClient as UmolApiClient
 from umol_microservice import Configuration as UmolConfiguration
 
-settings = Settings()
-if settings.is_light_infrastructure:
-    import esmfold_light_microservice as folding_microservice
-    from esmfold_light_microservice import DefaultApi as FoldingDefaultApi
-    from esmfold_light_microservice import ApiClient as FoldingApiClient
-    from esmfold_light_microservice import Configuration as FoldingConfiguration
-else:
-    import esmfold_microservice as folding_microservice
-    from esmfold_microservice import DefaultApi as FoldingDefaultApi
-    from esmfold_microservice import ApiClient as FoldingApiClient
-    from esmfold_microservice import Configuration as FoldingConfiguration
+import esmfold_light_microservice
+from esmfold_light_microservice import DefaultApi as EsmFoldLightDefaultApi
+from esmfold_light_microservice import ApiClient as EsmFoldLightApiClient
+from esmfold_light_microservice import Configuration as EsmFoldLightConfiguration
+
+import esmfold_microservice
+from esmfold_microservice import DefaultApi as EsmFoldDefaultApi
+from esmfold_microservice import ApiClient as EsmFoldApiClient
+from esmfold_microservice import Configuration as EsmFoldConfiguration
 
 from nolabs.api_models.drug_discovery import RunUmolDockingJobRequest, RunUmolDockingJobResponse
 from nolabs.domain.experiment import ExperimentId
@@ -98,30 +97,60 @@ class PredictUmolDockingFeature:
                                      plddt_array=plddt_array,
                                      job_id=job_id.value)
 
-    def get_folding(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId, folding_method: str) -> str:
+    def get_folding(self, experiment_id: ExperimentId, target_id: TargetId, folding_method: str) -> str:
         if not self._target_file_management.get_pdb_contents(experiment_id, target_id, folding_method):
             _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
 
-            host = None
+            pdb_contents = None
 
             if folding_method == "esmfold_light":
-                host = self._settings.esmfold_light_host
+                pdb_contents = self.predict_esmfold_light(experiment_id, target_id)
             else:
-                host = self._settings.esmfold_host
+                pdb_contents = self.predict_esmfold(experiment_id, target_id)
 
-            configuration = FoldingConfiguration(
-                host=host,
-            )
-            with FoldingApiClient(configuration=configuration) as client:
-                api_instance = FoldingDefaultApi(client)
-                request = folding_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence,
-                                                                           job_id=job_id.value)
-                pdb_contents = api_instance.predict_through_api_run_folding_post(
-                    run_esm_fold_prediction_request=request).pdb_content
-            self._target_file_management.store_pdb_contents(experiment_id, target_id, pdb_contents, folding_method)
             return pdb_contents
         else:
             return self._target_file_management.get_pdb_contents(experiment_id, target_id, folding_method)
+
+    def predict_esmfold_light(self, experiment_id: ExperimentId, target_id: TargetId):
+
+        configuration = EsmFoldLightConfiguration(
+            host=self._settings.esmfold_light_host,
+        )
+        with EsmFoldLightApiClient(configuration=configuration) as client:
+            api_instance = EsmFoldLightDefaultApi(client)
+            _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
+            if len(sequence) > 400:
+                raise NoLabsException(messages=["Light folding does not support sequences longer than 400. Please use "
+                                                "other folding backend"],
+                                      error_code=ErrorCodes.drug_discovery_folding_error)
+            else:
+                request = esmfold_light_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence)
+                pdb_content = api_instance.predict_through_api_run_folding_post(
+                    run_esm_fold_prediction_request=request).pdb_content
+
+                self._target_file_management.store_pdb_contents(experiment_id, target_id, pdb_content, "esmfold_light")
+                self._target_file_management.update_target_metadata(experiment_id, target_id, "folding_method",
+                                                                    "esmfold_light")
+                return pdb_content
+
+    def predict_esmfold(self, experiment_id: ExperimentId, target_id: TargetId):
+
+        configuration = EsmFoldConfiguration(
+            host=self._settings.esmfold_host,
+        )
+        with EsmFoldApiClient(configuration=configuration) as client:
+            api_instance = EsmFoldDefaultApi(client)
+            _, sequence, _ = self._target_file_management.get_target_data(experiment_id, target_id)
+
+            request = esmfold_microservice.RunEsmFoldPredictionRequest(protein_sequence=sequence)
+            pdb_content = api_instance.predict_run_folding_post(
+                run_esm_fold_prediction_request=request).pdb_content
+
+            self._target_file_management.store_pdb_contents(experiment_id, target_id, pdb_content, "esmfold")
+            self._target_file_management.update_target_metadata(experiment_id, target_id, "folding_method",
+                                                                "esmfold")
+            return pdb_content
 
     def get_msa(self, experiment_id: ExperimentId, target_id: TargetId, job_id: JobId) -> str:
         if not self._target_file_management.get_msa(experiment_id, target_id):

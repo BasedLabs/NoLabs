@@ -39,7 +39,8 @@ from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFe
     CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature, \
     CheckDiffDockRunningFeature
 from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
-from nolabs.features.drug_discovery.get_results import GetUmolDockingResultsFeature, GetDiffDockDockingResultsFeature, \
+from nolabs.features.drug_discovery.get_umol_results import GetUmolDockingResultsFeature
+from nolabs.features.drug_discovery.get_diffdock_results import GetDiffDockDockingResultsFeature, \
     GetDiffDockLigandSdfFeature
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
