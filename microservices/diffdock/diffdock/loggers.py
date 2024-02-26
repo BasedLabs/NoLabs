@@ -31,5 +31,20 @@ class Log:
         })
 
     @staticmethod
+    def preparing_fasta():
+        _logger.info('Preparing fasta file..')
+
+    @staticmethod
+    def generating_embeddings():
+        _logger.info('Generating embeddings...')
+
+    @staticmethod
+    def running_inference():
+        _logger.info('Running inference...')
+
+
+    @staticmethod
     def exception():
         _logger.exception('Exception occured in esmfold')
+
+logger = Log()

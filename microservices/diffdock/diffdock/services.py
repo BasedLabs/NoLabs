@@ -5,8 +5,9 @@ import csv
 import glob
 import re
 import shutil
-from fastapi import HTTPException
 from diffdock.api_models import RunDiffDockPredictionRequest, RunDiffDockPredictionResponse, SDFResult
+
+from diffdock.loggers import logger
 
 __all__ = ['run_docking']
 
@@ -52,13 +53,13 @@ def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionR
         subprocess_env["MKL_NUM_THREADS"] = "4"
 
         # Prepare fasta file
-        print("preparing fasta file")
+        logger.preparing_fasta()
         subprocess.run(
             ["python", "datasets/esm_embedding_preparation.py", "--protein_ligand_csv", csv_file.name, "--out_file",
              "data/prepared_for_esm.fasta"], check=True, cwd="/app/DiffDock", env=subprocess_env)
 
         # Generate ESM embeddings
-        print("Generating embeddings")
+        logger.generating_embeddings()
         os.environ['HOME'] = '/app/DiffDock/esm/model_weights'
         os.environ['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + ':/app/DiffDock/esm'
         subprocess.run(
@@ -67,7 +68,7 @@ def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionR
             check=True, cwd="/app/DiffDock", env=subprocess_env)
 
         # Run DiffDock inference
-        print("Running inference")
+        logger.running_inference()
         result = subprocess.run(["python", "-m", "inference", "--protein_ligand_csv", csv_file.name, "--out_dir",
                                  "results/user_predictions_small_new", "--inference_steps",
                                  str(request.inference_steps), "--samples_per_complex",

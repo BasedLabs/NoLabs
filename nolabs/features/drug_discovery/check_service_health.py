@@ -15,11 +15,10 @@ class CheckUmolServiceHealthFeature:
         host = self._settings.umol_host
         # Attempt to ping the host briefly to check if it's healthy
         try:
-            response = requests.get(f"{host}/docs", timeout=0.5)  # Timeout set to 5 seconds
+            response = requests.get(f"{host}/docs", timeout=0.5)
             # A 2xx status code indicates success
             is_healthy = response.status_code // 100 == 2
         except RequestException:
-            # Any exception (connection error, timeout, etc.) implies the service is not healthy
             is_healthy = False
 
         return CheckServiceHealthyResponse(is_healthy=is_healthy)
@@ -34,11 +33,10 @@ class CheckDiffDockServiceHealthFeature:
         host = self._settings.diffdock_host
         # Attempt to ping the host briefly to check if it's healthy
         try:
-            response = requests.get(f"{host}/docs", timeout=0.5)  # Timeout set to 5 seconds
+            response = requests.get(f"{host}/docs", timeout=0.5)
             # A 2xx status code indicates success
             is_healthy = response.status_code // 100 == 2
         except RequestException:
-            # Any exception (connection error, timeout, etc.) implies the service is not healthy
             is_healthy = False
 
         return CheckServiceHealthyResponse(is_healthy=is_healthy)
@@ -50,18 +48,17 @@ class CheckEsmFoldServiceHealthFeature:
 
     def handle(self) -> CheckServiceHealthyResponse:
 
-
         host = self._settings.esmfold_host
 
         try:
-            response = requests.get(f"{host}/docs", timeout=0.5)  # Timeout set to 0.1 seconds
+            response = requests.get(f"{host}/docs", timeout=0.5)
             # A 2xx status code indicates success
             is_healthy = response.status_code // 100 == 2
         except RequestException:
-            # Any exception (connection error, timeout, etc.) implies the service is not healthy
             is_healthy = False
 
         return CheckServiceHealthyResponse(is_healthy=is_healthy)
+
 
 class CheckEsmFoldLightServiceHealthFeature:
     def __init__(self, settings: Settings):
@@ -69,15 +66,13 @@ class CheckEsmFoldLightServiceHealthFeature:
 
     def handle(self) -> CheckServiceHealthyResponse:
 
-
         host = self._settings.esmfold_light_host
 
         try:
-            response = requests.get(f"{host}/docs", timeout=0.5)  # Timeout set to 0.1 seconds
+            response = requests.get(f"{host}/docs", timeout=0.5)
             # A 2xx status code indicates success
             is_healthy = response.status_code // 100 == 2
         except RequestException:
-            # Any exception (connection error, timeout, etc.) implies the service is not healthy
             is_healthy = False
 
         return CheckServiceHealthyResponse(is_healthy=is_healthy)
