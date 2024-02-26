@@ -116,8 +116,8 @@ export function getLigandDataApi(experimentId: string, targetId: string, ligandI
 }
 
 // Get target binding pocket
-export function getTargetBindingPocketApi(experimentId: string, targetId: string, folding_method: string): CancelablePromise<GetTargetBindingPocketResponse> {
-    return DrugDiscoveryService.getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(experimentId, targetId, folding_method);
+export function getTargetBindingPocketApi(experimentId: string, targetId: string, foldingMethod: string): CancelablePromise<GetTargetBindingPocketResponse> {
+    return DrugDiscoveryService.getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(experimentId, targetId, foldingMethod);
 }
 
 export function setTargetBindingPocketApi(experimentId: string, targetId: string, pocketIds: Array<number>) {
@@ -126,8 +126,8 @@ export function setTargetBindingPocketApi(experimentId: string, targetId: string
 
 
 // Predict binding pocket
-export function predictBindingPocketApi(experimentId: string, targetId: string, folding_method: string): CancelablePromise<PredictBindingPocketResponse> {
-    return DrugDiscoveryService.predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(experimentId, targetId, folding_method);
+export function predictBindingPocketApi(experimentId: string, targetId: string, foldingMethod: string): CancelablePromise<PredictBindingPocketResponse> {
+    return DrugDiscoveryService.predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(experimentId, targetId, foldingMethod);
 }
 
 // Predict folding
@@ -160,8 +160,8 @@ export function getDiffDockParamsApi(experimentId: string, targetId: string, lig
   return DrugDiscoveryService.getDiffdockParamsApiV1DrugDiscoveryGetDiffdockParamsGet(experimentId, targetId, ligandId, jobId);
 }
 
-export function updateDockingParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string, folding_method: string, docking_method: string): CancelablePromise<GetDockingParamsResponse> {
-  return DrugDiscoveryService.updateDockingParamsApiV1DrugDiscoveryUpdateDockingParamsPost(experimentId, targetId, ligandId, jobId, folding_method, docking_method);
+export function updateDockingParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string, foldingMethod: string, dockingMethod: string): CancelablePromise<GetDockingParamsResponse> {
+  return DrugDiscoveryService.updateDockingParamsApiV1DrugDiscoveryUpdateDockingParamsPost(experimentId, targetId, ligandId, jobId, foldingMethod, dockingMethod);
 }
 
 

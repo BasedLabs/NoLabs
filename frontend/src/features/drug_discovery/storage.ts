@@ -249,9 +249,9 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async fetchPocketForTarget(experimentId: string, targetId: string, folding_method: string) {
+        async fetchPocketForTarget(experimentId: string, targetId: string, foldingMethod: string) {
             try {
-                const response = await getTargetBindingPocketApi(experimentId, targetId, folding_method);
+                const response = await getTargetBindingPocketApi(experimentId, targetId, foldingMethod);
                 return response.pocket_ids;
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
@@ -266,9 +266,9 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async predictPocketForTarget(experimentId: string, targetId: string, folding_method: string) {
+        async predictPocketForTarget(experimentId: string, targetId: string, foldingMethod: string) {
             try {
-                const response = await predictBindingPocketApi(experimentId, targetId, folding_method);
+                const response = await predictBindingPocketApi(experimentId, targetId, foldingMethod);
                 return response.pocket_ids;
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
@@ -351,9 +351,9 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
           }
         },
 
-        async updateDockingParams(experimentId: string, targetId: string, ligandId: string, jobId: string, folding_method: string, docking_method: string) {
+        async updateDockingParams(experimentId: string, targetId: string, ligandId: string, jobId: string, foldingMethod: string, dockingMethod: string) {
           try {
-            return await updateDockingParamsApi(experimentId, targetId, ligandId, jobId, folding_method, docking_method);
+            return await updateDockingParamsApi(experimentId, targetId, ligandId, jobId, foldingMethod, dockingMethod);
           } catch (error) {
             console.error("Error getting docking job result data:", error);
             return null;
