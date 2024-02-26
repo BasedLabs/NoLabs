@@ -6,11 +6,13 @@
           <div class="q-pa-sm">
             <div>Target: {{ currentJob.target_name }}</div>
             <div>Ligand: {{ currentJob.ligand_name }}</div>
+            <div>Folding Method: {{ currentJob.folding_method }}</div>
+            <div>Docking Method: {{ currentJob.docking_method }}</div>
           </div>
           <q-card-section>
             Prediction steps:
             <div class="q-gutter-md q-pt-sm row items-start">
-              <q-card v-for="step in steps" :key="step.label" flat bordered class="my-card">
+              <q-card v-for="step in jobSteps" :key="step.label" flat bordered class="my-card">
                 <q-card-section :class="getStepClass(currentJob, step.key)">
                   <div class="step-content">
                     {{ step.label }}
@@ -82,13 +84,22 @@
         <q-tr v-show="props.row.expanded" :props="props">
           <q-td colspan="100%">
             <div class="q-pa-md">
-              <div v-if="props.row.resultData">
-                <PdbViewer v-if="props.row.resultData.predicted_sdf_file" :pdb-file="props.row.resultData.predicted_pdb_file" :sdf-file="props.row.resultData.predicted_sdf_file"/>
-                <div v-if="props.row.resultData.plddt_array"><strong>PLDDT Array:</strong> {{ props.row.resultData.plddt_array.join(', ') }}</div>
-              </div>
-              <div v-else>
-                <q-spinner color="info" label="Loading..." />
-              </div>
+              <template v-if="props.row.docking_method === 'diffdock'">
+                <DiffDockResult
+                  :experimentId="experimentId"
+                  :targetId="props.row.target_id"
+                  :ligandId="props.row.ligand_id"
+                  :jobId="props.row.job_id"
+                />
+              </template>
+              <template v-else-if="props.row.docking_method === 'umol'">
+                <UmolResult
+                  :experimentId="experimentId"
+                  :targetId="props.row.target_id"
+                  :ligandId="props.row.ligand_id"
+                  :jobId="props.row.job_id"
+                />
+              </template>
             </div>
           </q-td>
         </q-tr>
@@ -110,9 +121,25 @@
       </template>
 
       <template v-slot:body="props">
-        <q-tr :props="props" @click.stop="props.expand = !props.expand">
+        <q-tr :props="props">
           <q-td v-for="col in queueColumns" :key="col.name" :props="props">
-            <template v-if="col.field === 'progress'">
+            <template v-if="col.field === 'folding_method'">
+              <q-select filled v-model="props.row.folding_method" :options="['esmfold_light', 'esmfold']" @update:modelValue="handleFoldingChange(props.row.job_id, props.row.folding_method)" />
+            </template>
+            <template v-else-if="col.field === 'docking_method'">
+              <q-select filled v-model="props.row.docking_method" :options="['diffdock', 'umol']" @update:modelValue="handleDockingChange(props.row.job_id, props.row.docking_method)" />
+              <template v-if="props.row.docking_method === 'diffdock'">
+                <q-input  filled type="number" v-model="props.row.samples_per_complex" label="Samples per Complex" @change="() => updateDiffDockParams(props.row, props.row.samples_per_complex)" />
+              </template>
+              <template v-else-if="props.row.docking_method === 'umol'">
+                <!-- Placeholder for Pocket IDs Input Field -->
+                <div>Pocket IDs input will go here</div>
+              </template>
+            </template>
+            <template v-else-if="col.field === 'progress' && props.row.docking_method === 'diffdock'">
+              {{ props.row.progress }}/2
+            </template>
+            <template v-else-if="col.field === 'progress' && props.row.docking_method === 'umol'">
               {{ props.row.progress }}/4
             </template>
             <template v-else-if="col.field === 'delete'">
@@ -153,9 +180,10 @@
 <script lang="ts">
 import {useDrugDiscoveryStore} from 'src/features/drug_discovery/storage';
 import {useRoute} from "vue-router";
-import PdbViewer from "src/components/PdbViewer.vue";
-import {ResultMetaData} from "src/api/client/models/ResultMetaData.ts";
+import DiffDockResult from "src/features/drug_discovery/components/results/DiffDockResult.vue";
+import UmolResult from "src/features/drug_discovery/components/results/UmolResult.vue";
 import {defineComponent} from "vue";
+import {JobMetaData} from "../../../api/client";
 
 interface Job {
   job_id: string;
@@ -163,6 +191,8 @@ interface Job {
   ligand_name: string | undefined;
   target_id: string;
   ligand_id: string;
+  folding_method: string;
+  docking_method: string;
   progress?: number;
   isRunning?: boolean;
   msaAvailable?: boolean;
@@ -175,6 +205,7 @@ interface Job {
   dockingRunning?: boolean;
   pocketIds: number[] | null;
   isAnyJobRunning: boolean;
+  samples_per_complex?: number;
   [key: string]: any; // Add this line to allow dynamic keys
 }
 
@@ -188,8 +219,9 @@ interface ResultData {
 interface DockingResult {
   target_name: string | undefined;
   ligand_name: string | undefined;
+  folding_method: string;
+  docking_method: string;
   resultData?: ResultData | null;
-  pocketIds: number[] | null;
   experiment_id: string;
   job_id: string;
   target_id: string;
@@ -199,7 +231,7 @@ interface DockingResult {
 
 export default defineComponent({
   name: 'RunDocking',
-  components: {PdbViewer},
+  components: {DiffDockResult, UmolResult},
   data() {
     return {
       experimentId: null as string | null,
@@ -209,26 +241,24 @@ export default defineComponent({
         { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
         { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
         { name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left' },
+        { name: 'folding_method', label: 'Folding Method', field: 'folding_method', align: 'center' },
+        { name: 'docking_method', label: 'Docking Method', field: 'docking_method', align: 'center' },
         { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
       ],
       queueColumns: [
         { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
         { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
         { name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left' },
+        { name: 'folding_method', label: 'Folding Method', field: 'folding_method', align: 'center' },
+        { name: 'docking_method', label: 'Docking Method', field: 'docking_method', align: 'center' },
         { name: 'progress', label: 'Progress', field: 'progress', align: 'left', sortable: true },
         { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
       ],
       currentJob: null as Job | null,
-      steps: [
-        { key: 'msa', label: 'Step 1. MSA' },
-        { key: 'pocket', label: 'Step 2. Binding Pocket' },
-        { key: 'folding', label: 'Step 3. Folding' },
-        { key: 'docking', label: 'Step 4. Docking' },
-      ],
-      msaServiceHealthy: true,
-      p2RankServiceHealthy: true,
-      foldingServiceHealthy: true,
-      umolServiceHealthy: true,
+      msaServiceHealthy: false,
+      p2RankServiceHealthy: false,
+      foldingServiceHealthy: false,
+      dockingServiceHealthy: false,
       polling: null as number | null,
     };
   },
@@ -237,13 +267,27 @@ export default defineComponent({
       const store = useDrugDiscoveryStore();
       const msaServiceHealthyResponse = await store.checkMsaServiceHealth();
       const p2RankServiceHealthyResponse = await store.checkP2RankServiceHealth();
-      const foldingServiceHealthyResponse = await store.checkFoldingServiceHealth();
-      const umolServiceHealthyResponse = await store.checkUmolServiceHealth();
 
       this.msaServiceHealthy = msaServiceHealthyResponse?.is_healthy ?? false;
       this.p2RankServiceHealthy = p2RankServiceHealthyResponse?.is_healthy ?? false;
-      this.foldingServiceHealthy = foldingServiceHealthyResponse?.is_healthy ?? false;
-      this.umolServiceHealthy = umolServiceHealthyResponse?.is_healthy ?? false;
+
+      if (this.currentJob?.docking_method === 'diffdock') {
+        const diffdockServiceHealthyResponse = await store.checkDiffDockServiceHealth();
+        this.dockingServiceHealthy = diffdockServiceHealthyResponse?.is_healthy ?? false;
+      } else if (this.currentJob?.docking_method === 'umol') {
+        const umolServiceHealthyResponse = await store.checkUmolServiceHealth();
+        this.dockingServiceHealthy = umolServiceHealthyResponse?.is_healthy ?? false;
+      }
+
+      // Check folding service health based on the folding method of the current job
+      if (this.currentJob?.folding_method === 'esmfold') {
+        const foldingServiceHealthyResponse = await store.checkEsmFoldServiceHealth();
+        this.foldingServiceHealthy = foldingServiceHealthyResponse?.is_healthy ?? false;
+      } else if (this.currentJob?.folding_method === 'esmfold_light') {
+        const foldingServiceHealthyResponse = await store.checkEsmFoldLightServiceHealth();
+        this.foldingServiceHealthy = foldingServiceHealthyResponse?.is_healthy ?? false;
+      }
+
     },
     getServiceHealth(key: string) {
       switch (key) {
@@ -254,7 +298,7 @@ export default defineComponent({
         case 'folding':
           return this.foldingServiceHealthy;
         case 'docking':
-          return this.umolServiceHealthy;
+          return this.dockingServiceHealthy;
         default:
           return true; // Default to healthy if the service key is not recognized
       }
@@ -267,29 +311,36 @@ export default defineComponent({
       for (const result of results?.results_list ?? []) {
         const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
         const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
-        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId!,
-          result.target_id,
-          result.ligand_id,
-          result.job_id);
-        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
 
-        let pocketIds = null;
+        const dockingResult = {
+          ...result,
+          target_name: targetMeta?.target_name,
+          ligand_name: ligandMeta?.ligand_name,
+          resultData: null, // Initialize resultData as null
+          expanded: false,
+        };
+        this.dockingResults.push(dockingResult);
+      }
+    },
 
-        if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
-          pocketIds = pocketIdsResponse.pocket_ids;
-        }
-        if (isDataAvailableResponse?.result_available) {
-          const dockingResult = {
-            ...result,
-            target_name: targetMeta?.target_name,
-            ligand_name: ligandMeta?.ligand_name,
-            resultData: null, // Initialize resultData as null
-            pocketIds: pocketIds || null,
-            expanded: false,
-          };
-          this.dockingResults.push(dockingResult);
+    async populateDiffDockParamsForJobs() {
+      for (let job of this.jobsInQueue) {
+        if (job.docking_method === 'diffdock') {
+          await this.loadDiffDockParams(job);
         }
       }
+    },
+
+    async loadDiffDockParams(job: Job) {
+      const store = useDrugDiscoveryStore();
+      const params = await store.getDiffDockParams(this.experimentId!, job.target_id, job.ligand_id, job.job_id);
+      if (params && params.samples_per_complex !== undefined) {
+        job.samples_per_complex = params.samples_per_complex;
+      }
+    },
+    async updateDiffDockParams(job: JobMetaData, samplesPerComplex: number) {
+      const store = useDrugDiscoveryStore();
+      await store.updateDiffDockParams(this.experimentId!, job.target_id, job.ligand_id, job.job_id, samplesPerComplex);
     },
 
     async deleteDockingJob(row: DockingResult) {
@@ -313,28 +364,6 @@ export default defineComponent({
       if (!row.expanded) {
         // Expand the row
         row.expanded = true;
-
-        // Check if resultData has already been fetched
-        if (!row.resultData) {
-          // Fetch result data here using your store method
-          const store = useDrugDiscoveryStore();
-          try {
-            const response = await store.getDockingJobResultData(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
-            if (response) {
-              // Assuming response contains properties predicted_pdb and predicted_sdf
-              // Assign the created ResultData object to the row
-              row.resultData = {
-                predicted_pdb: response.predicted_pdb,
-                predicted_sdf: response.predicted_sdf,
-                predicted_pdb_file: response.predicted_pdb ? new File([new Blob([response.predicted_pdb])], "protein.pdb") : undefined,
-                predicted_sdf_file: response.predicted_sdf ? new File([new Blob([response.predicted_sdf])], "ligand.sdf") : undefined,
-              };
-            }
-          } catch (error) {
-            console.error("Error fetching result data for row:", error);
-            // Handle error, possibly set resultData to a default state or show an error message
-          }
-        }
       } else {
         // Collapse the row if it's already expanded
         row.expanded = false;
@@ -343,49 +372,49 @@ export default defineComponent({
 
     async fetchJobsInQueue() {
       const store = useDrugDiscoveryStore();
-      const results = await store.getAllDockingResultsList(this.experimentId!);
+      const jobs = await store.getAllDockingJobsList(this.experimentId!);
 
-      for (const result of results?.results_list ?? []) {
-        const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
-        const isDataAvailableResponse = await store.checkDockingResultAvailable(this.experimentId!,
-          result.target_id,
-          result.ligand_id,
-          result.job_id);
-        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+      for (const job of jobs?.jobs_list ?? []) {
+        const targetMeta = await store.fetchTargetMetaData(this.experimentId!, job.target_id);
+        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, job.target_id, job.ligand_id);
+        const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, job.target_id, job.ligand_id, job.job_id);
 
         let pocketIds = null;
         if (pocketIdsResponse && pocketIdsResponse.pocket_ids) {
           pocketIds = pocketIdsResponse.pocket_ids;
         }
-        if (!isDataAvailableResponse?.result_available) {
-          this.jobsInQueue.push({
-            ...result,
-            target_name: targetMeta?.target_name,
-            ligand_name: ligandMeta?.ligand_name,
-            progress: await this.calculateProgress(result),
-            pocketIds: pocketIds || null,
-            isAnyJobRunning: false
-          });
-        }
+        this.jobsInQueue.push({
+          ...job,
+          target_name: targetMeta?.target_name,
+          ligand_name: ligandMeta?.ligand_name,
+          progress: await this.calculateProgress(job.target_id, job.ligand_id, job.job_id, job.docking_method, job.folding_method),
+          pocketIds: pocketIds || null,
+          isAnyJobRunning: false
+        });
       }
     },
 
-    async calculateProgress(result: ResultMetaData) {
+    async calculateProgress(target_id: string, ligand_id: string, job_id: string, docking_method: string, folding_method: string) {
       const store = useDrugDiscoveryStore();
       let progress = 0;
 
-      const msaAvailable = await store.checkMsaDataAvailable(this.experimentId!, result.target_id);
-      if (msaAvailable?.is_available) progress++;
-
-      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId!, result.target_id);
+      const foldingAvailable = await store.checkFoldingDataAvailable(this.experimentId!, target_id, folding_method);
       if (foldingAvailable?.is_available) progress++;
 
-      const pocketAvailable = await store.checkPocketDataAvailable(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
-      if (pocketAvailable?.is_available) progress++;
-
-      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId!, result.target_id, result.ligand_id, result.job_id);
+      const dockingAvailable = await store.checkDockingResultAvailable(this.experimentId!, target_id, ligand_id, job_id);
       if (dockingAvailable?.result_available) progress++;
+
+      // For diffdock, only consider folding and docking results
+      if (docking_method === 'diffdock') {
+        return progress;
+      }
+
+      // For other docking methods, consider all steps (including MSA and pocket prediction)
+      const msaAvailable = await store.checkMsaDataAvailable(this.experimentId!, target_id);
+      if (msaAvailable?.is_available) progress++;
+
+      const pocketAvailable = await store.checkPocketDataAvailable(this.experimentId!, target_id, ligand_id, job_id);
+      if (pocketAvailable?.is_available) progress++;
 
       return progress;
     },
@@ -406,13 +435,33 @@ export default defineComponent({
         isRunning: job.job_id === row.job_id
       }));
 
-      // Call the store method to start the job
+      // Call the store method to start the job based on the docking method
       const store = useDrugDiscoveryStore();
-      await store.runDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
+      if (row.docking_method === 'diffdock') {
+        await store.runDiffDockDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
+      } else if (row.docking_method === 'umol') {
+        await store.runUmolDockingJob(this.experimentId!, row.target_id, row.ligand_id, row.job_id);
+      }
 
-      // Update the current job
-      await this.updateCurrentJob();
-      // You might want to refresh the job list or perform some other action upon starting the job.
+    },
+
+    async handleFoldingChange(job_id: string, folding_method: string) {
+      const store = useDrugDiscoveryStore();
+      const job = this.jobsInQueue.find(j => j.job_id === job_id);
+      if (job) {
+        await store.updateDockingParams(this.experimentId!, job.target_id, job.ligand_id, job.job_id, folding_method, job.docking_method);
+        job.folding_method = folding_method;
+        job.progress = await this.calculateProgress(job.target_id, job.ligand_id, job.job_id, job.docking_method, job.folding_method);
+      }
+    },
+    async handleDockingChange(job_id: string, docking_method: string) {
+      const store = useDrugDiscoveryStore();
+      const job = this.jobsInQueue.find(j => j.job_id === job_id);
+      if (job) {
+        await store.updateDockingParams(this.experimentId!, job.target_id, job.ligand_id, job.job_id, job.folding_method, docking_method);
+        job.docking_method = docking_method;
+        job.progress = await this.calculateProgress(job.target_id, job.ligand_id, job.job_id, job.docking_method, job.folding_method);
+      }
     },
 
     async updateCurrentJob() {
@@ -437,18 +486,29 @@ export default defineComponent({
         this.currentJob.pocketRunning = p2RankRunningResp?.is_running ?? false;
       }
 
-      const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId!, this.currentJob.target_id);
+      const foldingAvailableResp = await store.checkFoldingDataAvailable(this.experimentId!, this.currentJob.target_id, this.currentJob.folding_method);
       this.currentJob.foldingAvailable = foldingAvailableResp?.is_available ?? false;
       if (!this.currentJob.foldingAvailable && this.foldingServiceHealthy) {
-        const foldingRunningResp = await store.checkFoldingJobIsRunning(this.currentJob.job_id);
+        let foldingRunningResp;
+        if (this.currentJob.folding_method === 'esmfold') {
+          foldingRunningResp = await store.checkEsmFoldJobIsRunning(this.currentJob.job_id);
+        } else if (this.currentJob.folding_method === 'esmfold_light') {
+          foldingRunningResp = await store.checkEsmFoldLightJobIsRunning(this.currentJob.job_id);
+        }
         this.currentJob.foldingRunning = foldingRunningResp?.is_running ?? false;
       }
 
+
       const dockingResultAvailableResp = await store.checkDockingResultAvailable(this.experimentId!, this.currentJob.target_id, this.currentJob.ligand_id, this.currentJob.job_id);
       this.currentJob.dockingAvailable = dockingResultAvailableResp?.result_available ?? false;
-      if (!this.currentJob.dockingAvailable && this.umolServiceHealthy) {
-        const umolRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
-        this.currentJob.dockingRunning = umolRunningResp?.is_running ?? false;
+      if (!this.currentJob.dockingAvailable && this.dockingServiceHealthy) {
+        let dockingRunningResp;
+        if (this.currentJob.docking_method === 'diffdock') {
+          dockingRunningResp = await store.checkDiffDockJobIsRunning(this.currentJob.job_id);
+        } else if (this.currentJob.docking_method === 'umol') {
+          dockingRunningResp = await store.checkUmolJobIsRunning(this.currentJob.job_id);
+        }
+        this.currentJob.dockingRunning = dockingRunningResp?.is_running ?? false;
       }
 
       // Update the overall running status based on individual service running status
@@ -456,7 +516,14 @@ export default defineComponent({
         this.currentJob.isAnyJobRunning = (this.currentJob.msaRunning || this.currentJob.pocketRunning || this.currentJob.foldingRunning || this.currentJob.dockingRunning) ?? false;
       }
 
-      let allDataAvailable = this.currentJob.msaAvailable && this.currentJob.pocketAvailable && this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
+      let allDataAvailable;
+
+      if (this.currentJob.docking_method === 'diffdock') {
+        allDataAvailable = this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
+      } else if (this.currentJob.docking_method === 'umol') {
+        allDataAvailable = this.currentJob.msaAvailable && this.currentJob.pocketAvailable && this.currentJob.foldingAvailable && this.currentJob.dockingAvailable;
+      }
+
       // If all data is available, refresh the current job and results
       if (allDataAvailable) {
         this.dockingResults = [];
@@ -483,17 +550,33 @@ export default defineComponent({
   computed: {
     isAnyServiceUnhealthy() {
       // Computed property to check if any service is unhealthy
-      return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.umolServiceHealthy;
+      return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.dockingServiceHealthy;
     },
     isAnyJobRunning() {
       return this.jobsInQueue.some(job => job.isRunning);
     },
+    jobSteps() {
+      if (this.currentJob?.docking_method === 'diffdock') {
+        return [
+          { key: 'folding', label: 'Step 1. Folding' },
+          { key: 'docking', label: 'Step 2. Docking' }
+        ];
+      } else {
+        return [
+          { key: 'msa', label: 'Step 1. MSA' },
+          { key: 'pocket', label: 'Step 2. Binding Pocket' },
+          { key: 'folding', label: 'Step 3. Folding' },
+          { key: 'docking', label: 'Step 4. Docking' },
+        ];
+      }
+    }
   },
-  mounted() {
+  async mounted() {
     const route = useRoute();
     this.experimentId = route.params.experimentId as string;
-    this.fetchDockingResults();
-    this.fetchJobsInQueue();
+    await this.fetchDockingResults();
+    await this.fetchJobsInQueue();
+    await this.populateDiffDockParamsForJobs();
     this.polling = window.setInterval(this.updateCurrentJob, 1000);
   },
   beforeUnmount() {

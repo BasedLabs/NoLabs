@@ -63,7 +63,7 @@ class GetTargetMetaDataFeature:
 
         target_metadata = self._file_management.get_target_metadata(experiment_id, target_id)
 
-        return GetTargetMetaDataResponse(target_id=target_metadata.target_id, target_name=target_metadata.target_name)
+        return GetTargetMetaDataResponse(target_id=target_metadata.target_id, target_name=target_metadata.target_name, folding_method=target_metadata.folding_method)
 
 class UpdateTargetNameFeature:
     def __init__(self, file_management: TargetsFileManagement):

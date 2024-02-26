@@ -25,10 +25,6 @@ class Settings:
         return self._config.getboolean('features', 'test')
 
     @property
-    def is_light_infrastructure(self) -> str:
-        return self._config.get('features', 'light')
-
-    @property
     def solubility_host(self) -> str:
         host = self._config.get('microservices', 'solubility')
         if environment.is_compose():
@@ -76,6 +72,10 @@ class Settings:
         if environment.is_compose():
             return host.replace('127.0.0.1', 'umol')
         return host
+
+    @property
+    def diffdock_host(self) -> str:
+        return self._config.get('microservices', 'diffdock')
 
     @property
     def esmfold_light_host(self) -> str:
@@ -228,14 +228,25 @@ class Settings:
         return self._config.get('drug-discovery', 'docking_result_metadata_file_name')
 
     @property
-    def drug_discovery_docking_result_sdf_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_sdf_file_name')
+    def drug_discovery_umol_docking_result_sdf_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_sdf_file_name')
 
     @property
-    def drug_discovery_docking_result_pdb_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_pdb_file_name')
+    def drug_discovery_umol_docking_result_pdb_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_pdb_file_name')
 
     @property
-    def drug_discovery_docking_result_plddt_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_plddt_file_name')
+    def drug_discovery_umol_docking_result_plddt_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_plddt_file_name')
 
+    @property
+    def drug_discovery_diffdock_docking_result_pdb_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'diffdock_docking_result_pdb_file_name')
+
+    @property
+    def drug_discovery_diffdock_docking_results_metadata_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'diffdock_docking_results_metadata_file_name')
+
+    @property
+    def drug_discovery_diffdock_params_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'diffdock_params_file_name')
