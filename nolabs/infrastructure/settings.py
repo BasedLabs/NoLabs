@@ -78,6 +78,10 @@ class Settings:
         return self._config.get('microservices', 'diffdock')
 
     @property
+    def biobuddy_host(self) -> str:
+        return self._config.get('microservices', 'biobuddy')
+
+    @property
     def esmfold_light_host(self) -> str:
         host = self._config.get('microservices', 'esmfold_light')
         if environment.is_compose():
@@ -250,3 +254,8 @@ class Settings:
     @property
     def drug_discovery_diffdock_params_file_name(self) -> str:
         return self._config.get('drug-discovery', 'diffdock_params_file_name')
+
+
+    @property
+    def biobuddy_conversation_file_name(self) -> str:
+        return self._config.get('biobuddy', 'conversation_file_name')

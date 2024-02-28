@@ -207,6 +207,25 @@ html5lib = ["html5lib"]
 lxml = ["lxml"]
 
 [[package]]
+name = "biobuddy-microservice"
+version = "1.0.0"
+description = "Bio Buddy"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/biobuddy/client"
+
+[[package]]
 name = "bleach"
 version = "6.1.0"
 description = "An easy safelist-based HTML-sanitizing tool."
@@ -2896,4 +2915,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "84cfe5cd0f982bb0edb61051c0fa06b413fad41175f3cc9b67d3dbe54e235820"
+content-hash = "86cb6967a3c387138cd97a975374c82b6eadc3cb16bb8ea1e617646260fa4a02"
