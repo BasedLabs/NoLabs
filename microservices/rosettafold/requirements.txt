@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-multipart
+pickledb
+python-json-logger
+psutil
