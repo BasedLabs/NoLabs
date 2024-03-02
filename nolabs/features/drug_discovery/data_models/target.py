@@ -1,12 +1,7 @@
-import dataclasses
-import datetime
-from typing import Dict
-
 from pydantic.dataclasses import dataclass
 
 from nolabs.api_models.drug_discovery import TargetMetaData
 
-@dataclasses.dataclass
 @dataclass
 class TargetId:
     value: str
@@ -23,14 +18,12 @@ class TargetId:
     def __hash__(self):
         return self.value.__hash__()
 
-@dataclasses.dataclass
 @dataclass
 class TargetData:
     fasta_content: str
     pdb_content: str | None = None
     pocket_ids: int | None = None
 
-@dataclasses.dataclass
 @dataclass
 class Target:
     id: str

@@ -80,9 +80,9 @@ services:
     build:
       context: microservices/gene_ontology
       dockerfile: build/Dockerfile
+    command: --host=0.0.0.0 --port=5788
     ports:
       - "5788:5788"
-    command: --host=0.0.0.0 --port=5788
     deploy:
       resources:
         reservations:
@@ -97,6 +97,20 @@ services:
     ports:
       - "5735:5735"
     command: --host=0.0.0.0 --port=5735
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+  diffdock:
+    build:
+      context: microservices/diffdock
+      dockerfile: build/Dockerfile
+    ports:
+      - "5737:5737"
+    command: --host=0.0.0.0 --port=5737
     deploy:
       resources:
         reservations:
@@ -125,4 +139,4 @@ services:
     ports:
       - "8000:8000"
       - "9000:9000"
-    command: --host=0.0.0.0 --port=5788
+    command: --host=0.0.0.0

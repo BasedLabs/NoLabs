@@ -15,15 +15,17 @@ from umol_microservice import DefaultApi as UmolDefaultApi
 from umol_microservice import ApiClient as UmolApiClient
 from umol_microservice import Configuration as UmolConfiguration
 
-settings = Settings()
-if settings.is_light_infrastructure:
-    from esmfold_light_microservice import DefaultApi as FoldingDefaultApi
-    from esmfold_light_microservice import ApiClient as FoldingApiClient
-    from esmfold_light_microservice import Configuration as FoldingConfiguration
-else:
-    from esmfold_microservice import DefaultApi as FoldingDefaultApi
-    from esmfold_microservice import ApiClient as FoldingApiClient
-    from esmfold_microservice import Configuration as FoldingConfiguration
+from diffdock_microservice import DefaultApi as DiffdockDefaultApi
+from diffdock_microservice import ApiClient as DiffdockApiClient
+from diffdock_microservice import Configuration as DiffdockConfiguration
+
+from esmfold_microservice import DefaultApi as EsmFoldDefaultApi
+from esmfold_microservice import ApiClient as EsmFoldApiClient
+from esmfold_microservice import Configuration as EsmFoldConfiguration
+
+from esmfold_light_microservice import DefaultApi as EsmFoldLightDefaultApi
+from esmfold_light_microservice import ApiClient as EsmFoldLightApiClient
+from esmfold_light_microservice import Configuration as EsmFoldLightConfiguration
 
 from nolabs.api_models.drug_discovery import CheckJobIsRunningRequest, CheckJobIsRunningResponse
 
@@ -48,7 +50,7 @@ class CheckUmolRunningFeature:
         return CheckJobIsRunningResponse(is_running=response)
 
 
-class CheckFoldingRunningFeature:
+class CheckDiffDockRunningFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
 
@@ -57,18 +59,50 @@ class CheckFoldingRunningFeature:
 
         job_id = JobId(request.job_id)
 
-        host = None
-
-        if self._settings.is_light_infrastructure:
-            host = self._settings.esmfold_light_host
-        else:
-            host = self._settings.esmfold_host
-
-        configuration = FoldingConfiguration(
-            host=host,
+        configuration = DiffdockConfiguration(
+            host=self._settings.diffdock_host,
         )
-        with FoldingApiClient(configuration=configuration) as client:
-            api_instance = FoldingDefaultApi(client)
+        with DiffdockApiClient(configuration=configuration) as client:
+            api_instance = DiffdockDefaultApi(client)
+            response = api_instance.is_job_running_job_job_id_is_running_get(
+                job_id=job_id.value).is_running
+
+        return CheckJobIsRunningResponse(is_running=response)
+
+
+class CheckEsmFoldLightRunningFeature:
+    def __init__(self, settings: Settings):
+        self._settings = settings
+
+    async def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
+        assert request
+
+        job_id = JobId(request.job_id)
+
+        configuration = EsmFoldLightConfiguration(
+            host=self._settings.esmfold_light_host,
+        )
+        with EsmFoldLightApiClient(configuration=configuration) as client:
+            api_instance = EsmFoldLightDefaultApi(client)
+            response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value).is_running
+
+        return CheckJobIsRunningResponse(is_running=response)
+
+
+class CheckEsmFoldRunningFeature:
+    def __init__(self, settings: Settings):
+        self._settings = settings
+
+    async def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
+        assert request
+
+        job_id = JobId(request.job_id)
+
+        configuration = EsmFoldConfiguration(
+            host=self._settings.esmfold_host,
+        )
+        with EsmFoldApiClient(configuration=configuration) as client:
+            api_instance = EsmFoldDefaultApi(client)
             response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value).is_running
 
         return CheckJobIsRunningResponse(is_running=response)

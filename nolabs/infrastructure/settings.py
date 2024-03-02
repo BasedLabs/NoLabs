@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 __all__ = ['Settings', ]
 
+from nolabs.infrastructure import environment
 from nolabs.infrastructure.environment import is_dev
 
 import configparser
@@ -24,44 +25,71 @@ class Settings:
         return self._config.getboolean('features', 'test')
 
     @property
-    def is_light_infrastructure(self) -> str:
-        return self._config.get('features', 'light')
-
-    @property
     def solubility_host(self) -> str:
-        return self._config.get('microservices', 'solubility_host')
+        host = self._config.get('microservices', 'solubility')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'solubility')
+        return host
 
     @property
     def conformations_host(self) -> str:
-        return self._config.get('microservices', 'conformations_host')
+        host = self._config.get('microservices', 'conformations')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'conformations')
+        return host
 
     @property
     def localisation_host(self) -> str:
-        return self._config.get('microservices', 'localisation_host')
+        host = self._config.get('microservices', 'localisation')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'localisation')
+        return host
 
     @property
     def gene_ontology_host(self) -> str:
-        return self._config.get('microservices', 'gene_ontology_host')
+        host = self._config.get('microservices', 'gene_ontology')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'gene_ontology')
+        return host
 
     @property
     def p2rank_host(self) -> str:
-        return self._config.get('microservices', 'p2rank_host')
+        host = self._config.get('microservices', 'p2rank')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'p2rank')
+        return host
 
     @property
     def msa_light_host(self) -> str:
-        return self._config.get('microservices', 'msa_light_host')
+        host = self._config.get('microservices', 'msa_light')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'msa_light')
+        return host
 
     @property
     def umol_host(self) -> str:
-        return self._config.get('microservices', 'umol_host')
+        host = self._config.get('microservices', 'umol')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'umol')
+        return host
+
+    @property
+    def diffdock_host(self) -> str:
+        return self._config.get('microservices', 'diffdock')
 
     @property
     def esmfold_light_host(self) -> str:
-        return self._config.get('microservices', 'esmfold_light_host')
+        host = self._config.get('microservices', 'esmfold_light')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'esmfold_light')
+        return host
 
     @property
     def esmfold_host(self) -> str:
-        return self._config.get('microservices', 'esmfold_host')
+        host = self._config.get('microservices', 'esmfold')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'esmfold')
+        return host
 
     @property
     def conformations_simulations_file_name(self) -> str:
@@ -200,14 +228,25 @@ class Settings:
         return self._config.get('drug-discovery', 'docking_result_metadata_file_name')
 
     @property
-    def drug_discovery_docking_result_sdf_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_sdf_file_name')
+    def drug_discovery_umol_docking_result_sdf_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_sdf_file_name')
 
     @property
-    def drug_discovery_docking_result_pdb_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_pdb_file_name')
+    def drug_discovery_umol_docking_result_pdb_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_pdb_file_name')
 
     @property
-    def drug_discovery_docking_result_plddt_file_name(self) -> str:
-        return self._config.get('drug-discovery', 'docking_result_plddt_file_name')
+    def drug_discovery_umol_docking_result_plddt_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'umol_docking_result_plddt_file_name')
 
+    @property
+    def drug_discovery_diffdock_docking_result_pdb_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'diffdock_docking_result_pdb_file_name')
+
+    @property
+    def drug_discovery_diffdock_docking_results_metadata_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'diffdock_docking_results_metadata_file_name')
+
+    @property
+    def drug_discovery_diffdock_params_file_name(self) -> str:
+        return self._config.get('drug-discovery', 'diffdock_params_file_name')

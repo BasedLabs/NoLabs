@@ -1,6 +1,6 @@
 from pydantic import dataclasses as pcdataclass
 from fastapi import UploadFile
-from typing import List
+from typing import List, Optional
 
 
 @pcdataclass.dataclass
@@ -15,6 +15,7 @@ class GetExperimentRequest:
 class TargetMetaData:
     target_id: str
     target_name: str
+    folding_method: Optional[str] = None
 
 @pcdataclass.dataclass
 class UploadTargetRequest:
@@ -143,6 +144,7 @@ class CheckMsaDataAvailableResponse:
 class CheckFoldingDataAvailableRequest:
     experiment_id: str
     target_id: str
+    folding_method: str
 
 
 @pcdataclass.dataclass
@@ -153,6 +155,7 @@ class CheckFoldingDataAvailableResponse:
 class GetFoldingRequest:
     experiment_id: str
     target_id: str
+    folding_method: str
 
 @pcdataclass.dataclass
 class GetFoldingResponse:
@@ -240,10 +243,20 @@ class ResultMetaData:
     ligand_id: str
 
 @pcdataclass.dataclass
+class JobMetaData:
+    experiment_id: str
+    job_id: str
+    target_id: str
+    ligand_id: str
+    folding_method: str
+    docking_method: str
+
+@pcdataclass.dataclass
 class RegisterDockingJobRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
+    folding_method: str
 
 @pcdataclass.dataclass
 class RegisterDockingJobResponse:
@@ -261,19 +274,40 @@ class DeleteDockingJobResponse:
     job_id: str
 
 @pcdataclass.dataclass
-class RunDockingJobRequest:
+class RunUmolDockingJobRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
     job_id: str
 
 @pcdataclass.dataclass
-class RunDockingJobResponse:
+class RunUmolDockingJobResponse:
     predicted_pdb: str
     predicted_sdf: str
     plddt_array: List[int]
     job_id: str
 
+@pcdataclass.dataclass
+class RunDiffDockDockingJobRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class DiffDockLigandMetaData:
+    job_id: str
+    target_id: str
+    ligand_id: str
+    predicted_ligand_file_name: str
+    minimized_affinity: float
+    scored_affinity: float
+    confidence: float | None = None
+
+@pcdataclass.dataclass
+class RunDiffDockDockingJobResponse:
+    predicted_pdb: str
+    predicted_ligands: List[DiffDockLigandMetaData]
 
 @pcdataclass.dataclass
 class CheckResultDataAvailableRequest:
@@ -294,11 +328,73 @@ class GetDockingResultDataRequest:
     job_id: str
 
 @pcdataclass.dataclass
-class GetDockingResultDataResponse:
+class GetUmolDockingResultDataResponse:
     predicted_pdb: str
     predicted_sdf: str
     plddt_array: List[int]
     job_id: str
+
+@pcdataclass.dataclass
+class GetDockingParamsRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class GetDockingParamsResponse:
+    folding_method: str
+    docking_method: str
+
+@pcdataclass.dataclass
+class UpdateDockingParamsRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+    folfing_method: str
+    docking_method: str
+
+
+
+@pcdataclass.dataclass
+class GetDiffDockParamsRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+
+@pcdataclass.dataclass
+class GetDiffDockParamsResponse:
+    samples_per_complex: int
+
+
+@pcdataclass.dataclass
+class UpdateDiffDockParamsRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+    samples_per_complex: int
+
+
+@pcdataclass.dataclass
+class GetDiffDockDockingResultDataResponse:
+    predicted_pdb: str
+    predicted_ligands: List[DiffDockLigandMetaData]
+
+@pcdataclass.dataclass
+class GetDiffDockLigandSdfRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+    job_id: str
+    ligand_file_name: str
+
+@pcdataclass.dataclass
+class GetDiffDockLigandSdfResponse:
+    sdf_contents: str
+
 
 @pcdataclass.dataclass
 class CheckJobIsRunningRequest:
@@ -321,7 +417,15 @@ class GetAllResultsListRequest:
 
 @pcdataclass.dataclass
 class GetAllResultsListResponse:
-    results_list: List[ResultMetaData]
+    results_list: List[JobMetaData]
+
+@pcdataclass.dataclass
+class GetAllJobsListRequest:
+    experiment_id: str
+
+@pcdataclass.dataclass
+class GetAllJobsListResponse:
+    jobs_list: List[JobMetaData]
 
 @pcdataclass.dataclass
 class GetResultsListForTargetLigandRequest:
@@ -331,7 +435,17 @@ class GetResultsListForTargetLigandRequest:
 
 @pcdataclass.dataclass
 class GetResultsListForTargetLigandResponse:
-    results_list: List[ResultMetaData]
+    results_list: List[JobMetaData]
+
+@pcdataclass.dataclass
+class GetJobsListForTargetLigandRequest:
+    experiment_id: str
+    target_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class GetJobsListForTargetLigandResponse:
+    jobs_list: List[JobMetaData]
 
 @pcdataclass.dataclass
 class CheckServiceHealthyResponse:

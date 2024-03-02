@@ -1,8 +1,5 @@
-import dataclasses
-
 from pydantic.dataclasses import dataclass
 
-@dataclasses.dataclass
 @dataclass
 class LigandId:
     value: str
