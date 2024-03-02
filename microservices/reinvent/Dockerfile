@@ -28,6 +28,10 @@ RUN conda env create -f reinvent/DockStream/environment.yml
 COPY reinvent/ReinventCommunity /microservice/reinvent/ReinventCommunity
 
 # RUN pip install -r requirements.txt
-RUN conda env create -f /microservice/reinvent/ReinventCommunity/environment.yml ; exit 0
+RUN conda update -n base -c defaults conda
+RUN conda create --name ReinventCommunity
+RUN echo "source activate {env}" > ~/.bashrc
+RUN conda activate ReinventCommunity
 RUN ~/miniconda3/envs/ReinventCommunity/bin/python -m ensurepip --upgrade
+#RUN /root/miniconda3/bin/python -m ensurepip --upgrade
 RUN conda env update --name ReinventCommunity --file reinvent/ReinventCommunity/environment.yml

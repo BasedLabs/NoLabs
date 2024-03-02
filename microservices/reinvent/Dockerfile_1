@@ -30,4 +30,4 @@ COPY reinvent/ReinventCommunity /microservice/reinvent/ReinventCommunity
 # RUN pip install -r requirements.txt
 RUN conda env create -f /microservice/reinvent/ReinventCommunity/environment.yml ; exit 0
 RUN ~/miniconda3/envs/ReinventCommunity/bin/python -m ensurepip --upgrade
-RUN conda env update --name ReinventCommunity --file reinvent/ReinventCommunity/environment.yml
+RUN conda env create -f /microservice/reinvent/ReinventCommunity/environment.yml
