@@ -10,8 +10,8 @@ import pickledb
 import psutil
 from fastapi import UploadFile
 
-from rosettafold_microservice.api_models import RunRosettaFoldResponse, RunRosettaFoldRequest
-from rosettafold_microservice.loggers import logger
+from microservice.api_models import RunRosettaFoldResponse, RunRosettaFoldRequest
+from microservice.loggers import logger
 
 
 class RosettaService:
@@ -45,7 +45,7 @@ class RosettaService:
             counter += 1
             self._db.set('rosettafold_process_counter', counter)
 
-    async def run_rosettafold(self, fasta: UploadFile | None, a3m: UploadFile | None) -> RunRosettaFoldResponse:
+    async def run_rosettafold(self, fasta: bytes | None, a3m: bytes | None) -> RunRosettaFoldResponse:
         try:
             self.increment_rosettafold_process_counter()
             return await self._run_rosettafold(fasta, a3m)
@@ -65,7 +65,7 @@ class RosettaService:
             if os.path.isfile(file) and '.pdb' not in pathlib.Path(file).suffixes:
                 os.remove(file)
 
-    async def _run_rosettafold(self, fasta: UploadFile | None, a3m: UploadFile | None) -> RunRosettaFoldResponse:
+    async def _run_rosettafold(self, fasta: bytes, a3m: bytes) -> RunRosettaFoldResponse:
         bfd_dir_path = os.path.join(self._rosettafold_directory, 'bfd')
         uniref_dir_path = os.path.join(self._rosettafold_directory, 'UniRef30_2020_06')
         pdb100_dir_path = os.path.join(self._rosettafold_directory, 'pdb100_2021Mar03')
@@ -86,14 +86,12 @@ class RosettaService:
         if errors:
             return RunRosettaFoldResponse(pdb_content=None, errors=errors)
 
-        if a3m:
+        if fasta:
             with open(os.path.join(self._rosettafold_directory, 't000_.msa0.a3m'), 'wb') as f:
-                content = await a3m.read()
-                f.write(content)
+                f.write(a3m)
         else:
             with open(os.path.join(self._rosettafold_directory, 'input.fasta'), 'wb') as f:
-                content = await fasta.read()
-                f.write(content)
+                f.write(fasta)
 
         def read_stdout(pipe):
             for line in iter(pipe.readline, ''):

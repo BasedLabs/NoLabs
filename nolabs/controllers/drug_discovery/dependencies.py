@@ -13,6 +13,7 @@ from nolabs.features.drug_discovery.docking_params_management import UpdateDocki
 from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
 from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
+from nolabs.features.drug_discovery.predict_rosettafold_folding import PredictRosettaFoldFolding
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
     CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature, \
@@ -160,6 +161,12 @@ Depends(target_file_management_dependency)],
                                settings: Annotated[Settings,
                                Depends(settings_dependency)]) -> PredictEsmFoldFeature:
     return PredictEsmFoldFeature(file_management=target_file_management, settings=settings)
+
+def predict_rosettafold_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)],
+                               settings: Annotated[Settings,
+                               Depends(settings_dependency)]) -> PredictRosettaFoldFolding:
+    return PredictRosettaFoldFolding(file_management=target_file_management, settings=settings)
 
 
 def upload_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,

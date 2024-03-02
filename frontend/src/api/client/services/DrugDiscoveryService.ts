@@ -309,14 +309,14 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Get Ligand Data
+     * Get Ligand Meta Data
      * @param experimentId
      * @param targetId
      * @param ligandId
      * @returns GetLigandMetaDataResponse Successful Response
      * @throws ApiError
      */
-    public static getLigandDataApiV1DrugDiscoveryGetLigandMetaDataGet(
+    public static getLigandMetaDataApiV1DrugDiscoveryGetLigandMetaDataGet(
         experimentId: string,
         targetId: string,
         ligandId: string,
@@ -387,14 +387,12 @@ export class DrugDiscoveryService {
      * Get Target Binding Pocket
      * @param experimentId
      * @param targetId
-     * @param foldingMethod
      * @returns GetTargetBindingPocketResponse Successful Response
      * @throws ApiError
      */
     public static getTargetBindingPocketApiV1DrugDiscoveryGetTargetBindingPocketGet(
         experimentId: string,
         targetId: string,
-        foldingMethod: string,
     ): CancelablePromise<GetTargetBindingPocketResponse> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -402,7 +400,6 @@ export class DrugDiscoveryService {
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
-                'folding_method': foldingMethod,
             },
             errors: {
                 422: `Validation Error`,
@@ -440,14 +437,12 @@ export class DrugDiscoveryService {
      * Predict Binding Pocket
      * @param experimentId
      * @param targetId
-     * @param foldingMethod
      * @returns PredictBindingPocketResponse Successful Response
      * @throws ApiError
      */
     public static predictBindingPocketApiV1DrugDiscoveryPredictBindingPocketPost(
         experimentId: string,
         targetId: string,
-        foldingMethod: string,
     ): CancelablePromise<PredictBindingPocketResponse> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -455,7 +450,6 @@ export class DrugDiscoveryService {
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
-                'folding_method': foldingMethod,
             },
             errors: {
                 422: `Validation Error`,
@@ -525,6 +519,29 @@ export class DrugDiscoveryService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/drug_discovery/predict-esmfold-light',
+            query: {
+                'experiment_id': experimentId,
+                'target_id': targetId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Predict Rosettafold
+     * @param experimentId
+     * @param targetId
+     * @returns PredictFoldingResponse Successful Response
+     * @throws ApiError
+     */
+    public static predictRosettafoldApiV1DrugDiscoveryPredictRosettafoldPost(
+        experimentId: string,
+        targetId: string,
+    ): CancelablePromise<PredictFoldingResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/predict-rosettafold',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,

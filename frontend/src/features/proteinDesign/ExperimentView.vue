@@ -3,7 +3,7 @@
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
       <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
-        <q-btn color="positive" size="md" outline label="Binder parameters"
+        <q-btn color="info" size="md" outline label="Binder parameters"
                @click="showInferenceForm = !showInferenceForm"/>
       </ExperimentHeader>
       <q-page-container>
@@ -138,7 +138,7 @@ export default defineComponent({
     },
     changeExperimentName() {
       this.$q.dialog({
-        color: 'positive',
+        color: 'info',
         title: 'Prompt',
         message: 'Enter new experiment name',
         prompt: {

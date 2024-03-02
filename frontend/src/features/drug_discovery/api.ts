@@ -139,6 +139,10 @@ export function predictFoldingApi(experimentId: string, targetId: string): Cance
   return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictEsmfoldPost(experimentId, targetId);
 }
 
+export function predictRosettaFoldApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
+  return DrugDiscoveryService.predictRosettafoldApiV1DrugDiscoveryPredictRosettafoldPost(experimentId, targetId);
+}
+
 export function registerDockingJobApi(experimentId: string, targetId: string, ligandId: string, foldingMethod: string): CancelablePromise<RegisterDockingJobResponse> {
   return DrugDiscoveryService.registerDockingJobApiV1DrugDiscoveryRegisterDockingJobPost(experimentId, targetId, ligandId, foldingMethod);
 }

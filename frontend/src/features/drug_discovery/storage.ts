@@ -1,57 +1,57 @@
 import {defineStore} from 'pinia';
 import {
-  changeExperimentNameApi,
-  changeTargetNameApi,
-  checkDockingResultAvailableApi,
-  checkFoldingDataAvailableApi,
-  checkEsmFoldJobIsRunningApi,
-  checkEsmFoldLightJobIsRunningApi,
-  checkEsmFoldServiceHealthApi,
-  checkEsmFoldLightServiceHealthApi,
-  checkMsaDataAvailableApi,
-  checkMsaJobIsRunningApi,
-  checkMsaServiceHealthApi,
-  checkP2RankJobIsRunningApi,
-  checkP2RankServiceHealthApi,
-  checkPocketDataAvailableApi,
-  checkUmolJobIsRunningApi,
-  checkUmolServiceHealthApi,
-  createExperimentApi,
-  deleteDockingJobApi,
-  deleteExperimentApi,
-  deleteLigandApi,
-  deleteTargetApi,
-  getAllDockingJobsListApi,
-  getAllDockingResultsListApi,
-  getUmolDockingJobResultDataApi,
-  getDockingJobsListForTargetLigandApi,
-  getDockingResultsListForTargetLigandApi,
-  getExperimentMetadataApi,
-  getExperimentsApi,
-  getJobPocketDataApi,
-  getLigandDataApi,
-  getLigandMetaDataApi,
-  getLigandsListApi,
-  getTargetBindingPocketApi,
-  getTargetDataApi,
-  getTargetMetaDataApi,
-  getTargetsListApi,
-  predictBindingPocketApi,
-  predictFoldingApi,
-  predictLightFoldingApi,
-  registerDockingJobApi,
-  runUmolDockingJobApi,
-  setTargetBindingPocketApi,
-  uploadLigandApi,
-  uploadTargetApi,
-  checkDiffDockServiceHealthApi,
-  checkDiffDockJobIsRunningApi,
-  runDiffDockDockingJobApi,
-  getDiffDockDockingJobResultDataApi,
-  getDiffDockLigandSdfApi,
-  getDiffDockParamsApi,
-  updateDiffDockParamsApi,
-  updateDockingParamsApi
+    changeExperimentNameApi,
+    changeTargetNameApi,
+    checkDockingResultAvailableApi,
+    checkFoldingDataAvailableApi,
+    checkEsmFoldJobIsRunningApi,
+    checkEsmFoldLightJobIsRunningApi,
+    checkEsmFoldServiceHealthApi,
+    checkEsmFoldLightServiceHealthApi,
+    checkMsaDataAvailableApi,
+    checkMsaJobIsRunningApi,
+    checkMsaServiceHealthApi,
+    checkP2RankJobIsRunningApi,
+    checkP2RankServiceHealthApi,
+    checkPocketDataAvailableApi,
+    checkUmolJobIsRunningApi,
+    checkUmolServiceHealthApi,
+    createExperimentApi,
+    deleteDockingJobApi,
+    deleteExperimentApi,
+    deleteLigandApi,
+    deleteTargetApi,
+    getAllDockingJobsListApi,
+    getAllDockingResultsListApi,
+    getUmolDockingJobResultDataApi,
+    getDockingJobsListForTargetLigandApi,
+    getDockingResultsListForTargetLigandApi,
+    getExperimentMetadataApi,
+    getExperimentsApi,
+    getJobPocketDataApi,
+    getLigandDataApi,
+    getLigandMetaDataApi,
+    getLigandsListApi,
+    getTargetBindingPocketApi,
+    getTargetDataApi,
+    getTargetMetaDataApi,
+    getTargetsListApi,
+    predictBindingPocketApi,
+    predictFoldingApi,
+    predictLightFoldingApi,
+    registerDockingJobApi,
+    runUmolDockingJobApi,
+    setTargetBindingPocketApi,
+    uploadLigandApi,
+    uploadTargetApi,
+    checkDiffDockServiceHealthApi,
+    checkDiffDockJobIsRunningApi,
+    runDiffDockDockingJobApi,
+    getDiffDockDockingJobResultDataApi,
+    getDiffDockLigandSdfApi,
+    getDiffDockParamsApi,
+    updateDiffDockParamsApi,
+    updateDockingParamsApi, predictRosettaFoldApi
 } from 'src/features/drug_discovery/api';
 
 import {
@@ -221,7 +221,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async predictLightFoldingForTarget(experimentId: string, targetId: string) {
+        async predictEsmLightFoldingForTarget(experimentId: string, targetId: string) {
             try {
                 const response = await predictLightFoldingApi(experimentId, targetId);
                 const errorResponse = obtainErrorResponse(response);
@@ -240,9 +240,18 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async predictFoldingForTarget(experimentId: string, targetId: string) {
+        async predictEsmFoldingForTarget(experimentId: string, targetId: string) {
             try {
                 const response = await predictFoldingApi(experimentId, targetId);
+                return response.pdb_content;
+                // Optionally set the currentTarget to the selected one
+            } catch (error) {
+                console.error('Error fetching ligands:', error);
+            }
+        },
+        async predictRoseTTAFold(experimentId: string, targetId: string) {
+            try {
+                const response = await predictRosettaFoldApi(experimentId, targetId);
                 return response.pdb_content;
                 // Optionally set the currentTarget to the selected one
             } catch (error) {

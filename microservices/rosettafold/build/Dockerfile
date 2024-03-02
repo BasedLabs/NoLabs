@@ -30,20 +30,20 @@ RUN conda config --add channels https://${ROSETTACOMMONS_CONDA_USERNAME}:${ROSET
 #installing pyrosetta into a base image so it gets cached between builds
 RUN conda install -n folding -y pyrosetta
 
-#COPY ./RoseTTAFold /RoseTTAFold
+COPY ./RoseTTAFold /RoseTTAFold
 RUN wget -q https://files.ipd.uw.edu/pub/RoseTTAFold/weights.tar.gz --show-progress
 RUN tar xfz weights.tar.gz
-
+##
 RUN sed -i 's/\r$//' install_dependencies.sh && chmod +x install_dependencies.sh
 RUN ./install_dependencies.sh
 
 ENV PATH /RoseTTAFold:$PATH
 
-COPY rosettafold_microservice /RoseTTAFold/rosettafold_microservice
+COPY microservice /RoseTTAFold/microservice
 RUN sed -i 's/\r$//' run_pyrosetta_ver.sh && chmod +x run_pyrosetta_ver.sh
 RUN sed -i 's/\r$//' input_prep/make_msa.sh && chmod +x input_prep/make_msa.sh
 RUN sed -i 's/\r$//' input_prep/make_ss.sh && chmod +x input_prep/make_ss.sh
 
 COPY requirements.txt /RoseTTAFold
 RUN pip install -r requirements.txt
-ENTRYPOINT ["uvicorn", "rosettafold_microservice.api:app"]
+ENTRYPOINT ["uvicorn", "microservice.api:app"]

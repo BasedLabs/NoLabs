@@ -4,7 +4,7 @@ import sys
 from fastapi import UploadFile
 from pythonjsonlogger import jsonlogger
 
-from rosettafold_microservice.api_models import *
+from microservice.api_models import *
 
 _logger = logging.getLogger()
 
@@ -17,10 +17,11 @@ _logger.addHandler(_logHandler)
 
 
 class Log:
-    async def run_rosettafold_request(self, fasta: UploadFile):
-        fasta_content = await fasta.read()
-        await fasta.seek(0)
-        _logger.info('Run rosettafold request', extra={'fasta_content': fasta_content})
+    def run_rosettafold_request(self, fasta: bytes | None, a3m: bytes | None):
+        _logger.info('Run rosettafold request', extra={
+            'fasta': fasta.decode('utf-8')[:15] if fasta else None,
+            'a3m': a3m.decode('utf-8')[:15] if a3m else None
+        })
 
     def run_rosettafold_response(self, response: RunRosettaFoldResponse):
         d = response.as_log_dict()

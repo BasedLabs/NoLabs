@@ -82,7 +82,7 @@
 
       <q-card-actions align="right">
         <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false" />
-        <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload(selectedTarget!)" />
+        <q-btn flat label="Upload" color="info" @click="() => handleLigandFileUpload(selectedTarget!)" />
       </q-card-actions>
     </q-card>
   </q-dialog>

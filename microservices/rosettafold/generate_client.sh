@@ -1,7 +1,26 @@
+#!/bin/bash
+
+# Make sure Docker is installed
+if ! command -v docker &> /dev/null
+then
+    echo "Docker could not be found. Please install Docker."
+    exit
+fi
+
+# Make sure npx is installed
+if ! command -v npx &> /dev/null
+then
+    echo "npx could not be found. Please install Node.js and npm."
+    exit
+fi
+
 echo 'Installation: https://openapi-generator.tech/docs/installation'
-PACKAGE_NAME=rosettafold
-sudo docker buildx build -t $PACKAGE_NAME -f build/Dockerfile . && \
- (sudo docker run --name $PACKAGE_NAME --gpus all --net=host $PACKAGE_NAME --host=0.0.0.0 --port=5731 &) && \
- sleep 5 && \
- npx @openapitools/openapi-generator-cli generate -i http://127.0.0.1:5731/openapi.json -g python -o ./client --additional-properties=packageName={$PACKAGE_NAME}_microservice
-echo 'Use pip install $PACKAGE_NAME/client'
+
+# Generate the Python client using OpenAPI Generator
+npx @openapitools/openapi-generator-cli generate \
+    -i http://127.0.0.1:5738/openapi.json \
+    -g python \
+    -o ./client \
+    --additional-properties=packageName=rosettafold_microservice
+
+echo 'Use pip install ./client'
