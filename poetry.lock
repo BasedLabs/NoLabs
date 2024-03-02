@@ -1778,6 +1778,25 @@ files = [
 ]
 
 [[package]]
+name = "pubmed-query-microservice"
+version = "1.0.0"
+description = "Pubmed Query API"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/pubmed_query/client"
+
+[[package]]
 name = "pure-eval"
 version = "0.2.2"
 description = "Safely evaluate AST nodes without side effects"
@@ -2253,6 +2272,25 @@ packaging = "*"
 
 [package.extras]
 test = ["pytest (>=6,!=7.0.0,!=7.0.1)", "pytest-cov (>=3.0.0)", "pytest-qt"]
+
+[[package]]
+name = "rcsb-pdb-query-microservice"
+version = "1.0.0"
+description = "RCSB PDB Query API"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/rcsb_pdb_query/client"
 
 [[package]]
 name = "rdkit"
@@ -2915,4 +2953,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "86cb6967a3c387138cd97a975374c82b6eadc3cb16bb8ea1e617646260fa4a02"
+content-hash = "08bc6e1e5fe4d7cdda7c609151ed8067fb9d4c543f82ffe5dd63c69ae82249b2"

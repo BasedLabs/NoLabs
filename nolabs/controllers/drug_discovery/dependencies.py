@@ -28,8 +28,8 @@ from nolabs.features.drug_discovery.services.ligand_file_management import Ligan
 from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
     GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature, UpdateTargetNameFeature
-from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
-    GetLigandsListFeature, GetLigandDataFeature, GetLigandMetaDataFeature
+from nolabs.features.drug_discovery.target_ligand_management import UploadTargetLigandFeature, DeleteTargetLigandFeature, \
+    GetTargetLigandsListFeature, GetTargetLigandDataFeature, GetTargetLigandMetaDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
 from nolabs.features.drug_discovery.predict_light_folding import PredictEsmFoldLightFeature
@@ -80,9 +80,10 @@ def target_file_management_dependency(
 
 
 def ligand_file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                                      experiments_file_management: Annotated[FileManagement, Depends(file_management_dependency)],
                                       target_file_management: Annotated[TargetsFileManagement,
                                       Depends(target_file_management_dependency)]) -> LigandsFileManagement:
-    return LigandsFileManagement(settings=settings, targets_file_management=target_file_management)
+    return LigandsFileManagement(settings=settings, experiments_file_management=experiments_file_management, targets_file_management=target_file_management)
 
 
 def result_file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
@@ -162,29 +163,29 @@ Depends(target_file_management_dependency)],
     return PredictEsmFoldFeature(file_management=target_file_management, settings=settings)
 
 
-def upload_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
-Depends(ligand_file_management_dependency)]) -> UploadLigandFeature:
-    return UploadLigandFeature(file_management=ligand_file_management)
+def upload_target_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> UploadTargetLigandFeature:
+    return UploadTargetLigandFeature(file_management=ligand_file_management)
 
 
-def delete_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
-Depends(ligand_file_management_dependency)]) -> DeleteLigandFeature:
-    return DeleteLigandFeature(file_management=ligand_file_management)
+def delete_target_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> DeleteTargetLigandFeature:
+    return DeleteTargetLigandFeature(file_management=ligand_file_management)
 
 
-def get_ligands_list_dependency(ligand_file_management: Annotated[LigandsFileManagement,
-Depends(ligand_file_management_dependency)]) -> GetLigandsListFeature:
-    return GetLigandsListFeature(file_management=ligand_file_management)
+def get_target_ligands_list_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> GetTargetLigandsListFeature:
+    return GetTargetLigandsListFeature(file_management=ligand_file_management)
 
 
-def get_ligand_meta_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
-Depends(ligand_file_management_dependency)]) -> GetLigandMetaDataFeature:
-    return GetLigandMetaDataFeature(file_management=ligand_file_management)
+def get_target_ligand_meta_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> GetTargetLigandMetaDataFeature:
+    return GetTargetLigandMetaDataFeature(file_management=ligand_file_management)
 
 
-def get_ligand_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
-Depends(ligand_file_management_dependency)]) -> GetLigandDataFeature:
-    return GetLigandDataFeature(file_management=ligand_file_management)
+def get_target_ligand_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> GetTargetLigandDataFeature:
+    return GetTargetLigandDataFeature(file_management=ligand_file_management)
 
 
 def register_docking_job_dependency(result_file_management: Annotated[ResultsFileManagement,

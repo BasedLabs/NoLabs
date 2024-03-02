@@ -82,6 +82,18 @@ class Settings:
         return self._config.get('microservices', 'biobuddy')
 
     @property
+    def rcsb_pdb_query_host(self) -> str:
+        return self._config.get('microservices', 'rcsb_pdb_query')
+
+    @property
+    def pubmed_query_host(self) -> str:
+        return self._config.get('microservices', 'pubmed_query')
+
+    @property
+    def chembl_query_host(self) -> str:
+        return self._config.get('microservices', 'chembl_query')
+
+    @property
     def esmfold_light_host(self) -> str:
         host = self._config.get('microservices', 'esmfold_light')
         if environment.is_compose():

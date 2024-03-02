@@ -90,11 +90,18 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [ChatCompletionMessage](docs/ChatCompletionMessage.md)
+ - [ChatCompletionMessageFunctionCall](docs/ChatCompletionMessageFunctionCall.md)
+ - [ChatCompletionMessageToolCall](docs/ChatCompletionMessageToolCall.md)
+ - [Content](docs/Content.md)
+ - [Function](docs/Function.md)
+ - [FunctionCall](docs/FunctionCall.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [JobId](docs/JobId.md)
  - [SendMessageToBioBuddyRequest](docs/SendMessageToBioBuddyRequest.md)
  - [SendMessageToBioBuddyResponse](docs/SendMessageToBioBuddyResponse.md)
+ - [ToolCalls](docs/ToolCalls.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
 

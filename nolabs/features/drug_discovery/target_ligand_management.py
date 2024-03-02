@@ -1,91 +1,91 @@
-from nolabs.api_models.drug_discovery import UploadLigandRequest, UploadLigandResponse, \
-    GetLigandsListRequest, GetLigandsListResponse, DeleteLigandRequest, DeleteLigandResponse, \
-    GetLigandDataRequest, GetLigandDataResponse, GetLigandMetaDataRequest, GetLigandMetaDataResponse
+from nolabs.api_models.drug_discovery import UploadTargetLigandRequest, UploadTargetLigandResponse, \
+    GetTargetLigandsListRequest, GetTargetLigandsListResponse, DeleteTargetLigandRequest, DeleteTargetLigandResponse, \
+    GetTargetLigandDataRequest, GetTargetLigandDataResponse, GetTargetLigandMetaDataRequest, GetTargetLigandMetaDataResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.data_models.ligand import LigandId
 from nolabs.features.drug_discovery.data_models.target import TargetId
 from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
 
 
-class UploadLigandFeature:
+class UploadTargetLigandFeature:
     def __init__(self, file_management: LigandsFileManagement):
         self._file_management = file_management
 
-    def handle(self, request: UploadLigandRequest) -> UploadLigandResponse:
+    def handle(self, request: UploadTargetLigandRequest) -> UploadTargetLigandResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
         ligand_file = request.sdf_file
 
-        ligand_metadata = self._file_management.store_ligand(experiment_id, target_id, ligand_file)
+        ligand_metadata = self._file_management.store_target_ligand(experiment_id, target_id, ligand_file)
 
-        return UploadLigandResponse(ligand_meta_data=ligand_metadata)
+        return UploadTargetLigandResponse(ligand_meta_data=ligand_metadata)
 
 
-class DeleteLigandFeature:
+class DeleteTargetLigandFeature:
     def __init__(self, file_management: LigandsFileManagement):
         self._file_management = file_management
 
-    def handle(self, request: DeleteLigandRequest) -> DeleteLigandResponse:
+    def handle(self, request: DeleteTargetLigandRequest) -> DeleteTargetLigandResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
         ligand_id = LigandId(request.ligand_id)
 
-        deleted_ligand_id = self._file_management.delete_ligand(experiment_id, target_id, ligand_id)
+        deleted_ligand_id = self._file_management.delete_target_ligand(experiment_id, target_id, ligand_id)
 
-        return DeleteLigandResponse(ligand_id=deleted_ligand_id.value)
+        return DeleteTargetLigandResponse(ligand_id=deleted_ligand_id.value)
 
 
-class GetLigandsListFeature:
+class GetTargetLigandsListFeature:
     def __init__(self, file_management: LigandsFileManagement):
         self._file_management = file_management
 
-    def handle(self, request: GetLigandsListRequest) -> GetLigandsListResponse:
+    def handle(self, request: GetTargetLigandsListRequest) -> GetTargetLigandsListResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
 
-        ligands = self._file_management.get_ligands_list(experiment_id, target_id)
+        ligands = self._file_management.get_target_ligands_list(experiment_id, target_id)
 
-        return GetLigandsListResponse(ligands=ligands)
+        return GetTargetLigandsListResponse(ligands=ligands)
 
 
-class GetLigandMetaDataFeature:
+class GetTargetLigandMetaDataFeature:
     def __init__(self, file_management: LigandsFileManagement):
         self._file_management = file_management
 
-    def handle(self, request: GetLigandMetaDataRequest) -> GetLigandMetaDataResponse:
+    def handle(self, request: GetTargetLigandMetaDataRequest) -> GetTargetLigandMetaDataResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
         ligand_id = LigandId(request.ligand_id)
 
-        ligand_metadata = self._file_management.get_ligand_metadata(experiment_id, target_id, ligand_id)
+        ligand_metadata = self._file_management.get_target_ligand_metadata(experiment_id, target_id, ligand_id)
 
-        return GetLigandMetaDataResponse(ligand_id=ligand_id.value,
+        return GetTargetLigandMetaDataResponse(ligand_id=ligand_id.value,
                                          ligand_name=ligand_metadata.ligand_name)
 
 
-class GetLigandDataFeature:
+class GetTargetLigandDataFeature:
     def __init__(self, file_management: LigandsFileManagement):
         self._file_management = file_management
 
-    def handle(self, request: GetLigandDataRequest) -> GetLigandDataResponse:
+    def handle(self, request: GetTargetLigandDataRequest) -> GetTargetLigandDataResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
         ligand_id = LigandId(request.ligand_id)
 
-        ligand_name, sdf_contents, ligand_smiles = self._file_management.get_ligand_data(experiment_id, target_id,
+        ligand_name, sdf_contents, ligand_smiles = self._file_management.get_target_ligand_data(experiment_id, target_id,
                                                                                          ligand_id)
 
-        return GetLigandDataResponse(ligand_id=ligand_id.value,
+        return GetTargetLigandDataResponse(ligand_id=ligand_id.value,
                                      ligand_name=ligand_name,
                                      ligand_sdf=sdf_contents,
                                      ligand_smiles=ligand_smiles)

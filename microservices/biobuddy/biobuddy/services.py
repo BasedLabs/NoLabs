@@ -16,7 +16,8 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
             {"role": "system",
              "content": "You are a biobuddy. You are a research assistant that helps creating new drugs, researching biology, pulling information from different sources and running experiments."},
             {"role": "user", "content": request.message_content}
-        ]
+        ],
+        tools=request.tools
     )
 
-    return SendMessageToBioBuddyResponse(chatgpt_reply=completion.choices[0].message.content)
+    return SendMessageToBioBuddyResponse(chatgpt_reply=completion.choices[0].message)

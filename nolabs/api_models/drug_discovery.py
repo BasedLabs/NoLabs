@@ -180,53 +180,53 @@ class LigandMetaData:
     ligand_name: str
 
 @pcdataclass.dataclass
-class UploadLigandRequest:
+class UploadTargetLigandRequest:
     experiment_id: str
     target_id: str
     sdf_file: UploadFile
 
 @pcdataclass.dataclass
-class UploadLigandResponse:
+class UploadTargetLigandResponse:
     ligand_meta_data: LigandMetaData
 
 @pcdataclass.dataclass
-class DeleteLigandRequest:
+class DeleteTargetLigandRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
-class DeleteLigandResponse:
+class DeleteTargetLigandResponse:
     ligand_id: str
 
 @pcdataclass.dataclass
-class GetLigandsListRequest:
+class GetTargetLigandsListRequest:
     experiment_id: str
     target_id: str
 
 @pcdataclass.dataclass
-class GetLigandsListResponse:
+class GetTargetLigandsListResponse:
     ligands: List[LigandMetaData]
 
 @pcdataclass.dataclass
-class GetLigandMetaDataRequest:
+class GetTargetLigandMetaDataRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
-class GetLigandMetaDataResponse:
+class GetTargetLigandMetaDataResponse:
     ligand_id: str
     ligand_name: str
 
 @pcdataclass.dataclass
-class GetLigandDataRequest:
+class GetTargetLigandDataRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
-class GetLigandDataResponse:
+class GetTargetLigandDataResponse:
     ligand_id: str
     ligand_name: str
     ligand_sdf: str

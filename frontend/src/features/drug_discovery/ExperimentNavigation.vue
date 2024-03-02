@@ -1,66 +1,75 @@
 <template>
-  <q-page class="q-pa-md ">
-    <q-stepper
-      v-model="step"
-      ref="stepper"
-      color="positive"
-      animated
-    >
-      <q-step
-        :name="1"
-        title="Upload targets"
-        icon=polymer
-        :color="step > 0 ? 'info' : 'grey'"
-        :done="step > 1"
-      >
-        <ExperimentHeader v-if="experiment.metadata" :meta-data="experiment.metadata" :on-experiment-name-change-submit="onExperimentNameChange" />
-        <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
-          <q-space />
-          <q-btn flat label="Continue" @click="openNextStep('Upload ligands')" />
-        </div>
-        <router-view></router-view>
-      </q-step>
+  <q-page class="q-pl-md q-pr-md">
+    <q-splitter v-model="splitterModel" style="height: 100vh;" :limits="[10, 50]">
+      <template v-slot:before>
+        <BioBuddyChat v-if="experiment.experimentId" :experiment-id="experiment.experimentId" />
+      </template>
+      <template v-slot:after>
+        <q-stepper
+          v-model="step"
+          ref="stepper"
+          color="positive"
+          animated
+        >
+          <q-step
+            :name="1"
+            title="Upload targets"
+            icon=polymer
+            :color="step > 0 ? 'info' : 'grey'"
+            :done="step > 1"
+          >
+            <ExperimentHeader v-if="experiment.metadata" :meta-data="experiment.metadata" :on-experiment-name-change-submit="onExperimentNameChange" />
+            <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
+              <q-space />
+              <q-btn flat label="Continue" @click="openNextStep('Upload ligands')" />
+            </div>
+            <router-view></router-view>
+          </q-step>
 
-      <q-step
-        :name="2"
-        title="Add ligands"
-        :color="step > 1 ? 'info' : 'grey'"
-        icon=hub
-        :done="step > 2"
-      >
+          <q-step
+            :name="2"
+            title="Add ligands"
+            :color="step > 1 ? 'info' : 'grey'"
+            icon=hub
+            :done="step > 2"
+          >
 
-        <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
-          <q-btn flat label="Back" @click="openPreviousStep('Upload targets')" />
-          <q-space />
-          <q-btn flat label="Continue" @click="openNextStep('Run docking')" />
-        </div>
-         <router-view></router-view>
-      </q-step>
+            <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
+              <q-btn flat label="Back" @click="openPreviousStep('Upload targets')" />
+              <q-space />
+              <q-btn flat label="Continue" @click="openNextStep('Run docking')" />
+            </div>
+             <router-view></router-view>
+          </q-step>
 
-      <q-step
-        :name="3"
-        title="Run docking"
-        :color="step > 2 ? 'info' : 'grey'"
-        icon="gesture"
-        :done="step > 3"
-      >
-        <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
-          <q-btn flat label="Back" @click="openPreviousStep('Upload ligands')" />
-        </div>
-          <router-view></router-view>
-      </q-step>
-    </q-stepper>
+          <q-step
+            :name="3"
+            title="Run docking"
+            :color="step > 2 ? 'info' : 'grey'"
+            icon="gesture"
+            :done="step > 3"
+          >
+            <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
+              <q-btn flat label="Back" @click="openPreviousStep('Upload ligands')" />
+            </div>
+              <router-view></router-view>
+          </q-step>
+        </q-stepper>
+      </template>
+    </q-splitter>
   </q-page>
 </template>
 
 <script lang="ts">
 import ExperimentHeader from "src/features/drug_discovery/components/ExperimentHeader.vue";
+import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
 import {useDrugDiscoveryStore} from "./storage";
 import {defineComponent} from "vue";
 
+
 export default defineComponent({
   name: "ExperimentNavigation",
-  components: {ExperimentHeader},
+  components: {BioBuddyChat, ExperimentHeader},
   data() {
     return {
       step: 1, // This can be a reactive property based on the current route if needed
@@ -68,6 +77,7 @@ export default defineComponent({
         experimentId: null as string | null,
         metadata: null
       },
+      splitterModel: 20,
     };
   },
   async mounted() {

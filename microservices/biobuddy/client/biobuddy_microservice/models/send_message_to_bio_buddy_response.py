@@ -17,8 +17,9 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, StrictStr
+from pydantic import BaseModel
 from typing import Any, ClassVar, Dict, List
+from biobuddy_microservice.models.chat_completion_message import ChatCompletionMessage
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -26,7 +27,7 @@ class SendMessageToBioBuddyResponse(BaseModel):
     """
     SendMessageToBioBuddyResponse
     """ # noqa: E501
-    chatgpt_reply: StrictStr
+    chatgpt_reply: ChatCompletionMessage
     __properties: ClassVar[List[str]] = ["chatgpt_reply"]
 
     model_config = {
@@ -68,6 +69,9 @@ class SendMessageToBioBuddyResponse(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of chatgpt_reply
+        if self.chatgpt_reply:
+            _dict['chatgpt_reply'] = self.chatgpt_reply.to_dict()
         return _dict
 
     @classmethod
@@ -80,7 +84,7 @@ class SendMessageToBioBuddyResponse(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "chatgpt_reply": obj.get("chatgpt_reply")
+            "chatgpt_reply": ChatCompletionMessage.from_dict(obj["chatgpt_reply"]) if obj.get("chatgpt_reply") is not None else None
         })
         return _obj
 

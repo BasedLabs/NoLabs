@@ -249,9 +249,9 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async fetchPocketForTarget(experimentId: string, targetId: string, foldingMethod: string) {
+        async fetchPocketForTarget(experimentId: string, targetId: string) {
             try {
-                const response = await getTargetBindingPocketApi(experimentId, targetId, foldingMethod);
+                const response = await getTargetBindingPocketApi(experimentId, targetId);
                 return response.pocket_ids;
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
@@ -266,9 +266,9 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async predictPocketForTarget(experimentId: string, targetId: string, foldingMethod: string) {
+        async predictPocketForTarget(experimentId: string, targetId: string) {
             try {
-                const response = await predictBindingPocketApi(experimentId, targetId, foldingMethod);
+                const response = await predictBindingPocketApi(experimentId, targetId);
                 return response.pocket_ids;
                 // Optionally set the currentTarget to the selected one
             } catch (error) {

@@ -6,7 +6,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **message_content** | **str** |  | 
-**previous_messages** | **List[str]** |  | 
+**previous_messages** | **List[Dict[str, str]]** |  | 
+**tools** | **List[object]** |  | 
 **job_id** | [**JobId**](JobId.md) |  | [optional] 
 
 ## Example

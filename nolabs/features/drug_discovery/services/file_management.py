@@ -15,8 +15,8 @@ class FileManagement(ExperimentsFileManagementBase):
             os.makedirs(self.targets_folder(experiment_id), exist_ok=True)
 
     def ensure_ligands_folder_exists(self, experiment_id: ExperimentId):
-        if not os.path.isdir(self.ligands_folder(experiment_id)):
-            os.makedirs(self.ligands_folder(experiment_id), exist_ok=True)
+        if not os.path.isdir(self.target_ligands_folder(experiment_id)):
+            os.makedirs(self.target_ligands_folder(experiment_id), exist_ok=True)
 
     def ensure_results_folder_exists(self, experiment_id: ExperimentId):
         if not os.path.isdir(self.results_folder(experiment_id)):
@@ -28,7 +28,7 @@ class FileManagement(ExperimentsFileManagementBase):
     def targets_folder(self, experiment_id: ExperimentId) -> str:
         return os.path.join(self._experiments_folder, experiment_id.value, 'targets')
 
-    def ligands_folder(self, experiment_id: ExperimentId) -> str:
+    def target_ligands_folder(self, experiment_id: ExperimentId) -> str:
         return os.path.join(self._experiments_folder, experiment_id.value, 'ligands')
 
     def results_folder(self, experiment_id: ExperimentId) -> str:

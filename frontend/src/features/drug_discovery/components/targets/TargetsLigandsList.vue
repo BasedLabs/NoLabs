@@ -92,8 +92,6 @@
 import TargetDetail from "src/features/drug_discovery/components/targets/TargetDetail.vue";
 import LigandDetail from "src/features/drug_discovery/components/ligands/LigandDetail.vue";
 import {TargetMetaData} from "src/api/client/models/TargetMetaData.ts";
-import {LigandMetaData} from "src/api/client/models/LigandMetaData.ts";
-import {ResultMetaData} from "src/api/client/models/ResultMetaData.ts";
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
@@ -203,7 +201,7 @@ export default defineComponent({
     },
     async registerJob(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData) {
       const store = useDrugDiscoveryStore();
-      const response = await store.registerDockingJob(this.experimentId, target.target_id, ligand.ligand_id, target.folding_method);
+      const response = await store.registerDockingJob(this.experimentId, target.target_id, ligand.ligand_id, target.folding_method!);
       if (response && response.job_id) {
         ligand.jobs.push({ job_id: response.job_id });
       }
