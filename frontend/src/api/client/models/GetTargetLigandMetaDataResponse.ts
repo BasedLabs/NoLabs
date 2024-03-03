@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { LigandMetaData } from './LigandMetaData';
-export type UploadLigandResponse = {
-    ligand_meta_data: LigandMetaData;
+export type GetTargetLigandMetaDataResponse = {
+    ligand_id: string;
+    ligand_name: string;
 };
 

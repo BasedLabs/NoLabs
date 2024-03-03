@@ -190,6 +190,15 @@ class UploadTargetLigandResponse:
     ligand_meta_data: LigandMetaData
 
 @pcdataclass.dataclass
+class UploadLoneLigandRequest:
+    experiment_id: str
+    sdf_file: UploadFile
+
+@pcdataclass.dataclass
+class UploadLoneLigandResponse:
+    ligand_meta_data: LigandMetaData
+
+@pcdataclass.dataclass
 class DeleteTargetLigandRequest:
     experiment_id: str
     target_id: str
@@ -200,12 +209,29 @@ class DeleteTargetLigandResponse:
     ligand_id: str
 
 @pcdataclass.dataclass
+class DeleteLoneLigandRequest:
+    experiment_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class DeleteLoneLigandResponse:
+    ligand_id: str
+
+@pcdataclass.dataclass
 class GetTargetLigandsListRequest:
     experiment_id: str
     target_id: str
 
 @pcdataclass.dataclass
 class GetTargetLigandsListResponse:
+    ligands: List[LigandMetaData]
+
+@pcdataclass.dataclass
+class GetLoneLigandsListRequest:
+    experiment_id: str
+
+@pcdataclass.dataclass
+class GetLoneLigandsListResponse:
     ligands: List[LigandMetaData]
 
 @pcdataclass.dataclass
@@ -220,6 +246,16 @@ class GetTargetLigandMetaDataResponse:
     ligand_name: str
 
 @pcdataclass.dataclass
+class GetLoneLigandMetaDataRequest:
+    experiment_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class GetLoneLigandMetaDataResponse:
+    ligand_id: str
+    ligand_name: str
+
+@pcdataclass.dataclass
 class GetTargetLigandDataRequest:
     experiment_id: str
     target_id: str
@@ -227,6 +263,18 @@ class GetTargetLigandDataRequest:
 
 @pcdataclass.dataclass
 class GetTargetLigandDataResponse:
+    ligand_id: str
+    ligand_name: str
+    ligand_sdf: str
+    ligand_smiles: str
+
+@pcdataclass.dataclass
+class GetLoneLigandDataRequest:
+    experiment_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class GetLoneLigandDataResponse:
     ligand_id: str
     ligand_name: str
     ligand_sdf: str

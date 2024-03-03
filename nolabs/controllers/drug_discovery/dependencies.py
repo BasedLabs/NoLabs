@@ -11,6 +11,8 @@ from nolabs.features.drug_discovery.diffdock_params_management import GetDiffDoc
     UpdateDiffDockParamsFeature
 from nolabs.features.drug_discovery.docking_params_management import UpdateDockingParamsFeature
 from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
+from nolabs.features.drug_discovery.lone_ligand_management import UploadLoneLigandFeature, DeleteLoneLigandFeature, \
+    GetLoneLigandsListFeature, GetLoneLigandMetaDataFeature, GetLoneLigandDataFeature
 from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
@@ -28,7 +30,8 @@ from nolabs.features.drug_discovery.services.ligand_file_management import Ligan
 from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
 from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
     GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature, UpdateTargetNameFeature
-from nolabs.features.drug_discovery.target_ligand_management import UploadTargetLigandFeature, DeleteTargetLigandFeature, \
+from nolabs.features.drug_discovery.target_ligand_management import UploadTargetLigandFeature, \
+    DeleteTargetLigandFeature, \
     GetTargetLigandsListFeature, GetTargetLigandDataFeature, GetTargetLigandMetaDataFeature
 from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
 from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
@@ -80,10 +83,12 @@ def target_file_management_dependency(
 
 
 def ligand_file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
-                                      experiments_file_management: Annotated[FileManagement, Depends(file_management_dependency)],
+                                      experiments_file_management: Annotated[
+                                          FileManagement, Depends(file_management_dependency)],
                                       target_file_management: Annotated[TargetsFileManagement,
                                       Depends(target_file_management_dependency)]) -> LigandsFileManagement:
-    return LigandsFileManagement(settings=settings, experiments_file_management=experiments_file_management, targets_file_management=target_file_management)
+    return LigandsFileManagement(settings=settings, experiments_file_management=experiments_file_management,
+                                 targets_file_management=target_file_management)
 
 
 def result_file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
@@ -168,19 +173,35 @@ Depends(ligand_file_management_dependency)]) -> UploadTargetLigandFeature:
     return UploadTargetLigandFeature(file_management=ligand_file_management)
 
 
+def upload_lone_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> UploadLoneLigandFeature:
+    return UploadLoneLigandFeature(file_management=ligand_file_management)
+
+
 def delete_target_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
 Depends(ligand_file_management_dependency)]) -> DeleteTargetLigandFeature:
     return DeleteTargetLigandFeature(file_management=ligand_file_management)
 
+def delete_lone_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> DeleteLoneLigandFeature:
+    return DeleteLoneLigandFeature(file_management=ligand_file_management)
 
 def get_target_ligands_list_dependency(ligand_file_management: Annotated[LigandsFileManagement,
 Depends(ligand_file_management_dependency)]) -> GetTargetLigandsListFeature:
     return GetTargetLigandsListFeature(file_management=ligand_file_management)
 
+def get_lone_ligands_list_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> GetLoneLigandsListFeature:
+    return GetLoneLigandsListFeature(file_management=ligand_file_management)
+
 
 def get_target_ligand_meta_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
 Depends(ligand_file_management_dependency)]) -> GetTargetLigandMetaDataFeature:
     return GetTargetLigandMetaDataFeature(file_management=ligand_file_management)
+
+def get_lone_ligand_meta_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> GetLoneLigandMetaDataFeature:
+    return GetLoneLigandMetaDataFeature(file_management=ligand_file_management)
 
 
 def get_target_ligand_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
@@ -188,10 +209,13 @@ Depends(ligand_file_management_dependency)]) -> GetTargetLigandDataFeature:
     return GetTargetLigandDataFeature(file_management=ligand_file_management)
 
 
+def get_lone_ligand_data_dependency(ligand_file_management: Annotated[LigandsFileManagement,
+Depends(ligand_file_management_dependency)]) -> GetLoneLigandDataFeature:
+    return GetLoneLigandDataFeature(file_management=ligand_file_management)
+
 def register_docking_job_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]):
     return RegisterDockingJobFeature(file_management=result_file_management)
-
 
 def delete_docking_job_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]):
@@ -324,6 +348,7 @@ def predict_umol_docking_dependency(
                                      result_file_management=result_file_management,
                                      settings=settings)
 
+
 def update_docking_params_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> UpdateDockingParamsFeature:
     return UpdateDockingParamsFeature(file_management=result_file_management)
@@ -333,9 +358,11 @@ def get_diffdock_params_dependency(result_file_management: Annotated[ResultsFile
 Depends(result_file_management_dependency)]) -> GetDiffDockParamsFeature:
     return GetDiffDockParamsFeature(file_management=result_file_management)
 
+
 def update_diffdock_params_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> UpdateDiffDockParamsFeature:
     return UpdateDiffDockParamsFeature(file_management=result_file_management)
+
 
 def predict_diffdock_docking_dependency(
         settings: Annotated[Settings, Depends(settings_dependency)],
@@ -353,9 +380,11 @@ def get_umol_docking_result_dependency(result_file_management: Annotated[Results
 Depends(result_file_management_dependency)]) -> GetUmolDockingResultsFeature:
     return GetUmolDockingResultsFeature(result_file_management=result_file_management)
 
+
 def get_diffdock_docking_result_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> GetDiffDockDockingResultsFeature:
     return GetDiffDockDockingResultsFeature(result_file_management=result_file_management)
+
 
 def get_diffdock_ligand_sdf_dependency(result_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> GetDiffDockLigandSdfFeature:

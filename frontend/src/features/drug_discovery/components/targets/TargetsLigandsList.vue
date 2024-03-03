@@ -42,7 +42,7 @@
           :key="ligand.ligand_id"
           clickable
           :label="ligand.ligand_name"
-          @show="() => getLigandData(target, ligand)"
+          @show="() => getLigandDataForTarget(target, ligand)"
         >
           <q-btn color="negative" @click="deleteLigand(target, ligand)" icon="delete" flat>
             Delete ligand
@@ -228,11 +228,11 @@ export default defineComponent({
         target.loadingTargetData = false;
       }
     },
-    async getLigandData(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData) {
+    async getLigandDataForTarget(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData) {
       const store = useDrugDiscoveryStore();
       ligand.loadingLigandData = true;
       try {
-        const data = await store.fetchLigandData(this.experimentId, target.target_id, ligand.ligand_id);
+        const data = await store.fetchLigandDataForTarget(this.experimentId, target.target_id, ligand.ligand_id);
         ligand.data = {
           sdf_file: data?.ligandSdf,
           smiles: data?.ligandSmiles,

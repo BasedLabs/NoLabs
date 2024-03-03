@@ -2,7 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type DeleteLigandResponse = {
+export type GetLoneLigandMetaDataResponse = {
     ligand_id: string;
+    ligand_name: string;
 };
 

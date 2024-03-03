@@ -13,7 +13,8 @@ export type { Body_inference_api_v1_gene_ontology_inference_post } from './model
 export type { Body_inference_api_v1_localisation_inference_post } from './models/Body_inference_api_v1_localisation_inference_post';
 export type { Body_inference_api_v1_protein_design_inference_post } from './models/Body_inference_api_v1_protein_design_inference_post';
 export type { Body_inference_api_v1_solubility_inference_post } from './models/Body_inference_api_v1_solubility_inference_post';
-export type { Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post } from './models/Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post';
+export type { Body_upload_ligand_to_experiment_api_v1_drug_discovery_upload_ligand_to_experiment_post } from './models/Body_upload_ligand_to_experiment_api_v1_drug_discovery_upload_ligand_to_experiment_post';
+export type { Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post } from './models/Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post';
 export type { Body_upload_target_api_v1_drug_discovery_upload_target_post } from './models/Body_upload_target_api_v1_drug_discovery_upload_target_post';
 export type { ChangeExperimentNameRequest } from './models/ChangeExperimentNameRequest';
 export type { CheckFoldingDataAvailableResponse } from './models/CheckFoldingDataAvailableResponse';
@@ -23,7 +24,8 @@ export type { CheckPocketDataAvailableResponse } from './models/CheckPocketDataA
 export type { CheckResultDataAvailableResponse } from './models/CheckResultDataAvailableResponse';
 export type { CheckServiceHealthyResponse } from './models/CheckServiceHealthyResponse';
 export type { DeleteDockingJobResponse } from './models/DeleteDockingJobResponse';
-export type { DeleteLigandResponse } from './models/DeleteLigandResponse';
+export type { DeleteLoneLigandResponse } from './models/DeleteLoneLigandResponse';
+export type { DeleteTargetLigandResponse } from './models/DeleteTargetLigandResponse';
 export type { DeleteTargetResponse } from './models/DeleteTargetResponse';
 export type { DiffDockLigandMetaData } from './models/DiffDockLigandMetaData';
 export type { ExperimentFastaPropertyResponse } from './models/ExperimentFastaPropertyResponse';
@@ -38,11 +40,13 @@ export type { GetDockingParamsResponse } from './models/GetDockingParamsResponse
 export type { GetFoldingResponse } from './models/GetFoldingResponse';
 export type { GetJobBindingPocketDataResponse } from './models/GetJobBindingPocketDataResponse';
 export type { GetJobsListForTargetLigandResponse } from './models/GetJobsListForTargetLigandResponse';
-export type { GetLigandDataResponse } from './models/GetLigandDataResponse';
-export type { GetLigandMetaDataResponse } from './models/GetLigandMetaDataResponse';
+export type { GetLoneLigandDataResponse } from './models/GetLoneLigandDataResponse';
+export type { GetLoneLigandMetaDataResponse } from './models/GetLoneLigandMetaDataResponse';
 export type { GetResultsListForTargetLigandResponse } from './models/GetResultsListForTargetLigandResponse';
 export type { GetTargetBindingPocketResponse } from './models/GetTargetBindingPocketResponse';
 export type { GetTargetDataResponse } from './models/GetTargetDataResponse';
+export type { GetTargetLigandDataResponse } from './models/GetTargetLigandDataResponse';
+export type { GetTargetLigandMetaDataResponse } from './models/GetTargetLigandMetaDataResponse';
 export type { GetTargetMetaDataResponse } from './models/GetTargetMetaDataResponse';
 export type { GetUmolDockingResultDataResponse } from './models/GetUmolDockingResultDataResponse';
 export type { HTTPValidationError } from './models/HTTPValidationError';
@@ -83,7 +87,8 @@ export type { RunUmolDockingJobResponse } from './models/RunUmolDockingJobRespon
 export type { SendMessageResponse } from './models/SendMessageResponse';
 export type { TargetMetaData } from './models/TargetMetaData';
 export type { TimelineResponse } from './models/TimelineResponse';
-export type { UploadLigandResponse } from './models/UploadLigandResponse';
+export type { UploadLoneLigandResponse } from './models/UploadLoneLigandResponse';
+export type { UploadTargetLigandResponse } from './models/UploadTargetLigandResponse';
 export type { UploadTargetResponse } from './models/UploadTargetResponse';
 export type { ValidationError } from './models/ValidationError';
 

@@ -41,7 +41,9 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_jobs_list_for_target_ligand_feature, check_esmfold_running_dependency, check_esmfold_light_running_dependency,
     predict_diffdock_docking_dependency, check_diffdock_running_dependency, check_diffdock_service_health_dependency,
     get_diffdock_ligand_sdf_dependency, get_diffdock_docking_result_dependency, update_diffdock_params_dependency,
-    get_diffdock_params_dependency, update_docking_params_dependency
+    get_diffdock_params_dependency, update_docking_params_dependency, upload_lone_ligand_dependency,
+    delete_lone_ligand_dependency, get_lone_ligand_meta_data_dependency, get_lone_ligands_list_dependency,
+    get_lone_ligand_data_dependency
 )
 from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckEsmFoldServiceHealthFeature, \
@@ -51,6 +53,8 @@ from nolabs.features.drug_discovery.diffdock_params_management import UpdateDiff
     GetDiffDockParamsFeature
 from nolabs.features.drug_discovery.docking_params_management import UpdateDockingParamsFeature
 from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
+from nolabs.features.drug_discovery.lone_ligand_management import UploadLoneLigandFeature, DeleteLoneLigandFeature, \
+    GetLoneLigandMetaDataFeature, GetLoneLigandsListFeature, GetLoneLigandDataFeature
 from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
@@ -128,7 +132,9 @@ from nolabs.api_models.drug_discovery import (
     GetJobsListForTargetLigandRequest, RunDiffDockDockingJobResponse, RunDiffDockDockingJobRequest,
     GetDiffDockLigandSdfResponse, GetDiffDockLigandSdfRequest, GetDiffDockDockingResultDataResponse,
     UpdateDiffDockParamsRequest, GetDiffDockParamsResponse, GetDiffDockParamsRequest, GetDockingParamsResponse,
-    UpdateDockingParamsRequest
+    UpdateDockingParamsRequest, UploadLoneLigandResponse, UploadLoneLigandRequest, DeleteLoneLigandResponse,
+    DeleteLoneLigandRequest, GetLoneLigandMetaDataResponse, GetLoneLigandMetaDataRequest, GetLoneLigandsListRequest,
+    GetLoneLigandDataResponse, GetLoneLigandDataRequest
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -226,48 +232,80 @@ async def get_target_data(feature: Annotated[
 
 # Ligand Management
 @router.post('/upload-ligand-to-target')
-async def upload_ligand(feature: Annotated[UploadTargetLigandFeature, Depends(upload_target_ligand_dependency)],
+async def upload_ligand_to_target(feature: Annotated[UploadTargetLigandFeature, Depends(upload_target_ligand_dependency)],
                         experiment_id: str = Form(),
                         target_id: str = Form(),
                         sdf_file: UploadFile = File()
                         ) -> UploadTargetLigandResponse:
     return feature.handle(UploadTargetLigandRequest(experiment_id, target_id, sdf_file))
 
+@router.post('/upload-ligand-to-experiment')
+async def upload_ligand_to_experiment(feature: Annotated[UploadLoneLigandFeature, Depends(upload_lone_ligand_dependency)],
+                        experiment_id: str = Form(),
+                        sdf_file: UploadFile = File()
+                        ) -> UploadLoneLigandResponse:
+    return feature.handle(UploadLoneLigandRequest(experiment_id, sdf_file))
 
 @router.delete('/delete-ligand-from-target')
-async def delete_ligand(feature: Annotated[
+async def delete_ligand_from_target(feature: Annotated[
     DeleteTargetLigandFeature, Depends(delete_target_ligand_dependency)],
                         experiment_id: str,
                         target_id: str,
                         ligand_id: str) -> DeleteTargetLigandResponse:
     return feature.handle(DeleteTargetLigandRequest(experiment_id, target_id, ligand_id))
 
+@router.delete('/delete-ligand-from-experiment')
+async def delete_ligand_from_experiment(feature: Annotated[
+    DeleteLoneLigandFeature, Depends(delete_lone_ligand_dependency)],
+                        experiment_id: str,
+                        ligand_id: str) -> DeleteLoneLigandResponse:
+    return feature.handle(DeleteLoneLigandRequest(experiment_id, ligand_id))
 
 @router.get('/get-ligand-meta-data-for-target')
-async def get_ligand_data(feature: Annotated[
+async def get_ligand_meta_data_for_target(feature: Annotated[
     GetTargetLigandMetaDataFeature, Depends(get_target_ligand_meta_data_dependency)],
                           experiment_id: str,
                           target_id: str,
                           ligand_id: str) -> GetTargetLigandMetaDataResponse:
     return feature.handle(GetTargetLigandMetaDataRequest(experiment_id, target_id, ligand_id))
 
+@router.get('/get-lone-ligand-meta')
+async def get_lone_ligand_data(feature: Annotated[
+    GetLoneLigandMetaDataFeature, Depends(get_lone_ligand_meta_data_dependency)],
+                          experiment_id: str,
+                          ligand_id: str) -> GetLoneLigandMetaDataResponse:
+    return feature.handle(GetLoneLigandMetaDataRequest(experiment_id, ligand_id))
+
 
 @router.get('/get-ligand-data-for-target')
-async def get_ligand_data(feature: Annotated[
+async def get_ligand_data_for_target(feature: Annotated[
     GetTargetLigandDataFeature, Depends(get_target_ligand_data_dependency)],
                           experiment_id: str,
                           target_id: str,
                           ligand_id: str) -> GetTargetLigandDataResponse:
     return feature.handle(GetTargetLigandDataRequest(experiment_id, target_id, ligand_id))
 
+@router.get('/get-lone-ligand-data')
+async def get_lone_ligand_data(feature: Annotated[
+    GetLoneLigandDataFeature, Depends(get_lone_ligand_data_dependency)],
+                          experiment_id: str,
+                          ligand_id: str) -> GetLoneLigandDataResponse:
+    return feature.handle(GetLoneLigandDataRequest(experiment_id, ligand_id))
+
+
 
 @router.get('/get-ligands-list-for-target')
-async def get_ligands_list(feature: Annotated[
+async def get_ligands_list_for_target(feature: Annotated[
     GetTargetLigandsListFeature, Depends(get_target_ligands_list_dependency)],
                            experiment_id: str,
                            target_id: str) -> List[LigandMetaData]:
     return feature.handle(GetTargetLigandsListRequest(experiment_id, target_id)).ligands
 
+@router.get('/get-lone-ligands-list')
+async def get_lone_ligands_list(feature: Annotated[
+    GetLoneLigandsListFeature, Depends(get_lone_ligands_list_dependency)],
+                           experiment_id: str) -> List[LigandMetaData]:
+    return feature.handle(GetLoneLigandsListRequest(experiment_id)).ligands
 
 # Binding Pocket Management
 @router.get('/get-target-binding-pocket')

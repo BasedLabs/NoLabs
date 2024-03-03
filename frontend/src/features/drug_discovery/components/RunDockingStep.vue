@@ -310,7 +310,7 @@ export default defineComponent({
 
       for (const result of results?.results_list ?? []) {
         const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
+        const ligandMeta = await store.fetchLigandMetaDataForTarget(this.experimentId!, result.target_id, result.ligand_id);
 
         const dockingResult = {
           ...result,
@@ -376,7 +376,7 @@ export default defineComponent({
 
       for (const job of jobs?.jobs_list ?? []) {
         const targetMeta = await store.fetchTargetMetaData(this.experimentId!, job.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, job.target_id, job.ligand_id);
+        const ligandMeta = await store.fetchLigandMetaDataForTarget(this.experimentId!, job.target_id, job.ligand_id);
         const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, job.target_id, job.ligand_id, job.job_id);
 
         let pocketIds = null;

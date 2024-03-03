@@ -19,7 +19,7 @@ import {
   createExperimentApi,
   deleteDockingJobApi,
   deleteExperimentApi,
-  deleteLigandApi,
+  deleteLigandFromTargetApi,
   deleteTargetApi,
   getAllDockingJobsListApi,
   getAllDockingResultsListApi,
@@ -29,9 +29,9 @@ import {
   getExperimentMetadataApi,
   getExperimentsApi,
   getJobPocketDataApi,
-  getLigandDataApi,
-  getLigandMetaDataApi,
-  getLigandsListApi,
+  getLigandDataForTargetApi,
+  getLigandMetaDataForTargetApi,
+  getLigandsListForTargetApi,
   getTargetBindingPocketApi,
   getTargetDataApi,
   getTargetMetaDataApi,
@@ -42,7 +42,7 @@ import {
   registerDockingJobApi,
   runUmolDockingJobApi,
   setTargetBindingPocketApi,
-  uploadLigandApi,
+  uploadLigandToTargetApi,
   uploadTargetApi,
   checkDiffDockServiceHealthApi,
   checkDiffDockJobIsRunningApi,
@@ -55,7 +55,7 @@ import {
 } from 'src/features/drug_discovery/api';
 
 import {
-    Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
+  Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post,
     Body_upload_target_api_v1_drug_discovery_upload_target_post,
     ExperimentMetadataResponse,
     TargetMetaData
@@ -154,12 +154,12 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async uploadLigandToTarget(experimentId: string, targetId: string, sdfFile: File) {
             try {
-                const ligandData: Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post = {
+                const ligandData: Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post = {
                     experiment_id: experimentId,
                     target_id: targetId,
                     sdf_file: sdfFile
                 };
-                const response = await uploadLigandApi(ligandData);
+                const response = await uploadLigandToTargetApi(ligandData);
                 return {
                     ligand_id: response.ligand_meta_data.ligand_id,
                     ligand_name: response.ligand_meta_data.ligand_name,
@@ -171,7 +171,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async deleteLigandFromTarget(experimentId: string, targetId: string, ligandId: string) {
             try {
-                await deleteLigandApi(experimentId, targetId, ligandId);
+                await deleteLigandFromTargetApi(experimentId, targetId, ligandId);
                 // Update the ligands list for the specific target
             } catch (error) {
                 console.error('Error deleting ligand:', error);
@@ -186,7 +186,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async fetchLigandsForTarget(experimentId: string, targetId: string) {
             try {
-                return await getLigandsListApi(experimentId, targetId);
+                return await getLigandsListForTargetApi(experimentId, targetId);
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
@@ -275,17 +275,17 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async fetchLigandMetaData(experimentId: string, targetId: string, ligandId: string) {
+        async fetchLigandMetaDataForTarget(experimentId: string, targetId: string, ligandId: string) {
             try {
-                return await getLigandMetaDataApi(experimentId, targetId, ligandId);
+                return await getLigandMetaDataForTargetApi(experimentId, targetId, ligandId);
                 // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
         },
-        async fetchLigandData(experimentId: string, targetId: string, ligandId: string) {
+        async fetchLigandDataForTarget(experimentId: string, targetId: string, ligandId: string) {
             try {
-                const response = await getLigandDataApi(experimentId, targetId, ligandId);
+                const response = await getLigandDataForTargetApi(experimentId, targetId, ligandId);
                 return {
                     ligandId: ligandId,
                     ligandName: response.ligand_name,

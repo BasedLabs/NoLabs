@@ -6,15 +6,14 @@ import {
   PredictFoldingResponse,
   GetTargetBindingPocketResponse,
   PredictBindingPocketResponse,
-  Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
   UploadTargetResponse,
   GetTargetDataResponse,
-  GetLigandDataResponse,
+  GetTargetLigandDataResponse,
   ExperimentMetadataResponse,
   OpenAPI,
-  type UploadLigandResponse,
+  type UploadTargetLigandResponse,
   GetTargetMetaDataResponse,
-  GetLigandMetaDataResponse,
+  GetTargetLigandMetaDataResponse,
   RegisterDockingJobResponse,
   RunUmolDockingJobResponse,
   GetUmolDockingResultDataResponse,
@@ -33,7 +32,9 @@ import {
   RunDiffDockDockingJobResponse,
   GetDiffDockDockingResultDataResponse,
   GetDiffDockLigandSdfResponse,
-  GetDiffDockParamsResponse, GetDockingParamsResponse
+  GetDiffDockParamsResponse,
+  GetDockingParamsResponse,
+  Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post, DeleteTargetLigandResponse
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 import apiConstants from "src/api/constants";
@@ -93,26 +94,26 @@ export function getTargetDataApi(experimentId: string, targetId: string): Cancel
 }
 
 // Upload a ligand
-export function uploadLigandApi(formData: Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post): CancelablePromise<UploadLigandResponse> {
-    return DrugDiscoveryService.uploadLigandApiV1DrugDiscoveryUploadLigandPost(formData);
+export function uploadLigandToTargetApi(formData: Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post): CancelablePromise<UploadTargetLigandResponse> {
+    return DrugDiscoveryService.uploadLigandToTargetApiV1DrugDiscoveryUploadLigandToTargetPost(formData);
 }
 
 // Delete a ligand
-export function deleteLigandApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<any> {
-    return DrugDiscoveryService.deleteLigandApiV1DrugDiscoveryDeleteLigandDelete(experimentId, targetId, ligandId);
+export function deleteLigandFromTargetApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<DeleteTargetLigandResponse> {
+    return DrugDiscoveryService.deleteLigandFromTargetApiV1DrugDiscoveryDeleteLigandFromTargetDelete(experimentId, targetId, ligandId);
 }
 
 // Get ligands list
-export function getLigandsListApi(experimentId: string, targetId: string): CancelablePromise<Array<LigandMetaData>> {
-    return DrugDiscoveryService.getLigandsListApiV1DrugDiscoveryGetLigandsListGet(experimentId, targetId);
+export function getLigandsListForTargetApi(experimentId: string, targetId: string): CancelablePromise<Array<LigandMetaData>> {
+    return DrugDiscoveryService.getLigandsListForTargetApiV1DrugDiscoveryGetLigandsListForTargetGet(experimentId, targetId);
 }
 
-export function getLigandMetaDataApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetLigandMetaDataResponse> {
-  return DrugDiscoveryService.getLigandDataApiV1DrugDiscoveryGetLigandMetaDataGet(experimentId, targetId, ligandId);
+export function getLigandMetaDataForTargetApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetTargetLigandMetaDataResponse> {
+  return DrugDiscoveryService.getLigandMetaDataForTargetApiV1DrugDiscoveryGetLigandMetaDataForTargetGet(experimentId, targetId, ligandId);
 }
 
-export function getLigandDataApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetLigandDataResponse> {
-    return DrugDiscoveryService.getLigandDataApiV1DrugDiscoveryGetLigandDataGet(experimentId, targetId, ligandId);
+export function getLigandDataForTargetApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetTargetLigandDataResponse> {
+    return DrugDiscoveryService.getLigandDataForTargetApiV1DrugDiscoveryGetLigandDataForTargetGet(experimentId, targetId, ligandId);
 }
 
 // Get target binding pocket
