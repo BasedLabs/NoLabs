@@ -418,6 +418,25 @@ files = [
 ]
 
 [[package]]
+name = "chembl-query-microservice"
+version = "1.0.0"
+description = "ChemBL Query API"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/chembl_query/client"
+
+[[package]]
 name = "click"
 version = "8.1.7"
 description = "Composable command line interface toolkit"
@@ -2953,4 +2972,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "08bc6e1e5fe4d7cdda7c609151ed8067fb9d4c543f82ffe5dd63c69ae82249b2"
+content-hash = "8f8cc0b642c392a825a30c4d79404e468430dbc133eaf6296febd426d1fe11ac"

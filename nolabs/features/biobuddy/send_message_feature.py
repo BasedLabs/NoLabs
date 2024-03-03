@@ -22,6 +22,11 @@ from pubmed_query_microservice import DefaultApi as pubmedApiDefaultApi
 from pubmed_query_microservice import ApiClient as pubmedApiClient
 from pubmed_query_microservice import Configuration as pubmedApiConfiguration
 
+import chembl_query_microservice
+from chembl_query_microservice import DefaultApi as chemblApiDefaultApi
+from chembl_query_microservice import ApiClient as chemblApiClient
+from chembl_query_microservice import Configuration as chemblApiConfiguration
+
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
 from nolabs.infrastructure.settings import Settings
 from nolabs.utils.fasta import create_upload_file_from_string
@@ -67,7 +72,24 @@ tools = [
                 "required": ["query", "max_results"],
             },
         }
-    }
+    },
+    {
+            "type": "function",
+            "function": {
+                "name": "query_chembl",
+                "description": "Query Chembl database by search term to find the molecule",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "search_term": {
+                            "type": "string",
+                            "description": "The search term of the molecule for which we want to find the results"
+                        },
+                    },
+                    "required": ["search_term"],
+                },
+            }
+        }
 ]
 
 class SendMessageFeature:
@@ -157,4 +179,16 @@ class SendMessageFeature:
             response = api_instance.search_search_pubmed_articles_post(pub_med_search_request=request)
 
             return response.articles
+
+    def query_chembl(self, search_term: str) -> List[chembl_query_microservice.Molecule]:
+        configuration = chemblApiConfiguration(
+            host=self._settings.chembl_query_host,
+        )
+        with chemblApiClient(configuration=configuration) as client:
+            api_instance = chemblApiDefaultApi(client)
+            request = chembl_query_microservice.ChEMBLMoleculeRequest(search_term=search_term)
+            response = api_instance.query_query_chembl_post(ch_embl_molecule_request=request)
+
+            return response.molecules
+
 

@@ -9,6 +9,13 @@
           :experimentId="this.experimentId"
           :originalTargets="this.targets"
       />
+      <div class="q-pt-xl"></div>
+      <div class="q-pt-xl"></div>
+      <LigandsList
+        v-if="ligands"
+        :experimentId="this.experimentId"
+        :originalLigands="this.ligands"
+      />
       <q-expansion-item
           icon="info"
           label="Step 1: Upload target files for which you discover the drugs"
@@ -47,17 +54,20 @@ import {Notify, QSpinnerOrbit} from "quasar";
 import {useRoute} from "vue-router";
 import TargetsList from "src/features/drug_discovery/components/targets/TargetsList.vue";
 import {defineComponent} from "vue";
-import {TargetMetaData} from "../../../api/client";
+import {LigandMetaData, TargetMetaData} from "../../../api/client";
+import LigandsList from "./ligands/LigandsList.vue";
 
 export default defineComponent({
   name: "ExperimentSetup",
   components: {
     TargetsList,
+    LigandsList,
   },
   data() {
     return {
       loading: true,
       targets: [] as TargetMetaData[],
+      ligands: [] as LigandMetaData[],
       experimentId: null as string | null
     };
   },
@@ -72,12 +82,13 @@ export default defineComponent({
     });
     try {
       await store.fetchTargetsForExperiment(this.experimentId);
+      this.ligands = await store.fetchLigandsForExperiment(this.experimentId) as LigandMetaData[];
       this.targets = store.targets;
     } catch (e) {
       Notify.create({
         type: "negative",
         closeBtn: 'Close',
-        message: 'Error fetching targets: ' + e
+        message: 'Error fetching targets or ligands: ' + e
       });
     } finally {
       this.loading = false;

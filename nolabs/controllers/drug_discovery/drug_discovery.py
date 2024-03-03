@@ -269,8 +269,8 @@ async def get_ligand_meta_data_for_target(feature: Annotated[
                           ligand_id: str) -> GetTargetLigandMetaDataResponse:
     return feature.handle(GetTargetLigandMetaDataRequest(experiment_id, target_id, ligand_id))
 
-@router.get('/get-lone-ligand-meta')
-async def get_lone_ligand_data(feature: Annotated[
+@router.get('/get-lone-ligand-meta-data')
+async def get_lone_ligand_meta_data(feature: Annotated[
     GetLoneLigandMetaDataFeature, Depends(get_lone_ligand_meta_data_dependency)],
                           experiment_id: str,
                           ligand_id: str) -> GetLoneLigandMetaDataResponse:

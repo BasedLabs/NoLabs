@@ -382,19 +382,19 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Get Lone Ligand Data
+     * Get Lone Ligand Meta Data
      * @param experimentId
      * @param ligandId
      * @returns GetLoneLigandMetaDataResponse Successful Response
      * @throws ApiError
      */
-    public static getLoneLigandDataApiV1DrugDiscoveryGetLoneLigandMetaGet(
+    public static getLoneLigandMetaDataApiV1DrugDiscoveryGetLoneLigandMetaDataGet(
         experimentId: string,
         ligandId: string,
     ): CancelablePromise<GetLoneLigandMetaDataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/drug_discovery/get-lone-ligand-meta',
+            url: '/api/v1/drug_discovery/get-lone-ligand-meta-data',
             query: {
                 'experiment_id': experimentId,
                 'ligand_id': ligandId,
