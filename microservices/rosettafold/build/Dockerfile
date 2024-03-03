@@ -28,11 +28,12 @@ RUN conda env create -q -f folding-linux.yml
 
 RUN conda config --add channels https://${ROSETTACOMMONS_CONDA_USERNAME}:${ROSETTACOMMONS_CONDA_PASSWORD}@conda.graylab.jhu.edu
 #installing pyrosetta into a base image so it gets cached between builds
+RUN conda config --set verbosity 2
 RUN conda install -n folding -y pyrosetta
 
 RUN wget -q https://files.ipd.uw.edu/pub/RoseTTAFold/weights.tar.gz --show-progress
 RUN tar xfz weights.tar.gz
-##
+
 RUN sed -i 's/\r$//' install_dependencies.sh && chmod +x install_dependencies.sh
 RUN ./install_dependencies.sh
 

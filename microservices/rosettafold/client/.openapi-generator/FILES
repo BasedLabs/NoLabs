@@ -5,6 +5,8 @@
 README.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
+docs/IsJobRunningResponse.md
+docs/JobId.md
 docs/PdbContent.md
 docs/RunRosettaFoldResponse.md
 docs/ValidationError.md
@@ -21,6 +23,8 @@ rosettafold_microservice/configuration.py
 rosettafold_microservice/exceptions.py
 rosettafold_microservice/models/__init__.py
 rosettafold_microservice/models/http_validation_error.py
+rosettafold_microservice/models/is_job_running_response.py
+rosettafold_microservice/models/job_id.py
 rosettafold_microservice/models/pdb_content.py
 rosettafold_microservice/models/run_rosetta_fold_response.py
 rosettafold_microservice/models/validation_error.py

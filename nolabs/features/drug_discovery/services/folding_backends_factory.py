@@ -1,3 +1,5 @@
+import tempfile
+
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.features.drug_discovery.services.folding_methods import FoldingMethods
 from nolabs.infrastructure.settings import Settings
@@ -45,10 +47,9 @@ def run_folding(fasta_content: str, settings: Settings, method: FoldingMethods) 
         )
         with ApiClient(configuration=configuration) as client:
             api_instance = DefaultApi(client)
-            with open('rosetta_tmp.fasta', 'wb') as f:
-                f.write(fasta_content.encode('utf-8'))
+            open('tmp.fasta', 'w').write(fasta_content)
             response = api_instance.run_folding_run_folding_post(
-                fasta='rosetta_tmp.fasta',
+                fasta='tmp.fasta',
                 a3m=None
             )
 

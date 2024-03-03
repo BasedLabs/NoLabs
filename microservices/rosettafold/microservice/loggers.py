@@ -17,8 +17,9 @@ _logger.addHandler(_logHandler)
 
 
 class Log:
-    def run_rosettafold_request(self, fasta: bytes | None, a3m: bytes | None):
+    def run_rosettafold_request(self, job_id: str, fasta: bytes | None, a3m: bytes | None):
         _logger.info('Run rosettafold request', extra={
+            'job_id': job_id,
             'fasta': fasta.decode('utf-8')[:15] if fasta else None,
             'a3m': a3m.decode('utf-8')[:15] if a3m else None
         })

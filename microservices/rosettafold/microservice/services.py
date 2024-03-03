@@ -5,57 +5,44 @@ import os
 import pathlib
 import subprocess
 import threading
+from contextlib import contextmanager
 
-import pickledb
 import psutil
-from fastapi import UploadFile
 
-from microservice.api_models import RunRosettaFoldResponse, RunRosettaFoldRequest
+from microservice.api_models import RunRosettaFoldResponse
 from microservice.loggers import logger
 
 
 class RosettaService:
+    _store = set()
+
     def __init__(self):
-        self._db = pickledb.load('shared_state.db', False)
         self._rosettafold_directory = '/RoseTTAFold'
 
-    def get_rosettafold_process_counter(self) -> int:
-        lock = multiprocessing.Lock()
-        with lock:
-            if not self._db.exists('rosettafold_process_counter'):
-                return 0
-            return self._db.get('rosettafold_process_counter')
-
-    def increment_rosettafold_process_counter(self):
-        lock = multiprocessing.Lock()
-        with lock:
-            if not self._db.exists('rosettafold_process_counter'):
-                counter = 0
-            else:
-                counter = self._db.get('rosettafold_process_counter')
-            counter += 1
-            self._db.set('rosettafold_process_counter', counter)
-
-    def decrement_rosettafold_process_counter(self):
-        lock = multiprocessing.Lock()
-        with lock:
-            if not self._db.exists('rosettafold_process_counter'):
-                return
-            counter = self._db.get('rosettafold_process_counter')
-            counter += 1
-            self._db.set('rosettafold_process_counter', counter)
-
-    async def run_rosettafold(self, fasta: bytes | None, a3m: bytes | None) -> RunRosettaFoldResponse:
+    @contextmanager
+    @staticmethod
+    def _track_job(job_id: str | None):
+        if job_id:
+            RosettaService._store.add(job_id)
         try:
-            self.increment_rosettafold_process_counter()
-            return await self._run_rosettafold(fasta, a3m)
+            yield True
+        finally:
+            if job_id:
+                RosettaService._store.remove(job_id)
+
+    def is_job_running(self, job_id: str) -> bool:
+        return job_id in RosettaService._store
+
+    async def run_rosettafold(self, job_id: str, fasta: bytes | None, a3m: bytes | None) -> RunRosettaFoldResponse:
+        try:
+            with RosettaService._track_job(job_id):
+                return await self._run_rosettafold(fasta, a3m)
         except:
             logger.rosetta_exception()
             return RunRosettaFoldResponse(
                 errors=['Critical error. Open the issue on our github and attach the error log'],
                 pdb_content=None)
         finally:
-            self.decrement_rosettafold_process_counter()
             self._cleanup_generated_files()
 
     def _cleanup_generated_files(self):

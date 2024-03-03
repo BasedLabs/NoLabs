@@ -66,14 +66,15 @@ configuration = rosettafold_microservice.Configuration(
 with rosettafold_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = rosettafold_microservice.DefaultApi(api_client)
+    job_id = 'job_id_example' # str | 
 
     try:
-        # Instances Running
-        api_response = api_instance.instances_running_instances_running_get()
-        print("The response of DefaultApi->instances_running_instances_running_get:\n")
+        # Is Job Running
+        api_response = api_instance.is_job_running_job_job_id_is_running_get(job_id)
+        print("The response of DefaultApi->is_job_running_job_job_id_is_running_get:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DefaultApi->instances_running_instances_running_get: %s\n" % e)
+        print("Exception when calling DefaultApi->is_job_running_job_job_id_is_running_get: %s\n" % e)
 
 ```
 
@@ -83,13 +84,16 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DefaultApi* | [**instances_running_instances_running_get**](docs/DefaultApi.md#instances_running_instances_running_get) | **GET** /instances-running | Instances Running
+*DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
+*DefaultApi* | [**livez_livez_get**](docs/DefaultApi.md#livez_livez_get) | **GET** /livez | Livez
 *DefaultApi* | [**run_folding_run_folding_post**](docs/DefaultApi.md#run_folding_run_folding_post) | **POST** /run-folding | Run Folding
 
 
 ## Documentation For Models
 
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
+ - [JobId](docs/JobId.md)
  - [PdbContent](docs/PdbContent.md)
  - [RunRosettaFoldResponse](docs/RunRosettaFoldResponse.md)
  - [ValidationError](docs/ValidationError.md)

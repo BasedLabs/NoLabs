@@ -31,6 +31,7 @@ umol-microservice = {path = "microservices/umol/client"}
 esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 diffdock-microservice = {path = "microservices/diffdock/client"}
+aiohttp = "^3.9.3"
 rosettafold-microservice = {path = "microservices/rosettafold/client"}
 
 [project]

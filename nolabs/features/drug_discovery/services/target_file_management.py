@@ -44,6 +44,8 @@ class TargetsFileManagement:
         os.mkdir(os.path.join(targets_dir, target_id.value))
 
     def store_target(self, experiment_id: ExperimentId, fasta_file: UploadFile) -> List[TargetMetaData]:
+
+
         self.ensure_targets_folder_exists(experiment_id)
 
         original_filename = fasta_file.filename

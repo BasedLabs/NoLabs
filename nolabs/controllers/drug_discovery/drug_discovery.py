@@ -41,11 +41,13 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_jobs_list_for_target_ligand_feature, check_esmfold_running_dependency, check_esmfold_light_running_dependency,
     predict_diffdock_docking_dependency, check_diffdock_running_dependency, check_diffdock_service_health_dependency,
     get_diffdock_ligand_sdf_dependency, get_diffdock_docking_result_dependency, update_diffdock_params_dependency,
-    get_diffdock_params_dependency, update_docking_params_dependency, predict_rosettafold_dependency
+    get_diffdock_params_dependency, update_docking_params_dependency, predict_rosettafold_dependency,
+    check_rosettafold_service_health_dependency, check_rosettafold_running_dependency
 )
-from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
+from nolabs.features.infrastructure.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckEsmFoldServiceHealthFeature, \
-    CheckUmolServiceHealthFeature, CheckEsmFoldLightServiceHealthFeature, CheckDiffDockServiceHealthFeature
+    CheckUmolServiceHealthFeature, CheckEsmFoldLightServiceHealthFeature, CheckDiffDockServiceHealthFeature, \
+    CheckRosettaFoldServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.diffdock_params_management import UpdateDiffDockParamsFeature, \
     GetDiffDockParamsFeature
@@ -76,7 +78,7 @@ from nolabs.features.drug_discovery.get_diffdock_results import GetDiffDockLigan
     GetDiffDockDockingResultsFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
     CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature, \
-    CheckDiffDockRunningFeature
+    CheckDiffDockRunningFeature, CheckRosettaFoldRunningFeature
 from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
 
@@ -247,9 +249,9 @@ async def delete_ligand(feature: Annotated[
 @router.get('/get-ligand-meta-data')
 async def get_ligand_meta_data(feature: Annotated[
     GetLigandMetaDataFeature, Depends(get_ligand_meta_data_dependency)],
-                          experiment_id: str,
-                          target_id: str,
-                          ligand_id: str) -> GetLigandMetaDataResponse:
+                               experiment_id: str,
+                               target_id: str,
+                               ligand_id: str) -> GetLigandMetaDataResponse:
     return feature.handle(GetLigandMetaDataRequest(experiment_id, target_id, ligand_id))
 
 
@@ -317,25 +319,25 @@ async def get_folded_structure(experiment_id: str,
 
 
 @router.post('/predict-esmfold-light')
-async def predict_folding(feature: Annotated[
+async def predict_esmfold_light(feature: Annotated[
     PredictEsmFoldLightFeature, Depends(predict_esmfold_light_dependency)],
-                          experiment_id: str,
-                          target_id: str
-                          ) -> PredictFoldingResponse:
+                                experiment_id: str,
+                                target_id: str
+                                ) -> PredictFoldingResponse:
     return feature.handle(PredictFoldingRequest(experiment_id, target_id))
 
 
 @router.post('/predict-rosettafold')
 async def predict_rosettafold(feature: Annotated[
     PredictRosettaFoldFolding, Depends(predict_rosettafold_dependency)],
-                          experiment_id: str,
-                          target_id: str
-                          ) -> PredictFoldingResponse:
+                              experiment_id: str,
+                              target_id: str
+                              ) -> PredictFoldingResponse:
     return feature.handle(PredictFoldingRequest(experiment_id, target_id))
 
 
 @router.post('/predict-esmfold')
-async def predict_folding(feature: Annotated[
+async def predict_esmfold(feature: Annotated[
     PredictEsmFoldFeature, Depends(predict_esmfold_dependency)],
                           experiment_id: str,
                           target_id: str
@@ -349,7 +351,7 @@ async def register_docking_job(experiment_id: str,
                                ligand_id: str,
                                folding_method: str,
                                feature: Annotated[RegisterDockingJobFeature
-        , Depends(register_docking_job_dependency)]) -> RegisterDockingJobResponse:
+                               , Depends(register_docking_job_dependency)]) -> RegisterDockingJobResponse:
     return feature.handle(RegisterDockingJobRequest(experiment_id, target_id, ligand_id, folding_method))
 
 
@@ -374,12 +376,18 @@ async def check_msa_data_available(experiment_id: str,
 @router.get('/check-msa-service-health')
 async def check_msa_service_health(feature: Annotated[
     CheckMsaServiceHealthFeature, Depends(check_msa_service_health_dependency)]) -> CheckServiceHealthyResponse:
-    return feature.handle()
+    return await feature.handle()
 
 
 @router.get('/check-msa-job-running')
 async def check_msa_job_running(job_id: str, feature: Annotated[
     CheckMsaRunningFeature, Depends(check_msa_running_dependency)]) -> CheckJobIsRunningResponse:
+    return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+
+
+@router.get('/check-rosettafold-job-running')
+async def check_rosettafold_job_running(job_id: str, feature: Annotated[
+    CheckRosettaFoldRunningFeature, Depends(check_rosettafold_running_dependency)]) -> CheckJobIsRunningResponse:
     return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
 
 
@@ -408,7 +416,7 @@ async def get_job_pocket_data(experiment_id: str,
 @router.get('/check-p2rank-service-health')
 async def check_p2rank_service_health(feature: Annotated[
     CheckP2RankServiceHealthFeature, Depends(check_p2rank_service_health_dependency)]) -> CheckServiceHealthyResponse:
-    return feature.handle()
+    return await feature.handle()
 
 
 @router.get('/check-p2rank-job-running')
@@ -422,25 +430,29 @@ async def check_folding_data_available(experiment_id: str,
                                        target_id: str,
                                        folding_method: str,
                                        feature: Annotated[
-            CheckFoldingDataAvailableFeature, Depends(
-                check_folding_data_available_dependency)]) -> CheckFoldingDataAvailableResponse:
+                                           CheckFoldingDataAvailableFeature, Depends(
+                                               check_folding_data_available_dependency)]) -> CheckFoldingDataAvailableResponse:
     return feature.handle(CheckFoldingDataAvailableRequest(experiment_id, target_id, folding_method))
 
 
 @router.get('/check-esmfold-service-health')
 async def check_esmfold_service_health(feature: Annotated[
     CheckEsmFoldServiceHealthFeature, Depends(check_esmfold_service_health_dependency)]) -> CheckServiceHealthyResponse:
-    return feature.handle()
+    return await feature.handle()
+
 
 @router.get('/check-esmfold-light-service-health')
 async def check_esmfold_light_service_health(feature: Annotated[
-    CheckEsmFoldLightServiceHealthFeature, Depends(check_esmfold_light_service_health_dependency)]) -> CheckServiceHealthyResponse:
-    return feature.handle()
+    CheckEsmFoldLightServiceHealthFeature, Depends(
+        check_esmfold_light_service_health_dependency)]) -> CheckServiceHealthyResponse:
+    return await feature.handle()
+
 
 @router.get('/check-esmfold-job-running')
 async def check_esmfold_job_running(job_id: str, feature: Annotated[
     CheckEsmFoldRunningFeature, Depends(check_esmfold_running_dependency)]) -> CheckJobIsRunningResponse:
     return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
+
 
 @router.get('/check-esmfold-light-job-running')
 async def check_esmfold_light_job_running(job_id: str, feature: Annotated[
@@ -451,7 +463,14 @@ async def check_esmfold_light_job_running(job_id: str, feature: Annotated[
 @router.get('/check-umol-service-health')
 async def check_umol_service_health(feature: Annotated[
     CheckUmolServiceHealthFeature, Depends(check_umol_service_health_dependency)]) -> CheckServiceHealthyResponse:
-    return feature.handle()
+    return await feature.handle()
+
+
+@router.get('/check-rosettafold-service-health')
+async def rosettafold_service_health(feature: Annotated[
+    CheckRosettaFoldServiceHealthFeature, Depends(
+        check_rosettafold_service_health_dependency)]) -> CheckServiceHealthyResponse:
+    return await feature.handle()
 
 
 @router.get('/check-umol-job-running')
@@ -459,17 +478,18 @@ async def check_umol_job_running(job_id: str, feature: Annotated[
     CheckUmolRunningFeature, Depends(check_umol_running_dependency)]) -> CheckJobIsRunningResponse:
     return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
 
+
 @router.get('/check-diffdock-service-health')
 async def check_diffdock_service_health(feature: Annotated[
-    CheckDiffDockServiceHealthFeature, Depends(check_diffdock_service_health_dependency)]) -> CheckServiceHealthyResponse:
-    return feature.handle()
+    CheckDiffDockServiceHealthFeature, Depends(
+        check_diffdock_service_health_dependency)]) -> CheckServiceHealthyResponse:
+    return await feature.handle()
 
 
 @router.get('/check-diffdock-job-running')
 async def check_diffdock_job_running(job_id: str, feature: Annotated[
     CheckDiffDockRunningFeature, Depends(check_diffdock_running_dependency)]) -> CheckJobIsRunningResponse:
     return await feature.handle(CheckJobIsRunningRequest(job_id=job_id))
-
 
 
 @router.get('/check-result-data-available')
@@ -488,69 +508,77 @@ async def check_result_data_available(experiment_id: str,
 # Docking
 @router.post('/run-umol-docking-job')
 def run_umol_docking(experiment_id: str,
-                    target_id: str,
-                    ligand_id: str,
-                    job_id: str
-                    , feature: Annotated[
+                     target_id: str,
+                     ligand_id: str,
+                     job_id: str
+                     , feature: Annotated[
             PredictUmolDockingFeature, Depends(predict_umol_docking_dependency)]) -> RunUmolDockingJobResponse:
     return feature.handle(RunUmolDockingJobRequest(experiment_id=experiment_id,
-                                               target_id=target_id,
-                                               ligand_id=ligand_id, job_id=job_id))
+                                                   target_id=target_id,
+                                                   ligand_id=ligand_id, job_id=job_id))
+
 
 @router.post('/run-diffdock-docking-job')
 def run_diffdock_docking(experiment_id: str,
-                    target_id: str,
-                    ligand_id: str,
-                    job_id: str
-                    , feature: Annotated[
-            PredictDiffDockDockingFeature, Depends(predict_diffdock_docking_dependency)]) -> RunDiffDockDockingJobResponse:
+                         target_id: str,
+                         ligand_id: str,
+                         job_id: str
+                         , feature: Annotated[
+            PredictDiffDockDockingFeature, Depends(
+                predict_diffdock_docking_dependency)]) -> RunDiffDockDockingJobResponse:
     return feature.handle(RunDiffDockDockingJobRequest(experiment_id=experiment_id,
                                                        target_id=target_id,
                                                        ligand_id=ligand_id,
                                                        job_id=job_id))
 
+
 @router.get('/get-diffdock-params')
 def get_diffdock_params(experiment_id: str,
-                    target_id: str,
-                    ligand_id: str,
-                    job_id: str,
-                    feature: Annotated[
-            GetDiffDockParamsFeature, Depends(get_diffdock_params_dependency)]) -> GetDiffDockParamsResponse:
+                        target_id: str,
+                        ligand_id: str,
+                        job_id: str,
+                        feature: Annotated[
+                            GetDiffDockParamsFeature, Depends(
+                                get_diffdock_params_dependency)]) -> GetDiffDockParamsResponse:
     return feature.handle(GetDiffDockParamsRequest(experiment_id=experiment_id,
-                                                       target_id=target_id,
-                                                       ligand_id=ligand_id,
-                                                       job_id=job_id))
+                                                   target_id=target_id,
+                                                   ligand_id=ligand_id,
+                                                   job_id=job_id))
+
 
 @router.post('/update-docking-params')
 def update_docking_params(experiment_id: str,
-                    target_id: str,
-                    ligand_id: str,
-                    job_id: str,
-                    folding_method: str,
-                    docking_method: str,
-                    feature: Annotated[
-            UpdateDockingParamsFeature, Depends(update_docking_params_dependency)]) -> GetDockingParamsResponse:
+                          target_id: str,
+                          ligand_id: str,
+                          job_id: str,
+                          folding_method: str,
+                          docking_method: str,
+                          feature: Annotated[
+                              UpdateDockingParamsFeature, Depends(
+                                  update_docking_params_dependency)]) -> GetDockingParamsResponse:
     return feature.handle(UpdateDockingParamsRequest(experiment_id=experiment_id,
-                                                       target_id=target_id,
-                                                       ligand_id=ligand_id,
-                                                       job_id=job_id,
-                                                       folfing_method=folding_method,
-                                                       docking_method=docking_method))
+                                                     target_id=target_id,
+                                                     ligand_id=ligand_id,
+                                                     job_id=job_id,
+                                                     folfing_method=folding_method,
+                                                     docking_method=docking_method))
 
 
 @router.post('/update-diffdock-params')
 def update_diffdock_params(experiment_id: str,
-                    target_id: str,
-                    ligand_id: str,
-                    job_id: str,
-                    samples_per_complex: int,
-                    feature: Annotated[
-            UpdateDiffDockParamsFeature, Depends(update_diffdock_params_dependency)]) -> GetDiffDockParamsResponse:
+                           target_id: str,
+                           ligand_id: str,
+                           job_id: str,
+                           samples_per_complex: int,
+                           feature: Annotated[
+                               UpdateDiffDockParamsFeature, Depends(
+                                   update_diffdock_params_dependency)]) -> GetDiffDockParamsResponse:
     return feature.handle(UpdateDiffDockParamsRequest(experiment_id=experiment_id,
-                                                       target_id=target_id,
-                                                       ligand_id=ligand_id,
-                                                       job_id=job_id,
-                                                       samples_per_complex=samples_per_complex))
+                                                      target_id=target_id,
+                                                      ligand_id=ligand_id,
+                                                      job_id=job_id,
+                                                      samples_per_complex=samples_per_complex))
+
 
 @router.get('/get-results-list-for-target-ligand')
 async def get_results_list_for_target_ligand(experiment_id: str,
@@ -596,21 +624,23 @@ async def get_all_jobs_list(experiment_id: str,
 
 @router.get('/get-umol-docking-result-data')
 async def get_umol_docking_result_data(experiment_id: str,
-                                  target_id: str,
-                                  ligand_id: str,
-                                  job_id: str, feature: Annotated[
+                                       target_id: str,
+                                       ligand_id: str,
+                                       job_id: str, feature: Annotated[
             GetUmolDockingResultsFeature, Depends(get_umol_docking_result_dependency)]) -> \
         GetUmolDockingResultDataResponse:
     return feature.handle(GetDockingResultDataRequest(experiment_id, target_id, ligand_id, job_id))
 
+
 @router.get('/get-diffdock-docking-result-data')
 async def get_diffdock_docking_result_data(experiment_id: str,
-                                  target_id: str,
-                                  ligand_id: str,
-                                  job_id: str, feature: Annotated[
+                                           target_id: str,
+                                           ligand_id: str,
+                                           job_id: str, feature: Annotated[
             GetDiffDockDockingResultsFeature, Depends(get_diffdock_docking_result_dependency)]) -> \
         GetDiffDockDockingResultDataResponse:
     return feature.handle(GetDockingResultDataRequest(experiment_id, target_id, ligand_id, job_id))
+
 
 @router.get('/get-diffdock-ligand_sdf')
 async def get_diffdock_ligand_sdf(experiment_id: str,
@@ -619,6 +649,6 @@ async def get_diffdock_ligand_sdf(experiment_id: str,
                                   job_id: str,
                                   sdf_file_name: str,
                                   feature: Annotated[
-            GetDiffDockLigandSdfFeature, Depends(get_diffdock_ligand_sdf_dependency)]) -> \
+                                      GetDiffDockLigandSdfFeature, Depends(get_diffdock_ligand_sdf_dependency)]) -> \
         GetDiffDockLigandSdfResponse:
     return feature.handle(GetDiffDockLigandSdfRequest(experiment_id, target_id, ligand_id, job_id, sdf_file_name))

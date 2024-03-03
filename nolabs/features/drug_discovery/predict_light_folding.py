@@ -27,7 +27,7 @@ class PredictEsmFoldLightFeature:
                                             "other folding backend"],
                                   error_code=ErrorCodes.drug_discovery_folding_error)
 
-        pdb_content = run_folding(sequence, self._settings, FoldingMethods.esmfold)
+        pdb_content = run_folding(sequence, self._settings, FoldingMethods.esmfold_light)
 
         self._file_management.store_pdb_contents(experiment_id, target_id, pdb_content, FoldingMethods.esmfold_light)
         self._file_management.update_target_metadata(experiment_id, target_id, "folding_method", FoldingMethods.esmfold_light)

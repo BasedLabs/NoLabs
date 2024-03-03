@@ -506,13 +506,13 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Predict Folding
+     * Predict Esmfold Light
      * @param experimentId
      * @param targetId
      * @returns PredictFoldingResponse Successful Response
      * @throws ApiError
      */
-    public static predictFoldingApiV1DrugDiscoveryPredictEsmfoldLightPost(
+    public static predictEsmfoldLightApiV1DrugDiscoveryPredictEsmfoldLightPost(
         experimentId: string,
         targetId: string,
     ): CancelablePromise<PredictFoldingResponse> {
@@ -552,13 +552,13 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Predict Folding
+     * Predict Esmfold
      * @param experimentId
      * @param targetId
      * @returns PredictFoldingResponse Successful Response
      * @throws ApiError
      */
-    public static predictFoldingApiV1DrugDiscoveryPredictEsmfoldPost(
+    public static predictEsmfoldApiV1DrugDiscoveryPredictEsmfoldPost(
         experimentId: string,
         targetId: string,
     ): CancelablePromise<PredictFoldingResponse> {
@@ -678,6 +678,26 @@ export class DrugDiscoveryService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/drug_discovery/check-msa-job-running',
+            query: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Check Rosettafold Job Running
+     * @param jobId
+     * @returns CheckJobIsRunningResponse Successful Response
+     * @throws ApiError
+     */
+    public static checkRosettafoldJobRunningApiV1DrugDiscoveryCheckRosettafoldJobRunningGet(
+        jobId: string,
+    ): CancelablePromise<CheckJobIsRunningResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-rosettafold-job-running',
             query: {
                 'job_id': jobId,
             },
@@ -872,6 +892,17 @@ export class DrugDiscoveryService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/drug_discovery/check-umol-service-health',
+        });
+    }
+    /**
+     * Rosettafold Service Health
+     * @returns CheckServiceHealthyResponse Successful Response
+     * @throws ApiError
+     */
+    public static rosettafoldServiceHealthApiV1DrugDiscoveryCheckRosettafoldServiceHealthGet(): CancelablePromise<CheckServiceHealthyResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/check-rosettafold-service-health',
         });
     }
     /**

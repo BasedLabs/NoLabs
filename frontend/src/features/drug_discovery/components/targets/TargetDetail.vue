@@ -6,7 +6,7 @@
     <q-separator/>
 
     <q-card-section>
-      <q-skeleton :type="text"/>
+      <q-skeleton type="text"/>
     </q-card-section>
     <q-card-section>
       <div class="text-caption">3D Structure</div>
@@ -219,7 +219,7 @@ export default defineComponent({
     async fetchAndShowPocket() {
       const store = useDrugDiscoveryStore();
       try {
-        const pocketIds = await store.fetchPocketForTarget(this.experimentId, this.target.metaData.target_id, this.selectedFoldingOption);
+        const pocketIds = await store.fetchPocketForTarget(this.experimentId, this.target.metaData.target_id);
         if (pocketIds && pocketIds.length > 0) {
           this.target.data.pocketIds = pocketIds;
         } else {
@@ -233,7 +233,7 @@ export default defineComponent({
       const store = useDrugDiscoveryStore();
       this.predictingPocket = true; // Start the spinner
       try {
-        const pocketIds = await store.predictPocketForTarget(this.experimentId, this.target.metaData.target_id, this.selectedFoldingOption);
+        const pocketIds = await store.predictPocketForTarget(this.experimentId, this.target.metaData.target_id);
         if (pocketIds) {
           this.target.data.pocketIds = pocketIds;
           this.bindingPocketAvailable = true;
