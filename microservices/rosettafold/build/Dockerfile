@@ -30,7 +30,6 @@ RUN conda config --add channels https://${ROSETTACOMMONS_CONDA_USERNAME}:${ROSET
 #installing pyrosetta into a base image so it gets cached between builds
 RUN conda install -n folding -y pyrosetta
 
-COPY ./RoseTTAFold /RoseTTAFold
 RUN wget -q https://files.ipd.uw.edu/pub/RoseTTAFold/weights.tar.gz --show-progress
 RUN tar xfz weights.tar.gz
 ##
