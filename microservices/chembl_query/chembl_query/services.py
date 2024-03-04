@@ -17,18 +17,20 @@ def search_chembl_molecules(request: ChEMBLMoleculeRequest) -> ChEMBLMoleculeRes
     if response.status_code == 200:
         try:
             data = response.json()
+            print(data['molecules'][0])
             for entry in data['molecules']:
                 chembl_id = entry.get('molecule_chembl_id')
                 molecule_type = entry.get('molecule_type', 'N/A')
                 pref_name = entry.get('pref_name')
                 synonyms = entry.get('molecule_synonyms', [])
                 synonym_names = [synonym['molecule_synonym'] for synonym in synonyms]  # Ensure correct key is used
-                print(entry.get('molecule_structures', {}))
                 if 'molecule_structures' in entry and entry.get('molecule_structures'):
                     smiles = entry['molecule_structures'].get('canonical_smiles', 'N/A')  # Extract SMILES
 
+                    molecule_link = f"https://www.ebi.ac.uk/chembl/compound_report_card/{chembl_id}/"
+
                     molecules.append(Molecule(chembl_id=chembl_id, molecule_type=molecule_type, pref_name=pref_name,
-                                              synonyms=synonym_names, smiles=smiles))
+                                              synonyms=synonym_names, smiles=smiles, link=molecule_link))
         except requests.exceptions.JSONDecodeError:
             print("Error decoding JSON response.")
     else:

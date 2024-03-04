@@ -13,6 +13,10 @@ class Message:
     content: str | File
     type: str
 
+@pcdataclass.dataclass
+class FunctionCallResponse:
+    function_name: str
+    parameters: str
 
 @pcdataclass.dataclass
 class GetExperimentRequest:
@@ -33,4 +37,5 @@ class SendMessageRequest:
 
 @pcdataclass.dataclass
 class SendMessageResponse:
-    biobuddy_response: Message
+    biobuddy_response: Message | FunctionCallResponse
+

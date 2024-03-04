@@ -12,6 +12,7 @@ class Molecule:
     pref_name: Optional[str]
     synonyms: List[str]
     smiles: str
+    link: str
 
 @dataclasses.dataclass
 class ChEMBLMoleculeRequest(BaseModelMixin):

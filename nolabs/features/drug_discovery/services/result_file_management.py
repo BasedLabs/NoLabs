@@ -39,7 +39,7 @@ class ResultsFileManagement:
             os.mkdir(result_folder)
 
     def results_folder(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId) -> str:
-        parent_ligand_folder = self._ligand_file_management.ligand_folder(experiment_id, target_id, ligand_id)
+        parent_ligand_folder = self._ligand_file_management.target_ligand_folder(experiment_id, target_id, ligand_id)
         return os.path.join(parent_ligand_folder, 'results')
 
     def result_folder(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId,

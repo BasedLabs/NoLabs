@@ -27,16 +27,18 @@ from chembl_query_microservice import DefaultApi as chemblApiDefaultApi
 from chembl_query_microservice import ApiClient as chemblApiClient
 from chembl_query_microservice import Configuration as chemblApiConfiguration
 
+from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
 from nolabs.infrastructure.settings import Settings
 from nolabs.utils.fasta import create_upload_file_from_string
+from nolabs.utils.sdf import smiles_to_sdf_string
 
 tools = [
     {
         "type": "function",
         "function": {
             "name": "query_rcsb_pdb_by_id",
-            "description": "Query RCSB PDB by protein ids",
+            "description": "Query RCSB PDB by protein ids. Don't use DNA or RNA ids. If a user asks for to pull targets/proteins then invoke this method.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -56,7 +58,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "query_pubmed",
-            "description": "Query Pubmed database by search string",
+            "description": "Query Pubmed database by search string. Query only if the user asks for articles/latest research papers.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -74,8 +76,8 @@ tools = [
         }
     },
     {
-            "type": "function",
-            "function": {
+        "type": "function",
+        "function": {
                 "name": "query_chembl",
                 "description": "Query Chembl database by search term to find the molecule",
                 "parameters": {
@@ -94,9 +96,11 @@ tools = [
 
 class SendMessageFeature:
     def __init__(self, settings: Settings, file_management: FileManagement,
-                 targets_file_management: TargetsFileManagement):
+                 targets_file_management: TargetsFileManagement,
+                 ligand_file_management: LigandsFileManagement):
         self._file_management = file_management
         self._targets_file_management = targets_file_management
+        self._ligand_file_management = ligand_file_management
         self._settings = settings
 
     def handle(self, request: SendMessageRequest) -> SendMessageResponse:
@@ -117,12 +121,14 @@ class SendMessageFeature:
                                                                          tools=tools)
             assistant_message = api_instance.predict_send_message_post(send_message_to_bio_buddy_request=request).chatgpt_reply
 
+            print(assistant_message)
             if assistant_message.tool_calls and assistant_message.tool_calls.actual_instance:
                 if assistant_message.tool_calls.actual_instance[0]['function']['name'] == "query_rcsb_pdb_by_id":
                     ids = json.loads(assistant_message.tool_calls.actual_instance[0]['function']['arguments'])["pdb_ids"]
                     results = self.query_rcsb_pdb_by_id(ids)
-                    reply_content = f"Biobuddy called query_rcsb_pdb_by_id(), result: \n {results}"
-
+                    reply_content = f"Sure! Pulled some targets, check them out: \n"
+                    for result in results:
+                        reply_content += f'{result[1]} \n'
                     for result in results:
                         temp_res = result[0][:]
                         file = create_upload_file_from_string(temp_res, "protein.fasta")
@@ -140,15 +146,40 @@ class SendMessageFeature:
                         "query"]
                     max_results = json.loads(assistant_message.tool_calls.actual_instance[0]['function']['arguments'])[
                         "max_results"]
-
                     articles = self.query_pubmed(query, max_results)
+                    reply_content = f"Sure! Pulled some ligands, check them out: \n"
+                    for article in articles:
+                        reply_content += 
 
+                    self._file_management.update_conversation(experiment_id,
+                                                              Message(role='user', content=request.message_content,
+                                                                      type='text'))
+                    self._file_management.update_conversation(experiment_id,
+                                                              Message(role='assistant',
+                                                                      content=str(reply_content),
+                                                                      type='text'))
                     print(articles)
-
-
+                elif assistant_message.tool_calls.actual_instance[0]['function']['name'] == "query_chembl":
+                    search_term = json.loads(assistant_message.tool_calls.actual_instance[0]['function']['arguments'])[
+                        "search_term"]
+                    molecules = self.query_chembl(search_term)
+                    reply_content = f"Sure! Pulled some ligands, check them out: \n"
+                    for molecule in molecules:
+                        reply_content += f'{molecule.chembl_id} \n'
+                        molecule_smiles = molecule.smiles
+                        sdf_content = smiles_to_sdf_string(molecule_smiles)
+                        file = create_upload_file_from_string(sdf_content, f"{molecule.chembl_id}.sdf")
+                        self._ligand_file_management.store_lone_ligand(experiment_id, file)
+                    self._file_management.update_conversation(experiment_id,
+                                                              Message(role='user', content=request.message_content,
+                                                                      type='text'))
+                    self._file_management.update_conversation(experiment_id,
+                                                              Message(role='assistant',
+                                                                      content=str(reply_content),
+                                                                      type='text'))
             else:
                 self._file_management.update_conversation(experiment_id,
-                                                          Message(role='user', content=request.message_content.actual_instance,
+                                                          Message(role='user', content=request.message_content,
                                                                   type='text'))
                 self._file_management.update_conversation(experiment_id,
                                                           Message(role='assistant',

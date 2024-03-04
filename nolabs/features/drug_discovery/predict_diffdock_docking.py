@@ -49,7 +49,7 @@ class PredictDiffDockDockingFeature:
         params = self._result_file_management.get_diffdock_params(experiment_id, target_id, ligand_id, job_id)
 
         pdb_content = self.get_folding(experiment_id, target_id, job_metadata.folding_method)
-        _, sdf_contents, _ = self._ligand_file_management.get_ligand_data(experiment_id, target_id, ligand_id)
+        _, sdf_contents, _ = self._ligand_file_management.get_target_ligand_data(experiment_id, target_id, ligand_id)
 
         configuration = DiffDockConfiguration(
             host=self._settings.diffdock_host,

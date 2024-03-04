@@ -32,7 +32,8 @@ class Molecule(BaseModel):
     pref_name: PrefName
     synonyms: List[StrictStr]
     smiles: StrictStr
-    __properties: ClassVar[List[str]] = ["chembl_id", "molecule_type", "pref_name", "synonyms", "smiles"]
+    link: StrictStr
+    __properties: ClassVar[List[str]] = ["chembl_id", "molecule_type", "pref_name", "synonyms", "smiles", "link"]
 
     model_config = {
         "populate_by_name": True,
@@ -92,7 +93,8 @@ class Molecule(BaseModel):
             "molecule_type": obj.get("molecule_type"),
             "pref_name": PrefName.from_dict(obj["pref_name"]) if obj.get("pref_name") is not None else None,
             "synonyms": obj.get("synonyms"),
-            "smiles": obj.get("smiles")
+            "smiles": obj.get("smiles"),
+            "link": obj.get("link")
         })
         return _obj
 

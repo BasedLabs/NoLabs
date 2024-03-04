@@ -1,7 +1,6 @@
 .github/workflows/python.yml
 .gitignore
 .gitlab-ci.yml
-.openapi-generator-ignore
 .travis.yml
 README.md
 chembl_query_microservice/__init__.py
@@ -40,14 +39,4 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_ch_embl_molecule_request.py
-test/test_ch_embl_molecule_response.py
-test/test_default_api.py
-test/test_http_validation_error.py
-test/test_is_job_running_response.py
-test/test_job_id.py
-test/test_molecule.py
-test/test_pref_name.py
-test/test_validation_error.py
-test/test_validation_error_loc_inner.py
 tox.ini

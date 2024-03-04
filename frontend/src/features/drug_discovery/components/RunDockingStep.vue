@@ -550,7 +550,11 @@ export default defineComponent({
   computed: {
     isAnyServiceUnhealthy() {
       // Computed property to check if any service is unhealthy
-      return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.dockingServiceHealthy;
+      if (this.currentJob?.docking_method === 'diffdock') {
+        return !this.foldingServiceHealthy || !this.dockingServiceHealthy;
+      } else if (this.currentJob?.docking_method === 'umol') {
+        return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.dockingServiceHealthy;
+      }
     },
     isAnyJobRunning() {
       return this.jobsInQueue.some(job => job.isRunning);

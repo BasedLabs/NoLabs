@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **pref_name** | [**PrefName**](PrefName.md) |  | 
 **synonyms** | **List[str]** |  | 
 **smiles** | **str** |  | 
+**link** | **str** |  | 
 
 ## Example
 

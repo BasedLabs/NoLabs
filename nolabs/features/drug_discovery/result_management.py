@@ -31,7 +31,7 @@ class GetAllResultsListFeature:
 
         for target in self._targets_file_management.get_targets_list(experiment_id):
             target_id = TargetId(target.target_id)
-            for ligand in self._ligands_file_management.get_ligands_list(experiment_id, target_id):
+            for ligand in self._ligands_file_management.get_target_ligands_list(experiment_id, target_id):
                 ligand_id = LigandId(ligand.ligand_id)
                 for result in self._results_file_management.get_jobs_list(experiment_id, target_id, ligand_id):
                     job_metadata = self._results_file_management.get_job_metadata(experiment_id, target_id, ligand_id,
@@ -78,7 +78,7 @@ class GetAllJobsListFeature:
 
         for target in self._targets_file_management.get_targets_list(experiment_id):
             target_id = TargetId(target.target_id)
-            for ligand in self._ligands_file_management.get_ligands_list(experiment_id, target_id):
+            for ligand in self._ligands_file_management.get_target_ligands_list(experiment_id, target_id):
                 ligand_id = LigandId(ligand.ligand_id)
                 for job in self._results_file_management.get_jobs_list(experiment_id, target_id, ligand_id):
                     job_metadata = self._results_file_management.get_job_metadata(experiment_id, target_id, ligand_id,
