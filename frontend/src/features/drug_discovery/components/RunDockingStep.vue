@@ -573,6 +573,8 @@ export default defineComponent({
       } else if (this.currentJob?.docking_method === 'umol') {
         return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.dockingServiceHealthy;
       }
+      console.error('No docking method selected');
+      return false;
       // Computed property to check if any service is unhealthy
     },
     isAnyJobRunning() {
