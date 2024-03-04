@@ -1,6 +1,4 @@
-import configparser
 import os.path
-from dataclasses import dataclass
 
 __all__ = ['Settings', ]
 
@@ -82,6 +80,13 @@ class Settings:
         host = self._config.get('microservices', 'esmfold_light')
         if environment.is_compose():
             return host.replace('127.0.0.1', 'esmfold_light')
+        return host
+
+    @property
+    def rosettafold_host(self) -> str:
+        host = self._config.get('microservices', 'rosettafold')
+        if environment.is_compose():
+            return host.replace('127.0.0.1', 'rosettafold')
         return host
 
     @property

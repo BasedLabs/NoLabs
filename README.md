@@ -12,7 +12,15 @@
   <img alt="License" src="https://img.shields.io/github/license/BasedLabs/nolabs?color=56BEB8">
 </p>
 
-## About ##
+# Contents
+
+* [About](#about)
+* [Features](#features)
+* [Starting](#starting)
+* [Microservices](#microservices)
+* [Technologies](#technologies)
+
+# About
 
 NoLabs is an open source biolab which lets you run experiments with latest state of the art models for bio research.
 
@@ -25,7 +33,7 @@ Let's accelerate bio research!
 <img src="media/NoLabs_Architecture.png" width="100%">
 
 
-## Features ##
+# Features
 
 **Drug discovery lab (State of the art):**
 - Drug-target interaction prediction, high throughput virtual screening (HTVS) based on:
@@ -56,7 +64,7 @@ Let's accelerate bio research!
 **Conformations Lab:**
 - Conformations via [OpenMM](https://github.com/openmm/openmm) and [GROMACS](https://github.com/gromacs/gromacs)
 
-## Starting ##
+# Starting
 
 ```bash
 # Clone this project
@@ -75,7 +83,8 @@ $ docker compose -up nolabs [gene_ontology|localisation|protein_design|solubilit
 
 Server will be available on http://localhost:9000
 
-## APIs ##
+WARNING: To install RoseTTAFold check [RoseTTAFold section](#9-rosettafold-docker-api)
+# Microservices
 
 We provide individual Docker containers backed by FastAPI for each feature, which are available in the `/microservices` folder. You can use them individually as APIs.
 
@@ -142,7 +151,125 @@ diffdock=http://127.0.0.1:5737 -> http://74.82.28.227:5737
 
 And now you are ready to use this service hosted on a separate machine!
 
-## Technologies ##
+## Supported microservices list
+
+### 1) Protein design docker API
+Model: [RFdiffusion](https://github.com/RosettaCommons/RFdiffusion)
+
+RFdiffusion is an open source method for structure generation, with or without conditional information (a motif, target etc).
+
+```shell
+docker compose up protein_design
+```
+Swagger UI will be available on http://localhost:5789/docs
+
+or
+[install as a python package](microservices/protein_design/client/README.md)
+
+
+
+### 2) ESMFold docker API
+Model: [ESMFold](https://github.com/facebookresearch/esm) - Evolutionary Scale Modeling
+
+```shell
+docker compose up esmfold
+```
+Swagger UI will be available on http://localhost:5736/docs
+
+or
+[install as a python package](microservices/esmfold/client/README.md)
+
+### 3) ESMAtlas docker API
+Model: [ESMAtlas](https://esmatlas.com/about)
+
+```shell
+docker compose up esmfold_light
+```
+Swagger UI will be available on http://localhost:5733/docs
+
+or
+[install as a python package](microservices/esmfold_light/client/README.md)
+
+
+### 4) Protein function prediction docker API
+Model: [Hugging Face](https://huggingface.co/thomasshelby/go_prediction/resolve/main/go_model_150M.pth)
+
+```shell
+docker compose up gene_ontology
+```
+Swagger UI will be available on http://localhost:5788/docs
+
+or
+[install as a python package](microservices/gene_ontology/client/README.md)
+
+
+### 5) Protein localisation prediction docker API
+Model: [Hugging Face](https://huggingface.co/ritakurban/ESM_protein_localization)
+
+You can also install this microservice as package. Check [client documentation](microservices/localisation/client/README.md)
+
+```shell
+docker compose up localisation
+```
+
+Swagger UI will be available on http://localhost:5787/docs
+
+### 6) Protein binding site prediction docker API
+Model: [p2rank](https://github.com/rdk/p2rank)
+
+You can also install this microservice as package. Check [client documentation](microservices/p2rank/client/README.md)
+
+```shell
+docker compose up p2rank
+```
+Swagger UI will be available on http://localhost:5731/docs
+
+### 7) Protein solubility prediction docker API
+Model: [Hugging Face](https://huggingface.co/thomasshelby/solubility_model/resolve/main/solubility_model.pth)
+
+[Install as python package](microservices/solubility/client/README.md)
+
+or
+
+```shell
+docker compose up solubility
+```
+
+Swagger UI will be available on http://localhost:5786/docs
+
+### 8) Protein-ligand structure prediction docker API
+Model: [UMol](https://github.com/patrickbryant1/Umol)
+
+[Install as python package](microservices/umol/client/README.md)
+
+or
+
+```shell
+docker compose up umol
+```
+
+Swagger UI will be available on http://localhost:5735/docs
+
+
+### 9) RoseTTAFold docker API
+Model: [RoseTTAFold](https://github.com/RosettaCommons/RoseTTAFold)
+
+[Install as python package](microservices/rosettafold/client/README.md)
+
+or
+
+```shell
+docker compose up rosettafold
+```
+
+Swagger UI will be available on http://localhost:5738/docs
+
+WARNING: To use Rosettafold you must specify 
+**ROSETTACOMMONS_CONDA_USERNAME** and **ROSETTACOMMONS_CONDA_PASSWORD** in compose.yaml
+and download additional data (check step 5 on https://github.com/RosettaCommons/RoseTTAFold page)
+
+
+# Technologies
 
 The following tools were used in this project:
 

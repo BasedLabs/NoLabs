@@ -62,7 +62,7 @@ export default defineComponent({
       </template>
     </q-file>
     <div>
-      <q-btn label="Run inference" size="large" type="submit" color="positive"/>
+      <q-btn label="Run inference" size="large" type="submit" color="info"/>
     </div>
   </q-form>
 </template>

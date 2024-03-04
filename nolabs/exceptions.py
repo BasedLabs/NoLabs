@@ -13,6 +13,7 @@ class ErrorCodes(Enum):
     protein_design_run_error = 7
     protein_design_update_metadata_error = 8
     drug_discovery_folding_error = 9
+    folding_method_unknown = 10
 
 
 class NoLabsException(Exception):

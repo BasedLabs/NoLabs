@@ -23,7 +23,7 @@ export default defineComponent({
   methods: {
     changeExperimentName() {
       this.$q.dialog({
-        color: 'positive',
+        color: 'info',
         title: 'Prompt',
         message: 'Enter new experiment name',
         prompt: {
@@ -54,7 +54,7 @@ export default defineComponent({
     <q-toolbar>
       <q-toolbar-title>{{ experimentNameData }}
         <q-btn round
-               @click="changeExperimentName" color="positive" size="sm" flat icon="edit"/>
+               @click="changeExperimentName" color="info" size="sm" flat icon="edit"/>
       </q-toolbar-title>
       <slot/>
     </q-toolbar>

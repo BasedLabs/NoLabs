@@ -5,7 +5,7 @@
              :filter="filter"
              hide-header>
       <template v-slot:top-right>
-        <q-btn @click="addExperimentClick()" outline class="q-mx-md" color="positive" icon-right="add"
+        <q-btn @click="addExperimentClick()" outline class="q-mx-md" color="info" icon-right="add"
                label="Add experiment" no-caps/>
         <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
           <template v-slot:append>
@@ -30,7 +30,7 @@
             <q-card-actions align="right">
               <router-link style="text-decoration: none;"
                            :to="{ name: this.pathToExperimentPage, params: { experimentId: props.row.id } }">
-                <q-btn outline color="positive" label="Open"/>
+                <q-btn outline color="info" label="Open"/>
               </router-link>
               <q-btn outline class="q-mx-md" color="negative" label="Remove"
                      @click="removeExperimentClick(props.row.id)"/>

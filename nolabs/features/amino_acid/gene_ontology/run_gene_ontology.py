@@ -79,8 +79,6 @@ class RunGeneOntologyFeature(RunAminoAcidInferenceFeature[FileManagement]):
                 edge_data = get_attributes(graph.get_edge_data(node, out_edge[1]))
                 shaped_graph[out_node].edges[node] = edge_data
 
-        pprint.pprint(shaped_graph, compact=False)
-
         return shaped_graph
 
     async def handle(self,
