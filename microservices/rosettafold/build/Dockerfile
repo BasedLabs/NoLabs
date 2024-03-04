@@ -18,7 +18,7 @@ RUN conda --version
 RUN apt-get update
 RUN apt-get -y install wget git
 WORKDIR /RoseTTAFold
-RUN git clone https://github.com/RosettaCommons/RoseTTAFold.git /RoseTTAFold
+RUN git clone https://github.com/RosettaCommons/RoseTTAFold.git /RoseTTAFold && git checkout fcf9125c59e3dd84cf511dcb475ddd81a23613f5
 COPY ./run_e2e_ver.sh /RoseTTAFold
 
 RUN conda install conda-libmamba-solver

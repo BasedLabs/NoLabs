@@ -1,84 +1,85 @@
 <template>
-    <q-card v-if="currentJob" flat bordered class="q-pa-sm">
-      <div class="row">
-        <div class="col-8">
-          <q-item-label class="text-h6 q-pa-sm">Current job: {{ currentJob.job_id }}</q-item-label>
-          <div class="q-pa-sm">
-            <div>Target: {{ currentJob.target_name }}</div>
-            <div>Ligand: {{ currentJob.ligand_name }}</div>
-            <div>Folding Method: {{ currentJob.folding_method }}</div>
-            <div>Docking Method: {{ currentJob.docking_method }}</div>
-          </div>
-          <q-card-section>
-            Prediction steps:
-            <div class="q-gutter-md q-pt-sm row items-start">
-              <q-card v-for="step in jobSteps" :key="step.label" flat bordered class="my-card">
-                <q-card-section :class="getStepClass(currentJob, step.key)">
-                  <div class="step-content">
-                    {{ step.label }}
-                    <q-icon v-if="!getServiceHealth(step.key)" name="warning" color="negative" class="text-warning" />
-                    <q-tooltip v-if="!getServiceHealth(step.key)">
-                      The {{ step.label }} service is not responding. Check if it's running.
-                    </q-tooltip>
-                    <template v-if="currentJob[`${step.key}Available`]">
-                      <q-icon name="check" class="check-mark" color="green" />
-                    </template>
-                    <template v-else-if="currentJob[`${step.key}Running`]">
-                      <q-spinner class="spinner" color="primary" size="20px" />
-                    </template>
-                  </div>
-                </q-card-section>
-              </q-card>
-            </div>
-          </q-card-section>
+  <q-card v-if="currentJob" flat bordered class="q-pa-sm">
+    <div class="row">
+      <div class="col-8">
+        <q-item-label class="text-h6 q-pa-sm">Current job: {{ currentJob.job_id }}</q-item-label>
+        <div class="q-pa-sm">
+          <div>Target: {{ currentJob.target_name }}</div>
+          <div>Ligand: {{ currentJob.ligand_name }}</div>
+          <div>Folding Method: {{ currentJob.folding_method }}</div>
+          <div>Docking Method: {{ currentJob.docking_method }}</div>
         </div>
-        <div class="col-4">
-          <div class="q-pa-md col items-center">
-            <div v-if="!currentJob.isAnyJobRunning" class="text-warning q-pa-md">
-              It appears that predictions are not currently running for this job. Press the "Run" button to continue docking.
-            </div>
-            <div class="q-pa-md" v-else>
-              Job is running...
-            </div>
-            <div v-if="!currentJob.isAnyJobRunning" class="q-pa-md">
+        <q-card-section>
+          Prediction steps:
+          <div class="q-gutter-md q-pt-sm row items-start">
+            <q-card v-for="step in jobSteps" :key="step.label" flat bordered class="my-card">
+              <q-card-section :class="getStepClass(currentJob, step.key)">
+                <div class="step-content">
+                  {{ step.label }}
+                  <q-icon v-if="!getServiceHealth(step.key)" name="warning" color="negative" class="text-warning"/>
+                  <q-tooltip v-if="!getServiceHealth(step.key)">
+                    The {{ step.label }} service is not responding. Check if it's running.
+                  </q-tooltip>
+                  <template v-if="currentJob[`${step.key}Available`]">
+                    <q-icon name="check" class="check-mark" color="green"/>
+                  </template>
+                  <template v-else-if="currentJob[`${step.key}Running`]">
+                    <q-spinner class="spinner" color="primary" size="20px"/>
+                  </template>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </q-card-section>
+      </div>
+      <div class="col-4">
+        <div class="q-pa-md col items-center">
+          <div v-if="!currentJob.isAnyJobRunning" class="text-warning q-pa-md">
+            It appears that predictions are not currently running for this job. Press the "Run" button to continue
+            docking.
+          </div>
+          <div class="q-pa-md" v-else>
+            Job is running...
+          </div>
+          <div v-if="!currentJob.isAnyJobRunning" class="q-pa-md">
+            <q-tooltip v-if="isAnyServiceUnhealthy">
               <q-btn
-                label="Run current job"
-                color="info"
-                @click="runCurrentJob"
-                :loading="currentJob.isAnyJobRunning"
-                :disable="currentJob.isAnyJobRunning || isAnyServiceUnhealthy"
+                  label="Run current job"
+                  color="info"
+                  @click="runCurrentJob"
+                  :loading="currentJob.isAnyJobRunning"
+                  :disable="currentJob.isAnyJobRunning || isAnyServiceUnhealthy"
               />
-              <q-tooltip v-if="isAnyServiceUnhealthy">
-                Fix the services which are not responding to run the docking.
-              </q-tooltip>
-            </div>
-            <div class="q-pa-md" v-else>
-              <q-spinner size="xl"></q-spinner>
-            </div>
+              Fix the services which are not responding to run the docking. Services involved:
+            </q-tooltip>
+          </div>
+          <div class="q-pa-md" v-else>
+            <q-spinner size="xl"></q-spinner>
           </div>
         </div>
       </div>
-    </q-card>
+    </div>
+  </q-card>
 
   <q-card flat bordered class="q-pa-sm q-mt-md q-mb-md">
     <q-table
-      title="Docking Results"
-      :rows="dockingResults"
-      :columns="resultsColumns"
-      row-key="job_id"
-      class="q-pa-md bg-black"
+        title="Docking Results"
+        :rows="dockingResults"
+        :columns="resultsColumns"
+        row-key="job_id"
+        class="q-pa-md bg-black"
     >
       <template v-slot:body="props">
         <q-tr :props="props" @click="() => fetchResultDataForRow(props.row)">
           <q-td
-            v-for="col in resultsColumns.filter(col => col.name !== 'delete')"
-            :key="col.name"
-            :props="props"
+              v-for="col in resultsColumns.filter(col => col.name !== 'delete')"
+              :key="col.name"
+              :props="props"
           >
             {{ props.row[col.field] }}
           </q-td>
           <q-td auto-width>
-            <q-btn icon="delete" color="negative" flat @click.stop="deleteDockingJob(props.row)" />
+            <q-btn icon="delete" color="negative" flat @click.stop="deleteDockingJob(props.row)"/>
           </q-td>
         </q-tr>
         <q-tr v-show="props.row.expanded" :props="props">
@@ -86,18 +87,18 @@
             <div class="q-pa-md">
               <template v-if="props.row.docking_method === 'diffdock'">
                 <DiffDockResult
-                  :experimentId="experimentId"
-                  :targetId="props.row.target_id"
-                  :ligandId="props.row.ligand_id"
-                  :jobId="props.row.job_id"
+                    :experimentId="experimentId"
+                    :targetId="props.row.target_id"
+                    :ligandId="props.row.ligand_id"
+                    :jobId="props.row.job_id"
                 />
               </template>
               <template v-else-if="props.row.docking_method === 'umol'">
                 <UmolResult
-                  :experimentId="experimentId"
-                  :targetId="props.row.target_id"
-                  :ligandId="props.row.ligand_id"
-                  :jobId="props.row.job_id"
+                    :experimentId="experimentId"
+                    :targetId="props.row.target_id"
+                    :ligandId="props.row.ligand_id"
+                    :jobId="props.row.job_id"
                 />
               </template>
             </div>
@@ -113,68 +114,71 @@
       :rows="jobsInQueue"
       :columns="queueColumns"
       row-key="job_id"
-    >
-      <template v-slot:body-cell-progress="props">
-        <q-td :props="props">
-          {{ props.row.progress }}/4
-        </q-td>
-      </template>
+  >
+    <template v-slot:body-cell-progress="props">
+      <q-td :props="props">
+        {{ props.row.progress }}/4
+      </q-td>
+    </template>
 
-      <template v-slot:body="props">
-        <q-tr :props="props">
-          <q-td v-for="col in queueColumns" :key="col.name" :props="props">
-            <template v-if="col.field === 'folding_method'">
-              <q-select filled v-model="props.row.folding_method" :options="Object.values(foldingMethods)" @update:modelValue="handleFoldingChange(props.row.job_id, props.row.folding_method)" />
+    <template v-slot:body="props">
+      <q-tr :props="props">
+        <q-td v-for="col in queueColumns" :key="col.name" :props="props">
+          <template v-if="col.field === 'folding_method'">
+            <q-select filled v-model="props.row.folding_method" :options="Object.values(foldingMethods)"
+                      @update:modelValue="handleFoldingChange(props.row.job_id, props.row.folding_method)"/>
+          </template>
+          <template v-else-if="col.field === 'docking_method'">
+            <q-select filled v-model="props.row.docking_method" :options="['diffdock', 'umol']"
+                      @update:modelValue="handleDockingChange(props.row.job_id, props.row.docking_method)"/>
+            <template v-if="props.row.docking_method === 'diffdock'">
+              <q-input filled type="number" v-model="props.row.samples_per_complex" label="Samples per Complex"
+                       @change="() => updateDiffDockParams(props.row, props.row.samples_per_complex)"/>
             </template>
-            <template v-else-if="col.field === 'docking_method'">
-              <q-select filled v-model="props.row.docking_method" :options="['diffdock', 'umol']" @update:modelValue="handleDockingChange(props.row.job_id, props.row.docking_method)" />
-              <template v-if="props.row.docking_method === 'diffdock'">
-                <q-input  filled type="number" v-model="props.row.samples_per_complex" label="Samples per Complex" @change="() => updateDiffDockParams(props.row, props.row.samples_per_complex)" />
-              </template>
-              <template v-else-if="props.row.docking_method === 'umol'">
-                <!-- Placeholder for Pocket IDs Input Field -->
-                <div>Pocket IDs input will go here</div>
-              </template>
+            <template v-else-if="props.row.docking_method === 'umol'">
+              <!-- Placeholder for Pocket IDs Input Field -->
+              <div>Pocket IDs input will go here</div>
             </template>
-            <template v-else-if="col.field === 'progress' && props.row.docking_method === 'diffdock'">
-              {{ props.row.progress }}/2
-            </template>
-            <template v-else-if="col.field === 'progress' && props.row.docking_method === 'umol'">
-              {{ props.row.progress }}/4
-            </template>
-            <template v-else-if="col.field === 'delete'">
-              <q-btn icon="delete" color="negative" flat @click.stop="deleteDockingJob(props.row)" />
-            </template>
-            <template v-else>
-              {{ props.row[col.field] }}
-            </template>
-          </q-td>
-          <q-td auto-width>
-            <q-btn
+          </template>
+          <template v-else-if="col.field === 'progress' && props.row.docking_method === 'diffdock'">
+            {{ props.row.progress }}/2
+          </template>
+          <template v-else-if="col.field === 'progress' && props.row.docking_method === 'umol'">
+            {{ props.row.progress }}/4
+          </template>
+          <template v-else-if="col.field === 'delete'">
+            <q-btn icon="delete" color="negative" flat @click.stop="deleteDockingJob(props.row)"/>
+          </template>
+          <template v-else>
+            {{ props.row[col.field] }}
+          </template>
+        </q-td>
+        <q-td auto-width>
+          <q-btn
               label="Run"
               color="info"
               @click.stop="runDockingJob(props.row)"
               :disabled="isAnyServiceUnhealthy || isAnyJobRunning"
-            />
-            <q-tooltip v-if="isAnyServiceUnhealthy">
-              Fix the services which are not responding to run the docking.
-            </q-tooltip>
-            <q-btn icon="expand_more" @click.stop="props.expand = !props.expand" />
-          </q-td>
-        </q-tr>
-        <q-tr v-if="props.expand" :props="props">
-          <q-td colspan="100%">
-            <!-- Expanded row content -->
-            <div v-if="props.row.pocketIds">
-              <div><strong>Pocket IDs:</strong> {{ props.row.pocketIds.join(', ') }}</div>
-            </div>
-            <div v-else>
-              Binding pocket was not set manually, will be predicted
-            </div>
-          </q-td>
-        </q-tr>
-      </template>
-    </q-table>
+          />
+          <q-tooltip v-if="isAnyServiceUnhealthy">
+            Fix the services which are not responding to run the docking. Services involved
+          </q-tooltip>
+          <q-btn icon="expand_more" @click.stop="props.expand = !props.expand"/>
+        </q-td>
+      </q-tr>
+      <q-tr v-if="props.expand" :props="props">
+        <q-td colspan="100%">
+          <!-- Expanded row content -->
+          <div v-if="props.row.pocketIds">
+            <div><strong>Pocket IDs:</strong> {{ props.row.pocketIds.join(', ') }}</div>
+          </div>
+          <div v-else>
+            Binding pocket was not set manually, will be predicted
+          </div>
+        </q-td>
+      </q-tr>
+    </template>
+  </q-table>
 </template>
 
 <script lang="ts">
@@ -206,6 +210,7 @@ interface Job {
   pocketIds: number[] | null;
   isAnyJobRunning: boolean;
   samples_per_complex?: number;
+
   [key: string]: any; // Add this line to allow dynamic keys
 }
 
@@ -242,21 +247,21 @@ export default defineComponent({
       dockingResults: [] as DockingResult[],
       jobsInQueue: [] as Job[],
       resultsColumns: [
-        { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
-        { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
-        { name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left' },
-        { name: 'folding_method', label: 'Folding Method', field: 'folding_method', align: 'center' },
-        { name: 'docking_method', label: 'Docking Method', field: 'docking_method', align: 'center' },
-        { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
+        {name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left'},
+        {name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left'},
+        {name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left'},
+        {name: 'folding_method', label: 'Folding Method', field: 'folding_method', align: 'center'},
+        {name: 'docking_method', label: 'Docking Method', field: 'docking_method', align: 'center'},
+        {name: 'delete', label: 'Delete', field: 'delete', align: 'center'},
       ],
       queueColumns: [
-        { name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left' },
-        { name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left' },
-        { name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left' },
-        { name: 'folding_method', label: 'Folding Method', field: 'folding_method', align: 'center' },
-        { name: 'docking_method', label: 'Docking Method', field: 'docking_method', align: 'center' },
-        { name: 'progress', label: 'Progress', field: 'progress', align: 'left', sortable: true },
-        { name: 'delete', label: 'Delete', field: 'delete', align: 'center' },
+        {name: 'job_id', label: 'Job ID', field: 'job_id', align: 'left'},
+        {name: 'target_name', label: 'Target Name', field: 'target_name', align: 'left'},
+        {name: 'ligand_name', label: 'Ligand Name', field: 'ligand_name', align: 'left'},
+        {name: 'folding_method', label: 'Folding Method', field: 'folding_method', align: 'center'},
+        {name: 'docking_method', label: 'Docking Method', field: 'docking_method', align: 'center'},
+        {name: 'progress', label: 'Progress', field: 'progress', align: 'left', sortable: true},
+        {name: 'delete', label: 'Delete', field: 'delete', align: 'center'},
       ],
       currentJob: null as Job | null,
       msaServiceHealthy: false,
@@ -291,7 +296,7 @@ export default defineComponent({
         const healthy = await store.checkEsmFoldLightServiceHealth();
         this.foldingServiceHealthy = healthy?.is_healthy ?? false;
       }
-      if(this.currentJob?.folding_method === this.foldingMethods.rosettafold){
+      if (this.currentJob?.folding_method === this.foldingMethods.rosettafold) {
         const healthy = await store.checkRosettaFoldServiceHealth();
         this.foldingServiceHealthy = healthy?.is_healthy ?? false;
       }
@@ -429,7 +434,7 @@ export default defineComponent({
     runCurrentJob() {
       if (!this.currentJob?.isAnyJobRunning) {
         if (this.currentJob != null)
-        this.runDockingJob(this.currentJob);
+          this.runDockingJob(this.currentJob);
       }
     },
 
@@ -504,7 +509,7 @@ export default defineComponent({
         if (this.currentJob.folding_method === this.foldingMethods.esmfoldLight) {
           foldingRunningResp = await store.checkEsmFoldLightJobIsRunning(this.currentJob.job_id);
         }
-        if(this.currentJob.folding_method === this.foldingMethods.rosettafold){
+        if (this.currentJob.folding_method === this.foldingMethods.rosettafold) {
           foldingRunningResp = await store.checkRosettafoldJobIsRunning(this.currentJob.job_id);
         }
         this.currentJob.foldingRunning = foldingRunningResp?.is_running ?? false;
@@ -550,8 +555,7 @@ export default defineComponent({
 
       if (job[`${step}Available`]) {
         return 'bg-green-3 text-black q-ma-md';
-      }
-      else if (job[`${step}Running`]) {
+      } else if (job[`${step}Running`]) {
         return 'bg-grey-3 text-black q-ma-md';
       } else {
         return 'bg-grey-3 text-black q-ma-md';
@@ -564,7 +568,6 @@ export default defineComponent({
       return route.params.experimentId as string;
     },
     isAnyServiceUnhealthy() {
-      // Computed property to check if any service is unhealthy
       return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.dockingServiceHealthy;
     },
     isAnyJobRunning() {
@@ -573,15 +576,15 @@ export default defineComponent({
     jobSteps() {
       if (this.currentJob?.docking_method === 'diffdock') {
         return [
-          { key: 'folding', label: 'Step 1. Folding' },
-          { key: 'docking', label: 'Step 2. Docking' }
+          {key: 'folding', label: 'Step 1. Folding'},
+          {key: 'docking', label: 'Step 2. Docking'}
         ];
       } else {
         return [
-          { key: 'msa', label: 'Step 1. MSA' },
-          { key: 'pocket', label: 'Step 2. Binding Pocket' },
-          { key: 'folding', label: 'Step 3. Folding' },
-          { key: 'docking', label: 'Step 4. Docking' },
+          {key: 'msa', label: 'Step 1. MSA'},
+          {key: 'pocket', label: 'Step 2. Binding Pocket'},
+          {key: 'folding', label: 'Step 3. Folding'},
+          {key: 'docking', label: 'Step 4. Docking'},
         ];
       }
     }
