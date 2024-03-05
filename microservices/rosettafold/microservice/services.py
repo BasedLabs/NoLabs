@@ -73,7 +73,7 @@ class RosettaService:
         if errors:
             return RunRosettaFoldResponse(pdb_content=None, errors=errors)
 
-        if fasta:
+        if a3m:
             with open(os.path.join(self._rosettafold_directory, 't000_.msa0.a3m'), 'wb') as f:
                 f.write(a3m)
         else:
