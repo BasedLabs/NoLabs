@@ -206,30 +206,28 @@ or
 ### 5) Protein localisation prediction docker API
 Model: [Hugging Face](https://huggingface.co/ritakurban/ESM_protein_localization)
 
-You can also install this microservice as package. Check [client documentation](microservices/localisation/client/README.md)
-
 ```shell
 docker compose up localisation
 ```
 
 Swagger UI will be available on http://localhost:5787/docs
 
+or
+[install as a python package](microservices/localisation/client/README.md)
+
 ### 6) Protein binding site prediction docker API
 Model: [p2rank](https://github.com/rdk/p2rank)
-
-You can also install this microservice as package. Check [client documentation](microservices/p2rank/client/README.md)
 
 ```shell
 docker compose up p2rank
 ```
 Swagger UI will be available on http://localhost:5731/docs
 
+or
+[install as a python package](microservices/p2rank/client/README.md)
+
 ### 7) Protein solubility prediction docker API
 Model: [Hugging Face](https://huggingface.co/thomasshelby/solubility_model/resolve/main/solubility_model.pth)
-
-[Install as python package](microservices/solubility/client/README.md)
-
-or
 
 ```shell
 docker compose up solubility
@@ -237,12 +235,11 @@ docker compose up solubility
 
 Swagger UI will be available on http://localhost:5786/docs
 
+or
+[Install as python package](microservices/solubility/client/README.md)
+
 ### 8) Protein-ligand structure prediction docker API
 Model: [UMol](https://github.com/patrickbryant1/Umol)
-
-[Install as python package](microservices/umol/client/README.md)
-
-or
 
 ```shell
 docker compose up umol
@@ -250,19 +247,21 @@ docker compose up umol
 
 Swagger UI will be available on http://localhost:5735/docs
 
+or
+[Install as python package](microservices/umol/client/README.md)
+
 
 ### 9) RoseTTAFold docker API
 Model: [RoseTTAFold](https://github.com/RosettaCommons/RoseTTAFold)
-
-[Install as python package](microservices/rosettafold/client/README.md)
-
-or
 
 ```shell
 docker compose up rosettafold
 ```
 
 Swagger UI will be available on http://localhost:5738/docs
+
+or
+[Install as python package](microservices/rosettafold/client/README.md)
 
 WARNING: To use Rosettafold you must specify 
 **ROSETTACOMMONS_CONDA_USERNAME** and **ROSETTACOMMONS_CONDA_PASSWORD** in compose.yaml
