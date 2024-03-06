@@ -66,14 +66,15 @@ configuration = rcsb_pdb_query_microservice.Configuration(
 with rcsb_pdb_query_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = rcsb_pdb_query_microservice.DefaultApi(api_client)
+    get_fasta_files_by_ids_request = rcsb_pdb_query_microservice.GetFastaFilesByIdsRequest() # GetFastaFilesByIdsRequest | 
 
     try:
-        # Get Running Jobs
-        api_response = api_instance.get_running_jobs_jobs_running_get()
-        print("The response of DefaultApi->get_running_jobs_jobs_running_get:\n")
+        # Fetch
+        api_response = api_instance.fetch_fetch_fastas_by_ids_post(get_fasta_files_by_ids_request)
+        print("The response of DefaultApi->fetch_fetch_fastas_by_ids_post:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DefaultApi->get_running_jobs_jobs_running_get: %s\n" % e)
+        print("Exception when calling DefaultApi->fetch_fetch_fastas_by_ids_post: %s\n" % e)
 
 ```
 
@@ -83,16 +84,18 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*DefaultApi* | [**fetch_fetch_fastas_by_ids_post**](docs/DefaultApi.md#fetch_fetch_fastas_by_ids_post) | **POST** /fetch-fastas-by-ids | Fetch
+*DefaultApi* | [**fetch_fetch_fastas_by_search_query_post**](docs/DefaultApi.md#fetch_fetch_fastas_by_search_query_post) | **POST** /fetch-fastas-by-search-query | Fetch
 *DefaultApi* | [**get_running_jobs_jobs_running_get**](docs/DefaultApi.md#get_running_jobs_jobs_running_get) | **GET** /jobs/running | Get Running Jobs
 *DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
-*DefaultApi* | [**predict_fetch_fastas_by_ids_post**](docs/DefaultApi.md#predict_fetch_fastas_by_ids_post) | **POST** /fetch-fastas-by-ids | Predict
 
 
 ## Documentation For Models
 
  - [FetchedProtein](docs/FetchedProtein.md)
  - [GetFastaFilesByIdsRequest](docs/GetFastaFilesByIdsRequest.md)
- - [GetFastaFilesByIdsResponse](docs/GetFastaFilesByIdsResponse.md)
+ - [GetFastaFilesBySearchQueryRequest](docs/GetFastaFilesBySearchQueryRequest.md)
+ - [GetFastaFilesResponse](docs/GetFastaFilesResponse.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [JobId](docs/JobId.md)

@@ -20,7 +20,7 @@ class Log:
         _logger.info('Run request', extra=d)
 
     @staticmethod
-    def query_response(response: GetFastaFilesByIdsResponse):
+    def query_response(response: GetFastaFilesResponse):
         d = response.as_log_dict()
         _logger.info('Return response', extra=d)
 

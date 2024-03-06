@@ -1,16 +1,34 @@
 from pydantic import dataclasses as pcdataclass
-from fastapi import UploadFile
-from typing import List, Optional
+from typing import List, Any, Union
+
 
 @pcdataclass.dataclass
 class File:
     name: str
     content: str
 
+
+@pcdataclass.dataclass
+class RegularMessage:
+    content: str
+
+
+@pcdataclass.dataclass
+class FunctionParam:
+    name: str
+    value: Any = None
+
+
+@pcdataclass.dataclass
+class FunctionCall:
+    function_name: str
+    parameters: List[FunctionParam]
+
+
 @pcdataclass.dataclass
 class Message:
     role: str
-    content: str | File
+    message: Union[RegularMessage,FunctionCall]
     type: str
 
 @pcdataclass.dataclass
@@ -38,4 +56,3 @@ class SendMessageRequest:
 @pcdataclass.dataclass
 class SendMessageResponse:
     biobuddy_response: Message | FunctionCallResponse
-

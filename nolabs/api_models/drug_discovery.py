@@ -15,6 +15,7 @@ class GetExperimentRequest:
 class TargetMetaData:
     target_id: str
     target_name: str
+    link: Optional[str] = None
     folding_method: Optional[str] = None
 
 @pcdataclass.dataclass
@@ -47,6 +48,7 @@ class GetTargetMetaDataRequest:
 class GetTargetMetaDataResponse:
     target_id: str
     target_name: str
+    link: Optional[str] = None
 
 @pcdataclass.dataclass
 class UpdateTargetNameRequest:
@@ -178,6 +180,8 @@ class PredictFoldingResponse:
 class LigandMetaData:
     ligand_id: str
     ligand_name: str
+    description: Optional[str] = None
+    link: Optional[str] = None
 
 @pcdataclass.dataclass
 class UploadTargetLigandRequest:

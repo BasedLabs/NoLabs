@@ -3,7 +3,7 @@ import os.path
 from dataclasses import asdict
 
 from nolabs.domain.experiment import ExperimentId
-from nolabs.features.biobuddy.data_models.message import Message, File
+from nolabs.features.biobuddy.data_models.message import Message
 from nolabs.features.file_management_base import ExperimentsFileManagementBase
 from nolabs.infrastructure.settings import Settings
 
@@ -40,4 +40,4 @@ class FileManagement(ExperimentsFileManagementBase):
         file_path = self.conversation_file_path(experiment_id)
         with open(file_path, 'r') as f:
             messages_dict = json.load(f)
-        return [Message(**msg) if msg['type'] == 'text' else Message(role=msg['role'], content=File(**msg['content']), type=msg['type']) for msg in messages_dict]
+        return [Message(**msg) for msg in messages_dict]

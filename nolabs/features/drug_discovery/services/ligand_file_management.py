@@ -1,7 +1,7 @@
 import json
 import os.path
 import shutil
-from typing import List
+from typing import List, Dict
 
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.services.file_management import FileManagement
@@ -89,7 +89,8 @@ class LigandsFileManagement:
         return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name)
 
 
-    def store_lone_ligand(self, experiment_id: ExperimentId, sdf_file: UploadFile) -> LigandMetaData:
+    def store_lone_ligand(self, experiment_id: ExperimentId, sdf_file: UploadFile,
+                          additional_metadata: Dict[str, str] = None) -> LigandMetaData:
         self.ensure_lone_ligands_folder_exists(experiment_id,)
 
         original_filename = sdf_file.filename
@@ -105,7 +106,15 @@ class LigandsFileManagement:
         self.update_lone_ligand_metadata(experiment_id, ligand_id, "id", ligand_id.value)
         self.update_lone_ligand_metadata(experiment_id, ligand_id, "name", ligand_name)
 
-        return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name)
+        if additional_metadata:
+            for key, value in additional_metadata.items():
+                self.update_lone_ligand_metadata(experiment_id, ligand_id, key, value)
+
+        if not additional_metadata or "link" not in additional_metadata:
+            return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name)
+        else:
+            return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name, link=additional_metadata["link"])
+
 
     def delete_target_ligand(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId):
         self.ensure_target_ligands_folder_exists(experiment_id, target_id)
@@ -164,8 +173,12 @@ class LigandsFileManagement:
                                      self._settings.drug_discovery_ligand_metadata_file_name)
         with open(metadata_file, "r") as f:
             metadata = json.load(f)
-        ligand_metadata = LigandMetaData(ligand_id=metadata["id"], ligand_name=metadata["name"])
-        return ligand_metadata
+        if "link" in metadata:
+            ligand_metadata = LigandMetaData(ligand_id=metadata["id"], ligand_name=metadata["name"], link=metadata["link"])
+            return ligand_metadata
+        else:
+            ligand_metadata = LigandMetaData(ligand_id=metadata["id"], ligand_name=metadata["name"])
+            return ligand_metadata
 
     def get_target_ligands_list(self, experiment_id: ExperimentId, target_id: TargetId) -> List[LigandMetaData]:
         self.ensure_target_ligands_folder_exists(experiment_id, target_id)

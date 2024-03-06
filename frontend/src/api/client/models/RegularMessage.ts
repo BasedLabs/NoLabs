@@ -2,8 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type File = {
-    name: string;
+export type RegularMessage = {
     content: string;
 };
 

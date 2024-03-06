@@ -17,6 +17,7 @@
   <q-card v-if="ligand">
     <q-card-section>
       <div class="text-h6">Ligand: {{ ligand.ligand_name }}</div>
+      <div class="text-h7 q-pl-sm q-pb-md text-info" ><a class="text-light-blue" :href="this.ligand.link" target="_blank">{{ this.ligand.link }}</a></div>
       <div class="text-subtitle1">SMILES: {{ ligand.data.smiles }}</div>
       <PdbViewer v-if="sdfFile" :sdf-file="sdfFile" />
     </q-card-section>

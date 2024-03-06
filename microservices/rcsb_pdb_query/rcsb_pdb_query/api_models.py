@@ -16,8 +16,14 @@ class GetFastaFilesByIdsRequest(BaseModelMixin):
     job_id: Optional[str] = None
 
 @dataclasses.dataclass
-class GetFastaFilesByIdsResponse(BaseModelMixin):
+class GetFastaFilesResponse(BaseModelMixin):
     fasta_contents: List[FetchedProtein]
+
+@dataclasses.dataclass
+class GetFastaFilesBySearchQueryRequest(BaseModelMixin):
+    search_query: str
+    max_results: int = None
+    job_id: Optional[str] = None
 
 
 @dataclasses.dataclass

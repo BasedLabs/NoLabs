@@ -555,6 +555,7 @@ export default defineComponent({
       } else if (this.currentJob?.docking_method === 'umol') {
         return !this.msaServiceHealthy || !this.p2RankServiceHealthy || !this.foldingServiceHealthy || !this.dockingServiceHealthy;
       }
+      return true;
     },
     isAnyJobRunning() {
       return this.jobsInQueue.some(job => job.isRunning);

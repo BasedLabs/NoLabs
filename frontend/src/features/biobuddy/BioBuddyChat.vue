@@ -4,7 +4,26 @@
       <q-separator />
       <q-item v-for="(message, index) in messages" :key="index">
         <q-item-section>
-          <q-item-label class="text-h7 q-mb-sm">{{ displayName(message.role) }}: {{ displayContent(message) }}</q-item-label>
+          <div v-if="message.type === 'function'" class="function-message">
+            <q-item-label class="text-h7 q-mb-sm">
+              <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
+              <p> <q-icon name="check_circle" color="purple"></q-icon>
+                <span class="text-h7 text-purple q-ml-sm"> {{ displayContent(message) }} </span>
+              </p>
+              <ul>
+                Params:
+                <li v-for="(param, index) in message.message.parameters" :key="index">
+                  {{ param.name }}: {{ param.value }}
+                </li>
+              </ul>
+            </q-item-label>
+          </div>
+          <div v-else>
+            <q-item-label class="text-h7 q-mb-sm">
+              <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
+              <p>{{ displayContent(message) }}</p>
+            </q-item-label>
+          </div>
         </q-item-section>
       </q-item>
     </q-list>
@@ -23,7 +42,7 @@
 import { QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner } from 'quasar';
 import { defineComponent } from 'vue';
 import { loadConversationApi, sendMessageApi } from 'src/features/biobuddy/api';
-import { Message } from "src/api/client";
+import {FunctionCall, Message, type RegularMessage} from "src/api/client";
 
 export default defineComponent({
   name: 'BioBuddyChat',
@@ -59,11 +78,12 @@ export default defineComponent({
       this.sending = false;
     },
     displayContent(message: Message) {
-      if (message.type === 'file') {
-        // Assuming you handle file display elsewhere or have a method to download/view the file
-        return `File: ${message.content}`;
+      if (message.type === 'text') {
+        const response_message = message.message as RegularMessage;
+        return response_message.content;
       }
-      return message.content;
+      const response_message = message.message as FunctionCall;
+      return response_message.function_name;
     },
     displayName(role: string) {
       return role === 'user' ? 'You' : 'Biobuddy';

@@ -30,7 +30,9 @@ export type { DeleteTargetResponse } from './models/DeleteTargetResponse';
 export type { DiffDockLigandMetaData } from './models/DiffDockLigandMetaData';
 export type { ExperimentFastaPropertyResponse } from './models/ExperimentFastaPropertyResponse';
 export type { ExperimentMetadataResponse } from './models/ExperimentMetadataResponse';
-export type { File } from './models/File';
+export type { FunctionCall } from './models/FunctionCall';
+export type { FunctionCallResponse } from './models/FunctionCallResponse';
+export type { FunctionParam } from './models/FunctionParam';
 export type { GetAllJobsListResponse } from './models/GetAllJobsListResponse';
 export type { GetAllResultsListResponse } from './models/GetAllResultsListResponse';
 export type { GetDiffDockDockingResultDataResponse } from './models/GetDiffDockDockingResultDataResponse';
@@ -75,6 +77,7 @@ export type { PredictBindingPocketResponse } from './models/PredictBindingPocket
 export type { PredictFoldingResponse } from './models/PredictFoldingResponse';
 export type { PredictMsaResponse } from './models/PredictMsaResponse';
 export type { RegisterDockingJobResponse } from './models/RegisterDockingJobResponse';
+export type { RegularMessage } from './models/RegularMessage';
 export type { RunDiffDockDockingJobResponse } from './models/RunDiffDockDockingJobResponse';
 export type { RunFoldingResponse } from './models/RunFoldingResponse';
 export type { RunGeneOntologyResponse } from './models/RunGeneOntologyResponse';

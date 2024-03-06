@@ -1,3 +1,4 @@
+from typing import Any, List, Union
 from pydantic.dataclasses import dataclass
 
 
@@ -8,7 +9,24 @@ class File:
 
 
 @dataclass
+class RegularMessage:
+    content: str
+
+
+@dataclass
+class FunctionParam:
+    name: str
+    value: Any = None
+
+
+@dataclass
+class FunctionCall:
+    function_name: str
+    parameters: List[FunctionParam]
+
+
+@dataclass
 class Message:
     role: str
-    content: str | File
+    message: Union[RegularMessage,FunctionCall]
     type: str

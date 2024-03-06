@@ -31,9 +31,9 @@ umol-microservice = {path = "microservices/umol/client"}
 esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 diffdock-microservice = {path = "microservices/diffdock/client"}
-rcsb-pdb-query-microservice = {path = "microservices/rcsb_pdb_query/client"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
 pubmed-query-microservice = {path = "microservices/pubmed_query/client"}
+rcsb-pdb-query-microservice = {path = "microservices/rcsb_pdb_query/client"}
 chembl-query-microservice = {path = "microservices/chembl_query/client"}
 
 [project]

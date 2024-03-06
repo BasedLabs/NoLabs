@@ -2,10 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { File } from './File';
+import type { FunctionCall } from './FunctionCall';
+import type { RegularMessage } from './RegularMessage';
 export type Message = {
     role: string;
-    content: (string | File);
+    message: (RegularMessage | FunctionCall);
     type: string;
 };
 

@@ -2,7 +2,7 @@ import json
 import os.path
 import shutil
 import numpy as np
-from typing import List
+from typing import List, Dict
 
 from nolabs.domain.experiment import ExperimentId
 from nolabs.infrastructure.settings import Settings
@@ -42,7 +42,7 @@ class TargetsFileManagement:
         targets_dir = self.targets_folder(experiment_id)
         os.mkdir(os.path.join(targets_dir, target_id.value))
 
-    def store_target(self, experiment_id: ExperimentId, fasta_file: UploadFile) -> List[TargetMetaData]:
+    def store_target(self, experiment_id: ExperimentId, fasta_file: UploadFile, additional_metadata: Dict[str, str] = None) -> List[TargetMetaData]:
         self.ensure_targets_folder_exists(experiment_id)
 
         original_filename = fasta_file.filename
@@ -64,15 +64,26 @@ class TargetsFileManagement:
             self.update_target_metadata(experiment_id, target_id, "name", target_name)
             self.update_target_metadata(experiment_id, target_id, "original_filename", original_filename)
 
+            if additional_metadata:
+                for key, value in additional_metadata.items():
+                    self.update_target_metadata(experiment_id, target_id, key, value)
+
             folding_method = "esmfold_light"
             if len(sequence) > 400:
                 folding_method = "esmfold"
 
             self.update_target_metadata(experiment_id, target_id, "folding_method", folding_method)
 
-            result_list.append(TargetMetaData(target_id=target_id.value,
-                                              target_name=target_name,
-                                              folding_method=folding_method))
+
+            if not additional_metadata or "link" not in additional_metadata:
+                result_list.append(TargetMetaData(target_id=target_id.value,
+                                                  target_name=target_name,
+                                                  folding_method=folding_method))
+            else:
+                result_list.append(TargetMetaData(target_id=target_id.value,
+                                                  target_name=target_name,
+                                                  link=additional_metadata["link"],
+                                                  folding_method=folding_method))
 
         return result_list
 
@@ -110,10 +121,18 @@ class TargetsFileManagement:
                                      self._settings.drug_discovery_target_metadata_file_name)
         with open(metadata_file, "r") as f:
             metadata = json.load(f)
-        target_metadata = TargetMetaData(target_id=metadata["id"],
-                                         target_name=metadata["name"],
-                                         folding_method=metadata["folding_method"])
-        return target_metadata
+
+        if "link" in metadata:
+            target_metadata = TargetMetaData(target_id=metadata["id"],
+                                             target_name=metadata["name"],
+                                             link=metadata["link"],
+                                             folding_method=metadata["folding_method"])
+            return target_metadata
+        else:
+            target_metadata = TargetMetaData(target_id=metadata["id"],
+                                             target_name=metadata["name"],
+                                             folding_method=metadata["folding_method"])
+            return target_metadata
 
     def update_target_name(self, experiment_id: ExperimentId, target_id: TargetId, target_name: str) -> TargetMetaData:
         return self.update_target_metadata(experiment_id, target_id, 'name', target_name)
