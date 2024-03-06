@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from nolabs.api_models.biobuddy import LoadConversationResponse, LoadConversationRequest, SendMessageResponse, \
     SendMessageRequest
-from nolabs.controllers.biobuddy.dependencies import load_conversation_dependency, send_message_dependency
+from nolabs.controllers.biobuddy.dependencies import load_conversation_dependency, send_message_to_drug_discovery_dependency
 from nolabs.features.biobuddy.load_conversation_feature import LoadConversationFeature
 from nolabs.features.biobuddy.send_message_feature import SendMessageFeature
 
@@ -24,5 +24,5 @@ async def load_conversation(experiment_id: str,
 async def send_message(experiment_id: str,
                        message_content: str,
         feature: Annotated[
-    SendMessageFeature, Depends(send_message_dependency)]) -> SendMessageResponse:
+    SendMessageFeature, Depends(send_message_to_drug_discovery_dependency)]) -> SendMessageResponse:
     return feature.handle(SendMessageRequest(experiment_id, message_content))

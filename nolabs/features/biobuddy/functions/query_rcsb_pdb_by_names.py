@@ -14,7 +14,7 @@ from rcsb_pdb_query_microservice import Configuration as rcsbApiConfiguration
 from nolabs.utils.fasta import create_upload_file_from_string
 
 
-class QueryRcsbPdbByNameFunction(BiobuddyFunction):
+class QueryRcsbPdbByNamesFunction(BiobuddyFunction):
     def __init__(self, settings: Settings,
                  targets_file_management: TargetsFileManagement):
         parameters = [

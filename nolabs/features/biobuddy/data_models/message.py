@@ -9,24 +9,24 @@ class File:
 
 
 @dataclass
-class RegularMessage:
+class RegularMessage:  # Should be completely the same as in api models
     content: str
 
 
 @dataclass
-class FunctionParam:
+class FunctionParam:  # Should be completely the same as in api models
     name: str
     value: Any = None
 
 
 @dataclass
-class FunctionCall:
+class FunctionCall:  # Should be completely the same as in api models
     function_name: str
     parameters: List[FunctionParam]
 
 
 @dataclass
-class Message:
+class Message:  # Should be completely the same as in api models
     role: str
-    message: Union[RegularMessage,FunctionCall]
+    message: Union[RegularMessage, FunctionCall]
     type: str
