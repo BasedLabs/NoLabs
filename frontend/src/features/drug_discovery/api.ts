@@ -2,7 +2,6 @@ import {
   DrugDiscoveryService,
   TargetMetaData,
   LigandMetaData,
-  ChangeExperimentNameRequest,
   Body_upload_target_api_v1_drug_discovery_upload_target_post,
   PredictFoldingResponse,
   GetTargetBindingPocketResponse,
@@ -17,8 +16,8 @@ import {
   GetTargetMetaDataResponse,
   GetLigandMetaDataResponse,
   RegisterDockingJobResponse,
-  RunDockingJobResponse,
-  GetDockingResultDataResponse,
+  RunUmolDockingJobResponse,
+  GetUmolDockingResultDataResponse,
   CheckResultDataAvailableResponse,
   CheckJobIsRunningResponse,
   CheckMsaDataAvailableResponse,
@@ -28,7 +27,13 @@ import {
   GetResultsListForTargetLigandResponse,
   DeleteDockingJobResponse,
   CheckServiceHealthyResponse,
-  GetJobBindingPocketDataResponse
+  GetJobBindingPocketDataResponse,
+  GetAllJobsListResponse,
+  GetJobsListForTargetLigandResponse,
+  RunDiffDockDockingJobResponse,
+  GetDiffDockDockingResultDataResponse,
+  GetDiffDockLigandSdfResponse,
+  GetDiffDockParamsResponse, GetDockingParamsResponse
 } from 'src/api/client';
 import { CancelablePromise } from 'src/api/client/core/CancelablePromise';
 import apiConstants from "src/api/constants";
@@ -103,7 +108,7 @@ export function getLigandsListApi(experimentId: string, targetId: string): Cance
 }
 
 export function getLigandMetaDataApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetLigandMetaDataResponse> {
-  return DrugDiscoveryService.getLigandDataApiV1DrugDiscoveryGetLigandMetaDataGet(experimentId, targetId, ligandId);
+  return DrugDiscoveryService.getLigandMetaDataApiV1DrugDiscoveryGetLigandMetaDataGet(experimentId, targetId, ligandId);
 }
 
 export function getLigandDataApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetLigandDataResponse> {
@@ -127,24 +132,55 @@ export function predictBindingPocketApi(experimentId: string, targetId: string):
 
 // Predict folding
 export function predictLightFoldingApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
-    return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictEsmfoldLightPost(experimentId, targetId);
+    return DrugDiscoveryService.predictEsmfoldLightApiV1DrugDiscoveryPredictEsmfoldLightPost(experimentId, targetId);
 }
 
 export function predictFoldingApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
-  return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictEsmfoldPost(experimentId, targetId);
+  return DrugDiscoveryService.predictEsmfoldApiV1DrugDiscoveryPredictEsmfoldPost(experimentId, targetId);
 }
 
-export function registerDockingJobApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<RegisterDockingJobResponse> {
-  return DrugDiscoveryService.registerDockingJobApiV1DrugDiscoveryRegisterDockingJobPost(experimentId, targetId, ligandId);
+export function predictRosettaFoldApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
+  return DrugDiscoveryService.predictRosettafoldApiV1DrugDiscoveryPredictRosettafoldPost(experimentId, targetId);
 }
 
-export function runDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<RunDockingJobResponse> {
-  return DrugDiscoveryService.performDockingApiV1DrugDiscoveryRunDockingJobPost(experimentId, targetId, ligandId, jobId);
+export function registerDockingJobApi(experimentId: string, targetId: string, ligandId: string, foldingMethod: string): CancelablePromise<RegisterDockingJobResponse> {
+  return DrugDiscoveryService.registerDockingJobApiV1DrugDiscoveryRegisterDockingJobPost(experimentId, targetId, ligandId, foldingMethod);
 }
 
-export function getDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetDockingResultDataResponse> {
-  return DrugDiscoveryService.getDockingResultDataApiV1DrugDiscoveryGetDockingResultDataGet(experimentId, targetId, ligandId, jobId);
+export function runUmolDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<RunUmolDockingJobResponse> {
+  return DrugDiscoveryService.runUmolDockingApiV1DrugDiscoveryRunUmolDockingJobPost(experimentId, targetId, ligandId, jobId);
 }
+
+export function runDiffDockDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<RunDiffDockDockingJobResponse> {
+  return DrugDiscoveryService.runDiffdockDockingApiV1DrugDiscoveryRunDiffdockDockingJobPost(experimentId, targetId, ligandId, jobId);
+}
+
+
+export function getUmolDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetUmolDockingResultDataResponse> {
+  return DrugDiscoveryService.getUmolDockingResultDataApiV1DrugDiscoveryGetUmolDockingResultDataGet(experimentId, targetId, ligandId, jobId);
+}
+
+export function getDiffDockParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetDiffDockParamsResponse> {
+  return DrugDiscoveryService.getDiffdockParamsApiV1DrugDiscoveryGetDiffdockParamsGet(experimentId, targetId, ligandId, jobId);
+}
+
+export function updateDockingParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string, foldingMethod: string, dockingMethod: string): CancelablePromise<GetDockingParamsResponse> {
+  return DrugDiscoveryService.updateDockingParamsApiV1DrugDiscoveryUpdateDockingParamsPost(experimentId, targetId, ligandId, jobId, foldingMethod, dockingMethod);
+}
+
+
+export function updateDiffDockParamsApi(experimentId: string, targetId: string, ligandId: string, jobId: string, samples_per_complex: number): CancelablePromise<GetDiffDockParamsResponse> {
+  return DrugDiscoveryService.updateDiffdockParamsApiV1DrugDiscoveryUpdateDiffdockParamsPost(experimentId, targetId, ligandId, jobId, samples_per_complex);
+}
+
+export function getDiffDockDockingJobResultDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetDiffDockDockingResultDataResponse> {
+  return DrugDiscoveryService.getDiffdockDockingResultDataApiV1DrugDiscoveryGetDiffdockDockingResultDataGet(experimentId, targetId, ligandId, jobId);
+}
+
+export function getDiffDockLigandSdfApi(experimentId: string, targetId: string, ligandId: string, jobId: string, ligandFileName: string): CancelablePromise<GetDiffDockLigandSdfResponse> {
+  return DrugDiscoveryService.getDiffdockLigandSdfApiV1DrugDiscoveryGetDiffdockLigandSdfGet(experimentId, targetId, ligandId, jobId, ligandFileName);
+}
+
 
 export function checkDockingResultAvailableApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<CheckResultDataAvailableResponse> {
   return DrugDiscoveryService.checkResultDataAvailableApiV1DrugDiscoveryCheckResultDataAvailableGet(experimentId, targetId, ligandId, jobId);
@@ -158,12 +194,20 @@ export function checkMsaJobIsRunningApi(jobId: string): CancelablePromise<CheckJ
   return DrugDiscoveryService.checkMsaJobRunningApiV1DrugDiscoveryCheckMsaJobRunningGet(jobId);
 }
 
-export function checkFoldingDataAvailableApi(experimentId: string, targetId: string): CancelablePromise<CheckFoldingDataAvailableResponse> {
-  return DrugDiscoveryService.checkFoldingDataAvailableApiV1DrugDiscoveryCheckFoldingDataAvailableGet(experimentId, targetId);
+export function checkFoldingDataAvailableApi(experimentId: string, targetId: string, foldingMethod: string): CancelablePromise<CheckFoldingDataAvailableResponse> {
+  return DrugDiscoveryService.checkFoldingDataAvailableApiV1DrugDiscoveryCheckFoldingDataAvailableGet(experimentId, targetId, foldingMethod);
 }
 
-export function checkFoldingJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
-  return DrugDiscoveryService.checkFoldingJobRunningApiV1DrugDiscoveryCheckFoldingJobRunningGet(jobId);
+export function checkEsmFoldJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
+  return DrugDiscoveryService.checkEsmfoldJobRunningApiV1DrugDiscoveryCheckEsmfoldJobRunningGet(jobId);
+}
+
+export function checkEsmFoldLightJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
+  return DrugDiscoveryService.checkEsmfoldLightJobRunningApiV1DrugDiscoveryCheckEsmfoldLightJobRunningGet(jobId);
+}
+
+export function checkRosettaFoldJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
+  return DrugDiscoveryService.checkRosettafoldJobRunningApiV1DrugDiscoveryCheckMsaRosettafoldRunningGet(jobId);
 }
 
 export function checkPocketDataAvailableApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<CheckPocketDataAvailableResponse> {
@@ -178,12 +222,24 @@ export function checkUmolJobIsRunningApi(jobId: string): CancelablePromise<Check
   return DrugDiscoveryService.checkUmolJobRunningApiV1DrugDiscoveryCheckUmolJobRunningGet(jobId);
 }
 
+export function checkDiffDockJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
+  return DrugDiscoveryService.checkDiffdockJobRunningApiV1DrugDiscoveryCheckDiffdockJobRunningGet(jobId);
+}
+
 export function getAllDockingResultsListApi(experimentId: string): CancelablePromise<GetAllResultsListResponse> {
   return DrugDiscoveryService.getAllResultsListApiV1DrugDiscoveryGetAllResultsListGet(experimentId);
 }
 
+export function getAllDockingJobsListApi(experimentId: string): CancelablePromise<GetAllJobsListResponse> {
+  return DrugDiscoveryService.getAllJobsListApiV1DrugDiscoveryGetAllJobsListGet(experimentId);
+}
+
 export function getDockingResultsListForTargetLigandApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetResultsListForTargetLigandResponse> {
   return DrugDiscoveryService.getResultsListForTargetLigandApiV1DrugDiscoveryGetResultsListForTargetLigandGet(experimentId, targetId, ligandId);
+}
+
+export function getDockingJobsListForTargetLigandApi(experimentId: string, targetId: string, ligandId: string): CancelablePromise<GetJobsListForTargetLigandResponse> {
+  return DrugDiscoveryService.getJobsListForTargetLigandApiV1DrugDiscoveryGetJobsListForTargetLigandGet(experimentId, targetId, ligandId);
 }
 
 export function deleteDockingJobApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<DeleteDockingJobResponse> {
@@ -198,12 +254,24 @@ export function checkP2RankServiceHealthApi(): CancelablePromise<CheckServiceHea
   return DrugDiscoveryService.checkP2RankServiceHealthApiV1DrugDiscoveryCheckP2RankServiceHealthGet();
 }
 
-export function checkFoldingServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
-  return DrugDiscoveryService.checkFoldingServiceHealthApiV1DrugDiscoveryCheckFoldingServiceHealthGet();
+export function checkEsmFoldServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkEsmfoldServiceHealthApiV1DrugDiscoveryCheckEsmfoldServiceHealthGet();
+}
+
+export function checkEsmFoldLightServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkEsmfoldLightServiceHealthApiV1DrugDiscoveryCheckEsmfoldLightServiceHealthGet();
+}
+
+export function checkRosettaFoldServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse>{
+  return DrugDiscoveryService.rosettafoldServiceHealthApiV1DrugDiscoveryCheckRosettafoldServiceHealthGet();
 }
 
 export function checkUmolServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
   return DrugDiscoveryService.checkUmolServiceHealthApiV1DrugDiscoveryCheckUmolServiceHealthGet();
+}
+
+export function checkDiffDockServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
+  return DrugDiscoveryService.checkDiffdockServiceHealthApiV1DrugDiscoveryCheckDiffdockServiceHealthGet();
 }
 
 export function getJobPocketDataApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<GetJobBindingPocketDataResponse> {

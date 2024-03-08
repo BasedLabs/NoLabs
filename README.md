@@ -23,11 +23,13 @@
 
 # About
 
-NoLabs is an open source biolab with support of web visualisation and hosting.
+NoLabs is an open source biolab which lets you run experiments with latest state of the art models for bio research.
 
-The goal of the project is to accelerate bio research via making inference models easy to use for everyone. We are currenly supporting protein biolab (predicting useful protein properties such as solubility, localisation, Gene ontology, folding etc.) and drug discovery biolab (construct ligands and test binding to target proteins). 
+The goal of the project is to accelerate bio research by making inference models easy to use for everyone. We are currenly supporting protein biolab (predicting useful protein properties such as solubility, localisation, gene ontology, folding etc.) and drug discovery biolab (construct ligands and test binding to target proteins). 
 
-We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and contributions. Let's accelerate bio research!
+We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and contributions. 
+
+Let's accelerate bio research!
 
 <img src="media/NoLabs_Architecture.png" width="100%">
 
@@ -35,12 +37,14 @@ We are working on expanding both and adding a cell biolab and genetic biolab, an
 # Features
 
 **Drug discovery lab (State of the art):**
-- Drug-target interaction prediction, high throughput virtual screening (HTVS) based on [uMol](https://github.com/patrickbryant1/Umol)
+- Drug-target interaction prediction, high throughput virtual screening (HTVS) based on:
+  - [DiffDock](https://github.com/gcorso/DiffDock)
+  - [uMol](https://github.com/patrickbryant1/Umol)
 - Automatic pocket prediction via [P2Rank](https://github.com/rdk/p2rank)
 - Automatic MSA generation via [HH-suite3](https://github.com/soedinglab/hh-suite)
 
 <br>
-<img src="media/dti.gif" width="100%">
+<img src="media/Docking.gif" width="100%">
 
 **Protein lab:**
 
@@ -80,7 +84,8 @@ $ docker compose -up nolabs [gene_ontology|localisation|protein_design|solubilit
 
 Server will be available on http://localhost:9000
 
-# Microservices (docker container with model + FastAPI)
+WARNING: To install RoseTTAFold check [RoseTTAFold section](#9-rosettafold-docker-api)
+# Microservices
 
 We provide individual Docker containers backed by FastAPI for each feature, which are available in the `/microservices` folder. You can use them individually as APIs.
 
@@ -113,6 +118,39 @@ pdb_content = response.json().get('pdb_content', '')
 print(pdb_content)
 ```
 This Python script makes a POST request to the esmfold microservice with a protein sequence and prints the predicted PDB content.
+
+## Running services on a separate machine 
+
+Since we provide individual Docker containers backed by FastAPI for each feature, available in the `/microservices` folder, you can run them on separate machines. This setup is particularly useful if you're developing on a computer without GPU support but have access to a VM with a GPU for tasks like folding, docking, etc.
+
+For instance, to run the `diffdock` service, use Docker Compose on the VM or computer equipped with a GPU. 
+
+On your server/VM/computer with a GPU, run:
+
+```bash
+$ docker compose up diffdock
+```
+
+Once the service is up, you can check that you can access it from your computer by navigating to http://<gpu_machine_ip>:5737/docs
+
+If everything is correct, you should see the FastAPI page with diffdock's API surface like this:
+
+<img src="media/Diffdock_fastapi.png">
+
+Next, update the nolabs/infrastructure/settings.ini file on your primary machine to include the IP address of the service (replace 127.0.0.1 with your GPU machine's IP):
+
+```ini
+...
+p2rank=http://127.0.0.1:5731
+esmfold=http://127.0.0.1:5736
+esmfold_light=http://127.0.0.1:5733
+msa_light=http://127.0.0.1:5734
+umol=http://127.0.0.1:5735
+diffdock=http://127.0.0.1:5737 -> http://74.82.28.227:5737
+...
+```
+
+And now you are ready to use this service hosted on a separate machine!
 
 ## Supported microservices list
 
@@ -163,13 +201,11 @@ docker compose up gene_ontology
 Swagger UI will be available on http://localhost:5788/docs
 
 or
-[install as a python package](microservices/esmfold_light/client/README.md)
+[install as a python package](microservices/gene_ontology/client/README.md)
 
 
 ### 5) Protein localisation prediction docker API
 Model: [Hugging Face](https://huggingface.co/ritakurban/ESM_protein_localization)
-
-You can also install this microservice as package. Check [client documentation](microservices/localisation/client/README.md)
 
 ```shell
 docker compose up localisation
@@ -177,21 +213,22 @@ docker compose up localisation
 
 Swagger UI will be available on http://localhost:5787/docs
 
+or
+[install as a python package](microservices/localisation/client/README.md)
+
 ### 6) Protein binding site prediction docker API
 Model: [p2rank](https://github.com/rdk/p2rank)
-
-You can also install this microservice as package. Check [client documentation](microservices/p2rank/client/README.md)
 
 ```shell
 docker compose up p2rank
 ```
+Swagger UI will be available on http://localhost:5731/docs
+
+or
+[install as a python package](microservices/p2rank/client/README.md)
 
 ### 7) Protein solubility prediction docker API
 Model: [Hugging Face](https://huggingface.co/thomasshelby/solubility_model/resolve/main/solubility_model.pth)
-
-[Install as python package](microservices/solubility/client/README.md)
-
-or
 
 ```shell
 docker compose up solubility
@@ -199,12 +236,11 @@ docker compose up solubility
 
 Swagger UI will be available on http://localhost:5786/docs
 
+or
+[Install as python package](microservices/solubility/client/README.md)
+
 ### 8) Protein-ligand structure prediction docker API
 Model: [UMol](https://github.com/patrickbryant1/Umol)
-
-[Install as python package](microservices/umol/client/README.md)
-
-or
 
 ```shell
 docker compose up umol
@@ -212,6 +248,25 @@ docker compose up umol
 
 Swagger UI will be available on http://localhost:5735/docs
 
+or
+[Install as python package](microservices/umol/client/README.md)
+
+
+### 9) RoseTTAFold docker API
+Model: [RoseTTAFold](https://github.com/RosettaCommons/RoseTTAFold)
+
+```shell
+docker compose up rosettafold
+```
+
+Swagger UI will be available on http://localhost:5738/docs
+
+or
+[Install as python package](microservices/rosettafold/client/README.md)
+
+WARNING: To use Rosettafold you must specify 
+**ROSETTACOMMONS_CONDA_USERNAME** and **ROSETTACOMMONS_CONDA_PASSWORD** in compose.yaml
+and download additional data (check step 5 on https://github.com/RosettaCommons/RoseTTAFold page)
 
 
 # Technologies

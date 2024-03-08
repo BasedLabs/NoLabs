@@ -5,6 +5,7 @@ import numpy as np
 from typing import List
 
 from nolabs.domain.experiment import ExperimentId
+from nolabs.features.drug_discovery.services.folding_methods import FoldingMethods
 from nolabs.infrastructure.settings import Settings
 
 from nolabs.utils.fasta import FastaReader, FastaWriter
@@ -43,6 +44,8 @@ class TargetsFileManagement:
         os.mkdir(os.path.join(targets_dir, target_id.value))
 
     def store_target(self, experiment_id: ExperimentId, fasta_file: UploadFile) -> List[TargetMetaData]:
+
+
         self.ensure_targets_folder_exists(experiment_id)
 
         original_filename = fasta_file.filename
@@ -64,8 +67,15 @@ class TargetsFileManagement:
             self.update_target_metadata(experiment_id, target_id, "name", target_name)
             self.update_target_metadata(experiment_id, target_id, "original_filename", original_filename)
 
+            folding_method = FoldingMethods.esmfold_light
+            if len(sequence) > 400:
+                folding_method = FoldingMethods.esmfold
+
+            self.update_target_metadata(experiment_id, target_id, "folding_method", folding_method)
+
             result_list.append(TargetMetaData(target_id=target_id.value,
-                                              target_name=target_name))
+                                              target_name=target_name,
+                                              folding_method=folding_method))
 
         return result_list
 
@@ -80,15 +90,18 @@ class TargetsFileManagement:
     def update_target_metadata(self, experiment_id: ExperimentId, target_id: TargetId, key: str, value: str):
         metadata_file = os.path.join(self.target_folder(experiment_id, target_id),
                                      self._settings.drug_discovery_target_metadata_file_name)
-        print(os.path.exists(metadata_file), key, value)
         if os.path.exists(metadata_file):
             with open(metadata_file, "r") as f:
                 metadata = json.load(f)
                 metadata[key] = value
             with open(metadata_file, "w") as f:
                 json.dump(metadata, f)
-            target_metadata = TargetMetaData(target_id=metadata["id"], target_name=metadata["name"])
-            return target_metadata
+            if 'folding_method' in metadata:
+                return TargetMetaData(target_id=metadata["id"],
+                                      target_name=metadata["name"],
+                                      folding_method=metadata["folding_method"])
+            return TargetMetaData(target_id=metadata["id"],
+                                  target_name=metadata["name"])
         else:
             metadata = {key: value}
             with open(metadata_file, "w") as f:
@@ -99,7 +112,9 @@ class TargetsFileManagement:
                                      self._settings.drug_discovery_target_metadata_file_name)
         with open(metadata_file, "r") as f:
             metadata = json.load(f)
-        target_metadata = TargetMetaData(target_id=metadata["id"], target_name=metadata["name"])
+        target_metadata = TargetMetaData(target_id=metadata["id"],
+                                         target_name=metadata["name"],
+                                         folding_method=metadata["folding_method"])
         return target_metadata
 
     def update_target_name(self, experiment_id: ExperimentId, target_id: TargetId, target_name: str) -> TargetMetaData:
@@ -124,20 +139,23 @@ class TargetsFileManagement:
 
         ids2sequences = self.fasta_reader.get_ids2seqs_from_path(os.path.join(target_folder, "target.fasta"))
         sequence = [amino_acid.sequence for amino_acid in ids2sequences][0]
-        pdb_content = self.get_pdb_contents(experiment_id, target_id)
+        pdb_content = self.get_pdb_contents(experiment_id, target_id, target_metadata.folding_method)
 
         return target_name, sequence, pdb_content
 
-    def get_pdb_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
+    def get_pdb_contents(self, experiment_id: ExperimentId, target_id: TargetId, folding_method: str) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
-        if os.path.exists(os.path.join(target_folder, "target.pdb")):
-            return self.pdb_reader.read_pdb(os.path.join(target_folder, "target.pdb"))
+        if os.path.exists(os.path.join(target_folder, folding_method + "_target.pdb")):
+            return self.pdb_reader.read_pdb(os.path.join(target_folder, folding_method + "_target.pdb"))
 
         return None
 
-    def store_pdb_contents(self, experiment_id: ExperimentId, target_id: TargetId, pdb_content: str) -> None:
+    def store_pdb_contents(self, experiment_id: ExperimentId,
+                           target_id: TargetId,
+                           pdb_content: str,
+                           folding_method: str) -> None:
         target_folder = self.target_folder(experiment_id, target_id)
-        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, "target.pdb"))
+        self.pdb_writer.write_pdb(pdb_content, os.path.join(target_folder, folding_method + "_target.pdb"))
 
     def get_fasta_contents(self, experiment_id: ExperimentId, target_id: TargetId) -> str | None:
         target_folder = self.target_folder(experiment_id, target_id)
@@ -202,7 +220,7 @@ class TargetsFileManagement:
                                    self._settings.drug_discovery_pocket_file_name)
         return os.path.exists(pocket_file)
 
-    def check_folding_exist(self, experiment_id: ExperimentId, target_id: TargetId) -> bool:
+    def check_folding_exist(self, experiment_id: ExperimentId, target_id: TargetId, folding_method: str) -> bool:
         target_folder = self.target_folder(experiment_id, target_id)
-        pdb_file = os.path.join(os.path.join(target_folder, "target.pdb"))
+        pdb_file = os.path.join(os.path.join(target_folder, folding_method + "_target.pdb"))
         return os.path.exists(pdb_file)

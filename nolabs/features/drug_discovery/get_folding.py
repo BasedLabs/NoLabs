@@ -13,7 +13,8 @@ class GetFoldedStructureFeature:
 
         experiment_id = ExperimentId(request.experiment_id)
         target_id = TargetId(request.target_id)
+        folding_method = request.folding_method
 
-        pdb_contents = self._file_management.get_pdb_contents(experiment_id, target_id)
+        pdb_contents = self._file_management.get_pdb_contents(experiment_id, target_id, folding_method)
 
         return GetFoldingResponse(pdb_contents=pdb_contents)

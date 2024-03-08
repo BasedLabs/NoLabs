@@ -116,7 +116,7 @@ export default defineComponent({
         label="Run inference"
         size="large"
         type="submit"
-        color="positive"
+        color="info"
       />
     </div>
   </q-form>

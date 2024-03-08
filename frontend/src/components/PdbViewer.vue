@@ -160,7 +160,7 @@ export default defineComponent({
           <div class="text-h6">{{ FileName }}</div>
         </div>
         <div class="col" v-if="pdbFile != null">
-          <q-btn color="positive" size="md" outline label="Save pdb" @click="savePdb"/>
+          <q-btn color="info" size="md" outline label="Save pdb" @click="savePdb"/>
         </div>
         <div class="col">
           <q-checkbox v-model="blackBackground" label="Black background"/>
@@ -168,8 +168,8 @@ export default defineComponent({
         <div class="col">
           <q-select v-model="selectedRepresentation"
                     class="q-ml-xs"
-                    label-color="positive"
-                    color="positive"
+                    label-color="info"
+                    color="info"
                     option-value="key"
                     option-label="title"
                     option-disable="inactive" :options="Object.values(PdbViews)"

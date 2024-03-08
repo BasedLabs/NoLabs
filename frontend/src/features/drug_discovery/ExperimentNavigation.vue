@@ -3,7 +3,7 @@
     <q-stepper
       v-model="step"
       ref="stepper"
-      color="positive"
+      color="info"
       animated
     >
       <q-step
@@ -30,9 +30,9 @@
       >
 
         <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
-          <q-btn flat label="Back" @click="openPreviousStep('Upload targets')" />
+          <q-btn flat color="info" label="Back" @click="openPreviousStep('Upload targets')" />
           <q-space />
-          <q-btn flat label="Continue" @click="openNextStep('Run docking')" />
+          <q-btn flat color="info" label="Continue" @click="openNextStep('Run docking')" />
         </div>
          <router-view></router-view>
       </q-step>

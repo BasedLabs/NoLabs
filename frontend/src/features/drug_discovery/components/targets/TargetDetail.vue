@@ -3,58 +3,60 @@
     <q-card-section>
       <div class="text-caption">Protein sequence</div>
     </q-card-section>
-    <q-separator />
+    <q-separator/>
 
     <q-card-section>
-      <q-skeleton :type="text" />
+      <q-skeleton type="text"/>
     </q-card-section>
     <q-card-section>
       <div class="text-caption">3D Structure</div>
     </q-card-section>
-    <q-skeleton height="200px" square />
-    <q-separator />
+    <q-skeleton height="200px" square/>
+    <q-separator/>
   </q-card>
   <q-card v-if="target.data">
     <q-card-section>
       <div class="text-h6 q-pa-sm">Target: {{ this.target.metaData.target_name }}
         <q-btn round @click="changeTargetName"
-                color="positive" size="sm" flat icon="edit"/></div>
+               color="info" size="sm" flat icon="edit"/>
+      </div>
       <q-card-section class="rounded-borders bg-black">
-        <div class="text-h7 q-pl-md">Sequence: </div>
+        <div class="text-h7 q-pl-md">Sequence:</div>
         <div class="fasta-sequence q-gutter-sm q-pa-md">
           <div v-for="row in wrappedFastaSequence" :key="row.index" class="row">
             <span
-              v-for="(acid, index) in row.sequence"
-              :key="index"
-              :class="{ 'selected': isResidueSelected(row.startIndex + index) }"
-              @click="toggleResidueSelection(row.startIndex + index)"
+                v-for="(acid, index) in row.sequence"
+                :key="index"
+                :class="{ 'selected': isResidueSelected(row.startIndex + index) }"
+                @click="toggleResidueSelection(row.startIndex + index)"
             >
               {{ acid }}
-              <q-tooltip>{{`Residue ID: ${row.startIndex + index}` }}</q-tooltip>
+              <q-tooltip>{{ `Residue ID: ${row.startIndex + index}` }}</q-tooltip>
             </span>
           </div>
         </div>
       </q-card-section>
       <div v-if="predictingFolding">
-        <q-spinner color="info" size="lg" label="Loading 3D View..." />
+        <q-spinner color="info" size="lg" label="Loading 3D View..."/>
       </div>
       <div class="q-pa-md">
         <q-select
-          v-if="!this.target.data.pdbContents"
-          v-model="selectedFoldingOption"
-          :options="foldingOptions"
-          label="Select folding method"
-          outlined
-          dense
-          class="text-white"
-        emit-value
-        map-options
+            v-if="!this.target.data.pdbContents"
+            v-model="selectedFoldingOption"
+            :options="foldingOptionsSelect"
+            label="Select folding method"
+            outlined
+            dense
+            class="text-white"
+            emit-value
+            map-options
         ></q-select>
       </div>
-      <q-btn v-if="!hasPdb" color="info" @click="predictStructure">
+      <q-btn v-if="!hasPdb" color="primary" @click="predictStructure">
         Predict 3D structure
       </q-btn>
-      <PdbViewer v-if="hasPdb && this.target.data.pdb_file" :pdb-file="this.target.data.pdb_file" :pocket-ids="this.target.data.pocketIds" :key="this.target.data.pocketIds" />
+      <PdbViewer v-if="hasPdb && this.pdbFile" :pdb-file="this.pdbFile"
+                 :pocket-ids="this.target.data.pocketIds" :key="this.target.data.pocketIds"/>
       <q-btn v-if="hasPdb && !bindingPocketAvailable" color="secondary" @click="fetchAndShowPocket">
         Show Binding Pocket
       </q-btn>
@@ -65,9 +67,9 @@
         Cancel
       </q-btn>
       <q-btn
-        v-if="selectionMode"
-        color="positive"
-        @click="sendSelectedResidues"
+          v-if="selectionMode"
+          color="info"
+          @click="sendSelectedResidues"
       >
         Confirm Selection
       </q-btn>
@@ -81,13 +83,14 @@
             <div class="text-h6">Binding Pocket Not Found</div>
             <p>You don't have a binding pocket for this protein. Do you wish it to be predicted?</p>
             <div v-if="predictingPocket" class="q-mt-md">
-              <q-spinner color="info" size="md" /> Predicting pocket...
+              <q-spinner color="info" size="md"/>
+              Predicting pocket...
             </div>
           </q-card-section>
 
           <q-card-actions align="right" v-if="!predictingPocket">
-            <q-btn flat label="Close" color="white" @click="showNoPocketModal = false" />
-            <q-btn flat label="Predict" color="white" @click="predictBindingPocket" />
+            <q-btn flat label="Close" color="white" @click="showNoPocketModal = false"/>
+            <q-btn flat label="Predict" color="white" @click="predictBindingPocket"/>
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -96,10 +99,10 @@
 </template>
 
 <script lang="ts">
-import {QCard, QCardSection, QBtn, QDialog, QCardActions, QSpinnerOrbit, QVueGlobals} from "quasar";
-import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
+import {Notify, QBtn, QCard, QCardActions, QCardSection, QDialog, QSpinnerOrbit, QVueGlobals} from "quasar";
+import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import PdbViewer from "src/components/PdbViewer.vue";
-import {defineComponent} from "vue";
+import {defineComponent, PropType} from "vue";
 
 export default defineComponent({
   name: "TargetDetail",
@@ -117,7 +120,15 @@ export default defineComponent({
       required: true,
     },
     originalTarget: {
-      type: Object,
+      type: Object as PropType<{
+        target_id: string,
+        target_name: string,
+        data: {
+          pocketIds: number[],
+          pdbContents: string | undefined | null,
+          proteinSequence: string | undefined | null
+        }
+      }>,
       required: true,
     },
   },
@@ -137,10 +148,11 @@ export default defineComponent({
         data: this.originalTarget.data
       },
       selectedFoldingOption: '',
-      foldingOptions: [
-        { label: 'Esmfold_light (up to 400 amino acids)', value: 'light' },
-        { label: 'Esmfold', value: 'full' },
-      ],
+      foldingOptions: {
+        esmfoldLight: 'light',
+        esmfold: 'esmfold',
+        rosettafold: 'rosettafold'
+      },
       quasar: null as QVueGlobals | null,
     };
   },
@@ -148,22 +160,37 @@ export default defineComponent({
     async predictStructure() {
       const store = useDrugDiscoveryStore();
       if (this.target) {
-        this.predictingFolding = true; // Start loading
-        const predictionMethod = this.selectedFoldingOption === 'light' ? store.predictLightFoldingForTarget : store.predictFoldingForTarget;
+        let predictionMethod: null | ((experimentId: string, targetId: string) => Promise<string | null | undefined>) = null;
 
-        predictionMethod(this.experimentId, this.target.metaData.target_id)
-          .then((response) => {
-            if (response) {
-              this.target.data.pdbContents = response;
-              this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
-            }
-          })
-          .catch((error) => {
-            console.error("Error predicting structure:", error);
-          })
-          .finally(() => {
-            this.predictingFolding = false; // End loading
+        if (this.selectedFoldingOption === this.foldingOptions.esmfoldLight) {
+          predictionMethod = store.predictEsmLightFoldingForTarget;
+        }
+
+        if (this.selectedFoldingOption === this.foldingOptions.esmfold) {
+          predictionMethod = store.predictEsmFoldingForTarget;
+        }
+
+        if (this.selectedFoldingOption === this.foldingOptions.rosettafold) {
+          predictionMethod = store.predictRoseTTAFold;
+        }
+
+        if (predictionMethod === null) {
+          Notify.create({
+            type: "negative",
+            closeBtn: 'Close',
+            message: 'Select folding method'
           });
+          return;
+        }
+
+        try {
+          this.predictingFolding = true; // Start loading
+          this.target.data.pdbContents = await predictionMethod(this.experimentId, this.target.metaData.target_id);
+        } catch (error) {
+          console.error("Error prediction structure", error);
+        }
+
+        this.predictingFolding = false;
       }
     },
     toggleSelectionMode() {
@@ -213,32 +240,31 @@ export default defineComponent({
         }
       } catch (error) {
         console.error('Error predicting binding pocket:', error);
-      } finally {
-        this.predictingPocket = false; // Stop the spinner
-        this.showNoPocketModal = false; // Close the modal after prediction
       }
+
+      this.predictingPocket = false; // Stop the spinner
+      this.showNoPocketModal = false; // Close the modal after prediction
     },
-    sendSelectedResidues() {
+    async sendSelectedResidues() {
       const store = useDrugDiscoveryStore();
       if (this.target.data.pocketIds) {
-        store
-          .setPocketForTarget(
-            this.experimentId,
-            this.target.metaData.target_id,
-            Array.from(this.target.data.pocketIds)
-          )
-          .then(() => {
-            this.selectionMode = !this.selectionMode
-          })
-          .catch((error) => {
-            console.error("Error setting binding pocket:", error);
-          });
+        try {
+          await store
+              .setPocketForTarget(
+                  this.experimentId,
+                  this.target.metaData.target_id,
+                  Array.from(this.target.data.pocketIds)
+              );
+          this.selectionMode = !this.selectionMode;
+        } catch (error) {
+          console.error("Error setting binding pocket:", error);
+        }
       }
     },
     changeTargetName() {
       const store = useDrugDiscoveryStore();
       this.$q.dialog({
-        color: 'positive',
+        color: 'info',
         title: 'Prompt',
         message: 'Enter new target name',
         prompt: {
@@ -265,6 +291,13 @@ export default defineComponent({
     hasPdb() {
       return this.target.data.pdbContents != null;
     },
+    foldingOptionsSelect() {
+      return [
+        {label: 'Esmfold_light (up to 400 amino acids)', value: this.foldingOptions.esmfoldLight},
+        {label: 'Esmfold', value: this.foldingOptions.esmfold},
+        {label: 'RoseTTAFold', value: this.foldingOptions.rosettafold},
+      ];
+    },
     bindingPocketAvailable() {
       return this.target.data.pocketIds && this.target.data.pocketIds.length > 0;
     },
@@ -280,10 +313,14 @@ export default defineComponent({
       }
       return wrapped;
     },
-  },
-  mounted() {
-    this.target.data.pdb_file = new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
-  },
+    pdbFile(): File {
+      if(this.target.data.pdbContents && this.target.data.pdbContents.length > 0){
+        return new File([new Blob([this.target.data.pdbContents])], "protein.pdb");
+      }
+
+      return new File([], "protein.pdb");
+    }
+  }
 })
 </script>
 
@@ -292,15 +329,18 @@ export default defineComponent({
   display: flex;
   flex-wrap: wrap;
 }
+
 .fasta-sequence .row {
   display: flex;
   flex-wrap: wrap;
 }
+
 .fasta-sequence span {
   padding: 2px;
   margin-right: 1px;
   cursor: pointer;
 }
+
 .fasta-sequence span.selected {
   background-color: blue;
   color: white;

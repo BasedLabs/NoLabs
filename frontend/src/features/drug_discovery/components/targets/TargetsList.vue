@@ -37,7 +37,7 @@
 
       <q-card-actions align="right">
         <q-btn flat label="Close" color="negative" @click="uploadTargetDialog = false"/>
-        <q-btn flat label="Upload" color="positive" @click="handleTargetFileUpload"/>
+        <q-btn flat label="Upload" color="info" @click="handleTargetFileUpload"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
