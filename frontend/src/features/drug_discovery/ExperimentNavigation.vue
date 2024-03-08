@@ -2,7 +2,7 @@
   <q-page class="q-pl-md q-pr-md">
     <q-splitter v-model="splitterModel" style="height: 100vh;" :limits="[10, 50]">
       <template v-slot:before>
-        <BioBuddyChat v-if="experiment.experimentId" :experiment-id="experiment.experimentId" />
+        <BioBuddyChat v-if="experiment.experimentId" :experiment-id="experiment.experimentId" :function-mappings="biobuddyFunctions" />
       </template>
       <template v-slot:after>
         <q-stepper
@@ -65,6 +65,7 @@ import ExperimentHeader from "src/features/drug_discovery/components/ExperimentH
 import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
 import {useDrugDiscoveryStore} from "./storage";
 import {defineComponent} from "vue";
+import {FunctionMapping} from "../biobuddy/BioBuddyChat.vue";
 
 
 export default defineComponent({
@@ -77,6 +78,7 @@ export default defineComponent({
         experimentId: null as string | null,
         metadata: null
       },
+      biobuddyFunctions: [] as FunctionMapping[],
       splitterModel: 20,
     };
   },
@@ -85,6 +87,10 @@ export default defineComponent({
     this.setStepBasedOnRoute();
     this.experiment.experimentId = this.$route.params.experimentId as string;
     this.experiment.metadata = await store.getExperimentMetaData(this.experiment.experimentId);
+    this.biobuddyFunctions = [
+      { name: 'query_rcsb_pdb_by_protein_names', function: store.fetchTargetsForExperiment },
+      { name: 'query_chembl', function: store.fetchLigandsForExperiment },
+    ];
   },
   methods: {
     setStepBasedOnRoute() {

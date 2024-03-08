@@ -44,6 +44,11 @@ import { defineComponent } from 'vue';
 import { loadConversationApi, sendMessageApi } from 'src/features/biobuddy/api';
 import {FunctionCall, Message, type RegularMessage} from "src/api/client";
 
+export interface FunctionMapping {
+  name: string;
+  function: (parameters: any) => void;
+}
+
 export default defineComponent({
   name: 'BioBuddyChat',
   components: {
@@ -53,6 +58,10 @@ export default defineComponent({
     experimentId: {
       type: String,
       required: true,
+    },
+    functionMappings: {
+      type: Array as () => FunctionMapping[],
+      required: false,
     }
   },
   data() {
@@ -72,10 +81,24 @@ export default defineComponent({
     async sendMessage() {
       if (!this.experimentId || !this.newMessage.trim()) return;
       this.sending = true;
-      await sendMessageApi(this.experimentId, this.newMessage);
-      this.newMessage = ''; // Reset the input field after sending
+      const response = await sendMessageApi(this.experimentId, this.newMessage);
+      const newMessageResponse = response.biobuddy_response as Message;
+      this.messages.push(newMessageResponse);
+
+      if (newMessageResponse.type === 'function') {
+        const functionCall = newMessageResponse.message as FunctionCall;
+        this.invokeFunction(functionCall.function_name);
+      }
+      this.newMessage = '';
       await this.loadConversation();
       this.sending = false;
+    },
+    invokeFunction(functionName: string) {
+      const mapping = this.functionMappings?.find(m => m.name === functionName);
+      if (mapping && typeof mapping.function === 'function') {
+        // Accepts storage functions
+        mapping.function(this.experimentId);
+      }
     },
     displayContent(message: Message) {
       if (message.type === 'text') {
@@ -94,9 +117,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-.bio-buddy-chat .q-item-label {
-  white-space: pre-wrap; /* Ensures text wraps and preserves spaces/newlines */
-}
-</style>

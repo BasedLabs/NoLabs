@@ -56,6 +56,7 @@ import TargetsList from "src/features/drug_discovery/components/targets/TargetsL
 import {defineComponent} from "vue";
 import {LigandMetaData, TargetMetaData} from "../../../api/client";
 import LigandsList from "./ligands/LigandsList.vue";
+import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "./targets/types";
 
 export default defineComponent({
   name: "ExperimentSetup",
@@ -66,10 +67,18 @@ export default defineComponent({
   data() {
     return {
       loading: true,
-      targets: [] as TargetMetaData[],
-      ligands: [] as LigandMetaData[],
       experimentId: null as string | null
     };
+  },
+  computed: {
+    targets(): ExtendedTargetMetaData[] {
+      const store = useDrugDiscoveryStore();
+      return store.targets;
+    },
+    ligands(): ExtendedLigandMetaData[] {
+      const store = useDrugDiscoveryStore();
+      return store.loneLigands;
+    },
   },
   async mounted() {
     const store = useDrugDiscoveryStore();
@@ -82,8 +91,7 @@ export default defineComponent({
     });
     try {
       await store.fetchTargetsForExperiment(this.experimentId);
-      this.ligands = await store.fetchLigandsForExperiment(this.experimentId) as LigandMetaData[];
-      this.targets = store.targets;
+      await store.fetchLigandsForExperiment(this.experimentId);
     } catch (e) {
       Notify.create({
         type: "negative",

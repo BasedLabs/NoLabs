@@ -47,7 +47,7 @@ import LigandDetail from "src/features/drug_discovery/components/ligands/LigandD
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
-import {ExtendedLigandMetaData} from "../targets/types";
+import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "../targets/types";
 
 export default defineComponent({
     name: "LigandsList",
@@ -66,12 +66,18 @@ export default defineComponent({
     },
     data() {
       return {
-        ligands: this.originalLigands,
         uploadLigandDialog: false,
         uploadingLigandFiles: [],
         selectedLigand: null,
       };
     },
+  computed: {
+    ligands(): ExtendedLigandMetaData[] {
+      return this.originalLigands.map(ligand => ({
+        ...ligand
+      })) as ExtendedLigandMetaData[];
+    },
+  },
     methods: {
       async handleLigandFileUpload() {
         const store = useDrugDiscoveryStore();
@@ -92,11 +98,7 @@ export default defineComponent({
         const store = useDrugDiscoveryStore();
         ligand.loadingLigandData = true;
         try {
-          const data = await store.fetchLigandDataForExperiment(this.experimentId, ligand.ligand_id);
-          ligand.data = {
-            sdf_file: data?.ligandSdf,
-            smiles: data?.ligandSmiles,
-          };
+          await store.fetchLigandDataForExperiment(this.experimentId, ligand.ligand_id);
         } catch (error) {
           console.error('Error fetching ligand data:', error);
         } finally {

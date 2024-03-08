@@ -63,27 +63,19 @@ import {
   Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post,
   Body_upload_target_api_v1_drug_discovery_upload_target_post,
   ExperimentMetadataResponse,
-  TargetMetaData
 } from 'src/api/client';
 import {ExperimentListItem} from "src/components/types";
 import {obtainErrorResponse} from "../../api/errorWrapper";
 import {Notify} from "quasar";
-
-export interface TargetData {
-    targetId: string;
-    sequence: string;
-    pdbContents: string | null;
-}
-
+import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "./components/targets/types";
 
 export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
 
     state: () => ({
         experiments: [] as ExperimentMetadataResponse[],
         currentExperiment: null as ExperimentMetadataResponse | null,
-        targets: [] as TargetMetaData[],
-        currentTarget: null,
-        targetData: null as TargetData | null,
+        targets: [] as ExtendedTargetMetaData[],
+        loneLigands: [] as ExtendedLigandMetaData[],
         currentLigand: null,
     }),
     actions: {
@@ -142,7 +134,11 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 };
                 const response = await uploadTargetApi(targetData);
                 response.result.map(target => (
-                    this.targets.push(target)
+                    this.targets.push({...target,
+                      data: undefined,
+                      loadingLigands: false,
+                      ligands: [],
+                      loadingTargetData: false})
                 ));
                 return response.result;
             } catch (error) {
@@ -208,7 +204,11 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         fetchTargetsForExperiment: async function (experimentId: string) {
             try {
-                this.targets = (await getTargetsListApi(experimentId)).map(x => {return {...x, ligands: []}});
+                this.targets = (await getTargetsListApi(experimentId)).map(x => {return { ...x,
+                  data: undefined,
+                  loadingLigands: false,
+                  ligands: [],
+                  loadingTargetData: false}}) as ExtendedTargetMetaData[];
             } catch (error) {
                 console.error('Error fetching targets:', error);
             }
@@ -216,15 +216,15 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async fetchLigandsForTarget(experimentId: string, targetId: string) {
             try {
                 return await getLigandsListForTargetApi(experimentId, targetId);
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
         },
         async fetchLigandsForExperiment(experimentId: string) {
           try {
-            return await getLigandsListForExperimentApi(experimentId);
-            // Optionally set the currentTarget to the selected one
+            this.loneLigands = (await getLigandsListForExperimentApi(experimentId)).map(x => {return { ...x,
+              jobs: [],
+              loadingLigandData: false}}) as ExtendedLigandMetaData[];
           } catch (error) {
             console.error('Error fetching ligands:', error);
           }
@@ -232,7 +232,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async fetchTargetMetaData(experimentId: string, targetId: string) {
             try {
                 return await getTargetMetaDataApi(experimentId, targetId);
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -240,7 +239,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async changeTargetName(experimentId: string, targetId: string, targetName: string) {
             try {
                 return await changeTargetNameApi(experimentId, targetId, targetName);
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -248,12 +246,12 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async fetchTargetData(experimentId: string, targetId: string) {
             try {
                 const response = await getTargetDataApi(experimentId, targetId);
-                return {
-                    targetId: targetId,
-                    sequence: response.protein_sequence,
-                    pdbContents: response.protein_pdb || null,
-                };
-                // Optionally set the currentTarget to the selected one
+
+                const targetIndex = this.targets.findIndex(target => target.target_id === targetId);
+                if (targetIndex !== -1) {
+                  this.targets[targetIndex].data = { proteinSequence: response.protein_sequence,
+                    pdbContents: response.protein_pdb };
+                }
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -272,7 +270,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                     }
                 }
                 return response.pdb_content;
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -281,7 +278,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             try {
                 const response = await predictFoldingApi(experimentId, targetId);
                 return response.pdb_content;
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -290,7 +286,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             try {
                 const response = await getTargetBindingPocketApi(experimentId, targetId);
                 return response.pocket_ids;
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -298,7 +293,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async setPocketForTarget(experimentId: string, targetId: string, pocketIds: Array<number>) {
             try {
                 await setTargetBindingPocketApi(experimentId, targetId, pocketIds);
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -307,7 +301,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             try {
                 const response = await predictBindingPocketApi(experimentId, targetId);
                 return response.pocket_ids;
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -315,7 +308,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async fetchLigandMetaDataForTarget(experimentId: string, targetId: string, ligandId: string) {
             try {
                 return await getLigandMetaDataForTargetApi(experimentId, targetId, ligandId);
-                // Optionally set the currentTarget to the selected one
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -323,7 +315,6 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async fetchLigandMetaDataForExperiment(experimentId: string, ligandId: string) {
           try {
             return await getLigandMetaDataForExperimentApi(experimentId, ligandId);
-            // Optionally set the currentTarget to the selected one
           } catch (error) {
             console.error('Error fetching ligands:', error);
           }
@@ -344,12 +335,14 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async fetchLigandDataForExperiment(experimentId: string, ligandId: string) {
           try {
             const response = await getLigandDataForExperimentApi(experimentId, ligandId);
-            return {
-              ligandId: ligandId,
-              ligandName: response.ligand_name,
-              ligandSdf: response.ligand_sdf,
-              ligandSmiles: response.ligand_smiles
-            };
+
+            const ligandIndex = this.loneLigands.findIndex(ligand => ligand.ligand_id === ligandId);
+            if (ligandIndex !== -1) {
+              this.loneLigands[ligandIndex].data = {
+                sdf_file: response.ligand_sdf,
+                smiles: response.ligand_smiles
+              }
+            }
           } catch (error) {
             console.error('Error fetching ligands:', error);
           }

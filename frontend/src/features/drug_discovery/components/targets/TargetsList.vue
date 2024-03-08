@@ -62,26 +62,27 @@ export default defineComponent({
       required: true,
     },
     originalTargets: {
-      type: Array<TargetMetaData>,
+      type: Array<ExtendedTargetMetaData>,
       required: true,
     },
   },
   data() {
     return {
-      targets: this.originalTargets.map(target => ({
-      ...target,
-      loadingLigands: false,
-      ligands: [],
-      loadingTargetData: false,
-      })) as ExtendedTargetMetaData[],
       uploadTargetDialog: false,
       uploadingTargetFiles: [],
       uploadLigandDialog: false,
       uploadingLigandFiles: [],
       selectedTarget: null,
-      uploadToAllTargets: false
+      uploadToAllTargets: false,
     };
   },
+  computed: {
+      targets(): ExtendedTargetMetaData[] {
+        return this.originalTargets.map(target => ({
+          ...target
+        })) as ExtendedTargetMetaData[];
+      },
+    },
   methods: {
     async selectTarget(target: ExtendedTargetMetaData) {
       await this.getTargetData(target);
@@ -124,11 +125,7 @@ export default defineComponent({
       const store = useDrugDiscoveryStore();
       target.loadingTargetData = true;
       try {
-        const data = await store.fetchTargetData(this.experimentId, target.target_id);
-        target.data = {
-          proteinSequence: data?.sequence,
-          pdbContents: data?.pdbContents,
-        };
+        await store.fetchTargetData(this.experimentId, target.target_id);
       } catch (error) {
         console.error('Error fetching target data:', error);
       } finally {
@@ -143,7 +140,7 @@ export default defineComponent({
       });
       try {
         await store.deleteTargetFromExperiment(this.experimentId, targetToDelete.target_id);
-        this.targets = this.targets.filter(target => target.target_id !== targetToDelete.target_id);
+        this.targets = this.targets.filter((target: ExtendedTargetMetaData) => target.target_id !== targetToDelete.target_id);
       } catch (error) {
         console.error('Error deleting target:', error);
       }
