@@ -1,0 +1,22 @@
+## this file shows and example of most scoring components available
+## with appropratie transforms
+version = 4
+run_type = "scoring"
+output_csv = "scoring_all_test.csv"
+json_out_config = "scoring_all_test_config.json"
+
+[parameters]
+smiles_file = "YOUR_SMILES_FILE.smi"
+
+[[scoring.component]]
+[scoring.component.DockStream]
+[[scoring.component.DockStream.endpoint]]
+name = "Docking with Dockstream"
+weight = 1
+params.configuration_path = "PATH_TO_DOCKSTEAM_CONF.json"
+params.docker_script_path = "PATH_TO_DOCKSTREAM/docker.py"
+params.docker_python_path =   "PATH_TO_DOCKSTREAM_ENV/bin/python"
+transform.type = "reverse_sigmoid"
+transform.high = -6
+transform.low = -13.5
+transform.k = 0.2
