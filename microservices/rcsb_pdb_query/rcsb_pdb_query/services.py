@@ -78,8 +78,6 @@ def fetch_protein_entries_by_name(request: GetFastaFilesBySearchQueryRequest) ->
     search_response = requests.post(search_url, headers=headers, data=json.dumps(query_payload))
     fetched_proteins = []
 
-    print(search_response.text)
-
     if search_response.status_code == 200:
         search_results = search_response.json()
 
@@ -95,3 +93,5 @@ def fetch_protein_entries_by_name(request: GetFastaFilesBySearchQueryRequest) ->
                 print(f"Failed to fetch FASTA for PDB ID: {pdb_id}")
 
         return GetFastaFilesResponse(fasta_contents=fetched_proteins)
+
+    return GetFastaFilesResponse(fasta_contents=[])

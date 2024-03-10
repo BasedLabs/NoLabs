@@ -1,7 +1,5 @@
 from biobuddy.api_models import SendMessageToBioBuddyResponse, SendMessageToBioBuddyRequest
 
-from biobuddy.loggers import logger
-
 from openai import OpenAI
 
 __all__ = ['send_message']
@@ -20,5 +18,4 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
         messages=messages,
         tools=request.tools
     )
-
     return SendMessageToBioBuddyResponse(chatgpt_reply=completion.choices[0].message)

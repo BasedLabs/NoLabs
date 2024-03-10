@@ -2,3 +2,4 @@ fastapi
 uvicorn
 python-json-logger
 openapi
+requests
