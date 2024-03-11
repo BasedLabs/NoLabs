@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Message } from './Message';
-export type SendMessageResponse = {
-    biobuddy_response: Message;
+export type ChemBLMetaData = {
+    chembl_id: string;
+    link: string;
 };
 

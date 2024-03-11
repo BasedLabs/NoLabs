@@ -2,8 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type FunctionCallResponse = {
-    function_name: string;
-    parameters: string;
+export type CheckBioBuddyEnabledResponse = {
+    enabled: boolean;
 };
 

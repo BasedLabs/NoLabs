@@ -1,4 +1,8 @@
 <template>
+  <q-drawer show-if-above
+                    :width="500"
+                    :breakpoint="700"
+                    >
     <q-list>
       <q-item-label header>BioBuddy Chat</q-item-label>
       <q-separator />
@@ -36,6 +40,7 @@
         </template>
       </q-input>
     </div>
+  </q-drawer>
 </template>
 
 <script lang="ts">
@@ -43,6 +48,7 @@ import { QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpin
 import { defineComponent } from 'vue';
 import { loadConversationApi, sendMessageApi } from 'src/features/biobuddy/api';
 import {FunctionCall, Message, type RegularMessage} from "src/api/client";
+import {useBioBuddyStore} from "./storage";
 
 export interface FunctionMapping {
   name: string;
@@ -58,18 +64,15 @@ export default defineComponent({
     experimentId: {
       type: String,
       required: true,
-    },
-    functionMappings: {
-      type: Array as () => FunctionMapping[],
-      required: false,
     }
   },
   data() {
     return {
-      drawer: false,
+      drawer: true,
       messages: [] as Message[],
       newMessage: '',
       sending: false,
+      functionMappings: [] as FunctionMapping[],
     };
   },
   methods: {
@@ -87,17 +90,17 @@ export default defineComponent({
 
       if (newMessageResponse.type === 'function') {
         const functionCall = newMessageResponse.message as FunctionCall;
-        this.invokeFunction(functionCall.function_name);
+        this.invokeFunction(functionCall);
       }
       this.newMessage = '';
       await this.loadConversation();
       this.sending = false;
     },
-    invokeFunction(functionName: string) {
-      const mapping = this.functionMappings?.find(m => m.name === functionName);
+    invokeFunction(functionCall: FunctionCall) {
+      const mapping = this.functionMappings?.find(m => m.name === functionCall.function_name);
       if (mapping && typeof mapping.function === 'function') {
         // Accepts storage functions
-        mapping.function(this.experimentId);
+        mapping.function(functionCall.data);
       }
     },
     displayContent(message: Message) {
@@ -114,6 +117,11 @@ export default defineComponent({
   },
   mounted() {
     this.loadConversation();
+    const bioBuddyStore = useBioBuddyStore();
+    this.functionMappings = [
+      { name: 'query_rcsb_pdb_by_id', function: bioBuddyStore.invokeQueryRcsbPdbEventHandlers },
+      { name: 'query_rcsb_pdb_by_protein_names', function: bioBuddyStore.invokeQueryRcsbPdbEventHandlers },
+      { name: 'query_chembl', function: bioBuddyStore.invokeQueryChemblEventHandlers }];
   },
 });
 </script>

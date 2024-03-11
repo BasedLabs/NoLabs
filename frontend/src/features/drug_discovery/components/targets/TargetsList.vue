@@ -49,7 +49,8 @@ import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
 import {ExtendedTargetMetaData} from "./types";
-import {TargetMetaData} from "../../../../api/client";
+import {FunctionCallReturnData, RcsbPdbData, TargetMetaData} from "../../../../api/client";
+import {useBioBuddyStore} from "../../../biobuddy/storage";
 
 export default defineComponent({
   name: "TargetsList",
@@ -69,11 +70,12 @@ export default defineComponent({
   data() {
     return {
       uploadTargetDialog: false,
-      uploadingTargetFiles: [],
+      uploadingTargetFiles: [] as File[],
       uploadLigandDialog: false,
       uploadingLigandFiles: [],
       selectedTarget: null,
       uploadToAllTargets: false,
+      rscbQueryCallBack: null as ((data: FunctionCallReturnData) => void) | null,
     };
   },
   computed: {
@@ -83,44 +85,49 @@ export default defineComponent({
         })) as ExtendedTargetMetaData[];
       },
     },
-  methods: {
+    mounted() {
+      const bioBuddyStore = useBioBuddyStore();
+      this.rscbQueryCallBack = (data: FunctionCallReturnData) => {
+        const metaDatasArray: Record<string, string>[] = [];
+        for (let dataObject of data.files){
+          const rcsbObject = dataObject as RcsbPdbData;
+          const file = new File([new Blob([rcsbObject.content!])], "protein.fasta")
+
+          this.uploadingTargetFiles.push(file);
+          metaDatasArray.push(rcsbObject.metadata);
+        }
+        this.handleTargetFileUpload(metaDatasArray);
+      };
+      bioBuddyStore.addQueryRcsbPdbEventHandler(this.rscbQueryCallBack);
+    },
+    methods: {
     async selectTarget(target: ExtendedTargetMetaData) {
       await this.getTargetData(target);
     },
-    async handleTargetFileUpload() {
-      const store = useDrugDiscoveryStore();
+      async handleTargetFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
+        const store = useDrugDiscoveryStore();
 
-      this.$q.loading.show({
-        spinner: QSpinnerOrbit,
-        message: `Uploading target files`
-      });
+        this.$q.loading.show({
+          spinner: QSpinnerOrbit,
+          message: `Uploading target files`
+        });
 
-      try {
-        // Assuming uploadTargetToExperiment can handle multiple files and returns an array of TargetMetaData
-        const uploadedTargets: TargetMetaData[] = [];
-        for (let file of this.uploadingTargetFiles) {
-          const uploadResp = await store.uploadTargetToExperiment(this.experimentId, file);
-          if (uploadResp) {
-            uploadedTargets.push(...uploadResp);
+        try {
+          // Assuming uploadTargetToExperiment can handle multiple files and returns an array of TargetMetaData
+          for (let index = 0; index < this.uploadingTargetFiles.length; index++) {
+            const file = this.uploadingTargetFiles[index];
+            // Retrieve the corresponding metaData by file index
+            const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
+            // Pass the metaData to the upload method
+            await store.uploadTargetToExperiment(this.experimentId, file, metaData);
           }
+        } catch (error) {
+          console.error('Error uploading target files:', error);
+        } finally {
+          this.uploadTargetDialog = false;
+          this.$q.loading.hide();
         }
-
-        // Add additional properties to each uploaded target and push them into the targets array
-        const extendedTargets = uploadedTargets.map(target => ({
-          ...target,
-          loadingLigands: false,
-          ligands: [],
-          loadingTargetData: false,
-        })) as ExtendedTargetMetaData[];
-
-        this.targets.push(...extendedTargets);
-      } catch (error) {
-        console.error('Error uploading target files:', error);
-      } finally {
-        this.uploadTargetDialog = false;
-        this.$q.loading.hide();
-      }
-    },
+      },
     async getTargetData(target: ExtendedTargetMetaData) {
       const store = useDrugDiscoveryStore();
       target.loadingTargetData = true;
@@ -149,6 +156,15 @@ export default defineComponent({
       }
     },
   },
+  unmounted() {
+    const bioBuddyStore = useBioBuddyStore();
+    const index = bioBuddyStore.queryRcsbPdbEventHandlers.indexOf(this.rscbQueryCallBack!);
+    if (index !== -1) {
+      bioBuddyStore.queryRcsbPdbEventHandlers.splice(index, 1);
+    }
+  }
+
+
 }
 )
 </script>

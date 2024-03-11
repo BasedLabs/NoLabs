@@ -16,8 +16,9 @@ class UploadTargetFeature:
 
         experiment_id = ExperimentId(request.experiment_id)
         protein_file = request.fasta_file
+        metadata = request.metadata
 
-        response = self._file_management.store_target(experiment_id, protein_file)
+        response = self._file_management.store_target(experiment_id, protein_file, metadata)
 
         return UploadTargetResponse(result=response)
 

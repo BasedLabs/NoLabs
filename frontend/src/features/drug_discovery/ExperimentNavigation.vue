@@ -1,10 +1,6 @@
 <template>
   <q-page class="q-pl-md q-pr-md">
-    <q-splitter v-model="splitterModel" style="height: 100vh;" :limits="[10, 50]">
-      <template v-slot:before>
-        <BioBuddyChat v-if="experiment.experimentId" :experiment-id="experiment.experimentId" :function-mappings="biobuddyFunctions" />
-      </template>
-      <template v-slot:after>
+    <BioBuddyChat :experiment-id="experiment.experimentId" />
         <q-stepper
           v-model="step"
           ref="stepper"
@@ -55,8 +51,6 @@
               <router-view></router-view>
           </q-step>
         </q-stepper>
-      </template>
-    </q-splitter>
   </q-page>
 </template>
 
@@ -65,7 +59,7 @@ import ExperimentHeader from "src/features/drug_discovery/components/ExperimentH
 import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
 import {useDrugDiscoveryStore} from "./storage";
 import {defineComponent} from "vue";
-import {FunctionMapping} from "../biobuddy/BioBuddyChat.vue";
+import {checkBioBuddyEnabled} from "../biobuddy/api";
 
 
 export default defineComponent({
@@ -78,8 +72,8 @@ export default defineComponent({
         experimentId: null as string | null,
         metadata: null
       },
-      biobuddyFunctions: [] as FunctionMapping[],
       splitterModel: 20,
+      bioBuddyEnabled: false,
     };
   },
   async mounted() {
@@ -87,10 +81,13 @@ export default defineComponent({
     this.setStepBasedOnRoute();
     this.experiment.experimentId = this.$route.params.experimentId as string;
     this.experiment.metadata = await store.getExperimentMetaData(this.experiment.experimentId);
-    this.biobuddyFunctions = [
-      { name: 'query_rcsb_pdb_by_protein_names', function: store.fetchTargetsForExperiment },
-      { name: 'query_chembl', function: store.fetchLigandsForExperiment },
-    ];
+    try {
+      const response = await checkBioBuddyEnabled();
+      this.bioBuddyEnabled = response.enabled;
+    } catch (error) {
+      console.error('Error checking BioBuddy enabled status:', error);
+      this.bioBuddyEnabled = false;
+    }
   },
   methods: {
     setStepBasedOnRoute() {

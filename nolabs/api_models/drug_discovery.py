@@ -1,6 +1,6 @@
 from pydantic import dataclasses as pcdataclass
 from fastapi import UploadFile
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 @pcdataclass.dataclass
@@ -22,6 +22,7 @@ class TargetMetaData:
 class UploadTargetRequest:
     experiment_id: str
     fasta_file: UploadFile
+    metadata: Dict[str, str] = None
 
 @pcdataclass.dataclass
 class UploadTargetResponse:
@@ -197,6 +198,7 @@ class UploadTargetLigandResponse:
 class UploadLoneLigandRequest:
     experiment_id: str
     sdf_file: UploadFile
+    metadata: Dict[str, str] = None
 
 @pcdataclass.dataclass
 class UploadLoneLigandResponse:

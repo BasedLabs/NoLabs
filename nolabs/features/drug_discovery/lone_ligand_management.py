@@ -15,8 +15,9 @@ class UploadLoneLigandFeature:
 
         experiment_id = ExperimentId(request.experiment_id)
         ligand_file = request.sdf_file
+        metadata = request.metadata
 
-        ligand_metadata = self._file_management.store_lone_ligand(experiment_id, ligand_file)
+        ligand_metadata = self._file_management.store_lone_ligand(experiment_id, ligand_file, metadata)
 
         return UploadLoneLigandResponse(ligand_meta_data=ligand_metadata)
 

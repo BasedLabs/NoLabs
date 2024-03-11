@@ -126,11 +126,12 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error deleting experiment:', error);
             }
         },
-        async uploadTargetToExperiment(experimentId: string, targetFile: File) {
+        async uploadTargetToExperiment(experimentId: string, targetFile: File, metaData?: Record<string, string>) {
             try {
                 const targetData: Body_upload_target_api_v1_drug_discovery_upload_target_post = {
                     experiment_id: experimentId,
-                    fasta: targetFile
+                    fasta: targetFile,
+                    ...(metaData && { metadata: metaData })
                 };
                 const response = await uploadTargetApi(targetData);
                 response.result.map(target => (
@@ -170,18 +171,19 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error uploading ligand:', error);
             }
         },
-        async uploadLigandToExperiment(experimentId: string, sdfFile: File) {
+        async uploadLigandToExperiment(experimentId: string, sdfFile: File,  metaData?: Record<string, string>) {
           try {
             const ligandData: Body_upload_ligand_to_experiment_api_v1_drug_discovery_upload_ligand_to_experiment_post = {
               experiment_id: experimentId,
-              sdf_file: sdfFile
+              sdf_file: sdfFile,
+              ...(metaData && { metadata: metaData })
             };
             const response = await uploadLigandToExperimentApi(ligandData);
-            return {
-              ligand_id: response.ligand_meta_data.ligand_id,
-              ligand_name: response.ligand_meta_data.ligand_name,
-              jobs: []
-            }
+            this.loneLigands.push({
+              ...response.ligand_meta_data,
+              jobs: [],
+              loadingLigandData: false
+            } as ExtendedLigandMetaData);
           } catch (error) {
             console.error('Error uploading ligand:', error);
           }

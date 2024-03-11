@@ -5,7 +5,7 @@ from typing import List, Dict
 from nolabs.api_models.biobuddy import SendMessageRequest, SendMessageResponse
 from nolabs.api_models.biobuddy import Message as ApiMessage
 from nolabs.domain.experiment import ExperimentId
-from nolabs.features.biobuddy.data_models.message import Message, RegularMessage
+from nolabs.features.biobuddy.data_models.message import Message, RegularMessage, FunctionCall, FunctionParam
 from nolabs.api_models.biobuddy import RegularMessage as ApiRegularMessage
 from nolabs.api_models.biobuddy import FunctionCall as ApiFunctionCall
 from nolabs.features.biobuddy.file_management import FileManagement
@@ -59,7 +59,12 @@ class SendMessageFeature:
                                                               )
                     self._file_management.update_conversation(experiment_id,
                                                               Message(role='assistant',
-                                                                      message=function_call,
+                                                                      message=FunctionCall(
+                                                                          function_name=function_call.function_name,
+                                                                          parameters=[FunctionParam(name=param.name,
+                                                                                                    value=param.value) for param in
+                                                                                      function_call.parameters]
+                                                                                           ),
                                                                       type="function")
                                                               )
                     return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',

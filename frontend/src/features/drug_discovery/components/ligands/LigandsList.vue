@@ -47,7 +47,9 @@ import LigandDetail from "src/features/drug_discovery/components/ligands/LigandD
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
-import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "../targets/types";
+import {ExtendedLigandMetaData} from "../targets/types";
+import {useBioBuddyStore} from "../../../biobuddy/storage";
+import {ChemBLData, FunctionCallReturnData} from "../../../../api/client";
 
 export default defineComponent({
     name: "LigandsList",
@@ -67,31 +69,42 @@ export default defineComponent({
     data() {
       return {
         uploadLigandDialog: false,
-        uploadingLigandFiles: [],
+        uploadingLigandFiles: [] as File[],
         selectedLigand: null,
+        chemblQueryCallback:  null as ((data: FunctionCallReturnData) => void) | null,
       };
     },
-  computed: {
-    ligands(): ExtendedLigandMetaData[] {
-      return this.originalLigands.map(ligand => ({
-        ...ligand
-      })) as ExtendedLigandMetaData[];
+    computed: {
+      ligands(): ExtendedLigandMetaData[] {
+        return this.originalLigands.map(ligand => ({
+          ...ligand
+        })) as ExtendedLigandMetaData[];
+      },
     },
-  },
+    mounted() {
+      const bioBuddyStore = useBioBuddyStore();
+      this.chemblQueryCallback = (data: FunctionCallReturnData) => {
+        const metaDatasArray: Record<string, string>[] = [];
+        for (let dataObject of data.files){
+          const chemBLObject = dataObject as ChemBLData;
+          const file = new File([new Blob([chemBLObject.content!])], chemBLObject.metadata.chembl_id + ".sdf")
+
+          this.uploadingLigandFiles.push(file);
+          metaDatasArray.push(chemBLObject.metadata);
+        }
+        this.handleLigandFileUpload(metaDatasArray);
+      };
+      bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
+    },
     methods: {
-      async handleLigandFileUpload() {
+      async handleLigandFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
         const store = useDrugDiscoveryStore();
 
-        for (let file of this.uploadingLigandFiles) {
-          const ligand = await store.uploadLigandToExperiment(this.experimentId, file);
-          const new_ligand = {
-            ...ligand,
-            jobs: [],
-            loadingLigandData: false
-          } as ExtendedLigandMetaData
-          this.ligands.push(new_ligand);
+        for (let index = 0; index < this.uploadingLigandFiles.length; index++) {
+          const file = this.uploadingLigandFiles[index];
+          const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
+          await store.uploadLigandToExperiment(this.experimentId, file, metaData);
         }
-
         this.uploadLigandDialog = false;
       },
       async getLigandData(ligand: ExtendedLigandMetaData) {

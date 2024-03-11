@@ -3,6 +3,7 @@ from typing import Annotated, List
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
+from nolabs.features.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
 from nolabs.features.biobuddy.file_management import FileManagement
 from nolabs.features.biobuddy.functions.base_function import BiobuddyFunction
 from nolabs.features.biobuddy.functions.query_chembl import QueryChemblFunction
@@ -14,6 +15,8 @@ from nolabs.features.drug_discovery.services.ligand_file_management import Ligan
 from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
 from nolabs.infrastructure.settings import Settings
 
+def check_biobuddy_enabled_dependency() -> CheckBioBuddyEnabledFeature:
+    return CheckBioBuddyEnabledFeature()
 
 def file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)]) -> FileManagement:
     return FileManagement(settings=settings)
