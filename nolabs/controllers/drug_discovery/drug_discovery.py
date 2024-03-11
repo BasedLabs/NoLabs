@@ -1,4 +1,5 @@
-from typing import List
+import json
+from typing import List, Dict, Optional
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from typing import Annotated
@@ -180,9 +181,11 @@ async def change_experiment_name(experiment_id: str, experiment_name: str, featu
 @router.post('/upload-target')
 async def upload_target(feature: Annotated[UploadTargetFeature, Depends(upload_target_dependency)],
                         experiment_id: str = Form(),
-                        fasta: UploadFile = File()
+                        fasta: UploadFile = File(),
+                        metadata: Optional[str] = Form(default=None),  # Now expects a JSON string for metadata
                         ) -> UploadTargetResponse:
-    return feature.handle(UploadTargetRequest(experiment_id, fasta))
+    metadata_dict = json.loads(metadata) if metadata else None
+    return feature.handle(UploadTargetRequest(experiment_id, fasta, metadata_dict))
 
 
 @router.delete('/delete-target')
@@ -242,9 +245,11 @@ async def upload_ligand_to_target(feature: Annotated[UploadTargetLigandFeature, 
 @router.post('/upload-ligand-to-experiment')
 async def upload_ligand_to_experiment(feature: Annotated[UploadLoneLigandFeature, Depends(upload_lone_ligand_dependency)],
                         experiment_id: str = Form(),
-                        sdf_file: UploadFile = File()
+                        sdf_file: UploadFile = File(),
+                        metadata: Optional[str] = Form(default=None)
                         ) -> UploadLoneLigandResponse:
-    return feature.handle(UploadLoneLigandRequest(experiment_id, sdf_file))
+    metadata_dict = json.loads(metadata)
+    return feature.handle(UploadLoneLigandRequest(experiment_id, sdf_file, metadata_dict))
 
 @router.delete('/delete-ligand-from-target')
 async def delete_ligand_from_target(feature: Annotated[

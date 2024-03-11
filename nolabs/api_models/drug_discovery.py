@@ -22,7 +22,7 @@ class TargetMetaData:
 class UploadTargetRequest:
     experiment_id: str
     fasta_file: UploadFile
-    metadata: Dict[str, str] = None
+    metadata: Optional[Dict[str, str]] = None
 
 @pcdataclass.dataclass
 class UploadTargetResponse:

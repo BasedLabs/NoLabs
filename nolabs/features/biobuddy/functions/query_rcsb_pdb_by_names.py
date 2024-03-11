@@ -12,8 +12,6 @@ from rcsb_pdb_query_microservice import DefaultApi as rcsbApiDefaultApi
 from rcsb_pdb_query_microservice import ApiClient as rcsbApiClient
 from rcsb_pdb_query_microservice import Configuration as rcsbApiConfiguration
 
-from nolabs.utils.fasta import create_upload_file_from_string
-
 
 class QueryRcsbPdbByNamesFunction(BiobuddyFunction):
     def __init__(self, settings: Settings,

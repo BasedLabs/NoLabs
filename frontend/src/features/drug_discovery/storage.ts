@@ -131,7 +131,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 const targetData: Body_upload_target_api_v1_drug_discovery_upload_target_post = {
                     experiment_id: experimentId,
                     fasta: targetFile,
-                    ...(metaData && { metadata: metaData })
+                    ...(metaData && { metadata: JSON.stringify(metaData) })
                 };
                 const response = await uploadTargetApi(targetData);
                 response.result.map(target => (
@@ -149,7 +149,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async deleteTargetFromExperiment(experimentId: string, targetId: string) {
             try {
                 await deleteTargetApi(experimentId, targetId);
-                // Update the targets list for the specific experiment
+                this.targets = this.targets.filter(target => target.target_id !== targetId);
             } catch (error) {
                 console.error('Error deleting target:', error);
             }
@@ -171,12 +171,12 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 console.error('Error uploading ligand:', error);
             }
         },
-        async uploadLigandToExperiment(experimentId: string, sdfFile: File,  metaData?: Record<string, string>) {
+        async uploadLigandToExperiment(experimentId: string, sdfFile: File, metaData?: Record<string, string>) {
           try {
             const ligandData: Body_upload_ligand_to_experiment_api_v1_drug_discovery_upload_ligand_to_experiment_post = {
               experiment_id: experimentId,
               sdf_file: sdfFile,
-              ...(metaData && { metadata: metaData })
+              ...(metaData && { metadata: JSON.stringify(metaData) })
             };
             const response = await uploadLigandToExperimentApi(ligandData);
             this.loneLigands.push({
@@ -199,7 +199,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async deleteLigandFromExperiment(experimentId: string, ligandId: string) {
           try {
             await deleteLigandFromExperimentApi(experimentId, ligandId);
-            // Update the ligands list for the specific target
+            this.loneLigands = this.loneLigands.filter(ligand => ligand.ligand_id !== ligandId);
           } catch (error) {
             console.error('Error deleting ligand:', error);
           }

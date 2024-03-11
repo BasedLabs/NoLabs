@@ -1,32 +1,30 @@
 <template>
-  <q-list bordered separator class="bg-black">
-    <q-item-label header>Upload ligands</q-item-label>
+
+  <q-list bordered separator style="width: 100%;" class="bg-black rounded-borders">
+    <q-item-label header class="text-white">Upload ligands</q-item-label>
     <q-item>
       <q-btn size="md" class="full-width q-pm-sm" push color="info" @click="uploadLigandDialog = true">
         + upload ligands
         <q-tooltip>Add ligands to the experiment</q-tooltip>
       </q-btn>
     </q-item>
-    <q-expansion-item
-      expand-separator
-      v-for="ligand in ligands"
-      :key="ligand.ligand_id"
-      clickable
-      :label="ligand.ligand_name"
-      @show="() => getLigandData(ligand)"
-    >
-      <q-btn color="negative" @click="deleteLigand(ligand)" icon="delete" flat>
-        Delete ligand
-      </q-btn>
-      <LigandDetail v-if="ligand.data" :originalLigand="ligand"> </LigandDetail>
-    </q-expansion-item>
+    <q-item v-for="ligand in ligands" :key="ligand.ligand_id" clickable v-ripple class="q-mb-sm" @click="showLigandDetailDialog(ligand)">
+      <q-card class="q-pa-md full-width">
+        <q-card-section>
+          <div>{{ ligand.ligand_name }}</div>
+          <div class="q-pt-sm q-pb-sm"><a class="text-light-blue" :href="ligand.link" target="_blank">{{ ligand.link }}</a></div>
+          <q-item-label v-if="ligand.data" caption>SMILES: {{ ligand.data.smiles }}</q-item-label>
+        </q-card-section>
+      </q-card>
+    </q-item>
   </q-list>
+
+
   <q-page-sticky position="bottom-right" :offset="[100, 50]">
     <q-btn size="lg" push round color="info" icon="add" @click="uploadLigandDialog = true">
       <q-tooltip>Add ligands to the experiment</q-tooltip>
     </q-btn>
   </q-page-sticky>
-
   <q-dialog v-model="uploadLigandDialog">
     <q-card>
       <q-card-section>
@@ -40,6 +38,18 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+
+  <q-dialog v-model="ligandDetailDialogVisible">
+    <q-card>
+      <q-card-section>
+        <LigandDetail :originalLigand="selectedLigand" v-if="selectedLigand && selectedLigand.data"></LigandDetail>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="Close" color="negative" @click="ligandDetailDialogVisible = false" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
 </template>
 
 <script lang="ts">
@@ -70,8 +80,9 @@ export default defineComponent({
       return {
         uploadLigandDialog: false,
         uploadingLigandFiles: [] as File[],
-        selectedLigand: null,
+        selectedLigand: null as ExtendedLigandMetaData | null,
         chemblQueryCallback:  null as ((data: FunctionCallReturnData) => void) | null,
+        ligandDetailDialogVisible: false,
       };
     },
     computed: {
@@ -95,8 +106,16 @@ export default defineComponent({
         this.handleLigandFileUpload(metaDatasArray);
       };
       bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
+
+      for (let ligand of this.ligands) {
+        this.getLigandData(ligand);
+      }
     },
     methods: {
+      showLigandDetailDialog(ligand: ExtendedLigandMetaData) {
+        this.selectedLigand = ligand;
+        this.ligandDetailDialogVisible = true;
+      },
       async handleLigandFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
         const store = useDrugDiscoveryStore();
 

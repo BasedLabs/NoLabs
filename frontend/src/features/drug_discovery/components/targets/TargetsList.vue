@@ -49,7 +49,7 @@ import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
 import {ExtendedTargetMetaData} from "./types";
-import {FunctionCallReturnData, RcsbPdbData, TargetMetaData} from "../../../../api/client";
+import {FunctionCallReturnData, RcsbPdbData} from "../../../../api/client";
 import {useBioBuddyStore} from "../../../biobuddy/storage";
 
 export default defineComponent({
@@ -94,7 +94,17 @@ export default defineComponent({
           const file = new File([new Blob([rcsbObject.content!])], "protein.fasta")
 
           this.uploadingTargetFiles.push(file);
-          metaDatasArray.push(rcsbObject.metadata);
+
+          // Directly iterating and treating each key as a string explicitly
+          const metadataAsString: Record<string, string> = {};
+          Object.entries(rcsbObject.metadata).forEach(([key, value]) => {
+            // Explicitly treating the key as a string, though this should be implicit
+            const stringKey: string = String(key);
+            // Handling the value conversion, assuming potential complex types
+            metadataAsString[stringKey] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+          });
+
+          metaDatasArray.push(metadataAsString);
         }
         this.handleTargetFileUpload(metaDatasArray);
       };
