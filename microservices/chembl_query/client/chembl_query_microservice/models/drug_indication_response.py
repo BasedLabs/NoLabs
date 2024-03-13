@@ -17,21 +17,21 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
-from chembl_query_microservice.models.job_id import JobId
+from pydantic import BaseModel, StrictInt
+from typing import Any, ClassVar, Dict, List
+from chembl_query_microservice.models.molecule import Molecule
 from typing import Optional, Set
 from typing_extensions import Self
 
-class ChEMBLMoleculeRequest(BaseModel):
+class DrugIndicationResponse(BaseModel):
     """
-    ChEMBLMoleculeRequest
+    DrugIndicationResponse
     """ # noqa: E501
-    filters: Optional[Dict[str, Any]] = None
-    order_by: Optional[StrictStr] = None
-    limit: Optional[StrictInt] = 20
-    job_id: Optional[JobId] = None
-    __properties: ClassVar[List[str]] = ["filters", "order_by", "limit", "job_id"]
+    drugs: List[Molecule]
+    total_count: StrictInt
+    page: StrictInt
+    pages: StrictInt
+    __properties: ClassVar[List[str]] = ["drugs", "total_count", "page", "pages"]
 
     model_config = {
         "populate_by_name": True,
@@ -51,7 +51,7 @@ class ChEMBLMoleculeRequest(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of ChEMBLMoleculeRequest from a JSON string"""
+        """Create an instance of DrugIndicationResponse from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -72,14 +72,18 @@ class ChEMBLMoleculeRequest(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of job_id
-        if self.job_id:
-            _dict['job_id'] = self.job_id.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of each item in drugs (list)
+        _items = []
+        if self.drugs:
+            for _item in self.drugs:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['drugs'] = _items
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of ChEMBLMoleculeRequest from a dict"""
+        """Create an instance of DrugIndicationResponse from a dict"""
         if obj is None:
             return None
 
@@ -87,10 +91,10 @@ class ChEMBLMoleculeRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "filters": obj.get("filters"),
-            "order_by": obj.get("order_by"),
-            "limit": obj.get("limit") if obj.get("limit") is not None else 20,
-            "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
+            "drugs": [Molecule.from_dict(_item) for _item in obj["drugs"]] if obj.get("drugs") is not None else None,
+            "total_count": obj.get("total_count"),
+            "page": obj.get("page"),
+            "pages": obj.get("pages")
         })
         return _obj
 

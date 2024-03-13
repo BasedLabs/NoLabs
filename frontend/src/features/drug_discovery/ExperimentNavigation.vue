@@ -1,6 +1,6 @@
 <template>
-  <q-page class="q-pl-md q-pr-md">
-    <BioBuddyChat :experiment-id="experiment.experimentId" />
+  <q-page class="bg-black q-pl-md q-pr-md">
+    <BioBuddyChat :experiment-id=" this.$route.params.experimentId" />
         <q-stepper
           v-model="step"
           ref="stepper"

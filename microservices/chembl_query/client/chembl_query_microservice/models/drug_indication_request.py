@@ -17,21 +17,25 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, StrictInt, StrictStr
+from pydantic import BaseModel, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
+from chembl_query_microservice.models.filters1 import Filters1
 from chembl_query_microservice.models.job_id import JobId
+from chembl_query_microservice.models.limit import Limit
+from chembl_query_microservice.models.order_by import OrderBy
 from typing import Optional, Set
 from typing_extensions import Self
 
-class ChEMBLMoleculeRequest(BaseModel):
+class DrugIndicationRequest(BaseModel):
     """
-    ChEMBLMoleculeRequest
+    DrugIndicationRequest
     """ # noqa: E501
-    filters: Optional[Dict[str, Any]] = None
-    order_by: Optional[StrictStr] = None
-    limit: Optional[StrictInt] = 20
+    condition: StrictStr
+    filters: Optional[Filters1] = None
+    order_by: Optional[OrderBy] = None
+    limit: Optional[Limit] = None
     job_id: Optional[JobId] = None
-    __properties: ClassVar[List[str]] = ["filters", "order_by", "limit", "job_id"]
+    __properties: ClassVar[List[str]] = ["condition", "filters", "order_by", "limit", "job_id"]
 
     model_config = {
         "populate_by_name": True,
@@ -51,7 +55,7 @@ class ChEMBLMoleculeRequest(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of ChEMBLMoleculeRequest from a JSON string"""
+        """Create an instance of DrugIndicationRequest from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -72,6 +76,15 @@ class ChEMBLMoleculeRequest(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of filters
+        if self.filters:
+            _dict['filters'] = self.filters.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of order_by
+        if self.order_by:
+            _dict['order_by'] = self.order_by.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of limit
+        if self.limit:
+            _dict['limit'] = self.limit.to_dict()
         # override the default output from pydantic by calling `to_dict()` of job_id
         if self.job_id:
             _dict['job_id'] = self.job_id.to_dict()
@@ -79,7 +92,7 @@ class ChEMBLMoleculeRequest(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of ChEMBLMoleculeRequest from a dict"""
+        """Create an instance of DrugIndicationRequest from a dict"""
         if obj is None:
             return None
 
@@ -87,9 +100,10 @@ class ChEMBLMoleculeRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "filters": obj.get("filters"),
-            "order_by": obj.get("order_by"),
-            "limit": obj.get("limit") if obj.get("limit") is not None else 20,
+            "condition": obj.get("condition"),
+            "filters": Filters1.from_dict(obj["filters"]) if obj.get("filters") is not None else None,
+            "order_by": OrderBy.from_dict(obj["order_by"]) if obj.get("order_by") is not None else None,
+            "limit": Limit.from_dict(obj["limit"]) if obj.get("limit") is not None else None,
             "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
         })
         return _obj

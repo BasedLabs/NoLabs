@@ -85,6 +85,8 @@ Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *DefaultApi* | [**get_running_jobs_jobs_running_get**](docs/DefaultApi.md#get_running_jobs_jobs_running_get) | **GET** /jobs/running | Get Running Jobs
 *DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
+*DefaultApi* | [**query_query_chembl_by_condition_post**](docs/DefaultApi.md#query_query_chembl_by_condition_post) | **POST** /query-chembl-by-condition | Query
+*DefaultApi* | [**query_query_chembl_drugs_post**](docs/DefaultApi.md#query_query_chembl_drugs_post) | **POST** /query-chembl-drugs | Query
 *DefaultApi* | [**query_query_chembl_post**](docs/DefaultApi.md#query_query_chembl_post) | **POST** /query-chembl | Query
 
 
@@ -92,10 +94,16 @@ Class | Method | HTTP request | Description
 
  - [ChEMBLMoleculeRequest](docs/ChEMBLMoleculeRequest.md)
  - [ChEMBLMoleculeResponse](docs/ChEMBLMoleculeResponse.md)
+ - [DrugIndicationRequest](docs/DrugIndicationRequest.md)
+ - [DrugIndicationResponse](docs/DrugIndicationResponse.md)
+ - [Filters](docs/Filters.md)
+ - [Filters1](docs/Filters1.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [JobId](docs/JobId.md)
+ - [Limit](docs/Limit.md)
  - [Molecule](docs/Molecule.md)
+ - [OrderBy](docs/OrderBy.md)
  - [PrefName](docs/PrefName.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)

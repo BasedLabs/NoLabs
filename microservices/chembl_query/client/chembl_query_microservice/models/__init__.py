@@ -16,10 +16,16 @@
 # import models into model package
 from chembl_query_microservice.models.ch_embl_molecule_request import ChEMBLMoleculeRequest
 from chembl_query_microservice.models.ch_embl_molecule_response import ChEMBLMoleculeResponse
+from chembl_query_microservice.models.drug_indication_request import DrugIndicationRequest
+from chembl_query_microservice.models.drug_indication_response import DrugIndicationResponse
+from chembl_query_microservice.models.filters import Filters
+from chembl_query_microservice.models.filters1 import Filters1
 from chembl_query_microservice.models.http_validation_error import HTTPValidationError
 from chembl_query_microservice.models.is_job_running_response import IsJobRunningResponse
 from chembl_query_microservice.models.job_id import JobId
+from chembl_query_microservice.models.limit import Limit
 from chembl_query_microservice.models.molecule import Molecule
+from chembl_query_microservice.models.order_by import OrderBy
 from chembl_query_microservice.models.pref_name import PrefName
 from chembl_query_microservice.models.validation_error import ValidationError
 from chembl_query_microservice.models.validation_error_loc_inner import ValidationErrorLocInner

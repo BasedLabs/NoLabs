@@ -184,6 +184,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
               jobs: [],
               loadingLigandData: false
             } as ExtendedLigandMetaData);
+            this.fetchLigandDataForExperiment(experimentId, response.ligand_meta_data.ligand_id);
           } catch (error) {
             console.error('Error uploading ligand:', error);
           }

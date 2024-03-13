@@ -5,7 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**search_term** | **str** |  | 
+**filters** | **object** |  | [optional] 
+**order_by** | **str** |  | [optional] 
+**limit** | **int** |  | [optional] [default to 20]
 **job_id** | [**JobId**](JobId.md) |  | [optional] 
 
 ## Example

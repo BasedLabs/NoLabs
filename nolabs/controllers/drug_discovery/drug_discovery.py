@@ -248,7 +248,7 @@ async def upload_ligand_to_experiment(feature: Annotated[UploadLoneLigandFeature
                         sdf_file: UploadFile = File(),
                         metadata: Optional[str] = Form(default=None)
                         ) -> UploadLoneLigandResponse:
-    metadata_dict = json.loads(metadata)
+    metadata_dict = json.loads(metadata) if metadata else None
     return feature.handle(UploadLoneLigandRequest(experiment_id, sdf_file, metadata_dict))
 
 @router.delete('/delete-ligand-from-target')

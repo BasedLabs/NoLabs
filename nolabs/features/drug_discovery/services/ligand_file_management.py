@@ -29,11 +29,12 @@ class LigandsFileManagement:
         self._targets_file_management = targets_file_management
 
     def ensure_target_ligands_folder_exists(self, experiment_id: ExperimentId, target_id: TargetId) -> None:
+        self.experiments_file_management.ensure_experiment_folder_exists(experiment_id)
         if not os.path.isdir(self.target_ligands_folder(experiment_id, target_id)):
             os.mkdir(self.target_ligands_folder(experiment_id, target_id))
 
     def ensure_lone_ligands_folder_exists(self, experiment_id: ExperimentId) -> None:
-        if not os.path.isdir(self.lone_ligands_folder(experiment_id)):
+        if not os.path.exists(self.lone_ligands_folder(experiment_id)):
             os.mkdir(self.lone_ligands_folder(experiment_id))
 
     def ensure_target_ligand_folder_exists(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId):
@@ -91,7 +92,7 @@ class LigandsFileManagement:
 
     def store_lone_ligand(self, experiment_id: ExperimentId, sdf_file: UploadFile,
                           additional_metadata: Dict[str, str] = None) -> LigandMetaData:
-        self.ensure_lone_ligands_folder_exists(experiment_id,)
+        self.ensure_lone_ligands_folder_exists(experiment_id)
 
         original_filename = sdf_file.filename
         contents = sdf_file.file.read().decode('utf-8')

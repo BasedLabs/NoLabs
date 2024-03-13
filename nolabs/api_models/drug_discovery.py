@@ -198,7 +198,7 @@ class UploadTargetLigandResponse:
 class UploadLoneLigandRequest:
     experiment_id: str
     sdf_file: UploadFile
-    metadata: Dict[str, str] = None
+    metadata: Optional[Dict[str, str]] = None
 
 @pcdataclass.dataclass
 class UploadLoneLigandResponse:
