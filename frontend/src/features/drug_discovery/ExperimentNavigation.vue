@@ -1,6 +1,6 @@
 <template>
   <q-page class="bg-black q-pl-md q-pr-md">
-    <BioBuddyChat :experiment-id=" this.$route.params.experimentId" />
+        <BioBuddyChat :experiment-id=" this.$route.params.experimentId" />
         <q-stepper
           v-model="step"
           ref="stepper"
@@ -121,3 +121,11 @@ export default defineComponent({
 }
 )
 </script>
+
+<style>
+
+body {
+  overflow-x: hidden;
+}
+
+</style>

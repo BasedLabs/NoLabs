@@ -1,6 +1,6 @@
 <template>
   <!-- Main Page Content -->
-  <q-page class="q-ma-md">
+  <q-page>
     <div v-if="loading">
       <q-spinner color="primary"/>
     </div>
