@@ -36,10 +36,9 @@ class IsJobRunningResponse:
 
 @dataclasses.dataclass
 class DrugIndicationRequest(BaseModelMixin):
-    condition: str
-    filters: Optional[Dict[str, str]] = None
-    order_by: Optional[str] = None
-    limit: Optional[int] = 20  # Default page size
+    filters: Dict[str, Union[str, bool, int]] = None
+    order_by: str = None
+    limit: int = 20  # Default page size
     job_id: Optional[str] = None
 
 

@@ -5,10 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**condition** | **str** |  | 
-**filters** | [**Filters1**](Filters1.md) |  | [optional] 
-**order_by** | [**OrderBy**](OrderBy.md) |  | [optional] 
-**limit** | [**Limit**](Limit.md) |  | [optional] 
+**filters** | **object** |  | [optional] 
+**order_by** | **str** |  | [optional] 
+**limit** | **int** |  | [optional] [default to 20]
 **job_id** | [**JobId**](JobId.md) |  | [optional] 
 
 ## Example

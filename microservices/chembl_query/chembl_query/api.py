@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from chembl_query.services import search_chembl_molecules, search_drugs_for_condition, search_chembl_drugs
+from chembl_query.services import search_chembl_molecules, search_drugs_for_condition
 from chembl_query.api_models import ChEMBLMoleculeRequest, ChEMBLMoleculeResponse, IsJobRunningResponse, \
     DrugIndicationRequest, DrugIndicationResponse
 
@@ -15,15 +15,6 @@ def query(request: ChEMBLMoleculeRequest) -> ChEMBLMoleculeResponse:
     if request.job_id:
         job_state_manager.start_job(request.job_id)
     result = search_chembl_molecules(request)
-    if request.job_id:
-        job_state_manager.finish_job(request.job_id)
-    return result
-
-@app.post("/query-chembl-drugs")
-def query(request: ChEMBLMoleculeRequest) -> ChEMBLMoleculeResponse:
-    if request.job_id:
-        job_state_manager.start_job(request.job_id)
-    result = search_chembl_drugs(request)
     if request.job_id:
         job_state_manager.finish_job(request.job_id)
     return result

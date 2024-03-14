@@ -7,7 +7,7 @@ from chembl_query.api_models import ChEMBLMoleculeRequest, ChEMBLMoleculeRespons
 
 from chembl_query.loggers import logger
 
-__all__ = ['search_chembl_molecules', 'search_drugs_for_condition', 'search_chembl_drugs']
+__all__ = ['search_chembl_molecules', 'search_drugs_for_condition']
 
 
 def search_chembl_molecules(request: ChEMBLMoleculeRequest) -> ChEMBLMoleculeResponse:
@@ -54,48 +54,6 @@ def search_chembl_molecules(request: ChEMBLMoleculeRequest) -> ChEMBLMoleculeRes
 
     return ChEMBLMoleculeResponse(molecules=molecules)
 
-def search_chembl_drugs(request: ChEMBLMoleculeRequest) -> ChEMBLMoleculeResponse:
-    base_url = "https://www.ebi.ac.uk/chembl/api/data/drugs"
-    # Specify the format=json parameter to ensure JSON is returned
-    query_params = {}
-    # Start building the query parameters
-    if request.limit:
-        query_params = {'limit': request.limit, 'format': 'json'}
-
-    filters = request.filters
-
-    print(filters)
-
-    # Add filters to the query parameters
-    if filters:
-        for field, value in filters.items():
-            query_params[field] = value
-
-    # Add ordering to the query parameters
-    if request.order_by:
-        query_params['order_by'] = request.order_by
-
-    search_url = f"{base_url}?{'&'.join(f'{key}={value}' for key, value in query_params.items())}"
-
-    response = requests.get(base_url)
-
-    molecules = []
-    if response.status_code == 200:
-        try:
-            data = response.json()
-            for entry in data['drugs']:
-                chembl_id = entry.get('molecule_chembl_id')
-                molecule = fetch_molecule_details(chembl_id)
-                if molecule:
-                    molecules.append(molecule)
-
-        except requests.exceptions.JSONDecodeError:
-            print("Error decoding JSON response.")
-    else:
-        print(f"Failed to fetch data, status code: {response.status_code}")
-
-    return ChEMBLMoleculeResponse(molecules=molecules)
-
 def search_drugs_for_condition(request: DrugIndicationRequest) -> DrugIndicationResponse:
     base_url = "https://www.ebi.ac.uk/chembl/api/data/drug_indication"
 
@@ -103,10 +61,6 @@ def search_drugs_for_condition(request: DrugIndicationRequest) -> DrugIndication
     # Start building the query parameters
     if request.limit:
         query_params = {'limit': request.limit, 'format': 'json'}
-
-    # Add condition query if specified (assuming 'condition' is a valid field for filtering)
-    if request.condition:
-        query_params['condition__icontains'] = request.condition
 
     # Add filters to the query parameters
     if request.filters:

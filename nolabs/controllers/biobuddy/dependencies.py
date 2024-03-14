@@ -7,6 +7,7 @@ from nolabs.features.biobuddy.check_biobuddy_enabled_feature import CheckBioBudd
 from nolabs.features.biobuddy.file_management import FileManagement
 from nolabs.features.biobuddy.functions.base_function import BiobuddyFunction
 from nolabs.features.biobuddy.functions.query_chembl import QueryChemblFunction
+from nolabs.features.biobuddy.functions.query_chembl_by_disease import QueryChemblByConditionFunction
 from nolabs.features.biobuddy.functions.query_rcsb_pdb_by_id import QueryRcsbPdbByIdFunction
 from nolabs.features.biobuddy.functions.query_rcsb_pdb_by_names import QueryRcsbPdbByNamesFunction
 from nolabs.features.biobuddy.load_conversation_feature import LoadConversationFeature
@@ -61,6 +62,11 @@ def query_chembl_function(settings: Annotated[Settings, Depends(settings_depende
                                      ) -> QueryChemblFunction:
     return QueryChemblFunction(settings=settings, ligands_file_management=ligands_file_management)
 
+def query_chembl_by_condition_function(settings: Annotated[Settings, Depends(settings_dependency)],
+                                     ligands_file_management: Annotated[LigandsFileManagement,
+                                     Depends(ligand_file_management_dependency)]
+                                     ) -> QueryChemblByConditionFunction:
+    return QueryChemblByConditionFunction(settings=settings, ligands_file_management=ligands_file_management)
 
 def send_message_to_drug_discovery_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
                                               file_management: Annotated[FileManagement,
@@ -73,4 +79,5 @@ def send_message_to_drug_discovery_dependency(settings: Annotated[Settings, Depe
     return SendMessageFeature(settings=settings, file_management=file_management,
                               functions=[query_rcsb_pdb_by_id_function(settings, target_file_management),
                                          query_rcsb_pdb_by_names_function(settings, target_file_management),
-                                         query_chembl_function(settings, ligands_file_management)])
+                                         query_chembl_function(settings, ligands_file_management),
+                                         query_chembl_by_condition_function(settings, ligands_file_management)])
