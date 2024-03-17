@@ -7,10 +7,10 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **chembl_id** | **str** |  | 
 **molecule_type** | **str** |  | 
-**pref_name** | [**PrefName**](PrefName.md) |  | 
 **synonyms** | **List[str]** |  | 
 **smiles** | **str** |  | 
 **link** | **str** |  | 
+**pref_name** | **str** |  | [optional] 
 
 ## Example
 

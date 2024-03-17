@@ -21,8 +21,15 @@
             <q-item-label v-if="ligand.data" caption>SMILES: {{ ligand.data.smiles }}</q-item-label>
           </q-card-section>
           <q-card-section class="flex-row">
-            <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative" />
-            <q-btn icon="add" flat @click.stop="openTargetSelectionDialog(ligand)" color="positive" />
+            <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative">
+              <q-tooltip>Delete ligand</q-tooltip>
+            </q-btn>
+            <q-btn icon="add" flat @click.stop="openTargetSelectionDialog(ligand)" color="positive">
+              <q-tooltip>Attach to targets</q-tooltip>
+            </q-btn>
+            <q-btn icon="file_download" flat @click.stop="downloadLigand(ligand)" color="info">
+              <q-tooltip>Download</q-tooltip>
+            </q-btn>
           </q-card-section>
           </div>
         </div>
@@ -67,7 +74,7 @@
         <div class="text-h6">Select Targets</div>
         <q-checkbox label="Select All" v-model="allTargetsSelected"></q-checkbox>
         <q-list>
-          <q-item v-for="target in drugDiscoveryStore.targets" :key="target.target_id">
+          <q-item v-for="target in targets" :key="target.target_id">
             <q-checkbox v-model="this.selectedTargets" :label="target.target_name" :val="target.target_id"></q-checkbox>
           </q-item>
         </q-list>
@@ -86,7 +93,7 @@ import LigandDetail from "src/features/drug_discovery/components/ligands/LigandD
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
-import {ExtendedLigandMetaData} from "../targets/types";
+import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "../targets/types";
 import {useBioBuddyStore} from "../../../biobuddy/storage";
 import {ChemBLData, FunctionCallReturnData} from "../../../../api/client";
 
@@ -112,6 +119,7 @@ export default defineComponent({
         selectedTargets: [] as String[],
         selectAllTargets: false,
         ligands: [] as ExtendedLigandMetaData[],
+        targets: [] as ExtendedTargetMetaData[],
       };
     },
     computed: {
@@ -134,8 +142,8 @@ export default defineComponent({
         const metaDatasArray: Record<string, string>[] = [];
         for (let dataObject of data.files){
           const chemBLObject = dataObject as ChemBLData;
-          const file = new File([new Blob([chemBLObject.content!])], chemBLObject.metadata.chembl_id + ".sdf")
 
+          const file = new File([new Blob([chemBLObject.content!])], chemBLObject.metadata.pref_name + ".sdf");
           this.uploadingLigandFiles.push(file);
           metaDatasArray.push(chemBLObject.metadata);
         }
@@ -198,11 +206,12 @@ export default defineComponent({
         }
       },
 
-      openTargetSelectionDialog(ligand: ExtendedLigandMetaData) {
+      async openTargetSelectionDialog(ligand: ExtendedLigandMetaData) {
         this.selectedLigand = ligand;
         this.targetSelectionDialogVisible = true;
         this.selectedTargets = [];
         this.selectAllTargets = false;
+        this.targets = await this.drugDiscoveryStore.fetchTargetsForExperiment(this.experimentId) as ExtendedTargetMetaData[];
       },
 
       async addLigandsToSelectedTargets() {
@@ -229,6 +238,26 @@ export default defineComponent({
         this.targetSelectionDialogVisible = false;
         this.selectedTargets = [];
         this.selectAllTargets = false;
+      },
+      downloadLigand(ligand: ExtendedLigandMetaData) {
+        if (!ligand.data || !ligand.data.sdf_file) {
+          console.error('SDF file content is missing for this ligand.');
+          return;
+        }
+
+        // Create a blob from the SDF content
+        const sdfContent = ligand.data.sdf_file;
+        const blob = new Blob([sdfContent], { type: 'chemical/x-mdl-sdfile' });
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element and trigger the download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${ligand.ligand_name}.sdf`; // Set the file name
+        document.body.appendChild(a); // Append the anchor to the body
+        a.click(); // Trigger the download
+        window.URL.revokeObjectURL(url); // Clean up the URL object
+        a.remove(); // Remove the anchor from the document
       },
     },
     unmounted() {

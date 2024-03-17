@@ -5,5 +5,6 @@
 export type ChemBLMetaData = {
     chembl_id: string;
     link: string;
+    pref_name: string;
 };
 

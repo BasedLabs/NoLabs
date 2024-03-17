@@ -18,8 +18,7 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, StrictStr
-from typing import Any, ClassVar, Dict, List
-from chembl_query_microservice.models.pref_name import PrefName
+from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -29,11 +28,11 @@ class Molecule(BaseModel):
     """ # noqa: E501
     chembl_id: StrictStr
     molecule_type: StrictStr
-    pref_name: PrefName
     synonyms: List[StrictStr]
     smiles: StrictStr
     link: StrictStr
-    __properties: ClassVar[List[str]] = ["chembl_id", "molecule_type", "pref_name", "synonyms", "smiles", "link"]
+    pref_name: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["chembl_id", "molecule_type", "synonyms", "smiles", "link", "pref_name"]
 
     model_config = {
         "populate_by_name": True,
@@ -74,9 +73,6 @@ class Molecule(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of pref_name
-        if self.pref_name:
-            _dict['pref_name'] = self.pref_name.to_dict()
         return _dict
 
     @classmethod
@@ -91,10 +87,10 @@ class Molecule(BaseModel):
         _obj = cls.model_validate({
             "chembl_id": obj.get("chembl_id"),
             "molecule_type": obj.get("molecule_type"),
-            "pref_name": PrefName.from_dict(obj["pref_name"]) if obj.get("pref_name") is not None else None,
             "synonyms": obj.get("synonyms"),
             "smiles": obj.get("smiles"),
-            "link": obj.get("link")
+            "link": obj.get("link"),
+            "pref_name": obj.get("pref_name")
         })
         return _obj
 

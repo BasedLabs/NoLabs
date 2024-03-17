@@ -100,7 +100,6 @@ Class | Method | HTTP request | Description
  - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [JobId](docs/JobId.md)
  - [Molecule](docs/Molecule.md)
- - [PrefName](docs/PrefName.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
 

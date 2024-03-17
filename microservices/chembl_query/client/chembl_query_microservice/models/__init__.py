@@ -23,6 +23,5 @@ from chembl_query_microservice.models.http_validation_error import HTTPValidatio
 from chembl_query_microservice.models.is_job_running_response import IsJobRunningResponse
 from chembl_query_microservice.models.job_id import JobId
 from chembl_query_microservice.models.molecule import Molecule
-from chembl_query_microservice.models.pref_name import PrefName
 from chembl_query_microservice.models.validation_error import ValidationError
 from chembl_query_microservice.models.validation_error_loc_inner import ValidationErrorLocInner

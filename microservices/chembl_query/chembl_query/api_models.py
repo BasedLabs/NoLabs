@@ -10,10 +10,10 @@ from chembl_query.mixins import BaseModelMixin
 class Molecule:
     chembl_id: str
     molecule_type: str
-    pref_name: Optional[str]
     synonyms: List[str]
     smiles: str
     link: str
+    pref_name: str = None
 
 
 @dataclasses.dataclass

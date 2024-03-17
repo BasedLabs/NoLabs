@@ -112,9 +112,12 @@ class QueryChemblByConditionFunction(BiobuddyFunction):
             for molecule in molecules:
                 molecule_smiles = molecule.smiles
                 sdf_content = smiles_to_sdf_string(molecule_smiles)
+
+                molecule.pref_name = molecule.pref_name if molecule.pref_name else molecule.chembl_id
                 data.append(ChemBLData(
                     content=sdf_content,
                     metadata=ChemBLMetaData(
+                        pref_name=molecule.pref_name,
                         chembl_id=molecule.chembl_id,
                         link=molecule.link
                     )

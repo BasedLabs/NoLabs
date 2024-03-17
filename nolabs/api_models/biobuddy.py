@@ -42,6 +42,8 @@ class RcsbPdbData(FileData):
 class ChemBLMetaData:
     chembl_id: str
     link: str
+    pref_name: str
+
 
 class ChemBLData(FileData):
     metadata: ChemBLMetaData  # Example of a specific attribute for ChemBLData

@@ -20,7 +20,6 @@ chembl_query_microservice/models/http_validation_error.py
 chembl_query_microservice/models/is_job_running_response.py
 chembl_query_microservice/models/job_id.py
 chembl_query_microservice/models/molecule.py
-chembl_query_microservice/models/pref_name.py
 chembl_query_microservice/models/validation_error.py
 chembl_query_microservice/models/validation_error_loc_inner.py
 chembl_query_microservice/py.typed
@@ -35,7 +34,6 @@ docs/HTTPValidationError.md
 docs/IsJobRunningResponse.md
 docs/JobId.md
 docs/Molecule.md
-docs/PrefName.md
 docs/ValidationError.md
 docs/ValidationErrorLocInner.md
 git_push.sh
