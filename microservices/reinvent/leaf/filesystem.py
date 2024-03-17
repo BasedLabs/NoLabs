@@ -107,10 +107,13 @@ class FileObject(Object):
 
         json.dump(j, open(self.full_path, 'w'))
 
-    def read_json(self) -> T:
+    def read(self, loader) -> Any:
         self._ensure_exists()
 
-        return json.load(open(self.full_path, 'r'))
+        return loader(open(self.full_path, 'r'))
+
+    def read_json(self) -> T:
+        return self.read(json.load)
 
     def delete(self):
         if self.physically_exists():

@@ -15,8 +15,16 @@ class RunReinventResponse:
 @pydantic.dataclasses.dataclass
 class RunFineTuningJobRequest:
     name: str
-    epochs: int = 50
 
+    # size of the search box. Recommended not more than 30 armstrongs
+    center_x: float
+    center_y: float
+    center_z: float
+    size_x: float
+    size_y: float
+    size_z: float
+
+    epochs: int = 50
 
 @pydantic.dataclasses.dataclass
 class FineTuningJobResponse:
