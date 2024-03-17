@@ -1,10 +1,7 @@
 import logging
 import sys
 
-from fastapi import UploadFile
 from pythonjsonlogger import jsonlogger
-
-from microservice.api_models import *
 
 _logger = logging.getLogger()
 

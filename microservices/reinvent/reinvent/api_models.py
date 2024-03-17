@@ -6,10 +6,6 @@ from typing import List
 import pydantic
 
 
-@pydantic.dataclasses.dataclass
-class RunReinventResponse:
-    pdb_content: str | None
-    errors: List[str]
 
 
 @pydantic.dataclasses.dataclass
@@ -26,6 +22,7 @@ class RunFineTuningJobRequest:
 
     epochs: int = 50
 
+
 @pydantic.dataclasses.dataclass
 class FineTuningJobResponse:
     id: str
@@ -38,3 +35,16 @@ class FineTuningJobResponse:
     pdb_filename: str
     errors: str
     epochs: int
+
+
+@pydantic.dataclasses.dataclass
+class RunInferenceRequest:
+    job_id: str
+
+
+@pydantic.dataclasses.dataclass
+class RunInferenceResponse:
+    id: str
+    job_name: str
+    smiles: str | None
+    errors: str | None

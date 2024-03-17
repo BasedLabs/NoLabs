@@ -10,8 +10,6 @@ from nolabs.controllers.solubility.solubility import router as solubility_router
 from nolabs.controllers.folding.folding import router as folding_router
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
 
-pfx = '/api/v1'
-
 app = FastAPI(
     title='NoLabs',
     version='1'

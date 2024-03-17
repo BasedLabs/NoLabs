@@ -26,7 +26,7 @@ COPY install_reinvent_community.sh /app/ReinventCommunity
 RUN sed -i 's/\r$//' install_reinvent_community.sh && chmod +x install_reinvent_community.sh
 RUN ./install_reinvent_community.sh
 RUN wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
-RUN mv vina_1.2.5_linux_x86_64 /app
+RUN mv vina_1.2.5_linux_x86_64 /app/vina
 
 # Install reinvent
 WORKDIR /app/REINVENT4
@@ -43,9 +43,11 @@ COPY /reinvent/DockStream /app/DockStream
 RUN conda env create -f /app/DockStream/environment.yml
 
 WORKDIR /app
+
 COPY case_study_files /app/case_study_files
 COPY 1UYD_fixed.pdbqt /app
 
+COPY reinvent /app
 COPY run_notebook.sh /app
 RUN sed -i 's/\r$//' run_notebook.sh && chmod +x run_notebook.sh
 ENTRYPOINT ["./run_notebook.sh"]
