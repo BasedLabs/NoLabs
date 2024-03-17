@@ -5,7 +5,7 @@ ARG ROSETTACOMMONS_CONDA_PASSWORD
 
 RUN apt-get update
 
-RUN apt-get install -y wget libgomp1 unzip libxrender1 libxext6 && rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y wget libgomp1 unzip libxrender1 libxext6 git && rm -rf /var/lib/apt/lists/*
 
 RUN wget -q \
     https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
@@ -20,7 +20,7 @@ RUN conda --version
 RUN conda install conda-libmamba-solver
 RUN conda config --set solver libmamba
 WORKDIR /app/ReinventCommunity
-COPY reinvent/ReinventCommunity /app/ReinventCommunity
+RUN git clone https://github.com/MolecularAI/ReinventCommunity.git .
 RUN conda env create -f environment.yml
 COPY install_reinvent_community.sh /app/ReinventCommunity
 RUN sed -i 's/\r$//' install_reinvent_community.sh && chmod +x install_reinvent_community.sh
@@ -30,7 +30,7 @@ RUN mv vina_1.2.5_linux_x86_64 /app/vina
 
 # Install reinvent
 WORKDIR /app/REINVENT4
-COPY /reinvent/REINVENT4 /app/REINVENT4
+RUN git clone https://github.com/MolecularAI/REINVENT4.git . && git checkout b88b2ba1a3e7d81480dc80ad403834084982628b
 COPY install_reinvent.sh /app/REINVENT4
 RUN sed -i 's/\r$//' install_reinvent.sh && chmod +x install_reinvent.sh
 RUN apt-get update
@@ -39,7 +39,7 @@ RUN ./install_reinvent.sh
 
 # Install dockstream
 WORKDIR /app/DockStream
-COPY /reinvent/DockStream /app/DockStream
+RUN git clone https://github.com/BasedLabs/DockStream.git .
 RUN conda env create -f /app/DockStream/environment.yml
 
 WORKDIR /app
