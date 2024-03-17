@@ -1,4 +1,4 @@
-<meta
+<meta>
 <div align="center" id="top"> 
   <img src="media/NoLabs logo.png" alt="NoLabs" />
 </div>

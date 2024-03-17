@@ -1,10 +1,11 @@
-FROM nvcr.io/nvidia/cuda:11.3.0-cudnn8-runtime-ubuntu20.04
+#FROM nvcr.io/nvidia/cuda:11.3.0-cudnn8-runtime-ubuntu20.04
+FROM nvidia/cuda:12.3.2-runtime-ubuntu22.04
 ARG ROSETTACOMMONS_CONDA_USERNAME
 ARG ROSETTACOMMONS_CONDA_PASSWORD
 
 RUN apt-get update
 
-RUN apt-get install -y wget libgomp1 unzip && rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y wget libgomp1 unzip libxrender1 libxext6 && rm -rf /var/lib/apt/lists/*
 
 RUN wget -q \
     https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
@@ -15,36 +16,36 @@ ENV PATH /var/conda/bin:$PATH
 
 RUN conda --version
 
+# Install reinvent community
 RUN conda install conda-libmamba-solver
 RUN conda config --set solver libmamba
-WORKDIR /app
-COPY reinvent/ReinventCommunity /app
+WORKDIR /app/ReinventCommunity
+COPY reinvent/ReinventCommunity /app/ReinventCommunity
 RUN conda env create -f environment.yml
-WORKDIR /app/temp
-COPY install.sh /app/temp
-RUN sed -i 's/\r$//' install.sh && chmod +x install.sh
-
-RUN ./install.sh
-
+COPY install_reinvent_community.sh /app/ReinventCommunity
+RUN sed -i 's/\r$//' install_reinvent_community.sh && chmod +x install_reinvent_community.sh
+RUN ./install_reinvent_community.sh
+RUN wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
 RUN mv vina_1.2.5_linux_x86_64 /app
-WORKDIR /app
-COPY run.sh /app
+
+# Install reinvent
 WORKDIR /app/REINVENT4
-WORKDIR /app/DockStream
-WORKDIR /app
 COPY /reinvent/REINVENT4 /app/REINVENT4
-COPY /reinvent/DockStream /app/DockStream
-RUN conda env create -f /app/DockStream/environment.yml
 COPY install_reinvent.sh /app/REINVENT4
-WORKDIR /app/REINVENT4
 RUN sed -i 's/\r$//' install_reinvent.sh && chmod +x install_reinvent.sh
+RUN apt-get update
+RUN apt-get install build-essential -y
 RUN ./install_reinvent.sh
 
-RUN apt-get update
-RUN apt-get install libxrender1 libxext6 -y
+# Install dockstream
+WORKDIR /app/DockStream
+COPY /reinvent/DockStream /app/DockStream
+RUN conda env create -f /app/DockStream/environment.yml
+
 WORKDIR /app
-RUN sed -i 's/\r$//' run.sh && chmod +x run.sh
-COPY example.toml /app
 COPY case_study_files /app/case_study_files
-COPY 1smd.pdb /app
-ENTRYPOINT ["./run.sh"]
+COPY 1UYD_fixed.pdbqt /app
+
+COPY run_notebook.sh /app
+RUN sed -i 's/\r$//' run_notebook.sh && chmod +x run_notebook.sh
+ENTRYPOINT ["./run_notebook.sh"]
