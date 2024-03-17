@@ -1,3 +1,5 @@
+from dataclasses import field
+
 from pydantic import dataclasses as pcdataclass
 from fastapi import UploadFile
 from typing import List, Optional, Dict
@@ -183,6 +185,7 @@ class LigandMetaData:
     ligand_name: str
     description: Optional[str] = None
     link: Optional[str] = None
+    image: Optional[str] = field(default=None, repr=False)
 
 @pcdataclass.dataclass
 class UploadTargetLigandRequest:
@@ -260,6 +263,7 @@ class GetLoneLigandMetaDataRequest:
 class GetLoneLigandMetaDataResponse:
     ligand_id: str
     ligand_name: str
+    image: Optional[str] = field(default=None, repr=False)
 
 @pcdataclass.dataclass
 class GetTargetLigandDataRequest:

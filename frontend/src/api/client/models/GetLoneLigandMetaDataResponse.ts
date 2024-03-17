@@ -5,5 +5,6 @@
 export type GetLoneLigandMetaDataResponse = {
     ligand_id: string;
     ligand_name: string;
+    image?: (string | null);
 };
 

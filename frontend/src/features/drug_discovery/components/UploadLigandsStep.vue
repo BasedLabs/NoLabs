@@ -42,7 +42,7 @@ import {TargetMetaData} from "src/api/client/models/TargetMetaData.ts";
 import {defineComponent} from "vue";
 
 export default defineComponent({
-  name: "ExperimentSetup",
+  name: "UploadLigands",
   components: {
     TargetsLigandsList,
   },

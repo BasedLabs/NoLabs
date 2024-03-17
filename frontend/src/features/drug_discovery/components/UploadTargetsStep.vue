@@ -7,14 +7,11 @@
     <div v-else>
       <TargetsList
           :experimentId="this.experimentId"
-          :originalTargets="this.targets"
       />
       <div class="q-pt-xl"></div>
       <div class="q-pt-xl"></div>
       <LigandsList
-        v-if="ligands"
         :experimentId="this.experimentId"
-        :originalLigands="this.ligands"
       />
       <q-expansion-item
           icon="info"
@@ -69,16 +66,6 @@ export default defineComponent({
       loading: true,
       experimentId: null as string | null
     };
-  },
-  computed: {
-    targets(): ExtendedTargetMetaData[] {
-      const store = useDrugDiscoveryStore();
-      return store.targets;
-    },
-    ligands(): ExtendedLigandMetaData[] {
-      const store = useDrugDiscoveryStore();
-      return store.loneLigands;
-    },
   },
   async mounted() {
     const store = useDrugDiscoveryStore();

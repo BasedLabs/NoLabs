@@ -6,6 +6,7 @@ from typing import List, Dict
 from nolabs.domain.experiment import ExperimentId
 from nolabs.features.drug_discovery.services.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings
+from nolabs.utils.generate_2d_drug import generate_png_from_smiles, image_file_to_base64
 
 from nolabs.utils.sdf import SDFReader, SDFWriter
 from nolabs.utils.uuid_utils import generate_uuid
@@ -71,7 +72,8 @@ class LigandsFileManagement:
         ligands_dir = self.lone_ligands_folder(experiment_id)
         os.mkdir(os.path.join(ligands_dir, ligand_id.value))
 
-    def store_target_ligand(self, experiment_id: ExperimentId, target_id: TargetId, sdf_file: UploadFile) -> LigandMetaData:
+    def store_target_ligand(self, experiment_id: ExperimentId, target_id: TargetId,
+                            sdf_file: UploadFile) -> LigandMetaData:
         self.ensure_target_ligands_folder_exists(experiment_id, target_id)
 
         original_filename = sdf_file.filename
@@ -84,10 +86,18 @@ class LigandsFileManagement:
         ligand_file = os.path.join(self.target_ligand_folder(experiment_id, target_id, ligand_id), original_filename)
         self.sdf_writer.write_sdf(contents, ligand_file)
 
+        smiles = self.sdf_reader.get_smiles_from_sdf(ligand_file)
+
+        image2D = generate_png_from_smiles(smiles)
+
+        image2D.save(os.path.join(self.target_ligand_folder(experiment_id, target_id, ligand_id), "ligand.png"))
+
         self.update_target_ligand_metadata(experiment_id, target_id, ligand_id, "id", ligand_id.value)
         self.update_target_ligand_metadata(experiment_id, target_id, ligand_id, "name", ligand_name)
 
-        return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name)
+        image = image_file_to_base64(os.path.join(self.target_ligand_folder(experiment_id, target_id, ligand_id), "ligand.png"))
+
+        return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name, image=image)
 
 
     def store_lone_ligand(self, experiment_id: ExperimentId, sdf_file: UploadFile,
@@ -104,6 +114,12 @@ class LigandsFileManagement:
         ligand_file = os.path.join(self.lone_ligand_folder(experiment_id, ligand_id), original_filename)
         self.sdf_writer.write_sdf(contents, ligand_file)
 
+        smiles = self.sdf_reader.get_smiles_from_sdf(ligand_file)
+
+        image2D = generate_png_from_smiles(smiles)
+
+        image2D.save(os.path.join(self.lone_ligand_folder(experiment_id, ligand_id), "ligand.png"))
+
         self.update_lone_ligand_metadata(experiment_id, ligand_id, "id", ligand_id.value)
         self.update_lone_ligand_metadata(experiment_id, ligand_id, "name", ligand_name)
 
@@ -111,10 +127,13 @@ class LigandsFileManagement:
             for key, value in additional_metadata.items():
                 self.update_lone_ligand_metadata(experiment_id, ligand_id, key, value)
 
+        image = image_file_to_base64(os.path.join(self.lone_ligand_folder(experiment_id, ligand_id), "ligand.png"))
+
         if not additional_metadata or "link" not in additional_metadata:
-            return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name)
+            return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name, image=image)
         else:
-            return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name, link=additional_metadata["link"])
+            return LigandMetaData(ligand_id=ligand_id.value, ligand_name=ligand_name,
+                                  link=additional_metadata["link"], image=image)
 
 
     def delete_target_ligand(self, experiment_id: ExperimentId, target_id: TargetId, ligand_id: LigandId):
@@ -174,11 +193,13 @@ class LigandsFileManagement:
                                      self._settings.drug_discovery_ligand_metadata_file_name)
         with open(metadata_file, "r") as f:
             metadata = json.load(f)
+        image = image_file_to_base64(os.path.join(self.lone_ligand_folder(experiment_id, ligand_id), "ligand.png"))
         if "link" in metadata:
-            ligand_metadata = LigandMetaData(ligand_id=metadata["id"], ligand_name=metadata["name"], link=metadata["link"])
+            ligand_metadata = LigandMetaData(ligand_id=metadata["id"], ligand_name=metadata["name"],
+                                             link=metadata["link"], image=image)
             return ligand_metadata
         else:
-            ligand_metadata = LigandMetaData(ligand_id=metadata["id"], ligand_name=metadata["name"])
+            ligand_metadata = LigandMetaData(ligand_id=metadata["id"], ligand_name=metadata["name"], image=image)
             return ligand_metadata
 
     def get_target_ligands_list(self, experiment_id: ExperimentId, target_id: TargetId) -> List[LigandMetaData]:

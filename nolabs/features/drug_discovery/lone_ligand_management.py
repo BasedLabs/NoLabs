@@ -64,7 +64,8 @@ class GetLoneLigandMetaDataFeature:
         ligand_metadata = self._file_management.get_lone_ligand_metadata(experiment_id, ligand_id)
 
         return GetLoneLigandMetaDataResponse(ligand_id=ligand_id.value,
-                                             ligand_name=ligand_metadata.ligand_name)
+                                             ligand_name=ligand_metadata.ligand_name,
+                                             image=ligand_metadata.image)
 
 
 class GetLoneLigandDataFeature:

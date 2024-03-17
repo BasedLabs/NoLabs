@@ -7,5 +7,6 @@ export type LigandMetaData = {
     ligand_name: string;
     description?: (string | null);
     link?: (string | null);
+    image?: (string | null);
 };
 

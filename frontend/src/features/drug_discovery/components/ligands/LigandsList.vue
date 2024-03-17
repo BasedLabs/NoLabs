@@ -10,15 +10,22 @@
     </q-item>
     <q-item v-for="ligand in ligands" :key="ligand.ligand_id" clickable v-ripple class="q-mb-sm" @click="showLigandDetailDialog(ligand)">
       <q-card class="q-pa-md full-width flex-row justify-between" bordered >
-        <q-card-section>
-          <div>{{ ligand.ligand_name }}</div>
-          <div class="q-pt-sm q-pb-sm"><a class="text-light-blue" :href="ligand.link" target="_blank">{{ ligand.link }}</a></div>
-          <q-item-label v-if="ligand.data" caption>SMILES: {{ ligand.data.smiles }}</q-item-label>
-        </q-card-section>
-        <q-card-section class="flex-row">
-          <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative" />
-          <q-btn icon="add" flat @click.stop="openTargetSelectionDialog(ligand)" color="positive" />
-        </q-card-section>
+        <div class="row">
+          <div class="col-4">
+            <img v-if="ligand.image" class="rounded-borders" :width="200" :height="200" :src="'data:image/png;base64,' + ligand.image" alt="Ligand Structure"/>
+          </div>
+          <div class="col-8">
+          <q-card-section>
+            <div>{{ ligand.ligand_name }}</div>
+            <div class="q-pt-sm q-pb-sm"><a class="text-light-blue" :href="ligand.link" target="_blank">{{ ligand.link }}</a></div>
+            <q-item-label v-if="ligand.data" caption>SMILES: {{ ligand.data.smiles }}</q-item-label>
+          </q-card-section>
+          <q-card-section class="flex-row">
+            <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative" />
+            <q-btn icon="add" flat @click.stop="openTargetSelectionDialog(ligand)" color="positive" />
+          </q-card-section>
+          </div>
+        </div>
       </q-card>
     </q-item>
   </q-list>
@@ -93,10 +100,6 @@ export default defineComponent({
         type: String,
         required: true,
       },
-      originalLigands: {
-        type: Array as () => ExtendedLigandMetaData[],
-        required: true,
-      },
     },
     data() {
       return {
@@ -108,14 +111,10 @@ export default defineComponent({
         targetSelectionDialogVisible: false,
         selectedTargets: [] as String[],
         selectAllTargets: false,
+        ligands: [] as ExtendedLigandMetaData[],
       };
     },
     computed: {
-      ligands(): ExtendedLigandMetaData[] {
-        return this.originalLigands.map(ligand => ({
-          ...ligand
-        })) as ExtendedLigandMetaData[];
-      },
       drugDiscoveryStore() {
         return useDrugDiscoveryStore();
       },
@@ -129,7 +128,7 @@ export default defineComponent({
         }
       }
     },
-    mounted() {
+    async mounted() {
       const bioBuddyStore = useBioBuddyStore();
       this.chemblQueryCallback = (data: FunctionCallReturnData) => {
         const metaDatasArray: Record<string, string>[] = [];
@@ -144,8 +143,10 @@ export default defineComponent({
       };
       bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
 
+      this.ligands = await this.drugDiscoveryStore.fetchLigandsForExperiment(this.experimentId) as ExtendedLigandMetaData[];
+
       for (let ligand of this.ligands) {
-        this.getLigandData(ligand);
+        await this.getLigandData(ligand);
       }
     },
     methods: {
@@ -154,22 +155,23 @@ export default defineComponent({
         this.ligandDetailDialogVisible = true;
       },
       async handleLigandFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
-
         for (let index = 0; index < this.uploadingLigandFiles.length; index++) {
           const file = this.uploadingLigandFiles[index];
           const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
-          await this.drugDiscoveryStore.uploadLigandToExperiment(this.experimentId, file, metaData);
+          const newLigand = await this.drugDiscoveryStore.uploadLigandToExperiment(this.experimentId, file, metaData);
+          this.ligands.push(newLigand!);
         }
         this.uploadLigandDialog = false;
       },
       async getLigandData(ligand: ExtendedLigandMetaData) {
         ligand.loadingLigandData = true;
         try {
-          await this.drugDiscoveryStore.fetchLigandDataForExperiment(this.experimentId, ligand.ligand_id);
+          ligand.data = await this.drugDiscoveryStore.fetchLigandDataForExperiment(this.experimentId, ligand.ligand_id);
         } catch (error) {
           console.error('Error fetching ligand data:', error);
         } finally {
           ligand.loadingLigandData = false;
+          this.uploadingLigandFiles = [];
         }
       },
       async deleteLigand(ligandToDelete: ExtendedLigandMetaData) {
@@ -239,3 +241,11 @@ export default defineComponent({
   }
 )
 </script>
+
+<style>
+.ligand-image {
+  max-width: 100px; /* Adjust based on your layout */
+  max-height: 100px; /* Adjust based on your layout */
+  margin-right: 15px; /* Spacing between the image and the text */
+}
+</style>

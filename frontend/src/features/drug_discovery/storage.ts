@@ -2,12 +2,14 @@ import {defineStore} from 'pinia';
 import {
   changeExperimentNameApi,
   changeTargetNameApi,
+  checkDiffDockJobIsRunningApi,
+  checkDiffDockServiceHealthApi,
   checkDockingResultAvailableApi,
-  checkFoldingDataAvailableApi,
   checkEsmFoldJobIsRunningApi,
   checkEsmFoldLightJobIsRunningApi,
-  checkEsmFoldServiceHealthApi,
   checkEsmFoldLightServiceHealthApi,
+  checkEsmFoldServiceHealthApi,
+  checkFoldingDataAvailableApi,
   checkMsaDataAvailableApi,
   checkMsaJobIsRunningApi,
   checkMsaServiceHealthApi,
@@ -19,43 +21,42 @@ import {
   createExperimentApi,
   deleteDockingJobApi,
   deleteExperimentApi,
+  deleteLigandFromExperimentApi,
   deleteLigandFromTargetApi,
   deleteTargetApi,
   getAllDockingJobsListApi,
   getAllDockingResultsListApi,
-  getUmolDockingJobResultDataApi,
+  getDiffDockDockingJobResultDataApi,
+  getDiffDockLigandSdfApi,
+  getDiffDockParamsApi,
   getDockingJobsListForTargetLigandApi,
   getDockingResultsListForTargetLigandApi,
   getExperimentMetadataApi,
   getExperimentsApi,
   getJobPocketDataApi,
+  getLigandDataForExperimentApi,
   getLigandDataForTargetApi,
+  getLigandMetaDataForExperimentApi,
   getLigandMetaDataForTargetApi,
+  getLigandsListForExperimentApi,
   getLigandsListForTargetApi,
   getTargetBindingPocketApi,
   getTargetDataApi,
   getTargetMetaDataApi,
   getTargetsListApi,
+  getUmolDockingJobResultDataApi,
   predictBindingPocketApi,
   predictFoldingApi,
   predictLightFoldingApi,
   registerDockingJobApi,
+  runDiffDockDockingJobApi,
   runUmolDockingJobApi,
   setTargetBindingPocketApi,
-  uploadLigandToTargetApi,
-  uploadTargetApi,
-  checkDiffDockServiceHealthApi,
-  checkDiffDockJobIsRunningApi,
-  runDiffDockDockingJobApi,
-  getDiffDockDockingJobResultDataApi,
-  getDiffDockLigandSdfApi,
-  getDiffDockParamsApi,
   updateDiffDockParamsApi,
   updateDockingParamsApi,
   uploadLigandToExperimentApi,
-  deleteLigandFromExperimentApi,
-  getLigandsListForExperimentApi,
-  getLigandMetaDataForExperimentApi, getLigandDataForExperimentApi
+  uploadLigandToTargetApi,
+  uploadTargetApi
 } from 'src/features/drug_discovery/api';
 
 import {
@@ -134,14 +135,16 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                     ...(metaData && { metadata: JSON.stringify(metaData) })
                 };
                 const response = await uploadTargetApi(targetData);
+
+                let uploadedTargets = [] as ExtendedTargetMetaData[];
                 response.result.map(target => (
-                    this.targets.push({...target,
+                  uploadedTargets.push({...target,
                       data: undefined,
                       loadingLigands: false,
                       ligands: [],
                       loadingTargetData: false})
                 ));
-                return response.result;
+                return uploadedTargets;
             } catch (error) {
                 console.error('Error uploading target:', error);
             }
@@ -162,11 +165,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                     sdf_file: sdfFile
                 };
                 const response = await uploadLigandToTargetApi(ligandData);
-                return {
-                    ligand_id: response.ligand_meta_data.ligand_id,
-                    ligand_name: response.ligand_meta_data.ligand_name,
-                    jobs: []
-                }
+                return response.ligand_meta_data as ExtendedLigandMetaData;
             } catch (error) {
                 console.error('Error uploading ligand:', error);
             }
@@ -179,12 +178,13 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
               ...(metaData && { metadata: JSON.stringify(metaData) })
             };
             const response = await uploadLigandToExperimentApi(ligandData);
-            this.loneLigands.push({
+            let newLigand = {
               ...response.ligand_meta_data,
               jobs: [],
               loadingLigandData: false
-            } as ExtendedLigandMetaData);
-            this.fetchLigandDataForExperiment(experimentId, response.ligand_meta_data.ligand_id);
+            } as ExtendedLigandMetaData;
+            newLigand.data = await this.fetchLigandDataForExperiment(experimentId, response.ligand_meta_data.ligand_id);
+            return newLigand;
           } catch (error) {
             console.error('Error uploading ligand:', error);
           }
@@ -207,7 +207,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         fetchTargetsForExperiment: async function (experimentId: string) {
             try {
-                this.targets = (await getTargetsListApi(experimentId)).map(x => {return { ...x,
+                return (await getTargetsListApi(experimentId)).map(x => {return { ...x,
                   data: undefined,
                   loadingLigands: false,
                   ligands: [],
@@ -225,7 +225,7 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         },
         async fetchLigandsForExperiment(experimentId: string) {
           try {
-            this.loneLigands = (await getLigandsListForExperimentApi(experimentId)).map(x => {return { ...x,
+            return (await getLigandsListForExperimentApi(experimentId)).map(x => {return { ...x,
               jobs: [],
               loadingLigandData: false}}) as ExtendedLigandMetaData[];
           } catch (error) {
@@ -250,11 +250,8 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
             try {
                 const response = await getTargetDataApi(experimentId, targetId);
 
-                const targetIndex = this.targets.findIndex(target => target.target_id === targetId);
-                if (targetIndex !== -1) {
-                  this.targets[targetIndex].data = { proteinSequence: response.protein_sequence,
+                return {proteinSequence: response.protein_sequence,
                     pdbContents: response.protein_pdb };
-                }
             } catch (error) {
                 console.error('Error fetching ligands:', error);
             }
@@ -338,14 +335,10 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
         async fetchLigandDataForExperiment(experimentId: string, ligandId: string) {
           try {
             const response = await getLigandDataForExperimentApi(experimentId, ligandId);
-
-            const ligandIndex = this.loneLigands.findIndex(ligand => ligand.ligand_id === ligandId);
-            if (ligandIndex !== -1) {
-              this.loneLigands[ligandIndex].data = {
+            return {
                 sdf_file: response.ligand_sdf,
                 smiles: response.ligand_smiles
-              }
-            }
+              };
           } catch (error) {
             console.error('Error fetching ligands:', error);
           }

@@ -62,10 +62,6 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    originalTargets: {
-      type: Array<ExtendedTargetMetaData>,
-      required: true,
-    },
   },
   data() {
     return {
@@ -76,18 +72,17 @@ export default defineComponent({
       selectedTarget: null,
       uploadToAllTargets: false,
       rscbQueryCallBack: null as ((data: FunctionCallReturnData) => void) | null,
+      targets: [] as ExtendedTargetMetaData[]
     };
   },
   computed: {
-      targets(): ExtendedTargetMetaData[] {
-        return this.originalTargets.map(target => ({
-          ...target
-        })) as ExtendedTargetMetaData[];
-      },
+    drugDiscoveryStore() {
+      return useDrugDiscoveryStore();
     },
-    mounted() {
-      const bioBuddyStore = useBioBuddyStore();
-      this.rscbQueryCallBack = (data: FunctionCallReturnData) => {
+  },
+  async mounted() {
+    const bioBuddyStore = useBioBuddyStore();
+    this.rscbQueryCallBack = (data: FunctionCallReturnData) => {
         const metaDatasArray: Record<string, string>[] = [];
         for (let dataObject of data.files){
           const rcsbObject = dataObject as RcsbPdbData;
@@ -108,11 +103,14 @@ export default defineComponent({
         }
         this.handleTargetFileUpload(metaDatasArray);
       };
-      bioBuddyStore.addQueryRcsbPdbEventHandler(this.rscbQueryCallBack);
+    bioBuddyStore.addQueryRcsbPdbEventHandler(this.rscbQueryCallBack);
+
+    this.targets = await this.drugDiscoveryStore.fetchTargetsForExperiment(this.experimentId) as ExtendedTargetMetaData[];
+
     },
-    methods: {
+  methods: {
     async selectTarget(target: ExtendedTargetMetaData) {
-      await this.getTargetData(target);
+      target.data = await this.getTargetData(target);
     },
       async handleTargetFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
         const store = useDrugDiscoveryStore();
@@ -129,12 +127,16 @@ export default defineComponent({
             // Retrieve the corresponding metaData by file index
             const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
             // Pass the metaData to the upload method
-            await store.uploadTargetToExperiment(this.experimentId, file, metaData);
+            const newTargets = await store.uploadTargetToExperiment(this.experimentId, file, metaData);
+            newTargets?.map(target => (
+              this.targets.push({...target})
+            ))
           }
         } catch (error) {
           console.error('Error uploading target files:', error);
         } finally {
           this.uploadTargetDialog = false;
+          this.uploadingTargetFiles = [];
           this.$q.loading.hide();
         }
       },
@@ -142,7 +144,7 @@ export default defineComponent({
       const store = useDrugDiscoveryStore();
       target.loadingTargetData = true;
       try {
-        await store.fetchTargetData(this.experimentId, target.target_id);
+        return await store.fetchTargetData(this.experimentId, target.target_id);
       } catch (error) {
         console.error('Error fetching target data:', error);
       } finally {
@@ -173,8 +175,6 @@ export default defineComponent({
       bioBuddyStore.queryRcsbPdbEventHandlers.splice(index, 1);
     }
   }
-
-
 }
 )
 </script>
