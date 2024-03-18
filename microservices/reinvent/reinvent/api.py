@@ -1,4 +1,3 @@
-import asyncio
 from typing import List
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,7 +15,7 @@ app = FastAPI(
 
 ft_router = APIRouter(
     prefix='/api/v1/fine-tuning',
-    tags=['folding']
+    tags=['fine-tuning']
 )
 
 inference_router = APIRouter(
