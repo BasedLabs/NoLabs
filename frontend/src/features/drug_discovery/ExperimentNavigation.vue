@@ -1,6 +1,6 @@
 <template>
   <q-page class="bg-black q-pl-md q-pr-md">
-        <BioBuddyChat :experiment-id=" this.$route.params.experimentId" />
+        <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id=" this.$route.params.experimentId" />
         <q-stepper
           v-model="step"
           ref="stepper"
@@ -30,13 +30,13 @@
             :done="step > 2"
           >
 
-            <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
-              <q-btn flat label="Back" @click="openPreviousStep('Upload targets')" />
-              <q-space />
-              <q-btn flat label="Continue" @click="openNextStep('Run docking')" />
-            </div>
-             <router-view></router-view>
-          </q-step>
+        <div class="row no-wrap items-center q-mt-sm text-white rounded-borders">
+          <q-btn flat color="info" label="Back" @click="openPreviousStep('Upload targets')" />
+          <q-space />
+          <q-btn flat color="info" label="Continue" @click="openNextStep('Run docking')" />
+        </div>
+         <router-view></router-view>
+      </q-step>
 
           <q-step
             :name="3"

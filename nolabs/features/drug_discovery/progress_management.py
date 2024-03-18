@@ -27,6 +27,10 @@ from esmfold_light_microservice import DefaultApi as EsmFoldLightDefaultApi
 from esmfold_light_microservice import ApiClient as EsmFoldLightApiClient
 from esmfold_light_microservice import Configuration as EsmFoldLightConfiguration
 
+from rosettafold_microservice import DefaultApi as RosettaFoldDefaultApi
+from rosettafold_microservice import ApiClient as RosettaFoldApiClient
+from rosettafold_microservice import Configuration as RosettaFoldConfiguration
+
 from nolabs.api_models.drug_discovery import CheckJobIsRunningRequest, CheckJobIsRunningResponse
 
 
@@ -137,6 +141,23 @@ class CheckP2RankRunningFeature:
         )
         with P2RankApiClient(configuration=configuration) as client:
             api_instance = P2RankDefaultApi(client)
+            response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value).is_running
+
+        return CheckJobIsRunningResponse(is_running=response)
+
+
+class CheckRosettaFoldRunningFeature:
+    def __init__(self, settings: Settings):
+        self._settings = settings
+
+    async def handle(self, request: CheckJobIsRunningRequest) -> CheckJobIsRunningResponse:
+        job_id = JobId(request.job_id)
+
+        configuration = RosettaFoldConfiguration(
+            host=self._settings.rosettafold_host,
+        )
+        with RosettaFoldApiClient(configuration=configuration) as client:
+            api_instance = RosettaFoldDefaultApi(client)
             response = api_instance.is_job_running_job_job_id_is_running_get(job_id=job_id.value).is_running
 
         return CheckJobIsRunningResponse(is_running=response)

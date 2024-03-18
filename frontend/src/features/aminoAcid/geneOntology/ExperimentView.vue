@@ -3,7 +3,7 @@
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
       <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
-        <q-btn color="positive" size="md" outline label="Gene ontology parameters"
+        <q-btn color="info" size="md" outline label="Gene ontology parameters"
                @click="showInferenceForm = !showInferenceForm"/>
       </ExperimentHeader>
       <q-page-container>
@@ -11,7 +11,7 @@
           <div :class="tiles.one.current"
                style="transition: all .1s linear;">
             <div class="q-ma-sm">
-              <q-btn size="xs" flat color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+              <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('one');"/>
               <AminoAcidTable :on-amino-acid-open="setActiveAminoAcid" :rows="experiment?.aminoAcids"/>
             </div>
@@ -19,7 +19,7 @@
           <div :class="tiles.two.current"
                style="transition: all .1s linear;">
             <div class="q-ma-sm">
-              <q-btn size="xs" flat color="positive" style="width: 100%" class="q-mb-xs" label="EXPAND"
+              <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('two');"/>
               <GeneOntologyTree :obo-graph="activeAminoAcid?.go" :key="activeAminoAcid?.name"/>
             </div>

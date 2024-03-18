@@ -170,6 +170,7 @@ export default defineComponent({
           this.ligands.push(newLigand!);
         }
         this.uploadLigandDialog = false;
+        this.uploadingLigandFiles = [];
       },
       async getLigandData(ligand: ExtendedLigandMetaData) {
         ligand.loadingLigandData = true;

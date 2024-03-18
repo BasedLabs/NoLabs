@@ -213,6 +213,7 @@ export default defineComponent({
           for (let t of targets) {
             const ligandMetaData = await this.drugDiscoveryStore.uploadLigandToTarget(this.experimentId, t.target_id, file);
             t.ligands.push(ligandMetaData!);
+            this.registerJob(t, ligandMetaData!);
           }
         }
       } catch (error) {

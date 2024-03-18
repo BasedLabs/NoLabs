@@ -3,9 +3,10 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.drug_discovery.check_service_health import CheckMsaServiceHealthFeature, \
+from nolabs.features.infrastructure.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckUmolServiceHealthFeature, \
-    CheckEsmFoldServiceHealthFeature, CheckEsmFoldLightServiceHealthFeature, CheckDiffDockServiceHealthFeature
+    CheckEsmFoldServiceHealthFeature, CheckEsmFoldLightServiceHealthFeature, CheckDiffDockServiceHealthFeature, \
+    CheckRosettaFoldServiceHealthFeature
 from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
 from nolabs.features.drug_discovery.diffdock_params_management import GetDiffDockParamsFeature, \
     UpdateDiffDockParamsFeature
@@ -15,6 +16,7 @@ from nolabs.features.drug_discovery.lone_ligand_management import UploadLoneLiga
     GetLoneLigandsListFeature, GetLoneLigandMetaDataFeature, GetLoneLigandDataFeature
 from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
+from nolabs.features.drug_discovery.predict_rosettafold_folding import PredictRosettaFoldFolding
 from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
     CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature, \
@@ -40,7 +42,7 @@ from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
     CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature, \
-    CheckDiffDockRunningFeature
+    CheckDiffDockRunningFeature, CheckRosettaFoldRunningFeature
 from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
 from nolabs.features.drug_discovery.get_umol_results import GetUmolDockingResultsFeature
 from nolabs.features.drug_discovery.get_diffdock_results import GetDiffDockDockingResultsFeature, \
@@ -167,6 +169,12 @@ Depends(target_file_management_dependency)],
                                Depends(settings_dependency)]) -> PredictEsmFoldFeature:
     return PredictEsmFoldFeature(file_management=target_file_management, settings=settings)
 
+def predict_rosettafold_dependency(target_file_management: Annotated[TargetsFileManagement,
+Depends(target_file_management_dependency)],
+                               settings: Annotated[Settings,
+                               Depends(settings_dependency)]) -> PredictRosettaFoldFolding:
+    return PredictRosettaFoldFolding(file_management=target_file_management, settings=settings)
+
 
 def upload_target_ligand_dependency(ligand_file_management: Annotated[LigandsFileManagement,
 Depends(ligand_file_management_dependency)]) -> UploadTargetLigandFeature:
@@ -237,6 +245,11 @@ Depends(settings_dependency)]) -> CheckMsaRunningFeature:
     return CheckMsaRunningFeature(settings=settings)
 
 
+def check_rosettafold_running_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckRosettaFoldRunningFeature:
+    return CheckRosettaFoldRunningFeature(settings=settings)
+
+
 def check_pocket_data_available_dependency(results_file_management: Annotated[ResultsFileManagement,
 Depends(result_file_management_dependency)]) -> CheckBindingPocketDataAvailableFeature:
     return CheckBindingPocketDataAvailableFeature(file_management=results_file_management)
@@ -285,6 +298,11 @@ Depends(settings_dependency)]) -> CheckEsmFoldLightRunningFeature:
 def check_umol_service_health_dependency(settings: Annotated[Settings,
 Depends(settings_dependency)]) -> CheckUmolServiceHealthFeature:
     return CheckUmolServiceHealthFeature(settings=settings)
+
+
+def check_rosettafold_service_health_dependency(settings: Annotated[Settings,
+Depends(settings_dependency)]) -> CheckRosettaFoldServiceHealthFeature:
+    return CheckRosettaFoldServiceHealthFeature(settings=settings)
 
 
 def check_umol_running_dependency(settings: Annotated[Settings,

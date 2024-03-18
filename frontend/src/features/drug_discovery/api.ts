@@ -160,11 +160,15 @@ export function predictBindingPocketApi(experimentId: string, targetId: string):
 
 // Predict folding
 export function predictLightFoldingApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
-    return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictEsmfoldLightPost(experimentId, targetId);
+    return DrugDiscoveryService.predictEsmfoldLightApiV1DrugDiscoveryPredictEsmfoldLightPost(experimentId, targetId);
 }
 
 export function predictFoldingApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
-  return DrugDiscoveryService.predictFoldingApiV1DrugDiscoveryPredictEsmfoldPost(experimentId, targetId);
+  return DrugDiscoveryService.predictEsmfoldApiV1DrugDiscoveryPredictEsmfoldPost(experimentId, targetId);
+}
+
+export function predictRosettaFoldApi(experimentId: string, targetId: string): CancelablePromise<PredictFoldingResponse> {
+  return DrugDiscoveryService.predictRosettafoldApiV1DrugDiscoveryPredictRosettafoldPost(experimentId, targetId);
 }
 
 export function registerDockingJobApi(experimentId: string, targetId: string, ligandId: string, foldingMethod: string): CancelablePromise<RegisterDockingJobResponse> {
@@ -230,6 +234,10 @@ export function checkEsmFoldLightJobIsRunningApi(jobId: string): CancelablePromi
   return DrugDiscoveryService.checkEsmfoldLightJobRunningApiV1DrugDiscoveryCheckEsmfoldLightJobRunningGet(jobId);
 }
 
+export function checkRosettaFoldJobIsRunningApi(jobId: string): CancelablePromise<CheckJobIsRunningResponse> {
+  return DrugDiscoveryService.checkRosettafoldJobRunningApiV1DrugDiscoveryCheckRosettafoldJobRunningGet(jobId);
+}
+
 export function checkPocketDataAvailableApi(experimentId: string, targetId: string, ligandId: string, jobId: string): CancelablePromise<CheckPocketDataAvailableResponse> {
   return DrugDiscoveryService.checkPocketDataAvailableApiV1DrugDiscoveryCheckPocketDataAvailableGet(experimentId, targetId, ligandId, jobId);
 }
@@ -280,6 +288,10 @@ export function checkEsmFoldServiceHealthApi(): CancelablePromise<CheckServiceHe
 
 export function checkEsmFoldLightServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {
   return DrugDiscoveryService.checkEsmfoldLightServiceHealthApiV1DrugDiscoveryCheckEsmfoldLightServiceHealthGet();
+}
+
+export function checkRosettaFoldServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse>{
+  return DrugDiscoveryService.rosettafoldServiceHealthApiV1DrugDiscoveryCheckRosettafoldServiceHealthGet();
 }
 
 export function checkUmolServiceHealthApi(): CancelablePromise<CheckServiceHealthyResponse> {

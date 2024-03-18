@@ -1,6 +1,6 @@
 <template>
   <q-list bordered separator class="bg-black">
-    <q-item-label header>Upload targets</q-item-label>
+    <q-item-label header class="text-white">Upload targets</q-item-label>
     <q-item>
       <q-btn size="md" class="full-width q-pm-sm" push color="info" @click="uploadTargetDialog = true">
         + upload targets
@@ -37,7 +37,7 @@
 
       <q-card-actions align="right">
         <q-btn flat label="Close" color="negative" @click="uploadTargetDialog = false"/>
-        <q-btn flat label="Upload" color="positive" @click="handleTargetFileUpload"/>
+        <q-btn flat label="Upload" color="info" @click="handleTargetFileUpload"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

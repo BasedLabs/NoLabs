@@ -213,11 +213,6 @@ export default defineComponent({
             .attr('fill', 'black')
             .append('textPath')
             .each(function (d, i) {
-              if(d.target.data.name === 'GO:0007275' || d.target.data.name === 'GO:0048731'){
-                if(d.target.data.relation === '' || d.target.data.relation === null || d.target.data.relation === undefined){
-                  debugger;
-                }
-              }
               const href = pathIdFactory(d);
               d3.select(this)
                   .attr('xlink:xlink:href', '#' + href)

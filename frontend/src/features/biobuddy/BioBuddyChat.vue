@@ -17,7 +17,7 @@
               </p>
               <ul>
                 Params:
-                <li v-for="(param, index) in message.message.parameters" :key="index">
+                <li v-for="(param, index) in getParameters(message)" :key="index">
                   {{ param.name }}: {{ param.value }}
                 </li>
               </ul>
@@ -33,7 +33,7 @@
       </q-item>
     </q-list>
     <div class="q-pa-md">
-      <q-input v-model="newMessage" label="Type a message..." dense filled @keyup.enter="sendMessage">
+      <q-input v-model="newMessage"  label="Type a message..." dense filled @keyup.enter="sendMessage">
         <template v-slot:append>
           <q-btn icon="send" flat @click="sendMessage" :disable="sending">
             <q-spinner size="20px" v-if="sending"></q-spinner>
@@ -54,7 +54,7 @@
 import {QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner, useQuasar} from 'quasar';
 import { defineComponent } from 'vue';
 import { loadConversationApi, sendMessageApi } from 'src/features/biobuddy/api';
-import {FunctionCall, Message, type RegularMessage} from "src/api/client";
+import {FunctionCall, type FunctionParam, Message, type RegularMessage} from "src/api/client";
 import {useBioBuddyStore} from "./storage";
 
 export interface FunctionMapping {
@@ -64,9 +64,6 @@ export interface FunctionMapping {
 
 export default defineComponent({
   name: 'BioBuddyChat',
-  components: {
-    QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner
-  },
   props: {
     experimentId: {
       type: String,
@@ -140,6 +137,12 @@ export default defineComponent({
       this.isResizing = false;
       window.removeEventListener('mousemove', this.resizeDrawer);
       window.removeEventListener('mouseup', this.stopResizing);
+    },
+    getParameters(message: Message): Array<FunctionParam> {
+      if (message.type === 'function' && (message.message as FunctionCall).parameters) {
+        return (message.message as FunctionCall).parameters;
+      }
+      return [];
     },
   },
   mounted() {

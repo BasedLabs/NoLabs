@@ -5,6 +5,7 @@ import numpy as np
 from typing import List, Dict
 
 from nolabs.domain.experiment import ExperimentId
+from nolabs.features.drug_discovery.services.folding_methods import FoldingMethods
 from nolabs.infrastructure.settings import Settings
 
 from nolabs.utils.fasta import FastaReader, FastaWriter
@@ -69,8 +70,9 @@ class TargetsFileManagement:
                     self.update_target_metadata(experiment_id, target_id, key, value)
 
             folding_method = "esmfold_light"
+            folding_method = FoldingMethods.esmfold_light
             if len(sequence) > 400:
-                folding_method = "esmfold"
+                folding_method = FoldingMethods.esmfold
 
             self.update_target_metadata(experiment_id, target_id, "folding_method", folding_method)
 
@@ -98,7 +100,6 @@ class TargetsFileManagement:
     def update_target_metadata(self, experiment_id: ExperimentId, target_id: TargetId, key: str, value: str):
         metadata_file = os.path.join(self.target_folder(experiment_id, target_id),
                                      self._settings.drug_discovery_target_metadata_file_name)
-        print(os.path.exists(metadata_file), key, value)
         if os.path.exists(metadata_file):
             with open(metadata_file, "r") as f:
                 metadata = json.load(f)
