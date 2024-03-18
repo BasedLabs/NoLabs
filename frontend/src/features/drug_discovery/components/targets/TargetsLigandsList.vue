@@ -42,7 +42,7 @@
           :key="ligand.ligand_id"
           clickable
           :label="ligand.ligand_name"
-          @show="() => getLigandData(target, ligand)"
+          @show="() => getLigandDataForTarget(target, ligand)"
         >
           <q-btn color="negative" @click="deleteLigand(target, ligand)" icon="delete" flat>
             Delete ligand
@@ -78,22 +78,33 @@
       <q-card-section>
         <div class="text-h6">Upload Ligand Files</div>
         <q-file v-model="uploadingLigandFiles" accept=".sdf" multiple label="Choose files" />
+        <!-- Lone Ligands Selection -->
+        <div class="q-mt-md">
+          <q-card-actions align="right">
+            <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false" />
+            <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload(selectedTarget!)" />
+          </q-card-actions>
+          <div>Or select some of the uploaded ligands:</div>
+          <q-list>
+            <q-item v-for="ligand in loneLigands" :key="ligand.ligand_id">
+              <q-checkbox v-model="selectedLoneLigands" :label="ligand.ligand_name" :val="ligand"></q-checkbox>
+            </q-item>
+          </q-list>
+          <q-card-actions align="right">
+            <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false" />
+            <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload(selectedTarget!)" />
+          </q-card-actions>
+        </div>
       </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false" />
-        <q-btn flat label="Upload" color="info" @click="() => handleLigandFileUpload(selectedTarget!)" />
-      </q-card-actions>
     </q-card>
   </q-dialog>
+
 </template>
 
 <script lang="ts">
 import TargetDetail from "src/features/drug_discovery/components/targets/TargetDetail.vue";
 import LigandDetail from "src/features/drug_discovery/components/ligands/LigandDetail.vue";
 import {TargetMetaData} from "src/api/client/models/TargetMetaData.ts";
-import {LigandMetaData} from "src/api/client/models/LigandMetaData.ts";
-import {ResultMetaData} from "src/api/client/models/ResultMetaData.ts";
 import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
@@ -118,19 +129,25 @@ export default defineComponent({
   },
   data() {
     return {
-      targets: this.originalTargets.map(target => ({
-        ...target,
-        loadingLigands: false,
-        ligands: [],
-        loadingTargetData: false,
-      })) as ExtendedTargetMetaData[],
       uploadTargetDialog: false,
       uploadingTargetFiles: [],
       uploadLigandDialog: false,
       uploadingLigandFiles: [] as File[],
       selectedTarget: null as ExtendedTargetMetaData | null,
-      uploadToAllTargets: false
+      uploadToAllTargets: false,
+      selectedLoneLigands: [] as ExtendedLigandMetaData[],
+      targets: [] as ExtendedTargetMetaData[],
+      loneLigands: [] as ExtendedLigandMetaData[]
     };
+  },
+  async mounted() {
+    this.targets = await this.drugDiscoveryStore.fetchTargetsForExperiment(this.experimentId) as ExtendedTargetMetaData[];
+    this.loneLigands = await this.drugDiscoveryStore.fetchLigandsForExperiment(this.experimentId) as ExtendedLigandMetaData[];
+  },
+  computed: {
+      drugDiscoveryStore() {
+        return useDrugDiscoveryStore();
+      },
   },
   methods: {
     openLigandUploadDialog(target: ExtendedTargetMetaData) {
@@ -143,7 +160,7 @@ export default defineComponent({
         message: `Selecting target`
       });
       try {
-        await this.getLigandsForTarget(target);
+        target.ligands = await this.getLigandsForTarget(target) as ExtendedLigandMetaData[];
         await this.getTargetData(target);
       }
       finally{
@@ -154,14 +171,13 @@ export default defineComponent({
       if (target.ligands && target.ligands.length > 0) {
         return;
       }
-      const store = useDrugDiscoveryStore();
       target.loadingLigands = true;
       try {
-        const originalLigands = await store.fetchLigandsForTarget(
+        const originalLigands = await this.drugDiscoveryStore.fetchLigandsForTarget(
           this.experimentId,
           target.target_id
         );
-        target.ligands = originalLigands?.map(ligand => ({
+        return originalLigands?.map(ligand => ({
           ...ligand,
           jobs: [],
           loadingLigandData: false,
@@ -173,73 +189,73 @@ export default defineComponent({
       }
     },
     async handleLigandFileUpload(target: ExtendedTargetMetaData) {
-      const store = useDrugDiscoveryStore();
-      const targets = this.uploadToAllTargets ? this.targets : [target];
-
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
-        message: `Uploading ligand`
+        message: `Uploading ligands...`
       });
 
       try {
+        // Handle file uploads
+        const targets = this.uploadToAllTargets ? this.targets : [target];
         for (let t of targets) {
           for (let file of this.uploadingLigandFiles) {
-            const ligand = await store.uploadLigandToTarget(this.experimentId, t.target_id, file);
-            const new_ligand = {
-              ...ligand,
-              jobs: [],
-              loadingLigandData: false
-            } as ExtendedLigandMetaData
-            t.ligands.push(new_ligand);
-            await this.registerJob(t, new_ligand);
+            const ligandMetaData = await this.drugDiscoveryStore.uploadLigandToTarget(this.experimentId, t.target_id, file);
+            t.ligands.push(ligandMetaData!);
           }
         }
+
+        // Handle selected lone ligands
+        for (let ligand of this.selectedLoneLigands) {
+          if (!ligand.data?.sdf_file) {
+            ligand.data = await this.drugDiscoveryStore.fetchLigandDataForExperiment(this.experimentId, ligand.ligand_id);
+          }
+          const file = new File([new Blob([ligand.data?.sdf_file!])], `${ligand.ligand_name}.sdf`);
+          for (let t of targets) {
+            const ligandMetaData = await this.drugDiscoveryStore.uploadLigandToTarget(this.experimentId, t.target_id, file);
+            t.ligands.push(ligandMetaData!);
+            this.registerJob(t, ligandMetaData!);
+          }
+        }
+      } catch (error) {
+        console.error('Error during ligand upload:', error);
+      } finally {
+        this.$q.loading.hide();
         this.uploadLigandDialog = false;
         this.uploadToAllTargets = false; // Reset the flag
-      }
-      finally{
-        this.$q.loading.hide();
+        this.selectedLoneLigands = []; // Clear selected lone ligands
       }
     },
     async registerJob(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData) {
-      const store = useDrugDiscoveryStore();
-      const response = await store.registerDockingJob(this.experimentId, target.target_id, ligand.ligand_id, target.folding_method);
+      const response = await this.drugDiscoveryStore.registerDockingJob(this.experimentId, target.target_id, ligand.ligand_id, target.folding_method!);
       if (response && response.job_id) {
         ligand.jobs.push({ job_id: response.job_id });
       }
     },
     async deleteJob(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData, job_id: string, jobIndex: number) {
-      const store = useDrugDiscoveryStore();
-      const response = await store.deleteDockingJob(this.experimentId, target.target_id, ligand.ligand_id, job_id);
+      const response = await this.drugDiscoveryStore.deleteDockingJob(this.experimentId, target.target_id, ligand.ligand_id, job_id);
       if (response) {
         ligand.jobs.splice(jobIndex, 1); // Remove the job from the list
       }
     },
     async getTargetData(target: ExtendedTargetMetaData) {
-      const store = useDrugDiscoveryStore();
       target.loadingTargetData = true;
       try {
-        const data = await store.fetchTargetData(this.experimentId, target.target_id);
-        target.data = {
-          proteinSequence: data?.sequence,
-          pdbContents: data?.pdbContents,
-        };
+        target.data = await this.drugDiscoveryStore.fetchTargetData(this.experimentId, target.target_id);
       } catch (error) {
         console.error('Error fetching target data:', error);
       } finally {
         target.loadingTargetData = false;
       }
     },
-    async getLigandData(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData) {
-      const store = useDrugDiscoveryStore();
+    async getLigandDataForTarget(target: ExtendedTargetMetaData, ligand: ExtendedLigandMetaData) {
       ligand.loadingLigandData = true;
       try {
-        const data = await store.fetchLigandData(this.experimentId, target.target_id, ligand.ligand_id);
+        const data = await this.drugDiscoveryStore.fetchLigandDataForTarget(this.experimentId, target.target_id, ligand.ligand_id);
         ligand.data = {
           sdf_file: data?.ligandSdf,
           smiles: data?.ligandSmiles,
         };
-        const jobs = await store.getDockingJobsListForTargetLigand(this.experimentId, target.target_id, ligand.ligand_id);
+        const jobs = await this.drugDiscoveryStore.getDockingJobsListForTargetLigand(this.experimentId, target.target_id, ligand.ligand_id);
         ligand.jobs = jobs?.jobs_list as JobMetaData[];// Store the jobs in the ligand object
       } catch (error) {
         console.error('Error fetching ligand data:', error);
@@ -248,13 +264,12 @@ export default defineComponent({
       }
     },
     async deleteTarget(targetToDelete: TargetMetaData) {
-      const store = useDrugDiscoveryStore();
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: `Loading ligands`
       });
       try {
-        await store.deleteTargetFromExperiment(this.experimentId, targetToDelete.target_id);
+        await this.drugDiscoveryStore.deleteTargetFromExperiment(this.experimentId, targetToDelete.target_id);
         this.targets = this.targets.filter(target => target.target_id !== targetToDelete.target_id);
       } catch (error) {
         console.error('Error deleting target:', error);
@@ -264,13 +279,12 @@ export default defineComponent({
       }
     },
     async deleteLigand(target: ExtendedTargetMetaData, ligandToDelete: ExtendedLigandMetaData) {
-      const store = useDrugDiscoveryStore();
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: `Deleting ligand`
       });
       try {
-        await store.deleteLigandFromTarget(this.experimentId, target.target_id, ligandToDelete.ligand_id);
+        await this.drugDiscoveryStore.deleteLigandFromTarget(this.experimentId, target.target_id, ligandToDelete.ligand_id);
         target.ligands = target.ligands.filter(ligand => ligand.ligand_id !== ligandToDelete.ligand_id);
       } catch (error) {
         console.error('Error deleting ligand:', error);

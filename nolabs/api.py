@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from nolabs.controllers.conformations.conformations import router as conformations_router
 from nolabs.controllers.drug_discovery.drug_discovery import router as drug_discovery_router
+from nolabs.controllers.biobuddy.biobuddy import router as biobuddy_router
 from nolabs.controllers.gene_ontology.gene_ontology import router as gene_ontology_router
 from nolabs.controllers.localisation.localisation import router as localisation_router
 from nolabs.controllers.protein_design.protein_design import router as protein_design_router
@@ -21,6 +22,7 @@ origins = [
     '*'
 ]
 
+app.include_router(biobuddy_router)
 app.include_router(conformations_router)
 app.include_router(solubility_router)
 app.include_router(localisation_router)

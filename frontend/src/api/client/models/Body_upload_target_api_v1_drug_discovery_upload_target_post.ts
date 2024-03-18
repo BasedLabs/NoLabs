@@ -5,5 +5,6 @@
 export type Body_upload_target_api_v1_drug_discovery_upload_target_post = {
     experiment_id: string;
     fasta: Blob;
+    metadata?: (string | null);
 };
 

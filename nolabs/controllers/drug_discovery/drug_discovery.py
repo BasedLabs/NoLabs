@@ -1,4 +1,5 @@
-from typing import List
+import json
+from typing import List, Dict, Optional
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from typing import Annotated
@@ -13,10 +14,10 @@ from nolabs.controllers.drug_discovery.dependencies import (
     delete_target_dependency,
     get_targets_list_dependency,
     get_target_data_dependency,
-    get_ligand_data_dependency,
-    upload_ligand_dependency,
-    delete_ligand_dependency,
-    get_ligands_list_dependency,
+    get_target_ligand_data_dependency,
+    upload_target_ligand_dependency,
+    delete_target_ligand_dependency,
+    get_target_ligands_list_dependency,
     get_binding_pocket_dependency,
     predict_binding_pocket_dependency,
     predict_esmfold_light_dependency,
@@ -32,7 +33,7 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_all_results_list_dependency,
     predict_umol_docking_dependency,
     get_umol_docking_result_dependency, create_experiment_dependency, get_target_meta_data_dependency,
-    get_ligand_meta_data_dependency, check_msa_data_available_dependency, check_pocket_data_available_dependency,
+    get_target_ligand_meta_data_dependency, check_msa_data_available_dependency, check_pocket_data_available_dependency,
     check_folding_data_available_dependency, delete_docking_job_dependency, check_msa_service_health_dependency,
     check_p2rank_service_health_dependency, check_esmfold_service_health_dependency,
     check_esmfold_light_service_health_dependency,
@@ -41,7 +42,9 @@ from nolabs.controllers.drug_discovery.dependencies import (
     get_jobs_list_for_target_ligand_feature, check_esmfold_running_dependency, check_esmfold_light_running_dependency,
     predict_diffdock_docking_dependency, check_diffdock_running_dependency, check_diffdock_service_health_dependency,
     get_diffdock_ligand_sdf_dependency, get_diffdock_docking_result_dependency, update_diffdock_params_dependency,
-    get_diffdock_params_dependency, update_docking_params_dependency, predict_rosettafold_dependency,
+    upload_lone_ligand_dependency,
+    delete_lone_ligand_dependency, get_lone_ligand_meta_data_dependency, get_lone_ligands_list_dependency,
+    get_lone_ligand_data_dependency, get_diffdock_params_dependency, update_docking_params_dependency, predict_rosettafold_dependency,
     check_rosettafold_service_health_dependency, check_rosettafold_running_dependency
 )
 from nolabs.features.infrastructure.check_service_health import CheckMsaServiceHealthFeature, \
@@ -53,6 +56,8 @@ from nolabs.features.drug_discovery.diffdock_params_management import UpdateDiff
     GetDiffDockParamsFeature
 from nolabs.features.drug_discovery.docking_params_management import UpdateDockingParamsFeature
 from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
+from nolabs.features.drug_discovery.lone_ligand_management import UploadLoneLigandFeature, DeleteLoneLigandFeature, \
+    GetLoneLigandMetaDataFeature, GetLoneLigandsListFeature, GetLoneLigandDataFeature
 from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
 from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
 from nolabs.features.drug_discovery.predict_rosettafold_folding import PredictRosettaFoldFolding
@@ -68,8 +73,8 @@ from nolabs.features.drug_discovery.predict_binding_pocket import PredictBinding
 from nolabs.features.drug_discovery.predict_light_folding import PredictEsmFoldLightFeature
 from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
 from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
-from nolabs.features.drug_discovery.ligand_management import UploadLigandFeature, DeleteLigandFeature, \
-    GetLigandsListFeature, GetLigandDataFeature, GetLigandMetaDataFeature
+from nolabs.features.drug_discovery.target_ligand_management import UploadTargetLigandFeature, DeleteTargetLigandFeature, \
+    GetTargetLigandsListFeature, GetTargetLigandDataFeature, GetTargetLigandMetaDataFeature
 from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
 from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
 from nolabs.features.experiment.create_experiment import CreateExperimentFeature
@@ -90,12 +95,12 @@ from nolabs.api_models.drug_discovery import (
     GetTargetsListRequest,
     GetTargetDataRequest,
     GetTargetDataResponse,
-    UploadLigandRequest,
-    UploadLigandResponse,
-    DeleteLigandRequest,
-    DeleteLigandResponse,
-    GetLigandsListRequest,
-    GetLigandDataResponse,
+    UploadTargetLigandRequest,
+    UploadTargetLigandResponse,
+    DeleteTargetLigandRequest,
+    DeleteTargetLigandResponse,
+    GetTargetLigandsListRequest,
+    GetTargetLigandDataResponse,
     GetTargetBindingPocketRequest,
     GetTargetBindingPocketResponse,
     PredictBindingPocketRequest,
@@ -118,12 +123,12 @@ from nolabs.api_models.drug_discovery import (
     GetUmolDockingResultDataResponse,
     TargetMetaData,
     LigandMetaData,
-    GetLigandDataRequest,
+    GetTargetLigandDataRequest,
     GetResultsListForTargetLigandRequest,
     GetResultsListForTargetLigandResponse,
     GetAllResultsListRequest,
-    GetAllResultsListResponse, GetTargetMetaDataResponse, GetTargetMetaDataRequest, GetLigandMetaDataResponse,
-    GetLigandMetaDataRequest, CheckMsaDataAvailableResponse, CheckMsaDataAvailableRequest,
+    GetAllResultsListResponse, GetTargetMetaDataResponse, GetTargetMetaDataRequest, GetTargetLigandMetaDataResponse,
+    GetTargetLigandMetaDataRequest, CheckMsaDataAvailableResponse, CheckMsaDataAvailableRequest,
     CheckPocketDataAvailableResponse, CheckPocketDataAvailableRequest, CheckFoldingDataAvailableResponse,
     CheckFoldingDataAvailableRequest, DeleteDockingJobRequest, DeleteDockingJobResponse, CheckServiceHealthyResponse,
     GetJobBindingPocketDataRequest, GetJobBindingPocketDataResponse, SetTargetBindingPocketRequest,
@@ -131,7 +136,9 @@ from nolabs.api_models.drug_discovery import (
     GetJobsListForTargetLigandRequest, RunDiffDockDockingJobResponse, RunDiffDockDockingJobRequest,
     GetDiffDockLigandSdfResponse, GetDiffDockLigandSdfRequest, GetDiffDockDockingResultDataResponse,
     UpdateDiffDockParamsRequest, GetDiffDockParamsResponse, GetDiffDockParamsRequest, GetDockingParamsResponse,
-    UpdateDockingParamsRequest
+    UpdateDockingParamsRequest, UploadLoneLigandResponse, UploadLoneLigandRequest, DeleteLoneLigandResponse,
+    DeleteLoneLigandRequest, GetLoneLigandMetaDataResponse, GetLoneLigandMetaDataRequest, GetLoneLigandsListRequest,
+    GetLoneLigandDataResponse, GetLoneLigandDataRequest
 )
 from nolabs.features.experiment.get_experiments import GetExperimentsFeature
 
@@ -177,9 +184,11 @@ async def change_experiment_name(experiment_id: str, experiment_name: str, featu
 @router.post('/upload-target')
 async def upload_target(feature: Annotated[UploadTargetFeature, Depends(upload_target_dependency)],
                         experiment_id: str = Form(),
-                        fasta: UploadFile = File()
+                        fasta: UploadFile = File(),
+                        metadata: Optional[str] = Form(default=None),  # Now expects a JSON string for metadata
                         ) -> UploadTargetResponse:
-    return feature.handle(UploadTargetRequest(experiment_id, fasta))
+    metadata_dict = json.loads(metadata) if metadata else None
+    return feature.handle(UploadTargetRequest(experiment_id, fasta, metadata_dict))
 
 
 @router.delete('/delete-target')
@@ -228,49 +237,83 @@ async def get_target_data(feature: Annotated[
 
 
 # Ligand Management
-@router.post('/upload-ligand')
-async def upload_ligand(feature: Annotated[UploadLigandFeature, Depends(upload_ligand_dependency)],
+@router.post('/upload-ligand-to-target')
+async def upload_ligand_to_target(feature: Annotated[UploadTargetLigandFeature, Depends(upload_target_ligand_dependency)],
                         experiment_id: str = Form(),
                         target_id: str = Form(),
                         sdf_file: UploadFile = File()
-                        ) -> UploadLigandResponse:
-    return feature.handle(UploadLigandRequest(experiment_id, target_id, sdf_file))
+                        ) -> UploadTargetLigandResponse:
+    return feature.handle(UploadTargetLigandRequest(experiment_id, target_id, sdf_file))
 
+@router.post('/upload-ligand-to-experiment')
+async def upload_ligand_to_experiment(feature: Annotated[UploadLoneLigandFeature, Depends(upload_lone_ligand_dependency)],
+                        experiment_id: str = Form(),
+                        sdf_file: UploadFile = File(),
+                        metadata: Optional[str] = Form(default=None)
+                        ) -> UploadLoneLigandResponse:
+    metadata_dict = json.loads(metadata) if metadata else None
+    return feature.handle(UploadLoneLigandRequest(experiment_id, sdf_file, metadata_dict))
 
-@router.delete('/delete-ligand')
-async def delete_ligand(feature: Annotated[
-    DeleteLigandFeature, Depends(delete_ligand_dependency)],
+@router.delete('/delete-ligand-from-target')
+async def delete_ligand_from_target(feature: Annotated[
+    DeleteTargetLigandFeature, Depends(delete_target_ligand_dependency)],
                         experiment_id: str,
                         target_id: str,
-                        ligand_id: str) -> DeleteLigandResponse:
-    return feature.handle(DeleteLigandRequest(experiment_id, target_id, ligand_id))
+                        ligand_id: str) -> DeleteTargetLigandResponse:
+    return feature.handle(DeleteTargetLigandRequest(experiment_id, target_id, ligand_id))
 
+@router.delete('/delete-ligand-from-experiment')
+async def delete_ligand_from_experiment(feature: Annotated[
+    DeleteLoneLigandFeature, Depends(delete_lone_ligand_dependency)],
+                        experiment_id: str,
+                        ligand_id: str) -> DeleteLoneLigandResponse:
+    return feature.handle(DeleteLoneLigandRequest(experiment_id, ligand_id))
 
-@router.get('/get-ligand-meta-data')
-async def get_ligand_meta_data(feature: Annotated[
-    GetLigandMetaDataFeature, Depends(get_ligand_meta_data_dependency)],
-                               experiment_id: str,
-                               target_id: str,
-                               ligand_id: str) -> GetLigandMetaDataResponse:
-    return feature.handle(GetLigandMetaDataRequest(experiment_id, target_id, ligand_id))
-
-
-@router.get('/get-ligand-data')
-async def get_ligand_data(feature: Annotated[
-    GetLigandDataFeature, Depends(get_ligand_data_dependency)],
+@router.get('/get-ligand-meta-data-for-target')
+async def get_ligand_meta_data_for_target(feature: Annotated[
+    GetTargetLigandMetaDataFeature, Depends(get_target_ligand_meta_data_dependency)],
                           experiment_id: str,
                           target_id: str,
-                          ligand_id: str) -> GetLigandDataResponse:
-    return feature.handle(GetLigandDataRequest(experiment_id, target_id, ligand_id))
+                          ligand_id: str) -> GetTargetLigandMetaDataResponse:
+    return feature.handle(GetTargetLigandMetaDataRequest(experiment_id, target_id, ligand_id))
+
+@router.get('/get-lone-ligand-meta-data')
+async def get_lone_ligand_meta_data(feature: Annotated[
+    GetLoneLigandMetaDataFeature, Depends(get_lone_ligand_meta_data_dependency)],
+                          experiment_id: str,
+                          ligand_id: str) -> GetLoneLigandMetaDataResponse:
+    return feature.handle(GetLoneLigandMetaDataRequest(experiment_id, ligand_id))
 
 
-@router.get('/get-ligands-list')
-async def get_ligands_list(feature: Annotated[
-    GetLigandsListFeature, Depends(get_ligands_list_dependency)],
+@router.get('/get-ligand-data-for-target')
+async def get_ligand_data_for_target(feature: Annotated[
+    GetTargetLigandDataFeature, Depends(get_target_ligand_data_dependency)],
+                          experiment_id: str,
+                          target_id: str,
+                          ligand_id: str) -> GetTargetLigandDataResponse:
+    return feature.handle(GetTargetLigandDataRequest(experiment_id, target_id, ligand_id))
+
+@router.get('/get-lone-ligand-data')
+async def get_lone_ligand_data(feature: Annotated[
+    GetLoneLigandDataFeature, Depends(get_lone_ligand_data_dependency)],
+                          experiment_id: str,
+                          ligand_id: str) -> GetLoneLigandDataResponse:
+    return feature.handle(GetLoneLigandDataRequest(experiment_id, ligand_id))
+
+
+
+@router.get('/get-ligands-list-for-target')
+async def get_ligands_list_for_target(feature: Annotated[
+    GetTargetLigandsListFeature, Depends(get_target_ligands_list_dependency)],
                            experiment_id: str,
                            target_id: str) -> List[LigandMetaData]:
-    return feature.handle(GetLigandsListRequest(experiment_id, target_id)).ligands
+    return feature.handle(GetTargetLigandsListRequest(experiment_id, target_id)).ligands
 
+@router.get('/get-lone-ligands-list')
+async def get_lone_ligands_list(feature: Annotated[
+    GetLoneLigandsListFeature, Depends(get_lone_ligands_list_dependency)],
+                           experiment_id: str) -> List[LigandMetaData]:
+    return feature.handle(GetLoneLigandsListRequest(experiment_id)).ligands
 
 # Binding Pocket Management
 @router.get('/get-target-binding-pocket')

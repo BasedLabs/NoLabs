@@ -42,7 +42,6 @@
             Job is running...
           </div>
           <div v-if="!currentJob.isAnyJobRunning" class="q-pa-md">
-            <q-tooltip v-if="isAnyServiceUnhealthy">
               <q-btn
                   label="Run current job"
                   color="info"
@@ -50,6 +49,7 @@
                   :loading="currentJob.isAnyJobRunning"
                   :disable="currentJob.isAnyJobRunning || isAnyServiceUnhealthy"
               />
+            <q-tooltip v-if="isAnyServiceUnhealthy">
               Fix the services which are not responding to run the docking. Services involved:
             </q-tooltip>
           </div>
@@ -72,7 +72,7 @@
       <template v-slot:body="props">
         <q-tr :props="props" @click="() => fetchResultDataForRow(props.row)">
           <q-td
-              v-for="col in resultsColumns.filter(col => col.name !== 'delete')"
+              v-for="col in resultsColumns.filter(c => c.name !== 'delete')"
               :key="col.name"
               :props="props"
           >
@@ -187,7 +187,7 @@ import {useRoute} from "vue-router";
 import DiffDockResult from "src/features/drug_discovery/components/results/DiffDockResult.vue";
 import UmolResult from "src/features/drug_discovery/components/results/UmolResult.vue";
 import {defineComponent} from "vue";
-import {JobMetaData} from "../../../api/client";
+import {JobMetaData} from "src/api/client";
 
 interface Job {
   job_id: string;
@@ -240,9 +240,9 @@ export default defineComponent({
   data() {
     return {
       foldingMethods: {
-        esmfoldLight: 'EsmFold light',
-        esmfold: 'Esmfold',
-        rosettafold: 'Rosettafold'
+        esmfoldLight: 'esmfold_light',
+        esmfold: 'esmfold',
+        rosettafold: 'rosettafold'
       },
       dockingResults: [] as DockingResult[],
       jobsInQueue: [] as Job[],
@@ -322,7 +322,7 @@ export default defineComponent({
 
       for (const result of results?.results_list ?? []) {
         const targetMeta = await store.fetchTargetMetaData(this.experimentId!, result.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, result.target_id, result.ligand_id);
+        const ligandMeta = await store.fetchLigandMetaDataForTarget(this.experimentId!, result.target_id, result.ligand_id);
 
         const dockingResult = {
           ...result,
@@ -373,13 +373,7 @@ export default defineComponent({
     },
 
     async fetchResultDataForRow(row: DockingResult) {
-      if (!row.expanded) {
-        // Expand the row
-        row.expanded = true;
-      } else {
-        // Collapse the row if it's already expanded
-        row.expanded = false;
-      }
+      row.expanded = !row.expanded;
     },
 
     async fetchJobsInQueue() {
@@ -388,7 +382,7 @@ export default defineComponent({
 
       for (const job of jobs?.jobs_list ?? []) {
         const targetMeta = await store.fetchTargetMetaData(this.experimentId!, job.target_id);
-        const ligandMeta = await store.fetchLigandMetaData(this.experimentId!, job.target_id, job.ligand_id);
+        const ligandMeta = await store.fetchLigandMetaDataForTarget(this.experimentId!, job.target_id, job.ligand_id);
         const pocketIdsResponse = await store.getJobPocketIds(this.experimentId!, job.target_id, job.ligand_id, job.job_id);
 
         let pocketIds = null;

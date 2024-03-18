@@ -1,6 +1,6 @@
 <template>
   <q-list bordered separator class="bg-black">
-    <q-item-label header>Upload targets</q-item-label>
+    <q-item-label header class="text-white">Upload targets</q-item-label>
     <q-item>
       <q-btn size="md" class="full-width q-pm-sm" push color="info" @click="uploadTargetDialog = true">
         + upload targets
@@ -49,7 +49,8 @@ import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
 import {ExtendedTargetMetaData} from "./types";
-import {TargetMetaData} from "../../../../api/client";
+import {FunctionCallReturnData, RcsbPdbData} from "src/api/client";
+import {useBioBuddyStore} from "../../../biobuddy/storage";
 
 export default defineComponent({
   name: "TargetsList",
@@ -61,74 +62,88 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    originalTargets: {
-      type: Array<TargetMetaData>,
-      required: true,
-    },
   },
   data() {
     return {
-      targets: this.originalTargets.map(target => ({
-      ...target,
-      loadingLigands: false,
-      ligands: [],
-      loadingTargetData: false,
-      })) as ExtendedTargetMetaData[],
       uploadTargetDialog: false,
-      uploadingTargetFiles: [],
+      uploadingTargetFiles: [] as File[],
       uploadLigandDialog: false,
       uploadingLigandFiles: [],
       selectedTarget: null,
-      uploadToAllTargets: false
+      uploadToAllTargets: false,
+      rscbQueryCallBack: null as ((data: FunctionCallReturnData) => void) | null,
+      targets: [] as ExtendedTargetMetaData[]
     };
   },
+  computed: {
+    drugDiscoveryStore() {
+      return useDrugDiscoveryStore();
+    },
+  },
+  async mounted() {
+    const bioBuddyStore = useBioBuddyStore();
+    this.rscbQueryCallBack = (data: { files: RcsbPdbData[] }) => {
+        const metaDatasArray: Record<string, string>[] = [];
+        for (let rcsbObject of data.files){
+          const file = new File([new Blob([rcsbObject.content!])], "protein.fasta")
+
+          this.uploadingTargetFiles.push(file);
+
+          // Directly iterating and treating each key as a string explicitly
+          const metadataAsString: Record<string, string> = {};
+          Object.entries(rcsbObject.metadata).forEach(([key, value]) => {
+            // Explicitly treating the key as a string, though this should be implicit
+            const stringKey: string = String(key);
+            // Handling the value conversion, assuming potential complex types
+            metadataAsString[stringKey] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+          });
+
+          metaDatasArray.push(metadataAsString);
+        }
+        this.handleTargetFileUpload(metaDatasArray);
+      };
+    bioBuddyStore.addQueryRcsbPdbEventHandler(this.rscbQueryCallBack);
+
+    this.targets = await this.drugDiscoveryStore.fetchTargetsForExperiment(this.experimentId) as ExtendedTargetMetaData[];
+
+    },
   methods: {
     async selectTarget(target: ExtendedTargetMetaData) {
-      await this.getTargetData(target);
+      target.data = await this.getTargetData(target);
     },
-    async handleTargetFileUpload() {
-      const store = useDrugDiscoveryStore();
+      async handleTargetFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
+        const store = useDrugDiscoveryStore();
 
-      this.$q.loading.show({
-        spinner: QSpinnerOrbit,
-        message: `Uploading target files`
-      });
+        this.$q.loading.show({
+          spinner: QSpinnerOrbit,
+          message: `Uploading target files`
+        });
 
-      try {
-        // Assuming uploadTargetToExperiment can handle multiple files and returns an array of TargetMetaData
-        const uploadedTargets: TargetMetaData[] = [];
-        for (let file of this.uploadingTargetFiles) {
-          const uploadResp = await store.uploadTargetToExperiment(this.experimentId, file);
-          if (uploadResp) {
-            uploadedTargets.push(...uploadResp);
+        try {
+          // Assuming uploadTargetToExperiment can handle multiple files and returns an array of TargetMetaData
+          for (let index = 0; index < this.uploadingTargetFiles.length; index++) {
+            const file = this.uploadingTargetFiles[index];
+            // Retrieve the corresponding metaData by file index
+            const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
+            // Pass the metaData to the upload method
+            const newTargets = await store.uploadTargetToExperiment(this.experimentId, file, metaData);
+            newTargets?.map(target => (
+              this.targets.push({...target})
+            ))
           }
+        } catch (error) {
+          console.error('Error uploading target files:', error);
+        } finally {
+          this.uploadTargetDialog = false;
+          this.uploadingTargetFiles = [];
+          this.$q.loading.hide();
         }
-
-        // Add additional properties to each uploaded target and push them into the targets array
-        const extendedTargets = uploadedTargets.map(target => ({
-          ...target,
-          loadingLigands: false,
-          ligands: [],
-          loadingTargetData: false,
-        })) as ExtendedTargetMetaData[];
-
-        this.targets.push(...extendedTargets);
-      } catch (error) {
-        console.error('Error uploading target files:', error);
-      } finally {
-        this.uploadTargetDialog = false;
-        this.$q.loading.hide();
-      }
-    },
+      },
     async getTargetData(target: ExtendedTargetMetaData) {
       const store = useDrugDiscoveryStore();
       target.loadingTargetData = true;
       try {
-        const data = await store.fetchTargetData(this.experimentId, target.target_id);
-        target.data = {
-          proteinSequence: data?.sequence,
-          pdbContents: data?.pdbContents,
-        };
+        return await store.fetchTargetData(this.experimentId, target.target_id);
       } catch (error) {
         console.error('Error fetching target data:', error);
       } finally {
@@ -143,7 +158,7 @@ export default defineComponent({
       });
       try {
         await store.deleteTargetFromExperiment(this.experimentId, targetToDelete.target_id);
-        this.targets = this.targets.filter(target => target.target_id !== targetToDelete.target_id);
+        this.targets = this.targets.filter((target: ExtendedTargetMetaData) => target.target_id !== targetToDelete.target_id);
       } catch (error) {
         console.error('Error deleting target:', error);
       }
@@ -152,6 +167,13 @@ export default defineComponent({
       }
     },
   },
+  unmounted() {
+    const bioBuddyStore = useBioBuddyStore();
+    const index = bioBuddyStore.queryRcsbPdbEventHandlers.indexOf(this.rscbQueryCallBack!);
+    if (index !== -1) {
+      bioBuddyStore.queryRcsbPdbEventHandlers.splice(index, 1);
+    }
+  }
 }
 )
 </script>

@@ -5,5 +5,6 @@
 export type GetTargetMetaDataResponse = {
     target_id: string;
     target_name: string;
+    link?: (string | null);
 };
 

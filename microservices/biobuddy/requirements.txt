@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-json-logger
+openapi
+openai
+biopython

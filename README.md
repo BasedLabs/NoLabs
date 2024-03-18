@@ -35,7 +35,32 @@ Let's accelerate bio research!
 
 # Features
 
-**Drug discovery lab (State of the art):**
+**Bio Buddy - drug discovery co-pilot:**
+
+BioBuddy is a drug discovery copilot which supports:
+
+- Donwloading data from [ChemBL](https://www.ebi.ac.uk/chembl/)
+- Downloading data from [RcsbPDB](https://www.rcsb.org/)
+- Questions about drug discovery process, targets, chemical components etc.
+
+For example, you can ask "Can you pull me some latest approved drugs", "Can you download me 1000 rhodopsins" or "How does an aspirin molecule look like?" and it will do this and answer other questions.
+
+<img src="media/Biobuddy_pic.png" width="100%">
+
+To enable biobuddy run this command when starting nolabs:
+
+```shell
+$ ENABLE_BIOBUDDY=true docker compose up nolabs
+```
+
+And also start the biobuddy microservice:
+
+```shell
+$ docker compose up biobuddy
+```
+
+
+**Drug discovery lab:**
 - Drug-target interaction prediction, high throughput virtual screening (HTVS) based on:
   - [DiffDock](https://github.com/gcorso/DiffDock)
   - [uMol](https://github.com/patrickbryant1/Umol)
@@ -84,7 +109,7 @@ $ docker compose -up nolabs [gene_ontology|localisation|protein_design|solubilit
 Server will be available on http://localhost:9000
 
 WARNING: To install RoseTTAFold check [RoseTTAFold section](#9-rosettafold-docker-api)
-# Microservices
+# APIs
 
 We provide individual Docker containers backed by FastAPI for each feature, which are available in the `/microservices` folder. You can use them individually as APIs.
 

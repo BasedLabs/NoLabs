@@ -1,6 +1,8 @@
+from dataclasses import field
+
 from pydantic import dataclasses as pcdataclass
 from fastapi import UploadFile
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 @pcdataclass.dataclass
@@ -15,12 +17,14 @@ class GetExperimentRequest:
 class TargetMetaData:
     target_id: str
     target_name: str
+    link: Optional[str] = None
     folding_method: Optional[str] = None
 
 @pcdataclass.dataclass
 class UploadTargetRequest:
     experiment_id: str
     fasta_file: UploadFile
+    metadata: Optional[Dict[str, str]] = None
 
 @pcdataclass.dataclass
 class UploadTargetResponse:
@@ -47,6 +51,7 @@ class GetTargetMetaDataRequest:
 class GetTargetMetaDataResponse:
     target_id: str
     target_name: str
+    link: Optional[str] = None
 
 @pcdataclass.dataclass
 class UpdateTargetNameRequest:
@@ -178,55 +183,108 @@ class PredictFoldingResponse:
 class LigandMetaData:
     ligand_id: str
     ligand_name: str
+    description: Optional[str] = None
+    link: Optional[str] = None
+    image: Optional[str] = field(default=None, repr=False)
 
 @pcdataclass.dataclass
-class UploadLigandRequest:
+class UploadTargetLigandRequest:
     experiment_id: str
     target_id: str
     sdf_file: UploadFile
 
 @pcdataclass.dataclass
-class UploadLigandResponse:
+class UploadTargetLigandResponse:
     ligand_meta_data: LigandMetaData
 
 @pcdataclass.dataclass
-class DeleteLigandRequest:
+class UploadLoneLigandRequest:
+    experiment_id: str
+    sdf_file: UploadFile
+    metadata: Optional[Dict[str, str]] = None
+
+@pcdataclass.dataclass
+class UploadLoneLigandResponse:
+    ligand_meta_data: LigandMetaData
+
+@pcdataclass.dataclass
+class DeleteTargetLigandRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
-class DeleteLigandResponse:
+class DeleteTargetLigandResponse:
     ligand_id: str
 
 @pcdataclass.dataclass
-class GetLigandsListRequest:
+class DeleteLoneLigandRequest:
+    experiment_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class DeleteLoneLigandResponse:
+    ligand_id: str
+
+@pcdataclass.dataclass
+class GetTargetLigandsListRequest:
     experiment_id: str
     target_id: str
 
 @pcdataclass.dataclass
-class GetLigandsListResponse:
+class GetTargetLigandsListResponse:
     ligands: List[LigandMetaData]
 
 @pcdataclass.dataclass
-class GetLigandMetaDataRequest:
+class GetLoneLigandsListRequest:
+    experiment_id: str
+
+@pcdataclass.dataclass
+class GetLoneLigandsListResponse:
+    ligands: List[LigandMetaData]
+
+@pcdataclass.dataclass
+class GetTargetLigandMetaDataRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
-class GetLigandMetaDataResponse:
+class GetTargetLigandMetaDataResponse:
     ligand_id: str
     ligand_name: str
 
 @pcdataclass.dataclass
-class GetLigandDataRequest:
+class GetLoneLigandMetaDataRequest:
+    experiment_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class GetLoneLigandMetaDataResponse:
+    ligand_id: str
+    ligand_name: str
+    image: Optional[str] = field(default=None, repr=False)
+
+@pcdataclass.dataclass
+class GetTargetLigandDataRequest:
     experiment_id: str
     target_id: str
     ligand_id: str
 
 @pcdataclass.dataclass
-class GetLigandDataResponse:
+class GetTargetLigandDataResponse:
+    ligand_id: str
+    ligand_name: str
+    ligand_sdf: str
+    ligand_smiles: str
+
+@pcdataclass.dataclass
+class GetLoneLigandDataRequest:
+    experiment_id: str
+    ligand_id: str
+
+@pcdataclass.dataclass
+class GetLoneLigandDataResponse:
     ligand_id: str
     ligand_name: str
     ligand_sdf: str

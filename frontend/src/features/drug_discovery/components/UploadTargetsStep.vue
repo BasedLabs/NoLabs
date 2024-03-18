@@ -1,13 +1,17 @@
 <template>
   <!-- Main Page Content -->
-  <q-page class="q-ma-md">
+  <q-page>
     <div v-if="loading">
       <q-spinner color="primary"/>
     </div>
     <div v-else>
       <TargetsList
           :experimentId="this.experimentId"
-          :originalTargets="this.targets"
+      />
+      <div class="q-pt-xl"></div>
+      <div class="q-pt-xl"></div>
+      <LigandsList
+        :experimentId="this.experimentId"
       />
       <q-expansion-item
           icon="info"
@@ -47,17 +51,19 @@ import {Notify, QSpinnerOrbit} from "quasar";
 import {useRoute} from "vue-router";
 import TargetsList from "src/features/drug_discovery/components/targets/TargetsList.vue";
 import {defineComponent} from "vue";
-import {TargetMetaData} from "../../../api/client";
+import {LigandMetaData, TargetMetaData} from "../../../api/client";
+import LigandsList from "./ligands/LigandsList.vue";
+import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "./targets/types";
 
 export default defineComponent({
   name: "ExperimentSetup",
   components: {
     TargetsList,
+    LigandsList,
   },
   data() {
     return {
       loading: true,
-      targets: [] as TargetMetaData[],
       experimentId: null as string | null
     };
   },
@@ -72,12 +78,12 @@ export default defineComponent({
     });
     try {
       await store.fetchTargetsForExperiment(this.experimentId);
-      this.targets = store.targets;
+      await store.fetchLigandsForExperiment(this.experimentId);
     } catch (e) {
       Notify.create({
         type: "negative",
         closeBtn: 'Close',
-        message: 'Error fetching targets: ' + e
+        message: 'Error fetching targets or ligands: ' + e
       });
     } finally {
       this.loading = false;

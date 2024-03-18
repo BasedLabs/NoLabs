@@ -1,4 +1,7 @@
+import io
 from typing import Dict, List
+
+from fastapi import UploadFile
 
 from nolabs.domain.amino_acid import AminoAcid
 
@@ -70,3 +73,11 @@ class FastaWriter:
             f.write(fasta_contents)
 
 
+def create_upload_file_from_string(contents: str, filename: str) -> UploadFile:
+    contents_bytes = contents.encode('utf-8')
+
+    file_like = io.BytesIO(contents_bytes)
+
+    upload_file = UploadFile(filename=filename, file=file_like)
+
+    return upload_file

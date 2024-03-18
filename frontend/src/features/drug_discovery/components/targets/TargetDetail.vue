@@ -18,8 +18,8 @@
     <q-card-section>
       <div class="text-h6 q-pa-sm">Target: {{ this.target.metaData.target_name }}
         <q-btn round @click="changeTargetName"
-               color="info" size="sm" flat icon="edit"/>
-      </div>
+                color="info" size="sm" flat icon="edit"/></div>
+      <div class="text-h7 q-pl-sm q-pb-md text-info" ><a class="text-light-blue" :href="this.target.metaData.link" target="_blank">{{ this.target.metaData.link }}</a></div>
       <q-card-section class="rounded-borders bg-black">
         <div class="text-h7 q-pl-md">Sequence:</div>
         <div class="fasta-sequence q-gutter-sm q-pa-md">
@@ -143,7 +143,8 @@ export default defineComponent({
       target: {
         metaData: {
           target_id: this.originalTarget.target_id,
-          target_name: this.originalTarget.target_name
+          target_name: this.originalTarget.target_name,
+          link: this.originalTarget.link
         },
         data: this.originalTarget.data
       },

@@ -2,7 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post } from '../models/Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post';
+import type { Body_upload_ligand_to_experiment_api_v1_drug_discovery_upload_ligand_to_experiment_post } from '../models/Body_upload_ligand_to_experiment_api_v1_drug_discovery_upload_ligand_to_experiment_post';
+import type { Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post } from '../models/Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post';
 import type { Body_upload_target_api_v1_drug_discovery_upload_target_post } from '../models/Body_upload_target_api_v1_drug_discovery_upload_target_post';
 import type { CheckFoldingDataAvailableResponse } from '../models/CheckFoldingDataAvailableResponse';
 import type { CheckJobIsRunningResponse } from '../models/CheckJobIsRunningResponse';
@@ -11,7 +12,8 @@ import type { CheckPocketDataAvailableResponse } from '../models/CheckPocketData
 import type { CheckResultDataAvailableResponse } from '../models/CheckResultDataAvailableResponse';
 import type { CheckServiceHealthyResponse } from '../models/CheckServiceHealthyResponse';
 import type { DeleteDockingJobResponse } from '../models/DeleteDockingJobResponse';
-import type { DeleteLigandResponse } from '../models/DeleteLigandResponse';
+import type { DeleteLoneLigandResponse } from '../models/DeleteLoneLigandResponse';
+import type { DeleteTargetLigandResponse } from '../models/DeleteTargetLigandResponse';
 import type { DeleteTargetResponse } from '../models/DeleteTargetResponse';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
 import type { GetAllJobsListResponse } from '../models/GetAllJobsListResponse';
@@ -23,11 +25,13 @@ import type { GetDockingParamsResponse } from '../models/GetDockingParamsRespons
 import type { GetFoldingResponse } from '../models/GetFoldingResponse';
 import type { GetJobBindingPocketDataResponse } from '../models/GetJobBindingPocketDataResponse';
 import type { GetJobsListForTargetLigandResponse } from '../models/GetJobsListForTargetLigandResponse';
-import type { GetLigandDataResponse } from '../models/GetLigandDataResponse';
-import type { GetLigandMetaDataResponse } from '../models/GetLigandMetaDataResponse';
+import type { GetLoneLigandDataResponse } from '../models/GetLoneLigandDataResponse';
+import type { GetLoneLigandMetaDataResponse } from '../models/GetLoneLigandMetaDataResponse';
 import type { GetResultsListForTargetLigandResponse } from '../models/GetResultsListForTargetLigandResponse';
 import type { GetTargetBindingPocketResponse } from '../models/GetTargetBindingPocketResponse';
 import type { GetTargetDataResponse } from '../models/GetTargetDataResponse';
+import type { GetTargetLigandDataResponse } from '../models/GetTargetLigandDataResponse';
+import type { GetTargetLigandMetaDataResponse } from '../models/GetTargetLigandMetaDataResponse';
 import type { GetTargetMetaDataResponse } from '../models/GetTargetMetaDataResponse';
 import type { GetUmolDockingResultDataResponse } from '../models/GetUmolDockingResultDataResponse';
 import type { LigandMetaData } from '../models/LigandMetaData';
@@ -38,7 +42,8 @@ import type { RegisterDockingJobResponse } from '../models/RegisterDockingJobRes
 import type { RunDiffDockDockingJobResponse } from '../models/RunDiffDockDockingJobResponse';
 import type { RunUmolDockingJobResponse } from '../models/RunUmolDockingJobResponse';
 import type { TargetMetaData } from '../models/TargetMetaData';
-import type { UploadLigandResponse } from '../models/UploadLigandResponse';
+import type { UploadLoneLigandResponse } from '../models/UploadLoneLigandResponse';
+import type { UploadTargetLigandResponse } from '../models/UploadTargetLigandResponse';
 import type { UploadTargetResponse } from '../models/UploadTargetResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -264,17 +269,17 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Upload Ligand
+     * Upload Ligand To Target
      * @param formData
-     * @returns UploadLigandResponse Successful Response
+     * @returns UploadTargetLigandResponse Successful Response
      * @throws ApiError
      */
-    public static uploadLigandApiV1DrugDiscoveryUploadLigandPost(
-        formData: Body_upload_ligand_api_v1_drug_discovery_upload_ligand_post,
-    ): CancelablePromise<UploadLigandResponse> {
+    public static uploadLigandToTargetApiV1DrugDiscoveryUploadLigandToTargetPost(
+        formData: Body_upload_ligand_to_target_api_v1_drug_discovery_upload_ligand_to_target_post,
+    ): CancelablePromise<UploadTargetLigandResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/drug_discovery/upload-ligand',
+            url: '/api/v1/drug_discovery/upload-ligand-to-target',
             formData: formData,
             mediaType: 'multipart/form-data',
             errors: {
@@ -283,21 +288,40 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Delete Ligand
+     * Upload Ligand To Experiment
+     * @param formData
+     * @returns UploadLoneLigandResponse Successful Response
+     * @throws ApiError
+     */
+    public static uploadLigandToExperimentApiV1DrugDiscoveryUploadLigandToExperimentPost(
+        formData: Body_upload_ligand_to_experiment_api_v1_drug_discovery_upload_ligand_to_experiment_post,
+    ): CancelablePromise<UploadLoneLigandResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/drug_discovery/upload-ligand-to-experiment',
+            formData: formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Delete Ligand From Target
      * @param experimentId
      * @param targetId
      * @param ligandId
-     * @returns DeleteLigandResponse Successful Response
+     * @returns DeleteTargetLigandResponse Successful Response
      * @throws ApiError
      */
-    public static deleteLigandApiV1DrugDiscoveryDeleteLigandDelete(
+    public static deleteLigandFromTargetApiV1DrugDiscoveryDeleteLigandFromTargetDelete(
         experimentId: string,
         targetId: string,
         ligandId: string,
-    ): CancelablePromise<DeleteLigandResponse> {
+    ): CancelablePromise<DeleteTargetLigandResponse> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/drug_discovery/delete-ligand',
+            url: '/api/v1/drug_discovery/delete-ligand-from-target',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
@@ -309,21 +333,44 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Get Ligand Meta Data
+     * Delete Ligand From Experiment
+     * @param experimentId
+     * @param ligandId
+     * @returns DeleteLoneLigandResponse Successful Response
+     * @throws ApiError
+     */
+    public static deleteLigandFromExperimentApiV1DrugDiscoveryDeleteLigandFromExperimentDelete(
+        experimentId: string,
+        ligandId: string,
+    ): CancelablePromise<DeleteLoneLigandResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/drug_discovery/delete-ligand-from-experiment',
+            query: {
+                'experiment_id': experimentId,
+                'ligand_id': ligandId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Ligand Meta Data For Target
      * @param experimentId
      * @param targetId
      * @param ligandId
-     * @returns GetLigandMetaDataResponse Successful Response
+     * @returns GetTargetLigandMetaDataResponse Successful Response
      * @throws ApiError
      */
-    public static getLigandMetaDataApiV1DrugDiscoveryGetLigandMetaDataGet(
+    public static getLigandMetaDataForTargetApiV1DrugDiscoveryGetLigandMetaDataForTargetGet(
         experimentId: string,
         targetId: string,
         ligandId: string,
-    ): CancelablePromise<GetLigandMetaDataResponse> {
+    ): CancelablePromise<GetTargetLigandMetaDataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/drug_discovery/get-ligand-meta-data',
+            url: '/api/v1/drug_discovery/get-ligand-meta-data-for-target',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
@@ -335,21 +382,44 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Get Ligand Data
+     * Get Lone Ligand Meta Data
+     * @param experimentId
+     * @param ligandId
+     * @returns GetLoneLigandMetaDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getLoneLigandMetaDataApiV1DrugDiscoveryGetLoneLigandMetaDataGet(
+        experimentId: string,
+        ligandId: string,
+    ): CancelablePromise<GetLoneLigandMetaDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-lone-ligand-meta-data',
+            query: {
+                'experiment_id': experimentId,
+                'ligand_id': ligandId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Ligand Data For Target
      * @param experimentId
      * @param targetId
      * @param ligandId
-     * @returns GetLigandDataResponse Successful Response
+     * @returns GetTargetLigandDataResponse Successful Response
      * @throws ApiError
      */
-    public static getLigandDataApiV1DrugDiscoveryGetLigandDataGet(
+    public static getLigandDataForTargetApiV1DrugDiscoveryGetLigandDataForTargetGet(
         experimentId: string,
         targetId: string,
         ligandId: string,
-    ): CancelablePromise<GetLigandDataResponse> {
+    ): CancelablePromise<GetTargetLigandDataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/drug_discovery/get-ligand-data',
+            url: '/api/v1/drug_discovery/get-ligand-data-for-target',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
@@ -361,22 +431,65 @@ export class DrugDiscoveryService {
         });
     }
     /**
-     * Get Ligands List
+     * Get Lone Ligand Data
+     * @param experimentId
+     * @param ligandId
+     * @returns GetLoneLigandDataResponse Successful Response
+     * @throws ApiError
+     */
+    public static getLoneLigandDataApiV1DrugDiscoveryGetLoneLigandDataGet(
+        experimentId: string,
+        ligandId: string,
+    ): CancelablePromise<GetLoneLigandDataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-lone-ligand-data',
+            query: {
+                'experiment_id': experimentId,
+                'ligand_id': ligandId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Ligands List For Target
      * @param experimentId
      * @param targetId
      * @returns LigandMetaData Successful Response
      * @throws ApiError
      */
-    public static getLigandsListApiV1DrugDiscoveryGetLigandsListGet(
+    public static getLigandsListForTargetApiV1DrugDiscoveryGetLigandsListForTargetGet(
         experimentId: string,
         targetId: string,
     ): CancelablePromise<Array<LigandMetaData>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/drug_discovery/get-ligands-list',
+            url: '/api/v1/drug_discovery/get-ligands-list-for-target',
             query: {
                 'experiment_id': experimentId,
                 'target_id': targetId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get Lone Ligands List
+     * @param experimentId
+     * @returns LigandMetaData Successful Response
+     * @throws ApiError
+     */
+    public static getLoneLigandsListApiV1DrugDiscoveryGetLoneLigandsListGet(
+        experimentId: string,
+    ): CancelablePromise<Array<LigandMetaData>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/drug_discovery/get-lone-ligands-list',
+            query: {
+                'experiment_id': experimentId,
             },
             errors: {
                 422: `Validation Error`,

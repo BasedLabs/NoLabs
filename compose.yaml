@@ -132,6 +132,36 @@ services:
     ports:
       - "5734:5734"
     command: --host=0.0.0.0 --port=5734
+  rcsb_pdb_query:
+    build:
+      context: microservices/rcsb_pdb_query
+      dockerfile: build/Dockerfile
+    ports:
+      - "5739:5739"
+    command: --host=0.0.0.0 --port=5739
+  pubmed_query:
+    build:
+      context: microservices/pubmed_query
+      dockerfile: build/Dockerfile
+    ports:
+      - "5740:5740"
+    command: --host=0.0.0.0 --port=5740
+  chembl_query:
+    build:
+      context: microservices/chembl_query
+      dockerfile: build/Dockerfile
+    ports:
+      - "5741:5741"
+    command: --host=0.0.0.0 --port=5741
+  biobuddy:
+    build:
+      context: microservices/biobuddy
+      dockerfile: build/Dockerfile
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "5738:5738"
+    command: --host=0.0.0.0 --port=5738
   rosettafold:
     build:
       context: microservices/rosettafold
@@ -153,4 +183,6 @@ services:
     ports:
       - "8000:8000"
       - "9000:9000"
+    environment:
+      - ENABLE_BIOBUDDY=${ENABLE_BIOBUDDY:-false}
     command: --host=0.0.0.0
