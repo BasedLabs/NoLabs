@@ -72,7 +72,7 @@
       <template v-slot:body="props">
         <q-tr :props="props" @click="() => fetchResultDataForRow(props.row)">
           <q-td
-              v-for="col in resultsColumns.filter(col => col.name !== 'delete')"
+              v-for="col in resultsColumns.filter(c => c.name !== 'delete')"
               :key="col.name"
               :props="props"
           >
@@ -187,7 +187,7 @@ import {useRoute} from "vue-router";
 import DiffDockResult from "src/features/drug_discovery/components/results/DiffDockResult.vue";
 import UmolResult from "src/features/drug_discovery/components/results/UmolResult.vue";
 import {defineComponent} from "vue";
-import {JobMetaData} from "../../../api/client";
+import {JobMetaData} from "src/api/client";
 
 interface Job {
   job_id: string;
@@ -373,13 +373,7 @@ export default defineComponent({
     },
 
     async fetchResultDataForRow(row: DockingResult) {
-      if (!row.expanded) {
-        // Expand the row
-        row.expanded = true;
-      } else {
-        // Collapse the row if it's already expanded
-        row.expanded = false;
-      }
+      row.expanded = !row.expanded;
     },
 
     async fetchJobsInQueue() {

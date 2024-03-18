@@ -1,13 +1,17 @@
 import { defineStore } from 'pinia';
-import type {FunctionCallReturnData} from "../../api/client";
+import {ChemBLData, RcsbPdbData} from "src/api/client";
 
-interface FunctionCallback {
-  (data: FunctionCallReturnData): void;
+interface ChemblFunctionCallback  {
+  (data: {files: ChemBLData[]}): void;
+}
+
+interface RcsbFunctionCallback {
+  (data: {files: RcsbPdbData[]}): void;
 }
 
 interface StorageState {
-  queryChemblEventHandlers: FunctionCallback[];
-  queryRcsbPdbEventHandlers: FunctionCallback[];
+  queryChemblEventHandlers: ChemblFunctionCallback[];
+  queryRcsbPdbEventHandlers: RcsbFunctionCallback[];
 }
 
 export const useBioBuddyStore = defineStore('storage', {
@@ -16,10 +20,10 @@ export const useBioBuddyStore = defineStore('storage', {
     queryRcsbPdbEventHandlers: [],
   }),
   actions: {
-    addQueryChemblEventHandler(callback: FunctionCallback) {
+    addQueryChemblEventHandler(callback: ChemblFunctionCallback) {
       this.queryChemblEventHandlers.push(callback);
     },
-    addQueryRcsbPdbEventHandler(callback: FunctionCallback) {
+    addQueryRcsbPdbEventHandler(callback: RcsbFunctionCallback) {
       this.queryRcsbPdbEventHandlers.push(callback);
     },
     invokeQueryChemblEventHandlers(data: any) {
