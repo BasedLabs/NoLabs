@@ -49,7 +49,7 @@ import {useDrugDiscoveryStore} from "src/features/drug_discovery/storage";
 import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
 import {ExtendedTargetMetaData} from "./types";
-import {FunctionCallReturnData, RcsbPdbData} from "../../../../api/client";
+import {FunctionCallReturnData, RcsbPdbData} from "src/api/client";
 import {useBioBuddyStore} from "../../../biobuddy/storage";
 
 export default defineComponent({
@@ -82,10 +82,9 @@ export default defineComponent({
   },
   async mounted() {
     const bioBuddyStore = useBioBuddyStore();
-    this.rscbQueryCallBack = (data: FunctionCallReturnData) => {
+    this.rscbQueryCallBack = (data: { files: RcsbPdbData[] }) => {
         const metaDatasArray: Record<string, string>[] = [];
-        for (let dataObject of data.files){
-          const rcsbObject = dataObject as RcsbPdbData;
+        for (let rcsbObject of data.files){
           const file = new File([new Blob([rcsbObject.content!])], "protein.fasta")
 
           this.uploadingTargetFiles.push(file);

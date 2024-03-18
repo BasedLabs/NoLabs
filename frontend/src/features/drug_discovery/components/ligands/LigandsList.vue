@@ -8,29 +8,33 @@
         <q-tooltip>Add ligands to the experiment</q-tooltip>
       </q-btn>
     </q-item>
-    <q-item v-for="ligand in ligands" :key="ligand.ligand_id" clickable v-ripple class="q-mb-sm" @click="showLigandDetailDialog(ligand)">
-      <q-card class="q-pa-md full-width flex-row justify-between" bordered >
+    <q-item v-for="ligand in ligands" :key="ligand.ligand_id" clickable v-ripple class="q-mb-sm"
+            @click="showLigandDetailDialog(ligand)">
+      <q-card class="q-pa-md full-width flex-row justify-between" bordered>
         <div class="row">
           <div class="col-4">
-            <img v-if="ligand.image" class="rounded-borders" :width="200" :height="200" :src="'data:image/png;base64,' + ligand.image" alt="Ligand Structure"/>
+            <img v-if="ligand.image" class="rounded-borders" :width="200" :height="200"
+                 :src="'data:image/png;base64,' + ligand.image" alt="Ligand Structure"/>
           </div>
           <div class="col-8">
-          <q-card-section>
-            <div>{{ ligand.ligand_name }}</div>
-            <div class="q-pt-sm q-pb-sm"><a class="text-light-blue" :href="ligand.link" target="_blank">{{ ligand.link }}</a></div>
-            <q-item-label v-if="ligand.data" caption>SMILES: {{ ligand.data.smiles }}</q-item-label>
-          </q-card-section>
-          <q-card-section class="flex-row">
-            <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative">
-              <q-tooltip>Delete ligand</q-tooltip>
-            </q-btn>
-            <q-btn icon="add" flat @click.stop="openTargetSelectionDialog(ligand)" color="positive">
-              <q-tooltip>Attach to targets</q-tooltip>
-            </q-btn>
-            <q-btn icon="file_download" flat @click.stop="downloadLigand(ligand)" color="info">
-              <q-tooltip>Download</q-tooltip>
-            </q-btn>
-          </q-card-section>
+            <q-card-section>
+              <div>{{ ligand.ligand_name }}</div>
+              <div class="q-pt-sm q-pb-sm"><a class="text-light-blue" :href="ligand.link" target="_blank">{{
+                  ligand.link
+                }}</a></div>
+              <q-item-label v-if="ligand.data" caption>SMILES: {{ ligand.data.smiles }}</q-item-label>
+            </q-card-section>
+            <q-card-section class="flex-row">
+              <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative">
+                <q-tooltip>Delete ligand</q-tooltip>
+              </q-btn>
+              <q-btn icon="add" flat @click.stop="openTargetSelectionDialog(ligand)" color="positive">
+                <q-tooltip>Attach to targets</q-tooltip>
+              </q-btn>
+              <q-btn icon="file_download" flat @click.stop="downloadLigand(ligand)" color="info">
+                <q-tooltip>Download</q-tooltip>
+              </q-btn>
+            </q-card-section>
           </div>
         </div>
       </q-card>
@@ -47,12 +51,12 @@
     <q-card>
       <q-card-section>
         <div class="text-h6">Upload Ligand Files</div>
-        <q-file v-model="uploadingLigandFiles" accept=".sdf" multiple label="Choose files" />
+        <q-file v-model="uploadingLigandFiles" accept=".sdf" multiple label="Choose files"/>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false" />
-        <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload()" />
+        <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false"/>
+        <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload()"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -63,7 +67,7 @@
         <LigandDetail :originalLigand="selectedLigand" v-if="selectedLigand && selectedLigand.data"></LigandDetail>
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="negative" @click="ligandDetailDialogVisible = false" />
+        <q-btn flat label="Close" color="negative" @click="ligandDetailDialogVisible = false"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -80,8 +84,8 @@
         </q-list>
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn flat label="Add ligands to selected targets" color="positive" @click="addLigandsToSelectedTargets" />
-        <q-btn flat label="Close" color="negative" @click="targetSelectionDialogVisible = false" />
+        <q-btn flat label="Add ligands to selected targets" color="positive" @click="addLigandsToSelectedTargets"/>
+        <q-btn flat label="Close" color="negative" @click="targetSelectionDialogVisible = false"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -95,187 +99,177 @@ import {QSpinnerOrbit} from "quasar";
 import {defineComponent} from "vue";
 import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "../targets/types";
 import {useBioBuddyStore} from "../../../biobuddy/storage";
-import {ChemBLData, FunctionCallReturnData} from "../../../../api/client";
+import {ChemBLData} from "src/api/client";
 
 export default defineComponent({
-    name: "LigandsList",
-    components: {
-      LigandDetail,
-    },
-    props: {
-      experimentId: {
-        type: String,
-        required: true,
+      name: "LigandsList",
+      components: {
+        LigandDetail,
       },
-    },
-    data() {
-      return {
-        uploadLigandDialog: false,
-        uploadingLigandFiles: [] as File[],
-        selectedLigand: null as ExtendedLigandMetaData | null,
-        chemblQueryCallback:  null as ((data: FunctionCallReturnData) => void) | null,
-        ligandDetailDialogVisible: false,
-        targetSelectionDialogVisible: false,
-        selectedTargets: [] as String[],
-        selectAllTargets: false,
-        ligands: [] as ExtendedLigandMetaData[],
-        targets: [] as ExtendedTargetMetaData[],
-      };
-    },
-    computed: {
-      drugDiscoveryStore() {
-        return useDrugDiscoveryStore();
-      },
-      allTargetsSelected: {
-        get() {
-          return this.selectedTargets.length === this.drugDiscoveryStore.targets.length &&
-            this.selectedTargets.length > 0;
+      props: {
+        experimentId: {
+          type: String,
+          required: true,
         },
-        set(value: boolean) {
-          this.toggleSelectAll(value);
-        }
-      }
-    },
-    async mounted() {
-      const bioBuddyStore = useBioBuddyStore();
-      this.chemblQueryCallback = (data: FunctionCallReturnData) => {
-        const metaDatasArray: Record<string, string>[] = [];
-        for (let dataObject of data.files){
-          const chemBLObject = dataObject as ChemBLData;
-
-          const file = new File([new Blob([chemBLObject.content!])], chemBLObject.metadata.pref_name + ".sdf");
-          this.uploadingLigandFiles.push(file);
-          metaDatasArray.push(chemBLObject.metadata);
-        }
-        this.handleLigandFileUpload(metaDatasArray);
-      };
-      bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
-
-      this.ligands = await this.drugDiscoveryStore.fetchLigandsForExperiment(this.experimentId) as ExtendedLigandMetaData[];
-
-      for (let ligand of this.ligands) {
-        await this.getLigandData(ligand);
-      }
-    },
-    methods: {
-      showLigandDetailDialog(ligand: ExtendedLigandMetaData) {
-        this.selectedLigand = ligand;
-        this.ligandDetailDialogVisible = true;
       },
-      async handleLigandFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
-        for (let index = 0; index < this.uploadingLigandFiles.length; index++) {
-          const file = this.uploadingLigandFiles[index];
-          const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
-          const newLigand = await this.drugDiscoveryStore.uploadLigandToExperiment(this.experimentId, file, metaData);
-          this.ligands.push(newLigand!);
-        }
-        this.uploadLigandDialog = false;
-        this.uploadingLigandFiles = [];
+      data() {
+        return {
+          uploadLigandDialog: false,
+          uploadingLigandFiles: [] as File[],
+          selectedLigand: null as ExtendedLigandMetaData | null,
+          chemblQueryCallback: null as ((data: { files: ChemBLData[] }) => void) | null,
+          ligandDetailDialogVisible: false,
+          targetSelectionDialogVisible: false,
+          selectedTargets: [] as String[],
+          selectAllTargets: false,
+          ligands: [] as ExtendedLigandMetaData[],
+          targets: [] as ExtendedTargetMetaData[],
+        };
       },
-      async getLigandData(ligand: ExtendedLigandMetaData) {
-        ligand.loadingLigandData = true;
-        try {
-          ligand.data = await this.drugDiscoveryStore.fetchLigandDataForExperiment(this.experimentId, ligand.ligand_id);
-        } catch (error) {
-          console.error('Error fetching ligand data:', error);
-        } finally {
-          ligand.loadingLigandData = false;
-          this.uploadingLigandFiles = [];
-        }
-      },
-      async deleteLigand(ligandToDelete: ExtendedLigandMetaData) {
-        this.$q.loading.show({
-          spinner: QSpinnerOrbit,
-          message: `Deleting ligand`
-        });
-        try {
-          await this.drugDiscoveryStore.deleteLigandFromExperiment(this.experimentId, ligandToDelete.ligand_id);
-          this.ligands = this.ligands.filter(ligand => ligand.ligand_id !== ligandToDelete.ligand_id);
-        } catch (error) {
-          console.error('Error deleting ligand:', error);
-        } finally {
-          this.$q.loading.hide();
-        }
-      },
-      toggleSelectAll(value: boolean) {
-        if (value) {
-          // Replace the array with a new one containing all IDs to ensure reactivity
-          this.selectedTargets = this.drugDiscoveryStore.targets.map(target => target.target_id);
-        } else {
-          // Clear the array by replacing it with a new empty array
-          this.selectedTargets = [];
-        }
-      },
-
-      async openTargetSelectionDialog(ligand: ExtendedLigandMetaData) {
-        this.selectedLigand = ligand;
-        this.targetSelectionDialogVisible = true;
-        this.selectedTargets = [];
-        this.selectAllTargets = false;
-        this.targets = await this.drugDiscoveryStore.fetchTargetsForExperiment(this.experimentId) as ExtendedTargetMetaData[];
-      },
-
-      async addLigandsToSelectedTargets() {
-        const store = useDrugDiscoveryStore();
-
-        for (let target_id of this.selectedTargets) {
-          if (this.selectedLigand && this.selectedLigand.data) {
-            // Assuming `selectedLigand.data` has the required SDF file or you have it available somehow
-            const sdfFileContent = this.selectedLigand.data.sdf_file;
-
-            const file = new File([new Blob([sdfFileContent!])], this.selectedLigand.ligand_name + ".sdf")
-
-            try {
-              await store.uploadLigandToTarget(this.experimentId, target_id.toString(), file);
-              // Handle success - Maybe show a notification?
-            } catch (error) {
-              console.error('Error uploading ligand to target:', error);
-              // Handle error - Show error message to user?
-            }
+      computed: {
+        drugDiscoveryStore() {
+          return useDrugDiscoveryStore();
+        },
+        allTargetsSelected: {
+          get() {
+            return this.selectedTargets.length === this.drugDiscoveryStore.targets.length &&
+                this.selectedTargets.length > 0;
+          },
+          set(value: boolean) {
+            this.toggleSelectAll(value);
           }
         }
-
-        // Close dialog and clear selections after operations
-        this.targetSelectionDialogVisible = false;
-        this.selectedTargets = [];
-        this.selectAllTargets = false;
       },
-      downloadLigand(ligand: ExtendedLigandMetaData) {
-        if (!ligand.data || !ligand.data.sdf_file) {
-          console.error('SDF file content is missing for this ligand.');
-          return;
+      async mounted() {
+        const bioBuddyStore = useBioBuddyStore();
+        this.chemblQueryCallback = (data: { files: ChemBLData[] }) => {
+          const metaDatasArray: Record<string, string>[] = [];
+          for (let chemBLObject of data.files) {
+            const file = new File([new Blob([chemBLObject.content!])], chemBLObject.metadata.pref_name + ".sdf");
+            this.uploadingLigandFiles.push(file);
+            metaDatasArray.push(chemBLObject.metadata);
+          }
+          this.handleLigandFileUpload(metaDatasArray);
+        };
+        bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
+
+        this.ligands = await this.drugDiscoveryStore.fetchLigandsForExperiment(this.experimentId) as ExtendedLigandMetaData[];
+
+        for (let ligand of this.ligands) {
+          await this.getLigandData(ligand);
         }
-
-        // Create a blob from the SDF content
-        const sdfContent = ligand.data.sdf_file;
-        const blob = new Blob([sdfContent], { type: 'chemical/x-mdl-sdfile' });
-        const url = window.URL.createObjectURL(blob);
-
-        // Create a temporary anchor element and trigger the download
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${ligand.ligand_name}.sdf`; // Set the file name
-        document.body.appendChild(a); // Append the anchor to the body
-        a.click(); // Trigger the download
-        window.URL.revokeObjectURL(url); // Clean up the URL object
-        a.remove(); // Remove the anchor from the document
       },
-    },
-    unmounted() {
-      const bioBuddyStore = useBioBuddyStore();
-      const index = bioBuddyStore.queryChemblEventHandlers.indexOf(this.chemblQueryCallback!);
-      if (index !== -1) {
-        bioBuddyStore.queryChemblEventHandlers.splice(index, 1);
+      methods: {
+        showLigandDetailDialog(ligand: ExtendedLigandMetaData) {
+          this.selectedLigand = ligand;
+          this.ligandDetailDialogVisible = true;
+        },
+        async handleLigandFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
+          for (let index = 0; index < this.uploadingLigandFiles.length; index++) {
+            const file = this.uploadingLigandFiles[index];
+            const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
+            const newLigand = await this.drugDiscoveryStore.uploadLigandToExperiment(this.experimentId, file, metaData);
+            this.ligands.push(newLigand!);
+          }
+          this.uploadLigandDialog = false;
+          this.uploadingLigandFiles = [];
+        },
+        async getLigandData(ligand: ExtendedLigandMetaData) {
+          ligand.loadingLigandData = true;
+          try {
+            ligand.data = await this.drugDiscoveryStore.fetchLigandDataForExperiment(this.experimentId, ligand.ligand_id);
+          } catch (error) {
+            console.error('Error fetching ligand data:', error);
+          } finally {
+            ligand.loadingLigandData = false;
+            this.uploadingLigandFiles = [];
+          }
+        },
+        async deleteLigand(ligandToDelete: ExtendedLigandMetaData) {
+          this.$q.loading.show({
+            spinner: QSpinnerOrbit,
+            message: `Deleting ligand`
+          });
+          try {
+            await this.drugDiscoveryStore.deleteLigandFromExperiment(this.experimentId, ligandToDelete.ligand_id);
+            this.ligands = this.ligands.filter(ligand => ligand.ligand_id !== ligandToDelete.ligand_id);
+          } catch (error) {
+            console.error('Error deleting ligand:', error);
+          } finally {
+            this.$q.loading.hide();
+          }
+        },
+        toggleSelectAll(value: boolean) {
+          if (value) {
+            // Replace the array with a new one containing all IDs to ensure reactivity
+            this.selectedTargets = this.drugDiscoveryStore.targets.map(target => target.target_id);
+          } else {
+            // Clear the array by replacing it with a new empty array
+            this.selectedTargets = [];
+          }
+        },
+
+        async openTargetSelectionDialog(ligand: ExtendedLigandMetaData) {
+          this.selectedLigand = ligand;
+          this.targetSelectionDialogVisible = true;
+          this.selectedTargets = [];
+          this.selectAllTargets = false;
+          this.targets = await this.drugDiscoveryStore.fetchTargetsForExperiment(this.experimentId) as ExtendedTargetMetaData[];
+        },
+
+        async addLigandsToSelectedTargets() {
+          const store = useDrugDiscoveryStore();
+
+          if (this.selectedLigand && this.selectedLigand.data) {
+            for (let target_id of this.selectedTargets) {
+              // Assuming `selectedLigand.data` has the required SDF file or you have it available somehow
+              const sdfFileContent = this.selectedLigand.data.sdf_file;
+
+              const file = new File([new Blob([sdfFileContent!])], this.selectedLigand.ligand_name + ".sdf")
+
+              try {
+                await store.uploadLigandToTarget(this.experimentId, target_id.toString(), file);
+                // Handle success - Maybe show a notification?
+              } catch (error) {
+                console.error('Error uploading ligand to target:', error);
+                // Handle error - Show error message to user?
+              }
+            }
+          }
+
+          // Close dialog and clear selections after operations
+          this.targetSelectionDialogVisible = false;
+          this.selectedTargets = [];
+          this.selectAllTargets = false;
+        },
+        downloadLigand(ligand: ExtendedLigandMetaData) {
+          if (!ligand.data || !ligand.data.sdf_file) {
+            console.error('SDF file content is missing for this ligand.');
+            return;
+          }
+
+          // Create a blob from the SDF content
+          const sdfContent = ligand.data.sdf_file;
+          const blob = new Blob([sdfContent], {type: 'chemical/x-mdl-sdfile'});
+          const url = window.URL.createObjectURL(blob);
+
+          // Create a temporary anchor element and trigger the download
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${ligand.ligand_name}.sdf`; // Set the file name
+          document.body.appendChild(a); // Append the anchor to the body
+          a.click(); // Trigger the download
+          window.URL.revokeObjectURL(url); // Clean up the URL object
+          a.remove(); // Remove the anchor from the document
+        },
+      },
+      unmounted() {
+        const bioBuddyStore = useBioBuddyStore();
+        const index = bioBuddyStore.queryChemblEventHandlers.indexOf(this.chemblQueryCallback!);
+        if (index !== -1) {
+          bioBuddyStore.queryChemblEventHandlers.splice(index, 1);
+        }
       }
     }
-  }
 )
 </script>
-
-<style>
-.ligand-image {
-  max-width: 100px; /* Adjust based on your layout */
-  max-height: 100px; /* Adjust based on your layout */
-  margin-right: 15px; /* Spacing between the image and the text */
-}
-</style>
