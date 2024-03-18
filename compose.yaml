@@ -170,9 +170,9 @@ services:
         ROSETTACOMMONS_CONDA_USERNAME: username
         ROSETTACOMMONS_CONDA_PASSWORD: password
     volumes:
-      - local_path:/RoseTTAFold/bfd
-      - local_path:/RoseTTAFold/pdb100_2021Mar03
-      - local_path:/RoseTTAFold/UniRef30_2020_06
+      - /dev/null:/RoseTTAFold/bfd
+      - /dev/null:/RoseTTAFold/pdb100_2021Mar03
+      - /dev/null:/RoseTTAFold/UniRef30_2020_06
     ports:
       - "5738:5738"
     command: --host=0.0.0.0 --port=5738
