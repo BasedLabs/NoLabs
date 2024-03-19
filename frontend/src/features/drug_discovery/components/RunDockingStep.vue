@@ -41,7 +41,7 @@
           <div class="q-pa-md" v-else>
             Job is running...
           </div>
-          <div v-if="true" class="q-pa-md">
+          <div v-if="!currentJob.isAnyJobRunning" class="q-pa-md">
               <q-btn
                   label="Run current job"
                   color="info"

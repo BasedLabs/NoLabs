@@ -1,0 +1,76 @@
+{
+  "docking": {
+    "header": {
+      "logging": {
+        "logfile": "dockstream_rl_direct.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "Corina_not_aligned",
+          "type": "Corina",
+          "parameters": {
+            "prefix_execution": "module load corina"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "type": "console"
+          }
+        },
+        {
+          "pool_id": "Corina_stereo",
+          "type": "Corina",
+          "parameters": {
+            "prefix_execution": "module load corina",
+            "enumerate_stereo": true
+          },
+          "input": {
+            "standardize_smiles": false,
+            "type": "console"
+          }
+        }
+      ]
+    },
+    "docking_runs": [
+      {
+        "backend": "AutoDockVina",
+        "run_id": "AutoDockVina",
+        "input_pools": [
+          "RDkit"
+        ],
+        "parameters": {
+          "binary_location": "/app",
+          "parallelization": {
+            "number_cores": 6
+          },
+          "seed": 24,
+          "receptor_pdbqt_path": [
+            "/app/1smd_receptor.pdbqt"
+          ],
+          "number_poses": 2,
+          "search_space": {
+            "--center_x": 0,
+            "--center_y": 0,
+            "--center_z": 0,
+            "--size_x": 100,
+            "--size_y": 100,
+            "--size_z": 100
+          }
+        },
+        "output": {
+          "poses": {
+            "poses_path": "poses/rl_direct_poses.sdf",
+            "overwrite": true,
+            "mode": "best_per_ligand"
+          },
+          "scores": {
+            "scores_path": "scores/rl_direct_scores.csv",
+            "overwrite": true,
+            "mode": "best_per_ligand"
+          }
+        }
+      }
+    ]
+  }
+}
