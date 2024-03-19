@@ -46,8 +46,10 @@ BioBuddy is a drug discovery copilot which supports:
 - Downloading data from [RcsbPDB](https://www.rcsb.org/)
 - Questions about drug discovery process, targets, chemical components etc.
 
-For example, you can ask "Can you pull me some latest approved drugs", "Can you download me 1000 rhodopsins" or "How
-does an aspirin molecule look like?" and it will do this and answer other questions.
+For example, you can ask 
+- "Can you pull me some latest approved drugs?"
+- "Can you download me 1000 rhodopsins?"
+- "How does an aspirin molecule look like?" and it will do this and answer other questions.
 
 <img src="media/Biobuddy_pic.png" width="100%">
 
@@ -60,8 +62,11 @@ $ ENABLE_BIOBUDDY=true docker compose up nolabs
 And also start the biobuddy microservice:
 
 ```shell
-$ docker compose up biobuddy
+$ OPENAI_API_KEY=your_openai_api_key docker compose up biobuddy
 ```
+Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
+
+You can ignore OPENAI_API_KEY warnings when running other services using docker compose.
 
 **Drug discovery lab:**
 

@@ -1,5 +1,5 @@
 # Use a PyTorch base image with CUDA support
-FROM python:3.8
+FROM python:3.11
 
 # Install Python 3.8 and curl
 RUN apt-get update && apt-get install -y curl python3-pip
@@ -11,11 +11,11 @@ WORKDIR /app
 COPY ./requirements.txt /app/
 
 # Install dependencies
-RUN python3.8 -m pip install --upgrade pip
-RUN python3.8 -m pip install --default-timeout=100 -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install --default-timeout=100 -r requirements.txt
 
 # Now copy the rest of the application files into the container
 COPY ./chembl_query /app/chembl_query
 
 # Set the command to run the FastAPI app
-ENTRYPOINT uvicorn chembl_query.api:app --host $HOST --port $PORT
+ENTRYPOINT ["uvicorn", "chembl_query.api:app"]
