@@ -35,6 +35,7 @@ pubmed-query-microservice = {path = "microservices/pubmed_query/client"}
 rcsb-pdb-query-microservice = {path = "microservices/rcsb_pdb_query/client"}
 chembl-query-microservice = {path = "microservices/chembl_query/client"}
 aiohttp = "^3.9.3"
+rosettafold-microservice = {path = "microservices/rosettafold/client"}
 
 [project]
 dependencies = [

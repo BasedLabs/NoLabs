@@ -2717,6 +2717,25 @@ files = [
 ]
 
 [[package]]
+name = "rosettafold-microservice"
+version = "1.0.0"
+description = "RoseTTAFold API"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/rosettafold/client"
+
+[[package]]
 name = "rpds-py"
 version = "0.17.1"
 description = "Python bindings to Rust's persistent data structures (rpds)"
@@ -3300,4 +3319,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "2f59f789abe522e74eda4fa0ffd2298614b8ebf2f6533687307c8573947ed138"
+content-hash = "70d9613158688ba610574347d0afa13453bafaf13c6995559816ea6487f517a8"
