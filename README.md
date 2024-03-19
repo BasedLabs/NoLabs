@@ -56,9 +56,10 @@ $ ENABLE_BIOBUDDY=true docker compose up nolabs
 And also start the biobuddy microservice:
 
 ```shell
-$ docker compose up biobuddy
+$ OPENAI_API_KEY=your_actual_key_here docker compose up biobuddy
 ```
 
+You can configure the version of the underlying model in `microservices/biobuddy/biobuddy/services.py` (by default it's ChatGPT4 API)
 
 **Drug discovery lab:**
 - Drug-target interaction prediction, high throughput virtual screening (HTVS) based on:
