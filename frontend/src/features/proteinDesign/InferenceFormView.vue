@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import { ExperimentProperties } from "src/features/proteinDesign/types";
+import {Notify} from "quasar";
 
 interface OnSubmitType {
   (data: ExperimentProperties): Promise<void>;
@@ -14,7 +15,7 @@ export default defineComponent({
       required: true,
     },
     properties: {
-      type: {} as PropType<ExperimentProperties>,
+      type: Object as PropType<ExperimentProperties>,
       required: true,
     },
   },
@@ -34,6 +35,15 @@ export default defineComponent({
   },
   methods: {
     async _onSubmit() {
+      if(!this.$data.inputPdbFile){
+        Notify.create({
+          type: "negative",
+          closeBtn: 'Close',
+          message: 'Specify pdb file'
+        });
+        return;
+      }
+
       await this.onSubmit!(this.$data);
     },
   },

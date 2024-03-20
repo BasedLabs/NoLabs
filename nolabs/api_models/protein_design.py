@@ -1,4 +1,4 @@
-import datetime
+from __future__ import annotations
 from typing import List, Optional
 
 from fastapi import UploadFile
@@ -31,6 +31,17 @@ class ExperimentPropertiesResponse:
     number_of_designs: int
     hotspots: Optional[str] = None
     timesteps: Optional[int] = None
+
+    @staticmethod
+    def default() -> ExperimentPropertiesResponse:
+        return ExperimentPropertiesResponse(
+            pdb_file='',
+            pdb_file_name='',
+            contig='',
+            number_of_designs=2,
+            hotspots=None,
+            timesteps=None
+        )
 
 
 @dataclasses.dataclass
