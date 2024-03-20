@@ -40,7 +40,8 @@ class QueryChemblFunction(BiobuddyFunction):
                                                     "For a simple search for 'aspirin' by its"
                                                     "preferred name, use `{'pref_name__iexact': 'aspirin'}`. Combine "
                                                     "multiple fields and conditions as needed"
-                                                    "to refine your search."),
+                                                    "to refine your search. max_phase signifies the phase of the drug "
+                                                    "(i.e. approved/pre-clinical etc.)"),
             FunctionParameterDefinition(name="order",
                                         type="string",
                                         required=True,
@@ -104,6 +105,8 @@ class QueryChemblFunction(BiobuddyFunction):
         if filters:
             filters = filters.replace("'", '"')
             filters = json.loads(filters)
+        else:
+            filters = None
         order = arguments[self.parameters[1].name]
         max_results = arguments[self.parameters[2].name]
         configuration = chemblApiConfiguration(
