@@ -17,7 +17,7 @@ from nolabs.infrastructure.settings import Settings
 
 class FileManagement(ExperimentsFileManagementBase):
     def __init__(self, settings: Settings):
-        super().__init__(settings.protein_design_experiments_folder, settings.protein_design_experiments_folder)
+        super().__init__(settings.protein_design_experiments_folder, settings.protein_design_metadata_file_name)
         self._settings = settings
         self.ensure_experiments_folder_exists()
         self._experiment_properties_filename = 'properties.json'

@@ -54,7 +54,7 @@ import {defineComponent, ref} from 'vue'
 import useProteinDesignStore from 'src/features/proteinDesign/storage';
 import {QVueGlobals, QSpinnerOrbit} from 'quasar';
 import InferenceFormView from "src/features/proteinDesign/InferenceFormView.vue";
-import {Experiment} from "src/features/proteinDesign/types";
+import {Experiment, ExperimentProperties} from "src/features/proteinDesign/types";
 import PdbViewer from "src/components/PdbViewer.vue";
 import ExperimentHeader from "src/components/ExperimentHeader.vue";
 
@@ -112,7 +112,7 @@ export default defineComponent({
       await this.store.changeExperimentName(this.experiment?.id as string, newExperimentName);
       this.experiment!.name = newExperimentName;
     },
-    async onSubmit(contig: string, hotspots: string, numberOfDesigns: number, timesteps: number, pdbFile: File) {
+    async onSubmit(properties: ExperimentProperties) {
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: 'Running AI models. This can take a couple of minutes'
@@ -121,11 +121,11 @@ export default defineComponent({
       const response = await this.store.inference({
         experimentId: this.experiment?.id,
         experimentName: this.experiment?.name as string,
-        pdbFile: pdbFile,
-        contig: contig,
-        numberOfDesigns: numberOfDesigns,
-        timesteps: timesteps,
-        hotspots: hotspots
+        pdbFile: properties.inputPdbFile!,
+        contig: properties.contig,
+        numberOfDesigns: properties.numberOfDesigns,
+        timesteps: properties.timesteps,
+        hotspots: properties.hotspots
       });
 
       if (response.experiment !== null) {

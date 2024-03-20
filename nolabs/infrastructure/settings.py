@@ -140,7 +140,7 @@ class Settings:
 
     @property
     def protein_design_host(self) -> str:
-        return self._config.get('microservices', 'protein_design_host')
+        return self._config.get('microservices', 'protein_design')
 
     @property
     def protein_design_metadata_file_name(self) -> str:
