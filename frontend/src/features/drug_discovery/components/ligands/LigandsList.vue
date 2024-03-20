@@ -120,7 +120,7 @@ export default defineComponent({
           chemblQueryCallback: null as ((data: { files: ChemBLData[] }) => void) | null,
           ligandDetailDialogVisible: false,
           targetSelectionDialogVisible: false,
-          selectedTargets: [] as String[],
+          selectedTargets: [] as string[],
           selectAllTargets: false,
           ligands: [] as ExtendedLigandMetaData[],
           targets: [] as ExtendedTargetMetaData[],
@@ -220,24 +220,20 @@ export default defineComponent({
         async addLigandsToSelectedTargets() {
           const store = useDrugDiscoveryStore();
 
-          if (this.selectedLigand && this.selectedLigand.data) {
+          if (this.selectedLigand && this.selectedLigand.data && this.selectedLigand.data.sdf_file) {
             for (let target_id of this.selectedTargets) {
-              // Assuming `selectedLigand.data` has the required SDF file or you have it available somehow
               const sdfFileContent = this.selectedLigand.data.sdf_file;
 
-              const file = new File([new Blob([sdfFileContent!])], this.selectedLigand.ligand_name + ".sdf")
+              const file = new File([new Blob([sdfFileContent])], this.selectedLigand.ligand_name + ".sdf")
 
               try {
-                await store.uploadLigandToTarget(this.experimentId, target_id.toString(), file);
-                // Handle success - Maybe show a notification?
+                await store.uploadLigandToTarget(this.experimentId, target_id, file);
               } catch (error) {
                 console.error('Error uploading ligand to target:', error);
-                // Handle error - Show error message to user?
               }
             }
           }
 
-          // Close dialog and clear selections after operations
           this.targetSelectionDialogVisible = false;
           this.selectedTargets = [];
           this.selectAllTargets = false;
@@ -248,19 +244,17 @@ export default defineComponent({
             return;
           }
 
-          // Create a blob from the SDF content
           const sdfContent = ligand.data.sdf_file;
           const blob = new Blob([sdfContent], {type: 'chemical/x-mdl-sdfile'});
           const url = window.URL.createObjectURL(blob);
 
-          // Create a temporary anchor element and trigger the download
           const a = document.createElement('a');
           a.href = url;
-          a.download = `${ligand.ligand_name}.sdf`; // Set the file name
-          document.body.appendChild(a); // Append the anchor to the body
-          a.click(); // Trigger the download
-          window.URL.revokeObjectURL(url); // Clean up the URL object
-          a.remove(); // Remove the anchor from the document
+          a.download = `${ligand.ligand_name}.sdf`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          a.remove();
         },
       },
       unmounted() {

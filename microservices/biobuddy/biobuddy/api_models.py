@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import dataclasses
+from pydantic import dataclasses as pcdataclass
 from typing import List, Optional, Dict, Any
 
 from openai.types.chat import ChatCompletionMessage
@@ -8,7 +8,7 @@ from openai.types.chat import ChatCompletionMessage
 from biobuddy.mixins import BaseModelMixin
 
 
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class SendMessageToBioBuddyRequest(BaseModelMixin):
     message_content: str
     # TODO: send only the last N tokens based on model's context window
@@ -17,10 +17,10 @@ class SendMessageToBioBuddyRequest(BaseModelMixin):
     job_id: Optional[str] = None
 
 
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class SendMessageToBioBuddyResponse(BaseModelMixin):
     chatgpt_reply: ChatCompletionMessage
 
-@dataclasses.dataclass
+@pcdataclass.dataclass
 class IsJobRunningResponse:
     is_running: bool

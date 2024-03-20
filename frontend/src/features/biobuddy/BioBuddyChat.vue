@@ -145,8 +145,8 @@ export default defineComponent({
       return [];
     },
   },
-  mounted() {
-    this.loadConversation();
+  async mounted() {
+    await this.loadConversation();
     const bioBuddyStore = useBioBuddyStore();
     this.functionMappings = [
       { name: 'query_rcsb_pdb_by_id', function: bioBuddyStore.invokeQueryRcsbPdbEventHandlers },
@@ -154,12 +154,6 @@ export default defineComponent({
       { name: 'query_chembl', function: bioBuddyStore.invokeQueryChemblEventHandlers },
       { name: 'query_chembl_by_condition', function: bioBuddyStore.invokeQueryChemblEventHandlers }
     ];
-    this.$q.iconMapFn = (iconName) => {
-      if (iconName === 'app:biobuddy') {
-        // Ensure this path is correctly accessible at runtime
-        return { icon: '/Biobuddy_icon.svg' }
-      }
-    }
   },
 });
 </script>

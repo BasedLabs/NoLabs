@@ -21,4 +21,4 @@ RUN python3.8 -m pip install --default-timeout=100 -r requirements.txt
 COPY ./biobuddy /app/biobuddy
 
 # Set the command to run the FastAPI app
-ENTRYPOINT uvicorn biobuddy.api:app --host $HOST --port $PORT
+ENTRYPOINT ["uvicorn", "biobuddy.api:app"]
