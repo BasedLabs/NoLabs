@@ -1,4 +1,4 @@
-FROM ghcr.io/basedlabs/rfdiffusion:latest
+FROM ghcr.io/basedlabs/rfdiffusion:1.0.0
 
 ENV HYDRA_FULL_ERROR=1
 ARG rfdiffusion_path=/app/protein_design/RFdiffusion

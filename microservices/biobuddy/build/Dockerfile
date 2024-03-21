@@ -7,9 +7,6 @@ RUN apt-get update && apt-get install -y curl python3-pip
 # Set a working directory
 WORKDIR /app
 
-# Set the OPENAI_API_KEY environment variable
-ENV OPENAI_API_KEY=abc123
-
 # Copy only the requirements.txt first to leverage Docker cache
 COPY ./requirements.txt /app/
 

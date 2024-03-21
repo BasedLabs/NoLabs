@@ -110,6 +110,14 @@ $ git clone https://github.com/BasedLabs/nolabs
 $ cd nolabs
 ```
 
+Generate a new token for docker registry
+https://github.com/settings/tokens/new
+Select 'read:packages'
+
+```bash
+$ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
 ```bash
 $ docker compose up
 ```
