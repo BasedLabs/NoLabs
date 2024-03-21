@@ -23,11 +23,11 @@
 
 # About
 
-NoLabs is an open source biolab which lets you run experiments with latest state of the art models for bio research.
+NoLabs is an open source biolab that lets you run experiments with the latest state-of-the-art models for bio research.
 
 The goal of the project is to accelerate bio research by making inference models easy to use for everyone. We are
-currenly supporting protein biolab (predicting useful protein properties such as solubility, localisation, gene
-ontology, folding etc.) and drug discovery biolab (construct ligands and test binding to target proteins).
+currently supporting protein biolab (predicting useful protein properties such as solubility, localisation, gene
+ontology, folding, etc.) and drug discovery biolab (construct ligands and test binding to target proteins).
 
 We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and
 contributions.
@@ -40,9 +40,9 @@ Let's accelerate bio research!
 
 **Bio Buddy - drug discovery co-pilot:**
 
-BioBuddy is a drug discovery copilot which supports:
+BioBuddy is a drug discovery copilot that supports:
 
-- Donwloading data from [ChemBL](https://www.ebi.ac.uk/chembl/)
+- Downloading data from [ChemBL](https://www.ebi.ac.uk/chembl/)
 - Downloading data from [RcsbPDB](https://www.rcsb.org/)
 - Questions about drug discovery process, targets, chemical components etc.
 
