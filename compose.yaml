@@ -178,13 +178,10 @@ services:
       - "5738:5738"
     command: --host=0.0.0.0 --port=5738
   rosettafold:
-    image: 'ghcr.io/basedlabs/esmfold-light:1.0.0'
+    image: 'ghcr.io/basedlabs/rosettafold:1.0.0'
     build:
       context: microservices/rosettafold
       dockerfile: build/Dockerfile
-      args:
-        ROSETTACOMMONS_CONDA_USERNAME: username
-        ROSETTACOMMONS_CONDA_PASSWORD: password
     volumes:
       - .:/RoseTTAFold/bfd
       - .:/RoseTTAFold/pdb100_2021Mar03

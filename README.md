@@ -130,8 +130,6 @@ $ docker compose -up nolabs [gene_ontology|localisation|protein_design|solubilit
 
 Server will be available on http://localhost:9000
 
-WARNING: To install RoseTTAFold check [RoseTTAFold section](#9-rosettafold-docker-api)
-
 # APIs
 
 We provide individual Docker containers backed by FastAPI for each feature, which are available in the `/microservices`
@@ -328,9 +326,7 @@ Swagger UI will be available on http://localhost:5738/docs
 or
 [Install as python package](microservices/rosettafold/client/README.md)
 
-WARNING: To use Rosettafold you must specify
-**ROSETTACOMMONS_CONDA_USERNAME** and **ROSETTACOMMONS_CONDA_PASSWORD** in compose.yaml
-and download additional data (check step 5 on https://github.com/RosettaCommons/RoseTTAFold page). Also change the <b>volumes '.'</b>
+WARNING: To use Rosettafold you must change the <b>volumes '.'</b>
 to point to the specified folders.
 
 # Technologies

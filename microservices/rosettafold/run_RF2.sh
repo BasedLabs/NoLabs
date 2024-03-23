@@ -116,7 +116,6 @@ nP=0
 for i in "${fastas[@]}"
 do
     tag=`basename $i | sed -E 's/\.fasta$|\.fas$|\.fa$//'`
-
     proteinMSA $i $tag $hhpred
     argstring+="$WDIR/$tag.msa0.a3m"
     if [[ $hhpred -eq 1 ]]; then

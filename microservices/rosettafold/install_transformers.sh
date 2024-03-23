@@ -10,4 +10,4 @@ conda activate RF2
 cd SE3Transformer
 pip install --no-cache-dir -r requirements.txt
 python setup.py install
-pip install torchdata
+pip install torchdata pandas pydantic
