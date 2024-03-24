@@ -5,6 +5,7 @@ import os
 import pathlib
 import subprocess
 import threading
+import uuid
 from contextlib import contextmanager
 
 import psutil
@@ -12,12 +13,16 @@ import psutil
 from microservice.api_models import RunRosettaFoldResponse
 from microservice.loggers import logger
 
+from leaf import ObjectType, FileObject, DirectoryObject
+
 
 class RosettaService:
     _store = set()
 
     def __init__(self):
-        self._rosettafold_directory = '/RoseTTAFold'
+        self._root = DirectoryObject('/RoseTTAFold')
+        self._fasta_name = '_run_' + str(uuid.uuid4())
+        self._fasta_file_name = self._fasta_name + '.fasta'
 
     @contextmanager
     @staticmethod
@@ -43,42 +48,47 @@ class RosettaService:
                 errors=['Critical error. Open the issue on our github and attach the error log'],
                 pdb_content=None)
         finally:
-            self._cleanup_generated_files()
+            self.cleanup_generated_files()
 
-    def _cleanup_generated_files(self):
-        t000 = glob.glob(os.path.join(self._rosettafold_directory, 't000*'))
-
-        for file in t000:
-            if os.path.isfile(file) and '.pdb' not in pathlib.Path(file).suffixes:
-                os.remove(file)
+    def cleanup_generated_files(self):
+        for directory in self._root.directories.where(lambda o: '_run_' in o.name):
+            directory.delete()
 
     async def _run_rosettafold(self, fasta: bytes, a3m: bytes) -> RunRosettaFoldResponse:
-        bfd_dir_path = os.path.join(self._rosettafold_directory, 'bfd')
-        uniref_dir_path = os.path.join(self._rosettafold_directory, 'UniRef30_2020_06')
-        pdb100_dir_path = os.path.join(self._rosettafold_directory, 'pdb100_2021Mar03')
+        bfd = self._root.directories.first_or_default(lambda o: o.name == 'bfd')
+        uniref = self._root.directories.first_or_default(lambda o: o.name == 'UniRef30_2020_06')
+        pdb100 = self._root.directories.first_or_default(lambda o: o.name == 'pdb100_2021Mar03')
 
         errors = []
-        if not os.path.exists(bfd_dir_path):
+        if not bfd:
             logger.bfd_directory_does_not_exist()
             errors.append('BFD directory does not exist. Check readme')
 
-        if not os.path.exists(uniref_dir_path):
+        if not uniref:
             logger.uniref_directory_does_not_exist()
             errors.append('Uniref directory does not exist. Check readme')
 
-        if not os.path.exists(pdb100_dir_path):
+        if not pdb100:
             logger.pdb100_directory_does_not_exist()
             errors.append('PDB100 directory does not exist. Check readme')
 
         if errors:
             return RunRosettaFoldResponse(pdb_content=None, errors=errors)
 
+        cpu_count = multiprocessing.cpu_count()
+        gb = math.floor(psutil.virtual_memory().total / (1 << 30))
+
         if a3m:
-            with open(os.path.join(self._rosettafold_directory, 't000_.msa0.a3m'), 'wb') as f:
-                f.write(a3m)
+            models_dir = self._root.add_directory(self._fasta_name).add_directory('models')
+            msa_file = self._root.add_directory(self._fasta_name).add_file(self._fasta_name + 'msa0.a3m')
+            msa_file.write_bytes(a3m)
+            script = f'./run_RF2_msa.sh {msa_file.full_path} {os.path.join(models_dir.full_path, 'model')}'
         else:
-            with open(os.path.join(self._rosettafold_directory, 'input.fasta'), 'wb') as f:
-                f.write(fasta)
+            self._root.add_file(self._fasta_file_name).write_bytes(fasta)
+            runner = self._root.files.first_or_default(lambda o: o.name == 'run_RF2.sh')
+            script = f'CPU={cpu_count} MEM={gb} ./{runner.name} {self._fasta_file_name} -o {self._fasta_name}'
+
+        logger.log_arbitrary(f'Running: {script}')
 
         def read_stdout(pipe):
             for line in iter(pipe.readline, ''):
@@ -90,11 +100,8 @@ class RosettaService:
                 logger.rosetta_stderr(line)
             pipe.close()
 
-        cpu_count = multiprocessing.cpu_count()
-        gb = math.floor(psutil.virtual_memory().total / (1 << 30))
-        script = f'./run_e2e_ver.sh input.fasta . {cpu_count} {gb}'
         process = subprocess.Popen(script, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True,
-                                   cwd=self._rosettafold_directory)
+                                   cwd=self._root.full_path)
 
         stdout_thread = threading.Thread(target=read_stdout, args=(process.stdout,))
         stderr_thread = threading.Thread(target=read_stderr, args=(process.stderr,))
@@ -108,23 +115,11 @@ class RosettaService:
         return_code = process.wait()
         logger.rosetta_return_code(return_code)
 
-        if os.path.exists(os.path.join(self._rosettafold_directory, 't000_.e2e.pdb')):
-            with open(os.path.join(self._rosettafold_directory, 't000_.e2e.pdb'), 'r') as pdb:
-                return RunRosettaFoldResponse(pdb_content=pdb.read(), errors=[])
-
-        error_file_order = [
-            os.path.join(self._rosettafold_directory, 'log/make_msa.stderr'),
-            os.path.join(self._rosettafold_directory, 'log/make_ss.stderr'),
-            os.path.join(self._rosettafold_directory, 'log/hhsearch.stderr'),
-            os.path.join(self._rosettafold_directory, 'log/network.stderr')
-        ]
-
-        for error_file in reversed(error_file_order):
-            if os.path.exists(error_file):
-                with open(error_file, 'r') as e:
-                    file_content = e.read()
-                    logger.rosetta_error(file_content, error_file)
-                    return RunRosettaFoldResponse(pdb_content=None, errors=[e.read()])
+        working_dir = self._root.directories.first_or_default(lambda o: o.name == self._fasta_name)
+        if working_dir:
+            pdb = working_dir.files.first_or_default(lambda o: o.name == 'model_00_pred.pdb', recursive=True)
+            if pdb:
+                return RunRosettaFoldResponse(pdb_content=pdb.read_string(), errors=[])
 
         logger.rosetta_fatal_error()
         return RunRosettaFoldResponse(pdb_content=None,

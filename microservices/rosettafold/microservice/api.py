@@ -1,5 +1,4 @@
-import pathlib
-from typing import Optional, Annotated
+from typing import Annotated
 
 from fastapi import FastAPI, File
 

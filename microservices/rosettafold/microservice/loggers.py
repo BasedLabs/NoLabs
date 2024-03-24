@@ -55,5 +55,8 @@ class Log:
     def rosetta_exception(self):
         _logger.exception('Unexpected error. Open the issue on our github')
 
+    def log_arbitrary(self, message: str):
+        _logger.info(message)
+
 
 logger = Log()
