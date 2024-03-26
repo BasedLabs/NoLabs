@@ -20,7 +20,6 @@ RUN conda config --set solver libmamba
 WORKDIR /app
 RUN wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
 RUN mv vina_1.2.5_linux_x86_64 /app/vina
-RUN chmod +x /app/vina
 
 # Install reinvent
 WORKDIR /app/REINVENT4
@@ -33,7 +32,7 @@ RUN ./install_reinvent.sh
 
 # Install dockstream
 WORKDIR /app/DockStream
-COPY reinvent/DockStream /app/DockStream
+RUN git clone https://github.com/BasedLabs/DockStream.git .
 RUN conda env create -f /app/DockStream/environment.yml
 
 WORKDIR /app
@@ -43,13 +42,5 @@ COPY 1UYD_fixed.pdbqt /app
 
 COPY microservice /app/microservice
 RUN pip install -r microservice/requirements.txt
-
-COPY reinvent/finetuning /app/microservice/finetuning
-COPY reinvent/inference /app/microservice/inference
-
-RUN sed -i 's/\r$//' /app/microservice/finetuning/prepare_pdbqt.sh && chmod +x /app/microservice/finetuning/prepare_pdbqt.sh
-RUN sed -i 's/\r$//' /app/microservice/finetuning/start_reinforcement_learning.sh && chmod +x /app/microservice/finetuning/start_reinforcement_learning.sh
-
-RUN sed -i 's/\r$//' /app/microservice/inference/start_sampling.sh && chmod +x /app/microservice/inference/start_sampling.sh
 
 ENTRYPOINT ["uvicorn", "microservice.api:app"]

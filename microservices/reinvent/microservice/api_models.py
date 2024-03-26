@@ -1,17 +1,12 @@
 from __future__ import annotations
 
 import datetime
-from typing import List
 
 import pydantic
 
 
-
-
 @pydantic.dataclasses.dataclass
 class RunFineTuningJobRequest:
-    name: str
-
     # size of the search box. Recommended not more than 30 armstrongs
     center_x: float
     center_y: float
@@ -26,13 +21,11 @@ class RunFineTuningJobRequest:
 @pydantic.dataclasses.dataclass
 class FineTuningJobResponse:
     id: str
-    name: str
     running: bool
     started_at: datetime.datetime
-    finished_at: datetime.datetime
     progress: float
-    pdb_content: str
-    pdb_filename: str
+    pdbqt_content: str
+    pdbqt_filename: str
     errors: str
     epochs: int
 

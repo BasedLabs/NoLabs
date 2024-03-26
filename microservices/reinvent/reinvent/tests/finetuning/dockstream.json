@@ -1,10 +1,6 @@
 {
   "docking": {
-    "header": {
-      "logging": {
-        "verbosity": "high"
-      }
-    },
+    "header": {},
     "ligand_preparation": {
       "embedding_pools": [
         {

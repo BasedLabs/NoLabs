@@ -7,5 +7,5 @@ set -e
 __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"
 eval "$__conda_setup"
 unset __conda_setup
-conda activate adtools
+conda activate reinvent4
 prepare_receptor -r $1 -o $2
