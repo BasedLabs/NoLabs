@@ -1,0 +1,35 @@
+{
+  "target_preparation":
+  {
+    "header": {
+      "logging": {
+        "logfile": "<path>/junktarget_prep_autodockvina.log"
+      }
+    },
+    "input_path": "<path>/tests_data/1UYD/1UYD_apo.pdb",
+    "fixer": {
+      "enabled": true,
+      "standardize": true,
+      "remove_heterogens": true,
+      "fix_missing_heavy_atoms": true,
+      "fix_missing_hydrogens": true,
+      "fix_missing_loops": false,
+      "add_water_box": false
+    },
+    "runs": [
+      {
+        "backend": "AutoDockVina",
+        "output": {
+          "receptor_path": "<path>/junk/AutoDock_Vina_reflig.pdbqt"
+        },
+        "parameters": {
+          "pH": 7.4,
+          "extract_box": {
+            "reference_ligand_path": "<path>/tests_data/1UYD/ligand_PU8.sdf",
+            "reference_ligand_format": "SDF"
+          }
+        }
+      }
+    ]
+  }
+}

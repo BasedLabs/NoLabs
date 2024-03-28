@@ -1,0 +1,22 @@
+name: DockStream
+channels:
+  - conda-forge
+  - omnia
+  - plotly
+  - openeye
+  - rdkit
+dependencies:
+  - python = 3.7
+  - jsonschema
+  - rdkit >= 2021
+  - matplotlib
+  - scikit-learn
+  - seaborn>=0.11.0
+  - pandas
+  - numpy
+  - openeye-toolkits >= 2019
+  - openbabel
+  - openmm
+  - scipy
+  - pydantic
+  - pdbfixer

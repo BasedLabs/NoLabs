@@ -1,0 +1,54 @@
+{
+  "docking": {
+    "header": {
+      "logging": {
+        "logfile": "<path>/junk/corina_ligand_preparation.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "Corina_not_aligned",
+          "type": "Corina",
+          "parameters": {
+            "prefix_execution": "module load corina"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests_data/1UYD/ligands_smiles_taut_enum.smi",
+            "type": "smi",
+            "use_taut_enum": {
+              "prefix_execution": "module load taut_enum",
+              "enumerate_protonation": true
+            }
+          },
+          "output": {
+            "conformer_path": "<path>/junk/LP_Corina_noalignment.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "Corina_stereo",
+          "type": "Corina",
+          "parameters": {
+            "prefix_execution": "module load corina",
+            "enumerate_stereo": true
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests_data/1UYD/ligands_smiles_taut_enum.smi",
+            "type": "smi",
+            "use_taut_enum": {
+              "prefix_execution": "module load taut_enum",
+              "enumerate_protonation": true
+            }
+          },
+          "output": {
+            "conformer_path": "<path>/junk/LP_Corina_stereo.sdf",
+            "format": "sdf"
+          }
+        }
+      ]
+    }
+  }
+}

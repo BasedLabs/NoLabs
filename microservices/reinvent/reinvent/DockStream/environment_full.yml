@@ -1,0 +1,24 @@
+name: DockStreamFull
+channels:
+  - file:///opt/scp/software/ccdc/2020.0.1/Python_API_2020/ccdc_conda_channel
+  - conda-forge
+  - omnia
+  - plotly
+  - openeye
+  - rdkit
+dependencies:
+  - python = 3.7
+  - csd-python-api>=3.0.1
+  - jsonschema
+  - rdkit >= 2021
+  - matplotlib
+  - scikit-learn
+  - seaborn>=0.11.0
+  - pandas
+  - numpy
+  - openeye-toolkits >= 2019
+  - openbabel
+  - openmm
+  - scipy
+  - pydantic
+  - pdbfixer

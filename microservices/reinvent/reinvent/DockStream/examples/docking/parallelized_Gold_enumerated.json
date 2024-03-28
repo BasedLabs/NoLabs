@@ -1,0 +1,84 @@
+{
+  "docking": {
+    "header": {
+       "environment":{
+        "export": [
+          {"key": "CSDHOME", "value": "/opt/scp/software/ccdc/2020.0.1/CSD_2020"}
+        ]
+      },
+      "logging": {
+        "logfile": "<path>/tests/junk/parallelized_Gold_enumerated.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "Corina_pool",
+          "type": "Corina",
+          "parameters": {
+            "prefix_execution": "module load corina"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles_taut_enum.smi",
+            "type": "smi",
+            "use_taut_enum": {
+              "prefix_execution": "module load taut_enum",
+              "enumerate_protonation": true
+            }
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/Corian_Gold_embedded.sdf",
+            "format": "sdf"
+          }
+        }
+      ]
+    },
+    "docking_runs": [
+      {
+        "backend": "Gold",
+        "run_id": "Gold_from_corina",
+        "input_pools": ["Corina_pool"],
+        "parameters": {
+          "prefix_execution": "module load ccdc/2020.0.1",
+          "parallelization": {
+            "number_cores": 2,
+            "max_compounds_per_subjob": 4
+          },
+          "receptor_paths": ["<path>/tests/tests_data/Gold/Gold_binding_site.pkl"],
+          "fitness_function": "plp",
+          "response_value": "fitness",
+          "early_termination": true,
+          "autoscale": 25,
+          "ndocks": 3
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/gold_fitness_corina_enumerated.sdf", "overwrite": false },
+          "scores": { "scores_path": "<path>/tests/junk/gold_fitness_corina_enumerated.csv", "overwrite": false }
+        }
+      },
+      {
+        "backend": "Gold",
+        "run_id": "Gold_from_corina",
+        "input_pools": ["Corina_pool"],
+        "parameters": {
+          "prefix_execution": "module load ccdc/2020.0.1",
+          "parallelization": {
+            "number_cores": 4,
+            "max_compounds_per_subjob": 2
+          },
+          "receptor_paths": ["<path>/tests/tests_data/Gold/Gold_binding_site.pkl"],
+          "fitness_function": "plp",
+          "response_value": "value",
+          "early_termination": true,
+          "autoscale": 25,
+          "ndocks": 3
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/gold_value_corina_enumerated.sdf", "overwrite": false },
+          "scores": { "scores_path": "<path>/tests/junk/gold_value_corina_enumerated.csv", "overwrite": false }
+        }
+      }
+    ]
+  }
+}

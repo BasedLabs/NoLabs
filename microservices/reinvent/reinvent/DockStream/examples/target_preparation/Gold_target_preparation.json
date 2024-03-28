@@ -1,0 +1,39 @@
+{
+  "target_preparation":
+  {
+    "header": {
+       "environment":{
+        "export": [
+          {"key": "CSDHOME", "value": "/opt/scp/software/ccdc/2020.0.1/CSD_2020"}
+        ]
+      },
+      "logging": {
+        "logfile": "<path>/junk/target_prep_Gold.log"
+      }
+    },
+    "input_path": "<path>/tests_data/1UYD/1UYD_apo.pdb",
+    "fixer": {
+      "enabled": true,
+      "standardize": true,
+      "remove_heterogens": true,
+      "fix_missing_heavy_atoms": true,
+      "fix_missing_hydrogens": true,
+      "fix_missing_loops": false,
+      "add_water_box": false
+    },
+    "runs": [
+      {
+        "backend": "Gold",
+        "output": {
+          "receptor_path": "<path>/junk/Gold_receptor.pkl"
+        },
+        "parameters": {},
+        "cavity": {
+          "method": "reference_ligand",
+          "reference_ligand_path": "<path>//tests_data/1UYD/ligand_PU8.sdf",
+          "distance": 7.0
+        }
+      }
+    ]
+  }
+}

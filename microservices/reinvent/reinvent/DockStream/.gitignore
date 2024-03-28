@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+package.json
+.vscode
+tags
+.idea
+
+tests/junk
+!tests/junk/desc.txt
+
+dockstream/config/tests_config/config.json
+
+dockstream.log
+dockstream.err
+.directory

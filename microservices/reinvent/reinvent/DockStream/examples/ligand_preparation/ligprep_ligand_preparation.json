@@ -1,0 +1,53 @@
+{
+  "docking": {
+    "header": {
+      "logging": {
+        "logfile": "<path>/junk/ligprep_ligand_preparation.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "Ligprep",
+          "type": "Ligprep",
+          "parameters": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "token_guard": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "token_pools": {
+                "LIGPREP_MAIN": 4,
+                "SUITE_11DEC2020": 8
+              },
+              "wait_interval_seconds": 30,
+              "wait_limit_seconds": 900
+            },
+            "parallelization": {
+              "number_cores": 1,
+              "max_compounds_per_subjob": 4
+            },
+            "use_epik": {
+              "target_pH": 7.0,
+              "pH_tolerance": 2.0
+            },
+            "chirality": {
+              "max_number_stereoisomers": 10
+            },
+            "filter_file": {
+              "Total_charge": "!= 0"
+            },
+            "force_field": "OPLS_2005"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/LP_LigPrep.sdf",
+            "format": "sdf"
+          }
+        }
+      ]
+    }
+  }
+}

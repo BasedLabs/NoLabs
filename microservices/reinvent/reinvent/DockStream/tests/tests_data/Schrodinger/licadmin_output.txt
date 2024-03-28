@@ -1,0 +1,197 @@
+License: XXX@YYY.server.com ($SCHROD_LICENSE_FILE)
+lmutil - Copyright (c) 1989-2017 Flexera Software LLC. All Rights Reserved.
+Flexible License Manager status on Mon 7/6/2020 12:48
+
+License server status: __online__
+    License file(s) on YYY.server.com: /path/to/file.lic:
+
+YYY.server.com: license server UP (MASTER) v11.15.0
+YYY.server.com: license server UP v11.15.0
+YYY.server.com: license server UP v11.15.0
+
+Vendor daemon status (on YYY.server.com):
+
+    SCHROD: UP v11.15.0
+Feature usage info:
+
+Users of GLIDE_SUITE_24JAN2019:  (Error: 200 licenses, unsupported by licensed server)
+
+Users of SUITE_24JAN2019:  (Error: 200 licenses, unsupported by licensed server)
+
+Users of BIOLUMINATE_PROTEIN_DOCKING:  (Total of 10 licenses issued;  Total of 0 licenses in use)
+
+Users of BIOLUMINATE_SHARED:  (Total of 50 licenses issued;  Total of 0 licenses in use)
+
+Users of CANVAS_ELEMENTS:  (Total of 100 licenses issued;  Total of 0 licenses in use)
+
+Users of CANVAS_MAIN:  (Total of 50 licenses issued;  Total of 0 licenses in use)
+
+Users of CANVAS_SHARED:  (Total of 1000 licenses issued;  Total of 0 licenses in use)
+
+Users of COMBIGLIDE_MAIN:  (Total of 100 licenses issued;  Total of 0 licenses in use)
+
+Users of DESMOND_GPGPU:  (Total of 448 licenses issued;  Total of 0 licenses in use)
+
+Users of DESMOND_MAIN:  (Error: 64 licenses, unsupported by licensed server)
+
+Users of DESMOND_WATERMAP:  (Error: 64 licenses, unsupported by licensed server)
+
+Users of FEP_GPGPU:  (Total of 640 licenses issued;  Total of 0 licenses in use)
+
+Users of FEP_OPLS:  (Total of 40 licenses issued;  Total of 0 licenses in use)
+
+Users of FFLD_DEVELOPMENT:  (Total of 2 licenses issued;  Total of 0 licenses in use)
+
+Users of FFLD_OPLS_MAIN:  (Total of 2 licenses issued;  Total of 0 licenses in use)
+
+Users of GLIDE_MAIN:  (Total of 250 licenses issued;  Total of 14 licenses in use)
+
+  "GLIDE_MAIN" v999, vendor: SCHROD, expiry: 31-jan-2021
+  nodelocked license locked to NOTHING (hostid=ANY)
+
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 11443), start Mon 7/6 12:41
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 6088), start Mon 7/6 12:41
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 25030), start Mon 7/6 12:41
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 18668), start Mon 7/6 12:41
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 6736), start Mon 7/6 12:41
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 9473), start Mon 7/6 12:41
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 4329), start Mon 7/6 12:43
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 16417), start Mon 7/6 12:43
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 16208), start Mon 7/6 12:43
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 14018), start Mon 7/6 12:43
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 19211), start Mon 7/6 12:43
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 26674), start Mon 7/6 12:43
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 6273), start Mon 7/6 12:43
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 12557), start Mon 7/6 12:43
+
+Users of JAGUAR_TS_SEARCH:  (Total of 4 licenses issued;  Total of 0 licenses in use)
+
+Users of KNIME_MAIN:  (Total of 50 licenses issued;  Total of 0 licenses in use)
+
+Users of MAESTRO_MAIN:  (Total of 1000 licenses issued;  Total of 0 licenses in use)
+
+Users of MMLIBS:  (Total of 8540 licenses issued;  Total of 0 licenses in use)
+
+Users of MMOD_CONFGEN:  (Total of 520 licenses issued;  Total of 0 licenses in use)
+
+Users of MMOD_MACROMODEL:  (Total of 232 licenses issued;  Total of 0 licenses in use)
+
+Users of MMOD_MBAE:  (Total of 116 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_DBCREATE:  (Total of 250 licenses issued;  Total of 0 licenses in use)
+
+Users of PSP_BB:  (Total of 208 licenses issued;  Total of 0 licenses in use)
+
+Users of PSP_FR:  (Total of 208 licenses issued;  Total of 0 licenses in use)
+
+Users of PSP_PLOP_MEMBRANE:  (Total of 208 licenses issued;  Total of 0 licenses in use)
+
+Users of PSP_RB:  (Total of 208 licenses issued;  Total of 0 licenses in use)
+
+Users of PSP_SKA:  (Total of 208 licenses issued;  Total of 0 licenses in use)
+
+Users of PSP_SSP:  (Total of 208 licenses issued;  Total of 0 licenses in use)
+
+Users of PSP_STA:  (Total of 208 licenses issued;  Total of 0 licenses in use)
+
+Users of PSP_STA_GPCR:  (Total of 208 licenses issued;  Total of 0 licenses in use)
+
+Users of WATERMAP_MAIN:  (Total of 4 licenses issued;  Total of 0 licenses in use)
+
+Users of GLIDE_SUITE_11DEC2020:  (Total of 200 licenses issued;  Total of 56 licenses in use)
+
+  "GLIDE_SUITE_11DEC2020" v10, vendor: SCHROD, expiry: 31-jan-2029
+  nodelocked license locked to NOTHING (hostid=ANY)
+
+    user1 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 17207), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 9152), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 768), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 21202), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 28759), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 11200), start Mon 7/6 12:41, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 3513), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 10953), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 15764), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 11374), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 9007), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 13984), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 12796), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v10) (flex-lic-schrodinger00.server.com/27002 18934), start Mon 7/6 12:43, 4 licenses
+
+Users of SUITE_11DEC2020:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of ACE_MAIN:  (Error: 1 licenses, unsupported by licensed server)
+
+Users of DESMOND_WATERMAP_GPGPU:  (Total of 64 licenses issued;  Total of 0 licenses in use)
+
+Users of ADME_P450:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of ADME_PERM:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of AUTOQSAR_MAIN:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of CANVAS_FULL:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of COMBIGLIDE_CORE_HOPPING:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of EPIK_MAIN:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of GLIDE_CORE_HOPPING:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of GLIDE_PRIMEX_LIGFIT:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of GLIDE_XP_DESC:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of JAGUAR_PKA:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of JAGUAR_QSITE:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of LIGPREP_MAIN:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_CORE_HOPPING:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_DBSEARCH:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_FEATURE:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_FQSAR:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_PARTITION:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_QSAR:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_SCORING:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PHASE_SELECTIVITY:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PRIMEX_LIGPREP_EPIK:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of PRIMEX_MAIN:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of QIKPROP_MAIN:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of SHAPE_SCREEN:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of SITEMAP_MAIN:  (Total of 200 licenses issued;  Total of 0 licenses in use)
+
+Users of GLIDE_SP_DOCKING:  (Total of 200 licenses issued;  Total of 56 licenses in use)
+
+  "GLIDE_SP_DOCKING" v999, vendor: SCHROD, expiry: 31-jan-2021
+  nodelocked license locked to NOTHING (hostid=ANY)
+
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 16147), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 435), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 17442), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 21136), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 26831), start Mon 7/6 12:41, 4 licenses
+    user1 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 1680), start Mon 7/6 12:41, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 29273), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 2614), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 10409), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 21857), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 8514), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 19523), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 18420), start Mon 7/6 12:43, 4 licenses
+    user2 seskscpg052.prim.scp /dev/tty (v85) (flex-lic-schrodinger00.server.com/27002 20608), start Mon 7/6 12:43, 4 licenses
+
+Users of GLIDE_XP_DOCKING:  (Total of 200 licenses issued;  Total of 0 licenses in use)

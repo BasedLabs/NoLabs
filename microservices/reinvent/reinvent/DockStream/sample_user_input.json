@@ -1,0 +1,20 @@
+{
+    "ligand_preparation": {
+        "type": "FILL HERE",
+        "target_ph": "FILL HERE",
+        "ph_tolerance": "FILL HERE"
+    },
+    "docking run": {
+        "backend": "Glide",
+        "glide_keywords": {
+            "POSES_PER_LIG": "FILL HERE",
+            "POSTDOCK_NPOSE": "FILL HERE",
+            "PRECISION": "FILL HERE"
+        }
+    },
+    "data": {
+        "input_path": "FILL HERE",
+        "receptor_path": "FILL HERE",
+        "output_path": "FILL HERE"
+    }
+}

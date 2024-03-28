@@ -1,0 +1,165 @@
+{
+  "docking": {
+    "header": {
+      "environment": {
+        "export": [
+          {
+            "key": "OE_LICENSE",
+            "value": "/opt/scp/software/oelicense/1.0/oe_license.seq1"
+          }
+        ]
+      },
+      "logging": {
+        "logfile": "<path>/junk/integration_OpenEyeHybrid_docking.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+    {
+          "pool_id": "Ligprep",
+          "type": "Ligprep",
+          "parameters": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "use_epik": {
+              "target_pH": 7.0,
+              "pH_tolerance": 2.0
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/junk/integration_OpenEyeHybrid_Ligprep_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "OpenEye",
+          "type": "OpenEye",
+          "parameters": {
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/junk/integration_OpenEyeHybrid_OpenEye_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "Corina",
+          "type": "Corina",
+          "parameters": {
+            "prefix_execution": "module load corina"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/junk/integration_OpenEyeHybrid_Corina_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "RDkit",
+          "type": "RDkit",
+          "parameters": {
+            "coordinate_generation": {
+              "method": "UFF",
+              "maximum_iterations": 450
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/junk/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+           "conformer_path": "<path>/junk/integration_OpenEyeHybrid_RDkit_embedding.sdf",
+           "format": "sdf"
+          }
+        }
+      ]
+    },
+    "docking_runs": [
+      {
+        "backend": "Hybrid",
+        "run_id": "Hybrid_from_OpenEye",
+        "input_pools": ["OpenEye"],
+        "parameters": {
+	  "prefix_execution": "module load oedocking",
+          "receptor_paths": ["<path>/tests_data/OpenEye/1UYD_reference_receptor.oeb"],
+          "resolution": "High",
+          "number_poses": 3,
+          "parallelization": {
+            "number_cores": 4
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/junk/integration_OpenEyeHybrid_OpenEye_docked.sdf" },
+          "scores": { "scores_path": "<path>/junk/integration_OpenEyeHybrid_OpenEye_docked.csv" }
+        }
+      },
+      {
+        "backend": "Hybrid",
+        "run_id": "Hybrid_from_rdkit",
+        "input_pools": ["RDkit"],
+        "parameters": {
+	  "prefix_execution": "module load oedocking",
+          "receptor_paths": ["<path>/tests_data/OpenEye/1UYD_reference_receptor.oeb"],
+          "resolution": "High",
+          "number_poses": 3,
+          "parallelization": {
+            "number_cores": 4
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/junk/integration_OpenEyeHybrid_RDkit_docked.sdf" },
+          "scores": { "scores_path": "<path>/junk/integration_OpenEyeHybrid_RDkit_docked.csv" }
+        }
+      },
+      {
+        "backend": "Hybrid",
+        "run_id": "Hybrid_from_corina",
+        "input_pools": ["Corina"],
+        "parameters": {
+	  "prefix_execution": "module load oedocking",
+          "receptor_paths": ["<path>//tests_data/OpenEye/1UYD_reference_receptor.oeb"],
+          "resolution": "High",
+          "number_poses": 3,
+          "parallelization": {
+            "number_cores": 4
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/junk/integration_OpenEyeHybrid_Corina_docked.sdf" },
+          "scores": { "scores_path": "<path>/junk/integration_OpenEyeHybrid_Corina_docked.csv" }
+        }
+      },
+      {
+        "backend": "Hybrid",
+        "run_id": "Hybrid_from_ligprep",
+        "input_pools": ["Ligprep"],
+        "parameters": {
+	  "prefix_execution": "module load oedocking",
+          "receptor_paths": ["<path>/tests_data/OpenEye/1UYD_reference_receptor.oeb"],
+          "resolution": "High",
+          "number_poses": 3,
+          "parallelization": {
+            "number_cores": 4
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/junk/integration_OpenEyeHybrid_Ligprep_docked.sdf" },
+          "scores": { "scores_path": "<path>/junk/integration_OpenEyeHybrid_Ligprep_docked.csv" }
+        }
+      }
+    ]
+  }
+}

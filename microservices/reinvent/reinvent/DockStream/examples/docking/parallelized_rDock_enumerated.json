@@ -1,0 +1,59 @@
+{
+  "docking": {
+    "header": {
+      "environment": {
+      },
+      "logging": {
+        "logfile": "<path>/tests/junk/parallelized_rDock_enumerated.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "RDkit",
+          "type": "RDkit",
+          "parameters": {
+            "protonate": true,
+            "coordinate_generation": {
+              "method": "UFF",
+              "maximum_iterations": 450
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles_taut_enum.smi",
+            "type": "smi",
+            "use_taut_enum": {
+              "prefix_execution": "module load taut_enum",
+              "enumerate_protonation": true
+            }
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/LP_RDkit_enumerated.sdf",
+            "format": "sdf"
+          }
+        }
+      ]
+    },
+    "docking_runs": [
+      {
+        "backend": "rDock",
+        "run_id": "rDock",
+        "input_pools": ["RDkit"],
+        "parameters": {
+          "prefix_execution": "module load rDock",
+          "number_poses": 2,
+          "rbdock_prm_paths": ["<path>/tests/tests_data/rDock/rbcavity_1UYD_updated.prm"],
+          "parallelization": {
+            "number_cores": 4,
+            "max_compounds_per_subjob": 2
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/rDock_parallelized_enumerated.sdf" },
+          "scores": { "scores_path": "<path>/tests/junk/rDock_parallelized_enumerated.csv" }
+        }
+      }
+   ]
+  }
+}

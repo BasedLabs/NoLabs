@@ -1,0 +1,213 @@
+{
+  "docking": {
+    "header": {
+      "logging": {
+        "logfile": "<path>/tests/junk/integration_ADV_docking.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "Ligprep",
+          "type": "Ligprep",
+          "parameters": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "use_epik": {
+              "target_pH": 7.0,
+              "pH_tolerance": 2.0
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/integration_ADV_Ligprep_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "OpenEye",
+          "type": "OpenEye",
+          "parameters": {
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/integration_ADV_OpenEye_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "Corina",
+          "type": "Corina",
+          "parameters": {
+            "prefix_execution": "module load corina"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/integration_ADV_Corina_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "RDkit",
+          "type": "RDkit",
+          "parameters": {
+            "coordinate_generation": {
+              "method": "UFF",
+              "maximum_iterations": 450
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/integration_ADV_RDkit_embedding.sdf",
+            "format": "sdf"
+          }
+        }
+      ]
+    },
+    "docking_runs": [
+      {
+        "backend": "AutoDockVina",
+        "run_id": "AutoDockVina",
+        "input_pools": ["Corina"],
+        "parameters": {
+          "binary_location": "<path>/foreign/AutodockVina/autodock_vina_1_1_2_linux_x86/bin",
+          "parallelization": {
+            "number_cores": 4
+          },
+          "seed": 42,
+          "receptor_pdbqt_path": [
+            "<path>/tests/tests_data/AutoDockVina/1UYD_fixed.pdbqt"
+          ],
+          "number_poses": 2,
+          "search_space": {
+            "--center_x": 3.3,
+            "--center_y": 11.5,
+            "--center_z": 24.8,
+            "--size_x": 15,
+            "--size_y": 10,
+            "--size_z": 10
+          }
+        },
+        "output": {
+          "poses": {
+            "poses_path": "<path>/tests/junk/integration_ADV_Corina_docked.sdf"
+          },
+          "scores": {
+            "scores_path": "<path>/tests/junk/integration_ADV_Corina_docked.csv"
+          }
+        }
+      },
+{
+        "backend": "AutoDockVina",
+        "run_id": "AutoDockVina",
+        "input_pools": ["OpenEye"],
+        "parameters": {
+          "binary_location": "<path>/foreign/AutodockVina/autodock_vina_1_1_2_linux_x86/bin",
+          "parallelization": {
+            "number_cores": 4
+          },
+          "seed": 42,
+          "receptor_pdbqt_path": [
+            "<path>/tests/tests_data/AutoDockVina/1UYD_fixed.pdbqt"
+          ],
+          "number_poses": 2,
+          "search_space": {
+            "--center_x": 3.3,
+            "--center_y": 11.5,
+            "--center_z": 24.8,
+            "--size_x": 15,
+            "--size_y": 10,
+            "--size_z": 10
+          }
+        },
+        "output": {
+          "poses": {
+            "poses_path": "<path>/tests/junk/integration_ADV_OpenEye_docked.sdf"
+          },
+          "scores": {
+            "scores_path": "<path>/tests/junk/integration_ADV_OpenEye_docked.csv"
+          }
+        }
+      },
+{
+        "backend": "AutoDockVina",
+        "run_id": "AutoDockVina",
+        "input_pools": ["Ligprep"],
+        "parameters": {
+          "binary_location": "<path>/foreign/AutodockVina/autodock_vina_1_1_2_linux_x86/bin",
+          "parallelization": {
+            "number_cores": 4
+          },
+          "seed": 42,
+          "receptor_pdbqt_path": [
+            "<path>/tests/tests_data/AutoDockVina/1UYD_fixed.pdbqt"
+          ],
+          "number_poses": 2,
+          "search_space": {
+            "--center_x": 3.3,
+            "--center_y": 11.5,
+            "--center_z": 24.8,
+            "--size_x": 15,
+            "--size_y": 10,
+            "--size_z": 10
+          }
+        },
+        "output": {
+          "poses": {
+            "poses_path": "<path>/tests/junk/integration_ADV_Ligprep_docked.sdf"
+          },
+          "scores": {
+            "scores_path": "<path>/tests/junk/integration_ADV_Ligprep_docked.csv"
+          }
+        }
+      },
+{
+        "backend": "AutoDockVina",
+        "run_id": "AutoDockVina",
+        "input_pools": ["RDkit"],
+        "parameters": {
+          "binary_location": "<path>/foreign/AutodockVina/autodock_vina_1_1_2_linux_x86/bin",
+          "parallelization": {
+            "number_cores": 4
+          },
+          "seed": 42,
+          "receptor_pdbqt_path": [
+            "<path>/tests/tests_data/AutoDockVina/1UYD_fixed.pdbqt"
+          ],
+          "number_poses": 2,
+          "search_space": {
+            "--center_x": 3.3,
+            "--center_y": 11.5,
+            "--center_z": 24.8,
+            "--size_x": 15,
+            "--size_y": 10,
+            "--size_z": 10
+          }
+        },
+        "output": {
+          "poses": {
+            "poses_path": "<path>/tests/junk/integration_ADV_RDkit_docked.sdf"
+          },
+          "scores": {
+            "scores_path": "<path>/tests/junk/integration_ADV_RDkit_docked.csv"
+          }
+        }
+      }
+    ]
+  }
+}

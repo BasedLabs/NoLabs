@@ -1,0 +1,211 @@
+{
+  "docking": {
+    "header": {
+      "environment": {
+      },
+      "logging": {
+        "logfile": "<path>/tests/junk/parallelized_Glide_enumerated.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "Ligprep_no_tautenum",
+          "type": "Ligprep",
+          "parameters": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "use_epik": {
+              "target_pH": 7.0,
+              "pH_tolerance": 2.0
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles_taut_enum.smi",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/ligprep_enumerated_embedded_no_tautenum.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "Ligprep_tautenum",
+          "type": "Ligprep",
+          "parameters": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "use_epik": {
+              "target_pH": 7.0,
+              "pH_tolerance": 2.0
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles_taut_enum.smi",
+            "type": "smi",
+            "use_taut_enum": {
+              "prefix_execution": "module load taut_enum",
+              "enumerate_protonation": true
+            }
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/ligprep_enumerated_embedded_tautenum.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "Ligprep_tautenum_chiral",
+          "type": "Ligprep",
+          "parameters": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "use_epik": {
+              "target_pH": 7.0,
+              "pH_tolerance": 2.0
+            },
+            "chirality": {
+              "max_number_stereoisomers": 15
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles_taut_enum.smi",
+            "type": "smi",
+            "use_taut_enum": {
+              "prefix_execution": "module load taut_enum",
+              "enumerate_protonation": true
+            }
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/ligprep_enumerated_embedded_tautenum_chiral.sdf",
+            "format": "sdf"
+          }
+        }
+      ]
+    },
+    "docking_runs": [
+      {
+        "backend": "Glide",
+        "run_id": "Glide_ligprep_no_tautenum",
+        "input_pools": ["Ligprep_no_tautenum"],
+        "parameters": {
+          "prefix_execution": "module load schrodinger/2019-4",
+          "time_limit_per_compound": 120,
+          "parallelization": {
+            "number_cores": 4,
+            "max_compounds_per_subjob": 1
+          },
+          "token_guard": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "token_pools": {
+              "GLIDE_SP_DOCKING": 16,
+              "GLIDE_SUITE_11DEC2020": 16
+            },
+            "wait_interval_seconds": 30,
+            "wait_limit_seconds": 900
+          },
+          "glide_flags": {
+            "-HOST": "localhost"
+          },
+          "glide_keywords": {
+            "AMIDE_MODE": "trans",
+            "EXPANDED_SAMPLING": "True",
+            "GRIDFILE": ["<path>/tests/tests_data/Schrodinger/1UYD_grid.zip"],
+            "NENHANCED_SAMPLING": "2",
+            "POSE_OUTTYPE": "ligandlib_sd",
+            "POSES_PER_LIG": "3",
+            "POSTDOCK_NPOSE": "25",
+            "POSTDOCKSTRAIN": "True",
+            "PRECISION": "SP",
+            "REWARD_INTRA_HBONDS": "True"
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/glide_ligprep_enumerated_no_tautenum.sdf", "overwrite": false },
+          "scores": { "scores_path": "<path>/tests/junk/glide_ligprep_enumerated_no_tautenum.csv", "overwrite": false }
+        }
+      },
+      {
+        "backend": "Glide",
+        "run_id": "Glide_ligprep_tautenum",
+        "input_pools": ["Ligprep_tautenum"],
+        "parameters": {
+          "prefix_execution": "module load schrodinger/2019-4",
+          "time_limit_per_compound": 120,
+          "parallelization": {
+            "number_cores": 4,
+            "max_compounds_per_subjob": 1
+          },
+          "token_guard": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "token_pools": {
+              "GLIDE_SP_DOCKING": 16,
+              "GLIDE_SUITE_11DEC2020": 16
+            },
+            "wait_interval_seconds": 30,
+            "wait_limit_seconds": 900
+          },
+          "glide_flags": {
+            "-HOST": "localhost"
+          },
+          "glide_keywords": {
+            "AMIDE_MODE": "trans",
+            "EXPANDED_SAMPLING": "True",
+            "GRIDFILE": ["<path>/tests/tests_data/Schrodinger/1UYD_grid.zip"],
+            "NENHANCED_SAMPLING": "2",
+            "POSE_OUTTYPE": "ligandlib_sd",
+            "POSES_PER_LIG": "3",
+            "POSTDOCK_NPOSE": "25",
+            "POSTDOCKSTRAIN": "True",
+            "PRECISION": "SP",
+            "REWARD_INTRA_HBONDS": "True"
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/glide_ligprep_enumerated_tautenum.sdf", "overwrite": false },
+          "scores": { "scores_path": "<path>/tests/junk/glide_ligprep_enumerated_tautenum.csv", "overwrite": false }
+        }
+      },
+      {
+        "backend": "Glide",
+        "run_id": "Glide_ligprep_tautenum_chiral",
+        "input_pools": ["Ligprep_tautenum_chiral"],
+        "parameters": {
+          "prefix_execution": "module load schrodinger/2019-4",
+          "time_limit_per_compound": 120,
+          "parallelization": {
+            "number_cores": 4,
+            "max_compounds_per_subjob": 1
+          },
+          "token_guard": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "token_pools": {
+              "GLIDE_SP_DOCKING": 16,
+              "GLIDE_SUITE_11DEC2020": 16
+            },
+            "wait_interval_seconds": 30,
+            "wait_limit_seconds": 900
+          },
+          "glide_flags": {
+            "-HOST": "localhost"
+          },
+          "glide_keywords": {
+            "AMIDE_MODE": "trans",
+            "EXPANDED_SAMPLING": "True",
+            "GRIDFILE": ["<path>/tests/tests_data/Schrodinger/1UYD_grid.zip"],
+            "NENHANCED_SAMPLING": "2",
+            "POSE_OUTTYPE": "ligandlib_sd",
+            "POSES_PER_LIG": "3",
+            "POSTDOCK_NPOSE": "25",
+            "POSTDOCKSTRAIN": "True",
+            "PRECISION": "SP",
+            "REWARD_INTRA_HBONDS": "True"
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/glide_ligprep_enumerated_tautenum_chiral.sdf", "overwrite": false },
+          "scores": { "scores_path": "<path>/tests/junk/glide_ligprep_enumerated_tautenum_chiral.csv", "overwrite": false }
+        }
+      }
+    ]
+  }
+}

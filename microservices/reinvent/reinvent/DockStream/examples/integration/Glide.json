@@ -1,0 +1,213 @@
+{
+  "docking": {
+    "header": {
+    "environment": {
+        "export": [
+          {
+            "key": "OE_LICENSE",
+            "value": "/opt/scp/software/oelicense/1.0/oe_license.seq1"
+          }
+        ]
+      },
+      "logging": {
+        "logfile": "<path>/tests/junk/integration_Glide_docking.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+    {
+          "pool_id": "Ligprep",
+          "type": "Ligprep",
+          "parameters": {
+            "prefix_execution": "module load schrodinger/2019-4",
+            "use_epik": {
+              "target_pH": 7.0,
+              "pH_tolerance": 2.0
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/integration_Glide_Ligprep_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "OpenEye",
+          "type": "OpenEye",
+          "parameters": {
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/integration_Glide_OpenEye_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "Corina",
+          "type": "Corina",
+          "parameters": {
+            "prefix_execution": "module load corina"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/integration_Glide_Corina_embedding.sdf",
+            "format": "sdf"
+          }
+        },
+        {
+          "pool_id": "RDkit",
+          "type": "RDkit",
+          "parameters": {
+            "coordinate_generation": {
+              "method": "UFF",
+              "maximum_iterations": 450
+            }
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+           "conformer_path": "<path>/tests/junk/integration_Glide_RDkit_embedding.sdf",
+           "format": "sdf"
+          }
+        }
+      ]
+    },
+    "docking_runs": [
+      {
+        "backend": "Glide",
+        "run_id": "Glide_from_corina",
+        "input_pools": ["Corina"],
+        "parameters": {
+          "prefix_execution": "module load schrodinger/2019-4",
+          "parallelization": {
+            "number_cores": 4
+          },
+          "glide_flags": {
+            "-HOST": "localhost"
+          },
+          "glide_keywords": {
+            "AMIDE_MODE": "trans",
+            "EXPANDED_SAMPLING": "True",
+            "GRIDFILE": "<path>/tests/tests_data/Schrodinger/1UYD_grid.zip",
+            "NENHANCED_SAMPLING": "2",
+            "POSE_OUTTYPE": "ligandlib_sd",
+            "POSES_PER_LIG": "5",
+            "POSTDOCK_NPOSE": "25",
+            "POSTDOCKSTRAIN": "True",
+            "PRECISION": "HTVS",
+            "REWARD_INTRA_HBONDS": "True"
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/integration_Glide_Corina_docked.sdf" },
+          "scores": { "scores_path": "<path>/tests/junk/integration_Glide_Corina_docked.csv" }
+        }
+      },
+      {
+        "backend": "Glide",
+        "run_id": "Glide_from_rdkit",
+        "input_pools": ["RDkit"],
+        "parameters": {
+          "prefix_execution": "module load schrodinger/2019-4",
+          "parallelization": {
+            "number_cores": 4
+          },
+          "glide_flags": {
+            "-HOST": "localhost"
+          },
+          "glide_keywords": {
+            "AMIDE_MODE": "trans",
+            "EXPANDED_SAMPLING": "True",
+            "GRIDFILE": "<path>/tests/tests_data/Schrodinger/1UYD_grid.zip",
+            "NENHANCED_SAMPLING": "2",
+            "POSE_OUTTYPE": "ligandlib_sd",
+            "POSES_PER_LIG": "5",
+            "POSTDOCK_NPOSE": "25",
+            "POSTDOCKSTRAIN": "True",
+            "PRECISION": "HTVS",
+            "REWARD_INTRA_HBONDS": "True"
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/integration_Glide_RDkit_docked.sdf" },
+          "scores": { "scores_path": "<path>/tests/junk/integration_Glide_RDkit_docked.csv" }
+        }
+      },
+      {
+        "backend": "Glide",
+        "run_id": "Glide_from_openeye",
+        "input_pools": ["OpenEye"],
+        "parameters": {
+          "prefix_execution": "module load schrodinger/2019-4",
+          "parallelization": {
+            "number_cores": 4
+          },
+          "glide_flags": {
+            "-HOST": "localhost"
+          },
+          "glide_keywords": {
+            "AMIDE_MODE": "trans",
+            "EXPANDED_SAMPLING": "True",
+            "GRIDFILE": "<path>/tests/tests_data/Schrodinger/1UYD_grid.zip",
+            "NENHANCED_SAMPLING": "2",
+            "POSE_OUTTYPE": "ligandlib_sd",
+            "POSES_PER_LIG": "5",
+            "POSTDOCK_NPOSE": "25",
+            "POSTDOCKSTRAIN": "True",
+            "PRECISION": "HTVS",
+            "REWARD_INTRA_HBONDS": "True"
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/integration_Glide_OpenEye_docked.sdf" },
+          "scores": { "scores_path": "<path>/tests/junk/integration_Glide_OpenEye_docked.csv" }
+        }
+      },
+      {
+        "backend": "Glide",
+        "run_id": "Glide_from_ligprep",
+        "input_pools": ["Ligprep"],
+        "parameters": {
+          "prefix_execution": "module load schrodinger/2019-4",
+          "parallelization": {
+            "number_cores": 4
+          },
+          "glide_flags": {
+            "-HOST": "localhost"
+          },
+          "glide_keywords": {
+            "AMIDE_MODE": "trans",
+            "EXPANDED_SAMPLING": "True",
+            "GRIDFILE": "<path>/tests/tests_data/Schrodinger/1UYD_grid.zip",
+            "NENHANCED_SAMPLING": "2",
+            "POSE_OUTTYPE": "ligandlib_sd",
+            "POSES_PER_LIG": "5",
+            "POSTDOCK_NPOSE": "25",
+            "POSTDOCKSTRAIN": "True",
+            "PRECISION": "HTVS",
+            "REWARD_INTRA_HBONDS": "True"
+          }
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/integration_Glide_Ligprep_docked.sdf" },
+          "scores": { "scores_path": "<path>/tests/junk/integration_Glide_Ligprep_docked.csv" }
+        }
+      }
+    ]
+  }
+}

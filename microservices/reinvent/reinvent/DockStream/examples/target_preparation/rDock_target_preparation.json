@@ -1,0 +1,52 @@
+{
+  "target_preparation":
+  {
+    "header": {
+      "logging": {
+        "logfile": "<path>/junk/target_prep_rDock.log"
+      }
+    },
+    "input_path": "<path>/1UYD/1UYD_apo.pdb",
+    "fixer": {
+      "enabled": true,
+      "standardize": true,
+      "remove_heterogens": true,
+      "fix_missing_heavy_atoms": true,
+      "fix_missing_hydrogens": true,
+      "fix_missing_loops": false,
+      "add_water_box": false,
+      "fixed_pdb_path": "<path>/junk/target_prep_PDB_fixed.pdb"
+    },
+    "runs": [
+      {
+        "backend": "rDock",
+        "output": {
+          "directory": "<path>/junk"
+        },
+        "parameters": {
+          "prefix_execution": "module load rDock"
+        },
+        "cavity": {
+          "method": "reference_ligand",
+          "reference_ligand_path": "<path>/tests/tests_data/1UYD/ligand_PU8.sdf",
+          "reference_ligand_format": "SDF",
+          "prm_file": "<path>/junk/tests_data/rDock/rbcavity_1UYD.prm"
+        }
+      },
+      {
+        "backend": "rDock",
+        "output": {
+          "directory": "<path>/junk"
+        },
+        "parameters": {
+          "prefix_execution": "module load rDock"
+        },
+        "cavity": {
+          "method": "reference_ligand",
+          "reference_ligand_path": "<path>/tests_data/1UYD/ligand_PU8.sdf",
+          "reference_ligand_format": "SDF"
+        }
+      }
+    ]
+  }
+}

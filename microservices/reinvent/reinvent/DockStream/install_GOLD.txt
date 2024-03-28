@@ -1,0 +1,19 @@
+1) get the module installed
+2) activate it with the key
+3) get the path to your CSD home: echo $CSDHOME
+4) look for folder "Python_API_2020" (probably one folder up)
+5) update conda channel environment.yml:
+/opt/scp/software/ccdc/2020.0.1/Python_API_2020/ccdc_conda_channel
+6) either install environment or:
+conda install -c /opt/scp/software/ccdc/2020.0.1/Python_API_2020/ccdc_conda_channel Pillow six lxml numpy matplotlib
+conda install -c /opt/scp/software/ccdc/2020.0.1/Python_API_2020/ccdc_conda_channel csd-python-api
+7) Finally,on Linux and macOS there are a few more environment variables that must be set to the CSD Python API to communicate with the installed CSD system. CSDHOME must point to the CSD_2020 directory within your CSD-System installation directory, e.g.:
+
+$ export CSDHOME=/home/my_ccdc_software_dir/CCDC/CSD_2020
+On Linux Only, assuming that PYTHONHOME stores the location of the correct Python installation:
+
+$ export LD_LIBRARY_PATH=$PYTHONHOME/lib:$PYTHONHOME/lib/python2.7/site-packages/ccdc/_lib:$LD_LIBRARY_PATH
+
+
+
+On another note, DO NOT activate the module before installing the environment.

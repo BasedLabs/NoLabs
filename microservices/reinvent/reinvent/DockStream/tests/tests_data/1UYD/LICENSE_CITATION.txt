@@ -1,0 +1,2 @@
+Based on 1UYD structure (PDB): http://dx.doi.org/10.1016/j.chembiol.2004.03.033
+Ligands (MIT license): http://github.com/Discngine/rdkit_tethered_minimization (Peter Schmidtke)

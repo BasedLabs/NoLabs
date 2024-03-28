@@ -1,0 +1,30 @@
+{
+  "docking": {
+    "header": {
+      "logging": {
+        "logfile": "<path>/junk/Omega_Classic_ligand_preparation.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "Omega_classic",
+          "type": "Omega",
+          "parameters": {
+            "prefix_execution": "module load omega",
+            "mode": "classic"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/junk/Omega_Classic_prepped_ligands.sdf",
+            "format": "sdf"
+          }
+        }
+      ]
+    }
+  }
+}

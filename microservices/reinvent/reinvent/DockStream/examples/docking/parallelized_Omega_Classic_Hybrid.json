@@ -1,0 +1,58 @@
+{
+  "docking": {
+    "header": {
+      "environment": {
+        "export": [
+          {
+            "key": "OE_LICENSE",
+            "value": "/opt/scp/software/oelicense/1.0/oe_license.seq1"
+          }
+        ]
+      },
+      "logging": {
+        "logfile": "<path>/tests/junk/parallelized_Omega_Classic_Hybrid.log"
+      }
+    },
+    "ligand_preparation": {
+      "embedding_pools": [
+        {
+          "pool_id": "Omega_pool",
+          "type": "Omega",
+          "parameters": {
+          "prefix_execution": "module load omega",
+          "mode": "classic"
+          },
+          "input": {
+            "standardize_smiles": false,
+            "input_path": "<path>/tests/tests_data/1UYD/ligands_smiles.txt",
+            "type": "smi"
+          },
+          "output": {
+            "conformer_path": "<path>/tests/junk/Omega_Classic_prepped_ligands.sdf",
+            "format": "sdf"
+          }
+        }
+      ]
+    },
+    "docking_runs": [
+      {
+        "backend": "Hybrid",
+        "run_id": "Hybrid",
+        "input_pools": ["Omega_pool"],
+        "parameters": {
+	  "prefix_execution": "module load oedocking",
+          "receptor_paths": ["<path>/tests/tests_data/OpenEyeHybrid/1UYD_reference_receptor.oeb"],
+          "parallelization": {
+            "number_cores": 4
+          },
+          "number_poses": 1,
+          "resolution": "High"
+        },
+        "output": {
+          "poses": { "poses_path": "<path>/tests/junk/Omega_Classic_Hybrid_docked_poses.sdf" },
+          "scores": { "scores_path": "<path>/tests/junk/Omega_Classic_Hybrid_docked_scores.csv" }
+        }
+      }
+    ]
+  }
+}
