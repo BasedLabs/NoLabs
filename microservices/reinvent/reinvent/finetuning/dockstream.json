@@ -2,6 +2,7 @@
   "docking": {
     "header": {
       "logging": {
+        "logfile": "",
         "verbosity": "high"
       }
     },

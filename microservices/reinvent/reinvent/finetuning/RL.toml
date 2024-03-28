@@ -28,14 +28,14 @@ minscore = 0.0
 [[stage]]
 chkpt_file = ''
 termination = "simple"
-max_steps = 0
+max_steps = 50
 
 [stage.scoring]
 type = "geometric_mean"
 
 [[stage.scoring.component]]
 [[stage.scoring.component.DockStream.endpoint]]
-name = "Docking into 2XCH grid"
+name = "Dockstream Docking"
 weight = 1
 params.configuration_path = ""
 params.docker_script_path = "/app/DockStream/docker.py"

@@ -15,6 +15,8 @@ class RunFineTuningJobRequest:
     size_y: float
     size_z: float
 
+    batch_size: int
+    minscore: float
     epochs: int = 50
 
 
@@ -23,11 +25,15 @@ class FineTuningJobResponse:
     id: str
     running: bool
     started_at: datetime.datetime
-    progress: float
     pdbqt_content: str
     pdbqt_filename: str
-    errors: str
+    docking_output: str
+    log_output: str
+    errors_output: str
     epochs: int
+    batch_size: int
+    minscore: float
+    direct_csv: str
 
 
 @pydantic.dataclasses.dataclass

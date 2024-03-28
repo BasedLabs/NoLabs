@@ -7,7 +7,7 @@ from starlette.responses import FileResponse
 
 from microservice.api_models import RunFineTuningJobRequest, FineTuningJobResponse, RunInferenceRequest, \
     RunInferenceResponse
-from microservice.services import FineTuning, Inference
+from microservice.services import FineTuning
 
 app = FastAPI(
     title='Reinvent4 API',
@@ -24,12 +24,19 @@ inference_router = APIRouter(
     tags=['inference']
 )
 
+
 @ft_router.post("/run")
 async def run_fine_tuning(center_x: float,
                           center_y: float, center_z: float, size_x: float,
-                          size_y: float, size_z:float, epochs: int = 50, pdb_content: UploadFile = File()) -> FineTuningJobResponse:
+                          size_y: float, size_z: float,
+                          epochs: int = 50,
+                          batch_size: int = 128,
+                          minscore: float = 0.4,
+                          pdb_content: UploadFile = File()) -> FineTuningJobResponse:
     ft = FineTuning()
-    return await ft.run(pdb_content, RunFineTuningJobRequest(center_x=center_x, center_y=center_y, center_z=center_z, size_x=size_x, size_y=size_y, size_z=size_z, epochs=epochs))
+    return await ft.run(pdb_content,
+                        RunFineTuningJobRequest(center_x=center_x, center_y=center_y, center_z=center_z, size_x=size_x,
+                                                size_y=size_y, size_z=size_z, batch_size=batch_size, minscore=minscore, epochs=epochs))
 
 
 @ft_router.post('/prepare-binder')
