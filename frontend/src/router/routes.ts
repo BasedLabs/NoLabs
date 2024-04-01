@@ -120,13 +120,13 @@ const conformationsRoutes = [
 const smallMoleculeDesignRoutes = [
   {
     path: 'small-molecules',
-    name: 'SmallMoleculesDesignExperiments',
+    name: 'Small molecules design experiments',
     component: () => import("src/features/smallMoleculeDesign/ExperimentsView.vue")
   },
   {
     path: 'small-molecules/experiment/:experimentId',
     component: () => import('src/features/smallMoleculeDesign/ExperimentView.vue'),
-    name: 'SmallMoleculesDesign',
+    name: 'Small molecules design',
     props: true
   }
 ]

@@ -1,5 +1,5 @@
 import datetime
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic.dataclasses import dataclass
 

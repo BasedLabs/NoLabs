@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import datetime
+from typing import List
 
 import pydantic
 
 
 @pydantic.dataclasses.dataclass
-class RunFineTuningJobRequest:
+class RunJobRequest:
     # size of the search box. Recommended not more than 30 armstrongs
     center_x: float
     center_y: float
@@ -17,33 +18,46 @@ class RunFineTuningJobRequest:
 
     batch_size: int
     minscore: float
+    name: str
     epochs: int = 50
 
 
 @pydantic.dataclasses.dataclass
-class FineTuningJobResponse:
+class JobResponse:
     id: str
+    name: str
+    created_at: datetime.datetime
     running: bool
-    started_at: datetime.datetime
-    pdbqt_content: str
-    pdbqt_filename: str
+    learning_completed: bool
+
+
+@pydantic.dataclasses.dataclass
+class LogsResponse:
+    output: str
     docking_output: str
-    log_output: str
-    errors_output: str
-    epochs: int
-    batch_size: int
+    errors: str
+
+
+@pydantic.dataclasses.dataclass
+class ParamsResponse:
+    center_x: float
+    center_y: float
+    center_z: float
+    size_x: float
+    size_y: float
+    size_z: float
+    batch_size: float
     minscore: float
-    direct_csv: str
+    epochs: float
 
 
 @pydantic.dataclasses.dataclass
-class RunInferenceRequest:
-    job_id: str
+class Smiles:
+    smiles: str
+    drugLikeness: float
+    score: float
 
 
 @pydantic.dataclasses.dataclass
-class RunInferenceResponse:
-    id: str
-    job_name: str
-    smiles: str | None
-    errors: str | None
+class SmilesResponse:
+    smiles: List[Smiles]

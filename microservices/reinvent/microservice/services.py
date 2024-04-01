@@ -1,9 +1,10 @@
 import dataclasses
+
 import datetime
 import os
 import subprocess
 import sys
-import tomllib
+import csv
 
 import toml
 
@@ -15,24 +16,22 @@ from fastapi import UploadFile
 from leaf import FileObject, DirectoryObject
 from starlette.responses import FileResponse
 
+from microservice.api_models import JobResponse, RunJobRequest, LogsResponse, ParamsResponse, Smiles, SmilesResponse
 from microservice.exceptions import ReinventException, ErrorCode
-from microservice.api_models import RunFineTuningJobRequest, FineTuningJobResponse
 
 
 @dataclasses.dataclass
 class Process:
     id: str
+    name: str
     running: bool
-    started_at: datetime.datetime
+    learning_completed: bool
+    created_at: datetime.datetime
     pdbqt_content: str
     pdbqt_filename: str
-    epochs: int
+    params: RunJobRequest
     directory: DirectoryObject
-    errors_file: FileObject
-    output_file: FileObject
-    process: Any
-    minscore: float
-    batch_size: int
+    handler: Any
 
 
 processes: List[Process] = []
@@ -49,7 +48,7 @@ class FineTuning:
     def __init__(self):
         self.fs = DirectoryObject(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'finetuning'))
 
-    def get_job(self, id: str) -> FineTuningJobResponse | None:
+    def get_job(self, id: str) -> JobResponse | None:
         directory = self.fs.directories.first_or_default(lambda o: o.name == id)
         process = get_process(id)
         if not process:
@@ -62,25 +61,48 @@ class FineTuning:
         docking_output = directory.files.first_or_default(lambda o: o.name == 'docking.log')
         direct_csv = directory.files.first_or_default(lambda o: o.name == 'rl_direct_1.csv')
 
-        return FineTuningJobResponse(
+        return JobResponse(
             id=id,
-            running=process.running,
-            started_at=process.started_at,
-            docking_output=docking_output.read_string(),
-            pdbqt_content=pdbqt_content,
-            pdbqt_filename=process.pdbqt_filename,
-            epochs=process.epochs,
-            log_output=log_output.read_string(),
-            errors_output=errors_output.read_string(),
-            minscore=process.minscore,
-            batch_size=process.batch_size,
-            direct_csv=direct_csv.read_string() if direct_csv else ''
+            name=process.params.name,
+            created_at=process.created_at,
+            running=process.handler.popen() is None,
+            learning_completed=process.learning_completed
         )
 
-    def calculate_progress(self, metadata, current_stage) -> float:
-        return float(current_stage) / float(metadata['epochs'])
+    def get_logs(self, id: str) -> LogsResponse | None:
+        directory = self.fs.directories.first_or_default(lambda o: o.name == id)
+        process = get_process(id)
+        if not process:
+            return None
 
-    def all_jobs(self) -> List[FineTuningJobResponse]:
+        log_output = directory.files.first_or_default(lambda o: o.name == 'output.log')
+        errors_output = directory.files.first_or_default(lambda o: o.name == 'error.log')
+        docking_output = directory.files.first_or_default(lambda o: o.name == 'docking.log')
+
+        return LogsResponse(
+            output=log_output.read_string(),
+            docking_output=docking_output.read_string(),
+            errors=errors_output.read_string()
+        )
+
+    def get_params(self, id: str) -> ParamsResponse | None:
+        process = get_process(id)
+        if not process:
+            return None
+
+        return ParamsResponse(
+            center_x=process.params.center_x,
+            center_y=process.params.center_y,
+            center_z=process.params.center_z,
+            size_x=process.params.size_x,
+            size_y=process.params.size_y,
+            size_z=process.params.size_z,
+            batch_size=process.params.batch_size,
+            minscore=process.params.minscore,
+            epochs=process.params.epochs
+        )
+
+    def all_jobs(self) -> List[JobResponse]:
         result = []
         for run_dir in self.fs.children:
             job = self.get_job(run_dir.name)
@@ -114,7 +136,7 @@ class FineTuning:
                                  ], shell=False, stdout=sys.stdout, stderr=sys.stderr)
 
     def prepare_dockstream_config(self,
-                                  request: RunFineTuningJobRequest,
+                                  request: RunJobRequest,
                                   pdbqt: FileObject,
                                   logfile: FileObject,
                                   directory: DirectoryObject) -> FileObject:
@@ -153,7 +175,7 @@ class FineTuning:
     def prepare_toml(self, minscore: float, batch_size: int, epochs: int, csv_result: FileObject, dockstream_config: FileObject, directory: DirectoryObject) -> FileObject:
         # Configure learning
         reinforcement_learning_config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
-        t = reinforcement_learning_config.read(tomllib.load, mode='rb')
+        t = reinforcement_learning_config.read(toml.load, mode='rb')
         t['output_csv'] = directory.add_file('rl_direct.csv').full_path
         t['parameters']['batch_size'] = batch_size
         t['parameters']['summary_csv_prefix'] = csv_result.full_path
@@ -167,7 +189,7 @@ class FineTuning:
 
         return reinforcement_learning_config
 
-    async def run(self, pdbqt_file: UploadFile, request: RunFineTuningJobRequest):
+    async def run(self, pdbqt_file: UploadFile, request: RunJobRequest):
         if not pdbqt_file:
             raise ReinventException(ErrorCode.PDBQT_NOT_PROVIDED)
 
@@ -190,18 +212,39 @@ class FineTuning:
         error_file = directory.add_file('error.log')
         popen = self.run_reinforcement_learning(reinforcement_learning_config, log_file, error_file)
 
-        processes.append(Process(
-            id=id,
-            running=True,
-            started_at=datetime.datetime.now(datetime.UTC),
-            pdbqt_content=pdbqt.read_string(),
-            pdbqt_filename=pdbqt_file.filename,  # type: ignore
-            epochs=request.epochs,
-            directory=directory,
-            errors_file=error_file,
-            output_file=log_file,
-            minscore=request.minscore,
-            batch_size=request.batch_size,
-            process=popen))
+        processes.append(
+            Process(
+                id=id,
+                running=True,
+                name=request.name,
+                learning_completed=False,
+                created_at=datetime.datetime.utcnow(),
+                pdbqt_filename=pdbqt_file.filename,
+                pdbqt_content=pdbqt.read_string(),
+                params=request,
+                directory=directory,
+                handler=popen
+            )
+        )
 
         return self.get_job(id)
+
+    def get_smiles(self, id: str) -> SmilesResponse:
+        directory = self.fs.directories.first_or_default(lambda o: o.name == id)
+        process = get_process(id)
+        if not process:
+            return SmilesResponse(smiles=[])
+
+        direct_csv = directory.files.first_or_default(lambda o: o.name == 'rl_direct_1.csv')
+
+        with open(direct_csv.full_path) as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        return SmilesResponse(smiles=[
+            Smiles(
+                smiles=row['SMILES'],
+                drugLikeness=row['QED'],
+                score=row['Score']
+            ) for row in rows
+        ])

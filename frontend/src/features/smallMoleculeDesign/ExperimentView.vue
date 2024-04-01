@@ -2,15 +2,16 @@
   <div class="q-pa-md">
     <q-table
       flat bordered
-      title="Treats"
-      :rows="rows"
+      title="Design jobs"
+      :rows="jobs"
       :columns="columns"
       row-key="name"
+      separator="none"
     >
 
       <template v-slot:header="props">
         <q-tr :props="props">
-          <q-th auto-width />
+          <q-th auto-width/>
           <q-th
             v-for="col in props.cols"
             :key="col.name"
@@ -24,7 +25,8 @@
       <template v-slot:body="props">
         <q-tr :props="props">
           <q-td auto-width>
-            <q-btn size="sm" color="accent" round dense @click="props.expand = !props.expand" :icon="props.expand ? 'remove' : 'add'" />
+            <q-btn size="sm" color="info" square outline dense @click="props.expand = !props.expand"
+                   :icon="props.expand ? 'remove' : 'add'"/>
           </q-td>
           <q-td
             v-for="col in props.cols"
@@ -33,6 +35,22 @@
           >
             {{ col.value }}
           </q-td>
+          <q-td auto-width>
+            <q-btn size="md" color="info" square outline dense @click="openLogs(props.row.id)">Logs
+            </q-btn>
+          </q-td>
+          <JobControlButtons :job="props.row" :resume-job="generateMoreMolecules" :stop-job="stopJob"
+                             :start-job="startJob"/>
+          <q-td auto-width class="q-ml-md">
+            <q-btn size="md" color="negative" square dense icon="delete"/>
+          </q-td>
+          <q-td auto-width class="q-ml-md" v-if="props.row.running">
+            Running
+            <q-spinner-oval
+              color="info"
+              size="3em"
+            />
+          </q-td>
         </q-tr>
         <q-tr v-show="props.expand" :props="props">
           <q-td colspan="100%">
@@ -40,140 +58,127 @@
           </q-td>
         </q-tr>
       </template>
-
     </q-table>
+    <LogsModal :job-id="logsModalJobId" v-model:visible="logsModalVisible"/>
   </div>
 </template>
 
-<script>
+
+<script lang="ts">
+import {defineComponent} from "vue";
+import useSmallMoleculesDesignStore from "./storage";
+import {QSpinnerOrbit} from "quasar";
+import LogsModal from "./components/LogsModal.vue";
+import JobControlButtons from "./components/JobControlButtons.vue";
+
 const columns = [
-  {
-    name: 'name',
-    required: true,
-    label: 'Dessert (100g serving)',
-    align: 'left',
-    field: row => row.name,
-    format: val => `${val}`,
-    sortable: true
-  },
-  { name: 'calories', align: 'center', label: 'Calories', field: 'calories', sortable: true },
-  { name: 'fat', label: 'Fat (g)', field: 'fat', sortable: true },
-  { name: 'carbs', label: 'Carbs (g)', field: 'carbs' },
-  { name: 'protein', label: 'Protein (g)', field: 'protein' },
-  { name: 'sodium', label: 'Sodium (mg)', field: 'sodium' },
-  { name: 'calcium', label: 'Calcium (%)', field: 'calcium', sortable: true, sort: (a, b) => parseInt(a, 10) - parseInt(b, 10) },
-  { name: 'iron', label: 'Iron (%)', field: 'iron', sortable: true, sort: (a, b) => parseInt(a, 10) - parseInt(b, 10) }
+  {name: 'id', align: 'center', label: 'ID', field: 'id', sortable: false},
+  {name: 'name', align: 'center', label: 'Name', field: 'name', sortable: false},
+  {name: 'createdAt', align: 'center', label: 'Created At', field: 'createdAt', sortable: true}
 ]
 
-const rows = [
-  {
-    name: 'Frozen Yogurt',
-    calories: 159,
-    fat: 6.0,
-    carbs: 24,
-    protein: 4.0,
-    sodium: 87,
-    calcium: '14%',
-    iron: '1%'
-  },
-  {
-    name: 'Ice cream sandwich',
-    calories: 237,
-    fat: 9.0,
-    carbs: 37,
-    protein: 4.3,
-    sodium: 129,
-    calcium: '8%',
-    iron: '1%'
-  },
-  {
-    name: 'Eclair',
-    calories: 262,
-    fat: 16.0,
-    carbs: 23,
-    protein: 6.0,
-    sodium: 337,
-    calcium: '6%',
-    iron: '7%'
-  },
-  {
-    name: 'Cupcake',
-    calories: 305,
-    fat: 3.7,
-    carbs: 67,
-    protein: 4.3,
-    sodium: 413,
-    calcium: '3%',
-    iron: '8%'
-  },
-  {
-    name: 'Gingerbread',
-    calories: 356,
-    fat: 16.0,
-    carbs: 49,
-    protein: 3.9,
-    sodium: 327,
-    calcium: '7%',
-    iron: '16%'
-  },
-  {
-    name: 'Jelly bean',
-    calories: 375,
-    fat: 0.0,
-    carbs: 94,
-    protein: 0.0,
-    sodium: 50,
-    calcium: '0%',
-    iron: '0%'
-  },
-  {
-    name: 'Lollipop',
-    calories: 392,
-    fat: 0.2,
-    carbs: 98,
-    protein: 0,
-    sodium: 38,
-    calcium: '0%',
-    iron: '2%'
-  },
-  {
-    name: 'Honeycomb',
-    calories: 408,
-    fat: 3.2,
-    carbs: 87,
-    protein: 6.5,
-    sodium: 562,
-    calcium: '0%',
-    iron: '45%'
-  },
-  {
-    name: 'Donut',
-    calories: 452,
-    fat: 25.0,
-    carbs: 51,
-    protein: 4.9,
-    sodium: 326,
-    calcium: '2%',
-    iron: '22%'
-  },
-  {
-    name: 'KitKat',
-    calories: 518,
-    fat: 26.0,
-    carbs: 65,
-    protein: 7,
-    sodium: 54,
-    calcium: '12%',
-    iron: '6%'
-  }
-]
+interface Data {
+  jobs: Job[]
+  columns: any;
+  logsModalVisible: boolean;
+  logsModalJobId: string | null;
+  logsContent: Logs | null;
+  interval: any;
+}
 
-export default {
-  setup () {
+export default defineComponent({
+  components: {JobControlButtons, LogsModal},
+  store: useSmallMoleculesDesignStore(),
+  name: 'SmallMoleculesDesignExperiment',
+  data(): Data {
     return {
       columns,
-      rows
+      jobs: [] as Job[],
+      logsModalVisible: false,
+      logsModalJobId: null,
+      logsContent: null as Logs | null,
+      interval: null
     }
+  },
+  methods: {
+    openLogs(id: string) {
+      this.logsModalJobId = id;
+      this.logsModalVisible = !this.logsModalVisible;
+    },
+    async loader(title: string, operation: any) {
+      try {
+        this.$q.loading.show({
+          spinner: QSpinnerOrbit,
+          message: title
+        });
+        await operation();
+      } finally {
+        this.$q.loading.hide();
+      }
+    },
+    async startJob(id: string) {
+      await this.loader('Starting job', async () => {
+        await this.$options.store.startJob(id);
+        const job = this.jobs.find(x => x.id === id);
+        const index = this.jobs.indexOf(job!);
+        this.jobs[index] = await this.$options.store.job(id);
+      });
+    },
+    async stopJob(id: string) {
+      this.$q.dialog({
+        title: 'Confirm',
+        message: 'Would you like to stop the job? The progress will be lost.',
+        cancel: true,
+        persistent: true
+      }).onOk(async () => {
+        await this.loader('Stopping job', async () => {
+          await this.$options.store.stopJob(id);
+          const job = this.jobs.find(x => x.id === id);
+          const index = this.jobs.indexOf(job!);
+          this.jobs[index] = await this.$options.store.job(id);
+        });
+      });
+    },
+    async generateMoreMolecules(id: string) {
+      await this.loader('Starting job', async () => {
+        await this.$options.store.generateMoreMolecules(id);
+        const job = this.jobs.find(x => x.id === id);
+        const index = this.jobs.indexOf(job!);
+        this.jobs[index] = await this.$options.store.job(id);
+      });
+    },
+    deleteJob(id: string) {
+      this.$q.dialog({
+        title: 'Delete?',
+        cancel: true,
+        persistent: true
+      }).onOk(async () => {
+        await this.loader('Deleting job', async () => {
+          await this.$options.store.deleteJob(id);
+          const job = this.jobs.find(x => x.id === id);
+          const index = this.jobs.indexOf(job!);
+          this.jobs.splice(index, 1);
+        });
+      });
+    },
+    async loadJobs() {
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: 'Loading jobs'
+      });
+
+      this.jobs = await this.$options.store.jobs();
+
+      this.$q.loading.hide();
+    }
+  },
+  mounted() {
+    this.interval = setInterval(async () => {
+      await this.loadJobs();
+    }, 1000);
+  },
+  unmounted() {
+    clearInterval(this.interval);
   }
-}
+})
 </script>

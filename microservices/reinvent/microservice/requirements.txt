@@ -3,3 +3,5 @@ python-multipart
 leaf-BasedLabs==0.0.6
 uvicorn
 toml
+pydantic
+mypy

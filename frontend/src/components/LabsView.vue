@@ -39,7 +39,8 @@ export default defineComponent({
         { name: 'Localisation Lab', description: 'Predict localisation of proteins', routeName: 'Localisation experiments', imagePath: 'public/localisation_pic.png' },
         { name: 'Solubility Lab', description: 'Predict solubility of proteins', routeName: 'Solubility experiments', imagePath: 'public/solubility_pic.png' },
         { name: 'Conformations Lab', description: 'Run simulations using GROMACS', routeName: 'Conformations experiments', imagePath: 'public/conformations_pic.png' },
-        { name: 'Protein Design Lab', description: 'Design binders using RF-Diffusion', routeName: 'Protein design experiments', imagePath: 'public/rf_diffusion_pic.png' }
+        { name: 'Protein Design Lab', description: 'Design binders using RF-Diffusion', routeName: 'Protein design experiments', imagePath: 'public/rf_diffusion_pic.png' },
+        { name: 'Small Molecules Design Lab', description: 'Design small molecules using protein receptor', routeName: 'Small molecules design experiments', imagePath: 'public/rf_diffusion_pic.png' }
       ]
     }
   },
