@@ -4,3 +4,5 @@ python-json-logger
 openapi
 openai
 biopython
+langchain-openai
+langchain

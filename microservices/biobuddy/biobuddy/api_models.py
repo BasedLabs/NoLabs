@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from langchain_core.messages import BaseMessage
 from pydantic import dataclasses as pcdataclass
 from typing import List, Optional, Dict, Any
 
@@ -19,7 +20,7 @@ class SendMessageToBioBuddyRequest(BaseModelMixin):
 
 @pcdataclass.dataclass
 class SendMessageToBioBuddyResponse(BaseModelMixin):
-    chatgpt_reply: ChatCompletionMessage
+    chatgpt_reply: str
 
 @pcdataclass.dataclass
 class IsJobRunningResponse:
