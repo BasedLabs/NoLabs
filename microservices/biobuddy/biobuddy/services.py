@@ -1,14 +1,12 @@
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
 from biobuddy.api_models import SendMessageToBioBuddyResponse, SendMessageToBioBuddyRequest
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 chat_model = ChatOpenAI()
 chat_model.model_name = "gpt-4"
-chat_model.streaming = False
 chat_model.temperature = 0.1
-
-__all__ = ['send_message']
 
 
 def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddyResponse:
@@ -32,9 +30,15 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
     ])
 
     runnable = prompt_template | chat_model
+    tools_description = " ".join([f"{tool}, " for tool in request.tools])
+
+    strategy_prompt = (f"Given the available tools ({tools_description}), decide whether a direct reply is sufficient "
+                       f"or if a specific plan involving these tools is necessary. Then, either provide the direct "
+                       f"reply or outline the plan with function calls.\n\nQuery: \""
+                       f"{request.message_content}\"\n\nDecision:")
 
     completion = runnable.invoke({
-        "input": request.message_content,
+        "input": strategy_prompt,
         "history": history_messages
     })
 
