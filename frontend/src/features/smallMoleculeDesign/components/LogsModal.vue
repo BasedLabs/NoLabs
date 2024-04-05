@@ -12,12 +12,10 @@ export default defineComponent({
   props: {
     visible: {
       type: Boolean,
-      default: false,
       required: true
     },
-    jobId: {
+    experimentId: {
       type: String,
-      default: null,
       required: true
     }
   },
@@ -51,8 +49,12 @@ export default defineComponent({
           spinner: QSpinnerOrbit,
           message: 'Loading logs'
         });
-        this.content = await this.$options.store.logs(this.jobId);
-        this.$q.loading.hide();
+        try {
+          this.content = await this.$options.store.logs(this.experimentId);
+        }
+        finally{
+          this.$q.loading.hide();
+        }
       }
     }
   }
@@ -69,8 +71,9 @@ export default defineComponent({
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <div class="row" v-if="content">
+        <div class="row q-col-gutter-xs" v-if="content">
           <div class="col-xs-12 col-md-4">
+            Job output
             <q-input
               v-model="content!.output"
               readonly
@@ -79,6 +82,7 @@ export default defineComponent({
             />
           </div>
           <div class="col-xs-12 col-md-4">
+            Docking output
             <q-input
               v-model="content!.dockingOutput"
               readonly
@@ -87,6 +91,7 @@ export default defineComponent({
             />
           </div>
           <div class="col-xs-12 col-md-4">
+            Errors
             <q-input
               v-model="content!.errors"
               readonly
@@ -96,10 +101,6 @@ export default defineComponent({
           </div>
         </div>
       </q-card-section>
-
-      <q-card-actions align="right" class="text-teal q-card-actions-bottom">
-        <q-btn flat label="Close" v-close-popup @click="onClose"/>
-      </q-card-actions>
     </q-card>
   </q-dialog>
 

@@ -7,7 +7,9 @@ import pydantic
 
 
 @pydantic.dataclasses.dataclass
-class RunJobRequest:
+class ParamsRequest:
+    job_id: str
+
     # size of the search box. Recommended not more than 30 armstrongs
     center_x: float
     center_y: float

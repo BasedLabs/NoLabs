@@ -80,7 +80,7 @@ const useConformationsStore = defineStore("conformations", {
             const response = await ConformationsService.getExperimentApiV1ConformationsGetExperimentGet(experimentId);
             const errorResponse = obtainErrorResponse(response);
             if (errorResponse) {
-                if (errorResponse.error_code === ErrorCodes.experiment_id_not_found) {
+                if (errorResponse.error_code === ErrorCodes.experiment_not_found) {
                     return {
                         experiment: {
                             id: experimentId,

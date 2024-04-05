@@ -5,7 +5,7 @@ interface Smiles {
   createdAt: Date;
 }
 
-interface Params {
+interface Properties {
   pdbFile: File | null;
   centerX: number;
   centerY: number;
@@ -18,12 +18,13 @@ interface Params {
   epochs: number;
 }
 
-interface Job {
+interface Experiment {
   id: string;
   name: string;
-  createdAt: string;
   running: boolean;
   learningCompleted: boolean;
+  properties: Properties;
+  createdAt: Date;
 }
 
 interface Logs {

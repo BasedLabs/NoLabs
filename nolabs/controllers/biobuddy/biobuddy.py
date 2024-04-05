@@ -6,9 +6,9 @@ from nolabs.api_models.biobuddy import LoadConversationResponse, LoadConversatio
     SendMessageRequest, CheckBioBuddyEnabledResponse
 from nolabs.controllers.biobuddy.dependencies import load_conversation_dependency, \
     send_message_to_drug_discovery_dependency, check_biobuddy_enabled_dependency
-from nolabs.features.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
-from nolabs.features.biobuddy.load_conversation_feature import LoadConversationFeature
-from nolabs.features.biobuddy.send_message_feature import SendMessageFeature
+from nolabs.modules.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
+from nolabs.modules.biobuddy.load_conversation_feature import LoadConversationFeature
+from nolabs.modules.biobuddy.send_message_feature import SendMessageFeature
 
 router = APIRouter(
     prefix='/api/v1/biobuddy',

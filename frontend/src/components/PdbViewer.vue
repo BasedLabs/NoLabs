@@ -5,6 +5,7 @@ import {PdbViews} from "src/components/types";
 
 export default defineComponent({
   name: "PdbViewer",
+  stage: null,
   computed: {
     PdbViews(): any {
       return PdbViews
@@ -71,7 +72,7 @@ export default defineComponent({
         const stage = new NGL.Stage(this.$refs.viewport);
         stage.setParameters({backgroundColor: this.blackBackground ? 'black' : 'white'});
         const pdbComponent = await this.loadFileIntoStage(stage, selectedRepresentation, true);
-        this.stage = stage;
+        this.$options.stage = stage;
 
         var traj = pdbComponent.addTrajectory().trajectory
         var player = new NGL.TrajectoryPlayer(traj, {
@@ -85,49 +86,79 @@ export default defineComponent({
           direction: "bounce"
         });
         player.play();
+        pdbComponent.addRepresentation("unitcell");
         pdbComponent.autoView();
 
       }, 100);
     },
-    async loadFileIntoStage(stage: any, selectedRepresentation: string, asTrajectory: boolean = false) {  let component: any;
-      if (this.pdbFile != null) {    if (selectedRepresentation === PdbViews.default.key) {
-        component = await stage.loadFile(this.pdbFile, {defaultRepresentation: true, asTrajectory});    } else {
-        component = await stage.loadFile(this.pdbFile, {asTrajectory});    }
+    async loadFileIntoStage(stage: any, selectedRepresentation: string, asTrajectory: boolean = false) {
+      let component: any;
+      if (this.pdbFile != null) {
+        if (selectedRepresentation === PdbViews.default.key) {
+          component = await stage.loadFile(this.pdbFile, {defaultRepresentation: true, asTrajectory});
+        } else {
+          component = await stage.loadFile(this.pdbFile, {asTrajectory});
+        }
         if (selectedRepresentation !== PdbViews.default.key) {
-          component.addRepresentation(selectedRepresentation);    }
+          component.addRepresentation(selectedRepresentation);
+        }
       }
-      if (this.sdfFile != null) {    if (selectedRepresentation === PdbViews.default.key) {
-        component = await stage.loadFile(this.sdfFile, {defaultRepresentation: true});    } else {
-        component = await stage.loadFile(this.sdfFile, {asTrajectory});    }
+      if (this.sdfFile != null) {
+        if (selectedRepresentation === PdbViews.default.key) {
+          component = await stage.loadFile(this.sdfFile, {defaultRepresentation: true});
+        } else {
+          component = await stage.loadFile(this.sdfFile, {asTrajectory});
+        }
         if (selectedRepresentation !== PdbViews.default.key) {
-          component.addRepresentation(selectedRepresentation);    }
+          component.addRepresentation(selectedRepresentation);
+        }
       }
-      if(this.pocketIds && this.pocketIds.length > 0){    const selectionString = this.pocketIds
-        .map((id) => (id + 1).toString())        .join(" or ");
-        component.addRepresentation("ball+stick", {      sele: selectionString,
-          color: "blue",    });
+      if (this.pocketIds && this.pocketIds.length > 0) {
+        const selectionString = this.pocketIds
+          .map((id) => (id + 1).toString()).join(" or ");
+        component.addRepresentation("ball+stick", {
+          sele: selectionString,
+          color: "blue",
+        });
       }
-      return component;},
+      component.addRepresentation("unitcell");
+      this.$refs.viewport.addEventListener('mouseover', this.handleMouseover)
+      return component;
+    },
     async renderStatic(selectedRepresentation: string) {
       setTimeout(async () => {
         this.$refs.viewport!.innerHTML = '';
         const stage = new NGL.Stage(this.$refs.viewport);
         stage.setParameters({backgroundColor: this.blackBackground ? 'black' : 'white'});
-        this.stage = stage;
+        this.$options.stage = stage;
 
         const component = await this.loadFileIntoStage(stage, selectedRepresentation);
         component.autoView();
       }, 100);
     },
     async render(selectedRepresentation: string) {
-      if (this.stage) {
-        this.stage.dispose();
+      if (this.$options.stage) {
+        this.$options.stage.dispose();
       }
 
       if (this.simulation) {
         await this.renderSimulation(selectedRepresentation);
       } else {
         await this.renderStatic(selectedRepresentation);
+      }
+    },
+    handleMouseover(event: any) {
+      // Check if the stage is available
+      if (this.$options.stage) {
+        console.log(this.$options.stage);
+        // Get mouse position relative to the molecular structure
+        const mousePosition = this.$options.stage.viewerControls.getMousePosition(event);
+        if (mousePosition) {
+          // Extract X, Y, Z coordinates
+          const { x, y, z } = mousePosition;
+          // Update UI with the coordinates
+          this.updateMouseCoordinates({ x, y, z });
+        }
       }
     }
   },

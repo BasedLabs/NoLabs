@@ -7,7 +7,7 @@ from nolabs.infrastructure.environment import is_dev
 
 import configparser
 import os
-
+import nolabs
 
 class Settings:
     def __init__(self):
@@ -20,7 +20,7 @@ class Settings:
 
     @property
     def is_test(self) -> bool:
-        return self._config.getboolean('features', 'test')
+        return self._config.getboolean('modules', 'test')
 
     @property
     def solubility_host(self) -> str:
@@ -133,8 +133,17 @@ class Settings:
         return self._config.get('conformations', 'metadata_file_name')
 
     @property
+    def small_molecules_experiments_folder(self) -> str:
+        exp_folder = self._config.get('small-molecules-design', 'experiments_path')
+        return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
+
+    @property
+    def small_molecules_metadata_file_name(self) -> str:
+        return self._config.get('small-molecules-design', 'metadata_file_name')
+
+
+    @property
     def protein_design_experiments_folder(self) -> str:
-        import nolabs
         exp_folder = self._config.get('protein-design', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
@@ -152,7 +161,6 @@ class Settings:
 
     @property
     def folding_experiments_folder(self) -> str:
-        import nolabs
         exp_folder = self._config.get('folding', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
@@ -162,7 +170,6 @@ class Settings:
 
     @property
     def go_experiments_folder(self) -> str:
-        import nolabs
         exp_folder = self._config.get('go', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
@@ -172,7 +179,6 @@ class Settings:
 
     @property
     def solubility_experiments_folder(self) -> str:
-        import nolabs
         exp_folder = self._config.get('solubility', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
@@ -182,7 +188,6 @@ class Settings:
 
     @property
     def drug_discovery_experiments_folder(self):
-        import nolabs
         exp_folder = self._config.get('drug-discovery', 'experiments_path')
         return os.path.join(os.path.dirname(nolabs.__file__), exp_folder)
 
@@ -276,3 +281,7 @@ class Settings:
     @property
     def biobuddy_conversation_file_name(self) -> str:
         return self._config.get('biobuddy', 'conversation_file_name')
+
+    @property
+    def reinvent_host(self) -> str:
+        return self._config.get('microservices', 'reinvent')

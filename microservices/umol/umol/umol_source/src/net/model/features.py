@@ -1,6 +1,6 @@
 
 
-"""Code to generate processed features."""
+"""Code to generate processed modules."""
 import copy
 from typing import List, Mapping, Tuple
 from .tf import input_pipeline

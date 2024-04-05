@@ -189,6 +189,14 @@ services:
     ports:
       - "5738:5738"
     command: --host=0.0.0.0 --port=5738
+  reinvent:
+    image: 'ghcr.io/basedlabs/reinvent:1.0.0'
+    build:
+      context: microservices/reinvent
+      dockerfile: build/Dockerfile
+    ports:
+      - "5790:5790"
+    command: --host=0.0.0.0 --port=5790
   nolabs:
     image: 'ghcr.io/basedlabs/nolabs:1.0.0'
     build:

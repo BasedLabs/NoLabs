@@ -34,7 +34,7 @@ class DrugTargetInteraction:
                          # Joint (rare)
                          }
 
-        # Process ligand features
+        # Process ligand modules
         atom_types, atoms, bond_types, bond_lengths, bond_mask = bonds_from_smiles(ligand, atom_encoding)
         ligand_inp_feats = {
             'atoms': atoms,
@@ -47,7 +47,7 @@ class DrugTargetInteraction:
         features_output_path = os.path.join(save_dir, 'ligand_inp_features.pkl')
         with open(features_output_path, 'wb') as f:
             pickle.dump(ligand_inp_feats, f, protocol=4)
-        print('Saved ligand features to', features_output_path)
+        print('Saved ligand modules to', features_output_path)
 
     def load_model(self):
         print("Loading uMol DTI params...")
@@ -65,7 +65,7 @@ class DrugTargetInteraction:
         process_a3m(MSA, get_sequence(protein_fasta_path), PROCESSED_MSA)
         MSA = PROCESSED_MSA
 
-        # Process MSA features
+        # Process MSA modules
         feature_dict = process(protein_fasta_path, [MSA])  # Assuming MSA is defined elsewhere
         features_output_path = os.path.join(save_dir, 'msa_features.pkl')
         with open(features_output_path, 'wb') as f:

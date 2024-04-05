@@ -9,13 +9,13 @@ from nolabs.controllers.localisation.dependencies import run_localisation_featur
     get_experiments_feature_dependency, \
     get_experiment_feature_dependency, delete_experiment_feature_dependency, change_experiment_name_dependency, \
     create_experiment_dependency
-from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.experiment.get_experiments import GetExperimentsFeature
-from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
-from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.modules.experiment.create_experiment import CreateExperimentFeature
+from nolabs.modules.experiment.get_experiments import GetExperimentsFeature
+from nolabs.modules.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.modules.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.api_models.experiment import ChangeExperimentNameRequest
-from nolabs.features.amino_acid.localisation.get_experiment import GetExperimentFeature
-from nolabs.features.amino_acid.localisation.run_localisation import RunLocalisationFeature
+from nolabs.modules.amino_acid.localisation.get_experiment import GetExperimentFeature
+from nolabs.modules.amino_acid.localisation.run_localisation import RunLocalisationFeature
 
 router = APIRouter(
     prefix='/api/v1/localisation',

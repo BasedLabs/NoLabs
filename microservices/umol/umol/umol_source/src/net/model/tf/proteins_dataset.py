@@ -13,19 +13,19 @@ def parse_tfexample(
     raw_data: bytes,
     features: protein_features.FeaturesMetadata,
     key: Optional[str] = None) -> Dict[str, tf.train.Feature]:
-  """Read a single TF Example proto and return a subset of its features.
+  """Read a single TF Example proto and return a subset of its modules.
 
   Args:
     raw_data: A serialized tf.Example proto.
-    features: A dictionary of features, mapping string feature names to a tuple
+    features: A dictionary of modules, mapping string feature names to a tuple
       (dtype, shape). This dictionary should be a subset of
-      protein_features.FEATURES (or the dictionary itself for all features).
+      protein_features.FEATURES (or the dictionary itself for all modules).
     key: Optional string with the SSTable key of that tf.Example. This will be
-      added into features as a 'key' but only if requested in features.
+      added into modules as a 'key' but only if requested in modules.
 
   Returns:
-    A dictionary of features mapping feature names to features. Only the given
-    features are returned, all other ones are filtered out.
+    A dictionary of modules mapping feature names to modules. Only the given
+    modules are returned, all other ones are filtered out.
   """
   feature_map = {
       k: tf.io.FixedLenSequenceFeature(shape=(), dtype=v[0], allow_missing=True)
@@ -46,7 +46,7 @@ def parse_reshape_logic(
     parsed_features: TensorDict,
     features: protein_features.FeaturesMetadata,
     key: Optional[str] = None) -> TensorDict:
-  """Transforms parsed serial features to the correct shape."""
+  """Transforms parsed serial modules to the correct shape."""
   # Find out what is the number of sequences and the number of alignments.
   num_residues = tf.cast(_first(parsed_features["seq_length"]), dtype=tf.int32)
 
@@ -101,7 +101,7 @@ def parse_reshape_logic(
 def _make_features_metadata(
     feature_names: Sequence[str]) -> protein_features.FeaturesMetadata:
   """Makes a feature name to type and shape mapping from a list of names."""
-  # Make sure these features are always read.
+  # Make sure these modules are always read.
   required_features = ["aatype", "sequence", "seq_length"]
   feature_names = list(set(feature_names) | set(required_features))
 
@@ -115,17 +115,17 @@ def create_tensor_dict(
     features: Sequence[str],
     key: Optional[str] = None,
     ) -> TensorDict:
-  """Creates a dictionary of tensor features.
+  """Creates a dictionary of tensor modules.
 
   Args:
     raw_data: A serialized tf.Example proto.
     features: A list of strings of feature names to be returned in the dataset.
     key: Optional string with the SSTable key of that tf.Example. This will be
-      added into features as a 'key' but only if requested in features.
+      added into modules as a 'key' but only if requested in modules.
 
   Returns:
-    A dictionary of features mapping feature names to features. Only the given
-    features are returned, all other ones are filtered out.
+    A dictionary of modules mapping feature names to modules. Only the given
+    modules are returned, all other ones are filtered out.
   """
   features_metadata = _make_features_metadata(features)
   return parse_tfexample(raw_data, features_metadata, key)
@@ -142,14 +142,14 @@ def np_to_tensor_dict(
     features: A list of strings of feature names to be returned in the dataset.
 
   Returns:
-    A dictionary of features mapping feature names to features. Only the given
-    features are returned, all other ones are filtered out.
+    A dictionary of modules mapping feature names to modules. Only the given
+    modules are returned, all other ones are filtered out.
   """
   features_metadata = _make_features_metadata(features)
   tensor_dict = {k: tf.constant(v) for k, v in np_example.items()
                  if k in features_metadata}
 
-  # Ensures shapes are as expected. Needed for setting size of empty features
+  # Ensures shapes are as expected. Needed for setting size of empty modules
   # e.g. when no template hits were found.
   tensor_dict = parse_reshape_logic(tensor_dict, features_metadata)
   return tensor_dict

@@ -1,11 +1,11 @@
 <template>
-  <ExperimentsView :store="store" path-to-experiment-page="Protein design"/>
+  <ExperimentsView :store="store" path-to-experiment-page="Small molecules design"/>
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue';
 import ExperimentsView from "src/components/ExperimentsView.vue";
-import useProteinDesignStore from "src/features/proteinDesign/storage";
+import useSmallMoleculesDesignStore from "./storage";
 
 
 export default defineComponent({
@@ -13,7 +13,7 @@ export default defineComponent({
   components: {ExperimentsView},
   data() {
     return {
-      store: useProteinDesignStore()
+      store: useSmallMoleculesDesignStore()
     }
   }
 })

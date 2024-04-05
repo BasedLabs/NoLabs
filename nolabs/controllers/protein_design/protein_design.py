@@ -3,17 +3,17 @@ from typing import Annotated, List
 from fastapi import WebSocket, APIRouter, Depends, File, Form, UploadFile
 
 from nolabs.api_models.experiment import ExperimentMetadataResponse, ChangeExperimentNameRequest
-from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
-from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.modules.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.modules.experiment.delete_experiment import DeleteExperimentFeature
 from nolabs.api_models.protein_design import RunProteinDesignRequest, RunProteinDesignResponse, \
     GetExperimentResponse
 from nolabs.controllers.protein_design.dependencies import run_protein_design_feature_dependency, \
     change_experiment_name_dependency, delete_experiment_feature_dependency, get_experiment_feature_dependency, \
     get_experiments_feature_dependency, create_experiment_dependency
-from nolabs.features.experiment.get_experiments import GetExperimentsFeature
-from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.protein_design.get_experiment import GetExperimentFeature
-from nolabs.features.protein_design.run_protein_design import RunProteinDesignFeature
+from nolabs.modules.experiment.get_experiments import GetExperimentsFeature
+from nolabs.modules.experiment.create_experiment import CreateExperimentFeature
+from nolabs.modules.protein_design.get_experiment import GetExperimentFeature
+from nolabs.modules.protein_design.run_protein_design import RunProteinDesignFeature
 
 logs_websocket: WebSocket | None
 

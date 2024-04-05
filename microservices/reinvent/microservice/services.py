@@ -9,14 +9,14 @@ import csv
 import toml
 
 import uuid
-from typing import List, Any
+from typing import List, Any, Optional
 
 from fastapi import UploadFile
 
 from leaf import FileObject, DirectoryObject
 from starlette.responses import FileResponse
 
-from microservice.api_models import JobResponse, RunJobRequest, LogsResponse, ParamsResponse, Smiles, SmilesResponse
+from microservice.api_models import JobResponse, ParamsRequest, LogsResponse, ParamsResponse, Smiles, SmilesResponse
 from microservice.exceptions import ReinventException, ErrorCode
 
 
@@ -29,7 +29,7 @@ class Process:
     created_at: datetime.datetime
     pdbqt_content: str
     pdbqt_filename: str
-    params: RunJobRequest
+    params: ParamsRequest
     directory: DirectoryObject
     handler: Any
 
@@ -48,18 +48,10 @@ class FineTuning:
     def __init__(self):
         self.fs = DirectoryObject(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'finetuning'))
 
-    def get_job(self, id: str) -> JobResponse | None:
-        directory = self.fs.directories.first_or_default(lambda o: o.name == id)
+    def get_job(self, id: str) -> Optional[JobResponse]:
         process = get_process(id)
         if not process:
             return None
-        pdbqt_file = directory.files.first_or_default(lambda o: o.name == process.pdbqt_filename,
-                                                      recursive=True)
-        pdbqt_content = pdbqt_file.read_string()
-        log_output = directory.files.first_or_default(lambda o: o.name == 'output.log')
-        errors_output = directory.files.first_or_default(lambda o: o.name == 'error.log')
-        docking_output = directory.files.first_or_default(lambda o: o.name == 'docking.log')
-        direct_csv = directory.files.first_or_default(lambda o: o.name == 'rl_direct_1.csv')
 
         return JobResponse(
             id=id,
@@ -69,7 +61,7 @@ class FineTuning:
             learning_completed=process.learning_completed
         )
 
-    def get_logs(self, id: str) -> LogsResponse | None:
+    def get_logs(self, id: str) -> Optional[LogsResponse]:
         directory = self.fs.directories.first_or_default(lambda o: o.name == id)
         process = get_process(id)
         if not process:
@@ -85,7 +77,7 @@ class FineTuning:
             errors=errors_output.read_string()
         )
 
-    def get_params(self, id: str) -> ParamsResponse | None:
+    def get_params(self, id: str) -> Optional[ParamsResponse]:
         process = get_process(id)
         if not process:
             return None
@@ -110,13 +102,17 @@ class FineTuning:
                 result.append(job)
         return result
 
-    async def prepare_pdbqt(self, pdb: UploadFile) -> FileResponse:
+    async def _prepare_pdbqt(self, pdb: UploadFile) -> FileObject:
         tmp = self.fs.add_directory('tmp')
         pdb_file = tmp.add_file(str(uuid.uuid4()) + '.pdb')
         pdb_file.write_bytes(await pdb.read())
         pdbqt = self.fs.add_directory('tmp').add_file(str(uuid.uuid4()) + '.pdbqt')
         prepare_pdbqt = self.fs.files.first_or_default(lambda o: o.name == 'prepare_pdbqt.sh')
         subprocess.run([prepare_pdbqt.full_path, pdb_file.full_path, pdbqt.full_path])
+        return pdbqt
+
+    async def prepare_pdbqt(self, pdb: UploadFile) -> FileResponse:
+        pdbqt = await self._prepare_pdbqt(pdb)
         return FileResponse(pdbqt.full_path)
 
     def run_reinforcement_learning(self, RL_toml_file: FileObject, log_file: FileObject, error_file: FileObject) -> \
@@ -136,7 +132,7 @@ class FineTuning:
                                  ], shell=False, stdout=sys.stdout, stderr=sys.stderr)
 
     def prepare_dockstream_config(self,
-                                  request: RunJobRequest,
+                                  request: ParamsRequest,
                                   pdbqt: FileObject,
                                   logfile: FileObject,
                                   directory: DirectoryObject) -> FileObject:
@@ -189,15 +185,34 @@ class FineTuning:
 
         return reinforcement_learning_config
 
-    async def run(self, pdbqt_file: UploadFile, request: RunJobRequest):
-        if not pdbqt_file:
-            raise ReinventException(ErrorCode.PDBQT_NOT_PROVIDED)
+    async def stop(self, id: str):
+        process = get_process(id)
+        if not process:
+            return
+
+        process.handler.kill()
+
+    async def delete(self, id: str):
+        global processes
+        process = get_process(id)
+        if not process:
+            return
+
+        process.directory.delete()
+        process.handler.kill()
+        processes = [p for p in processes if p.id != id]
+
+    async def save_params(self, pdb_file: UploadFile, request: ParamsRequest):
+        if not pdb_file:
+            raise ReinventException(ErrorCode.PDB_NOT_PROVIDED)
+
+        pdbqt_file = await self._prepare_pdbqt(pdb_file)
 
         id = str(uuid.uuid4())
         directory = self.fs.copy(self.fs.add_directory(id))
         directory.directories.first_or_default(lambda o: o.name == id).delete()
-        pdbqt = directory.add_file(pdbqt_file.filename)
-        pdbqt.write_bytes(await pdbqt_file.read())
+        pdbqt = directory.add_file(pdbqt_file.name)
+        pdbqt.write_bytes(pdbqt_file.read_bytes())
 
         csv_result = directory.add_file('rl_direct')
 
@@ -208,9 +223,8 @@ class FineTuning:
 
         print('TOML', reinforcement_learning_config.read_string())
 
-        log_file = directory.add_file('output.log')
-        error_file = directory.add_file('error.log')
-        popen = self.run_reinforcement_learning(reinforcement_learning_config, log_file, error_file)
+        directory.add_file('output.log')
+        directory.add_file('error.log')
 
         processes.append(
             Process(
@@ -219,15 +233,23 @@ class FineTuning:
                 name=request.name,
                 learning_completed=False,
                 created_at=datetime.datetime.utcnow(),
-                pdbqt_filename=pdbqt_file.filename,
+                pdbqt_filename=pdbqt.name,
                 pdbqt_content=pdbqt.read_string(),
                 params=request,
                 directory=directory,
-                handler=popen
+                handler=None
             )
         )
 
-        return self.get_job(id)
+    async def run(self, id: str):
+        directory = self.fs.copy(self.fs.add_directory(id))
+
+        reinforcement_learning_config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
+        log_file = directory.add_file('output.log')
+        error_file = directory.add_file('error.log')
+
+        process = get_process(id)
+        process.handler = self.run_reinforcement_learning(reinforcement_learning_config, log_file, error_file)
 
     def get_smiles(self, id: str) -> SmilesResponse:
         directory = self.fs.directories.first_or_default(lambda o: o.name == id)

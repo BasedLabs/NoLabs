@@ -33,7 +33,7 @@ RUN ./install_reinvent.sh
 
 # Install dockstream
 WORKDIR /app/DockStream
-COPY reinvent/DockStream /app/DockStream
+RUN git clone https://github.com/BasedLabs/DockStream.git .
 RUN conda env create -f /app/DockStream/environment.yml
 
 WORKDIR /app

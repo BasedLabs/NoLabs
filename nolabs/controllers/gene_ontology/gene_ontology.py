@@ -8,13 +8,13 @@ from nolabs.controllers.gene_ontology.dependencies import change_experiment_name
     run_gene_ontology_feature_dependency, create_experiment_dependency
 from nolabs.api_models.amino_acid.gene_ontology import RunGeneOntologyResponse, \
     GetExperimentResponse
-from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
-from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.modules.experiment.create_experiment import CreateExperimentFeature
+from nolabs.modules.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.modules.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
-from nolabs.features.experiment.get_experiments import GetExperimentsFeature
-from nolabs.features.amino_acid.gene_ontology.get_experiment import GetExperimentFeature
-from nolabs.features.amino_acid.gene_ontology.run_gene_ontology import RunGeneOntologyFeature
+from nolabs.modules.experiment.get_experiments import GetExperimentsFeature
+from nolabs.modules.amino_acid.gene_ontology.get_experiment import GetExperimentFeature
+from nolabs.modules.amino_acid.gene_ontology.run_gene_ontology import RunGeneOntologyFeature
 
 router = APIRouter(
     prefix='/api/v1/gene-ontology',

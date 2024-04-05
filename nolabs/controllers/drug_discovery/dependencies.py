@@ -3,51 +3,51 @@ from typing import Annotated
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.infrastructure.check_service_health import CheckMsaServiceHealthFeature, \
+from nolabs.modules.infrastructure.check_service_health import CheckMsaServiceHealthFeature, \
     CheckP2RankServiceHealthFeature, CheckUmolServiceHealthFeature, \
     CheckEsmFoldServiceHealthFeature, CheckEsmFoldLightServiceHealthFeature, CheckDiffDockServiceHealthFeature, \
     CheckRosettaFoldServiceHealthFeature
-from nolabs.features.drug_discovery.delete_job_feature import DeleteJobFeature
-from nolabs.features.drug_discovery.diffdock_params_management import GetDiffDockParamsFeature, \
+from nolabs.modules.drug_discovery.delete_job_feature import DeleteJobFeature
+from nolabs.modules.drug_discovery.diffdock_params_management import GetDiffDockParamsFeature, \
     UpdateDiffDockParamsFeature
-from nolabs.features.drug_discovery.docking_params_management import UpdateDockingParamsFeature
-from nolabs.features.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
-from nolabs.features.drug_discovery.lone_ligand_management import UploadLoneLigandFeature, DeleteLoneLigandFeature, \
+from nolabs.modules.drug_discovery.docking_params_management import UpdateDockingParamsFeature
+from nolabs.modules.drug_discovery.get_experiment_metadata import GetExperimentMetaDataFeature
+from nolabs.modules.drug_discovery.lone_ligand_management import UploadLoneLigandFeature, DeleteLoneLigandFeature, \
     GetLoneLigandsListFeature, GetLoneLigandMetaDataFeature, GetLoneLigandDataFeature
-from nolabs.features.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
-from nolabs.features.drug_discovery.predict_folding import PredictEsmFoldFeature
-from nolabs.features.drug_discovery.predict_rosettafold_folding import PredictRosettaFoldFolding
-from nolabs.features.drug_discovery.result_management import CheckResultDataAvailableFeature, \
+from nolabs.modules.drug_discovery.predict_diffdock_docking import PredictDiffDockDockingFeature
+from nolabs.modules.drug_discovery.predict_folding import PredictEsmFoldFeature
+from nolabs.modules.drug_discovery.predict_rosettafold_folding import PredictRosettaFoldFolding
+from nolabs.modules.drug_discovery.result_management import CheckResultDataAvailableFeature, \
     GetAllResultsListFeature, GetResultsListForTargetLigandFeature, CheckMsaDataAvailableFeature, \
     CheckBindingPocketDataAvailableFeature, CheckFoldingDataAvailableFeature, GetBJobBindingPocketDataFeature, \
     GetAllJobsListFeature, GetJobsListForTargetLigandFeature
-from nolabs.features.drug_discovery.set_binding_pocket import SetBindingPocketFeature
-from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
-from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
-from nolabs.features.drug_discovery.generate_msa import GenerateMsaFeature
-from nolabs.features.drug_discovery.services.file_management import FileManagement
-from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
-from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
-from nolabs.features.drug_discovery.services.result_file_management import ResultsFileManagement
-from nolabs.features.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
+from nolabs.modules.drug_discovery.set_binding_pocket import SetBindingPocketFeature
+from nolabs.modules.experiment.create_experiment import CreateExperimentFeature
+from nolabs.modules.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.modules.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.modules.drug_discovery.generate_msa import GenerateMsaFeature
+from nolabs.modules.drug_discovery.services.file_management import FileManagement
+from nolabs.modules.drug_discovery.services.target_file_management import TargetsFileManagement
+from nolabs.modules.drug_discovery.services.ligand_file_management import LigandsFileManagement
+from nolabs.modules.drug_discovery.services.result_file_management import ResultsFileManagement
+from nolabs.modules.drug_discovery.target_management import UploadTargetFeature, DeleteTargetFeature, \
     GetTargetsListFeature, GetTargetDataFeature, GetTargetMetaDataFeature, UpdateTargetNameFeature
-from nolabs.features.drug_discovery.target_ligand_management import UploadTargetLigandFeature, \
+from nolabs.modules.drug_discovery.target_ligand_management import UploadTargetLigandFeature, \
     DeleteTargetLigandFeature, \
     GetTargetLigandsListFeature, GetTargetLigandDataFeature, GetTargetLigandMetaDataFeature
-from nolabs.features.drug_discovery.get_binding_pocket import GetBindingPocketFeature
-from nolabs.features.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
-from nolabs.features.drug_discovery.predict_light_folding import PredictEsmFoldLightFeature
-from nolabs.features.drug_discovery.get_folding import GetFoldedStructureFeature
-from nolabs.features.drug_discovery.register_docking_job import RegisterDockingJobFeature
-from nolabs.features.drug_discovery.progress_management import CheckMsaRunningFeature, \
+from nolabs.modules.drug_discovery.get_binding_pocket import GetBindingPocketFeature
+from nolabs.modules.drug_discovery.predict_binding_pocket import PredictBindingPocketFeature
+from nolabs.modules.drug_discovery.predict_light_folding import PredictEsmFoldLightFeature
+from nolabs.modules.drug_discovery.get_folding import GetFoldedStructureFeature
+from nolabs.modules.drug_discovery.register_docking_job import RegisterDockingJobFeature
+from nolabs.modules.drug_discovery.progress_management import CheckMsaRunningFeature, \
     CheckP2RankRunningFeature, CheckUmolRunningFeature, CheckEsmFoldRunningFeature, CheckEsmFoldLightRunningFeature, \
     CheckDiffDockRunningFeature, CheckRosettaFoldRunningFeature
-from nolabs.features.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
-from nolabs.features.drug_discovery.get_umol_results import GetUmolDockingResultsFeature
-from nolabs.features.drug_discovery.get_diffdock_results import GetDiffDockDockingResultsFeature, \
+from nolabs.modules.drug_discovery.predict_umol_docking import PredictUmolDockingFeature
+from nolabs.modules.drug_discovery.get_umol_results import GetUmolDockingResultsFeature
+from nolabs.modules.drug_discovery.get_diffdock_results import GetDiffDockDockingResultsFeature, \
     GetDiffDockLigandSdfFeature
-from nolabs.features.experiment.get_experiments import GetExperimentsFeature
+from nolabs.modules.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
 
 

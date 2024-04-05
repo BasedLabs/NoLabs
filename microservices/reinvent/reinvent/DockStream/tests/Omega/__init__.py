@@ -1,1 +1,0 @@
-from tests.Omega.test_Omega_ligand_preparation import *

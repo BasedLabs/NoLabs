@@ -9,12 +9,12 @@ from nolabs.api_models.problem_details import ProblemDetailsResponse
 from nolabs.controllers.conformations.dependencies import run_simulations_feature_dependency, \
     get_experiment_feature_dependency, delete_experiment_feature_dependency, \
     change_experiment_name_dependency, get_experiments_feature_dependency, create_experiment_dependency
-from nolabs.features.conformations.get_experiment import GetExperimentFeature
-from nolabs.features.conformations.run_simulations import RunSimulationsFeature
-from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
-from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
-from nolabs.features.experiment.get_experiments import GetExperimentsFeature
+from nolabs.modules.conformations.get_experiment import GetExperimentFeature
+from nolabs.modules.conformations.run_simulations import RunSimulationsFeature
+from nolabs.modules.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.modules.experiment.create_experiment import CreateExperimentFeature
+from nolabs.modules.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.modules.experiment.get_experiments import GetExperimentsFeature
 
 router = APIRouter(
     prefix='/api/v1/conformations',

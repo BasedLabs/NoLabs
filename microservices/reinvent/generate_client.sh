@@ -1,5 +1,5 @@
 echo 'Installation: https://openapi-generator.tech/docs/installation'
-PACKAGE_NAME=reinvent4
+PACKAGE_NAME=reinvent
 sudo docker buildx build --progress=plain -t $PACKAGE_NAME -f build/Dockerfile . && \
  (sudo docker run --name $PACKAGE_NAME --gpus all --net=host $PACKAGE_NAME --host=0.0.0.0 --port=5790 &) && \
  sleep 5 && \
