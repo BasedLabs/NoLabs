@@ -62,14 +62,16 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
 
       ensureNotError(smiles);
 
-      return smiles.map(x => {
+      const result = smiles.map(x => {
         return {
           smiles: x.smiles,
           drugLikeness: x.drug_likeness,
           score: x.score,
           createdAt: new Date(x.created_at),
         };
-      })
+      });
+      console.log(result);
+      return result;
     },
     async logs(experimentId: string): Promise<Logs> {
       const logs = await SmallMoleculesDesignService.logsApiV1SmallMoleculesDesignExperimentExperimentIdLogsGet(experimentId);

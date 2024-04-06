@@ -42,7 +42,8 @@ export default defineComponent({
     return {
       selectedRepresentation: PdbViews.default,
       blackBackground: true,
-      stage: null
+      stage: null,
+      lastClickedAtomPosition: null
     }
   },
   watch: {
@@ -132,6 +133,14 @@ export default defineComponent({
         stage.setParameters({backgroundColor: this.blackBackground ? 'black' : 'white'});
         this.$options.stage = stage;
 
+        stage.signals.clicked.add((pickingProxy) => {
+          // Check if the pickingProxy is valid and represents an atom
+          if (pickingProxy && pickingProxy.atom) {
+            this.lastClickedAtomPosition = pickingProxy.atom.positionToVector3();
+            console.log(this.lastClickedAtomPosition);
+          }
+        });
+
         const component = await this.loadFileIntoStage(stage, selectedRepresentation);
         component.autoView();
       }, 100);
@@ -145,20 +154,6 @@ export default defineComponent({
         await this.renderSimulation(selectedRepresentation);
       } else {
         await this.renderStatic(selectedRepresentation);
-      }
-    },
-    handleMouseover(event: any) {
-      // Check if the stage is available
-      if (this.$options.stage) {
-        console.log(this.$options.stage);
-        // Get mouse position relative to the molecular structure
-        const mousePosition = this.$options.stage.viewerControls.getMousePosition(event);
-        if (mousePosition) {
-          // Extract X, Y, Z coordinates
-          const { x, y, z } = mousePosition;
-          // Update UI with the coordinates
-          this.updateMouseCoordinates({ x, y, z });
-        }
       }
     }
   },
@@ -187,11 +182,19 @@ export default defineComponent({
   <q-card flat bordered class="my-card">
     <q-card-section ref="card">
       <div class="row items-center">
+        <div class="col-1">
+          <q-btn color="info" icon="help" outline round size="sm">
+            <q-tooltip :offset="[10, 10]">
+              Click on atom to show its position.
+              Right click on atom 1 + double right click on atom 2 to show distance in Å.
+            </q-tooltip>
+          </q-btn>
+        </div>
+        <div class="col-1" v-if="pdbFile != null">
+          <q-btn color="info" size="sm" outline icon="file_download" @click="savePdb"/>
+        </div>
         <div class="col">
           <div class="text-h6">{{ FileName }}</div>
-        </div>
-        <div class="col" v-if="pdbFile != null">
-          <q-btn color="info" size="md" outline label="Save pdb" @click="savePdb"/>
         </div>
         <div class="col">
           <q-checkbox v-model="blackBackground" label="Black background"/>
@@ -205,6 +208,10 @@ export default defineComponent({
                     option-label="title"
                     option-disable="inactive" :options="Object.values(PdbViews)"
                     label="Representation"/>
+        </div>
+        <div class="col" v-if="lastClickedAtomPosition">
+          Atom position
+          {{ lastClickedAtomPosition.x.toFixed(2) }},{{ lastClickedAtomPosition.y.toFixed(2) }},{{ lastClickedAtomPosition.z.toFixed(2) }}
         </div>
       </div>
     </q-card-section>

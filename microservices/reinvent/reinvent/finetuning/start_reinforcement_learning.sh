@@ -9,5 +9,5 @@ eval "$__conda_setup"
 unset __conda_setup
 conda activate reinvent4
 echo "Running reinvent $1 > $2 2> $3 &"
-reinvent $1 > $2 2> $3 &
+reinvent $1 1> $2 2> $3 &
 #reinvent $1 &

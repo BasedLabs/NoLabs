@@ -2,7 +2,7 @@
 import {defineComponent} from "vue";
 import PdbViewer from '../../components/PdbViewer.vue';
 import useSmallMoleculesDesignStore from "./storage";
-import {QSpinnerOrbit} from "quasar";
+import {Notify, QSpinnerOrbit} from "quasar";
 import LogsModal from "./components/LogsModal.vue";
 import ExperimentControlButtons from "./components/ExperimentControlButtons.vue";
 import ExperimentHeader from "../../components/ExperimentHeader.vue";
@@ -24,26 +24,26 @@ export default defineComponent({
       name: 'smiles',
       label: 'Formula',
       align: 'left',
-      sortable: false
+      sortable: false,
+      required: true,
+      field: 'smiles'
     },
     {
       name: 'drugLikeness',
       label: 'Drug Likeness',
       align: 'left',
-      sortable: true
+      sortable: true,
+      required: true,
+      field: 'drugLikeness'
     },
     {
       name: 'score',
-      label: 'Score',
+      label: 'Binding Score',
       align: 'left',
-      sortable: true
+      sortable: true,
+      required: true,
+      field: 'score'
     },
-    {
-      name: 'createdAt',
-      label: 'Generated At',
-      align: 'left',
-      sortable: true
-    }
   ],
   data(): Data {
     return {
@@ -62,10 +62,18 @@ export default defineComponent({
     }
   },
   methods: {
-    async submit() {
+    copyContent(s: string){
+      navigator.clipboard.writeText(s);
+      Notify.create({
+        type: "positive",
+        closeBtn: 'Close',
+        message: `Copied ${s}`
+      });
+    },
+    async submitProperties() {
       await this.loader('Saving...', async () => {
         await this.$options.store.saveProperties(this.$options.experimentId, this.experiment?.properties);
-      })
+      });
     },
     toggleLogs() {
       this.logsModalVisible = !this.logsModalVisible;
@@ -82,12 +90,23 @@ export default defineComponent({
       }
     },
     async startExperiment(id: string) {
-      await this.loader('Starting experiment', async () => {
-        await this.$options.store.startExperiment(this.$options.experimentId, id);
-        this.experiment!.running = true;
+      this.$q.dialog({
+        title: 'Confirm',
+        message: "Are you sure that you want to start experiment with following properties? You won't be able to change them.",
+        cancel: true,
+        persistent: true
+      }).onOk(async () => {
+        await this.loader('Saving properties', async () => {
+          await this.$options.store.saveProperties(this.$options.experimentId, this.experiment?.properties);
+        });
+
+        await this.loader('Starting experiment', async () => {
+          await this.$options.store.startExperiment(this.$options.experimentId, id);
+          this.experiment!.running = true;
+        });
       });
     },
-    async stopExperiment(id: string) {
+    async stopExperiment() {
       this.$q.dialog({
         title: 'Confirm',
         message: 'Would you like to stop the experiment? The progress will be lost.',
@@ -95,7 +114,7 @@ export default defineComponent({
         persistent: true
       }).onOk(async () => {
         await this.loader('Stopping experiment', async () => {
-          await this.$options.store.stopJob(this.$options.experimentId, id);
+          await this.$options.store.stopExperiment(this.$options.experimentId);
           this.experiment!.running = false;
         });
       });
@@ -118,9 +137,8 @@ export default defineComponent({
     await this.loader('Loading experiment', async () => {
       this.$options.experimentId = this.$route.params.experimentId as string;
       this.experiment = await this.$options.store.getExperiment(this.$options.experimentId);
-      console.log(this.experiment);
       this.interval = setInterval(async () => {
-        this.smilesData = await this.$options.store.smilesData(this.$options.experimentId);
+        //this.smilesData = await this.$options.store.smilesData(this.$options.experimentId);
       }, 1000);
     })
   },
@@ -156,9 +174,23 @@ export default defineComponent({
         title="Generated smiles"
         :rows="smilesData"
         :columns="$options.smilesColumns"
-        row-key="smiles"
-        :key="smilesDataLength"
-      />
+        separator="cell"
+      >
+        <template v-slot:body="props">
+          <q-tr :props="props">
+            <q-td key="smiles" :props="props" class="row justify-center">
+              <q-btn outline color="info" icon="content_copy" size="xs" @click="copyContent(props.row.smiles)"/>
+              <q-input class="q-pl-xs" v-model="props.row.smiles" readonly dense />
+            </q-td>
+            <q-td key="drugLikeness" :props="props">
+                {{ props.row.drugLikeness }}
+            </q-td>
+            <q-td key="score" :props="props">
+                {{ props.row.score }}
+            </q-td>
+          </q-tr>
+        </template>
+      </q-table>
     </div>
     <div class="col-xs-12 col-md-5">
       <p class="text-subtitle1">PDB Viewer</p>
@@ -171,7 +203,7 @@ export default defineComponent({
     </div>
     <div class="col-xs-12 col-md-3" v-if="experiment" style="max-width: 95%">
 
-      <q-form v-if="experiment!.properties" class="q-gutter-md" @submit="submit">
+      <q-form v-if="experiment!.properties" class="q-gutter-md">
         <q-scroll-area style="max-width: 100%; height: 70vh" visible>
           <q-file v-if="experiment!.properties" filled bottom-slots accept=".pdb"
                   v-model="experiment!.properties.pdbFile"
@@ -188,42 +220,42 @@ export default defineComponent({
             </template>
           </q-file>
           <p>Search space</p>
-          <q-input filled v-model="experiment!.properties.centerX" label="Center X" type="number" step="0.1"
+          <q-input filled v-model="experiment!.properties.centerX" label="Center X" type="number" step="0.01"
                    :readonly="readonly"
                    :rules="[val => val && val > 0 || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               X coordinate of the center of space box
             </q-tooltip>
           </q-input>
-          <q-input filled v-model="experiment!.properties.centerY" label="Center Y" type="number" step="0.1"
+          <q-input filled v-model="experiment!.properties.centerY" label="Center Y" type="number" step="0.01"
                    :readonly="readonly"
                    :rules="[val => val && val > 0 || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Y coordinate of the center of space box
             </q-tooltip>
           </q-input>
-          <q-input filled v-model="experiment!.properties.centerZ" label="Center Z" type="number" step="0.1"
+          <q-input filled v-model="experiment!.properties.centerZ" label="Center Z" type="number" step="0.01"
                    :readonly="readonly"
                    :rules="[val => val && val > 0 || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Z coordinate of the center of space box
             </q-tooltip>
           </q-input>
-          <q-input filled v-model="experiment!.properties.sizeX" label="Size X" type="number" step="0.1"
+          <q-input filled v-model="experiment!.properties.sizeX" label="Size X" type="number" step="0.01"
                    :readonly="readonly"
                    :rules="[val => val && val > 0 || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               X coordinate of the corner of space box
             </q-tooltip>
           </q-input>
-          <q-input filled v-model="experiment!.properties.sizeY" label="Size Y" type="number" step="0.1"
+          <q-input filled v-model="experiment!.properties.sizeY" label="Size Y" type="number" step="0.01"
                    :readonly="readonly"
                    :rules="[val => val && val > 0 || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Y coordinate of the corner of space box
             </q-tooltip>
           </q-input>
-          <q-input filled v-model="experiment!.properties.sizeZ" label="Size Z" type="number" step="0.1"
+          <q-input filled v-model="experiment!.properties.sizeZ" label="Size Z" type="number" step="0.01"
                    :readonly="readonly"
                    :rules="[val => val && val > 0 || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
@@ -246,7 +278,6 @@ export default defineComponent({
                    :rules="[val => val && val > 0 || 'Please type something']">
           </q-input>
         </q-scroll-area>
-        <q-btn outline style="width: 95%;" label="Save parameters" size="md" type="submit" color="info" :disabled="readonly"/>
       </q-form>
     </div>
   </div>

@@ -25,13 +25,16 @@ class Process:
     id: str
     name: str
     running: bool
-    learning_completed: bool
     created_at: datetime.datetime
     pdbqt_content: str
     pdbqt_filename: str
     params: ParamsRequest
     directory: DirectoryObject
     handler: Any
+    was_started: bool
+
+    def __str__(self):
+        return f'Process: {self.id}'
 
 
 processes: List[Process] = []
@@ -53,12 +56,15 @@ class FineTuning:
         if not process:
             return None
 
+        running = process.handler and process.handler.poll()
+        learning_completed = process.was_started and not running and process.handler.returncode == 0
+
         return JobResponse(
             id=id,
             name=process.params.name,
             created_at=process.created_at,
-            running=process.handler.popen() is None,
-            learning_completed=process.learning_completed
+            running=running,
+            learning_completed=learning_completed
         )
 
     def get_logs(self, id: str) -> Optional[LogsResponse]:
@@ -120,15 +126,16 @@ class FineTuning:
         """Returns PID of the process"""
         run_reinforcement_learning_shell = self.fs.files.first_or_default(
             lambda o: o.name == 'start_reinforcement_learning.sh')
-        print('FULL PATH', [run_reinforcement_learning_shell.full_path,
-                            RL_toml_file.full_path,
-                            log_file.full_path,
-                            error_file.full_path,
-                            ])
+        print('Files', [run_reinforcement_learning_shell.full_path,
+                        RL_toml_file.full_path,
+                        log_file.full_path,
+                        error_file.full_path,
+                        ])
+        print('TOML', RL_toml_file.read_string())
         return subprocess.Popen([run_reinforcement_learning_shell.full_path,
                                  RL_toml_file.full_path,
-                                 log_file.full_path,
                                  error_file.full_path,
+                                 log_file.full_path
                                  ], shell=False, stdout=sys.stdout, stderr=sys.stderr)
 
     def prepare_dockstream_config(self,
@@ -162,16 +169,15 @@ class FineTuning:
         dockstream_config_json['docking']['docking_runs'][0]['output']['poses']['poses_path'] = poses.full_path
         dockstream_config_json['docking']['docking_runs'][0]['output']['scores']['scores_path'] = scores.full_path
 
-        print('CONFIG', dockstream_config_json)
-
         dockstream_config.write_json(dockstream_config_json)
 
         return dockstream_config
 
-    def prepare_toml(self, minscore: float, batch_size: int, epochs: int, csv_result: FileObject, dockstream_config: FileObject, directory: DirectoryObject) -> FileObject:
+    def prepare_toml(self, minscore: float, batch_size: int, epochs: int, csv_result: FileObject,
+                     dockstream_config: FileObject, directory: DirectoryObject) -> FileObject:
         # Configure learning
         reinforcement_learning_config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
-        t = reinforcement_learning_config.read(toml.load, mode='rb')
+        t = reinforcement_learning_config.read(toml.load, mode='r')
         t['output_csv'] = directory.add_file('rl_direct.csv').full_path
         t['parameters']['batch_size'] = batch_size
         t['parameters']['summary_csv_prefix'] = csv_result.full_path
@@ -208,7 +214,7 @@ class FineTuning:
 
         pdbqt_file = await self._prepare_pdbqt(pdb_file)
 
-        id = str(uuid.uuid4())
+        id = request.job_id
         directory = self.fs.copy(self.fs.add_directory(id))
         directory.directories.first_or_default(lambda o: o.name == id).delete()
         pdbqt = directory.add_file(pdbqt_file.name)
@@ -219,7 +225,8 @@ class FineTuning:
         docking_log_file = directory.add_file('docking.log')
 
         dockstream_config_json = self.prepare_dockstream_config(request, pdbqt, docking_log_file, directory)
-        reinforcement_learning_config = self.prepare_toml(request.minscore, request.batch_size, request.epochs, csv_result, dockstream_config_json, directory)
+        reinforcement_learning_config = self.prepare_toml(request.minscore, request.batch_size, request.epochs,
+                                                          csv_result, dockstream_config_json, directory)
 
         print('TOML', reinforcement_learning_config.read_string())
 
@@ -231,38 +238,54 @@ class FineTuning:
                 id=id,
                 running=True,
                 name=request.name,
-                learning_completed=False,
                 created_at=datetime.datetime.utcnow(),
                 pdbqt_filename=pdbqt.name,
                 pdbqt_content=pdbqt.read_string(),
                 params=request,
                 directory=directory,
-                handler=None
+                handler=None,
+                was_started=False
             )
         )
 
     async def run(self, id: str):
-        directory = self.fs.copy(self.fs.add_directory(id))
+        process = get_process(id)
+
+        directory = process.directory
 
         reinforcement_learning_config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
-        log_file = directory.add_file('output.log')
-        error_file = directory.add_file('error.log')
+        log_file = directory.files.first_or_default(lambda o: o.name == 'output.log')
+        error_file = directory.files.first_or_default(lambda o: o.name == 'error.log')
 
-        process = get_process(id)
         process.handler = self.run_reinforcement_learning(reinforcement_learning_config, log_file, error_file)
+        process.was_started = True
 
     def get_smiles(self, id: str) -> SmilesResponse:
-        directory = self.fs.directories.first_or_default(lambda o: o.name == id)
         process = get_process(id)
+
         if not process:
-            return SmilesResponse(smiles=[])
+            print(f'Could not find process with id: {id}')
+            return SmilesResponse(
+                smiles=[]
+            )
 
-        direct_csv = directory.files.first_or_default(lambda o: o.name == 'rl_direct_1.csv')
+        direct_csv = process.directory.files.first_or_default(lambda o: o.name == 'rl_direct_1.csv')
 
-        with open(direct_csv.full_path) as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
+        rows = []
 
+        if direct_csv:
+            with open(direct_csv.full_path) as f:
+                reader = csv.DictReader(f)
+                rows.extend(list(reader))
+
+        direct_csv = process.directory.files.first_or_default(lambda o: o.name == 'rl_direct.csv')
+
+        if direct_csv:
+            with open(direct_csv.full_path) as f:
+                reader = csv.DictReader(f)
+                rows.extend(list(reader))
+
+        print(rows)
         return SmilesResponse(smiles=[
             Smiles(
                 smiles=row['SMILES'],

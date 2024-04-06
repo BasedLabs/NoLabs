@@ -35,8 +35,11 @@ def save_properties_dependency(settings: Annotated[Settings, Depends(settings_de
     return SavePropertiesFeature(settings=settings, file_management=file_management)
 
 
-def get_smiles_dependency(settings: Annotated[Settings, Depends(settings_dependency)]) -> GetSmilesFeature:
-    return GetSmilesFeature(settings=settings)
+def get_smiles_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                          file_management: Annotated[
+                              FileManagement, Depends(file_management_dependency)]
+                          ) -> GetSmilesFeature:
+    return GetSmilesFeature(file_management=file_management, settings=settings)
 
 
 def get_logs_dependency(settings: Annotated[Settings, Depends(settings_dependency)],

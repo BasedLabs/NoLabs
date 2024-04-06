@@ -20,7 +20,7 @@ router = APIRouter(
 async def run(
         feature: Annotated[StartExperimentFeature, Depends(run_experiment_dependency)],
         experiment_id: str):
-    return feature.handle(experiment_id=experiment_id)
+    return await feature.handle(experiment_id=experiment_id)
 
 
 @router.get('/experiment/{experiment_id}')

@@ -15,7 +15,6 @@ const useProteinDesignStore = defineStore("proteinDesign", {
             experiment: Experiment | null,
             errors: string[]
         }> {
-            debugger;
             const response = await ProteinDesignService.inferenceApiV1ProteinDesignInferencePost(
                 {
                     pdb_file: request.pdbFile,

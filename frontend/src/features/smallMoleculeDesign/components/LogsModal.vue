@@ -43,7 +43,6 @@ export default defineComponent({
   },
   watch: {
     async visible(newShow, oldShow) {
-      debugger;
       if (newShow) {
         this.$q.loading.show({
           spinner: QSpinnerOrbit,

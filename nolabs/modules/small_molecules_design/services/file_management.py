@@ -37,10 +37,10 @@ class FileManagement(ExperimentsFileManagementBase):
 
         return experiment_folder.files.first_or_default(lambda o: o.name == 'receptor.pdb')
 
-    def save_pdb(self, experiment_id: ExperimentId, job_id: str, pdb: bytes):
+    def save_pdb(self, experiment_id: ExperimentId, pdb: bytes):
         ef_path = self.experiment_folder(experiment_id)
         experiment_folder = DirectoryObject(ef_path)
-        experiment_folder.add_file(f'{job_id}-receptor.pdb').write_bytes(pdb)
+        experiment_folder.add_file('receptor.pdb').write_bytes(pdb)
 
     def set_params(self, experiment_id: ExperimentId, params: ExperimentPropertiesRequest):
         ef_path = self.experiment_folder(experiment_id)
