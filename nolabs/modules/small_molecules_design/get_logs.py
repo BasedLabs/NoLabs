@@ -28,6 +28,8 @@ class GetLogsFeature:
                     errors='Nothing'
                 )
 
-            return LogsResponse(output=response.output,
-                                docking_output=response.docking_output,
-                                errors=response.errors)
+            instance = response.actual_instance
+
+            return LogsResponse(output=instance.output,
+                                docking_output=instance.docking_output,
+                                errors=instance.errors)
