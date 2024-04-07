@@ -1,6 +1,7 @@
 from reinvent_microservice import Configuration, ApiClient, DefaultApi
 
-from nolabs.api_models.small_molecules_design import GetExperimentResponse, ExperimentPropertiesResponse
+from nolabs.api_models.small_molecules_design import GetExperimentResponse, ExperimentPropertiesResponse, \
+    GetExperimentStatusResponse
 from nolabs.domain.experiment import ExperimentId
 from nolabs.infrastructure.settings import Settings
 from nolabs.modules.small_molecules_design.services.file_management import FileManagement
@@ -58,14 +59,24 @@ class GetExperimentFeature:
 
             job_result = api_instance.get_job_jobs_job_id_get(experiment_id)
 
-            running = job_result.running if job_result else False
-            learning_completed = job_result.learning_completed if job_result else False
+            if not job_result:
+                return GetExperimentResponse(
+                    experiment_id=experiment_id,
+                    experiment_name=experiment.name.value,
+                    created_at=experiment.date,
+                    status=GetExperimentStatusResponse(running=False, sampling_allowed=False),
+                    properties=properties
+                )
+
+            job = job_result.actual_instance
+
+            running = job.running if job_result else False
+            sampling_allowed = job.sampling_allowed if job_result else False
 
             return GetExperimentResponse(
                 experiment_id=experiment_id,
                 experiment_name=experiment.name.value,
                 created_at=experiment.date,
-                running=running,
-                learning_completed=learning_completed,
+                status=GetExperimentStatusResponse(running=running, sampling_allowed=sampling_allowed),
                 properties=properties
             )

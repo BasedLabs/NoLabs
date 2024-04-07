@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **name** | **str** |  | 
 **created_at** | **datetime** |  | 
 **running** | **bool** |  | 
-**learning_completed** | **bool** |  | 
+**sampling_allowed** | **bool** |  | 
 
 ## Example
 

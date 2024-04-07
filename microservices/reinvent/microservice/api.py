@@ -7,7 +7,7 @@ from starlette.responses import FileResponse
 
 from microservice.api_models import JobResponse, ParamsResponse, LogsResponse, SmilesResponse, \
     ParamsRequest
-from microservice.services import FineTuning
+from microservice.services import Inference, RunType
 
 app = FastAPI(
     title='Reinvent4 API',
@@ -15,17 +15,24 @@ app = FastAPI(
 )
 
 
-@app.post("/jobs/{job_id}/run")
-async def run(
+@app.post("/jobs/{job_id}/sampling")
+async def sampling(
         job_id: str):
-    ft = FineTuning()
-    return await ft.run(job_id)
+    inference = Inference()
+    return await inference.run(job_id, RunType.SAMPLING_SCORING)
+
+
+@app.post("/jobs/{job_id}/learning")
+async def learning(
+        job_id: str):
+    inference = Inference()
+    return await inference.run(job_id, RunType.RL)
 
 
 @app.get('/jobs/{job_id}/params')
 async def params(job_id: str) -> Optional[ParamsResponse]:
-    ft = FineTuning()
-    return ft.get_params(job_id)
+    inference = Inference()
+    return inference.get_params(job_id)
 
 
 @app.post('/jobs/{job_id}/params')
@@ -38,8 +45,8 @@ async def save_params(job_id: str,
                       batch_size: int = 128,
                       minscore: float = 0.4,
                       pdb_file: UploadFile = File()):
-    ft = FineTuning()
-    await ft.save_params(pdb_file=pdb_file,
+    inference = Inference()
+    await inference.save_params(pdb_file=pdb_file,
                    request=ParamsRequest(job_id=job_id,name=name, center_x=center_x, center_y=center_y, center_z=center_z,
                                          size_x=size_x,
                                          size_y=size_y, size_z=size_z, batch_size=batch_size, minscore=minscore,
@@ -49,46 +56,45 @@ async def save_params(job_id: str,
 @app.post("/jobs/{job_id}/stop")
 async def stop(
         job_id: str):
-    ft = FineTuning()
-    return await ft.stop(job_id)
+    inference = Inference()
+    return await inference.stop(job_id)
 
 
 @app.delete("/jobs/{job_id}")
 async def delete(
         job_id: str):
-    ft = FineTuning()
-    return await ft.delete(job_id)
+    inference = Inference()
+    return await inference.delete(job_id)
 
 
 @app.post('/prepare-binder')
 async def prepare_binder(pdb_content: UploadFile = File()) -> FileResponse:
-    ft = FineTuning()
-    return await ft.prepare_pdbqt(pdb_content)
+    inference = Inference()
+    return await inference.prepare_pdbqt(pdb_content)
 
 
 @app.get("/jobs/{job_id}")
 async def get_job(job_id: str) -> Optional[JobResponse]:
-    ft = FineTuning()
-    print('Hello there')
-    return ft.get_job(job_id)
+    inference = Inference()
+    return inference.get_job(job_id)
 
 
 @app.get("/jobs")
 async def get_all_jobs() -> List[JobResponse]:
-    ft = FineTuning()
-    return ft.all_jobs()
+    inference = Inference()
+    return inference.all_jobs()
 
 
 @app.get('/jobs/{job_id}/logs')
 async def logs(job_id: str) -> Optional[LogsResponse]:
-    ft = FineTuning()
-    return ft.get_logs(job_id)
+    inference = Inference()
+    return inference.get_logs(job_id)
 
 
 @app.get('/jobs/{job_id}/smiles')
 async def smiles(job_id: str) -> SmilesResponse:
-    ft = FineTuning()
-    return ft.get_smiles(job_id)
+    inference = Inference()
+    return inference.get_smiles(job_id)
 
 
 origins = [

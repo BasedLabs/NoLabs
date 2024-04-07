@@ -16,9 +16,23 @@ router = APIRouter(
 )
 
 
-@router.post("/experiment/{experiment_id}/run")
-async def run(
-        feature: Annotated[StartExperimentFeature, Depends(run_experiment_dependency)],
+@router.get('/experiment/{experiment_id}/status')
+async def status(
+        feature: Annotated[GetExperimentStatusFeature, Depends(experiment_status_dependency)],
+        experiment_id: str
+) -> GetExperimentStatusResponse:
+    return await feature.handle(experiment_id=experiment_id)
+
+@router.post("/experiment/{experiment_id}/learning")
+async def learning(
+        feature: Annotated[StartLearningExperimentFeature, Depends(start_learning_experiment_dependency)],
+        experiment_id: str):
+    return await feature.handle(experiment_id=experiment_id)
+
+
+@router.post("/experiment/{experiment_id}/sampling")
+async def sampling(
+        feature: Annotated[StartSamplingExperimentFeature, Depends(start_sampling_experiment_dependency)],
         experiment_id: str):
     return await feature.handle(experiment_id=experiment_id)
 

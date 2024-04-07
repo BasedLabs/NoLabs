@@ -29,7 +29,8 @@ class Smiles(BaseModel):
     smiles: StrictStr
     drug_likeness: Union[StrictFloat, StrictInt] = Field(alias="drugLikeness")
     score: Union[StrictFloat, StrictInt]
-    __properties: ClassVar[List[str]] = ["smiles", "drugLikeness", "score"]
+    stage: StrictStr
+    __properties: ClassVar[List[str]] = ["smiles", "drugLikeness", "score", "stage"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -84,7 +85,8 @@ class Smiles(BaseModel):
         _obj = cls.model_validate({
             "smiles": obj.get("smiles"),
             "drugLikeness": obj.get("drugLikeness"),
-            "score": obj.get("score")
+            "score": obj.get("score"),
+            "stage": obj.get("stage")
         })
         return _obj
 

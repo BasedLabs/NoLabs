@@ -3,7 +3,7 @@ from reinvent_microservice import Configuration, ApiClient, DefaultApi
 from nolabs.infrastructure.settings import Settings
 
 
-class StartExperimentFeature:
+class StartSamplingExperimentFeature:
     def __init__(self, settings: Settings):
         self._settings = settings
 
@@ -13,4 +13,4 @@ class StartExperimentFeature:
         )
         with ApiClient(configuration=configuration) as client:
             api_instance = DefaultApi(client)
-            api_instance.run_jobs_job_id_run_post(job_id=experiment_id)
+            api_instance.sampling_jobs_job_id_sampling_post(job_id=experiment_id)

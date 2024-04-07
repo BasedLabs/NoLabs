@@ -38,18 +38,13 @@ RUN conda env create -f /app/DockStream/environment.yml
 
 WORKDIR /app
 
-COPY case_study_files /app/case_study_files
-COPY 1UYD_fixed.pdbqt /app
-
 COPY microservice /app/microservice
 RUN pip install -r microservice/requirements.txt
 
-COPY reinvent/finetuning /app/microservice/finetuning
-COPY reinvent/inference /app/microservice/inference
+COPY reinvent /app/microservice/inference
 
-RUN sed -i 's/\r$//' /app/microservice/finetuning/prepare_pdbqt.sh && chmod +x /app/microservice/finetuning/prepare_pdbqt.sh
-RUN sed -i 's/\r$//' /app/microservice/finetuning/start_reinforcement_learning.sh && chmod +x /app/microservice/finetuning/start_reinforcement_learning.sh
-
+RUN sed -i 's/\r$//' /app/microservice/inference/prepare_pdbqt.sh && chmod +x /app/microservice/inference/prepare_pdbqt.sh
+RUN sed -i 's/\r$//' /app/microservice/inference/start_reinforcement_learning.sh && chmod +x /app/microservice/inference/start_reinforcement_learning.sh
 RUN sed -i 's/\r$//' /app/microservice/inference/start_sampling.sh && chmod +x /app/microservice/inference/start_sampling.sh
 
 ENTRYPOINT ["uvicorn", "microservice.api:app"]

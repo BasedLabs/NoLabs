@@ -43,6 +43,7 @@ export type { GetDiffDockDockingResultDataResponse } from './models/GetDiffDockD
 export type { GetDiffDockLigandSdfResponse } from './models/GetDiffDockLigandSdfResponse';
 export type { GetDiffDockParamsResponse } from './models/GetDiffDockParamsResponse';
 export type { GetDockingParamsResponse } from './models/GetDockingParamsResponse';
+export type { GetExperimentStatusResponse } from './models/GetExperimentStatusResponse';
 export type { GetFoldingResponse } from './models/GetFoldingResponse';
 export type { GetJobBindingPocketDataResponse } from './models/GetJobBindingPocketDataResponse';
 export type { GetJobsListForTargetLigandResponse } from './models/GetJobsListForTargetLigandResponse';

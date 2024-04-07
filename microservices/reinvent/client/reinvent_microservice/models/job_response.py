@@ -31,8 +31,8 @@ class JobResponse(BaseModel):
     name: StrictStr
     created_at: datetime
     running: StrictBool
-    learning_completed: StrictBool
-    __properties: ClassVar[List[str]] = ["id", "name", "created_at", "running", "learning_completed"]
+    sampling_allowed: StrictBool
+    __properties: ClassVar[List[str]] = ["id", "name", "created_at", "running", "sampling_allowed"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -89,7 +89,7 @@ class JobResponse(BaseModel):
             "name": obj.get("name"),
             "created_at": obj.get("created_at"),
             "running": obj.get("running"),
-            "learning_completed": obj.get("learning_completed")
+            "sampling_allowed": obj.get("sampling_allowed")
         })
         return _obj
 

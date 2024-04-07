@@ -29,5 +29,6 @@ class GetSmilesFeature:
                 smiles=s.smiles,
                 drug_likeness=s.drug_likeness,
                 score=s.score,
+                stage=s.stage,
                 created_at=datetime.datetime.utcnow()
             ) for s in response.smiles]

@@ -5,11 +5,12 @@ import os
 import subprocess
 import sys
 import csv
+from enum import Enum
 
 import toml
 
 import uuid
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Tuple
 
 from fastapi import UploadFile
 
@@ -18,6 +19,11 @@ from starlette.responses import FileResponse
 
 from microservice.api_models import JobResponse, ParamsRequest, LogsResponse, ParamsResponse, Smiles, SmilesResponse
 from microservice.exceptions import ReinventException, ErrorCode
+
+
+class RunType(Enum):
+    SAMPLING_SCORING = 1
+    RL = 2
 
 
 @dataclasses.dataclass
@@ -47,25 +53,32 @@ def get_process(id) -> Process | None:
     return None
 
 
-class FineTuning:
+class Inference:
     def __init__(self):
-        self.fs = DirectoryObject(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'finetuning'))
+        self.fs = DirectoryObject(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inference'))
 
     def get_job(self, id: str) -> Optional[JobResponse]:
         process = get_process(id)
         if not process:
             return None
 
-        running = process.handler and process.handler.poll()
-        learning_completed = process.was_started and not running and process.handler.returncode == 0
+        running, sampling_allowed = self._check_status(process)
 
         return JobResponse(
             id=id,
             name=process.params.name,
             created_at=process.created_at,
             running=running,
-            learning_completed=learning_completed
+            sampling_allowed=sampling_allowed
         )
+
+    def _check_status(self, process: Process) -> Tuple[bool, bool]:
+        chkpt = process.directory.files.first_or_default(lambda o: o.name == 'rl_direct.chkpt')
+
+        running = process.handler and process.handler.poll() is None
+        sampling_allowed = process.was_started and not running and chkpt is not None
+
+        return (running, sampling_allowed)
 
     def get_logs(self, id: str) -> Optional[LogsResponse]:
         directory = self.fs.directories.first_or_default(lambda o: o.name == id)
@@ -121,17 +134,12 @@ class FineTuning:
         pdbqt = await self._prepare_pdbqt(pdb)
         return FileResponse(pdbqt.full_path)
 
-    def run_reinforcement_learning(self, RL_toml_file: FileObject, log_file: FileObject, error_file: FileObject) -> \
+    def run_reinforcement_learning(self, RL_toml_file: FileObject, log_file: FileObject, error_file: FileObject,
+                                   directory: DirectoryObject) -> \
             subprocess.Popen[bytes]:
         """Returns PID of the process"""
-        run_reinforcement_learning_shell = self.fs.files.first_or_default(
+        run_reinforcement_learning_shell = directory.first_or_default(
             lambda o: o.name == 'start_reinforcement_learning.sh')
-        print('Files', [run_reinforcement_learning_shell.full_path,
-                        RL_toml_file.full_path,
-                        log_file.full_path,
-                        error_file.full_path,
-                        ])
-        print('TOML', RL_toml_file.read_string())
         return subprocess.Popen([run_reinforcement_learning_shell.full_path,
                                  RL_toml_file.full_path,
                                  error_file.full_path,
@@ -173,12 +181,11 @@ class FineTuning:
 
         return dockstream_config
 
-    def prepare_toml(self, minscore: float, batch_size: int, epochs: int, csv_result: FileObject,
-                     dockstream_config: FileObject, directory: DirectoryObject) -> FileObject:
+    def prepare_rl(self, minscore: float, batch_size: int, epochs: int, csv_result: FileObject,
+                   dockstream_config: FileObject, directory: DirectoryObject) -> FileObject:
         # Configure learning
         reinforcement_learning_config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
         t = reinforcement_learning_config.read(toml.load, mode='r')
-        t['output_csv'] = directory.add_file('rl_direct.csv').full_path
         t['parameters']['batch_size'] = batch_size
         t['parameters']['summary_csv_prefix'] = csv_result.full_path
         t['diversity_filter']['minscore'] = minscore
@@ -190,6 +197,34 @@ class FineTuning:
         reinforcement_learning_config.write_string(toml.dumps(t))
 
         return reinforcement_learning_config
+
+    def prepare_sampling(self, directory: DirectoryObject) -> FileObject:
+        chkpt = directory.files.first_or_default(lambda o: o.name == 'rl_direct.chkpt')
+        sampling_config: FileObject = directory.files.first_or_default(lambda o: o.name == 'Sampling.toml')
+        sampling_output = directory.add_file('sampling_direct.csv')
+
+        sampling_config_toml = sampling_config.read(toml.load, mode='r')
+        sampling_config_toml['parameters']['output_file'] = sampling_output.full_path
+        sampling_config_toml['parameters']['model_file'] = chkpt.full_path
+
+        sampling_config.write_string(toml.dumps(sampling_config_toml))
+        return sampling_config
+
+    def prepare_scoring(self, dockstream_config: FileObject, directory: DirectoryObject) -> FileObject:
+        scoring_input = directory.add_file('scoring_input.smi')
+        scoring_input.write_string('')
+
+        scoring_config: FileObject = directory.files.first_or_default(lambda o: o.name == 'Scoring.toml')
+        scoring_output = directory.add_file('scoring_direct.csv')
+
+        scoring_config_toml = scoring_config.read(toml.load, mode='r')
+        scoring_config_toml['output_csv'] = scoring_output.full_path
+        scoring_config_toml['parameters']['smiles_file'] = scoring_input.full_path
+        scoring_config_toml['scoring']['component'][0]['DockStream']['endpoint'][0] \
+            ['params']['configuration_path'] = dockstream_config.full_path
+
+        scoring_config.write_string(toml.dumps(scoring_config_toml))
+        return scoring_config
 
     async def stop(self, id: str):
         process = get_process(id)
@@ -224,11 +259,11 @@ class FineTuning:
 
         docking_log_file = directory.add_file('docking.log')
 
-        dockstream_config_json = self.prepare_dockstream_config(request, pdbqt, docking_log_file, directory)
-        reinforcement_learning_config = self.prepare_toml(request.minscore, request.batch_size, request.epochs,
-                                                          csv_result, dockstream_config_json, directory)
-
-        print('TOML', reinforcement_learning_config.read_string())
+        dockstream_config = self.prepare_dockstream_config(request, pdbqt, docking_log_file, directory)
+        self.prepare_rl(request.minscore, request.batch_size, request.epochs,
+                        csv_result, dockstream_config, directory)
+        self.prepare_sampling(directory)
+        self.prepare_scoring(dockstream_config, directory)
 
         directory.add_file('output.log')
         directory.add_file('error.log')
@@ -248,16 +283,42 @@ class FineTuning:
             )
         )
 
-    async def run(self, id: str):
+    def run_sampling_and_scoring(self, sampling_toml_file: FileObject, scoring_toml_file: FileObject,
+                                 log_file: FileObject, error_file: FileObject, directory: DirectoryObject) -> \
+            subprocess.Popen[bytes]:
+        """Returns PID of the process"""
+
+        directory.files.first_or_default(lambda o: o.name == 'sampling_direct.csv').write_string('')
+        directory.files.first_or_default(lambda o: o.name == 'scoring_input.smi').write_string('')
+        directory.files.first_or_default(lambda o: o.name == 'scoring_direct.csv').write_string('')
+
+        shell = directory.files.first_or_default(
+            lambda o: o.name == 'start_sampling.sh')
+        return subprocess.Popen([shell.full_path,
+                                 sampling_toml_file.full_path,
+                                 scoring_toml_file.full_path,
+                                 error_file.full_path,
+                                 log_file.full_path
+                                 ], shell=False, stdout=sys.stdout, stderr=sys.stderr)
+
+    async def run(self, id: str, run_type: RunType):
         process = get_process(id)
 
         directory = process.directory
 
-        reinforcement_learning_config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
         log_file = directory.files.first_or_default(lambda o: o.name == 'output.log')
         error_file = directory.files.first_or_default(lambda o: o.name == 'error.log')
 
-        process.handler = self.run_reinforcement_learning(reinforcement_learning_config, log_file, error_file)
+        if run_type == RunType.RL:
+            config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
+            process.handler = self.run_reinforcement_learning(config, log_file, error_file, directory)
+        if run_type == RunType.SAMPLING_SCORING:
+            sampling_config = directory.files.first_or_default(lambda o: o.name == 'Sampling.toml')
+            scoring_config = directory.files.first_or_default(lambda o: o.name == 'Scoring.toml')
+
+            process.handler = self.run_sampling_and_scoring(sampling_config, scoring_config, log_file, error_file,
+                                                            directory)
+
         process.was_started = True
 
     def get_smiles(self, id: str) -> SmilesResponse:
@@ -269,27 +330,51 @@ class FineTuning:
                 smiles=[]
             )
 
-        direct_csv = process.directory.files.first_or_default(lambda o: o.name == 'rl_direct_1.csv')
+        direct = process.directory.files.first_or_default(lambda o: o.name == 'direct.json')
 
+        if not direct:
+            direct = process.directory.add_file('direct.json')
         rows = []
 
-        if direct_csv:
-            with open(direct_csv.full_path) as f:
+        rl_direct = process.directory.files.first_or_default(lambda o: o.name == 'rl_direct_1.csv')
+
+        if rl_direct and rl_direct.size > 0:
+            with open(rl_direct.full_path) as f:
                 reader = csv.DictReader(f)
-                rows.extend(list(reader))
+                for row in list(reader):
+                    print(row)
+                    rows.append(
+                        {
+                            'SMILES': row['SMILES'],
+                            'drugLikeness': row['QED'],
+                            'Score': row['Score'],
+                            'Stage': row['step']
+                        }
+                    )
 
-        direct_csv = process.directory.files.first_or_default(lambda o: o.name == 'rl_direct.csv')
+        scoring_direct = process.directory.files.first_or_default(lambda o: o.name == 'scoring_direct.csv')
 
-        if direct_csv:
-            with open(direct_csv.full_path) as f:
+        if scoring_direct and scoring_direct.size > 0:
+            with open(scoring_direct.full_path) as f:
                 reader = csv.DictReader(f)
-                rows.extend(list(reader))
+                for row in list(reader):
+                    rows.append(
+                        {
+                            'SMILES': row['SMILES'],
+                            'drugLikeness': row['QED'],
+                            'Score': row['Score'],
+                            'Stage': 'Sampling'
+                        }
+                    )
 
-        print(rows)
+        if rows:
+            direct.write_json(rows)
+
         return SmilesResponse(smiles=[
             Smiles(
                 smiles=row['SMILES'],
-                drugLikeness=row['QED'],
-                score=row['Score']
+                drugLikeness=row['drugLikeness'],
+                score=row['Score'],
+                stage=row['Stage']
             ) for row in rows
         ])

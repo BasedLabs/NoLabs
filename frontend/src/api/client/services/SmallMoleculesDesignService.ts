@@ -5,6 +5,7 @@
 import type { Body_save_properties_api_v1_small_molecules_design_experiment__experiment_id__props_post } from '../models/Body_save_properties_api_v1_small_molecules_design_experiment__experiment_id__props_post';
 import type { ChangeExperimentNameRequest } from '../models/ChangeExperimentNameRequest';
 import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataResponse';
+import type { GetExperimentStatusResponse } from '../models/GetExperimentStatusResponse';
 import type { LogsResponse } from '../models/LogsResponse';
 import type { nolabs__api_models__small_molecules_design__GetExperimentResponse } from '../models/nolabs__api_models__small_molecules_design__GetExperimentResponse';
 import type { SmilesResponse } from '../models/SmilesResponse';
@@ -13,17 +14,57 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class SmallMoleculesDesignService {
     /**
-     * Run
+     * Status
+     * @param experimentId
+     * @returns GetExperimentStatusResponse Successful Response
+     * @throws ApiError
+     */
+    public static statusApiV1SmallMoleculesDesignExperimentExperimentIdStatusGet(
+        experimentId: string,
+    ): CancelablePromise<GetExperimentStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/small-molecules-design/experiment/{experiment_id}/status',
+            path: {
+                'experiment_id': experimentId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Learning
      * @param experimentId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static runApiV1SmallMoleculesDesignExperimentExperimentIdRunPost(
+    public static learningApiV1SmallMoleculesDesignExperimentExperimentIdLearningPost(
         experimentId: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/small-molecules-design/experiment/{experiment_id}/run',
+            url: '/api/v1/small-molecules-design/experiment/{experiment_id}/learning',
+            path: {
+                'experiment_id': experimentId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Sampling
+     * @param experimentId
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static samplingApiV1SmallMoleculesDesignExperimentExperimentIdSamplingPost(
+        experimentId: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/small-molecules-design/experiment/{experiment_id}/sampling',
             path: {
                 'experiment_id': experimentId,
             },

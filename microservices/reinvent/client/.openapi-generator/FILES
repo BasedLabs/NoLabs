@@ -8,6 +8,9 @@ docs/HTTPValidationError.md
 docs/JobResponse.md
 docs/LogsResponse.md
 docs/ParamsResponse.md
+docs/ResponseGetJobJobsJobIdGet.md
+docs/ResponseLogsJobsJobIdLogsGet.md
+docs/ResponseParamsJobsJobIdParamsGet.md
 docs/Smiles.md
 docs/SmilesResponse.md
 docs/ValidationError.md
@@ -26,6 +29,9 @@ reinvent_microservice/models/http_validation_error.py
 reinvent_microservice/models/job_response.py
 reinvent_microservice/models/logs_response.py
 reinvent_microservice/models/params_response.py
+reinvent_microservice/models/response_get_job_jobs_job_id_get.py
+reinvent_microservice/models/response_logs_jobs_job_id_logs_get.py
+reinvent_microservice/models/response_params_jobs_job_id_params_get.py
 reinvent_microservice/models/smiles.py
 reinvent_microservice/models/smiles_response.py
 reinvent_microservice/models/validation_error.py

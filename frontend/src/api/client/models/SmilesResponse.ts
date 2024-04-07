@@ -7,5 +7,6 @@ export type SmilesResponse = {
     drug_likeness: number;
     score: number;
     created_at: string;
+    stage: string;
 };
 

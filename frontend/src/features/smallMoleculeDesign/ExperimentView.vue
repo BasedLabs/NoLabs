@@ -44,18 +44,26 @@ export default defineComponent({
       required: true,
       field: 'score'
     },
+    {
+      name: 'stage',
+      label: 'Stage',
+      align: 'left',
+      sortable: true,
+      required: true,
+      field: 'stage'
+    }
   ],
   data(): Data {
     return {
       smilesData: [] as Smiles[],
       experiment: null as Experiment | null,
       interval: null,
-      logsModalVisible: false
+      logsModalVisible: false,
     }
   },
   computed: {
     readonly() {
-      return this.experiment!.running || this.experiment!.learningCompleted;
+      return this.experiment!.running;
     },
     smilesDataLength() {
       return this.smilesData.length;
@@ -92,9 +100,10 @@ export default defineComponent({
     async startExperiment(id: string) {
       this.$q.dialog({
         title: 'Confirm',
-        message: "Are you sure that you want to start experiment with following properties? You won't be able to change them.",
+        message: "Are you sure that you want to start AI learning with following properties? This will overwrite all existing data",
         cancel: true,
-        persistent: true
+        persistent: true,
+
       }).onOk(async () => {
         await this.loader('Saving properties', async () => {
           await this.$options.store.saveProperties(this.$options.experimentId, this.experiment?.properties);
@@ -109,7 +118,7 @@ export default defineComponent({
     async stopExperiment() {
       this.$q.dialog({
         title: 'Confirm',
-        message: 'Would you like to stop the experiment? The progress will be lost.',
+        message: 'Would you like to stop the experiment? You will be able to run sampling, but learning will be frozen on the last stage',
         cancel: true,
         persistent: true
       }).onOk(async () => {
@@ -119,13 +128,18 @@ export default defineComponent({
         });
       });
     },
-    async generateMoreMolecules() {
-      await this.loader('Starting job', async () => {
-
+    async startSampling() {
+      this.$q.dialog({
+        title: 'Confirm',
+        message: "Start sampling?",
+        cancel: true,
+        persistent: true
+      }).onOk(async () => {
+        await this.loader('Starting sampling', async () => {
+          await this.$options.store.startSampling(this.$options.experimentId);
+          this.experiment!.running = true;
+        });
       });
-    },
-    async resumeExperiment() {
-
     },
     async onExperimentNameChange(newName: string) {
       await this.loader('Renaming', async () => {
@@ -137,9 +151,13 @@ export default defineComponent({
     await this.loader('Loading experiment', async () => {
       this.$options.experimentId = this.$route.params.experimentId as string;
       this.experiment = await this.$options.store.getExperiment(this.$options.experimentId);
+      this.smilesData = await this.$options.store.smilesData(this.$options.experimentId);
       this.interval = setInterval(async () => {
-        //this.smilesData = await this.$options.store.smilesData(this.$options.experimentId);
-      }, 1000);
+        this.smilesData = await this.$options.store.smilesData(this.$options.experimentId);
+        const status = await this.$options.store.status(this.$options.experimentId);
+        this.experiment!.running = status.running;
+        this.experiment!.samplingAllowed = status.samplingAllowed;
+      }, 5000);
     })
   },
   unmounted() {
@@ -164,12 +182,12 @@ export default defineComponent({
       <q-tooltip :offset="[0, 8]">Loading</q-tooltip>
     </div>
     <q-btn outline align="between" class="q-mx-md" size="lg" color="info" @click="toggleLogs" icon="timeline">Open logs</q-btn>
-    <ExperimentControlButtons :resume-experiment="resumeExperiment" :stop-experiment="stopExperiment"
+    <ExperimentControlButtons :start-sampling="startSampling" :stop-experiment="stopExperiment"
                               :start-experiment="startExperiment" :experiment="experiment"/>
   </div>
   <q-separator></q-separator>
   <div class="row q-col-gutter-md q-ma-sm">
-    <div class="col-xs-12 col-md-4">
+    <div class="col-xs-12 col-md-5">
       <q-table
         title="Generated smiles"
         :rows="smilesData"
@@ -183,10 +201,13 @@ export default defineComponent({
               <q-input class="q-pl-xs" v-model="props.row.smiles" readonly dense />
             </q-td>
             <q-td key="drugLikeness" :props="props">
-                {{ props.row.drugLikeness }}
+                {{ props.row.drugLikeness.toFixed(2) }}
             </q-td>
             <q-td key="score" :props="props">
-                {{ props.row.score }}
+                {{ props.row.score.toFixed(2) }}
+            </q-td>
+            <q-td key="stage" :props="props">
+              {{ props.row.stage }}
             </q-td>
           </q-tr>
         </template>
@@ -201,7 +222,7 @@ export default defineComponent({
         PDB file is not uploaded
       </div>
     </div>
-    <div class="col-xs-12 col-md-3" v-if="experiment" style="max-width: 95%">
+    <div class="col-xs-12 col-md-2" v-if="experiment" style="max-width: 95%">
 
       <q-form v-if="experiment!.properties" class="q-gutter-md">
         <q-scroll-area style="max-width: 100%; height: 70vh" visible>

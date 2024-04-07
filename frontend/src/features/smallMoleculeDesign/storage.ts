@@ -38,8 +38,8 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
       return {
         id: response.experiment_id,
         name: response.experiment_name,
-        learningCompleted: response.learning_completed,
-        running: response.running,
+        samplingAllowed: response.status.sampling_allowed,
+        running: response.status.running,
         createdAt: new Date(response.created_at),
         properties: {
           epochs: response.properties.epochs,
@@ -67,11 +67,22 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
           smiles: x.smiles,
           drugLikeness: x.drug_likeness,
           score: x.score,
+          stage: x.stage,
           createdAt: new Date(x.created_at),
         };
       });
       console.log(result);
       return result;
+    },
+    async status(experimentId: string): Promise<Status>{
+      const status = await SmallMoleculesDesignService.statusApiV1SmallMoleculesDesignExperimentExperimentIdStatusGet(experimentId);
+
+      ensureNotError(status);
+
+      return {
+        running: status.running,
+        samplingAllowed: status.sampling_allowed
+      }
     },
     async logs(experimentId: string): Promise<Logs> {
       const logs = await SmallMoleculesDesignService.logsApiV1SmallMoleculesDesignExperimentExperimentIdLogsGet(experimentId);
@@ -85,10 +96,10 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
       }
     },
     async startExperiment(experimentId: string) {
-      await SmallMoleculesDesignService.runApiV1SmallMoleculesDesignExperimentExperimentIdRunPost(experimentId);
+      await SmallMoleculesDesignService.learningApiV1SmallMoleculesDesignExperimentExperimentIdLearningPost(experimentId);
     },
-    async generateMoreMolecules(experimentId: string, jobId: string) {
-
+    async startSampling(experimentId: string) {
+      await SmallMoleculesDesignService.samplingApiV1SmallMoleculesDesignExperimentExperimentIdSamplingPost(experimentId);
     },
     async stopExperiment(experimentId: string) {
       await SmallMoleculesDesignService.stopApiV1SmallMoleculesDesignExperimentExperimentIdStopPost(experimentId);

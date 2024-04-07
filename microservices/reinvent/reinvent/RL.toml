@@ -1,10 +1,10 @@
 version = 4
 run_type = "staged_learning"
 use_cuda = true
-output_csv = ""
+output_csv = "sampling.csv"
 
 [parameters]
-use_checkpoint = false  
+use_checkpoint = false
 summary_csv_prefix = "rl_direct"
 agent_file = "/app/REINVENT4/priors/reinvent.prior"
 prior_file = "/app/REINVENT4/priors/reinvent.prior"

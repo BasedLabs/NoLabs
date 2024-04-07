@@ -2,7 +2,13 @@ interface Smiles {
   smiles: string;
   drugLikeness: number;
   score: number;
+  stage: string;
   createdAt: Date;
+}
+
+interface Status {
+  running: boolean;
+  samplingAllowed: boolean;
 }
 
 interface Properties {
@@ -22,7 +28,7 @@ interface Experiment {
   id: string;
   name: string;
   running: boolean;
-  learningCompleted: boolean;
+  samplingAllowed: boolean;
   properties: Properties;
   createdAt: Date;
 }

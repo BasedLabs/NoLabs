@@ -40,7 +40,7 @@ export default defineComponent({
         { name: 'Solubility Lab', description: 'Predict solubility of proteins', routeName: 'Solubility experiments', imagePath: 'public/solubility_pic.png' },
         { name: 'Conformations Lab', description: 'Run simulations using GROMACS', routeName: 'Conformations experiments', imagePath: 'public/conformations_pic.png' },
         { name: 'Protein Design Lab', description: 'Design binders using RF-Diffusion', routeName: 'Protein design experiments', imagePath: 'public/rf_diffusion_pic.png' },
-        { name: 'Small Molecules Design Lab', description: 'Design small molecules using protein receptor', routeName: 'Small molecules design experiments', imagePath: 'public/rf_diffusion_pic.png' }
+        { name: 'Small Molecules Design Lab', description: 'Design small molecules using a protein receptor', routeName: 'Small molecules design experiments', imagePath: 'public/small_molecule.jpg' }
       ]
     }
   },

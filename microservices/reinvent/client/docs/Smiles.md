@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **smiles** | **str** |  | 
 **drug_likeness** | **float** |  | 
 **score** | **float** |  | 
+**stage** | **str** |  | 
 
 ## Example
 

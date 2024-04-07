@@ -28,12 +28,17 @@ class ExperimentPropertiesResponse:
 
 
 @dataclasses.dataclass
+class GetExperimentStatusResponse:
+    running: bool
+    sampling_allowed: bool
+
+
+@dataclasses.dataclass
 class GetExperimentResponse:
     experiment_id: str
     experiment_name: str
     created_at: datetime.datetime
-    running: bool
-    learning_completed: bool
+    status: GetExperimentStatusResponse
     properties: ExperimentPropertiesResponse
 
 
@@ -59,3 +64,4 @@ class SmilesResponse:
     drug_likeness: float
     score: float
     created_at: datetime.datetime
+    stage: str

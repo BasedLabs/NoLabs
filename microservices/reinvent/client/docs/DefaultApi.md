@@ -7,10 +7,11 @@ Method | HTTP request | Description
 [**delete_jobs_job_id_delete**](DefaultApi.md#delete_jobs_job_id_delete) | **DELETE** /jobs/{job_id} | Delete
 [**get_all_jobs_jobs_get**](DefaultApi.md#get_all_jobs_jobs_get) | **GET** /jobs | Get All Jobs
 [**get_job_jobs_job_id_get**](DefaultApi.md#get_job_jobs_job_id_get) | **GET** /jobs/{job_id} | Get Job
+[**learning_jobs_job_id_learning_post**](DefaultApi.md#learning_jobs_job_id_learning_post) | **POST** /jobs/{job_id}/learning | Learning
 [**logs_jobs_job_id_logs_get**](DefaultApi.md#logs_jobs_job_id_logs_get) | **GET** /jobs/{job_id}/logs | Logs
 [**params_jobs_job_id_params_get**](DefaultApi.md#params_jobs_job_id_params_get) | **GET** /jobs/{job_id}/params | Params
 [**prepare_binder_prepare_binder_post**](DefaultApi.md#prepare_binder_prepare_binder_post) | **POST** /prepare-binder | Prepare Binder
-[**run_jobs_job_id_run_post**](DefaultApi.md#run_jobs_job_id_run_post) | **POST** /jobs/{job_id}/run | Run
+[**sampling_jobs_job_id_sampling_post**](DefaultApi.md#sampling_jobs_job_id_sampling_post) | **POST** /jobs/{job_id}/sampling | Sampling
 [**save_params_jobs_job_id_params_post**](DefaultApi.md#save_params_jobs_job_id_params_post) | **POST** /jobs/{job_id}/params | Save Params
 [**smiles_jobs_job_id_smiles_get**](DefaultApi.md#smiles_jobs_job_id_smiles_get) | **GET** /jobs/{job_id}/smiles | Smiles
 [**stop_jobs_job_id_stop_post**](DefaultApi.md#stop_jobs_job_id_stop_post) | **POST** /jobs/{job_id}/stop | Stop
@@ -145,7 +146,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_job_jobs_job_id_get**
-> JobResponse get_job_jobs_job_id_get(job_id)
+> ResponseGetJobJobsJobIdGet get_job_jobs_job_id_get(job_id)
 
 Get Job
 
@@ -154,7 +155,7 @@ Get Job
 
 ```python
 import reinvent_microservice
-from reinvent_microservice.models.job_response import JobResponse
+from reinvent_microservice.models.response_get_job_jobs_job_id_get import ResponseGetJobJobsJobIdGet
 from reinvent_microservice.rest import ApiException
 from pprint import pprint
 
@@ -191,7 +192,73 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**JobResponse**](JobResponse.md)
+[**ResponseGetJobJobsJobIdGet**](ResponseGetJobJobsJobIdGet.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **learning_jobs_job_id_learning_post**
+> object learning_jobs_job_id_learning_post(job_id)
+
+Learning
+
+### Example
+
+
+```python
+import reinvent_microservice
+from reinvent_microservice.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost
+# See configuration.py for a list of all supported configuration parameters.
+configuration = reinvent_microservice.Configuration(
+    host = "http://localhost"
+)
+
+
+# Enter a context with an instance of the API client
+with reinvent_microservice.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = reinvent_microservice.DefaultApi(api_client)
+    job_id = 'job_id_example' # str | 
+
+    try:
+        # Learning
+        api_response = api_instance.learning_jobs_job_id_learning_post(job_id)
+        print("The response of DefaultApi->learning_jobs_job_id_learning_post:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->learning_jobs_job_id_learning_post: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **job_id** | **str**|  | 
+
+### Return type
+
+**object**
 
 ### Authorization
 
@@ -212,7 +279,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **logs_jobs_job_id_logs_get**
-> LogsResponse logs_jobs_job_id_logs_get(job_id)
+> ResponseLogsJobsJobIdLogsGet logs_jobs_job_id_logs_get(job_id)
 
 Logs
 
@@ -221,7 +288,7 @@ Logs
 
 ```python
 import reinvent_microservice
-from reinvent_microservice.models.logs_response import LogsResponse
+from reinvent_microservice.models.response_logs_jobs_job_id_logs_get import ResponseLogsJobsJobIdLogsGet
 from reinvent_microservice.rest import ApiException
 from pprint import pprint
 
@@ -258,7 +325,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**LogsResponse**](LogsResponse.md)
+[**ResponseLogsJobsJobIdLogsGet**](ResponseLogsJobsJobIdLogsGet.md)
 
 ### Authorization
 
@@ -279,7 +346,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **params_jobs_job_id_params_get**
-> ParamsResponse params_jobs_job_id_params_get(job_id)
+> ResponseParamsJobsJobIdParamsGet params_jobs_job_id_params_get(job_id)
 
 Params
 
@@ -288,7 +355,7 @@ Params
 
 ```python
 import reinvent_microservice
-from reinvent_microservice.models.params_response import ParamsResponse
+from reinvent_microservice.models.response_params_jobs_job_id_params_get import ResponseParamsJobsJobIdParamsGet
 from reinvent_microservice.rest import ApiException
 from pprint import pprint
 
@@ -325,7 +392,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ParamsResponse**](ParamsResponse.md)
+[**ResponseParamsJobsJobIdParamsGet**](ResponseParamsJobsJobIdParamsGet.md)
 
 ### Authorization
 
@@ -411,10 +478,10 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **run_jobs_job_id_run_post**
-> object run_jobs_job_id_run_post(job_id)
+# **sampling_jobs_job_id_sampling_post**
+> object sampling_jobs_job_id_sampling_post(job_id)
 
-Run
+Sampling
 
 ### Example
 
@@ -438,12 +505,12 @@ with reinvent_microservice.ApiClient(configuration) as api_client:
     job_id = 'job_id_example' # str | 
 
     try:
-        # Run
-        api_response = api_instance.run_jobs_job_id_run_post(job_id)
-        print("The response of DefaultApi->run_jobs_job_id_run_post:\n")
+        # Sampling
+        api_response = api_instance.sampling_jobs_job_id_sampling_post(job_id)
+        print("The response of DefaultApi->sampling_jobs_job_id_sampling_post:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling DefaultApi->run_jobs_job_id_run_post: %s\n" % e)
+        print("Exception when calling DefaultApi->sampling_jobs_job_id_sampling_post: %s\n" % e)
 ```
 
 

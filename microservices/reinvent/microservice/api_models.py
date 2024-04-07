@@ -24,13 +24,14 @@ class ParamsRequest:
     epochs: int = 50
 
 
+
 @pydantic.dataclasses.dataclass
 class JobResponse:
     id: str
     name: str
     created_at: datetime.datetime
     running: bool
-    learning_completed: bool
+    sampling_allowed: bool
 
 
 @pydantic.dataclasses.dataclass
@@ -58,6 +59,7 @@ class Smiles:
     smiles: str
     drugLikeness: float
     score: float
+    stage: str
 
 
 @pydantic.dataclasses.dataclass

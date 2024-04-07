@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **name** | **object** |  | 
 **created_at** | **object** |  | 
 **running** | **object** |  | 
-**learning_completed** | **object** |  | 
+**sampling_allowed** | **object** |  | 
 
 ## Example
 

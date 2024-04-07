@@ -88,10 +88,11 @@ Class | Method | HTTP request | Description
 *DefaultApi* | [**delete_jobs_job_id_delete**](docs/DefaultApi.md#delete_jobs_job_id_delete) | **DELETE** /jobs/{job_id} | Delete
 *DefaultApi* | [**get_all_jobs_jobs_get**](docs/DefaultApi.md#get_all_jobs_jobs_get) | **GET** /jobs | Get All Jobs
 *DefaultApi* | [**get_job_jobs_job_id_get**](docs/DefaultApi.md#get_job_jobs_job_id_get) | **GET** /jobs/{job_id} | Get Job
+*DefaultApi* | [**learning_jobs_job_id_learning_post**](docs/DefaultApi.md#learning_jobs_job_id_learning_post) | **POST** /jobs/{job_id}/learning | Learning
 *DefaultApi* | [**logs_jobs_job_id_logs_get**](docs/DefaultApi.md#logs_jobs_job_id_logs_get) | **GET** /jobs/{job_id}/logs | Logs
 *DefaultApi* | [**params_jobs_job_id_params_get**](docs/DefaultApi.md#params_jobs_job_id_params_get) | **GET** /jobs/{job_id}/params | Params
 *DefaultApi* | [**prepare_binder_prepare_binder_post**](docs/DefaultApi.md#prepare_binder_prepare_binder_post) | **POST** /prepare-binder | Prepare Binder
-*DefaultApi* | [**run_jobs_job_id_run_post**](docs/DefaultApi.md#run_jobs_job_id_run_post) | **POST** /jobs/{job_id}/run | Run
+*DefaultApi* | [**sampling_jobs_job_id_sampling_post**](docs/DefaultApi.md#sampling_jobs_job_id_sampling_post) | **POST** /jobs/{job_id}/sampling | Sampling
 *DefaultApi* | [**save_params_jobs_job_id_params_post**](docs/DefaultApi.md#save_params_jobs_job_id_params_post) | **POST** /jobs/{job_id}/params | Save Params
 *DefaultApi* | [**smiles_jobs_job_id_smiles_get**](docs/DefaultApi.md#smiles_jobs_job_id_smiles_get) | **GET** /jobs/{job_id}/smiles | Smiles
 *DefaultApi* | [**stop_jobs_job_id_stop_post**](docs/DefaultApi.md#stop_jobs_job_id_stop_post) | **POST** /jobs/{job_id}/stop | Stop
@@ -103,6 +104,9 @@ Class | Method | HTTP request | Description
  - [JobResponse](docs/JobResponse.md)
  - [LogsResponse](docs/LogsResponse.md)
  - [ParamsResponse](docs/ParamsResponse.md)
+ - [ResponseGetJobJobsJobIdGet](docs/ResponseGetJobJobsJobIdGet.md)
+ - [ResponseLogsJobsJobIdLogsGet](docs/ResponseLogsJobsJobIdLogsGet.md)
+ - [ResponseParamsJobsJobIdParamsGet](docs/ResponseParamsJobsJobIdParamsGet.md)
  - [Smiles](docs/Smiles.md)
  - [SmilesResponse](docs/SmilesResponse.md)
  - [ValidationError](docs/ValidationError.md)
