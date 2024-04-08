@@ -108,7 +108,7 @@ You can ignore OPENAI_API_KEY warnings when running other services using docker 
 
 Specify the search space where designed molecule must be placed and run Reinforcement learning.
 
-WARNING: Reinforcement learning process might take a long time (with 128 molecules per 1 epoch and 5 epochs it could take a day)
+WARNING: Reinforcement learning process might take a long time (with 128 molecules per 1 epoch and 50 epochs it could take a day)
 
 <br>
 <img src="media/small_molecules_design.png" width="100%">

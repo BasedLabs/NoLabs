@@ -74,6 +74,7 @@ export default defineComponent({
       }
 
       setTimeout(async () => {
+        this.loading = true;
         this.$refs.viewport!.innerHTML = '';
         const stage = new NGL.Stage(this.$refs.viewport);
         stage.setParameters({backgroundColor: this.blackBackground ? 'black' : 'white'});
@@ -94,7 +95,7 @@ export default defineComponent({
         player.play();
         pdbComponent.addRepresentation("unitcell");
         pdbComponent.autoView();
-
+        this.loading = false;
       }, 500);
     },
     async loadFileIntoStage(stage: any, selectedRepresentation: string, asTrajectory: boolean = false) {
