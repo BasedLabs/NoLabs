@@ -20,7 +20,8 @@ class SendMessageToBioBuddyRequest(BaseModelMixin):
 
 @pcdataclass.dataclass
 class SendMessageToBioBuddyResponse(BaseModelMixin):
-    chatgpt_reply: str
+    reply_type: str
+    content: str
 
 @pcdataclass.dataclass
 class IsJobRunningResponse:
