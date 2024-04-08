@@ -1,3 +1,5 @@
+from typing import Optional
+
 from reinvent_microservice import Configuration, ApiClient, DefaultApi
 
 from nolabs.api_models.small_molecules_design import GetExperimentResponse, ExperimentPropertiesResponse, \
@@ -12,7 +14,7 @@ class GetExperimentFeature:
         self._settings = settings
         self._fm = file_management
 
-    async def handle(self, experiment_id: str) -> GetExperimentResponse | None:
+    async def handle(self, experiment_id: str) -> Optional[GetExperimentResponse]:
         if not self._fm.experiment_exists(experiment_id):
             return None
 

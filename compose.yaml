@@ -1,11 +1,10 @@
 services:
   conformations:
     image: 'ghcr.io/basedlabs/conformations:1.0.0'
+    network_mode: host
     build:
       context: microservices/conformations
       dockerfile: build/Dockerfile
-    ports:
-      - "5785:5785"
     command: --host=0.0.0.0 --port=5785
     deploy:
       resources:
@@ -16,11 +15,10 @@ services:
               capabilities: [ gpu ]
   esmfold:
     image: 'ghcr.io/basedlabs/esmfold:1.0.0'
+    network_mode: host
     build:
       context: microservices/esmfold
       dockerfile: build/Dockerfile
-    ports:
-      - "5736:5736"
     command: --host=0.0.0.0 --port=5736
     deploy:
       resources:
@@ -31,19 +29,17 @@ services:
               capabilities: [ gpu ]
   esmfold_light:
     image: 'ghcr.io/basedlabs/esmfold-light:1.0.0'
+    network_mode: host
     build:
       context: microservices/esmfold_light
       dockerfile: build/Dockerfile
-    ports:
-      - "5733:5733"
     command: --host=0.0.0.0 --port=5733
   solubility:
     image: 'ghcr.io/basedlabs/solubility:1.0.0'
+    network_mode: host
     build:
       context: microservices/solubility
       dockerfile: build/Dockerfile
-    ports:
-      - "5786:5786"
     command: --host=0.0.0.0 --port=5786
     deploy:
       resources:
@@ -54,11 +50,10 @@ services:
               capabilities: [ gpu ]
   protein_design:
     image: 'ghcr.io/basedlabs/protein-design:1.0.0'
+    network_mode: host
     build:
       context: microservices/protein_design
       dockerfile: build/Dockerfile
-    ports:
-      - "5789:5789"
     command: --host=0.0.0.0 --port=5789
     deploy:
       resources:
@@ -69,11 +64,10 @@ services:
               capabilities: [ gpu ]
   localisation:
     image: 'ghcr.io/basedlabs/localisation:1.0.0'
+    network_mode: host
     build:
       context: microservices/localisation
       dockerfile: build/Dockerfile
-    ports:
-      - "5787:5787"
     command: --host=0.0.0.0 --port=5787
     deploy:
       resources:
@@ -84,12 +78,11 @@ services:
               capabilities: [ gpu ]
   gene_ontology:
     image: 'ghcr.io/basedlabs/gene-ontology:1.0.0'
+    network_mode: host
     build:
       context: microservices/gene_ontology
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5788
-    ports:
-      - "5788:5788"
     deploy:
       resources:
         reservations:
@@ -99,11 +92,10 @@ services:
               capabilities: [ gpu ]
   umol:
     image: 'ghcr.io/basedlabs/umol:1.0.0'
+    network_mode: host
     build:
       context: microservices/umol
       dockerfile: build/Dockerfile
-    ports:
-      - "5735:5735"
     command: --host=0.0.0.0 --port=5735
     deploy:
       resources:
@@ -114,11 +106,10 @@ services:
               capabilities: [ gpu ]
   diffdock:
     image: 'ghcr.io/basedlabs/diffdock:1.0.0'
+    network_mode: host
     build:
       context: microservices/diffdock
       dockerfile: build/Dockerfile
-    ports:
-      - "5737:5737"
     command: --host=0.0.0.0 --port=5737
     deploy:
       resources:
@@ -129,56 +120,51 @@ services:
               capabilities: [ gpu ]
   p2rank:
     image: 'ghcr.io/basedlabs/p2rank:1.0.0'
+    network_mode: host
     build:
       context: microservices/p2rank
       dockerfile: build/Dockerfile
-    ports:
-      - "5731:5731"
     command: --host=0.0.0.0 --port=5731
   msa_light:
     image: 'ghcr.io/basedlabs/msa-light:1.0.0'
+    network_mode: host
     build:
       context: microservices/msa_light
       dockerfile: build/Dockerfile
-    ports:
-      - "5734:5734"
     command: --host=0.0.0.0 --port=5734
   rcsb_pdb_query:
     image: 'ghcr.io/basedlabs/rcsb-pdb-query:1.0.0'
+    network_mode: host
     build:
       context: microservices/rcsb_pdb_query
       dockerfile: build/Dockerfile
-    ports:
-      - "5739:5739"
     command: --host=0.0.0.0 --port=5739
   pubmed_query:
     image: 'ghcr.io/basedlabs/pubmed-query:1.0.0'
+    network_mode: host
     build:
       context: microservices/pubmed_query
       dockerfile: build/Dockerfile
-    ports:
-      - "5740:5740"
     command: --host=0.0.0.0 --port=5740
   chembl_query:
     image: 'ghcr.io/basedlabs/chembl-query:1.0.0'
+    network_mode: host
     build:
       context: microservices/chembl_query
       dockerfile: build/Dockerfile
-    ports:
-      - "5741:5741"
     command: --host=0.0.0.0 --port=5741
   biobuddy:
     image: 'ghcr.io/basedlabs/biobuddy:1.0.0'
+    network_mode: host
     build:
       context: microservices/biobuddy
       dockerfile: build/Dockerfile
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-    ports:
-      - "5738:5738"
     command: --host=0.0.0.0 --port=5738
   rosettafold:
     image: 'ghcr.io/basedlabs/rosettafold:1.0.0'
+    network_mode: host
     build:
       context: microservices/rosettafold
       dockerfile: build/Dockerfile
@@ -186,25 +172,20 @@ services:
       - .:/RoseTTAFold/bfd
       - .:/RoseTTAFold/pdb100_2021Mar03
       - .:/RoseTTAFold/UniRef30_2020_06
-    ports:
-      - "5738:5738"
     command: --host=0.0.0.0 --port=5738
   reinvent:
     image: 'ghcr.io/basedlabs/reinvent:1.0.0'
+    network_mode: host
     build:
       context: microservices/reinvent
       dockerfile: build/Dockerfile
-    ports:
-      - "5790:5790"
     command: --host=0.0.0.0 --port=5790 --workers=1
   nolabs:
-    image: 'ghcr.io/basedlabs/nolabs:1.1.0'
+    image: 'ghcr.io/basedlabs/reinvent:1.1.1'
+    network_mode: host
     build:
       context: .
       dockerfile: build/Dockerfile
-    ports:
-      - "8000:8000"
-      - "9000:9000"
     environment:
       - ENABLE_BIOBUDDY=${ENABLE_BIOBUDDY:-false}
     command: --host=0.0.0.0

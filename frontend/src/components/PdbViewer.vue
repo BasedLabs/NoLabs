@@ -90,7 +90,7 @@ export default defineComponent({
         pdbComponent.addRepresentation("unitcell");
         pdbComponent.autoView();
 
-      }, 100);
+      }, 500);
     },
     async loadFileIntoStage(stage: any, selectedRepresentation: string, asTrajectory: boolean = false) {
       let component: any;
@@ -143,7 +143,7 @@ export default defineComponent({
 
         const component = await this.loadFileIntoStage(stage, selectedRepresentation);
         component.autoView();
-      }, 100);
+      }, 500);
     },
     async render(selectedRepresentation: string) {
       if (this.$options.stage) {
