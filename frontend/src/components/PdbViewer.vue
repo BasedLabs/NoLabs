@@ -43,7 +43,8 @@ export default defineComponent({
       selectedRepresentation: PdbViews.default,
       blackBackground: true,
       stage: null,
-      lastClickedAtomPosition: null
+      lastClickedAtomPosition: null,
+      loading: false
     }
   },
   watch: {
@@ -68,6 +69,10 @@ export default defineComponent({
       }
     },
     async renderSimulation(selectedRepresentation: string) {
+      if(!this.pdbFile?.size){
+        return;
+      }
+
       setTimeout(async () => {
         this.$refs.viewport!.innerHTML = '';
         const stage = new NGL.Stage(this.$refs.viewport);
@@ -127,7 +132,12 @@ export default defineComponent({
       return component;
     },
     async renderStatic(selectedRepresentation: string) {
+      if(!this.pdbFile?.size){
+        return;
+      }
+
       setTimeout(async () => {
+        this.loading = true;
         this.$refs.viewport!.innerHTML = '';
         const stage = new NGL.Stage(this.$refs.viewport);
         stage.setParameters({backgroundColor: this.blackBackground ? 'black' : 'white'});
@@ -143,6 +153,7 @@ export default defineComponent({
 
         const component = await this.loadFileIntoStage(stage, selectedRepresentation);
         component.autoView();
+        this.loading = false;
       }, 500);
     },
     async render(selectedRepresentation: string) {
@@ -217,6 +228,10 @@ export default defineComponent({
     </q-card-section>
     <q-card-section>
       <div ref="viewport" style="width: 100%; min-height: 500px;"></div>
+      <q-inner-loading
+        :showing="loading"
+        label="Loading"
+      />
     </q-card-section>
   </q-card>
 </template>
