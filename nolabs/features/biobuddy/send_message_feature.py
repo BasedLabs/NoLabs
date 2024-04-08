@@ -1,3 +1,4 @@
+import ast
 import dataclasses
 import json
 from typing import List, Dict
@@ -18,7 +19,7 @@ from nolabs.features.biobuddy.functions.base_function import BiobuddyFunction
 from nolabs.infrastructure.settings import Settings
 
 class SendMessageFeature:
-    def __init__(self, settings: Settings, file_management: FileManagement, functions: List[BiobuddyFunction] = None):
+    def __init__(self, settings: Settings, file_management: FileManagement, functions: List[BiobuddyFunction]):
         self._file_management = file_management
         self._settings = settings
         self._functions = {function.name: function for function in functions}
@@ -37,40 +38,43 @@ class SendMessageFeature:
 
             previous_messages = self.get_previous_messages(experiment_id)
 
-            request = biobuddy_microservice.SendMessageToBioBuddyRequest(message_content=request.message_content,
+            biobuddy_request = biobuddy_microservice.SendMessageToBioBuddyRequest(message_content=request.message_content,
                                                                          previous_messages=previous_messages,
                                                                          tools=self._tools)
             assistant_message = api_instance.predict_send_message_post(
-                send_message_to_bio_buddy_request=request).chatgpt_reply
+                send_message_to_bio_buddy_request=biobuddy_request)
 
-            print(assistant_message)
-            if assistant_message.tool_calls and assistant_message.tool_calls.actual_instance:
-                function_name = assistant_message.tool_calls.actual_instance[0]['function']['name']
-                arguments = json.loads(assistant_message.tool_calls.actual_instance[0]['function']['arguments'])
-                if function_name in self._functions:
-                    function_call = self._functions[function_name].execute(experiment_id=experiment_id,
-                                                                           arguments=arguments)
-                    self._file_management.update_conversation(experiment_id,
-                                                              Message(role='user',
-                                                                      message=RegularMessage(
-                                                                          content=request.message_content
-                                                                      ),
-                                                                      type='text')
-                                                              )
-                    self._file_management.update_conversation(experiment_id,
-                                                              Message(role='assistant',
-                                                                      message=FunctionCall(
-                                                                          function_name=function_call.function_name,
-                                                                          parameters=[FunctionParam(name=param.name,
-                                                                                                    value=param.value) for param in
-                                                                                      function_call.parameters]
-                                                                                           ),
-                                                                      type="function")
-                                                              )
-                    return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
-                                                                            message=ApiFunctionCall(**dataclasses.asdict(function_call)),
-                                                                            type="function")
-                                               )
+            if assistant_message.reply_type == "function_calls":
+                function_calls = ast.literal_eval(assistant_message.content)
+                for function_call in function_calls:
+                    function_dict = function_call['function_call']
+                    function_name = function_dict['name']
+                    arguments = json.loads(function_dict['arguments'])
+                    print(function_name, arguments)
+                    if function_name in self._functions:
+                        function_call = self._functions[function_name].execute(experiment_id=experiment_id,
+                                                                               arguments=arguments)
+                        self._file_management.update_conversation(experiment_id,
+                                                                  Message(role='user',
+                                                                          message=RegularMessage(
+                                                                              content=request.message_content
+                                                                          ),
+                                                                          type='text')
+                                                                  )
+                        self._file_management.update_conversation(experiment_id,
+                                                                  Message(role='assistant',
+                                                                          message=FunctionCall(
+                                                                              function_name=function_call.function_name,
+                                                                              parameters=[FunctionParam(name=param.name,
+                                                                                                        value=param.value) for param in
+                                                                                          function_call.parameters]
+                                                                                               ),
+                                                                          type="function")
+                                                                  )
+                        return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
+                                                                                message=ApiFunctionCall(**dataclasses.asdict(function_call)),
+                                                                                type="function")
+                                                   )
 
             else:
                 self._file_management.update_conversation(experiment_id,
@@ -84,13 +88,13 @@ class SendMessageFeature:
                                                           Message(role='assistant',
                                                                   message=RegularMessage(
                                                                       content=str(
-                                                                          assistant_message.content.actual_instance)
+                                                                          assistant_message.content)
                                                                   ),
                                                                   type='text')
                                                           )
                 return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
                                                                         message=ApiRegularMessage(
-                                                                            content=str(assistant_message.content.actual_instance)
+                                                                            content=str(assistant_message.content)
                                                                         ),
                                                                         type='text')
                                            )
@@ -136,10 +140,10 @@ class SendMessageFeature:
         messages = self._file_management.load_conversation(experiment_id)
         previous_messages = []
         for message in messages:
-            if message.type == "text":
+            if type(message) == RegularMessage:
                 previous_messages.append({'role': message.role,
                                           'content': str(message.message.content)})
-            elif message.type == "function":
+            elif type(message) == FunctionCall:
                 previous_messages.append({'role': message.role,
                                           'content': f"I called {message.message.function_name} with parameters:"
                                                      f"{message.message.parameters}"})

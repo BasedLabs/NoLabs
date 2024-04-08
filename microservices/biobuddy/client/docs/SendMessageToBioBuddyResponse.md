@@ -5,7 +5,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**chatgpt_reply** | [**ChatCompletionMessage**](ChatCompletionMessage.md) |  | 
+**reply_type** | **str** |  | 
+**content** | **str** |  | 
 
 ## Example
 

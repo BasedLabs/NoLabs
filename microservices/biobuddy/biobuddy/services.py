@@ -69,10 +69,18 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
         for action in plan_actions:
             print(action)
             action_completion = chat_model.invoke( [HumanMessage(content=action)], functions=openai_functions)
-            function_calls.append(str(action_completion))
+            function_calls.append(str(action_completion.additional_kwargs))
 
-        response_content = "\n".join(function_calls)
+        response_content = str(function_calls)
+        return SendMessageToBioBuddyResponse(
+            reply_type="function_calls",
+            content=response_content
+        )
     else:
         response_content = completion.content
+        return SendMessageToBioBuddyResponse(
+            reply_type="regular_reply",
+            content=response_content
+        )
 
-    return SendMessageToBioBuddyResponse(chatgpt_reply=response_content)
+
