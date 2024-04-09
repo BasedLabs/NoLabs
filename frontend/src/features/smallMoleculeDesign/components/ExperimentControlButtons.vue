@@ -36,16 +36,16 @@ export default defineComponent({
 </script>
 
 <template>
-  <q-btn align="between" outline size="lg" class="q-mx-md" color="positive" v-if="showRunButton" icon="biotech"
+  <q-btn align="between" outline size="md" class="q-mx-md" color="positive" v-if="showRunButton" icon="biotech"
          @click="startExperiment">Start learning
     <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
       Start AI learning with provided parameters and protein receptor
     </q-tooltip>
   </q-btn>
-  <q-btn align="between" outline size="lg" class="q-mx-md" color="negative" v-if="showStopButton" square dense
+  <q-btn align="between" outline size="md" class="q-mx-md" color="negative" v-if="showStopButton" square dense
          @click="stopExperiment" icon="stop">Stop experiment
   </q-btn>
-  <q-btn align="between" outline size="lg" class="q-mx-md" color="positive" v-if="showSamplingButton" square dense
+  <q-btn align="between" outline size="md" class="q-mx-md" color="positive" v-if="showSamplingButton" square dense
          @click="startSampling">
     Start sampling
     <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">

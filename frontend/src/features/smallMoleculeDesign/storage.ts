@@ -1,8 +1,5 @@
 import {defineStore} from "pinia";
-import {
-  OpenAPI,
-  SmallMoleculesDesignService
-} from "../../api/client";
+import {OpenAPI, SmallMoleculesDesignService} from "../../api/client";
 import apiConstants from "../../api/constants";
 import {obtainErrorResponse} from "../../api/errorWrapper";
 import {Notify} from "quasar";
@@ -62,7 +59,7 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
 
       ensureNotError(smiles);
 
-      const result = smiles.map(x => {
+      return smiles.map(x => {
         return {
           smiles: x.smiles,
           drugLikeness: x.drug_likeness,
@@ -71,8 +68,6 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
           createdAt: new Date(x.created_at),
         };
       });
-      console.log(result);
-      return result;
     },
     async status(experimentId: string): Promise<Status>{
       const status = await SmallMoleculesDesignService.statusApiV1SmallMoleculesDesignExperimentExperimentIdStatusGet(experimentId);

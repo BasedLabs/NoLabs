@@ -1,6 +1,12 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
 import {PdbViews} from "src/components/types";
+import {ExperimentProperties} from "../features/proteinDesign/types";
+
+
+interface OnAtomClick {
+  (stage: any, coordinates: {x: number, y: number, z: number}): void;
+}
 
 
 export default defineComponent({
@@ -36,6 +42,10 @@ export default defineComponent({
     fileNamePrefix: {
       type: String,
       required: false
+    },
+    onAtomClick: {
+      type: Function as PropType<OnAtomClick>,
+      required: false
     }
   },
   data() {
@@ -69,13 +79,15 @@ export default defineComponent({
       }
     },
     async renderSimulation(selectedRepresentation: string) {
-      if(!this.pdbFile?.size){
+      if (!this.pdbFile?.size) {
         return;
       }
 
       setTimeout(async () => {
         this.loading = true;
-        this.$refs.viewport!.innerHTML = '';
+        if (this.$refs.viewport) {
+          this.$refs.viewport!.innerHTML = '';
+        }
         const stage = new NGL.Stage(this.$refs.viewport);
         stage.setParameters({backgroundColor: this.blackBackground ? 'black' : 'white'});
         const pdbComponent = await this.loadFileIntoStage(stage, selectedRepresentation, true);
@@ -128,18 +140,20 @@ export default defineComponent({
           color: "blue",
         });
       }
-      component.addRepresentation("unitcell");
+
       this.$refs.viewport.addEventListener('mouseover', this.handleMouseover)
       return component;
     },
     async renderStatic(selectedRepresentation: string) {
-      if(!this.pdbFile?.size){
+      if (!this.pdbFile?.size) {
         return;
       }
 
       setTimeout(async () => {
         this.loading = true;
-        this.$refs.viewport!.innerHTML = '';
+        if (this.$refs.viewport) {
+          this.$refs.viewport!.innerHTML = '';
+        }
         const stage = new NGL.Stage(this.$refs.viewport);
         stage.setParameters({backgroundColor: this.blackBackground ? 'black' : 'white'});
         this.$options.stage = stage;
@@ -147,8 +161,12 @@ export default defineComponent({
         stage.signals.clicked.add((pickingProxy) => {
           // Check if the pickingProxy is valid and represents an atom
           if (pickingProxy && pickingProxy.atom) {
-            this.lastClickedAtomPosition = pickingProxy.atom.positionToVector3();
-            console.log(this.lastClickedAtomPosition);
+            const vector = pickingProxy.atom.positionToVector3();
+            this.lastClickedAtomPosition = vector
+
+            if(this.onAtomClick){
+              this.onAtomClick(stage, vector);
+            }
           }
         });
 
@@ -223,7 +241,9 @@ export default defineComponent({
         </div>
         <div class="col" v-if="lastClickedAtomPosition">
           Atom position
-          {{ lastClickedAtomPosition.x.toFixed(2) }},{{ lastClickedAtomPosition.y.toFixed(2) }},{{ lastClickedAtomPosition.z.toFixed(2) }}
+          {{ lastClickedAtomPosition.x.toFixed(2) }},{{
+            lastClickedAtomPosition.y.toFixed(2)
+          }},{{ lastClickedAtomPosition.z.toFixed(2) }}
         </div>
       </div>
     </q-card-section>

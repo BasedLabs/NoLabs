@@ -1,5 +1,5 @@
 <script lang="ts">
-import {defineComponent} from "vue";
+import {defineComponent, toRaw} from "vue";
 import PdbViewer from '../../components/PdbViewer.vue';
 import useSmallMoleculesDesignStore from "./storage";
 import {Notify, QSpinnerOrbit} from "quasar";
@@ -7,11 +7,23 @@ import LogsModal from "./components/LogsModal.vue";
 import ExperimentControlButtons from "./components/ExperimentControlButtons.vue";
 import ExperimentHeader from "../../components/ExperimentHeader.vue";
 
+interface ShapeCoordinates {
+  x: number;
+  y: number;
+  z: number;
+  sizeX: number;
+  sizeY: number;
+  sizeZ: number;
+}
+
 interface Data {
   smilesData: Smiles[];
   experiment: Experiment | null;
   interval: any;
   logsModalVisible: boolean;
+  pdbShape: any,
+  pdbStage: any,
+  shapeCoordinates: ShapeCoordinates | null
 }
 
 export default defineComponent({
@@ -59,18 +71,52 @@ export default defineComponent({
       experiment: null as Experiment | null,
       interval: null,
       logsModalVisible: false,
+      pdbShape: null,
+      pdbStage: null,
+      shapeCoordinates: null
     }
   },
   computed: {
     readonly() {
       return this.experiment!.running;
     },
-    smilesDataLength() {
-      return this.smilesData.length;
+  },
+  watch: {
+    shapeCoordinates(newCoordinates: ShapeCoordinates) {
+      setTimeout(() => {
+        this.renderSearchBox(
+          newCoordinates.x,
+          newCoordinates.y,
+          newCoordinates.z,
+          newCoordinates.sizeX,
+          newCoordinates.sizeY,
+          newCoordinates.sizeZ
+        );
+      }, 100);
+    },
+    experiment: {
+      handler(newExperiment: Experiment) {
+        if (!this.shapeCoordinates ||
+          newExperiment.properties.centerX != this.shapeCoordinates.x ||
+          newExperiment.properties.centerY != this.shapeCoordinates.y ||
+          newExperiment.properties.centerZ != this.shapeCoordinates.z ||
+          newExperiment.properties.sizeX != this.shapeCoordinates.sizeX ||
+          newExperiment.properties.sizeY != this.shapeCoordinates.sizeY ||
+          newExperiment.properties.sizeZ != this.shapeCoordinates.sizeZ) {
+          this.shapeCoordinates = {
+            x: newExperiment.properties.centerX,
+            y: newExperiment.properties.centerY,
+            z: newExperiment.properties.centerZ,
+            sizeX: newExperiment.properties.sizeX,
+            sizeY: newExperiment.properties.sizeY,
+            sizeZ: newExperiment.properties.sizeZ
+          }
+        }
+      }, deep: true
     }
   },
   methods: {
-    copyContent(s: string){
+    copyContent(s: string) {
       navigator.clipboard.writeText(s);
       Notify.create({
         type: "positive",
@@ -96,6 +142,50 @@ export default defineComponent({
       } finally {
         this.$q.loading.hide();
       }
+    },
+    renderSearchBox(x: number, y: number, z: number, sizeX: number, sizeY: number, sizeZ: number) {
+      if (!this.pdbStage) {
+        return;
+      }
+
+      if (this.pdbShape) {
+        try {
+          toRaw(this.pdbShape).removeAllRepresentations();
+          this.pdbStage.removeComponent(toRaw(this.pdbShape));
+        }
+        catch{
+
+        }
+      }
+
+      const shape = new NGL.Shape("shape");
+
+      const distance = Math.sqrt(
+        Math.pow(x - (x + sizeX), 2) +
+        Math.pow(y - (y + sizeY), 2) +
+        Math.pow(z - (z + sizeZ), 2)
+      );
+
+      var boxBuffer = new NGL.BoxBuffer({
+        position: new Float32Array([x, y, z]),
+        color: new Float32Array([1, 0, 1]),
+        size: new Float32Array([sizeX]),
+        heightAxis: new Float32Array([0, sizeY, 0]),
+        depthAxis: new Float32Array([0, 0, sizeZ])
+      });
+      shape.addBuffer(boxBuffer)
+      const shapeComp = toRaw(this.pdbStage).addComponentFromObject(shape)
+      shapeComp.addRepresentation("buffer", {opacity: 0.4});
+      this.pdbShape = shapeComp;
+    },
+    onAtomClick(stage: any, coordinates: { x: number, y: number, z: number }) {
+      this.pdbStage = stage;
+      this.experiment!.properties.centerX = coordinates.x;
+      this.experiment!.properties.centerY = coordinates.y;
+      this.experiment!.properties.centerZ = coordinates.z;
+    },
+    onPdbInputClear() {
+      this.experiment!.properties.pdbFile = null;
     },
     async startExperiment(id: string) {
       this.$q.dialog({
@@ -174,6 +264,12 @@ export default defineComponent({
   </ExperimentHeader>
   <q-separator></q-separator>
   <div class="row justify-end q-pa-md" v-if="experiment">
+    <q-banner class="bg-primary text-white">
+      <q-badge color="positive">
+        HINT
+      </q-badge>
+      Click on the atom to fill-up a center of the search box. Enter SizeXYZ to set size of the search box.
+    </q-banner>
     <div class="q-mx-md" v-if="experiment.running">
       <q-spinner-orbit
         color="white"
@@ -181,7 +277,9 @@ export default defineComponent({
       />
       <q-tooltip :offset="[0, 8]">Loading</q-tooltip>
     </div>
-    <q-btn outline align="between" class="q-mx-md" size="lg" color="info" @click="toggleLogs" icon="timeline">Open logs</q-btn>
+    <q-btn outline align="between" class="q-mx-md" size="md" color="info" @click="toggleLogs" icon="timeline">Open
+      logs
+    </q-btn>
     <ExperimentControlButtons :start-sampling="startSampling" :stop-experiment="stopExperiment"
                               :start-experiment="startExperiment" :experiment="experiment"/>
   </div>
@@ -198,13 +296,13 @@ export default defineComponent({
           <q-tr :props="props">
             <q-td key="smiles" :props="props" class="row justify-center">
               <q-btn outline color="info" icon="content_copy" size="xs" @click="copyContent(props.row.smiles)"/>
-              <q-input class="q-pl-xs" v-model="props.row.smiles" readonly dense />
+              <q-input class="q-pl-xs" v-model="props.row.smiles" readonly dense/>
             </q-td>
             <q-td key="drugLikeness" :props="props">
-                {{ props.row.drugLikeness.toFixed(2) }}
+              {{ props.row.drugLikeness.toFixed(2) }}
             </q-td>
             <q-td key="score" :props="props">
-                {{ props.row.score.toFixed(2) }}
+              {{ props.row.score.toFixed(2) }}
             </q-td>
             <q-td key="stage" :props="props">
               {{ props.row.stage }}
@@ -216,9 +314,10 @@ export default defineComponent({
     <div class="col-xs-12 col-md-5">
       <p class="text-subtitle1">PDB Viewer</p>
       <PdbViewer v-if="experiment?.properties.pdbFile" :pdb-file="experiment!.properties.pdbFile"
+                 :on-atom-click="onAtomClick"
                  :key="experiment!.properties.pdbFile?.name"/>
       <div v-if="!experiment?.properties.pdbFile" class="justify-center">
-        <q-icon name="warning" color="warning" size="3rem" />
+        <q-icon name="warning" color="warning" size="3rem"/>
         PDB file is not uploaded
       </div>
     </div>
@@ -229,12 +328,11 @@ export default defineComponent({
           <q-file v-if="experiment!.properties" filled bottom-slots accept=".pdb"
                   v-model="experiment!.properties.pdbFile"
                   :readonly="readonly"
+                  clearable
+                  @clear="onPdbInputClear"
                   label=".pdb file" counter>
             <template v-slot:prepend>
               <q-icon name="cloud_upload" @click.stop.prevent/>
-            </template>
-            <template v-slot:append>
-              <q-icon name="close" class="cursor-pointer"/>
             </template>
             <template v-slot:hint>
               Upload .pdb file
@@ -243,42 +341,42 @@ export default defineComponent({
           <p>Search space</p>
           <q-input filled v-model="experiment!.properties.centerX" label="Center X" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               X coordinate of the center of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.centerY" label="Center Y" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Y coordinate of the center of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.centerZ" label="Center Z" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Z coordinate of the center of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.sizeX" label="Size X" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               X coordinate of the corner of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.sizeY" label="Size Y" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Y coordinate of the corner of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.sizeZ" label="Size Z" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Z coordinate of the corner of space box
             </q-tooltip>
@@ -287,16 +385,16 @@ export default defineComponent({
           <p>1 epoch training will take 20-30 min approx</p>
           <q-input filled v-model="experiment!.properties.batchSize" label="Epoch batch size" type="number" step="1"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
           </q-input>
           <q-input filled v-model="experiment!.properties.minscore" label="Minimum docking acceptance score"
                    type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
           </q-input>
           <q-input filled v-model="experiment!.properties.epochs" label="Epochs" type="number" step="1"
                    :readonly="readonly"
-                   :rules="[val => val && val > 0 || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
           </q-input>
         </q-scroll-area>
       </q-form>
