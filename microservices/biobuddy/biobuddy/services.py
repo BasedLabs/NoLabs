@@ -1,7 +1,5 @@
-from langchain.tools.render import render_text_description
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.tools import BaseTool
 
 from biobuddy.api_models import SendMessageToBioBuddyResponse, SendMessageToBioBuddyRequest
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage

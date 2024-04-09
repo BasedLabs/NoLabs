@@ -46,8 +46,9 @@ class SendMessageFeature:
 
             if assistant_message.reply_type == "function_calls":
                 function_calls = ast.literal_eval(assistant_message.content)
+                print(function_calls)
                 for function_call in function_calls:
-                    function_dict = function_call['function_call']
+                    function_dict = ast.literal_eval(function_call)['function_call']
                     function_name = function_dict['name']
                     arguments = json.loads(function_dict['arguments'])
                     print(function_name, arguments)
@@ -71,10 +72,10 @@ class SendMessageFeature:
                                                                                                ),
                                                                           type="function")
                                                                   )
-                        return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
-                                                                                message=ApiFunctionCall(**dataclasses.asdict(function_call)),
-                                                                                type="function")
-                                                   )
+                return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
+                                                                        message=ApiFunctionCall(**dataclasses.asdict(function_call)),
+                                                                        type="function")
+                                           )
 
             else:
                 self._file_management.update_conversation(experiment_id,
