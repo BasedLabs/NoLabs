@@ -6,7 +6,7 @@ import type { FunctionCall } from './FunctionCall';
 import type { RegularMessage } from './RegularMessage';
 export type Message = {
     role: string;
-    message: (RegularMessage | FunctionCall);
+    message: (RegularMessage | Array<FunctionCall>);
     type: string;
 };
 
