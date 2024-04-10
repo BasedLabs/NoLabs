@@ -28,5 +28,5 @@ class FunctionCall:  # Should be completely the same as in api models
 @dataclass
 class Message:  # Should be completely the same as in api models
     role: str
-    message: Union[RegularMessage, FunctionCall]
+    message: Union[RegularMessage, List[FunctionCall]]
     type: str
