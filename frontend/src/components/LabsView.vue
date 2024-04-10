@@ -78,7 +78,7 @@ export default defineComponent({
         },
         {
           name: 'Small Molecules Design Lab',
-          description: 'Design small molecules using a protein receptor',
+          description: 'Design small molecules using a protein target',
           routeName: 'Small molecules design experiments',
           imagePath: '/small_molecule.jpg'
         }

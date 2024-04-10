@@ -27,7 +27,7 @@ NoLabs is an open source biolab that lets you run experiments with the latest st
 
 The goal of the project is to accelerate bio research by making inference models easy to use for everyone. We are
 currently supporting protein biolab (predicting useful protein properties such as solubility, localisation, gene
-ontology, folding, etc.), drug discovery biolab (construct ligands and test binding to target proteins) and small molecules design biolab (design small molecules given a protein receptor and check drug-likeness and binding affinity).
+ontology, folding, etc.), drug discovery biolab (construct ligands and test binding to target proteins) and small molecules design biolab (design small molecules given a protein target and check drug-likeness and binding affinity).
 
 We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and
 contributions.
@@ -104,9 +104,9 @@ You can ignore OPENAI_API_KEY warnings when running other services using docker 
 
 **Small molecules design lab:**
 
-- Small molecules design using a protein receptor with drug-likeness scoring component [REINVENT4](https://github.com/MolecularAI/REINVENT4)
+- Small molecules design using a protein target with drug-likeness scoring component [REINVENT4](https://github.com/MolecularAI/REINVENT4)
 
-Specify the search space where designed molecule must be placed and run Reinforcement learning.
+Specify the search space (location) where designed molecule would bind relative to protein target. Then run reinforcement learning to generate new molecules in specified binding region.
 
 WARNING: Reinforcement learning process might take a long time (with 128 molecules per 1 epoch and 50 epochs it could take a day)
 

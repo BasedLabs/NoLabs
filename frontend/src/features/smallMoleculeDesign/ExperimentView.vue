@@ -160,12 +160,6 @@ export default defineComponent({
 
       const shape = new NGL.Shape("shape");
 
-      const distance = Math.sqrt(
-        Math.pow(x - (x + sizeX), 2) +
-        Math.pow(y - (y + sizeY), 2) +
-        Math.pow(z - (z + sizeZ), 2)
-      );
-
       var boxBuffer = new NGL.BoxBuffer({
         position: new Float32Array([x, y, z]),
         color: new Float32Array([1, 0, 1]),
@@ -187,7 +181,42 @@ export default defineComponent({
     onPdbInputClear() {
       this.experiment!.properties.pdbFile = null;
     },
+    validateProperties(): boolean{
+      debugger;
+      if(!this.experiment?.properties.pdbFile){
+        Notify.create({
+          type: "negative",
+          closeBtn: 'Close',
+          message: 'Pdb file is empty'
+        });
+        return false;
+      }
+
+      if(this.experiment?.properties.centerX === 0 && this.experiment?.properties.centerY === 0 && this.experiment?.properties.centerZ === 0 ){
+        Notify.create({
+          type: "negative",
+          closeBtn: 'Close',
+          message: 'Search space center has a X,Y,Z = 0'
+        });
+        return false;
+      }
+
+      if(this.experiment?.properties.sizeX === 0 || this.experiment?.properties.sizeY === 0 || this.experiment?.properties.sizeZ === 0 ){
+        Notify.create({
+          type: "negative",
+          closeBtn: 'Close',
+          message: 'Size of search box is 0'
+        });
+        return false;
+      }
+
+      return true;
+    },
     async startExperiment(id: string) {
+      if(!this.validateProperties()){
+        return;
+      }
+
       this.$q.dialog({
         title: 'Confirm',
         message: "Are you sure that you want to start AI learning with following properties? This will overwrite all existing data",
@@ -268,7 +297,7 @@ export default defineComponent({
       <q-badge color="positive">
         HINT
       </q-badge>
-      Click on the atom to fill-up a center of the search box. Enter SizeXYZ to set size of the search box.
+      Click on the atom to fill-up the center of the search box. Enter SizeXYZ to set size of the search box.
     </q-banner>
     <div class="q-mx-md" v-if="experiment.running">
       <q-spinner-orbit

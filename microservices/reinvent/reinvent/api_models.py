@@ -8,7 +8,7 @@ import pydantic
 
 @pydantic.dataclasses.dataclass
 class ParamsRequest:
-    job_id: str
+    config_id: str
 
     # size of the search box. Recommended not more than 30 armstrongs
     center_x: float
@@ -26,7 +26,7 @@ class ParamsRequest:
 
 
 @pydantic.dataclasses.dataclass
-class JobResponse:
+class ConfigurationResponse:
     id: str
     name: str
     created_at: datetime.datetime

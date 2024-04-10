@@ -1,7 +1,7 @@
 import datetime
 from typing import List
 
-from reinvent_microservice import Configuration, ApiClient, DefaultApi
+from reinvent_microservice import Configuration, ApiClient, ReinventApi
 
 from nolabs.api_models.small_molecules_design import SmilesResponse
 from nolabs.infrastructure.settings import Settings
@@ -21,9 +21,9 @@ class GetSmilesFeature:
             host=self._settings.reinvent_host,
         )
         with ApiClient(configuration=configuration) as client:
-            api_instance = DefaultApi(client)
+            api_instance = ReinventApi(client)
 
-            response = api_instance.smiles_jobs_job_id_smiles_get(experiment_id)
+            response = api_instance.smiles_api_reinvent_config_id_smiles_get(experiment_id)
 
             return [SmilesResponse(
                 smiles=s.smiles,

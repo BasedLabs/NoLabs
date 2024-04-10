@@ -10,7 +10,7 @@ from nolabs.infrastructure.settings import Settings
 
 
 @pydantic.dataclasses.dataclass
-class JobParams:
+class ReinventParams:
     center_x: float
     center_y: float
     center_z: float
@@ -35,12 +35,12 @@ class FileManagement(ExperimentsFileManagementBase):
         ef_path = self.experiment_folder(experiment_id)
         experiment_folder = DirectoryObject(ef_path)
 
-        return experiment_folder.files.first_or_default(lambda o: o.name == 'receptor.pdb')
+        return experiment_folder.files.first_or_default(lambda o: o.name == 'target.pdb')
 
     def save_pdb(self, experiment_id: ExperimentId, pdb: bytes):
         ef_path = self.experiment_folder(experiment_id)
         experiment_folder = DirectoryObject(ef_path)
-        experiment_folder.add_file('receptor.pdb').write_bytes(pdb)
+        experiment_folder.add_file('target.pdb').write_bytes(pdb)
 
     def set_params(self, experiment_id: ExperimentId, params: ExperimentPropertiesRequest):
         ef_path = self.experiment_folder(experiment_id)
@@ -57,7 +57,7 @@ class FileManagement(ExperimentsFileManagementBase):
             'epochs': params.epochs
         })
 
-    def get_params(self, experiment_id: ExperimentId) -> Optional[JobParams]:
+    def get_params(self, experiment_id: ExperimentId) -> Optional[ReinventParams]:
         ef_path = self.experiment_folder(experiment_id)
         experiment_folder = DirectoryObject(ef_path)
         params = experiment_folder.files.first_or_default(lambda o: o.name == 'params.json')
@@ -65,7 +65,7 @@ class FileManagement(ExperimentsFileManagementBase):
             return None
         j = params.read_json()
 
-        return JobParams(
+        return ReinventParams(
             center_x=j['center_x'],
             center_y=j['center_y'],
             center_z=j['center_z'],

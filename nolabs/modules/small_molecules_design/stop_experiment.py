@@ -1,4 +1,4 @@
-from reinvent_microservice import Configuration, ApiClient, DefaultApi
+from reinvent_microservice import Configuration, ApiClient, ReinventApi
 
 from nolabs.infrastructure.settings import Settings
 
@@ -12,5 +12,5 @@ class StopExperimentFeature:
             host=self._settings.reinvent_host,
         )
         with ApiClient(configuration=configuration) as client:
-            api_instance = DefaultApi(client)
-            api_instance.stop_jobs_job_id_stop_post(experiment_id)
+            api_instance = ReinventApi(client)
+            api_instance.stop_api_reinvent_config_id_jobs_stop_post(experiment_id)

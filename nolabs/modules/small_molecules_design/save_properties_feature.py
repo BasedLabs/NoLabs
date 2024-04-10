@@ -1,5 +1,4 @@
-from leaf import FileObject
-from reinvent_microservice import Configuration, ApiClient, DefaultApi
+from reinvent_microservice import Configuration, ApiClient, ReinventApi
 
 from nolabs.api_models.small_molecules_design import ExperimentPropertiesRequest
 from nolabs.domain.experiment import ExperimentId
@@ -23,10 +22,10 @@ class SavePropertiesFeature:
         tmp_pdb = self._fm.get_pdb(ExperimentId(experiment_id))
 
         with ApiClient(configuration=configuration) as client:
-            api_instance = DefaultApi(client)
+            api_instance = ReinventApi(client)
 
-            api_instance.save_params_jobs_job_id_params_post(
-                job_id=experiment_id,
+            api_instance.save_params_api_reinvent_config_id_params_post(
+                config_id=experiment_id,
                 name=metadata.name.value,
                 pdb_file=tmp_pdb.full_path,
                 center_x=request.center_x,

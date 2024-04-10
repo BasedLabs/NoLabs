@@ -39,7 +39,7 @@ export default defineComponent({
   <q-btn align="between" outline size="md" class="q-mx-md" color="positive" v-if="showRunButton" icon="biotech"
          @click="startExperiment">Start learning
     <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
-      Start AI learning with provided parameters and protein receptor
+      Start AI learning with provided parameters and protein target
     </q-tooltip>
   </q-btn>
   <q-btn align="between" outline size="md" class="q-mx-md" color="negative" v-if="showStopButton" square dense

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from reinvent_microservice import Configuration, ApiClient, DefaultApi
+from reinvent_microservice import Configuration, ApiClient, ReinventApi
 
 from nolabs.api_models.small_molecules_design import GetExperimentResponse, ExperimentPropertiesResponse, \
     GetExperimentStatusResponse
@@ -25,26 +25,26 @@ class GetExperimentFeature:
         experiment = self._fm.get_metadata(ExperimentId(experiment_id))
 
         params = self._fm.get_params(ExperimentId(experiment_id))
-        receptor = self._fm.get_pdb(ExperimentId(experiment_id))
+        target = self._fm.get_pdb(ExperimentId(experiment_id))
 
-        if not receptor:
+        if not target:
             properties = ExperimentPropertiesResponse(
                 pdb_file=None,
                 pdb_file_name=None,
                 center_x=0.0,
                 center_y=0.0,
                 center_z=0.0,
-                size_x=0.0,
-                size_y=0.0,
-                size_z=0.0,
+                size_x=5.0,
+                size_y=5.0,
+                size_z=5.0,
                 batch_size=128,
                 minscore=0.4,
                 epochs=50
             )
         else:
             properties = ExperimentPropertiesResponse(
-                pdb_file=receptor.read_string(),
-                pdb_file_name=receptor.name,
+                pdb_file=target.read_string(),
+                pdb_file_name=target.name,
                 center_x=params.center_x,
                 center_y=params.center_y,
                 center_z=params.center_z,
@@ -57,11 +57,11 @@ class GetExperimentFeature:
             )
 
         with ApiClient(configuration=configuration) as client:
-            api_instance = DefaultApi(client)
+            api_instance = ReinventApi(client)
 
-            job_result = api_instance.get_job_jobs_job_id_get(experiment_id)
+            config_result = api_instance.get_config_api_reinvent_reinvent_config_id_get(experiment_id)
 
-            if not job_result:
+            if not config_result:
                 return GetExperimentResponse(
                     experiment_id=experiment_id,
                     experiment_name=experiment.name.value,
@@ -70,10 +70,10 @@ class GetExperimentFeature:
                     properties=properties
                 )
 
-            job = job_result.actual_instance
+            config = config_result.actual_instance
 
-            running = job.running if job_result else False
-            sampling_allowed = job.sampling_allowed if job_result else False
+            running = config.running if config_result else False
+            sampling_allowed = config.sampling_allowed if config_result else False
 
             return GetExperimentResponse(
                 experiment_id=experiment_id,

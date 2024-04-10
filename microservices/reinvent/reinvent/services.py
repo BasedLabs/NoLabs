@@ -10,15 +10,15 @@ from enum import Enum
 import toml
 
 import uuid
-from typing import List, Any, Optional, Tuple
+from typing import List, Any, Optional, Tuple, Set
 
 from fastapi import UploadFile
 
 from leaf import FileObject, DirectoryObject
 from starlette.responses import FileResponse
 
-from microservice.api_models import JobResponse, ParamsRequest, LogsResponse, ParamsResponse, Smiles, SmilesResponse
-from microservice.exceptions import ReinventException, ErrorCode
+from reinvent.api_models import ConfigurationResponse, ParamsRequest, LogsResponse, ParamsResponse, Smiles, SmilesResponse
+from reinvent.exceptions import ReinventException, ErrorCode
 
 
 class RunType(Enum):
@@ -27,63 +27,64 @@ class RunType(Enum):
 
 
 @dataclasses.dataclass
-class Process:
+class Configuration:
     id: str
     name: str
-    running: bool
     created_at: datetime.datetime
     pdbqt_content: str
     pdbqt_filename: str
     params: ParamsRequest
     directory: DirectoryObject
     handler: Any
-    was_started: bool
+    learning_started: bool
+    generated_smiles_set: Set[str]
+    generated_smiles: List[Smiles]
 
     def __str__(self):
         return f'Process: {self.id}'
 
 
-processes: List[Process] = []
+configurations: List[Configuration] = []
 
 
-def get_process(id) -> Process | None:
-    p = [p for p in processes if p if p.id == id]
+def get_configuration(config_id) -> Configuration | None:
+    p = [p for p in configurations if p if p.id == config_id]
     if p:
         return p[0]
     return None
 
 
-class Inference:
+class Reinvent:
     def __init__(self):
-        self.fs = DirectoryObject(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inference'))
+        self.fs = DirectoryObject(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reinvent_configs'))
 
-    def get_job(self, id: str) -> Optional[JobResponse]:
-        process = get_process(id)
-        if not process:
+    def get_config(self, config_id: str) -> Optional[ConfigurationResponse]:
+        configuration = get_configuration(config_id)
+        if not configuration:
             return None
 
-        running, sampling_allowed = self._check_status(process)
+        running, sampling_allowed = self._check_status(configuration)
 
-        return JobResponse(
-            id=id,
-            name=process.params.name,
-            created_at=process.created_at,
+        return ConfigurationResponse(
+            id=config_id,
+            name=configuration.params.name,
+            created_at=configuration.created_at,
             running=running,
             sampling_allowed=sampling_allowed
         )
 
-    def _check_status(self, process: Process) -> Tuple[bool, bool]:
-        chkpt = process.directory.files.first_or_default(lambda o: o.name == 'rl_direct.chkpt')
+    def _check_status(self, configuration: Configuration) -> Tuple[bool, bool]:
+        chkpt = configuration.directory.files.first_or_default(lambda o: o.name == 'rl_direct.chkpt')
 
-        running = process.handler and process.handler.poll() is None
-        sampling_allowed = process.was_started and not running and chkpt is not None
+        running = configuration.handler is not None and configuration.handler.poll() is None
+        sampling_allowed = configuration.learning_started and not running and chkpt is not None
 
         return (running, sampling_allowed)
 
-    def get_logs(self, id: str) -> Optional[LogsResponse]:
-        directory = self.fs.directories.first_or_default(lambda o: o.name == id)
-        process = get_process(id)
-        if not process:
+    def get_logs(self, config_id: str) -> Optional[LogsResponse]:
+        directory = self.fs.directories.first_or_default(lambda o: o.name == config_id)
+        config = get_configuration(config_id)
+        if not config:
             return None
 
         log_output = directory.files.first_or_default(lambda o: o.name == 'output.log')
@@ -96,29 +97,29 @@ class Inference:
             errors=errors_output.read_string()
         )
 
-    def get_params(self, id: str) -> Optional[ParamsResponse]:
-        process = get_process(id)
-        if not process:
+    def get_params(self, config_id: str) -> Optional[ParamsResponse]:
+        config = get_configuration(config_id)
+        if not config:
             return None
 
         return ParamsResponse(
-            center_x=process.params.center_x,
-            center_y=process.params.center_y,
-            center_z=process.params.center_z,
-            size_x=process.params.size_x,
-            size_y=process.params.size_y,
-            size_z=process.params.size_z,
-            batch_size=process.params.batch_size,
-            minscore=process.params.minscore,
-            epochs=process.params.epochs
+            center_x=config.params.center_x,
+            center_y=config.params.center_y,
+            center_z=config.params.center_z,
+            size_x=config.params.size_x,
+            size_y=config.params.size_y,
+            size_z=config.params.size_z,
+            batch_size=config.params.batch_size,
+            minscore=config.params.minscore,
+            epochs=config.params.epochs
         )
 
-    def all_jobs(self) -> List[JobResponse]:
+    def all_configs(self) -> List[ConfigurationResponse]:
         result = []
         for run_dir in self.fs.children:
-            job = self.get_job(run_dir.name)
-            if job:
-                result.append(job)
+            config = self.get_config(run_dir.name)
+            if config:
+                result.append(config)
         return result
 
     async def _prepare_pdbqt(self, pdb: UploadFile) -> FileObject:
@@ -137,16 +138,15 @@ class Inference:
     def run_reinforcement_learning(self, RL_toml_file: FileObject, log_file: FileObject, error_file: FileObject,
                                    directory: DirectoryObject) -> \
             subprocess.Popen[bytes]:
-        """Returns PID of the process"""
         run_reinforcement_learning_shell = directory.first_or_default(
             lambda o: o.name == 'start_reinforcement_learning.sh')
         return subprocess.Popen([run_reinforcement_learning_shell.full_path,
                                  RL_toml_file.full_path,
                                  error_file.full_path,
                                  log_file.full_path
-                                 ], shell=False, stdout=sys.stdout, stderr=sys.stderr)
+                                 ], stdout=sys.stdout, stderr=sys.stderr)
 
-    def prepare_dockstream_config(self,
+    def _prepare_dockstream_config(self,
                                   request: ParamsRequest,
                                   pdbqt: FileObject,
                                   logfile: FileObject,
@@ -226,32 +226,35 @@ class Inference:
         scoring_config.write_string(toml.dumps(scoring_config_toml))
         return scoring_config
 
-    async def stop(self, id: str):
-        process = get_process(id)
-        if not process:
+    async def stop(self, config_id: str):
+        config = get_configuration(config_id)
+        if not config:
             return
 
-        process.handler.kill()
+        if config.handler:
+            config.handler.kill()
 
-    async def delete(self, id: str):
-        global processes
-        process = get_process(id)
-        if not process:
+    async def delete(self, config_id: str):
+        global configurations
+        config = get_configuration(config_id)
+        if not config:
             return
 
-        process.directory.delete()
-        process.handler.kill()
-        processes = [p for p in processes if p.id != id]
+        config.directory.delete()
+        config.handler.kill()
+        configurations = [p for p in configurations if p.id != config.id]
 
     async def save_params(self, pdb_file: UploadFile, request: ParamsRequest):
         if not pdb_file:
             raise ReinventException(ErrorCode.PDB_NOT_PROVIDED)
 
+        await self.delete(request.config_id)
+
         pdbqt_file = await self._prepare_pdbqt(pdb_file)
 
-        id = request.job_id
-        directory = self.fs.copy(self.fs.add_directory(id))
-        directory.directories.first_or_default(lambda o: o.name == id).delete()
+        config_id = request.config_id
+        directory = self.fs.copy(self.fs.add_directory(config_id))
+        directory.directories.first_or_default(lambda o: o.name == config_id).delete()
         pdbqt = directory.add_file(pdbqt_file.name)
         pdbqt.write_bytes(pdbqt_file.read_bytes())
 
@@ -259,7 +262,7 @@ class Inference:
 
         docking_log_file = directory.add_file('docking.log')
 
-        dockstream_config = self.prepare_dockstream_config(request, pdbqt, docking_log_file, directory)
+        dockstream_config = self._prepare_dockstream_config(request, pdbqt, docking_log_file, directory)
         self.prepare_rl(request.minscore, request.batch_size, request.epochs,
                         csv_result, dockstream_config, directory)
         self.prepare_sampling(directory)
@@ -268,10 +271,9 @@ class Inference:
         directory.add_file('output.log')
         directory.add_file('error.log')
 
-        processes.append(
-            Process(
-                id=id,
-                running=True,
+        configurations.append(
+            Configuration(
+                id=config_id,
                 name=request.name,
                 created_at=datetime.datetime.utcnow(),
                 pdbqt_filename=pdbqt.name,
@@ -279,7 +281,9 @@ class Inference:
                 params=request,
                 directory=directory,
                 handler=None,
-                was_started=False
+                learning_started=False,
+                generated_smiles=[],
+                generated_smiles_set=set()
             )
         )
 
@@ -299,33 +303,31 @@ class Inference:
                                  scoring_toml_file.full_path,
                                  error_file.full_path,
                                  log_file.full_path
-                                 ], shell=False, stdout=sys.stdout, stderr=sys.stderr)
+                                 ], stdout=sys.stdout, stderr=sys.stderr)
 
-    async def run(self, id: str, run_type: RunType):
-        process = get_process(id)
+    async def run(self, config_id: str, run_type: RunType):
+        config = get_configuration(config_id)
 
-        directory = process.directory
+        directory = config.directory
 
         log_file = directory.files.first_or_default(lambda o: o.name == 'output.log')
         error_file = directory.files.first_or_default(lambda o: o.name == 'error.log')
 
         if run_type == RunType.RL:
-            config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
-            process.handler = self.run_reinforcement_learning(config, log_file, error_file, directory)
+            rl_config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
+            config.handler = self.run_reinforcement_learning(rl_config, log_file, error_file, directory)
         if run_type == RunType.SAMPLING_SCORING:
             sampling_config = directory.files.first_or_default(lambda o: o.name == 'Sampling.toml')
             scoring_config = directory.files.first_or_default(lambda o: o.name == 'Scoring.toml')
-
-            process.handler = self.run_sampling_and_scoring(sampling_config, scoring_config, log_file, error_file,
+            config.handler = self.run_sampling_and_scoring(sampling_config, scoring_config, log_file, error_file,
                                                             directory)
 
-        process.was_started = True
+        config.learning_started = True
 
-    def get_smiles(self, id: str) -> SmilesResponse:
-        process = get_process(id)
+    def get_smiles(self, config_id: str) -> SmilesResponse:
+        process = get_configuration(config_id)
 
         if not process:
-            print(f'Could not find process with id: {id}')
             return SmilesResponse(
                 smiles=[]
             )
@@ -342,15 +344,25 @@ class Inference:
             with open(rl_direct.full_path) as f:
                 reader = csv.DictReader(f)
                 for row in list(reader):
-                    print(row)
-                    rows.append(
-                        {
-                            'SMILES': row['SMILES'],
-                            'drugLikeness': row['QED'],
-                            'Score': row['Score'],
-                            'Stage': row['step']
-                        }
-                    )
+                    smiles = row['SMILES']
+                    if smiles not in process.generated_smiles_set:
+                        rows.append(
+                            {
+                                'SMILES': smiles,
+                                'drugLikeness': row['QED'],
+                                'Score': row['Score'],
+                                'Stage': row['step']
+                            }
+                        )
+                        process.generated_smiles.append(
+                            Smiles(
+                                smiles=smiles,
+                                drugLikeness=row['QED'],
+                                score=row['Score'],
+                                stage=row['step']
+                            )
+                        )
+                        process.generated_smiles_set.add(smiles)
 
         scoring_direct = process.directory.files.first_or_default(lambda o: o.name == 'scoring_direct.csv')
 
@@ -358,23 +370,27 @@ class Inference:
             with open(scoring_direct.full_path) as f:
                 reader = csv.DictReader(f)
                 for row in list(reader):
-                    rows.append(
-                        {
-                            'SMILES': row['SMILES'],
-                            'drugLikeness': row['QED'],
-                            'Score': row['Score'],
-                            'Stage': 'Sampling'
-                        }
-                    )
+                    smiles = row['SMILES']
+                    if smiles not in process.generated_smiles_set:
+                        rows.append(
+                            {
+                                'SMILES': smiles,
+                                'drugLikeness': row['QED'],
+                                'Score': row['Score'],
+                                'Stage': 'Sampling'
+                            }
+                        )
+                        process.generated_smiles.append(
+                            Smiles(
+                                smiles=smiles,
+                                drugLikeness=row['QED'],
+                                score=row['Score'],
+                                stage='Sampling'
+                            )
+                        )
+                        process.generated_smiles_set.add(smiles)
 
         if rows:
             direct.write_json(rows)
 
-        return SmilesResponse(smiles=[
-            Smiles(
-                smiles=row['SMILES'],
-                drugLikeness=row['drugLikeness'],
-                score=row['Score'],
-                stage=row['Stage']
-            ) for row in rows
-        ])
+        return SmilesResponse(smiles=process.generated_smiles)

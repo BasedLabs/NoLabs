@@ -1,4 +1,4 @@
-from reinvent_microservice import Configuration, ApiClient, DefaultApi
+from reinvent_microservice import Configuration, ApiClient, ReinventApi
 
 from nolabs.api_models.small_molecules_design import GetExperimentStatusResponse
 from nolabs.infrastructure.settings import Settings
@@ -19,13 +19,13 @@ class GetExperimentStatusFeature:
         )
 
         with ApiClient(configuration=configuration) as client:
-            api_instance = DefaultApi(client)
+            api_instance = ReinventApi(client)
 
-            job_result = api_instance.get_job_jobs_job_id_get(experiment_id)
+            config_result = api_instance.get_config_api_reinvent_reinvent_config_id_get(experiment_id)
 
-            if not job_result:
+            if not config_result:
                 return GetExperimentStatusResponse(running=False, sampling_allowed=False)
 
-            job = job_result.actual_instance
+            config = config_result.actual_instance
 
-            return GetExperimentStatusResponse(running=job.running, sampling_allowed=job.sampling_allowed)
+            return GetExperimentStatusResponse(running=config.running, sampling_allowed=config.sampling_allowed)

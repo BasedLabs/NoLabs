@@ -14,7 +14,6 @@ ENV PATH /var/conda/bin:$PATH
 
 RUN conda --version
 
-# Install reinvent community
 RUN conda install conda-libmamba-solver
 RUN conda config --set solver libmamba
 WORKDIR /app
@@ -38,13 +37,13 @@ RUN conda env create -f /app/DockStream/environment.yml
 
 WORKDIR /app
 
-COPY microservice /app/microservice
-RUN pip install -r microservice/requirements.txt
+COPY reinvent /app/reinvent
+RUN pip install -r reinvent/requirements.txt
 
-COPY reinvent /app/microservice/inference
+COPY reinvent_configs /app/reinvent/reinvent_configs
 
-RUN sed -i 's/\r$//' /app/microservice/inference/prepare_pdbqt.sh && chmod +x /app/microservice/inference/prepare_pdbqt.sh
-RUN sed -i 's/\r$//' /app/microservice/inference/start_reinforcement_learning.sh && chmod +x /app/microservice/inference/start_reinforcement_learning.sh
-RUN sed -i 's/\r$//' /app/microservice/inference/start_sampling.sh && chmod +x /app/microservice/inference/start_sampling.sh
+RUN sed -i 's/\r$//' /app/reinvent/reinvent_configs/prepare_pdbqt.sh && chmod +x /app/reinvent/reinvent_configs/prepare_pdbqt.sh
+RUN sed -i 's/\r$//' /app/reinvent/reinvent_configs/start_reinforcement_learning.sh && chmod +x /app/reinvent/reinvent_configs/start_reinforcement_learning.sh
+RUN sed -i 's/\r$//' /app/reinvent/reinvent_configs/start_sampling.sh && chmod +x /app/reinvent/reinvent_configs/start_sampling.sh
 
-ENTRYPOINT ["uvicorn", "microservice.api:app"]
+ENTRYPOINT ["uvicorn", "reinvent.api:app"]

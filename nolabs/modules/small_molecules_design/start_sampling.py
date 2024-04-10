@@ -1,4 +1,4 @@
-from reinvent_microservice import Configuration, ApiClient, DefaultApi
+from reinvent_microservice import Configuration, ApiClient, ReinventApi
 
 from nolabs.infrastructure.settings import Settings
 
@@ -12,5 +12,5 @@ class StartSamplingExperimentFeature:
             host=self._settings.reinvent_host,
         )
         with ApiClient(configuration=configuration) as client:
-            api_instance = DefaultApi(client)
-            api_instance.sampling_jobs_job_id_sampling_post(job_id=experiment_id)
+            api_instance = ReinventApi(client)
+            api_instance.sampling_api_reinvent_config_id_start_sampling_post(config_id=experiment_id)
