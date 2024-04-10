@@ -142,14 +142,14 @@ export default defineComponent({
       },
       async mounted() {
         const bioBuddyStore = useBioBuddyStore();
-        this.chemblQueryCallback = (data: { files: ChemBLData[] }) => {
+        this.chemblQueryCallback = async (data: { files: ChemBLData[] }) => {
           const metaDatasArray: Record<string, string>[] = [];
           for (let chemBLObject of data.files) {
             const file = new File([new Blob([chemBLObject.content!])], chemBLObject.metadata.pref_name + ".sdf");
             this.uploadingLigandFiles.push(file);
             metaDatasArray.push(chemBLObject.metadata);
           }
-          this.handleLigandFileUpload(metaDatasArray);
+          await this.handleLigandFileUpload(metaDatasArray);
         };
         bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
 

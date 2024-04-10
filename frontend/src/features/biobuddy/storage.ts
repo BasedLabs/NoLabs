@@ -26,11 +26,15 @@ export const useBioBuddyStore = defineStore('storage', {
     addQueryRcsbPdbEventHandler(callback: RcsbFunctionCallback) {
       this.queryRcsbPdbEventHandlers.push(callback);
     },
-    invokeQueryChemblEventHandlers(data: any) {
-      this.queryChemblEventHandlers.forEach(handler => handler(data));
+    async invokeQueryChemblEventHandlers(data: any) {
+      for (const handler of this.queryChemblEventHandlers) {
+        await handler(data);
+      }
     },
-    invokeQueryRcsbPdbEventHandlers(data: any) {
-      this.queryRcsbPdbEventHandlers.forEach(handler => handler(data));
+    async invokeQueryRcsbPdbEventHandlers(data: any) {
+      for (const handler of this.queryRcsbPdbEventHandlers) {
+        await handler(data);
+      }
     },
   },
 });

@@ -47,6 +47,7 @@ class SendMessageFeature:
                 send_message_to_bio_buddy_request=biobuddy_request)
 
             if assistant_message.reply_type == "function_calls":
+                print(assistant_message.content)
                 function_calls = ast.literal_eval(assistant_message.content)
                 print(function_calls)
                 self._file_management.update_conversation(experiment_id,

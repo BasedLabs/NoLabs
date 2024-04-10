@@ -8,11 +8,11 @@
       <q-item v-for="(message, index) in messages" :key="index">
         <q-item-section>
           <div v-if="message.type === 'function'" class="function-message">
-            <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
             <q-item-label class="text-h7 q-mb-sm">
               <div class="q-pb-sm q-pt-sm text-bold">
                 <img src="/Biobuddy_icon.svg" class="custom-icon" />
                 {{ displayName(message.role) }}</div>
+              <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
               <p> <q-icon name="check_circle" color="purple"></q-icon>
                 <span class="text-h7 text-purple q-ml-sm"> {{ displayContent(message) }} </span>
               </p>
@@ -22,9 +22,9 @@
                   {{ param.name }}: {{ param.value }}
                 </li>
               </ul>
+              </div>
             </q-item-label>
             </div>
-          </div>
           <div v-else>
             <q-item-label class="text-h7 q-mb-sm">
               <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
@@ -99,19 +99,19 @@ export default defineComponent({
 
       if (newMessageResponse.type === 'function') {
         const functionCall = newMessageResponse.message as FunctionCall[];
-        this.invokeFunctions(functionCall);
+        await this.invokeFunctions(functionCall);
       }
       this.newMessage = '';
       await this.loadConversation();
       this.sending = false;
     },
-    invokeFunctions(functionCalls: FunctionCall[]) {
-      functionCalls.forEach((functionCall) => {
+    async invokeFunctions(functionCalls: FunctionCall[]) {
+      for (const functionCall of functionCalls) {
         const mapping = this.functionMappings?.find(m => m.name === functionCall.function_name);
         if (mapping && typeof mapping.function === 'function') {
-          mapping.function(functionCall.data);
+          await mapping.function(functionCall.data);
         }
-      });
+      }
     },
     displayContent(message: Message) {
       if (message.type === 'text') {
