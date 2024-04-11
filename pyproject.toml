@@ -30,7 +30,6 @@ umol-microservice = {path = "microservices/umol/client"}
 esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 diffdock-microservice = {path = "microservices/diffdock/client"}
-biobuddy-microservice = {path = "microservices/biobuddy/client"}
 pubmed-query-microservice = {path = "microservices/pubmed_query/client"}
 rcsb-pdb-query-microservice = {path = "microservices/rcsb_pdb_query/client"}
 chembl-query-microservice = {path = "microservices/chembl_query/client"}
@@ -38,6 +37,7 @@ aiohttp = "^3.9.3"
 rosettafold-microservice = {path = "microservices/rosettafold/client"}
 leaf-basedlabs = "^0.0.7"
 reinvent-microservice = {path = "microservices/reinvent/client"}
+biobuddy-microservice = {path = "microservices/biobuddy/client"}
 
 [project]
 dependencies = [
