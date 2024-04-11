@@ -6,11 +6,15 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **smiles** | **object** |  | 
+**drug_likeness** | **object** |  | 
+**score** | **object** |  | 
+**created_at** | **object** |  | 
+**stage** | **object** |  | 
 
 ## Example
 
 ```python
-from reinvent_microservice.models.smiles_response import SmilesResponse
+from nolabs_microservice.models.smiles_response import SmilesResponse
 
 # TODO update the JSON string below
 json = "{}"

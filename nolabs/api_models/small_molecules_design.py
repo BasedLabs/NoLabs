@@ -65,3 +65,7 @@ class SmilesResponse:
     score: float
     created_at: datetime.datetime
     stage: str
+
+@dataclasses.dataclass
+class SamplingSizeRequest:
+    number: int

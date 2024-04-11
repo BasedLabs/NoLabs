@@ -9,6 +9,8 @@ from reinvent.api_models import ConfigurationResponse, ParamsResponse, LogsRespo
     ParamsRequest
 from reinvent.services import Reinvent, RunType
 
+from reinvent.api_models import SamplingSizeRequest
+
 app = FastAPI(
     title='Reinvent4 API',
     version='0.0.1'
@@ -20,12 +22,13 @@ preparation_router = APIRouter(prefix='/api/preparation', tags=['preparation'])
 
 @reinvent_router.post("/{config_id}/start-sampling")
 async def sampling(
-        config_id: str):
+        config_id: str,
+        request: SamplingSizeRequest):
     """
     Generate new ligands based on the provided config id.
     """
     reinvent_instance = Reinvent()
-    return await reinvent_instance.run(config_id, RunType.SAMPLING_SCORING)
+    return await reinvent_instance.run(config_id, RunType.SAMPLING_SCORING, sampling_size=request.number_of_molecules_to_design)
 
 
 @reinvent_router.post("/{config_id}/start-learning")

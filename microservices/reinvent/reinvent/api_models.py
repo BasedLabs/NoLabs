@@ -65,3 +65,8 @@ class Smiles:
 @pydantic.dataclasses.dataclass
 class SmilesResponse:
     smiles: List[Smiles]
+
+
+@pydantic.dataclasses.dataclass
+class SamplingSizeRequest:
+    number_of_molecules_to_design: int

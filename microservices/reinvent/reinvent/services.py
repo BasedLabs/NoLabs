@@ -17,7 +17,8 @@ from fastapi import UploadFile
 from leaf import FileObject, DirectoryObject
 from starlette.responses import FileResponse
 
-from reinvent.api_models import ConfigurationResponse, ParamsRequest, LogsResponse, ParamsResponse, Smiles, SmilesResponse
+from reinvent.api_models import ConfigurationResponse, ParamsRequest, LogsResponse, ParamsResponse, Smiles, \
+    SmilesResponse
 from reinvent.exceptions import ReinventException, ErrorCode
 
 
@@ -147,10 +148,10 @@ class Reinvent:
                                  ], stdout=sys.stdout, stderr=sys.stderr)
 
     def _prepare_dockstream_config(self,
-                                  request: ParamsRequest,
-                                  pdbqt: FileObject,
-                                  logfile: FileObject,
-                                  directory: DirectoryObject) -> FileObject:
+                                   request: ParamsRequest,
+                                   pdbqt: FileObject,
+                                   logfile: FileObject,
+                                   directory: DirectoryObject) -> FileObject:
         # Configure dockstream
         dockstream_config = directory.files.first_or_default(lambda o: o.name == 'dockstream.json')
 
@@ -198,7 +199,7 @@ class Reinvent:
 
         return reinforcement_learning_config
 
-    def prepare_sampling(self, directory: DirectoryObject) -> FileObject:
+    def prepare_sampling(self, number_of_molecules_to_generate: int, directory: DirectoryObject) -> FileObject:
         chkpt = directory.files.first_or_default(lambda o: o.name == 'rl_direct.chkpt')
         sampling_config: FileObject = directory.files.first_or_default(lambda o: o.name == 'Sampling.toml')
         sampling_output = directory.add_file('sampling_direct.csv')
@@ -206,6 +207,7 @@ class Reinvent:
         sampling_config_toml = sampling_config.read(toml.load, mode='r')
         sampling_config_toml['parameters']['output_file'] = sampling_output.full_path
         sampling_config_toml['parameters']['model_file'] = chkpt.full_path
+        sampling_config_toml['parameters']['num_smiles'] = number_of_molecules_to_generate
 
         sampling_config.write_string(toml.dumps(sampling_config_toml))
         return sampling_config
@@ -265,7 +267,7 @@ class Reinvent:
         dockstream_config = self._prepare_dockstream_config(request, pdbqt, docking_log_file, directory)
         self.prepare_rl(request.minscore, request.batch_size, request.epochs,
                         csv_result, dockstream_config, directory)
-        self.prepare_sampling(directory)
+        self.prepare_sampling(10, directory)
         self.prepare_scoring(dockstream_config, directory)
 
         directory.add_file('output.log')
@@ -287,10 +289,15 @@ class Reinvent:
             )
         )
 
-    def run_sampling_and_scoring(self, sampling_toml_file: FileObject, scoring_toml_file: FileObject,
+    def run_sampling_and_scoring(self,
+                                 number_of_molecules_to_generate: int,
+                                 sampling_toml_file: FileObject,
+                                 scoring_toml_file: FileObject,
                                  log_file: FileObject, error_file: FileObject, directory: DirectoryObject) -> \
             subprocess.Popen[bytes]:
         """Returns PID of the process"""
+
+        self.prepare_sampling(number_of_molecules_to_generate, directory)
 
         directory.files.first_or_default(lambda o: o.name == 'sampling_direct.csv').write_string('')
         directory.files.first_or_default(lambda o: o.name == 'scoring_input.smi').write_string('')
@@ -305,7 +312,7 @@ class Reinvent:
                                  log_file.full_path
                                  ], stdout=sys.stdout, stderr=sys.stderr)
 
-    async def run(self, config_id: str, run_type: RunType):
+    async def run(self, config_id: str, run_type: RunType, **kwargs):
         config = get_configuration(config_id)
 
         directory = config.directory
@@ -317,10 +324,13 @@ class Reinvent:
             rl_config = directory.files.first_or_default(lambda o: o.name == 'RL.toml')
             config.handler = self.run_reinforcement_learning(rl_config, log_file, error_file, directory)
         if run_type == RunType.SAMPLING_SCORING:
+            sampling_size_key = 'sampling_size'
+            if sampling_size_key not in kwargs:
+                raise ReinventException(ErrorCode.NUMBER_OF_MOLECULES_REQUIRED)
             sampling_config = directory.files.first_or_default(lambda o: o.name == 'Sampling.toml')
             scoring_config = directory.files.first_or_default(lambda o: o.name == 'Scoring.toml')
-            config.handler = self.run_sampling_and_scoring(sampling_config, scoring_config, log_file, error_file,
-                                                            directory)
+            config.handler = self.run_sampling_and_scoring(kwargs[sampling_size_key], sampling_config, scoring_config, log_file, error_file,
+                                                           directory)
 
         config.learning_started = True
 

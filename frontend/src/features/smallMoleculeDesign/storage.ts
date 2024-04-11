@@ -93,8 +93,10 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
     async startExperiment(experimentId: string) {
       await SmallMoleculesDesignService.learningApiV1SmallMoleculesDesignExperimentExperimentIdLearningPost(experimentId);
     },
-    async startSampling(experimentId: string) {
-      await SmallMoleculesDesignService.samplingApiV1SmallMoleculesDesignExperimentExperimentIdSamplingPost(experimentId);
+    async startSampling(experimentId: string, numberOfMoleculesToGenerate: number) {
+      await SmallMoleculesDesignService.samplingApiV1SmallMoleculesDesignExperimentExperimentIdSamplingPost(experimentId, {
+        number: numberOfMoleculesToGenerate
+      });
     },
     async stopExperiment(experimentId: string) {
       await SmallMoleculesDesignService.stopApiV1SmallMoleculesDesignExperimentExperimentIdStopPost(experimentId);

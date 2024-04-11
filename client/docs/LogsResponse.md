@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 ## Example
 
 ```python
-from reinvent_microservice.models.logs_response import LogsResponse
+from nolabs_microservice.models.logs_response import LogsResponse
 
 # TODO update the JSON string below
 json = "{}"

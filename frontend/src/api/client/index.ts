@@ -97,6 +97,7 @@ export type { RunProteinDesignResponse } from './models/RunProteinDesignResponse
 export type { RunSimulationsResponse } from './models/RunSimulationsResponse';
 export type { RunSolubilityResponse } from './models/RunSolubilityResponse';
 export type { RunUmolDockingJobResponse } from './models/RunUmolDockingJobResponse';
+export type { SamplingSizeRequest } from './models/SamplingSizeRequest';
 export type { SendMessageResponse } from './models/SendMessageResponse';
 export type { SmilesResponse } from './models/SmilesResponse';
 export type { TargetMetaData } from './models/TargetMetaData';

@@ -8,6 +8,7 @@ import type { ExperimentMetadataResponse } from '../models/ExperimentMetadataRes
 import type { GetExperimentStatusResponse } from '../models/GetExperimentStatusResponse';
 import type { LogsResponse } from '../models/LogsResponse';
 import type { nolabs__api_models__small_molecules_design__GetExperimentResponse } from '../models/nolabs__api_models__small_molecules_design__GetExperimentResponse';
+import type { SamplingSizeRequest } from '../models/SamplingSizeRequest';
 import type { SmilesResponse } from '../models/SmilesResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -56,11 +57,13 @@ export class SmallMoleculesDesignService {
     /**
      * Sampling
      * @param experimentId
+     * @param requestBody
      * @returns any Successful Response
      * @throws ApiError
      */
     public static samplingApiV1SmallMoleculesDesignExperimentExperimentIdSamplingPost(
         experimentId: string,
+        requestBody: SamplingSizeRequest,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -68,6 +71,8 @@ export class SmallMoleculesDesignService {
             path: {
                 'experiment_id': experimentId,
             },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },

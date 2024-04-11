@@ -424,7 +424,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **sampling_api_reinvent_config_id_start_sampling_post**
-> object sampling_api_reinvent_config_id_start_sampling_post(config_id)
+> object sampling_api_reinvent_config_id_start_sampling_post(config_id, sampling_size_request)
 
 Sampling
 
@@ -435,6 +435,7 @@ Generate new ligands based on the provided config id.
 
 ```python
 import reinvent_microservice
+from reinvent_microservice.models.sampling_size_request import SamplingSizeRequest
 from reinvent_microservice.rest import ApiException
 from pprint import pprint
 
@@ -450,10 +451,11 @@ with reinvent_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = reinvent_microservice.ReinventApi(api_client)
     config_id = 'config_id_example' # str | 
+    sampling_size_request = reinvent_microservice.SamplingSizeRequest() # SamplingSizeRequest | 
 
     try:
         # Sampling
-        api_response = api_instance.sampling_api_reinvent_config_id_start_sampling_post(config_id)
+        api_response = api_instance.sampling_api_reinvent_config_id_start_sampling_post(config_id, sampling_size_request)
         print("The response of ReinventApi->sampling_api_reinvent_config_id_start_sampling_post:\n")
         pprint(api_response)
     except Exception as e:
@@ -468,6 +470,7 @@ with reinvent_microservice.ApiClient(configuration) as api_client:
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **config_id** | **str**|  | 
+ **sampling_size_request** | [**SamplingSizeRequest**](SamplingSizeRequest.md)|  | 
 
 ### Return type
 
@@ -479,7 +482,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: Not defined
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 ### HTTP response details

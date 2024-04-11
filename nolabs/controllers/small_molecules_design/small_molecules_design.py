@@ -23,6 +23,7 @@ async def status(
 ) -> GetExperimentStatusResponse:
     return await feature.handle(experiment_id=experiment_id)
 
+
 @router.post("/experiment/{experiment_id}/learning")
 async def learning(
         feature: Annotated[StartLearningExperimentFeature, Depends(start_learning_experiment_dependency)],
@@ -33,13 +34,14 @@ async def learning(
 @router.post("/experiment/{experiment_id}/sampling")
 async def sampling(
         feature: Annotated[StartSamplingExperimentFeature, Depends(start_sampling_experiment_dependency)],
-        experiment_id: str):
-    return await feature.handle(experiment_id=experiment_id)
+        experiment_id: str,
+        request: SamplingSizeRequest):
+    return await feature.handle(experiment_id=experiment_id, request=request)
 
 
 @router.get('/experiment/{experiment_id}')
 async def get_experiment(feature: Annotated[GetExperimentFeature, Depends(get_experiment_dependency)],
-                 experiment_id: str) -> GetExperimentResponse:
+                         experiment_id: str) -> GetExperimentResponse:
     return await feature.handle(experiment_id)
 
 
@@ -81,6 +83,7 @@ async def delete(
         experiment_id: str):
     return await feature.handle(experiment_id=experiment_id)
 
+
 @router.get('/experiment/{experiment_id}/logs')
 async def logs(feature: Annotated[GetLogsFeature, Depends(get_logs_dependency)],
                experiment_id: str) -> LogsResponse:
@@ -89,8 +92,9 @@ async def logs(feature: Annotated[GetLogsFeature, Depends(get_logs_dependency)],
 
 @router.get('/experiment/{experiment_id}/smiles')
 async def smiles(feature: Annotated[GetSmilesFeature, Depends(get_smiles_dependency)],
-               experiment_id: str) -> List[SmilesResponse]:
+                 experiment_id: str) -> List[SmilesResponse]:
     return await feature.handle(experiment_id=experiment_id)
+
 
 # Experiments
 
@@ -107,5 +111,6 @@ async def change_experiment_name(request: ChangeExperimentNameRequest, feature: 
 
 
 @router.post('/experiment/create')
-async def create_experiment(feature: Annotated[CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
+async def create_experiment(feature: Annotated[
+    CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
     return await feature.handle()

@@ -1,7 +1,6 @@
 .github/workflows/python.yml
 .gitignore
 .gitlab-ci.yml
-.openapi-generator-ignore
 .travis.yml
 README.md
 docs/ConfigurationResponse.md
@@ -13,6 +12,7 @@ docs/ReinventApi.md
 docs/ResponseGetConfigApiReinventReinventConfigIdGet.md
 docs/ResponseLogsApiReinventConfigIdLogsGet.md
 docs/ResponseParamsApiReinventConfigIdParamsGet.md
+docs/SamplingSizeRequest.md
 docs/Smiles.md
 docs/SmilesResponse.md
 docs/ValidationError.md
@@ -35,6 +35,7 @@ reinvent_microservice/models/params_response.py
 reinvent_microservice/models/response_get_config_api_reinvent_reinvent_config_id_get.py
 reinvent_microservice/models/response_logs_api_reinvent_config_id_logs_get.py
 reinvent_microservice/models/response_params_api_reinvent_config_id_params_get.py
+reinvent_microservice/models/sampling_size_request.py
 reinvent_microservice/models/smiles.py
 reinvent_microservice/models/smiles_response.py
 reinvent_microservice/models/validation_error.py
@@ -46,17 +47,5 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_configuration_response.py
-test/test_http_validation_error.py
-test/test_logs_response.py
-test/test_params_response.py
-test/test_preparation_api.py
-test/test_reinvent_api.py
-test/test_response_get_config_api_reinvent_reinvent_config_id_get.py
-test/test_response_logs_api_reinvent_config_id_logs_get.py
-test/test_response_params_api_reinvent_config_id_params_get.py
-test/test_smiles.py
-test/test_smiles_response.py
-test/test_validation_error.py
-test/test_validation_error_loc_inner.py
+test/test_sampling_size_request.py
 tox.ini

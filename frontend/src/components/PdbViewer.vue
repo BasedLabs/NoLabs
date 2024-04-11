@@ -8,6 +8,10 @@ interface OnAtomClick {
   (stage: any, coordinates: {x: number, y: number, z: number}): void;
 }
 
+interface OnRender {
+  (stage): void;
+}
+
 
 export default defineComponent({
   name: "PdbViewer",
@@ -26,6 +30,10 @@ export default defineComponent({
     }
   },
   props: {
+    onRender: {
+      type: Function as PropType<OnRender>,
+      required: false
+    },
     pdbFile: {
       type: Object as PropType<File | null>,
       required: false
@@ -108,6 +116,10 @@ export default defineComponent({
         pdbComponent.addRepresentation("unitcell");
         pdbComponent.autoView();
         this.loading = false;
+
+        if(this.onRender){
+            this.onRender!(stage);
+        }
       }, 500);
     },
     async loadFileIntoStage(stage: any, selectedRepresentation: string, asTrajectory: boolean = false) {
@@ -173,6 +185,10 @@ export default defineComponent({
         const component = await this.loadFileIntoStage(stage, selectedRepresentation);
         component.autoView();
         this.loading = false;
+
+        if(this.onRender){
+            this.onRender!(stage);
+        }
       }, 500);
     },
     async render(selectedRepresentation: string) {

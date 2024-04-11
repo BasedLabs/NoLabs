@@ -22,6 +22,7 @@ from reinvent_microservice.models.configuration_response import ConfigurationRes
 from reinvent_microservice.models.response_get_config_api_reinvent_reinvent_config_id_get import ResponseGetConfigApiReinventReinventConfigIdGet
 from reinvent_microservice.models.response_logs_api_reinvent_config_id_logs_get import ResponseLogsApiReinventConfigIdLogsGet
 from reinvent_microservice.models.response_params_api_reinvent_config_id_params_get import ResponseParamsApiReinventConfigIdParamsGet
+from reinvent_microservice.models.sampling_size_request import SamplingSizeRequest
 from reinvent_microservice.models.smiles_response import SmilesResponse
 
 from reinvent_microservice.api_client import ApiClient, RequestSerialized
@@ -1588,6 +1589,7 @@ class ReinventApi:
     def sampling_api_reinvent_config_id_start_sampling_post(
         self,
         config_id: StrictStr,
+        sampling_size_request: SamplingSizeRequest,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1607,6 +1609,8 @@ class ReinventApi:
 
         :param config_id: (required)
         :type config_id: str
+        :param sampling_size_request: (required)
+        :type sampling_size_request: SamplingSizeRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1631,6 +1635,7 @@ class ReinventApi:
 
         _param = self._sampling_api_reinvent_config_id_start_sampling_post_serialize(
             config_id=config_id,
+            sampling_size_request=sampling_size_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1656,6 +1661,7 @@ class ReinventApi:
     def sampling_api_reinvent_config_id_start_sampling_post_with_http_info(
         self,
         config_id: StrictStr,
+        sampling_size_request: SamplingSizeRequest,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1675,6 +1681,8 @@ class ReinventApi:
 
         :param config_id: (required)
         :type config_id: str
+        :param sampling_size_request: (required)
+        :type sampling_size_request: SamplingSizeRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1699,6 +1707,7 @@ class ReinventApi:
 
         _param = self._sampling_api_reinvent_config_id_start_sampling_post_serialize(
             config_id=config_id,
+            sampling_size_request=sampling_size_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1724,6 +1733,7 @@ class ReinventApi:
     def sampling_api_reinvent_config_id_start_sampling_post_without_preload_content(
         self,
         config_id: StrictStr,
+        sampling_size_request: SamplingSizeRequest,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1743,6 +1753,8 @@ class ReinventApi:
 
         :param config_id: (required)
         :type config_id: str
+        :param sampling_size_request: (required)
+        :type sampling_size_request: SamplingSizeRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1767,6 +1779,7 @@ class ReinventApi:
 
         _param = self._sampling_api_reinvent_config_id_start_sampling_post_serialize(
             config_id=config_id,
+            sampling_size_request=sampling_size_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1787,6 +1800,7 @@ class ReinventApi:
     def _sampling_api_reinvent_config_id_start_sampling_post_serialize(
         self,
         config_id,
+        sampling_size_request,
         _request_auth,
         _content_type,
         _headers,
@@ -1812,6 +1826,8 @@ class ReinventApi:
         # process the header parameters
         # process the form parameters
         # process the body parameter
+        if sampling_size_request is not None:
+            _body_params = sampling_size_request
 
 
         # set the HTTP header `Accept`
@@ -1821,6 +1837,19 @@ class ReinventApi:
             ]
         )
 
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
 
         # authentication setting
         _auth_settings: List[str] = [

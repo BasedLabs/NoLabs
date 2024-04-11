@@ -107,6 +107,7 @@ Class | Method | HTTP request | Description
  - [ResponseGetConfigApiReinventReinventConfigIdGet](docs/ResponseGetConfigApiReinventReinventConfigIdGet.md)
  - [ResponseLogsApiReinventConfigIdLogsGet](docs/ResponseLogsApiReinventConfigIdLogsGet.md)
  - [ResponseParamsApiReinventConfigIdParamsGet](docs/ResponseParamsApiReinventConfigIdParamsGet.md)
+ - [SamplingSizeRequest](docs/SamplingSizeRequest.md)
  - [Smiles](docs/Smiles.md)
  - [SmilesResponse](docs/SmilesResponse.md)
  - [ValidationError](docs/ValidationError.md)

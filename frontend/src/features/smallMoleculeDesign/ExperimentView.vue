@@ -2,7 +2,7 @@
 import {defineComponent, toRaw} from "vue";
 import PdbViewer from '../../components/PdbViewer.vue';
 import useSmallMoleculesDesignStore from "./storage";
-import {Notify, QSpinnerOrbit} from "quasar";
+import {exportFile, Notify, QSpinnerOrbit} from "quasar";
 import LogsModal from "./components/LogsModal.vue";
 import ExperimentControlButtons from "./components/ExperimentControlButtons.vue";
 import ExperimentHeader from "../../components/ExperimentHeader.vue";
@@ -83,16 +83,19 @@ export default defineComponent({
   },
   watch: {
     shapeCoordinates(newCoordinates: ShapeCoordinates) {
-      setTimeout(() => {
-        this.renderSearchBox(
-          newCoordinates.x,
-          newCoordinates.y,
-          newCoordinates.z,
-          newCoordinates.sizeX,
-          newCoordinates.sizeY,
-          newCoordinates.sizeZ
-        );
-      }, 100);
+      if (this.pdbStage) {
+        setTimeout(() => {
+          this.renderSearchBox(
+            this.pdbStage,
+            newCoordinates.x,
+            newCoordinates.y,
+            newCoordinates.z,
+            newCoordinates.sizeX,
+            newCoordinates.sizeY,
+            newCoordinates.sizeZ
+          );
+        }, 100);
+      }
     },
     experiment: {
       handler(newExperiment: Experiment) {
@@ -124,10 +127,19 @@ export default defineComponent({
         message: `Copied ${s}`
       });
     },
-    async submitProperties() {
-      await this.loader('Saving...', async () => {
-        await this.$options.store.saveProperties(this.$options.experimentId, this.experiment?.properties);
-      });
+    onRender(stage: any) {
+      setTimeout(() => {
+        this.renderSearchBox(
+          stage,
+          this.experiment!.properties.centerX,
+          this.experiment!.properties.centerY,
+          this.experiment!.properties.centerZ,
+          this.experiment!.properties.sizeX,
+          this.experiment!.properties.sizeY,
+          this.experiment!.properties.sizeZ);
+
+        this.pdbStage = stage;
+      }, 1000);
     },
     toggleLogs() {
       this.logsModalVisible = !this.logsModalVisible;
@@ -143,18 +155,12 @@ export default defineComponent({
         this.$q.loading.hide();
       }
     },
-    renderSearchBox(x: number, y: number, z: number, sizeX: number, sizeY: number, sizeZ: number) {
-      if (!this.pdbStage) {
-        return;
-      }
-
+    renderSearchBox(stage: any, x: number, y: number, z: number, sizeX: number, sizeY: number, sizeZ: number) {
       if (this.pdbShape) {
         try {
           toRaw(this.pdbShape).removeAllRepresentations();
-          this.pdbStage.removeComponent(toRaw(this.pdbShape));
-        }
-        catch{
-
+          stage.removeComponent(toRaw(this.pdbShape));
+        } catch {
         }
       }
 
@@ -168,7 +174,7 @@ export default defineComponent({
         depthAxis: new Float32Array([0, 0, sizeZ])
       });
       shape.addBuffer(boxBuffer)
-      const shapeComp = toRaw(this.pdbStage).addComponentFromObject(shape)
+      const shapeComp = toRaw(stage).addComponentFromObject(shape)
       shapeComp.addRepresentation("buffer", {opacity: 0.4});
       this.pdbShape = shapeComp;
     },
@@ -181,9 +187,47 @@ export default defineComponent({
     onPdbInputClear() {
       this.experiment!.properties.pdbFile = null;
     },
-    validateProperties(): boolean{
-      debugger;
-      if(!this.experiment?.properties.pdbFile){
+    exportLigandsToCsv() {
+      const wrapCsvValue = (val: any, formatFn: any, row: any) => {
+        let formatted = formatFn !== void 0
+          ? formatFn(val, row)
+          : val
+
+        formatted = formatted === void 0 || formatted === null
+          ? ''
+          : String(formatted)
+
+        formatted = formatted.split('"').join('""')
+
+        return `"${formatted}"`
+      }
+
+      const content = [this.$options.smilesColumns.map(col => wrapCsvValue(col.label))].concat(
+        this.smilesData.map(row => this.$options.smilesColumns.map(col => wrapCsvValue(
+          typeof col.field === 'function'
+            ? col.field(row)
+            : row[col.field === void 0 ? col.name : col.field],
+          col.format,
+          row
+        )).join(','))
+      ).join('\r\n')
+
+      const status = exportFile(
+        'table-export.csv',
+        content,
+        'text/csv'
+      )
+
+      if (status !== true) {
+        Notify.create({
+          message: 'Browser denied file download...',
+          color: 'negative',
+          icon: 'warning'
+        })
+      }
+    },
+    validateProperties(): boolean {
+      if (!this.experiment?.properties.pdbFile) {
         Notify.create({
           type: "negative",
           closeBtn: 'Close',
@@ -192,7 +236,7 @@ export default defineComponent({
         return false;
       }
 
-      if(this.experiment?.properties.centerX === 0 && this.experiment?.properties.centerY === 0 && this.experiment?.properties.centerZ === 0 ){
+      if (this.experiment?.properties.centerX === 0 && this.experiment?.properties.centerY === 0 && this.experiment?.properties.centerZ === 0) {
         Notify.create({
           type: "negative",
           closeBtn: 'Close',
@@ -201,7 +245,7 @@ export default defineComponent({
         return false;
       }
 
-      if(this.experiment?.properties.sizeX === 0 || this.experiment?.properties.sizeY === 0 || this.experiment?.properties.sizeZ === 0 ){
+      if (this.experiment?.properties.sizeX === 0 || this.experiment?.properties.sizeY === 0 || this.experiment?.properties.sizeZ === 0) {
         Notify.create({
           type: "negative",
           closeBtn: 'Close',
@@ -213,7 +257,7 @@ export default defineComponent({
       return true;
     },
     async startExperiment(id: string) {
-      if(!this.validateProperties()){
+      if (!this.validateProperties()) {
         return;
       }
 
@@ -249,13 +293,17 @@ export default defineComponent({
     },
     async startSampling() {
       this.$q.dialog({
-        title: 'Confirm',
-        message: "Start sampling?",
+        title: 'Sampling',
+        message: 'Enter number of molecules to generate',
+        prompt: {
+          model: '1',
+          type: 'number' // optional
+        },
         cancel: true,
         persistent: true
-      }).onOk(async () => {
+      }).onOk(async data => {
         await this.loader('Starting sampling', async () => {
-          await this.$options.store.startSampling(this.$options.experimentId);
+          await this.$options.store.startSampling(this.$options.experimentId, data);
           this.experiment!.running = true;
         });
       });
@@ -338,12 +386,23 @@ export default defineComponent({
             </q-td>
           </q-tr>
         </template>
+        <template v-slot:top-right>
+          <q-btn
+            color="positive"
+            outline
+            icon-right="archive"
+            label="Export to csv"
+            no-caps
+            @click="exportLigandsToCsv"
+          />
+        </template>
       </q-table>
     </div>
     <div class="col-xs-12 col-md-5">
       <p class="text-subtitle1">PDB Viewer</p>
       <PdbViewer v-if="experiment?.properties.pdbFile" :pdb-file="experiment!.properties.pdbFile"
                  :on-atom-click="onAtomClick"
+                 :on-render="onRender"
                  :key="experiment!.properties.pdbFile?.name"/>
       <div v-if="!experiment?.properties.pdbFile" class="justify-center">
         <q-icon name="warning" color="warning" size="3rem"/>
@@ -370,42 +429,42 @@ export default defineComponent({
           <p>Search space</p>
           <q-input filled v-model="experiment!.properties.centerX" label="Center X" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Invalid input']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               X coordinate of the center of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.centerY" label="Center Y" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Invalid input']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Y coordinate of the center of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.centerZ" label="Center Z" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Invalid input']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Z coordinate of the center of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.sizeX" label="Size X" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null && val > 0 && val <= 30 || 'Invalid input']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               X coordinate of the corner of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.sizeY" label="Size Y" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null && val > 0 && val <= 30 || 'Invalid input']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Y coordinate of the corner of space box
             </q-tooltip>
           </q-input>
           <q-input filled v-model="experiment!.properties.sizeZ" label="Size Z" type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null && val > 0 && val <= 30 || 'Invalid input']">
             <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
               Z coordinate of the corner of space box
             </q-tooltip>
@@ -414,16 +473,16 @@ export default defineComponent({
           <p>1 epoch training will take 20-30 min approx</p>
           <q-input filled v-model="experiment!.properties.batchSize" label="Epoch batch size" type="number" step="1"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null && val > 0 || 'Invalid input']">
           </q-input>
           <q-input filled v-model="experiment!.properties.minscore" label="Minimum docking acceptance score"
                    type="number" step="0.01"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null || 'Invalid input']">
           </q-input>
           <q-input filled v-model="experiment!.properties.epochs" label="Epochs" type="number" step="1"
                    :readonly="readonly"
-                   :rules="[val => val !== undefined && val !== null || 'Please type something']">
+                   :rules="[val => val !== undefined && val !== null && val > 0 || 'Invalid input']">
           </q-input>
         </q-scroll-area>
       </q-form>
