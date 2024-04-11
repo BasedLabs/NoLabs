@@ -3,7 +3,7 @@
 #
 # ref: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: umol_microservice Python package
+name: nolabs_microservice Python package
 
 on: [push, pull_request]
 

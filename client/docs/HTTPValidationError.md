@@ -5,12 +5,12 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**detail** | [**List[ValidationError]**](ValidationError.md) |  | [optional] 
+**detail** | **object** |  | [optional] 
 
 ## Example
 
 ```python
-from umol_microservice.models.http_validation_error import HTTPValidationError
+from nolabs_microservice.models.http_validation_error import HTTPValidationError
 
 # TODO update the JSON string below
 json = "{}"

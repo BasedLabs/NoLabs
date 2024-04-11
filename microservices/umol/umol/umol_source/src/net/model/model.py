@@ -74,12 +74,12 @@ class RunModel:
       self,
       raw_features: Union[tf.train.Example, features.FeatureDict],
       random_seed: int) -> features.FeatureDict:
-    """Processes features to prepare for feeding them into the model.
+    """Processes modules to prepare for feeding them into the model.
 
     Args:
       raw_features: The output of the data pipeline either as a dict of NumPy
         arrays or as a tf.train.Example.
-      random_seed: The random seed to use when processing the features.
+      random_seed: The random seed to use when processing the modules.
 
     Returns:
       A dict of NumPy feature arrays suitable for feeding into the model.
@@ -104,7 +104,7 @@ class RunModel:
     return shape
 
   def predict(self, feat: features.FeatureDict) -> Mapping[str, Any]:
-    """Makes a prediction by inferencing the model on the provided features.
+    """Makes a prediction by inferencing the model on the provided modules.
 
     Args:
       feat: A dictionary of NumPy feature arrays as output by

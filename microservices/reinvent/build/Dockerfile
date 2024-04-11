@@ -14,17 +14,12 @@ ENV PATH /var/conda/bin:$PATH
 
 RUN conda --version
 
-# Install reinvent community
 RUN conda install conda-libmamba-solver
 RUN conda config --set solver libmamba
-WORKDIR /app/ReinventCommunity
-RUN git clone https://github.com/MolecularAI/ReinventCommunity.git .
-RUN conda env create -f environment.yml
-COPY install_reinvent_community.sh /app/ReinventCommunity
-RUN sed -i 's/\r$//' install_reinvent_community.sh && chmod +x install_reinvent_community.sh
-RUN ./install_reinvent_community.sh
+WORKDIR /app
 RUN wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
 RUN mv vina_1.2.5_linux_x86_64 /app/vina
+RUN chmod +x /app/vina
 
 # Install reinvent
 WORKDIR /app/REINVENT4
@@ -42,10 +37,13 @@ RUN conda env create -f /app/DockStream/environment.yml
 
 WORKDIR /app
 
-COPY case_study_files /app/case_study_files
-COPY 1UYD_fixed.pdbqt /app
+COPY reinvent /app/reinvent
+RUN pip install -r reinvent/requirements.txt
 
-COPY reinvent /app
-COPY run_notebook.sh /app
-RUN sed -i 's/\r$//' run_notebook.sh && chmod +x run_notebook.sh
-ENTRYPOINT ["./run_notebook.sh"]
+COPY reinvent_configs /app/reinvent/reinvent_configs
+
+RUN sed -i 's/\r$//' /app/reinvent/reinvent_configs/prepare_pdbqt.sh && chmod +x /app/reinvent/reinvent_configs/prepare_pdbqt.sh
+RUN sed -i 's/\r$//' /app/reinvent/reinvent_configs/start_reinforcement_learning.sh && chmod +x /app/reinvent/reinvent_configs/start_reinforcement_learning.sh
+RUN sed -i 's/\r$//' /app/reinvent/reinvent_configs/start_sampling.sh && chmod +x /app/reinvent/reinvent_configs/start_sampling.sh
+
+ENTRYPOINT ["uvicorn", "reinvent.api:app"]

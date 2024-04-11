@@ -1,6 +1,6 @@
 
 
-"""Contains descriptions of various protein features."""
+"""Contains descriptions of various protein modules."""
 import enum
 from typing import Dict, Optional, Sequence, Tuple, Union
 from src.net.common import residue_constants
@@ -21,13 +21,13 @@ class FeatureType(enum.Enum):
 NUM_RES = "num residues placeholder"
 NUM_SEQ = "length msa placeholder"
 NUM_TEMPLATES = "num templates placeholder"
-# Sizes of the protein features, NUM_RES and NUM_SEQ are allowed as placeholders
+# Sizes of the protein modules, NUM_RES and NUM_SEQ are allowed as placeholders
 # to be replaced with the number of residues and the number of sequences in the
 # multiple sequence alignment, respectively.
 
 
 FEATURES = {
-    #### Static features of a protein sequence ####
+    #### Static modules of a protein sequence ####
     "aatype": (tf.float32, [NUM_RES, 21]),
     "between_segment_residues": (tf.int64, [NUM_RES, 1]),
     "deletion_matrix": (tf.float32, [NUM_SEQ, NUM_RES, 1]),
@@ -59,7 +59,7 @@ FEATURE_SIZES = {k: v[1] for k, v in FEATURES.items()}
 def register_feature(name: str,
                      type_: tf.dtypes.DType,
                      shape_: Tuple[Union[str, int]]):
-  """Register extra features used in custom datasets."""
+  """Register extra modules used in custom datasets."""
   FEATURES[name] = (type_, shape_)
   FEATURE_TYPES[name] = type_
   FEATURE_SIZES[name] = shape_

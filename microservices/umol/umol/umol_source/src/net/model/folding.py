@@ -61,7 +61,7 @@ class InvariantPointAttention(hk.Module):
     """Compute geometry-aware attention.
 
     Given a set of query residues (defined by affines and associated scalar
-    features), this function computes geometry-aware attention between the
+    modules), this function computes geometry-aware attention between the
     query residues and target residues.
 
     The residues produce points in their local reference frame, which

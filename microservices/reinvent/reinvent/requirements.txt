@@ -1,2 +1,7 @@
 fastapi
 python-multipart
+leaf-BasedLabs==0.0.8
+uvicorn
+toml
+pydantic
+mypy

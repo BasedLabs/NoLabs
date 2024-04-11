@@ -10,7 +10,7 @@ import os
 import sys
 import pdb
 
-parser = argparse.ArgumentParser(description = """Builds the ligand input feats and ground truth structural features for the loss calculations.""")
+parser = argparse.ArgumentParser(description = """Builds the ligand input feats and ground truth structural modules for the loss calculations.""")
 
 parser.add_argument('--input_smiles', nargs=1, type= str, default=sys.stdin, help = 'Smiles string. Note that these should be canonical.')
 parser.add_argument('--outdir', nargs=1, type= str, default=sys.stdin, help = 'Path to output directory. Include /in end')
@@ -81,9 +81,9 @@ ligand_inp_feats['atom_types'] = atom_types
 ligand_inp_feats['bond_types'] = bond_types
 ligand_inp_feats['bond_lengths'] = bond_lengths
 ligand_inp_feats['bond_mask'] = bond_mask
-#Write out features as a pickled dictionary.
+#Write out modules as a pickled dictionary.
 
 features_output_path = os.path.join(outdir, 'ligand_inp_features.pkl')
 with open(features_output_path, 'wb') as f:
     pickle.dump(ligand_inp_feats, f, protocol=4)
-print('Saved features to',features_output_path)
+print('Saved modules to',features_output_path)

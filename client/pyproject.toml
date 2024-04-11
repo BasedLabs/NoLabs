@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "umol_microservice"
+name = "nolabs_microservice"
 version = "1.0.0"
-description = "Umol"
+description = "NoLabs"
 authors = ["OpenAPI Generator Community <team@openapitools.org>"]
 license = "NoLicense"
 readme = "README.md"
 repository = "https://github.com/GIT_USER_ID/GIT_REPO_ID"
-keywords = ["OpenAPI", "OpenAPI-Generator", "Umol"]
-include = ["umol_microservice/py.typed"]
+keywords = ["OpenAPI", "OpenAPI-Generator", "NoLabs"]
+include = ["nolabs_microservice/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.7"

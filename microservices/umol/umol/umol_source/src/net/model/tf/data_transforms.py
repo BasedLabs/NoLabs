@@ -100,7 +100,7 @@ def correct_msa_restypes(protein):
 
 
 def squeeze_features(protein):
-  """Remove singleton and repeated dimensions in protein features."""
+  """Remove singleton and repeated dimensions in protein modules."""
   protein['aatype'] = tf.argmax(
       protein['aatype'], axis=-1, output_type=tf.int32)
   for k in [
@@ -176,7 +176,7 @@ def sample_msa(protein, max_seq, keep_extra):
 
 @curry1
 def crop_extra_msa(protein, max_extra_msa):
-  """MSA features are cropped so only `max_extra_msa` sequences are kept."""
+  """MSA modules are cropped so only `max_extra_msa` sequences are kept."""
   num_seq = tf.shape(protein['extra_msa'])[0]
   num_sel = tf.minimum(max_extra_msa, num_seq)
   select_indices = tf.random_shuffle(tf.range(0, num_seq))[:num_sel]
@@ -297,7 +297,7 @@ def summarize_clusters(protein):
 
 
 def make_msa_mask(protein):
-  """Mask features are all ones, but will later be zero-padded."""
+  """Mask modules are all ones, but will later be zero-padded."""
   protein['msa_mask'] = tf.ones(
       shape_helpers.shape_list(protein['msa']), dtype=tf.float32)
   protein['msa_row_mask'] = tf.ones(
@@ -306,7 +306,7 @@ def make_msa_mask(protein):
 
 
 def pseudo_beta_fn(aatype, all_atom_positions, all_atom_masks):
-  """Create pseudo beta features."""
+  """Create pseudo beta modules."""
   is_gly = tf.equal(aatype, residue_constants.restype_order['G'])
   ca_idx = residue_constants.atom_order['CA']
   cb_idx = residue_constants.atom_order['CB']
@@ -431,7 +431,7 @@ def make_fixed_size(protein, shape_schema, msa_cluster_size, extra_msa_size,
 
 @curry1
 def make_msa_feat(protein):
-  """Create and concatenate MSA features."""
+  """Create and concatenate MSA modules."""
   # Whether there is a domain break. Always zero for chains, but keeping
   # for compatibility with domain datasets.
   has_break = tf.clip_by_value(

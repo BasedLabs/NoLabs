@@ -52,9 +52,9 @@ ligand_feats['atom_types'] = atom_types
 ligand_feats['bond_types'] = bond_types
 ligand_feats['bond_mask'] = atom_types
 ligand_feats['bond_lengths'] = bond_lengths
-#Write out features as a pickled dictionary.
+#Write out modules as a pickled dictionary.
 features_output_path = os.path.join(outdir, 'ligand_structure_features.pkl')
 with open(features_output_path, 'wb') as f:
     pickle.dump(structure_feats, f, protocol=4)
-print('Saved features to',features_output_path)
+print('Saved modules to',features_output_path)
 pdb.set_trace()

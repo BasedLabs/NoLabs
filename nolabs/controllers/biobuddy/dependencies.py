@@ -3,17 +3,17 @@ from typing import Annotated, List
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
-from nolabs.features.biobuddy.file_management import FileManagement
-from nolabs.features.biobuddy.functions.base_function import BiobuddyFunction
-from nolabs.features.biobuddy.functions.query_chembl import QueryChemblFunction
-from nolabs.features.biobuddy.functions.query_chembl_by_disease import QueryChemblByConditionFunction
-from nolabs.features.biobuddy.functions.query_rcsb_pdb_by_id import QueryRcsbPdbByIdFunction
-from nolabs.features.biobuddy.functions.query_rcsb_pdb_by_names import QueryRcsbPdbByNamesFunction
-from nolabs.features.biobuddy.load_conversation_feature import LoadConversationFeature
-from nolabs.features.biobuddy.send_message_feature import SendMessageFeature
-from nolabs.features.drug_discovery.services.ligand_file_management import LigandsFileManagement
-from nolabs.features.drug_discovery.services.target_file_management import TargetsFileManagement
+from nolabs.modules.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
+from nolabs.modules.biobuddy.file_management import FileManagement
+from nolabs.modules.biobuddy.functions.base_function import BiobuddyFunction
+from nolabs.modules.biobuddy.functions.query_chembl import QueryChemblFunction
+from nolabs.modules.biobuddy.functions.query_chembl_by_disease import QueryChemblByConditionFunction
+from nolabs.modules.biobuddy.functions.query_rcsb_pdb_by_id import QueryRcsbPdbByIdFunction
+from nolabs.modules.biobuddy.functions.query_rcsb_pdb_by_names import QueryRcsbPdbByNamesFunction
+from nolabs.modules.biobuddy.load_conversation_feature import LoadConversationFeature
+from nolabs.modules.biobuddy.send_message_feature import SendMessageFeature
+from nolabs.modules.drug_discovery.services.ligand_file_management import LigandsFileManagement
+from nolabs.modules.drug_discovery.services.target_file_management import TargetsFileManagement
 from nolabs.infrastructure.settings import Settings
 
 def check_biobuddy_enabled_dependency() -> CheckBioBuddyEnabledFeature:

@@ -26,7 +26,7 @@ FeatureDict = Mapping[str, np.ndarray]
 ##############FUNCTIONS##############
 def make_sequence_features(
     sequence: str, description: str, num_res: int) -> FeatureDict:
-  """Constructs a feature dict of sequence features."""
+  """Constructs a feature dict of sequence modules."""
   features = {}
   features['aatype'] = residue_constants.sequence_to_onehot(
       sequence=sequence,
@@ -44,7 +44,7 @@ def make_sequence_features(
 def make_msa_features(
     msas: Sequence[Sequence[str]],
     deletion_matrices: Sequence[parsers.DeletionMatrix]) -> FeatureDict:
-  """Constructs a feature dict of MSA features."""
+  """Constructs a feature dict of MSA modules."""
   if not msas:
     raise ValueError('At least one MSA must be provided.')
 
@@ -74,7 +74,7 @@ def make_msa_features(
 
 
 def process(input_fasta_path: str, input_msas: list) -> FeatureDict:
-    """Runs alignment tools on the input sequence and creates features."""
+    """Runs alignment tools on the input sequence and creates modules."""
     with open(input_fasta_path) as f:
       input_fasta_str = f.read()
     input_seqs, input_desc = parsers.parse_fasta(input_fasta_str)

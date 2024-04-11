@@ -15,7 +15,6 @@ const useProteinDesignStore = defineStore("proteinDesign", {
             experiment: Experiment | null,
             errors: string[]
         }> {
-            debugger;
             const response = await ProteinDesignService.inferenceApiV1ProteinDesignInferencePost(
                 {
                     pdb_file: request.pdbFile,
@@ -61,7 +60,7 @@ const useProteinDesignStore = defineStore("proteinDesign", {
             const response = await ProteinDesignService.getExperimentApiV1ProteinDesignExperimentGet(experimentId);
             const errorResponse = obtainErrorResponse(response);
             if (errorResponse) {
-                if (errorResponse.error_code === ErrorCodes.experiment_id_not_found) {
+                if (errorResponse.error_code === ErrorCodes.experiment_not_found) {
                     return {
                         experiment: {
                             id: experimentId,

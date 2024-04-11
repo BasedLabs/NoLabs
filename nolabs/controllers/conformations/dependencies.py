@@ -2,14 +2,14 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from nolabs.features.conformations.get_experiment import GetExperimentFeature
-from nolabs.features.conformations.run_simulations import RunSimulationsFeature
-from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.modules.conformations.get_experiment import GetExperimentFeature
+from nolabs.modules.conformations.run_simulations import RunSimulationsFeature
+from nolabs.modules.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.controllers.common_dependencies import settings_dependency
-from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
-from nolabs.features.conformations.services.file_management import FileManagement
-from nolabs.features.experiment.get_experiments import GetExperimentsFeature
+from nolabs.modules.experiment.create_experiment import CreateExperimentFeature
+from nolabs.modules.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.modules.conformations.services.file_management import FileManagement
+from nolabs.modules.experiment.get_experiments import GetExperimentsFeature
 from nolabs.infrastructure.settings import Settings
 
 

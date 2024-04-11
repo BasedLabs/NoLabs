@@ -26,8 +26,8 @@ from .net.model import modules
 
 parser = argparse.ArgumentParser(description = """Predict a protein-ligand structure.""")
 
-parser.add_argument('--msa_features', nargs=1, type= str, default=sys.stdin, help = 'Path to location of MSA features.')
-parser.add_argument('--ligand_features', nargs=1, type= str, default=sys.stdin, help = 'Path to location of ligand features.')
+parser.add_argument('--msa_features', nargs=1, type= str, default=sys.stdin, help = 'Path to location of MSA modules.')
+parser.add_argument('--ligand_features', nargs=1, type= str, default=sys.stdin, help = 'Path to location of ligand modules.')
 parser.add_argument('--id', nargs=1, type= str, default=sys.stdin, help = 'Example ID.')
 parser.add_argument('--ckpt_params', nargs=1, type= str, default=sys.stdin, help = 'Params to use.')
 parser.add_argument('--target_pos', nargs=1, type= str, default=sys.stdin, help = 'Positions to target (pocket).')
@@ -38,12 +38,12 @@ parser.add_argument('--outdir', nargs=1, type= str, default=sys.stdin, help = 'P
 
 ##########INPUT DATA#########
 def process_protein_features(raw_features, config, random_seed):
-    """Processes features to prepare for feeding them into the model.
+    """Processes modules to prepare for feeding them into the model.
 
     Args:
     raw_features: The output of the data pipeline either as a dict of NumPy
       arrays or as a tf.train.Example.
-    random_seed: The random seed to use when processing the features.
+    random_seed: The random seed to use when processing the modules.
 
     Returns:
     A dict of NumPy feature arrays suitable for feeding into the model.
@@ -153,13 +153,13 @@ def load_input_feats(pdbid, msa_features, ligand_features, config, pocket_indice
     """
 
 
-    #Load raw protein features
+    #Load raw protein modules
     msa_feature_dict = np.load(msa_features, allow_pickle=True)
 
-    #Process the features on CPU (sample MSA)
+    #Process the modules on CPU (sample MSA)
     protein_feats = process_protein_features(msa_feature_dict, config, np.random.choice(sys.maxsize))
 
-    #Load the ligand features
+    #Load the ligand modules
     ligand_feats = np.load(ligand_features, allow_pickle=True)
     ligand_size = ligand_feats['atom_types'].shape[0]
 

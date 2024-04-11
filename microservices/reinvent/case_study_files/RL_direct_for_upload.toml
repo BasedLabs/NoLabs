@@ -9,7 +9,7 @@ summary_csv_prefix = "rl_direct"
 agent_file = "/app/REINVENT4/priors/reinvent.prior"
 prior_file = "/app/REINVENT4/priors/reinvent.prior"
 
-batch_size = 128          
+batch_size = 1
 uniquify_smiles = true   
 randomize_smiles = true  
 

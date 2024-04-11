@@ -24,7 +24,7 @@ import numpy as np
 
 # Internal import (7716).
 
-parser = argparse.ArgumentParser(description = """Builds the input features for training the structure prediction model.""")
+parser = argparse.ArgumentParser(description = """Builds the input modules for training the structure prediction model.""")
 
 parser.add_argument('--input_fasta_path', nargs=1, type= str, default=sys.stdin, help = 'Path to fasta.')
 parser.add_argument('--input_msas', nargs=1, type= str, default=sys.stdin, help = 'Path to MSAs. Separated by comma.')
@@ -35,7 +35,7 @@ FeatureDict = Mapping[str, np.ndarray]
 ##############FUNCTIONS##############
 def make_sequence_features(
     sequence: str, description: str, num_res: int) -> FeatureDict:
-  """Constructs a feature dict of sequence features."""
+  """Constructs a feature dict of sequence modules."""
   features = {}
   features['aatype'] = residue_constants.sequence_to_onehot(
       sequence=sequence,
@@ -53,7 +53,7 @@ def make_sequence_features(
 def make_msa_features(
     msas: Sequence[Sequence[str]],
     deletion_matrices: Sequence[parsers.DeletionMatrix]) -> FeatureDict:
-  """Constructs a feature dict of MSA features."""
+  """Constructs a feature dict of MSA modules."""
   if not msas:
     raise ValueError('At least one MSA must be provided.')
 
@@ -83,7 +83,7 @@ def make_msa_features(
 
 
 def process(input_fasta_path: str, input_msas: list) -> FeatureDict:
-    """Runs alignment tools on the input sequence and creates features."""
+    """Runs alignment tools on the input sequence and creates modules."""
     with open(input_fasta_path) as f:
       input_fasta_str = f.read()
     input_seqs, input_desc = parsers.parse_fasta(input_fasta_str)
@@ -130,9 +130,9 @@ outdir = args.outdir[0]
 #Get feats
 feature_dict = process(input_fasta_path, input_msas)
 
-#Write out features as a pickled dictionary.
+#Write out modules as a pickled dictionary.
 features_output_path = os.path.join(outdir, 'msa_features.pkl')
 with open(features_output_path, 'wb') as f:
     pickle.dump(feature_dict, f, protocol=4)
-print('Saved MSA features to',features_output_path)
+print('Saved MSA modules to',features_output_path)
 

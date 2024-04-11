@@ -22,12 +22,12 @@ from .net.model import modules
 
 ##########INPUT DATA#########
 def process_protein_features(raw_features, config, random_seed):
-    """Processes features to prepare for feeding them into the model.
+    """Processes modules to prepare for feeding them into the model.
 
     Args:
     raw_features: The output of the data pipeline either as a dict of NumPy
       arrays or as a tf.train.Example.
-    random_seed: The random seed to use when processing the features.
+    random_seed: The random seed to use when processing the modules.
 
     Returns:
     A dict of NumPy feature arrays suitable for feeding into the model.
@@ -137,13 +137,13 @@ def load_input_feats(pdbid, msa_features, ligand_features, config, pocket_indice
     """
 
 
-    #Load raw protein features
+    #Load raw protein modules
     msa_feature_dict = np.load(msa_features, allow_pickle=True)
 
-    #Process the features on CPU (sample MSA)
+    #Process the modules on CPU (sample MSA)
     protein_feats = process_protein_features(msa_feature_dict, config, np.random.choice(sys.maxsize))
 
-    #Load the ligand features
+    #Load the ligand modules
     ligand_feats = np.load(ligand_features, allow_pickle=True)
     ligand_size = ligand_feats['atom_types'].shape[0]
 

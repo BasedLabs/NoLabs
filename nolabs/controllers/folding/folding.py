@@ -8,13 +8,13 @@ from nolabs.controllers.folding.dependencies import run_folding_feature_dependen
     get_experiments_feature_dependency, \
     get_experiment_feature_dependency, delete_experiment_feature_dependency, change_experiment_name_dependency, \
     create_experiment_dependency
-from nolabs.features.experiment.create_experiment import CreateExperimentFeature
-from nolabs.features.experiment.get_experiments import GetExperimentsFeature
-from nolabs.features.experiment.delete_experiment import DeleteExperimentFeature
-from nolabs.features.experiment.change_experiment_name import ChangeExperimentNameFeature
+from nolabs.modules.experiment.create_experiment import CreateExperimentFeature
+from nolabs.modules.experiment.get_experiments import GetExperimentsFeature
+from nolabs.modules.experiment.delete_experiment import DeleteExperimentFeature
+from nolabs.modules.experiment.change_experiment_name import ChangeExperimentNameFeature
 from nolabs.api_models.experiment import ChangeExperimentNameRequest, ExperimentMetadataResponse
-from nolabs.features.amino_acid.folding.get_experiment import GetExperimentFeature
-from nolabs.features.amino_acid.folding.run_folding import RunFoldingFeature
+from nolabs.modules.amino_acid.folding.get_experiment import GetExperimentFeature
+from nolabs.modules.amino_acid.folding.run_folding import RunFoldingFeature
 
 router = APIRouter(
     prefix='/api/v1/folding',

@@ -27,7 +27,7 @@ NoLabs is an open source biolab that lets you run experiments with the latest st
 
 The goal of the project is to accelerate bio research by making inference models easy to use for everyone. We are
 currently supporting protein biolab (predicting useful protein properties such as solubility, localisation, gene
-ontology, folding, etc.) and drug discovery biolab (construct ligands and test binding to target proteins).
+ontology, folding, etc.), drug discovery biolab (construct ligands and test binding to target proteins) and small molecules design biolab (design small molecules given a protein target and check drug-likeness and binding affinity).
 
 We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and
 contributions.
@@ -101,6 +101,17 @@ You can ignore OPENAI_API_KEY warnings when running other services using docker 
 **Conformations Lab:**
 
 - Conformations via [OpenMM](https://github.com/openmm/openmm) and [GROMACS](https://github.com/gromacs/gromacs)
+
+**Small molecules design lab:**
+
+- Small molecules design using a protein target with drug-likeness scoring component [REINVENT4](https://github.com/MolecularAI/REINVENT4)
+
+Specify the search space (location) where designed molecule would bind relative to protein target. Then run reinforcement learning to generate new molecules in specified binding region.
+
+WARNING: Reinforcement learning process might take a long time (with 128 molecules per 1 epoch and 50 epochs it could take a day)
+
+<br>
+<img src="media/small_molecules_design.png" width="100%">
 
 # Starting
 
@@ -329,6 +340,23 @@ or
 WARNING: To use Rosettafold you must change the <b>volumes '.'</b>
 to point to the specified folders.
 
+### 10) REINVENT4 Reinforcement Learning on a Protein receptor API
+
+Model: [REINVENT4](https://github.com/MolecularAI/REINVENT4)
+
+Misc: DockStream, QED, AutoDock Vina
+
+```shell
+docker compose up reinvent
+```
+
+Swagger UI will be available on http://localhost:5790/docs
+
+or
+[Install as python package](microservices/reinvent/client/README.md)
+
+WARNING: Do not change the number of guvicorn workers (1), this will lead to microservice issues.
+
 # Technologies
 
 The following tools were used in this project:
@@ -339,6 +367,7 @@ The following tools were used in this project:
 - [FastAPI](https://pypi.org/project/Flask/)
 - [Docker](https://www.docker.com/)
 - [Vue.js](https://vuejs.org/)
+- [AutoDock Vina](https://vina.scripps.edu/)
 
 ## Requirements ##
 

@@ -1,0 +1,13 @@
+run_type = "sampling"
+use_cuda = true  # run on the GPU if true, on the CPU if false
+
+
+[parameters]
+## Reinvent: de novo sampling
+model_file = ""
+
+output_file = 'sampling.csv'  # sampled SMILES and NLL in CSV format
+
+num_smiles = 1  # number of SMILES to be sampled, 1 per input SMILES
+unique_molecules = true  # if true remove all duplicatesd canonicalize smiles
+randomize_smiles = true # if true shuffle atoms in SMILES randomly

@@ -9,6 +9,7 @@ from nolabs.controllers.localisation.localisation import router as localisation_
 from nolabs.controllers.protein_design.protein_design import router as protein_design_router
 from nolabs.controllers.solubility.solubility import router as solubility_router
 from nolabs.controllers.folding.folding import router as folding_router
+from nolabs.controllers.small_molecules_design.small_molecules_design import router as small_molecules_design_router
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
 
 app = FastAPI(
@@ -28,6 +29,7 @@ app.include_router(gene_ontology_router)
 app.include_router(drug_discovery_router)
 app.include_router(protein_design_router)
 app.include_router(folding_router)
+app.include_router(small_molecules_design_router)
 add_domain_exception_middleware(app)
 
 app.add_middleware(

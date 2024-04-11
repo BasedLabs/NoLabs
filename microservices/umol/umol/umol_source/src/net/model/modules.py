@@ -83,7 +83,7 @@ def dropout_wrapper(module,
 
 
 def create_extra_msa_feature(batch):
-  """Expand extra_msa into 1hot and concat with other extra msa features.
+  """Expand extra_msa into 1hot and concat with other extra msa modules.
 
   We do this as late as possible as the one_hot extra msa can be very large.
 
@@ -97,7 +97,7 @@ def create_extra_msa_feature(batch):
        the left of each position in the extra MSA.
 
   Returns:
-    Concatenated tensor of extra MSA features.
+    Concatenated tensor of extra MSA modules.
   """
   # 23 = 20 amino acids + 'X' for unknown + gap + bert mask
   msa_1hot = jax.nn.one_hot(batch['extra_msa'], 23)
@@ -110,7 +110,7 @@ def create_extra_msa_feature(batch):
 class FoldIteration(hk.Module):
   """A single recycling iteration of the architecture.
 
-  Computes ensembled (averaged) representations from the provided features.
+  Computes ensembled (averaged) representations from the provided modules.
   These representations are then passed to the various heads
   that have been requested by the configuration file. Each head also returns a
   loss which is combined as a weighted sum to produce the total loss.
@@ -281,7 +281,7 @@ class Umol(hk.Module):
     Arguments:
       batch: Dictionary with inputs to the Umol model.
       is_training: Whether the system is in training or inference mode.
-      compute_loss: Whether to compute losses (requires extra features
+      compute_loss: Whether to compute losses (requires extra modules
         to be present in the batch and knowing the true structure).
       ensemble_representations: Whether to use ensembling of representations.
       return_representations: Whether to also return the intermediate
@@ -1393,7 +1393,7 @@ def dgram_from_positions(positions, num_bins, min_bin, max_bin):
 
 
 def pseudo_beta_fn(aatype, all_atom_positions, all_atom_masks):
-  """Create pseudo beta features."""
+  """Create pseudo beta modules."""
 
   is_gly = jnp.equal(aatype, residue_constants.restype_order['G'])
   ca_idx = residue_constants.atom_order['CA']
@@ -1621,7 +1621,7 @@ class EmbeddingsAndEvoformer(hk.Module):
         c.pair_channel, name='pair_activiations')(
             batch['ligand_feats'])
 
-    # Embed extra MSA features.
+    # Embed extra MSA modules.
     # Jumper et al. (2021) Suppl. Alg. 2 "Inference" lines 14-16
     extra_msa_feat = create_extra_msa_feature(batch)
     extra_msa_activations = common_modules.Linear(

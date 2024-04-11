@@ -471,7 +471,6 @@ export default defineComponent({
     },
 
     async updateCurrentJob() {
-      console.log('Starting')
       const store = useDrugDiscoveryStore();
       await this.updateServiceHealth(); // Update the health status of each service
       const runningJob = this.jobsInQueue.find(job => job.isRunning);

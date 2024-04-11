@@ -5,14 +5,14 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**loc** | [**List[ValidationErrorLocInner]**](ValidationErrorLocInner.md) |  | 
-**msg** | **str** |  | 
-**type** | **str** |  | 
+**loc** | **object** |  | 
+**msg** | **object** |  | 
+**type** | **object** |  | 
 
 ## Example
 
 ```python
-from umol_microservice.models.validation_error import ValidationError
+from nolabs_microservice.models.validation_error import ValidationError
 
 # TODO update the JSON string below
 json = "{}"
