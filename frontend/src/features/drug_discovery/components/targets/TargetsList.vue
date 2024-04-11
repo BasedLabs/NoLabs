@@ -32,12 +32,12 @@
     <q-card>
       <q-card-section>
         <div class="text-h6">Upload Target Files</div>
-        <q-file v-model="uploadingTargetFiles" accept=".fasta" multiple label="Choose files"/>
+        <q-file v-model="targetFileModel" ref="targetFileInput" accept=".fasta" multiple label="Choose files"/>
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn flat label="Close" color="negative" @click="uploadTargetDialog = false"/>
-        <q-btn flat label="Upload" color="info" @click="handleTargetFileUpload"/>
+        <q-btn flat label="Upload" color="info" @click="uploadTargetFiles"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -66,7 +66,7 @@ export default defineComponent({
   data() {
     return {
       uploadTargetDialog: false,
-      uploadingTargetFiles: [] as File[],
+      targetFileModel: [],
       uploadLigandDialog: false,
       uploadingLigandFiles: [],
       selectedTarget: null,
@@ -82,26 +82,21 @@ export default defineComponent({
   },
   async mounted() {
     const bioBuddyStore = useBioBuddyStore();
-    this.rscbQueryCallBack = (data: { files: RcsbPdbData[] }) => {
-        const metaDatasArray: Record<string, string>[] = [];
-        for (let rcsbObject of data.files){
-          const file = new File([new Blob([rcsbObject.content!])], "protein.fasta")
+    this.rscbQueryCallBack = async (data: { files: RcsbPdbData[] }) => {
+      const files: File[] = [];
+      const metaDatasArray: Record<string, string>[] = [];
 
-          this.uploadingTargetFiles.push(file);
-
-          // Directly iterating and treating each key as a string explicitly
-          const metadataAsString: Record<string, string> = {};
-          Object.entries(rcsbObject.metadata).forEach(([key, value]) => {
-            // Explicitly treating the key as a string, though this should be implicit
-            const stringKey: string = String(key);
-            // Handling the value conversion, assuming potential complex types
-            metadataAsString[stringKey] = typeof value === 'object' ? JSON.stringify(value) : String(value);
-          });
-
-          metaDatasArray.push(metadataAsString);
-        }
-        this.handleTargetFileUpload(metaDatasArray);
-      };
+      for (let rcsbObject of data.files) {
+        const file = new File([new Blob([rcsbObject.content!])], "protein.fasta");
+        files.push(file);
+        const metadataAsString: Record<string, string> = {};
+        Object.entries(rcsbObject.metadata).forEach(([key, value]) => {
+          metadataAsString[key] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        });
+        metaDatasArray.push(metadataAsString);
+      }
+      await this.handleTargetFileUpload(files, metaDatasArray);
+    };
     bioBuddyStore.addQueryRcsbPdbEventHandler(this.rscbQueryCallBack);
 
     this.targets = await this.drugDiscoveryStore.fetchTargetsForExperiment(this.experimentId) as ExtendedTargetMetaData[];
@@ -111,34 +106,40 @@ export default defineComponent({
     async selectTarget(target: ExtendedTargetMetaData) {
       target.data = await this.getTargetData(target);
     },
-      async handleTargetFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
-        const store = useDrugDiscoveryStore();
+    uploadTargetFiles() {
+      if (this.targetFileModel.length > 0) {
+        this.handleTargetFileUpload(this.targetFileModel)
+          .then(() => {
+            this.targetFileModel = []; // Reset the file input after upload
+          })
+          .catch(error => {
+            console.error("Upload failed", error);
+          });
+      } else {
+        console.log("No files selected");
+      }
+    },
+    async handleTargetFileUpload(files: File[], additionalMetaDataArray?: Record<string, string>[]) {
+      const store = useDrugDiscoveryStore();
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: `Uploading target files`
+      });
 
-        this.$q.loading.show({
-          spinner: QSpinnerOrbit,
-          message: `Uploading target files`
-        });
-
-        try {
-          // Assuming uploadTargetToExperiment can handle multiple files and returns an array of TargetMetaData
-          for (let index = 0; index < this.uploadingTargetFiles.length; index++) {
-            const file = this.uploadingTargetFiles[index];
-            // Retrieve the corresponding metaData by file index
-            const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
-            // Pass the metaData to the upload method
-            const newTargets = await store.uploadTargetToExperiment(this.experimentId, file, metaData);
-            newTargets?.map(target => (
-              this.targets.push({...target})
-            ))
-          }
-        } catch (error) {
-          console.error('Error uploading target files:', error);
-        } finally {
-          this.uploadTargetDialog = false;
-          this.uploadingTargetFiles = [];
-          this.$q.loading.hide();
+      try {
+        for (let index = 0; index < files.length; index++) {
+          const file = files[index];
+          const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
+          const newTargets = await store.uploadTargetToExperiment(this.experimentId, file, metaData);
+          newTargets?.forEach(target => this.targets.push(target));
         }
-      },
+      } catch (error) {
+        console.error('Error uploading target files:', error);
+      } finally {
+        this.uploadTargetDialog = false;
+        this.$q.loading.hide();
+      }
+    },
     async getTargetData(target: ExtendedTargetMetaData) {
       const store = useDrugDiscoveryStore();
       target.loadingTargetData = true;

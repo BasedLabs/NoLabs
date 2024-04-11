@@ -51,12 +51,12 @@
     <q-card>
       <q-card-section>
         <div class="text-h6">Upload Ligand Files</div>
-        <q-file v-model="uploadingLigandFiles" accept=".sdf" multiple label="Choose files"/>
+        <q-file v-model="fileModel" accept=".sdf" multiple label="Choose files"/>
       </q-card-section>
 
       <q-card-actions align="right">
         <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false"/>
-        <q-btn flat label="Upload" color="positive" @click="() => handleLigandFileUpload()"/>
+        <q-btn flat label="Upload" color="positive" @click="uploadFiles"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -115,8 +115,8 @@ export default defineComponent({
       data() {
         return {
           uploadLigandDialog: false,
-          uploadingLigandFiles: [] as File[],
           selectedLigand: null as ExtendedLigandMetaData | null,
+          fileModel: [],
           chemblQueryCallback: null as ((data: { files: ChemBLData[] }) => void) | null,
           ligandDetailDialogVisible: false,
           targetSelectionDialogVisible: false,
@@ -143,13 +143,15 @@ export default defineComponent({
       async mounted() {
         const bioBuddyStore = useBioBuddyStore();
         this.chemblQueryCallback = async (data: { files: ChemBLData[] }) => {
+          const files: File[] = [];
           const metaDatasArray: Record<string, string>[] = [];
+
           for (let chemBLObject of data.files) {
             const file = new File([new Blob([chemBLObject.content!])], chemBLObject.metadata.pref_name + ".sdf");
-            this.uploadingLigandFiles.push(file);
+            files.push(file);
             metaDatasArray.push(chemBLObject.metadata);
           }
-          await this.handleLigandFileUpload(metaDatasArray);
+          await this.handleLigandFileUpload(files, metaDatasArray);
         };
         bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
 
@@ -164,15 +166,27 @@ export default defineComponent({
           this.selectedLigand = ligand;
           this.ligandDetailDialogVisible = true;
         },
-        async handleLigandFileUpload(additionalMetaDataArray?: Record<string, string>[]) {
-          for (let index = 0; index < this.uploadingLigandFiles.length; index++) {
-            const file = this.uploadingLigandFiles[index];
+        uploadFiles() {
+          if (this.fileModel.length > 0) {
+            this.handleLigandFileUpload(this.fileModel)
+              .then(() => {
+                this.fileModel = []; // Reset/clear the file input after upload
+              })
+              .catch(error => {
+                console.error("Upload failed", error);
+              });
+          } else {
+            console.log("No files selected");
+          }
+        },
+        async handleLigandFileUpload(files: File[], additionalMetaDataArray?: Record<string, string>[]) {
+          for (let index = 0; index < files.length; index++) {
+            const file = files[index];
             const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
             const newLigand = await this.drugDiscoveryStore.uploadLigandToExperiment(this.experimentId, file, metaData);
             this.ligands.push(newLigand!);
           }
           this.uploadLigandDialog = false;
-          this.uploadingLigandFiles = [];
         },
         async getLigandData(ligand: ExtendedLigandMetaData) {
           ligand.loadingLigandData = true;
@@ -182,7 +196,6 @@ export default defineComponent({
             console.error('Error fetching ligand data:', error);
           } finally {
             ligand.loadingLigandData = false;
-            this.uploadingLigandFiles = [];
           }
         },
         async deleteLigand(ligandToDelete: ExtendedLigandMetaData) {
