@@ -65,7 +65,7 @@ class FunctionCall:
 @pcdataclass.dataclass
 class Message:
     role: str
-    message: Union[RegularMessage, FunctionCall]
+    message: Union[RegularMessage, List[FunctionCall]]
     type: str
 
 

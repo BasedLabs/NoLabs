@@ -12,17 +12,19 @@
               <div class="q-pb-sm q-pt-sm text-bold">
                 <img src="/Biobuddy_icon.svg" class="custom-icon" />
                 {{ displayName(message.role) }}</div>
+              <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
               <p> <q-icon name="check_circle" color="purple"></q-icon>
                 <span class="text-h7 text-purple q-ml-sm"> {{ displayContent(message) }} </span>
               </p>
               <ul>
                 Params:
-                <li v-for="(param, index) in getParameters(message)" :key="index">
+                <li v-for="(param, pIndex) in functionCall.parameters" :key="`param-${fcIndex}-${pIndex}`">
                   {{ param.name }}: {{ param.value }}
                 </li>
               </ul>
+              </div>
             </q-item-label>
-          </div>
+            </div>
           <div v-else>
             <q-item-label class="text-h7 q-mb-sm">
               <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
@@ -96,18 +98,19 @@ export default defineComponent({
       this.messages.push(newMessageResponse);
 
       if (newMessageResponse.type === 'function') {
-        const functionCall = newMessageResponse.message as FunctionCall;
-        this.invokeFunction(functionCall);
+        const functionCall = newMessageResponse.message as FunctionCall[];
+        await this.invokeFunctions(functionCall);
       }
       this.newMessage = '';
       await this.loadConversation();
       this.sending = false;
     },
-    invokeFunction(functionCall: FunctionCall) {
-      const mapping = this.functionMappings?.find(m => m.name === functionCall.function_name);
-      if (mapping && typeof mapping.function === 'function') {
-        // Accepts storage functions
-        mapping.function(functionCall.data);
+    async invokeFunctions(functionCalls: FunctionCall[]) {
+      for (const functionCall of functionCalls) {
+        const mapping = this.functionMappings?.find(m => m.name === functionCall.function_name);
+        if (mapping && typeof mapping.function === 'function') {
+          await mapping.function(functionCall.data);
+        }
       }
     },
     displayContent(message: Message) {
@@ -115,8 +118,8 @@ export default defineComponent({
         const response_message = message.message as RegularMessage;
         return response_message.content;
       }
-      const response_message = message.message as FunctionCall;
-      return response_message.function_name;
+      const functionCalls = message.message as FunctionCall[];
+      return functionCalls.map(fc => fc.function_name).join(', ');
     },
     displayName(role: string) {
       return role === 'user' ? 'You' : 'Biobuddy';
@@ -138,12 +141,12 @@ export default defineComponent({
       window.removeEventListener('mousemove', this.resizeDrawer);
       window.removeEventListener('mouseup', this.stopResizing);
     },
-    getParameters(message: Message): Array<FunctionParam> {
-      if (message.type === 'function' && (message.message as FunctionCall).parameters) {
-        return (message.message as FunctionCall).parameters;
+    getParameters(message: Message): Array<Array<FunctionParam>> {
+      if (message.type === 'function') {
+        return (message.message as FunctionCall[]).map(fc => fc.parameters ? fc.parameters : []);
       }
       return [];
-    },
+    }
   },
   async mounted() {
     await this.loadConversation();
