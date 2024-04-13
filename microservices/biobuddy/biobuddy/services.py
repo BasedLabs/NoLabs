@@ -74,9 +74,8 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
             reply_type="function_calls",
             content=response_content
         )
-    else:
-        response_content = completion.content
-        return SendMessageToBioBuddyResponse(
+    response_content = completion.content
+    return SendMessageToBioBuddyResponse(
             reply_type="regular_reply",
             content=response_content
         )

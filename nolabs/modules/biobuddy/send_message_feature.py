@@ -47,69 +47,73 @@ class SendMessageFeature:
                 send_message_to_bio_buddy_request=biobuddy_request)
 
             if assistant_message.reply_type == "function_calls":
-                print(assistant_message.content)
-                function_calls = ast.literal_eval(assistant_message.content)
-                print(function_calls)
-                self._file_management.update_conversation(experiment_id,
-                                                          Message(role='user',
-                                                                  message=RegularMessage(
-                                                                      content=request.message_content
-                                                                  ),
-                                                                  type='text')
-                                                          )
-                api_function_calls = []
-                regular_function_calls = []
-                for function_call in function_calls:
-                    function_dict = ast.literal_eval(function_call)['function_call']
-                    function_name = function_dict['name']
-                    arguments = json.loads(function_dict['arguments'])
-                    if function_name in self._functions:
-                        function_call = self._functions[function_name].execute(experiment_id=experiment_id,
-                                                                               arguments=arguments)
+                return self._process_function_calls(experiment_id, request.message_content, assistant_message)
 
-                        regular_function_calls.append(FunctionCall(function_name=function_call.function_name,
+            return self._process_regular_message(experiment_id, request.message_content, assistant_message)
+
+    def _process_function_calls(self,
+                                experiment_id: ExperimentId,
+                                original_query: str,
+                                assistant_message: biobuddy_microservice.SendMessageToBioBuddyResponse
+                                ) -> SendMessageResponse:
+        function_calls = ast.literal_eval(assistant_message.content)
+        self._file_management.update_conversation(experiment_id,
+                                                  Message(role='user',
+                                                          message=RegularMessage(
+                                                              content=original_query
+                                                          ),
+                                                          type='text')
+                                                  )
+        api_function_calls = []
+        regular_function_calls = []
+        for function_call in function_calls:
+            function_dict = ast.literal_eval(function_call)['function_call']
+            function_name = function_dict['name']
+            arguments = json.loads(function_dict['arguments'])
+            if function_name in self._functions:
+                function_call = self._functions[function_name].execute(experiment_id=experiment_id,
+                                                                       arguments=arguments)
+
+                regular_function_calls.append(FunctionCall(function_name=function_call.function_name,
                                                            parameters=[FunctionParam(name=param.name,
                                                                                      value=param.value) for param in
                                                                        function_call.parameters]
                                                            ))
-                        api_function_calls.append(ApiFunctionCall(**dataclasses.asdict(function_call)))
+                api_function_calls.append(ApiFunctionCall(**dataclasses.asdict(function_call)))
+        self._file_management.update_conversation(experiment_id,
+                                                  Message(role='assistant',
+                                                          message=regular_function_calls,
+                                                          type="function")
+                                                  )
 
-                print(api_function_calls)
-                print(regular_function_calls)
+        return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
+                                                                message=api_function_calls,
+                                                                type="function"))
 
-                self._file_management.update_conversation(experiment_id,
-                                                          Message(role='assistant',
-                                                                  message=regular_function_calls,
-                                                                  type="function")
-                                                          )
-
-                return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
-                                                                        message=api_function_calls,
-                                                                        type="function")
-                                           )
-
-            else:
-                self._file_management.update_conversation(experiment_id,
-                                                          Message(role='user',
-                                                                  message=RegularMessage(
-                                                                      content=request.message_content
-                                                                  ),
-                                                                  type='text')
-                                                          )
-                self._file_management.update_conversation(experiment_id,
-                                                          Message(role='assistant',
-                                                                  message=RegularMessage(
-                                                                      content=str(
-                                                                          assistant_message.content)
-                                                                  ),
-                                                                  type='text')
-                                                          )
-                return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
-                                                                        message=ApiRegularMessage(
-                                                                            content=str(assistant_message.content)
-                                                                        ),
-                                                                        type='text')
-                                           )
+    def _process_regular_message(self, experiment_id: ExperimentId,
+                                 original_message: str,
+                                 assistant_message: biobuddy_microservice.SendMessageToBioBuddyResponse
+                                 ) -> SendMessageResponse:
+        self._file_management.update_conversation(experiment_id,
+                                                  Message(role='user',
+                                                          message=RegularMessage(
+                                                              content=original_message
+                                                          ),
+                                                          type='text')
+                                                  )
+        self._file_management.update_conversation(experiment_id,
+                                                  Message(role='assistant',
+                                                          message=RegularMessage(
+                                                              content=str(
+                                                                  assistant_message.content)
+                                                          ),
+                                                          type='text')
+                                                  )
+        return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
+                                                                message=ApiRegularMessage(
+                                                                    content=str(assistant_message.content)
+                                                                ),
+                                                                type='text'))
 
     def construct_tools_object(self):
         tools = []
@@ -156,7 +160,8 @@ class SendMessageFeature:
                 previous_messages.append({'role': message.role,
                                           'content': str(message.message.content)})
             elif type(message) == List[FunctionCall]:
-                functions = [(str(idx) + function.function_name, function.parameters) for idx, function in enumerate(message.message)]
+                functions = [(str(idx) + function.function_name, function.parameters) for idx, function in
+                             enumerate(message.message)]
                 previous_messages.append({'role': message.role,
                                           'content': f"I called {functions}"})
 
