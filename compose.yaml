@@ -174,6 +174,7 @@ services:
       dockerfile: build/Dockerfile
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
     ports:
       - "5738:5738"
     command: --host=0.0.0.0 --port=5738
