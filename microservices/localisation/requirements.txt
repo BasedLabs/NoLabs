@@ -7,5 +7,7 @@ numpy
 requests
 types-requests
 transformers
+pandas
+malevich
 --extra-index-url https://download.pytorch.org/whl/cu118 torch==2.0.1
 

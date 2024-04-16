@@ -1,0 +1,15 @@
+dependencies: []
+preferences:
+  log_format: RICH
+  log_level: INFO
+  verbosity:
+    Installation: 0
+    Intrepretation: 0
+    Preparation: 1
+    Removal: 0
+    Results: 1
+    Run: 1
+    Stop: 0
+project_id: null
+space: null
+version: null

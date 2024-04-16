@@ -36,8 +36,9 @@ rcsb-pdb-query-microservice = {path = "microservices/rcsb_pdb_query/client"}
 chembl-query-microservice = {path = "microservices/chembl_query/client"}
 aiohttp = "^3.9.3"
 rosettafold-microservice = {path = "microservices/rosettafold/client"}
-leaf-basedlabs = "^0.0.7"
 reinvent-microservice = {path = "microservices/reinvent/client"}
+dependency-injector = "^4.41.0"
+leaf-basedlabs = "^0.0.9"
 
 [project]
 dependencies = [

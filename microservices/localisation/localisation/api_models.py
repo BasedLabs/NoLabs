@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Optional, List
+from typing import List
 
 import pydantic.dataclasses
 

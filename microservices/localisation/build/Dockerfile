@@ -1,11 +1,10 @@
 # Use an official PyTorch runtime as a parent image
-FROM cnstark/pytorch:2.0.1-py3.10.11-cuda11.8.0-ubuntu22.04
+FROM malevichai/app:python-torch_v0.1
 
-WORKDIR /app/solubility
-WORKDIR /app
-COPY requirements.txt /app
-RUN pip install -r requirements.txt
-COPY . /app
-RUN python -m localisation.predownload_model
+RUN mkdir ./apps
+COPY requirements.txt ./apps
+RUN pip install -r ./apps/requirements.txt
+COPY . ./apps
+RUN (cd ./apps && python -m localisation.predownload_model)
 
-ENTRYPOINT ["uvicorn", "localisation.api:app"]
+ENV PYTHONPATH "${PYTHONPATH}:/julius/apps"
