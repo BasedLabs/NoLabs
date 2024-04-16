@@ -5,8 +5,11 @@ from biobuddy.api_models import SendMessageToBioBuddyResponse, SendMessageToBioB
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_openai import ChatOpenAI
 
+from biobuddy.gpt_researcher import get_report
+import asyncio
+
 chat_model = ChatOpenAI()
-chat_model.model_name = "gpt-4"
+chat_model.model_name = "gpt-4-turbo"
 chat_model.temperature = 0.1
 
 
@@ -36,9 +39,10 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
     openai_functions = [tool['function'] for tool in request.tools]
 
     strategy_prompt = (f"Given the available tools ({tools_description}), decide whether a direct reply is sufficient "
-                       f"or if a specific plan involving these tools is necessary. If plan is not needed, provide the direct "
-                       f"reply. If plan is needed, reply with the list (with a tag <PLAN> before the list) of function calls in the format <PLAN>: ['Call function_1 in order to do X', 'Call function_2 to achieve Y'].\n\nQuery: \""
-                       f"{request.message_content}\"\n\n")
+                       f"or if a specific plan involving these tools is necessary. If plan is not needed, provide the direct reply. "
+                       f"If plan is needed, reply with the list (with a tag <PLAN> before the list) of function calls in the format <PLAN>: ['Call function_1 in order to do X', 'Call function_2 to achieve Y']. "
+                       f"If you need to consult external database of knowledge to make a well-structured answer, write only tag <RESEARCH>. "
+                       f"\n\nQuery: \"{request.message_content}\"\n\n")
 
 
     tool_prompt = f"""You are an assistant that has access to the following set of tools. Here are the names and descriptions for each tool:
@@ -74,8 +78,15 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
             reply_type="function_calls",
             content=response_content
         )
-    response_content = completion.content
-    return SendMessageToBioBuddyResponse(
+    elif "<RESEARCH>" in completion.content:
+        response_content = asyncio.run(get_report(request.message_content))
+        return SendMessageToBioBuddyResponse(
+            reply_type="regular_reply", # TODO: change to research_reply and make frontend display it differently (it's markdown)
+            content=response_content
+        )
+    else:
+        response_content = completion.content
+        return SendMessageToBioBuddyResponse(
             reply_type="regular_reply",
             content=response_content
         )
