@@ -25,6 +25,7 @@ class GPTResearcher:
         self.websocket = websocket
         self.cfg = Config(config_path)
         self.retriever = get_retriever(self.cfg.retriever)
+        self.fallback_retriever = get_retriever('duckduckgo')
         self.context = []
         self.source_urls = source_urls
         self.memory = Memory()
@@ -117,8 +118,12 @@ class GPTResearcher:
             Summary
         """
         # Get Urls
-        retriever = self.retriever(sub_query)
-        search_results = retriever.search(max_results=self.cfg.max_search_results_per_query)
+        try:
+            retriever = self.retriever(sub_query)
+            search_results = retriever.search(max_results=self.cfg.max_search_results_per_query)
+        except:
+            retriever = self.fallback_retriever(sub_query)
+            search_results = retriever.search(max_results=self.cfg.max_search_results_per_query)
         new_search_urls = await self.get_new_urls([url.get("href") for url in search_results])
 
         # Scrape Urls
