@@ -4,6 +4,7 @@ from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
 from nolabs.modules.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
+from nolabs.modules.biobuddy.edit_message_feature import EditMessageFeature
 from nolabs.modules.biobuddy.file_management import FileManagement
 from nolabs.modules.biobuddy.functions.query_chembl import QueryChemblFunction
 from nolabs.modules.biobuddy.functions.query_chembl_by_disease import QueryChemblByConditionFunction
@@ -72,7 +73,13 @@ def save_message_dependency(settings: Annotated[Settings, Depends(settings_depen
                                               file_management: Annotated[FileManagement,
                                               Depends(file_management_dependency)]
                                               ) -> SendMessageFeature:
-    return SendMessageFeature(settings=settings, file_management=file_management,)
+    return SendMessageFeature(settings=settings, file_management=file_management)
+
+def edit_message_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                                              file_management: Annotated[FileManagement,
+                                              Depends(file_management_dependency)]
+                                              ) -> EditMessageFeature:
+    return EditMessageFeature(settings=settings, file_management=file_management,)
 
 def send_query_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
                                               file_management: Annotated[FileManagement,

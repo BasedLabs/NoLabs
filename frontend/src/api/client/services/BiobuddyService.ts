@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CheckBioBuddyEnabledResponse } from '../models/CheckBioBuddyEnabledResponse';
+import type { EditMessageResponse } from '../models/EditMessageResponse';
 import type { LoadConversationResponse } from '../models/LoadConversationResponse';
 import type { SaveMessageResponse } from '../models/SaveMessageResponse';
 import type { SendQueryResponse } from '../models/SendQueryResponse';
@@ -57,6 +58,32 @@ export class BiobuddyService {
             url: '/api/v1/biobuddy/save-message',
             query: {
                 'experiment_id': experimentId,
+                'message_content': messageContent,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Edit Message
+     * @param experimentId
+     * @param messageId
+     * @param messageContent
+     * @returns EditMessageResponse Successful Response
+     * @throws ApiError
+     */
+    public static editMessageApiV1BiobuddyEditMessagePost(
+        experimentId: string,
+        messageId: string,
+        messageContent: string,
+    ): CancelablePromise<EditMessageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/biobuddy/edit-message',
+            query: {
+                'experiment_id': experimentId,
+                'message_id': messageId,
                 'message_content': messageContent,
             },
             errors: {

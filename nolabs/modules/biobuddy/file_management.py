@@ -35,6 +35,24 @@ class FileManagement(ExperimentsFileManagementBase):
             f.seek(0)
             json.dump(messages, f, indent=4)
 
+    def edit_message_in_conversation(self, experiment_id: ExperimentId, message_id: str, new_message: Message):
+        self.ensure_conversations_file_exists(experiment_id)
+        file_path = self.conversation_file_path(experiment_id)
+        with open(file_path, 'r+') as f:
+            messages = json.load(f)
+            for idx in range(len(messages)):
+                message = messages[idx]
+                if message['id'] == message_id:
+                    messages[idx] = asdict(new_message)
+                    messages = messages[:idx+1]
+                    print(messages)
+                    f.seek(0)
+                    json.dump(messages, f, indent=4)
+                    f.truncate()
+                    return
+
+
+
     def load_conversation(self, experiment_id: ExperimentId) -> list[Message]:
         self.ensure_conversations_file_exists(experiment_id)
         file_path = self.conversation_file_path(experiment_id)

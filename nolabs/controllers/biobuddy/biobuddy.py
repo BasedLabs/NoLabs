@@ -3,10 +3,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from nolabs.api_models.biobuddy import LoadConversationResponse, LoadConversationRequest, SaveMessageResponse, \
-    SaveMessageRequest, CheckBioBuddyEnabledResponse, SendQueryResponse, SendQueryRequest
+    SaveMessageRequest, CheckBioBuddyEnabledResponse, SendQueryResponse, SendQueryRequest, EditMessageResponse, \
+    EditMessageRequest
 from nolabs.controllers.biobuddy.dependencies import load_conversation_dependency, \
-    save_message_dependency, send_query_dependency, check_biobuddy_enabled_dependency
+    save_message_dependency, send_query_dependency, check_biobuddy_enabled_dependency, edit_message_dependency
 from nolabs.modules.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
+from nolabs.modules.biobuddy.edit_message_feature import EditMessageFeature
 from nolabs.modules.biobuddy.load_conversation_feature import LoadConversationFeature
 from nolabs.modules.biobuddy.save_message_feature import SendMessageFeature
 from nolabs.modules.biobuddy.send_query_feature import SendQueryFeature
@@ -35,6 +37,14 @@ async def save_message(experiment_id: str,
         feature: Annotated[
     SendMessageFeature, Depends(save_message_dependency)]) -> SaveMessageResponse:
     return feature.handle(SaveMessageRequest(experiment_id, message_content))
+
+@router.post('/edit-message')
+async def edit_message(experiment_id: str,
+                       message_id: str,
+                       message_content: str,
+        feature: Annotated[
+    EditMessageFeature, Depends(edit_message_dependency)]) -> EditMessageResponse:
+    return feature.handle(EditMessageRequest(experiment_id, message_id, message_content))
 
 @router.post('/send-query')
 async def send_query(experiment_id: str,

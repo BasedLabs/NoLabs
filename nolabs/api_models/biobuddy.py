@@ -109,3 +109,15 @@ class SendQueryRequest:
 @pcdataclass.dataclass
 class SendQueryResponse:
     biobuddy_response: Message
+
+
+@pcdataclass.dataclass
+class EditMessageRequest:
+    experiment_id: str
+    message_id: str
+    message_content: str
+
+
+@pcdataclass.dataclass
+class EditMessageResponse:
+    edited_message: Message

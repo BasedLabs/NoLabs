@@ -32,6 +32,7 @@ export type { DeleteLoneLigandResponse } from './models/DeleteLoneLigandResponse
 export type { DeleteTargetLigandResponse } from './models/DeleteTargetLigandResponse';
 export type { DeleteTargetResponse } from './models/DeleteTargetResponse';
 export type { DiffDockLigandMetaData } from './models/DiffDockLigandMetaData';
+export type { EditMessageResponse } from './models/EditMessageResponse';
 export type { ExperimentFastaPropertyResponse } from './models/ExperimentFastaPropertyResponse';
 export type { ExperimentMetadataResponse } from './models/ExperimentMetadataResponse';
 export type { FunctionCall } from './models/FunctionCall';

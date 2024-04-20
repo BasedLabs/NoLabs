@@ -27,8 +27,16 @@
             </div>
           <div v-else>
             <q-item-label class="text-h7 q-mb-sm">
-              <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
-              <p>{{ displayContent(message) }}</p>
+              <div v-if="editIndex !== index">
+                <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
+                <p>{{ displayContent(message) }}</p>
+                <q-btn flat v-if="message.role === 'user'" label="Edit" @click="startEditing(index)"></q-btn>
+              </div>
+              <div v-else>
+                <q-input v-model="editMessage" dense filled></q-input>
+                <q-btn flat label="Save and Submit" @click="saveEdit(index)"></q-btn>
+                <q-btn flat label="Cancel" @click="cancelEdit"></q-btn>
+              </div>
             </q-item-label>
           </div>
         </q-item-section>
@@ -55,7 +63,7 @@
 <script lang="ts">
 import {QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner} from 'quasar';
 import { defineComponent } from 'vue';
-import { loadConversationApi, saveMessageApi, sendQueryApi } from 'src/features/biobuddy/api';
+import {editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi} from 'src/features/biobuddy/api';
 import {FunctionCall, type FunctionParam, Message, type RegularMessage} from "src/api/client";
 import {useBioBuddyStore} from "./storage";
 
@@ -82,6 +90,8 @@ export default defineComponent({
       drawerWidth: 500, // Initial width of the drawer
       isResizing: false,
       initialMouseX: 0,
+      editIndex: -1,
+      editMessage: '',
     };
   },
   methods: {
@@ -99,17 +109,11 @@ export default defineComponent({
         const savedMessage = response.saved_message as Message;
 
         this.messages.push(savedMessage);
-
         const queryContent = this.newMessage;
-
         this.newMessage = '';
-
         const queryResponse = await sendQueryApi(this.experimentId, queryContent);
-
         const newMessageResponse = queryResponse.biobuddy_response as Message;
-
         this.messages.push(newMessageResponse);
-
         if (newMessageResponse.type === 'function') {
           const functionCall = newMessageResponse.message as FunctionCall[];
           await this.invokeFunctions(functionCall);
@@ -119,6 +123,39 @@ export default defineComponent({
         console.error("Failed to send or process message:", error);
       }
       this.sending = false;
+    },
+    startEditing(index: number) {
+      this.editIndex = index;
+      this.editMessage = this.messages[index].message.content;
+    },
+    cancelEdit() {
+      this.editIndex = -1;
+      this.editMessage = '';
+    },
+    async saveEdit(index: number) {
+      if (!this.experimentId || !this.editMessage.trim()) return;
+      const messageId = this.messages[index].id; // Assuming each message has a unique ID
+      try {
+        await editMessageApi(this.experimentId, messageId, this.editMessage);
+        this.messages[index].message.content = this.editMessage;
+        this.messages = this.messages.slice(0, index + 1); // Remove messages after the edited one
+
+        this.sending = true;
+        const queryResponse = await sendQueryApi(this.experimentId, this.editMessage);
+        const newMessageResponse = queryResponse.biobuddy_response as Message;
+        this.messages.push(newMessageResponse);
+        if (newMessageResponse.type === 'function') {
+          const functionCall = newMessageResponse.message as FunctionCall[];
+          await this.invokeFunctions(functionCall);
+        }
+
+        this.sending = false;
+
+      } catch (error) {
+        console.error("Failed to edit message:", error);
+      }
+      this.editIndex = -1;
+      this.editMessage = '';
     },
     async invokeFunctions(functionCalls: FunctionCall[]) {
       for (const functionCall of functionCalls) {
