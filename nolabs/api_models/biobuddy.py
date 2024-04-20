@@ -34,8 +34,10 @@ class FileData(BaseModel):
 class RcsbPdbMetaData:
     link: str
 
+
 class RcsbPdbData(FileData):
     metadata: RcsbPdbMetaData  # Example of a RcsbPdbMetaData
+
 
 # Subclass for ChemBLData
 @pcdataclass.dataclass
@@ -47,6 +49,7 @@ class ChemBLMetaData:
 
 class ChemBLData(FileData):
     metadata: ChemBLMetaData  # Example of a specific attribute for ChemBLData
+
 
 # Base class for return data, which now contains a list of FileData objects
 class FunctionCallReturnData(BaseModel):
@@ -62,8 +65,10 @@ class FunctionCall:
     parameters: List[FunctionParam]
     data: FunctionCallReturnData = None
 
+
 @pcdataclass.dataclass
 class Message:
+    id: str
     role: str
     message: Union[RegularMessage, List[FunctionCall]]
     type: str
@@ -85,11 +90,22 @@ class LoadConversationResponse:
 
 
 @pcdataclass.dataclass
-class SendMessageRequest:
+class SaveMessageRequest:
     experiment_id: str
     message_content: str
 
 
 @pcdataclass.dataclass
-class SendMessageResponse:
+class SaveMessageResponse:
+    saved_message: Message
+
+
+@pcdataclass.dataclass
+class SendQueryRequest:
+    experiment_id: str
+    query: str
+
+
+@pcdataclass.dataclass
+class SendQueryResponse:
     biobuddy_response: Message

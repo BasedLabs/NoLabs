@@ -26,7 +26,7 @@ class FileManagement(ExperimentsFileManagementBase):
             with open(file_path, 'w') as f:
                 json.dump([], f)
 
-    def update_conversation(self, experiment_id: ExperimentId, message: Message):
+    def append_message_to_conversation(self, experiment_id: ExperimentId, message: Message):
         self.ensure_conversations_file_exists(experiment_id)
         file_path = self.conversation_file_path(experiment_id)
         with open(file_path, 'r+') as f:

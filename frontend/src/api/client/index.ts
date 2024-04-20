@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
+/* generated using openapi-typescript-codegen -- do no edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -98,7 +98,8 @@ export type { RunSimulationsResponse } from './models/RunSimulationsResponse';
 export type { RunSolubilityResponse } from './models/RunSolubilityResponse';
 export type { RunUmolDockingJobResponse } from './models/RunUmolDockingJobResponse';
 export type { SamplingSizeRequest } from './models/SamplingSizeRequest';
-export type { SendMessageResponse } from './models/SendMessageResponse';
+export type { SaveMessageResponse } from './models/SaveMessageResponse';
+export type { SendQueryResponse } from './models/SendQueryResponse';
 export type { SmilesResponse } from './models/SmilesResponse';
 export type { TargetMetaData } from './models/TargetMetaData';
 export type { TimelineResponse } from './models/TimelineResponse';

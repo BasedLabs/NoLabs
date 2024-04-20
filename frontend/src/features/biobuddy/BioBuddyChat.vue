@@ -53,9 +53,9 @@
 </template>
 
 <script lang="ts">
-import {QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner, useQuasar} from 'quasar';
+import {QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner} from 'quasar';
 import { defineComponent } from 'vue';
-import { loadConversationApi, sendMessageApi } from 'src/features/biobuddy/api';
+import { loadConversationApi, saveMessageApi, sendQueryApi } from 'src/features/biobuddy/api';
 import {FunctionCall, type FunctionParam, Message, type RegularMessage} from "src/api/client";
 import {useBioBuddyStore} from "./storage";
 
@@ -93,16 +93,31 @@ export default defineComponent({
     async sendMessage() {
       if (!this.experimentId || !this.newMessage.trim()) return;
       this.sending = true;
-      const response = await sendMessageApi(this.experimentId, this.newMessage);
-      const newMessageResponse = response.biobuddy_response as Message;
-      this.messages.push(newMessageResponse);
 
-      if (newMessageResponse.type === 'function') {
-        const functionCall = newMessageResponse.message as FunctionCall[];
-        await this.invokeFunctions(functionCall);
+      try {
+        const response = await saveMessageApi(this.experimentId, this.newMessage);
+        const savedMessage = response.saved_message as Message;
+
+        this.messages.push(savedMessage);
+
+        const queryContent = this.newMessage;
+
+        this.newMessage = '';
+
+        const queryResponse = await sendQueryApi(this.experimentId, queryContent);
+
+        const newMessageResponse = queryResponse.biobuddy_response as Message;
+
+        this.messages.push(newMessageResponse);
+
+        if (newMessageResponse.type === 'function') {
+          const functionCall = newMessageResponse.message as FunctionCall[];
+          await this.invokeFunctions(functionCall);
+        }
+
+      } catch (error) {
+        console.error("Failed to send or process message:", error);
       }
-      this.newMessage = '';
-      await this.loadConversation();
       this.sending = false;
     },
     async invokeFunctions(functionCalls: FunctionCall[]) {

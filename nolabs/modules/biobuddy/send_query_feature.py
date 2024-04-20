@@ -3,7 +3,7 @@ import dataclasses
 import json
 from typing import List, Dict
 
-from nolabs.api_models.biobuddy import SendMessageRequest, SendMessageResponse
+from nolabs.api_models.biobuddy import SendQueryRequest, SendQueryResponse
 from nolabs.api_models.biobuddy import Message as ApiMessage
 from nolabs.domain.experiment import ExperimentId
 from nolabs.modules.biobuddy.data_models.message import Message, RegularMessage, FunctionCall, FunctionParam
@@ -17,16 +17,17 @@ from biobuddy_microservice import ApiClient
 from biobuddy_microservice import Configuration
 from nolabs.modules.biobuddy.functions.base_function import BiobuddyFunction
 from nolabs.infrastructure.settings import Settings
+from nolabs.utils import generate_uuid
 
 
-class SendMessageFeature:
+class SendQueryFeature:
     def __init__(self, settings: Settings, file_management: FileManagement, functions: List[BiobuddyFunction]):
         self._file_management = file_management
         self._settings = settings
         self._functions = {function.name: function for function in functions}
         self._tools = self.construct_tools_object()
 
-    def handle(self, request: SendMessageRequest) -> SendMessageResponse:
+    def handle(self, request: SendQueryRequest) -> SendQueryResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
@@ -40,30 +41,22 @@ class SendMessageFeature:
             previous_messages = self.get_previous_messages(experiment_id)
 
             biobuddy_request = biobuddy_microservice.SendMessageToBioBuddyRequest(
-                message_content=request.message_content,
+                message_content=request.query,
                 previous_messages=previous_messages,
                 tools=self._tools)
             assistant_message = api_instance.predict_send_message_post(
                 send_message_to_bio_buddy_request=biobuddy_request)
 
             if assistant_message.reply_type == "function_calls":
-                return self._process_function_calls(experiment_id, request.message_content, assistant_message)
+                return self._process_ai_function_calls(experiment_id, assistant_message)
 
-            return self._process_regular_message(experiment_id, request.message_content, assistant_message)
+            return self._process_regular_ai_response(experiment_id, assistant_message)
 
-    def _process_function_calls(self,
-                                experiment_id: ExperimentId,
-                                original_query: str,
-                                assistant_message: biobuddy_microservice.SendMessageToBioBuddyResponse
-                                ) -> SendMessageResponse:
+    def _process_ai_function_calls(self,
+                                   experiment_id: ExperimentId,
+                                   assistant_message: biobuddy_microservice.SendMessageToBioBuddyResponse
+                                   ) -> SendQueryResponse:
         function_calls = ast.literal_eval(assistant_message.content)
-        self._file_management.update_conversation(experiment_id,
-                                                  Message(role='user',
-                                                          message=RegularMessage(
-                                                              content=original_query
-                                                          ),
-                                                          type='text')
-                                                  )
         api_function_calls = []
         regular_function_calls = []
         for function_call in function_calls:
@@ -80,36 +73,35 @@ class SendMessageFeature:
                                                                        function_call.parameters]
                                                            ))
                 api_function_calls.append(ApiFunctionCall(**dataclasses.asdict(function_call)))
-        self._file_management.update_conversation(experiment_id,
-                                                  Message(role='assistant',
-                                                          message=regular_function_calls,
-                                                          type="function")
-                                                  )
 
-        return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
+        message_id = generate_uuid()
+        self._file_management.append_message_to_conversation(experiment_id,
+                                                             Message(id=message_id,
+                                                                     role='assistant',
+                                                                     message=regular_function_calls,
+                                                                     type="function")
+                                                             )
+
+        return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
+                                                                role='assistant',
                                                                 message=api_function_calls,
                                                                 type="function"))
 
-    def _process_regular_message(self, experiment_id: ExperimentId,
-                                 original_message: str,
-                                 assistant_message: biobuddy_microservice.SendMessageToBioBuddyResponse
-                                 ) -> SendMessageResponse:
-        self._file_management.update_conversation(experiment_id,
-                                                  Message(role='user',
-                                                          message=RegularMessage(
-                                                              content=original_message
-                                                          ),
-                                                          type='text')
-                                                  )
-        self._file_management.update_conversation(experiment_id,
-                                                  Message(role='assistant',
-                                                          message=RegularMessage(
-                                                              content=str(
-                                                                  assistant_message.content)
-                                                          ),
-                                                          type='text')
-                                                  )
-        return SendMessageResponse(biobuddy_response=ApiMessage(role='assistant',
+    def _process_regular_ai_response(self, experiment_id: ExperimentId,
+                                     assistant_message: biobuddy_microservice.SendMessageToBioBuddyResponse
+                                     ) -> SendQueryResponse:
+        message_id = generate_uuid()
+        self._file_management.append_message_to_conversation(experiment_id,
+                                                             Message(id=message_id,
+                                                                     role='assistant',
+                                                                     message=RegularMessage(
+                                                                         content=str(
+                                                                             assistant_message.content)
+                                                                     ),
+                                                                     type='text')
+                                                             )
+        return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
+                                                                role='assistant',
                                                                 message=ApiRegularMessage(
                                                                     content=str(assistant_message.content)
                                                                 ),

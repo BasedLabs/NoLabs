@@ -1,10 +1,11 @@
-/* generated using openapi-typescript-codegen -- do not edit */
+/* generated using openapi-typescript-codegen -- do no edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
 import type { FunctionCall } from './FunctionCall';
 import type { RegularMessage } from './RegularMessage';
 export type Message = {
+    id: string;
     role: string;
     message: (RegularMessage | Array<FunctionCall>);
     type: string;
