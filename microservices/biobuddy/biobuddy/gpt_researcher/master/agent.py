@@ -121,7 +121,8 @@ class GPTResearcher:
         try:
             retriever = self.retriever(sub_query)
             search_results = retriever.search(max_results=self.cfg.max_search_results_per_query)
-        except:
+        except Exception as e:
+            print(f"🔍 Fallback to DuckDuckGo Search, as {self.cfg.retriever} failed due to: {e}") # TODO: add logging
             retriever = self.fallback_retriever(sub_query)
             search_results = retriever.search(max_results=self.cfg.max_search_results_per_query)
         new_search_urls = await self.get_new_urls([url.get("href") for url in search_results])
