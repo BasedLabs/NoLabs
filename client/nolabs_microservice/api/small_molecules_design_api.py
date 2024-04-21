@@ -304,7 +304,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/small-molecules-design/experiment/name',
+            resource_path='/api/v1/small-molecules-design/localisation/name',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -543,7 +543,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/small-molecules-design/experiment/create',
+            resource_path='/api/v1/small-molecules-design/localisation/create',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -800,7 +800,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1296,7 +1296,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1553,7 +1553,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}/learning',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}/learning',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1810,7 +1810,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}/logs',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}/logs',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -2095,7 +2095,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}/sampling',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}/sampling',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -2533,7 +2533,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}/props',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}/props',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -2790,7 +2790,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}/smiles',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}/smiles',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -3047,7 +3047,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}/status',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}/status',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -3304,7 +3304,7 @@ class SmallMoleculesDesignApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/small-molecules-design/experiment/{experiment_id}/stop',
+            resource_path='/api/v1/small-molecules-design/localisation/{experiment_id}/stop',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

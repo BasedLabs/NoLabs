@@ -5,25 +5,25 @@ const drugDiscoveryRoutes = [
     component: () => import('src/features/drug_discovery/ExperimentsView.vue')
   },
   {
-    path: 'drug-discovery/experiment/:experimentId',
+    path: 'drug-discovery/localisation/:experimentId',
     component: () => import('src/features/drug_discovery/ExperimentNavigation.vue'),
     name: 'Drug discovery',
     props: true,
     children: [
       {
-        path: '/drug-discovery/experiment/:experimentId/upload-targets',
+        path: '/drug-discovery/localisation/:experimentId/upload-targets',
         component: () => import('../features/drug_discovery/components/UploadTargetsStep.vue'),
         name: 'Upload targets',
         props: true
       },
       {
-        path: '/drug-discovery/experiment/:experimentId/upload-ligands',
+        path: '/drug-discovery/localisation/:experimentId/upload-ligands',
         component: () => import('../features/drug_discovery/components/UploadLigandsStep.vue'),
         name: 'Upload ligands',
         props: true
       },
       {
-        path: '/drug-discovery/experiment/:experimentId/run-docking',
+        path: '/drug-discovery/localisation/:experimentId/run-docking',
         component: () => import('../features/drug_discovery/components/RunDockingStep.vue'),
         name: 'Run docking',
         props: true
@@ -40,7 +40,7 @@ const proteinDesignRoutes = [
     component: () => import('src/features/proteinDesign/ExperimentsView.vue'),
   },
   {
-    path: 'protein-design/experiment/:experimentId',
+    path: 'protein-design/localisation/:experimentId',
     component: () => import('src/features/proteinDesign/ExperimentView.vue'),
     name: 'Protein design',
     props: true
@@ -54,7 +54,7 @@ const foldingRoutes = [
     component: () => import('src/features/aminoAcid/folding/ExperimentsView.vue'),
   },
   {
-    path: 'folding/experiment/:experimentId',
+    path: 'folding/localisation/:experimentId',
     component: () => import('src/features/aminoAcid/folding/ExperimentView.vue'),
     name: 'Folding',
     props: true
@@ -68,7 +68,7 @@ const localisationRoutes = [
     component: () => import('src/features/aminoAcid/localisation/ExperimentsView.vue'),
   },
   {
-    path: 'localisation/experiment/:experimentId',
+    path: 'localisation/localisation/:experimentId',
     component: () => import('src/features/aminoAcid/localisation/ExperimentView.vue'),
     name: 'Localisation',
     props: true
@@ -82,7 +82,7 @@ const geneOntologyRoutes = [
     component: () => import('src/features/aminoAcid/geneOntology/ExperimentsView.vue'),
   },
   {
-    path: 'gene-ontology/experiment/:experimentId',
+    path: 'gene-ontology/localisation/:experimentId',
     component: () => import('src/features/aminoAcid/geneOntology/ExperimentView.vue'),
     name: 'Gene ontology',
     props: true
@@ -96,7 +96,7 @@ const solubilityRoutes = [
     component: () => import('src/features/aminoAcid/solubility/ExperimentsView.vue'),
   },
   {
-    path: 'solubility/experiment/:experimentId',
+    path: 'solubility/localisation/:experimentId',
     component: () => import('src/features/aminoAcid/solubility/ExperimentView.vue'),
     name: 'Solubility',
     props: true
@@ -110,7 +110,7 @@ const conformationsRoutes = [
     component: () => import("src/features/conformations/ExperimentsView.vue")
   },
   {
-    path: 'conformations/experiment/:experimentId',
+    path: 'conformations/localisation/:experimentId',
     component: () => import('src/features/conformations/ExperimentView.vue'),
     name: 'Conformations',
     props: true
@@ -124,7 +124,7 @@ const smallMoleculeDesignRoutes = [
     component: () => import("src/features/smallMoleculeDesign/ExperimentsView.vue")
   },
   {
-    path: 'small-molecules/experiment/:experimentId',
+    path: 'small-molecules/localisation/:experimentId',
     component: () => import('src/features/smallMoleculeDesign/ExperimentView.vue'),
     name: 'Small molecules design',
     props: true

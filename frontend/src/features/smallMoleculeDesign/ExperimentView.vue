@@ -272,7 +272,7 @@ export default defineComponent({
           await this.$options.store.saveProperties(this.$options.experimentId, this.experiment?.properties);
         });
 
-        await this.loader('Starting experiment', async () => {
+        await this.loader('Starting localisation', async () => {
           await this.$options.store.startExperiment(this.$options.experimentId, id);
           this.experiment!.running = true;
         });
@@ -281,11 +281,11 @@ export default defineComponent({
     async stopExperiment() {
       this.$q.dialog({
         title: 'Confirm',
-        message: 'Would you like to stop the experiment? You will be able to run sampling, but learning will be frozen on the last stage',
+        message: 'Would you like to stop the localisation? You will be able to run sampling, but learning will be frozen on the last stage',
         cancel: true,
         persistent: true
       }).onOk(async () => {
-        await this.loader('Stopping experiment', async () => {
+        await this.loader('Stopping localisation', async () => {
           await this.$options.store.stopExperiment(this.$options.experimentId);
           this.experiment!.running = false;
         });
@@ -315,7 +315,7 @@ export default defineComponent({
     }
   },
   async mounted() {
-    await this.loader('Loading experiment', async () => {
+    await this.loader('Loading localisation', async () => {
       this.$options.experimentId = this.$route.params.experimentId as string;
       this.experiment = await this.$options.store.getExperiment(this.$options.experimentId);
       this.smilesData = await this.$options.store.smilesData(this.$options.experimentId);

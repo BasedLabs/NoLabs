@@ -50,17 +50,17 @@ export function getExperimentsApi(): CancelablePromise<Array<ExperimentMetadataR
     return DrugDiscoveryService.experimentsApiV1DrugDiscoveryExperimentsGet();
 }
 
-// Add a new experiment
+// Add a new localisation
 export function createExperimentApi(): CancelablePromise<ExperimentMetadataResponse> {
     return DrugDiscoveryService.createExperimentApiV1DrugDiscoveryCreateExperimentGet();
 }
 
-// Delete an experiment
+// Delete an localisation
 export function deleteExperimentApi(experimentId: string): CancelablePromise<any> {
     return DrugDiscoveryService.deleteExperimentApiV1DrugDiscoveryDeleteExperimentDelete(experimentId);
 }
 
-// Change the name of an experiment
+// Change the name of an localisation
 export function changeExperimentNameApi(experimentId: string, experimentName: string): CancelablePromise<any> {
     return DrugDiscoveryService.changeExperimentNameApiV1DrugDiscoveryChangeExperimentNamePost(experimentId, experimentName);
 }
