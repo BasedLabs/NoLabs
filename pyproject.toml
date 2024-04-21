@@ -34,10 +34,13 @@ pubmed-query-microservice = {path = "microservices/pubmed_query/client"}
 rcsb-pdb-query-microservice = {path = "microservices/rcsb_pdb_query/client"}
 chembl-query-microservice = {path = "microservices/chembl_query/client"}
 aiohttp = "^3.9.3"
+dependency-injector = "^4.41.0"
+leaf-basedlabs = "^0.0.9"
 rosettafold-microservice = {path = "microservices/rosettafold/client"}
-leaf-basedlabs = "^0.0.7"
 reinvent-microservice = {path = "microservices/reinvent/client"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
+mongoengine = "^0.28.2"
+lato = "^0.11.0"
 
 [project]
 dependencies = [

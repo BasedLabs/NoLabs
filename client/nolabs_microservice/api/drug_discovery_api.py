@@ -345,7 +345,7 @@ class DrugDiscoveryApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/drug_discovery/change-experiment-name',
+            resource_path='/api/v1/drug_discovery/change-localisation-name',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -5020,7 +5020,7 @@ class DrugDiscoveryApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/api/v1/drug_discovery/create-experiment',
+            resource_path='/api/v1/drug_discovery/create-localisation',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -5589,7 +5589,7 @@ class DrugDiscoveryApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/api/v1/drug_discovery/delete-experiment',
+            resource_path='/api/v1/drug_discovery/delete-localisation',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -5865,7 +5865,7 @@ class DrugDiscoveryApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/api/v1/drug_discovery/delete-ligand-from-experiment',
+            resource_path='/api/v1/drug_discovery/delete-ligand-from-localisation',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -8397,7 +8397,7 @@ class DrugDiscoveryApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/api/v1/drug_discovery/get-experiment-metadata',
+            resource_path='/api/v1/drug_discovery/get-localisation-metadata',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -16773,7 +16773,7 @@ class DrugDiscoveryApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/drug_discovery/upload-ligand-to-experiment',
+            resource_path='/api/v1/drug_discovery/upload-ligand-to-localisation',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

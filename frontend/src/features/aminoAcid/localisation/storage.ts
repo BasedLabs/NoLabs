@@ -69,7 +69,7 @@ const useLocalisationStore = defineStore("localisation", {
                     return {
                         experiment: {
                             id: experimentId,
-                            name: "New experiment",
+                            name: "New localisation",
                             aminoAcids: [],
                             properties: {
                                 aminoAcidSequence: null,

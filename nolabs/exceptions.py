@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Any
 
 
 class ErrorCodes(Enum):
@@ -14,14 +14,50 @@ class ErrorCodes(Enum):
     drug_discovery_folding_error = 8
     folding_method_unknown = 9
 
-    # ++++ Small molecules design
-
     job_not_found = 9
 
-    # ---- Small molecules design
+    invalid_aa_name = 10
+    invalid_aa_content = 11
+    invalid_protein_name = 12
+    invalid_protein_content = 13
+    invalid_protein_id = 14
+    invalid_aa_id = 15
+    invalid_experiment_id = 16
+    invalid_experiment_name = 17
+    invalid_job_id = 18
+
+    invalid_root_directory = 19
+    invalid_job_input = 20
+    invalid_job_name = 21
+    invalid_job_type = 22
+
+    invalid_job_context_id = 23
+    invalid_job_output = 24
+    invalid_job_metadata_id = 25
+
+    invalid_protein_location_probability = 26
+    invalid_job_metadata = 27
+
+    invalid_operation = 28
+
+    invalid_job_state = 29
+
+    duplicate_amino_acid = 30
 
 
 class NoLabsException(Exception):
-    def __init__(self, messages: List[str], error_code: ErrorCodes):
-        self.messages = messages
+    def __init__(self, messages: List[str] | str, error_code: ErrorCodes):
+        if isinstance(messages, str):
+            self.messages = [messages]
+        else:
+            self.messages = messages
         self.error_code = error_code
+
+    @staticmethod
+    def throw(error_code: ErrorCodes):
+        raise NoLabsException('', error_code)
+
+
+def ensure_not_none(obj: Any):
+    if not obj:
+        raise ValueError()

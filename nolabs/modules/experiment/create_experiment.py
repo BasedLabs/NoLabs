@@ -13,10 +13,10 @@ class CreateExperimentFeature:
     async def handle(self) -> ExperimentMetadataResponse:
         experiment_id = ExperimentId(uuid_utils.generate_uuid())
         await self._file_management.set_metadata(experiment_id=experiment_id,
-                                                 experiment_name=ExperimentName('New experiment'))
+                                                 experiment_name=ExperimentName('New localisation'))
 
         return ExperimentMetadataResponse(
             id=experiment_id.value,
-            name='New experiment',
+            name='New localisation',
             date=datetime_utils.utcnow()
         )
