@@ -6,6 +6,7 @@ from typing import List, Dict
 from nolabs.api_models.biobuddy import SendQueryRequest, SendQueryResponse
 from nolabs.api_models.biobuddy import Message as ApiMessage
 from nolabs.domain.experiment import ExperimentId
+from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.modules.biobuddy.data_models.message import Message, RegularMessage, FunctionCall, FunctionParam
 from nolabs.api_models.biobuddy import RegularMessage as ApiRegularMessage
 from nolabs.api_models.biobuddy import FunctionCall as ApiFunctionCall
@@ -40,15 +41,19 @@ class SendQueryFeature:
 
             previous_messages = self.get_previous_messages(experiment_id)
 
-            biobuddy_request = biobuddy_microservice.SendMessageToBioBuddyRequest(
-                message_content=request.query,
-                previous_messages=previous_messages,
-                tools=self._tools)
-            assistant_message = api_instance.predict_send_message_post(
-                send_message_to_bio_buddy_request=biobuddy_request)
+            try:
+                biobuddy_request = biobuddy_microservice.SendMessageToBioBuddyRequest(
+                    message_content=request.query,
+                    previous_messages=previous_messages,
+                    tools=self._tools)
+                assistant_message = api_instance.predict_send_message_post(
+                    send_message_to_bio_buddy_request=biobuddy_request)
 
-            if assistant_message.reply_type == "function_calls":
-                return self._process_ai_function_calls(experiment_id, assistant_message)
+                if assistant_message.reply_type == "function_calls":
+                    return self._process_ai_function_calls(experiment_id, assistant_message)
+            except:
+                raise NoLabsException(messages=["Error generating response. Please try again."],
+                                      error_code=ErrorCodes.biobuddy_error_generating_response)
 
             return self._process_regular_ai_response(experiment_id, assistant_message)
 
@@ -83,9 +88,9 @@ class SendQueryFeature:
                                                              )
 
         return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
-                                                                role='assistant',
-                                                                message=api_function_calls,
-                                                                type="function"))
+                                                              role='assistant',
+                                                              message=api_function_calls,
+                                                              type="function"))
 
     def _process_regular_ai_response(self, experiment_id: ExperimentId,
                                      assistant_message: biobuddy_microservice.SendMessageToBioBuddyResponse
@@ -101,11 +106,11 @@ class SendQueryFeature:
                                                                      type='text')
                                                              )
         return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
-                                                                role='assistant',
-                                                                message=ApiRegularMessage(
-                                                                    content=str(assistant_message.content)
-                                                                ),
-                                                                type='text'))
+                                                              role='assistant',
+                                                              message=ApiRegularMessage(
+                                                                  content=str(assistant_message.content)
+                                                              ),
+                                                              type='text'))
 
     def construct_tools_object(self):
         tools = []

@@ -30,7 +30,8 @@
               <div v-if="editIndex !== index">
                 <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
                 <p>{{ displayContent(message) }}</p>
-                <q-btn flat v-if="message.role === 'user'" label="Edit" @click="startEditing(index)"></q-btn>
+                <q-btn flat v-if="message.role === 'user'" size="sm" icon="edit" @click="startEditing(index)"></q-btn>
+                <q-btn flat v-if="isLastUserMessageWithoutResponse(index) && !sending" label="Regenerate" icon-right="autorenew" @click="sendQuery(message.message.content)"></q-btn>
               </div>
               <div v-else>
                 <q-input v-model="editMessage" dense filled></q-input>
@@ -61,11 +62,12 @@
 </template>
 
 <script lang="ts">
-import {QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner} from 'quasar';
+import {QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner, Notify} from 'quasar';
 import { defineComponent } from 'vue';
 import {editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi} from 'src/features/biobuddy/api';
 import {FunctionCall, type FunctionParam, Message, type RegularMessage} from "src/api/client";
 import {useBioBuddyStore} from "./storage";
+import {obtainErrorResponse} from "../../api/errorWrapper";
 
 export interface FunctionMapping {
   name: string;
@@ -102,7 +104,6 @@ export default defineComponent({
     },
     async sendMessage() {
       if (!this.experimentId || !this.newMessage.trim()) return;
-      this.sending = true;
 
       try {
         const response = await saveMessageApi(this.experimentId, this.newMessage);
@@ -111,18 +112,13 @@ export default defineComponent({
         this.messages.push(savedMessage);
         const queryContent = this.newMessage;
         this.newMessage = '';
-        const queryResponse = await sendQueryApi(this.experimentId, queryContent);
-        const newMessageResponse = queryResponse.biobuddy_response as Message;
-        this.messages.push(newMessageResponse);
-        if (newMessageResponse.type === 'function') {
-          const functionCall = newMessageResponse.message as FunctionCall[];
-          await this.invokeFunctions(functionCall);
-        }
-
+        await this.sendQuery(queryContent);
       } catch (error) {
         console.error("Failed to send or process message:", error);
       }
-      this.sending = false;
+    },
+    isLastUserMessageWithoutResponse(index: number) {
+      return index === this.messages.length - 1 && this.messages[index].role === 'user';
     },
     startEditing(index: number) {
       this.editIndex = index;
@@ -139,23 +135,36 @@ export default defineComponent({
         await editMessageApi(this.experimentId, messageId, this.editMessage);
         this.messages[index].message.content = this.editMessage;
         this.messages = this.messages.slice(0, index + 1); // Remove messages after the edited one
-
-        this.sending = true;
-        const queryResponse = await sendQueryApi(this.experimentId, this.editMessage);
-        const newMessageResponse = queryResponse.biobuddy_response as Message;
-        this.messages.push(newMessageResponse);
-        if (newMessageResponse.type === 'function') {
-          const functionCall = newMessageResponse.message as FunctionCall[];
-          await this.invokeFunctions(functionCall);
-        }
-
-        this.sending = false;
-
+        await this.sendQuery(this.editMessage);
       } catch (error) {
         console.error("Failed to edit message:", error);
       }
       this.editIndex = -1;
       this.editMessage = '';
+    },
+    async sendQuery(message: string) {
+      this.sending = true;
+      const queryResponse = await sendQueryApi(this.experimentId, message);
+      const errorResponse = obtainErrorResponse(queryResponse);
+      if (errorResponse) {
+        this.sending = false;
+        for (const error of errorResponse.errors) {
+          Notify.create({
+            type: "negative",
+            closeBtn: 'Close',
+            message: error
+          });
+        }
+        return;
+      }
+      const newMessageResponse = queryResponse.biobuddy_response as Message;
+      this.messages.push(newMessageResponse);
+      if (newMessageResponse.type === 'function') {
+        const functionCall = newMessageResponse.message as FunctionCall[];
+        await this.invokeFunctions(functionCall);
+      }
+
+      this.sending = false;
     },
     async invokeFunctions(functionCalls: FunctionCall[]) {
       for (const functionCall of functionCalls) {
