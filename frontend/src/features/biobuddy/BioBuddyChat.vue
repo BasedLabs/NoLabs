@@ -10,7 +10,6 @@
           <div v-if="message.type === 'function'" class="function-message">
             <q-item-label class="text-h7 q-mb-sm">
               <div class="q-pb-sm q-pt-sm text-bold">
-                <img src="/Biobuddy_icon.svg" class="custom-icon" />
                 {{ displayName(message.role) }}</div>
               <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
               <p> <q-icon name="check_circle" color="purple"></q-icon>
@@ -29,7 +28,7 @@
             <q-item-label class="text-h7 q-mb-sm">
               <div v-if="editIndex !== index">
                 <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
-                <p>{{ displayContent(message) }}</p>
+                <div class="markdown-content" v-html="renderMarkdown(message.message.content)"></div>
                 <q-btn flat v-if="message.role === 'user'" size="sm" icon="edit" @click="startEditing(index)"></q-btn>
                 <q-btn flat v-if="isLastUserMessageWithoutResponse(index) && !sending" label="Regenerate" icon-right="autorenew" @click="sendQuery(message.message.content)"></q-btn>
               </div>
@@ -62,10 +61,11 @@
 </template>
 
 <script lang="ts">
-import {QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner, Notify} from 'quasar';
+import {Notify} from 'quasar';
 import { defineComponent } from 'vue';
 import {editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi} from 'src/features/biobuddy/api';
 import {FunctionCall, type FunctionParam, Message, type RegularMessage} from "src/api/client";
+import MarkdownIt from 'markdown-it';
 import {useBioBuddyStore} from "./storage";
 import {obtainErrorResponse} from "../../api/errorWrapper";
 
@@ -101,6 +101,17 @@ export default defineComponent({
       if (!this.experimentId) return;
       const response = await loadConversationApi(this.experimentId);
       this.messages = response.messages;
+    },
+    renderMarkdown(text: string) {
+      const md = new MarkdownIt();
+      let result = md.render(text);
+      result = result.replace(
+        /<h1>/g,
+        '<h1 style="font-size: 1.5em; margin-top: 0.5em; margin-bottom: 0.5em; line-height: 1.2; font-weight: bold;">'
+      );
+      result = result.replace(/<h2>/g, '<h2 style="font-size: 1.3em; margin-top: 0.3em; margin-bottom: 0.3em;">');
+      result = result.replace(/<h3>/g, '<h3 style="font-size: 1.1em; margin-top: 0.3em; margin-bottom: 0.3em;">');
+      return result;
     },
     async sendMessage() {
       if (!this.experimentId || !this.newMessage.trim()) return;
