@@ -28,7 +28,7 @@ class RunFoldingFeature(RunAminoAcidInferenceFeature[FileManagement]):
         await self._setup_experiment(experiment_id, request)
 
         configuration = Configuration(
-            host=self._settings.folding_host,
+            host=self._settings.esmfold_host,
         )
         with ApiClient(configuration=configuration) as client:
             api_instance = DefaultApi(client)

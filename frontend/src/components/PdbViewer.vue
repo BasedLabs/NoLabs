@@ -157,7 +157,7 @@ export default defineComponent({
       return component;
     },
     async renderStatic(selectedRepresentation: string) {
-      if (!this.pdbFile?.size) {
+      if (!this.pdbFile?.size && !this.sdfFile?.size) {
         return;
       }
 

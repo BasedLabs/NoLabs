@@ -25,50 +25,50 @@ class Settings:
     @property
     def solubility_host(self) -> str:
         host = self._config.get('microservices', 'solubility')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'solubility')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'solubility')
         return host
 
     @property
     def conformations_host(self) -> str:
         host = self._config.get('microservices', 'conformations')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'conformations')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'conformations')
         return host
 
     @property
     def localisation_host(self) -> str:
         host = self._config.get('microservices', 'localisation')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'localisation')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'localisation')
         return host
 
     @property
     def gene_ontology_host(self) -> str:
         host = self._config.get('microservices', 'gene_ontology')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'gene_ontology')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'gene_ontology')
         return host
 
     @property
     def p2rank_host(self) -> str:
         host = self._config.get('microservices', 'p2rank')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'p2rank')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'p2rank')
         return host
 
     @property
     def msa_light_host(self) -> str:
         host = self._config.get('microservices', 'msa_light')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'msa_light')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'msa_light')
         return host
 
     @property
     def umol_host(self) -> str:
         host = self._config.get('microservices', 'umol')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'umol')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'umol')
         return host
 
     @property
@@ -94,22 +94,22 @@ class Settings:
     @property
     def esmfold_light_host(self) -> str:
         host = self._config.get('microservices', 'esmfold_light')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'esmfold_light')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'esmfold_light')
         return host
 
     @property
     def rosettafold_host(self) -> str:
         host = self._config.get('microservices', 'rosettafold')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'rosettafold')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'rosettafold')
         return host
 
     @property
     def esmfold_host(self) -> str:
         host = self._config.get('microservices', 'esmfold')
-        if environment.is_compose():
-            return host.replace('127.0.0.1', 'esmfold')
+        #if environment.is_compose():
+        #    return host.replace('127.0.0.1', 'esmfold')
         return host
 
     @property
@@ -210,10 +210,6 @@ class Settings:
     @property
     def drug_discovery_pocket_file_name(self) -> str:
         return self._config.get('drug-discovery', 'pocket_file_name')
-
-    @property
-    def folding_host(self) -> str:
-        return self._config.get('microservices', 'esmfold_host')
 
     @property
     def drug_discovery_self_hosted_msa(self) -> str:

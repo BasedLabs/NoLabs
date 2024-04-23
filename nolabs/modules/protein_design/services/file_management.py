@@ -49,8 +49,10 @@ class FileManagement(ExperimentsFileManagementBase):
             with open(os.path.join(experiment_folder, self._experiment_properties_filename), 'w') as f:
                 json.dump(properties, f, ensure_ascii=False, indent=4)
 
+            print(os.path.join(experiment_folder, request.pdb_file.filename), ' FILENAME')
             with open(os.path.join(experiment_folder, request.pdb_file.filename), 'wb') as f:
                 f.write(await request.pdb_file.read())
+                f.flush()
         finally:
             await request.pdb_file.seek(0)
 
@@ -60,7 +62,7 @@ class FileManagement(ExperimentsFileManagementBase):
 
         experiment_folder = self.experiment_folder(experiment_id)
 
-        pdb_files = glob.glob(os.path.join(experiment_folder, '*.pdb'))
+        pdb_files = glob.glob(os.path.join(experiment_folder, '*_generated_*.pdb'))
         for pdb_file in pdb_files:
             os.remove(pdb_file)
 

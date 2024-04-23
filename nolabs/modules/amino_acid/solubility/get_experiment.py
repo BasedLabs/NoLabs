@@ -18,9 +18,21 @@ class GetExperimentFeature:
                 experiment_id):
             raise NoLabsException(['This experiment not found'], ErrorCodes.experiment_not_found)
 
+        metadata = self._file_management.get_metadata(experiment_id)
+
+        if not self._file_management.properties_exists(experiment_id):
+            return GetExperimentResponse(
+                experiment_id=experiment_id.value,
+                experiment_name=metadata.name.value,
+                amino_acids=[],
+                properties=ExperimentPropertiesResponse(
+                    amino_acid_sequence=None,
+                    fastas=[]
+                )
+            )
+
         data = self._file_management.get_result(experiment_id)
         properties = await self._file_management.get_properties(experiment_id)
-        metadata = self._file_management.get_metadata(experiment_id)
         return GetExperimentResponse(
             experiment_id=experiment_id.value,
             experiment_name=metadata.name.value,
