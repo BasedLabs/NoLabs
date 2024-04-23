@@ -51,8 +51,8 @@ class SendQueryFeature:
 
                 if assistant_message.reply_type == "function_calls":
                     return self._process_ai_function_calls(experiment_id, assistant_message)
-            except:
-                raise NoLabsException(messages=["Error generating response. Please try again."],
+            except Exception as e:
+                raise NoLabsException(messages=["Error generating response. Please try again." + str(e)],
                                       error_code=ErrorCodes.biobuddy_error_generating_response)
 
             return self._process_regular_ai_response(experiment_id, assistant_message)

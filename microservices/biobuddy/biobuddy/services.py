@@ -34,6 +34,8 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
 
     openai_functions = [tool['function'] for tool in request.tools]
 
+    print(tools_description)
+
     strategy_prompt = generate_strategy_prompt(tools_description, request.message_content)
 
     completion = runnable.invoke({
