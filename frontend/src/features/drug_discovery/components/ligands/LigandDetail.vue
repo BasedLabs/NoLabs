@@ -54,7 +54,7 @@ export default defineComponent({
   },
   mounted() {
     if (this.ligand.data?.sdf_file) {
-      this.sdfFile= new File([new Blob([this.ligand.data.sdf_file])], "ligand.sdf");
+      this.sdfFile = new File([new Blob([this.ligand.data.sdf_file])], "ligand.sdf");
     }
   },
 })
