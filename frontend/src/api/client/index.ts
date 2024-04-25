@@ -27,6 +27,7 @@ export type { CheckResultDataAvailableResponse } from './models/CheckResultDataA
 export type { CheckServiceHealthyResponse } from './models/CheckServiceHealthyResponse';
 export type { ChemBLData } from './models/ChemBLData';
 export type { ChemBLMetaData } from './models/ChemBLMetaData';
+export type { CreateMessageResponse } from './models/CreateMessageResponse';
 export type { DeleteDockingJobResponse } from './models/DeleteDockingJobResponse';
 export type { DeleteLoneLigandResponse } from './models/DeleteLoneLigandResponse';
 export type { DeleteTargetLigandResponse } from './models/DeleteTargetLigandResponse';
@@ -99,7 +100,6 @@ export type { RunSimulationsResponse } from './models/RunSimulationsResponse';
 export type { RunSolubilityResponse } from './models/RunSolubilityResponse';
 export type { RunUmolDockingJobResponse } from './models/RunUmolDockingJobResponse';
 export type { SamplingSizeRequest } from './models/SamplingSizeRequest';
-export type { SaveMessageResponse } from './models/SaveMessageResponse';
 export type { SendQueryResponse } from './models/SendQueryResponse';
 export type { SmilesResponse } from './models/SmilesResponse';
 export type { TargetMetaData } from './models/TargetMetaData';

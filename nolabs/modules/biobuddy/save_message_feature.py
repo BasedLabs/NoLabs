@@ -1,4 +1,4 @@
-from nolabs.api_models.biobuddy import SaveMessageRequest, SaveMessageResponse
+from nolabs.api_models.biobuddy import CreateMessageRequest, CreateMessageResponse
 from nolabs.api_models.biobuddy import Message as ApiMessage
 from nolabs.api_models.biobuddy import RegularMessage as ApiRegularMessage
 from nolabs.domain.experiment import ExperimentId
@@ -8,12 +8,12 @@ from nolabs.infrastructure.settings import Settings
 from nolabs.utils import generate_uuid
 
 
-class SendMessageFeature:
+class CreateMessageFeature:
     def __init__(self, settings: Settings, file_management: FileManagement):
         self._file_management = file_management
         self._settings = settings
 
-    def handle(self, request: SaveMessageRequest) -> SaveMessageResponse:
+    def handle(self, request: CreateMessageRequest) -> CreateMessageResponse:
         assert request
 
         experiment_id = ExperimentId(request.experiment_id)
@@ -29,7 +29,7 @@ class SendMessageFeature:
                                                                      type='text')
                                                              )
 
-        return SaveMessageResponse(ApiMessage(id=message_id,
+        return CreateMessageResponse(ApiMessage(id=message_id,
                                               role='user',
                                               message=ApiRegularMessage(
                                                   content=request.message_content

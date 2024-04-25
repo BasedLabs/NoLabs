@@ -56,7 +56,7 @@
         Predict 3D structure
       </q-btn>
       <PdbViewer v-if="hasPdb && this.pdbFile" :pdb-file="this.pdbFile"
-                 :pocket-ids="this.target.data.pocketIds" :key="this.target.data.pocketIds"/>
+                 :pocket-ids="this.target.data.pocketIds" :key="this.pdbFile.size"/>
       <q-btn v-if="hasPdb && !bindingPocketAvailable" color="secondary" @click="fetchAndShowPocket">
         Show Binding Pocket
       </q-btn>

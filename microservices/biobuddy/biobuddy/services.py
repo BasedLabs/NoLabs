@@ -18,10 +18,10 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
     system_message_content = generate_system_prompt()
     history_messages = [SystemMessage(content=system_message_content)]
     for msg in request.previous_messages:
-        if 'user' in msg.keys():
-            history_messages.append(HumanMessage(content=msg['user']))
-        elif 'assistant' in msg.keys():
-            history_messages.append(AIMessage(content=msg['assistant']))
+        if msg['role'] == 'user':
+            history_messages.append(HumanMessage(content=msg['content']))
+        elif msg['role'] == 'assistant':
+            history_messages.append(AIMessage(content=msg['content']))
 
     prompt_template = ChatPromptTemplate.from_messages([
         MessagesPlaceholder(variable_name="history"),
@@ -33,8 +33,6 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
     tools_description = " ".join([f"{(tool['function']['name'], tool['function']['description'])}, " for tool in request.tools])
 
     openai_functions = [tool['function'] for tool in request.tools]
-
-    print(tools_description)
 
     strategy_prompt = generate_strategy_prompt(tools_description, request.message_content)
 
@@ -60,7 +58,7 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
     elif "<RESEARCH>" in completion.content:
         response_content = asyncio.run(get_report(request.message_content))
         return SendMessageToBioBuddyResponse(
-            reply_type="regular_reply", # TODO: change to research_reply and make frontend display it differently (it's markdown)
+            reply_type="regular_reply",
             content=response_content
         )
     response_content = completion.content

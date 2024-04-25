@@ -41,6 +41,8 @@ class SendQueryFeature:
 
             previous_messages = self.get_previous_messages(experiment_id)
 
+            print(previous_messages)
+
             try:
                 biobuddy_request = biobuddy_microservice.SendMessageToBioBuddyRequest(
                     message_content=request.query,
@@ -153,10 +155,10 @@ class SendQueryFeature:
         messages = self._file_management.load_conversation(experiment_id)
         previous_messages = []
         for message in messages:
-            if type(message) == RegularMessage:
+            if message.type == "text":
                 previous_messages.append({'role': message.role,
                                           'content': str(message.message.content)})
-            elif type(message) == List[FunctionCall]:
+            elif message.type == "function":
                 functions = [(str(idx) + function.function_name, function.parameters) for idx, function in
                              enumerate(message.message)]
                 previous_messages.append({'role': message.role,

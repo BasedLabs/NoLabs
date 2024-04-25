@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CheckBioBuddyEnabledResponse } from '../models/CheckBioBuddyEnabledResponse';
+import type { CreateMessageResponse } from '../models/CreateMessageResponse';
 import type { EditMessageResponse } from '../models/EditMessageResponse';
 import type { LoadConversationResponse } from '../models/LoadConversationResponse';
-import type { SaveMessageResponse } from '../models/SaveMessageResponse';
 import type { SendQueryResponse } from '../models/SendQueryResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -46,16 +46,16 @@ export class BiobuddyService {
      * Save Message
      * @param experimentId
      * @param messageContent
-     * @returns SaveMessageResponse Successful Response
+     * @returns CreateMessageResponse Successful Response
      * @throws ApiError
      */
-    public static saveMessageApiV1BiobuddySaveMessagePost(
+    public static saveMessageApiV1BiobuddyMessageCreatePost(
         experimentId: string,
         messageContent: string,
-    ): CancelablePromise<SaveMessageResponse> {
+    ): CancelablePromise<CreateMessageResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/biobuddy/save-message',
+            url: '/api/v1/biobuddy/message/create',
             query: {
                 'experiment_id': experimentId,
                 'message_content': messageContent,
@@ -73,14 +73,14 @@ export class BiobuddyService {
      * @returns EditMessageResponse Successful Response
      * @throws ApiError
      */
-    public static editMessageApiV1BiobuddyEditMessagePost(
+    public static editMessageApiV1BiobuddyMessageEditPost(
         experimentId: string,
         messageId: string,
         messageContent: string,
     ): CancelablePromise<EditMessageResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/biobuddy/edit-message',
+            url: '/api/v1/biobuddy/message/edit',
             query: {
                 'experiment_id': experimentId,
                 'message_id': messageId,
@@ -98,13 +98,13 @@ export class BiobuddyService {
      * @returns SendQueryResponse Successful Response
      * @throws ApiError
      */
-    public static sendQueryApiV1BiobuddySendQueryPost(
+    public static sendQueryApiV1BiobuddyQueryPost(
         experimentId: string,
         messageContent: string,
     ): CancelablePromise<SendQueryResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/biobuddy/send-query',
+            url: '/api/v1/biobuddy/query',
             query: {
                 'experiment_id': experimentId,
                 'message_content': messageContent,

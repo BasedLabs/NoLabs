@@ -2,15 +2,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from nolabs.api_models.biobuddy import LoadConversationResponse, LoadConversationRequest, SaveMessageResponse, \
-    SaveMessageRequest, CheckBioBuddyEnabledResponse, SendQueryResponse, SendQueryRequest, EditMessageResponse, \
+from nolabs.api_models.biobuddy import LoadConversationResponse, LoadConversationRequest, CreateMessageResponse, \
+    CreateMessageRequest, CheckBioBuddyEnabledResponse, SendQueryResponse, SendQueryRequest, EditMessageResponse, \
     EditMessageRequest
 from nolabs.controllers.biobuddy.dependencies import load_conversation_dependency, \
-    save_message_dependency, send_query_dependency, check_biobuddy_enabled_dependency, edit_message_dependency
+    create_message_dependency, send_query_dependency, check_biobuddy_enabled_dependency, edit_message_dependency
 from nolabs.modules.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
 from nolabs.modules.biobuddy.edit_message_feature import EditMessageFeature
 from nolabs.modules.biobuddy.load_conversation_feature import LoadConversationFeature
-from nolabs.modules.biobuddy.save_message_feature import SendMessageFeature
+from nolabs.modules.biobuddy.save_message_feature import CreateMessageFeature
 from nolabs.modules.biobuddy.send_query_feature import SendQueryFeature
 
 router = APIRouter(
@@ -31,14 +31,14 @@ async def load_conversation(experiment_id: str,
     return feature.handle(LoadConversationRequest(experiment_id))
 
 
-@router.post('/save-message')
+@router.post('/message/create')
 async def save_message(experiment_id: str,
                        message_content: str,
         feature: Annotated[
-    SendMessageFeature, Depends(save_message_dependency)]) -> SaveMessageResponse:
-    return feature.handle(SaveMessageRequest(experiment_id, message_content))
+    CreateMessageFeature, Depends(create_message_dependency)]) -> CreateMessageResponse:
+    return feature.handle(CreateMessageRequest(experiment_id, message_content))
 
-@router.post('/edit-message')
+@router.post('/message/edit')
 async def edit_message(experiment_id: str,
                        message_id: str,
                        message_content: str,
@@ -46,7 +46,7 @@ async def edit_message(experiment_id: str,
     EditMessageFeature, Depends(edit_message_dependency)]) -> EditMessageResponse:
     return feature.handle(EditMessageRequest(experiment_id, message_id, message_content))
 
-@router.post('/send-query')
+@router.post('/query')
 async def send_query(experiment_id: str,
                        message_content: str,
         feature: Annotated[

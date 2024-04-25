@@ -13,7 +13,7 @@
                 {{ displayName(message.role) }}</div>
               <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
               <p> <q-icon name="check_circle" color="purple"></q-icon>
-                <span class="text-h7 text-purple q-ml-sm"> {{ displayContent(message) }} </span>
+                <span class="text-h7 text-purple q-ml-sm"> {{ functionCall.function_name }} </span>
               </p>
               <ul>
                 Params:
@@ -64,7 +64,7 @@
 import {Notify} from 'quasar';
 import { defineComponent } from 'vue';
 import {editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi} from 'src/features/biobuddy/api';
-import {FunctionCall, type FunctionParam, Message, type RegularMessage} from "src/api/client";
+import {FunctionCall, type FunctionParam, Message} from "src/api/client";
 import MarkdownIt from 'markdown-it';
 import {useBioBuddyStore} from "./storage";
 import {obtainErrorResponse} from "../../api/errorWrapper";
@@ -185,14 +185,6 @@ export default defineComponent({
         }
       }
     },
-    displayContent(message: Message) {
-      if (message.type === 'text') {
-        const response_message = message.message as RegularMessage;
-        return response_message.content;
-      }
-      const functionCalls = message.message as FunctionCall[];
-      return functionCalls.map(fc => fc.function_name).join(', ');
-    },
     displayName(role: string) {
       return role === 'user' ? 'You' : 'Biobuddy';
     },
@@ -242,11 +234,5 @@ export default defineComponent({
   right: 0; /* Adjust based on your layout, ensuring it's reachable for resizing */
   width: 20px;
   height: 100%;
-}
-
-.custom-icon {
-  width: 15px; /* Example size */
-  height: 15px; /* Example size */
-  vertical-align: top; /* Aligns icon with text if necessary */
 }
 </style>

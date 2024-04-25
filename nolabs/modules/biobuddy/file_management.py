@@ -45,7 +45,6 @@ class FileManagement(ExperimentsFileManagementBase):
                 if message['id'] == message_id:
                     messages[idx] = asdict(new_message)
                     messages = messages[:idx+1]
-                    print(messages)
                     f.seek(0)
                     json.dump(messages, f, indent=4)
                     f.truncate()

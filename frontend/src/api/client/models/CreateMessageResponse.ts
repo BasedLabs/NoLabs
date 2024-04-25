@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { Message } from './Message';
-export type SaveMessageResponse = {
+export type CreateMessageResponse = {
     saved_message: Message;
 };
 

@@ -90,13 +90,13 @@ class LoadConversationResponse:
 
 
 @pcdataclass.dataclass
-class SaveMessageRequest:
+class CreateMessageRequest:
     experiment_id: str
     message_content: str
 
 
 @pcdataclass.dataclass
-class SaveMessageResponse:
+class CreateMessageResponse:
     saved_message: Message
 
 

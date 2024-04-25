@@ -11,7 +11,7 @@ from nolabs.modules.biobuddy.functions.query_chembl_by_disease import QueryChemb
 from nolabs.modules.biobuddy.functions.query_rcsb_pdb_by_id import QueryRcsbPdbByIdFunction
 from nolabs.modules.biobuddy.functions.query_rcsb_pdb_by_names import QueryRcsbPdbByNamesFunction
 from nolabs.modules.biobuddy.load_conversation_feature import LoadConversationFeature
-from nolabs.modules.biobuddy.save_message_feature import SendMessageFeature
+from nolabs.modules.biobuddy.save_message_feature import CreateMessageFeature
 from nolabs.modules.biobuddy.send_query_feature import SendQueryFeature
 from nolabs.modules.drug_discovery.services.ligand_file_management import LigandsFileManagement
 from nolabs.modules.drug_discovery.services.target_file_management import TargetsFileManagement
@@ -69,11 +69,11 @@ def query_chembl_by_condition_function(settings: Annotated[Settings, Depends(set
                                      ) -> QueryChemblByConditionFunction:
     return QueryChemblByConditionFunction(settings=settings, ligands_file_management=ligands_file_management)
 
-def save_message_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+def create_message_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
                                               file_management: Annotated[FileManagement,
                                               Depends(file_management_dependency)]
-                                              ) -> SendMessageFeature:
-    return SendMessageFeature(settings=settings, file_management=file_management)
+                                              ) -> CreateMessageFeature:
+    return CreateMessageFeature(settings=settings, file_management=file_management)
 
 def edit_message_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
                                               file_management: Annotated[FileManagement,
