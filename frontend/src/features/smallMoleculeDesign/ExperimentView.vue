@@ -1,11 +1,11 @@
 <script lang="ts">
 import {defineComponent, toRaw} from "vue";
-import PdbViewer from '../../components/PdbViewer.vue';
 import useSmallMoleculesDesignStore from "./storage";
 import {exportFile, Notify, QSpinnerOrbit} from "quasar";
 import LogsModal from "./components/LogsModal.vue";
 import ExperimentControlButtons from "./components/ExperimentControlButtons.vue";
 import ExperimentHeader from "../../components/ExperimentHeader.vue";
+import PdbViewer from "./components/PdbViewer.vue";
 
 interface ShapeCoordinates {
   x: number;
