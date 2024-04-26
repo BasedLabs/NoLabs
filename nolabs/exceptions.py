@@ -13,7 +13,11 @@ class ErrorCodes(Enum):
     protein_design_update_metadata_error = 7
     drug_discovery_folding_error = 8
     folding_method_unknown = 9
+
+    # ++++ Biobuddy
+
     biobuddy_error_generating_response = 10
+    biobuddy_unexpected_message_type = 11
 
     # ++++ Small molecules design
 

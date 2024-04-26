@@ -52,7 +52,7 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
 
         response_content = str(function_calls)
         return SendMessageToBioBuddyResponse(
-            reply_type="function_calls",
+            reply_type="function",
             content=response_content
         )
     elif "<RESEARCH>" in completion.content:

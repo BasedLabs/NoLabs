@@ -2,7 +2,7 @@ from nolabs.api_models.biobuddy import EditMessageRequest, EditMessageResponse
 from nolabs.api_models.biobuddy import Message as ApiMessage
 from nolabs.api_models.biobuddy import RegularMessage as ApiRegularMessage
 from nolabs.domain.experiment import ExperimentId
-from nolabs.modules.biobuddy.data_models.message import Message, RegularMessage
+from nolabs.modules.biobuddy.data_models.message import Message, RegularMessage, MessageType
 from nolabs.modules.biobuddy.file_management import FileManagement
 from nolabs.infrastructure.settings import Settings
 
@@ -25,7 +25,7 @@ class EditMessageFeature:
                                                                      message=RegularMessage(
                                                                          content=request.message_content
                                                                      ),
-                                                                     type='text')
+                                                                     type=MessageType.TEXT)
                                                             )
 
         return EditMessageResponse(ApiMessage(id=message_id,
@@ -33,5 +33,5 @@ class EditMessageFeature:
                                               message=ApiRegularMessage(
                                                   content=request.message_content
                                               ),
-                                              type='text')
+                                              type=MessageType.TEXT.value)
                                    )

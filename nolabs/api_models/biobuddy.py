@@ -1,3 +1,5 @@
+from enum import Enum
+
 from pydantic import dataclasses as pcdataclass, BaseModel
 from typing import List, Any, Union, Optional, Dict
 

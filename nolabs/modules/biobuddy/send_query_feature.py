@@ -7,7 +7,8 @@ from nolabs.api_models.biobuddy import SendQueryRequest, SendQueryResponse
 from nolabs.api_models.biobuddy import Message as ApiMessage
 from nolabs.domain.experiment import ExperimentId
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.modules.biobuddy.data_models.message import Message, RegularMessage, FunctionCall, FunctionParam
+from nolabs.modules.biobuddy.data_models.message import Message, RegularMessage, FunctionCall, FunctionParam, \
+    MessageType
 from nolabs.api_models.biobuddy import RegularMessage as ApiRegularMessage
 from nolabs.api_models.biobuddy import FunctionCall as ApiFunctionCall
 from nolabs.modules.biobuddy.file_management import FileManagement
@@ -41,17 +42,18 @@ class SendQueryFeature:
 
             previous_messages = self.get_previous_messages(experiment_id)
 
-            print(previous_messages)
-
             try:
                 biobuddy_request = biobuddy_microservice.SendMessageToBioBuddyRequest(
                     message_content=request.query,
                     previous_messages=previous_messages,
                     tools=self._tools)
+
                 assistant_message = api_instance.predict_send_message_post(
                     send_message_to_bio_buddy_request=biobuddy_request)
 
-                if assistant_message.reply_type == "function_calls":
+                print(assistant_message)
+
+                if assistant_message.reply_type == "function":
                     return self._process_ai_function_calls(experiment_id, assistant_message)
             except Exception as e:
                 raise NoLabsException(messages=["Error generating response. Please try again." + str(e)],
@@ -86,13 +88,13 @@ class SendQueryFeature:
                                                              Message(id=message_id,
                                                                      role='assistant',
                                                                      message=regular_function_calls,
-                                                                     type="function")
+                                                                     type=MessageType.FUNCTIONS)
                                                              )
 
         return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
                                                               role='assistant',
                                                               message=api_function_calls,
-                                                              type="function"))
+                                                              type=MessageType.FUNCTIONS.value))
 
     def _process_regular_ai_response(self, experiment_id: ExperimentId,
                                      assistant_message: biobuddy_microservice.SendMessageToBioBuddyResponse
@@ -105,14 +107,14 @@ class SendQueryFeature:
                                                                          content=str(
                                                                              assistant_message.content)
                                                                      ),
-                                                                     type='text')
+                                                                     type=MessageType.TEXT)
                                                              )
         return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
                                                               role='assistant',
                                                               message=ApiRegularMessage(
                                                                   content=str(assistant_message.content)
                                                               ),
-                                                              type='text'))
+                                                              type=MessageType.TEXT.value))
 
     def construct_tools_object(self):
         tools = []
@@ -155,10 +157,10 @@ class SendQueryFeature:
         messages = self._file_management.load_conversation(experiment_id)
         previous_messages = []
         for message in messages:
-            if message.type == "text":
+            if message.type == MessageType.TEXT:
                 previous_messages.append({'role': message.role,
                                           'content': str(message.message.content)})
-            elif message.type == "function":
+            elif message.type == MessageType.FUNCTIONS:
                 functions = [(str(idx) + function.function_name, function.parameters) for idx, function in
                              enumerate(message.message)]
                 previous_messages.append({'role': message.role,
