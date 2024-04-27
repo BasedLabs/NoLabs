@@ -6,6 +6,10 @@ on:
       - feature/cicd
 
 jobs:
-  build-docker-image:
-    runs-on: ubuntu-latest
+  build-and-push-nolabs:
+    uses: ./.github/workflows/build-and-push-docker.yml@main
+    with:
+      microservice_name: "nolabs"
+      paths: 'build/**,client/**,frontend/**,nolabs/**,tests/**'
+
 

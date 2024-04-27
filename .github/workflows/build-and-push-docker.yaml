@@ -1,17 +1,15 @@
-name: Reusable Job Workflow
+name: Build and push docker image
 
 on:
-  push:
-    branches:
-      - feature/cicd
-    paths:
-      - 'frontend/**'
-      - 'client/**'
-      - 'nolabs/**'
-      - 'tests/**'
+  workflow_call:
+    inputs:
+      paths:
+        required: true
+        type: string
+        description: "Comma-separated list of paths to check for changes"
 
 jobs:
-  build-docker-image:
+  build-and-push-docker-image:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,20 +33,20 @@ jobs:
       - name: Get image name
         id: image-tag
         run: |
-          output=$(python .github/scripts/parse_compose_service_image.py)
+          output=$(python .github/scripts/parse_compose_service_image.py ${{ inputs.microservice_name }})
           echo "::set-output name=result::$output"
 
       - name: Get image build context
         id: build-context
         run: |
-          output=$(python .github/scripts/parse_compose_service_build_context.py)
+          output=$(python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }})
           echo "::set-output name=result::$output"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: {{ steps.build-context.outputs.result }}
+          context: ${{ steps.build-context.outputs.result }}
           file: build/Dockerfile
           push: false
-          tags: {{ steps.image-tag.outputs.result }}
+          tags: ${{ steps.image-tag.outputs.result }}
 
