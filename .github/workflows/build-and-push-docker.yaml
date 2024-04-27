@@ -17,7 +17,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ JaktensTid }} # Igor Bruev https://github.com/JaktensTid
+          username: JaktensTid # Igor Bruev https://github.com/JaktensTid
           password: ${{ secrets.GHCR_READ_WRITE_DELETE }}
 
       - name: Checkout code
