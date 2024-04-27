@@ -34,8 +34,8 @@ jobs:
         with:
           python-version: 3.12
 
-      - name: Install yaml python package
-        run: pip install yaml
+      - name: Install pyyaml python package
+        run: pip install pyyaml
 
       - name: Get image name
         id: image-tag
