@@ -19,6 +19,7 @@
     "3dmol": "^2.0.6",
     "axios": "^1.6.5",
     "axios-retry": "^4.0.0",
+    "markdown-it": "^14.1.0",
     "ngl": "^2.2.2",
     "node-fetch": "^3.3.2",
     "pinia": "^2.0.11",

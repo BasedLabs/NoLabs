@@ -1,10 +1,12 @@
-/* generated using openapi-typescript-codegen -- do not edit */
+/* generated using openapi-typescript-codegen -- do no edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
 import type { CheckBioBuddyEnabledResponse } from '../models/CheckBioBuddyEnabledResponse';
+import type { CreateMessageResponse } from '../models/CreateMessageResponse';
+import type { EditMessageResponse } from '../models/EditMessageResponse';
 import type { LoadConversationResponse } from '../models/LoadConversationResponse';
-import type { SendMessageResponse } from '../models/SendMessageResponse';
+import type { SendQueryResponse } from '../models/SendQueryResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -41,19 +43,68 @@ export class BiobuddyService {
         });
     }
     /**
-     * Send Message
+     * Save Message
      * @param experimentId
      * @param messageContent
-     * @returns SendMessageResponse Successful Response
+     * @returns CreateMessageResponse Successful Response
      * @throws ApiError
      */
-    public static sendMessageApiV1BiobuddySendMessagePost(
+    public static saveMessageApiV1BiobuddyMessageCreatePost(
         experimentId: string,
         messageContent: string,
-    ): CancelablePromise<SendMessageResponse> {
+    ): CancelablePromise<CreateMessageResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/biobuddy/send-message',
+            url: '/api/v1/biobuddy/message/create',
+            query: {
+                'experiment_id': experimentId,
+                'message_content': messageContent,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Edit Message
+     * @param experimentId
+     * @param messageId
+     * @param messageContent
+     * @returns EditMessageResponse Successful Response
+     * @throws ApiError
+     */
+    public static editMessageApiV1BiobuddyMessageEditPost(
+        experimentId: string,
+        messageId: string,
+        messageContent: string,
+    ): CancelablePromise<EditMessageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/biobuddy/message/edit',
+            query: {
+                'experiment_id': experimentId,
+                'message_id': messageId,
+                'message_content': messageContent,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Send Query
+     * @param experimentId
+     * @param messageContent
+     * @returns SendQueryResponse Successful Response
+     * @throws ApiError
+     */
+    public static sendQueryApiV1BiobuddyQueryPost(
+        experimentId: string,
+        messageContent: string,
+    ): CancelablePromise<SendQueryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/biobuddy/query',
             query: {
                 'experiment_id': experimentId,
                 'message_content': messageContent,

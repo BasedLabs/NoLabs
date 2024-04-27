@@ -1,17 +1,18 @@
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import Depends
 
 from nolabs.controllers.common_dependencies import settings_dependency
 from nolabs.modules.biobuddy.check_biobuddy_enabled_feature import CheckBioBuddyEnabledFeature
+from nolabs.modules.biobuddy.edit_message_feature import EditMessageFeature
 from nolabs.modules.biobuddy.file_management import FileManagement
-from nolabs.modules.biobuddy.functions.base_function import BiobuddyFunction
 from nolabs.modules.biobuddy.functions.query_chembl import QueryChemblFunction
 from nolabs.modules.biobuddy.functions.query_chembl_by_disease import QueryChemblByConditionFunction
 from nolabs.modules.biobuddy.functions.query_rcsb_pdb_by_id import QueryRcsbPdbByIdFunction
 from nolabs.modules.biobuddy.functions.query_rcsb_pdb_by_names import QueryRcsbPdbByNamesFunction
 from nolabs.modules.biobuddy.load_conversation_feature import LoadConversationFeature
-from nolabs.modules.biobuddy.send_message_feature import SendMessageFeature
+from nolabs.modules.biobuddy.save_message_feature import CreateMessageFeature
+from nolabs.modules.biobuddy.send_query_feature import SendQueryFeature
 from nolabs.modules.drug_discovery.services.ligand_file_management import LigandsFileManagement
 from nolabs.modules.drug_discovery.services.target_file_management import TargetsFileManagement
 from nolabs.infrastructure.settings import Settings
@@ -68,15 +69,27 @@ def query_chembl_by_condition_function(settings: Annotated[Settings, Depends(set
                                      ) -> QueryChemblByConditionFunction:
     return QueryChemblByConditionFunction(settings=settings, ligands_file_management=ligands_file_management)
 
-def send_message_to_drug_discovery_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+def create_message_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                                              file_management: Annotated[FileManagement,
+                                              Depends(file_management_dependency)]
+                                              ) -> CreateMessageFeature:
+    return CreateMessageFeature(settings=settings, file_management=file_management)
+
+def edit_message_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
+                                              file_management: Annotated[FileManagement,
+                                              Depends(file_management_dependency)]
+                                              ) -> EditMessageFeature:
+    return EditMessageFeature(settings=settings, file_management=file_management,)
+
+def send_query_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
                                               file_management: Annotated[FileManagement,
                                               Depends(file_management_dependency)],
                                               target_file_management: Annotated[TargetsFileManagement,
                                               Depends(target_file_management_dependency)],
                                               ligands_file_management: Annotated[LigandsFileManagement,
                                               Depends(ligand_file_management_dependency)]
-                                              ) -> SendMessageFeature:
-    return SendMessageFeature(settings=settings, file_management=file_management,
+                                              ) -> SendQueryFeature:
+    return SendQueryFeature(settings=settings, file_management=file_management,
                               functions=[query_rcsb_pdb_by_id_function(settings, target_file_management),
                                          query_rcsb_pdb_by_names_function(settings, target_file_management),
                                          query_chembl_function(settings, ligands_file_management),

@@ -10,11 +10,10 @@
           <div v-if="message.type === 'function'" class="function-message">
             <q-item-label class="text-h7 q-mb-sm">
               <div class="q-pb-sm q-pt-sm text-bold">
-                <img src="/Biobuddy_icon.svg" class="custom-icon" />
                 {{ displayName(message.role) }}</div>
               <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
               <p> <q-icon name="check_circle" color="purple"></q-icon>
-                <span class="text-h7 text-purple q-ml-sm"> {{ displayContent(message) }} </span>
+                <span class="text-h7 text-purple q-ml-sm"> {{ functionCall.function_name }} </span>
               </p>
               <ul>
                 Params:
@@ -27,8 +26,17 @@
             </div>
           <div v-else>
             <q-item-label class="text-h7 q-mb-sm">
-              <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
-              <p>{{ displayContent(message) }}</p>
+              <div v-if="editIndex !== index">
+                <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
+                <div class="markdown-content" v-html="renderMarkdown(message.message.content)"></div>
+                <q-btn flat v-if="message.role === 'user'" size="sm" icon="edit" @click="startEditing(index)"></q-btn>
+                <q-btn flat v-if="isLastUserMessageWithoutResponse(index) && !sending" label="Regenerate" icon-right="autorenew" @click="sendQuery(message.message.content)"></q-btn>
+              </div>
+              <div v-else>
+                <q-input v-model="editMessage" dense filled></q-input>
+                <q-btn flat label="Save and Submit" @click="saveEdit(index)"></q-btn>
+                <q-btn flat label="Cancel" @click="cancelEdit"></q-btn>
+              </div>
             </q-item-label>
           </div>
         </q-item-section>
@@ -53,11 +61,13 @@
 </template>
 
 <script lang="ts">
-import {QList, QItem, QItemLabel, QSeparator, QItemSection, QInput, QBtn, QSpinner, useQuasar} from 'quasar';
+import {Notify} from 'quasar';
 import { defineComponent } from 'vue';
-import { loadConversationApi, sendMessageApi } from 'src/features/biobuddy/api';
-import {FunctionCall, type FunctionParam, Message, type RegularMessage} from "src/api/client";
+import {editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi} from 'src/features/biobuddy/api';
+import {FunctionCall, type FunctionParam, Message} from "src/api/client";
+import MarkdownIt from 'markdown-it';
 import {useBioBuddyStore} from "./storage";
+import {obtainErrorResponse} from "../../api/errorWrapper";
 
 export interface FunctionMapping {
   name: string;
@@ -82,6 +92,8 @@ export default defineComponent({
       drawerWidth: 500, // Initial width of the drawer
       isResizing: false,
       initialMouseX: 0,
+      editIndex: -1,
+      editMessage: '',
     };
   },
   methods: {
@@ -90,19 +102,79 @@ export default defineComponent({
       const response = await loadConversationApi(this.experimentId);
       this.messages = response.messages;
     },
+    renderMarkdown(text: string) {
+      const md = new MarkdownIt();
+      let result = md.render(text);
+      result = result.replace(
+        /<h1>/g,
+        '<h1 style="font-size: 1.5em; margin-top: 0.5em; margin-bottom: 0.5em; line-height: 1.2; font-weight: bold;">'
+      );
+      result = result.replace(/<h2>/g, '<h2 style="font-size: 1.3em; margin-top: 0.3em; margin-bottom: 0.3em;">');
+      result = result.replace(/<h3>/g, '<h3 style="font-size: 1.1em; margin-top: 0.3em; margin-bottom: 0.3em;">');
+      return result;
+    },
     async sendMessage() {
       if (!this.experimentId || !this.newMessage.trim()) return;
-      this.sending = true;
-      const response = await sendMessageApi(this.experimentId, this.newMessage);
-      const newMessageResponse = response.biobuddy_response as Message;
-      this.messages.push(newMessageResponse);
 
+      try {
+        const response = await saveMessageApi(this.experimentId, this.newMessage);
+        const savedMessage = response.saved_message as Message;
+
+        this.messages.push(savedMessage);
+        const queryContent = this.newMessage;
+        this.newMessage = '';
+        await this.sendQuery(queryContent);
+      } catch (error) {
+        console.error("Failed to send or process message:", error);
+      }
+    },
+    isLastUserMessageWithoutResponse(index: number) {
+      return index === this.messages.length - 1 && this.messages[index].role === 'user';
+    },
+    startEditing(index: number) {
+      this.editIndex = index;
+      this.editMessage = this.messages[index].message.content;
+    },
+    cancelEdit() {
+      this.editIndex = -1;
+      this.editMessage = '';
+    },
+    async saveEdit(index: number) {
+      if (!this.experimentId || !this.editMessage.trim()) return;
+      const messageId = this.messages[index].id; // Assuming each message has a unique ID
+      try {
+        await editMessageApi(this.experimentId, messageId, this.editMessage);
+        this.messages[index].message.content = this.editMessage;
+        this.messages = this.messages.slice(0, index + 1); // Remove messages after the edited one
+        await this.sendQuery(this.editMessage);
+      } catch (error) {
+        console.error("Failed to edit message:", error);
+      }
+      this.editIndex = -1;
+      this.editMessage = '';
+    },
+    async sendQuery(message: string) {
+      this.sending = true;
+      const queryResponse = await sendQueryApi(this.experimentId, message);
+      const errorResponse = obtainErrorResponse(queryResponse);
+      if (errorResponse) {
+        this.sending = false;
+        for (const error of errorResponse.errors) {
+          Notify.create({
+            type: "negative",
+            closeBtn: 'Close',
+            message: error
+          });
+        }
+        return;
+      }
+      const newMessageResponse = queryResponse.biobuddy_response as Message;
+      this.messages.push(newMessageResponse);
       if (newMessageResponse.type === 'function') {
         const functionCall = newMessageResponse.message as FunctionCall[];
         await this.invokeFunctions(functionCall);
       }
-      this.newMessage = '';
-      await this.loadConversation();
+
       this.sending = false;
     },
     async invokeFunctions(functionCalls: FunctionCall[]) {
@@ -112,14 +184,6 @@ export default defineComponent({
           await mapping.function(functionCall.data);
         }
       }
-    },
-    displayContent(message: Message) {
-      if (message.type === 'text') {
-        const response_message = message.message as RegularMessage;
-        return response_message.content;
-      }
-      const functionCalls = message.message as FunctionCall[];
-      return functionCalls.map(fc => fc.function_name).join(', ');
     },
     displayName(role: string) {
       return role === 'user' ? 'You' : 'Biobuddy';
@@ -170,11 +234,5 @@ export default defineComponent({
   right: 0; /* Adjust based on your layout, ensuring it's reachable for resizing */
   width: 20px;
   height: 100%;
-}
-
-.custom-icon {
-  width: 15px; /* Example size */
-  height: 15px; /* Example size */
-  vertical-align: top; /* Aligns icon with text if necessary */
 }
 </style>

@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type GetExperimentStatusResponse = {
-    running: boolean;
-    sampling_allowed: boolean;
+import type { Message } from './Message';
+export type CreateMessageResponse = {
+    saved_message: Message;
 };
 
