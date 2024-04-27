@@ -60,6 +60,6 @@ jobs:
         with:
           context: ${{ env.BUILD_CONTEXT }}
           file: build/Dockerfile
-          push: false
+          push: true
           tags: ${{ env.IMAGE_TAG }}
 
