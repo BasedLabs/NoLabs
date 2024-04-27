@@ -58,8 +58,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: "$BUILD_CONTEXT"
+          context: ${{ env.BUILD_CONTEXT }}
           file: build/Dockerfile
           push: false
-          tags: "$IMAGE_TAG"
+          tags: ${{ env.IMAGE_TAG }}
 
