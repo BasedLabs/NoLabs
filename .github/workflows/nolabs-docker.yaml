@@ -1,0 +1,54 @@
+name: Reusable Job Workflow
+
+on:
+  push:
+    branches:
+      - feature/cicd
+    paths:
+      - 'frontend/**'
+      - 'client/**'
+      - 'nolabs/**'
+      - 'tests/**'
+
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ JaktensTid }} # Igor Bruev https://github.com/JaktensTid
+          password: ${{ secrets.GHCR_READ_WRITE_DELETE }}
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.12
+
+      - name: Get image name
+        id: image-tag
+        run: |
+          output=$(python .github/scripts/parse_compose_service_image.py)
+          echo "::set-output name=result::$output"
+
+      - name: Get image build context
+        id: build-context
+        run: |
+          output=$(python .github/scripts/parse_compose_service_build_context.py)
+          echo "::set-output name=result::$output"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: {{ steps.build-context.outputs.result }}
+          file: build/Dockerfile
+          push: false
+          tags: {{ steps.image-tag.outputs.result }}
+

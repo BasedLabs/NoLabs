@@ -1,0 +1,11 @@
+name: All
+
+on:
+  push:
+    branches:
+      - feature/cicd
+
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-latest
+
