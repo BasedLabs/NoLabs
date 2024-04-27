@@ -14,7 +14,6 @@ jobs:
     uses: ./.github/workflows/build-and-push-docker.yaml
     with:
       microservice_name: "nolabs"
-      paths: 'build/**,client/**,frontend/**,nolabs/**,tests/**'
 
   biobuddy:
     permissions:
@@ -24,6 +23,5 @@ jobs:
     uses: ./.github/workflows/build-and-push-docker.yaml
     with:
       microservice_name: "biobuddy"
-      paths: 'build/**,client/**,frontend/**,nolabs/**,tests/**'
 
 

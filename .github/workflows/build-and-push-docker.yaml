@@ -7,10 +7,6 @@ on:
         required: true
         type: string
         description: "Specify microservice name from compose.yaml"
-      paths:
-        required: true
-        type: string
-        description: "Comma-separated list of paths to check for changes"
 
 env:
   IMAGE_TAG: ''
