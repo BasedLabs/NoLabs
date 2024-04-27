@@ -41,13 +41,13 @@ jobs:
         id: image-tag
         run: |
           python .github/scripts/parse_compose_service_image.py ${{ inputs.microservice_name }}
-          echo $IMAGE_TAG
+          echo "$IMAGE_TAG"
 
       - name: Get image build context
         id: build-context
         run: |
           python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }}
-          echo $BUILD_CONTEXT
+          echo "$BUILD_CONTEXT"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
