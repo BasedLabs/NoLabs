@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-push-nolabs:
-    uses: .github/workflows/build-and-push-docker.yaml@feature/cicd
+    uses: ./.github/workflows/build-and-push-docker.yaml@feature/cicd
     with:
       microservice_name: "nolabs"
       paths: 'build/**,client/**,frontend/**,nolabs/**,tests/**'
