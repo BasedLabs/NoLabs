@@ -17,7 +17,7 @@ env:
   BUILD_CONTEXT: ''
 
 jobs:
-  build-and-push-docker-image:
+  build-and-push:
     runs-on: ubuntu-latest
 
     permissions:

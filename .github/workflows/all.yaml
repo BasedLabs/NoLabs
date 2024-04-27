@@ -6,7 +6,7 @@ on:
       - feature/cicd
 
 jobs:
-  build-and-push-nolabs:
+  nolabs:
     permissions:
       contents: read
       packages: write
@@ -16,7 +16,7 @@ jobs:
       microservice_name: "nolabs"
       paths: 'build/**,client/**,frontend/**,nolabs/**,tests/**'
 
-  build-and-push-biobuddy:
+  biobuddy:
     permissions:
       contents: read
       packages: write
