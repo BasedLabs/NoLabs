@@ -9,7 +9,7 @@ def parse_compose_service_image(microservice_name):
     image = compose['services'][microservice_name]['image']
     env_file = os.getenv('GITHUB_ENV')
     with open(env_file, 'a') as fh:
-        print(f'IMAGE_TAG={image}', file=fh)
+        fh.write(f'IMAGE_TAG={image}')
 
 
 if __name__ == '__main__':

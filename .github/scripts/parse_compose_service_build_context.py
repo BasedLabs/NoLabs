@@ -9,7 +9,7 @@ def parse_compose_service_build_context(microservice_name):
     build_context = compose['services'][microservice_name]['build']['context']
     env_file = os.getenv('GITHUB_ENV')
     with open(env_file, 'a') as fh:
-        print(f'BUILD_CONTEXT={build_context}', file=fh)
+        fh.write(f'BUILD_CONTEXT={build_context}')
 
 
 if __name__ == '__main__':
