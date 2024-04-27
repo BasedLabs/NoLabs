@@ -42,10 +42,12 @@ jobs:
         run: pip install pyyaml
 
       - name: Get image name
-        run: python .github/scripts/parse_compose_service_image.py ${{ inputs.microservice_name }}
+        run: |
+          echo "IMAGE_TAG=$(python .github/scripts/parse_compose_service_image.py ${{ inputs.microservice_name }}) >> "$GITHUB_ENV"
 
       - name: Get image build context
-        run: python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }}
+        run: |
+          echo "BUILD_CONTEXT=$(python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }}) >> $GITHUB_ENV"
 
       - name: Image name
         run: echo "$IMAGE_TAG"
