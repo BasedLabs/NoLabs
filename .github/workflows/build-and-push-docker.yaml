@@ -25,7 +25,7 @@ jobs:
           password: ${{ secrets.GHCR_READ_WRITE_DELETE }}
 
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
