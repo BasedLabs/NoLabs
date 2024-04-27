@@ -57,13 +57,13 @@ For example, you can ask
 To enable biobuddy run this command when starting nolabs:
 
 ```shell
-$ ENABLE_BIOBUDDY=true docker compose up nolabs
+$ ENABLE_BIOBUDDY=true  nolabs
 ```
 
 And also start the biobuddy microservice:
 
 ```shell
-$ OPENAI_API_KEY=your_openai_api_key TAVILY_API_KEY=your_tavily_api_key docker compose up biobuddy
+$ OPENAI_API_KEY=your_openai_api_key TAVILY_API_KEY=your_tavily_api_key  biobuddy
 ```
 Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
 
@@ -137,7 +137,7 @@ $ docker compose up
 OR if you want to run a single feature
 
 ```bash
-$ docker compose -up nolabs [gene_ontology|localisation|protein_design|solubility|conformations]
+$ docker compose up nolabs [gene_ontology|localisation|protein_design|solubility|conformations]
 ```
 
 Server will be available on http://localhost:9000
@@ -150,7 +150,7 @@ folder. You can use them individually as APIs.
 For example, to run the `esmfold` service, you can use Docker Compose:
 
 ```bash
-$ docker compose up esmfold
+$  esmfold
 ```
 
 Once the service is up, you can make a POST request to perform a task, such as predicting a protein's folded structure.
@@ -190,7 +190,7 @@ For instance, to run the `diffdock` service, use Docker Compose on the VM or com
 On your server/VM/computer with a GPU, run:
 
 ```bash
-$ docker compose up diffdock
+$  diffdock
 ```
 
 Once the service is up, you can check that you can access it from your computer by navigating to http://<
@@ -226,7 +226,7 @@ RFdiffusion is an open source method for structure generation, with or without c
 etc).
 
 ```shell
-docker compose up protein_design
+ protein_design
 ```
 
 Swagger UI will be available on http://localhost:5789/docs
@@ -239,7 +239,7 @@ or
 Model: [ESMFold](https://github.com/facebookresearch/esm) - Evolutionary Scale Modeling
 
 ```shell
-docker compose up esmfold
+ esmfold
 ```
 
 Swagger UI will be available on http://localhost:5736/docs
@@ -252,7 +252,7 @@ or
 Model: [ESMAtlas](https://esmatlas.com/about)
 
 ```shell
-docker compose up esmfold_light
+ esmfold_light
 ```
 
 Swagger UI will be available on http://localhost:5733/docs
@@ -265,7 +265,7 @@ or
 Model: [Hugging Face](https://huggingface.co/thomasshelby/go_prediction/resolve/main/go_model_150M.pth)
 
 ```shell
-docker compose up gene_ontology
+ gene_ontology
 ```
 
 Swagger UI will be available on http://localhost:5788/docs
@@ -278,7 +278,7 @@ or
 Model: [Hugging Face](https://huggingface.co/ritakurban/ESM_protein_localization)
 
 ```shell
-docker compose up localisation
+ localisation
 ```
 
 Swagger UI will be available on http://localhost:5787/docs
@@ -291,7 +291,7 @@ or
 Model: [p2rank](https://github.com/rdk/p2rank)
 
 ```shell
-docker compose up p2rank
+ p2rank
 ```
 
 Swagger UI will be available on http://localhost:5731/docs
@@ -304,7 +304,7 @@ or
 Model: [Hugging Face](https://huggingface.co/thomasshelby/solubility_model/resolve/main/solubility_model.pth)
 
 ```shell
-docker compose up solubility
+ solubility
 ```
 
 Swagger UI will be available on http://localhost:5786/docs
@@ -317,7 +317,7 @@ or
 Model: [UMol](https://github.com/patrickbryant1/Umol)
 
 ```shell
-docker compose up umol
+ umol
 ```
 
 Swagger UI will be available on http://localhost:5735/docs
@@ -330,7 +330,7 @@ or
 Model: [RoseTTAFold](https://github.com/RosettaCommons/RoseTTAFold)
 
 ```shell
-docker compose up rosettafold
+ rosettafold
 ```
 
 Swagger UI will be available on http://localhost:5738/docs
@@ -348,7 +348,7 @@ Model: [REINVENT4](https://github.com/MolecularAI/REINVENT4)
 Misc: DockStream, QED, AutoDock Vina
 
 ```shell
-docker compose up reinvent
+ reinvent
 ```
 
 Swagger UI will be available on http://localhost:5790/docs
