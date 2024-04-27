@@ -40,20 +40,22 @@ jobs:
       - name: Get image name
         id: image-tag
         run: |
-          output=$(python .github/scripts/parse_compose_service_image.py ${{ inputs.microservice_name }})
-          echo "::set-output name=result::$output"
+          output
+          echo "name=$(python .github/scripts/parse_compose_service_image.py ${{ inputs.microservice_name }})" >> $IMAGE_TAG
+          echo $IMAGE_TAG
 
       - name: Get image build context
         id: build-context
         run: |
-          output=$(python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }})
-          echo "::set-output name=result::$output"
+          output
+          echo "name=$(python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }})" >> $BUILD_CONTEXT
+          echo $BUILD_CONTEXT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ steps.build-context.outputs.result }}
+          context: $BUILD_CONTEXT
           file: build/Dockerfile
           push: false
-          tags: ${{ steps.image-tag.outputs.result }}
+          tags: $IMAGE_TAG
 
