@@ -63,7 +63,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ env.BUILD_CONTEXT }}
-          file: build/Dockerfile
+          file: ${{ env.BUILD_CONTEXT }}/build/Dockerfile
           push: true
           tags: ${{ env.IMAGE_TAG }}
 
