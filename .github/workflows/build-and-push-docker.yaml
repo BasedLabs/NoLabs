@@ -3,6 +3,10 @@ name: Build and push docker image
 on:
   workflow_call:
     inputs:
+      microservice_name:
+        required: true
+        type: string
+        description: "Specify microservice name from compose.yaml"
       paths:
         required: true
         type: string
