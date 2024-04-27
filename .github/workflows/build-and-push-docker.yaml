@@ -12,6 +12,10 @@ on:
         type: string
         description: "Comma-separated list of paths to check for changes"
 
+env:
+  IMAGE_TAG: ''
+  BUILD_CONTEXT: ''
+
 jobs:
   build-and-push-docker-image:
     runs-on: ubuntu-latest
