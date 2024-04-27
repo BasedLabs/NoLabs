@@ -1,4 +1,3 @@
-import os
 import sys
 import yaml
 from pathlib import Path
@@ -12,3 +11,4 @@ def parse_compose_service_build_context(microservice_name):
 
 if __name__ == '__main__':
     microservice_name = sys.argv[1]
+    parse_compose_service_build_context(microservice_name)
