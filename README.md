@@ -137,7 +137,7 @@ $ docker compose up
 OR if you want to run a single feature
 
 ```bash
-$ docker compose -up nolabs [gene_ontology|localisation|protein_design|solubility|conformations]
+$ docker compose up nolabs [gene_ontology|localisation|protein_design|solubility|conformations]
 ```
 
 Server will be available on http://localhost:9000
