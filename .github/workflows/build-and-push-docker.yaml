@@ -40,13 +40,13 @@ jobs:
       - name: Get image name
         id: image-tag
         run: |
-          echo "name=$(python .github/scripts/parse_compose_service_image.py ${{ inputs.microservice_name }})" >> $IMAGE_TAG
+          echo IMAGE_TAG=$(python .github/scripts/parse_compose_service_image.py ${{ inputs.microservice_name }})
           echo $IMAGE_TAG
 
       - name: Get image build context
         id: build-context
         run: |
-          echo "name=$(python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }})" >> $BUILD_CONTEXT
+          export BUILD_CONTEXT=$(python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }})
           echo $BUILD_CONTEXT
 
       - name: Build and push Docker image
