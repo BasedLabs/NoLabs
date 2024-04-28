@@ -32,7 +32,7 @@ class ErrorCodes(Enum):
     invalid_job_type = 22
 
     invalid_job_context_id = 23
-    invalid_job_output = 24
+    invalid_job_result = 24
     invalid_job_metadata_id = 25
 
     invalid_protein_location_probability = 26
@@ -43,6 +43,15 @@ class ErrorCodes(Enum):
     invalid_job_state = 29
 
     duplicate_amino_acid = 30
+    unknown_localisation_error = 31
+    duplicate_protein = 32
+
+    invalid_localisation_job_output = 33
+    invalid_protein_solubility_probability = 34
+
+    unaccessible_field = 35
+    no_domain_event_handler = 36
+
 
     # ++++ Biobuddy
 
@@ -61,6 +70,8 @@ class NoLabsException(Exception):
     @staticmethod
     def throw(error_code: ErrorCodes):
         raise NoLabsException('', error_code)
+
+
 
 
 def ensure_not_none(obj: Any):

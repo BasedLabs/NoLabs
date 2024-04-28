@@ -41,6 +41,7 @@ reinvent-microservice = {path = "microservices/reinvent/client"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
 mongoengine = "^0.28.2"
 lato = "^0.11.0"
+pydantic-settings = "^2.2.1"
 
 [project]
 dependencies = [
