@@ -16,7 +16,7 @@ jobs:
     uses: ./.github/workflows/push-docker.yaml
     with:
       microservice_name: "nolabs"
-      push: $OWN_REPO
+      push: ${{ env.OWN_REPO }}
 
   biobuddy-push:
     permissions:
@@ -25,4 +25,4 @@ jobs:
     uses: ./.github/workflows/push-docker.yaml
     with:
       microservice_name: "biobuddy"
-      push: $OWN_REPO
+      push: ${{ env.OWN_REPO }}
