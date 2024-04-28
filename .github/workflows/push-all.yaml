@@ -1,0 +1,28 @@
+name: Push all
+
+on:
+  push:
+    branches:
+      - feature/cicd-master
+
+env:
+  OWN_REPO: github.repository = 'BasedLabs/NoLabs'
+
+jobs:
+  nolabs-push:
+    permissions:
+      packages: write
+
+    uses: ./.github/workflows/push-docker.yaml
+    with:
+      microservice_name: "nolabs"
+      push: $OWN_REPO
+
+  biobuddy-push:
+    permissions:
+      packages: write
+
+    uses: ./.github/workflows/push-docker.yaml
+    with:
+      microservice_name: "biobuddy"
+      push: $OWN_REPO

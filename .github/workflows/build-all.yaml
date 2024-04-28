@@ -1,30 +1,27 @@
-name: All
+name: Build all
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/cicd
+      - feature/cicd-master
+    types: [opened]
 
 jobs:
-  nolabs:
+  nolabs-build:
     permissions:
       contents: read
-      packages: write
 
-    uses: ./.github/workflows/build-and-push-docker.yaml
+    uses: ./.github/workflows/build-docker.yaml
     with:
       microservice_name: "nolabs"
-      push: github.repository = 'owner/repo'
 
-  biobuddy:
+  biobuddy-build:
     permissions:
       contents: read
-      packages: write
 
-    uses: ./.github/workflows/build-and-push-docker.yaml
+    uses: ./.github/workflows/build-docker.yaml
     with:
       microservice_name: "biobuddy"
-      push: github.repository = 'owner/repo'
 
 # conformations:
 #   permissions:
