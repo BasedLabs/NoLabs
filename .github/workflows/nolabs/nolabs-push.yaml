@@ -1,0 +1,18 @@
+name: NoLabs push
+
+on:
+  workflow_dispatch:
+
+env:
+  OWN_REPO: github.repository = 'BasedLabs/NoLabs'
+
+jobs:
+  nolabs-push:
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/push-docker.yaml
+    with:
+      microservice_name: "nolabs"
+      push: ${{ env.OWN_REPO }}

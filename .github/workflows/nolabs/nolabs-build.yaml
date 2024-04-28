@@ -1,0 +1,23 @@
+name: NoLabs build
+
+on:
+  pull_request:
+    branches:
+      - feature/cicd-master
+    types: [opened, synchronize]
+    paths:
+      - 'build/**'
+      - 'client/**'
+      - 'frontend/**'
+      - 'nolabs/**'
+      - 'build/**'
+
+jobs:
+  nolabs-build:
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/build-docker.yaml
+    with:
+      microservice_name: "nolabs"
