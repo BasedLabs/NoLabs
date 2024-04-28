@@ -1,12 +1,13 @@
 name: NoLabs
+run-name: NoLabs
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
-#
 
 on:
   push:
-    branches: feature/cicd
+    branches:
+      - master
     paths:
       - 'build/**'
       - 'client/**'
@@ -15,7 +16,7 @@ on:
       - 'build/**'
 
 jobs:
-  nolabs-build:
+  build:
     permissions:
       contents: read
       packages: write
@@ -24,7 +25,7 @@ jobs:
     with:
       microservice_name: "nolabs"
 
-  nolabs-push:
+  push:
     if: github.repository == 'BasedLabs/NoLabs'
     needs: nolabs-build
 
