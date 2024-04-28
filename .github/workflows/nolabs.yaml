@@ -1,5 +1,9 @@
 name: NoLabs
 
+# Build and push nolabs image using GitHub Cache API
+# Only if relevant files were changed
+#
+
 on:
   push:
     branches: feature/cicd
