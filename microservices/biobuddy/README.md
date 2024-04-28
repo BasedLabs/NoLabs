@@ -17,7 +17,7 @@ cd nolabs/microservices/biobuddy
 ```
 
 ### 2. Create a Python Virtual Environment
-Ensure you are using Python 3.11 for the virtual environment:
+Ensure you are using Python 3.11 for the virtual environment: 
 
 ```bash
 python -m venv venv
