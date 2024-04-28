@@ -55,8 +55,8 @@ class ErrorCodes(Enum):
 
     # ++++ Biobuddy
 
-    biobuddy_error_generating_response = 31
-    biobuddy_unexpected_message_type = 32
+    biobuddy_error_generating_response = 37
+    biobuddy_unexpected_message_type = 38
 
 
 class NoLabsException(Exception):
