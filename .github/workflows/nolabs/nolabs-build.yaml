@@ -1,7 +1,8 @@
 name: NoLabs build
 
 on:
-  workflow_dispatch:
+  push:
+    branches: feature/cicd
     paths:
       - 'build/**'
       - 'client/**'

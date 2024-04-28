@@ -2,6 +2,7 @@ name: NoLabs push
 
 on:
   workflow_dispatch:
+    branch: feature/cicd
 
 env:
   OWN_REPO: github.repository = 'BasedLabs/NoLabs'
