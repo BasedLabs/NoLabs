@@ -2,13 +2,13 @@ from typing import Optional, List, Any
 from uuid import UUID
 
 from fastapi import UploadFile
-from pydantic import model_validator
+from pydantic import model_validator, BaseModel
 
 
-class RunAminoAcidRequest:
+class RunAminoAcidRequest(BaseModel):
     job_id: UUID
     experiment_id: UUID
-    fastas: Optional[List[UploadFile]]
+    fastas: List[UploadFile]
 
     @classmethod
     @model_validator(mode='after')

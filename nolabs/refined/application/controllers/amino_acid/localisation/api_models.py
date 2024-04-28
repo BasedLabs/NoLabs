@@ -33,8 +33,19 @@ class JobPropertiesResponse:
 
 
 @dataclass
+class GetJobMetadataResponse:
+    job_id: UUID
+    job_name: str
+
+
+@dataclass
 class GetJobResponse:
     job_id: UUID
     job_name: str
     amino_acids: List[AminoAcidResponse]
     properties: JobPropertiesResponse
+
+
+@dataclass
+class UpdateJobRequest:
+    job_name: str

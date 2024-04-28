@@ -1,10 +1,9 @@
 import datetime
 
-from mongoengine import Document, EmbeddedDocumentListField, DateTimeField
+from mongoengine import Document, DateTimeField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.domain.models import LocalisationJob
-from nolabs.refined.domain.models.common import ExperimentId, AminoAcid, Protein, ExperimentName
+from nolabs.refined.domain.models.common import ExperimentId, ExperimentName
 from nolabs.refined.infrastructure.mongo_fields import ValueObjectUUIDField, ValueObjectStringField
 from nolabs.seedwork.domain.entities import Entity
 
@@ -14,14 +13,16 @@ class Experiment(Document, Entity):
     name: ExperimentName = ValueObjectStringField(required=True)
     created_at: datetime.datetime = DateTimeField()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if not self.id:
+    def __init__(self, id: ExperimentId, name: ExperimentName, *args, **values):
+        if not id:
             raise NoLabsException('Experiment id is empty', ErrorCodes.invalid_experiment_id)
 
-        if not self.name:
+        if not name:
             raise NoLabsException('Experiment name is empty', ErrorCodes.invalid_experiment_name)
+
+        created_at = datetime.datetime.now(tz=datetime.timezone.utc)
+
+        super().__init__(id=id, name=name, created_at=created_at, *args, **values)
 
     def set_name(self, name: ExperimentName):
         if not name:

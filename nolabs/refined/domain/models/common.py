@@ -14,6 +14,7 @@ import datetime
 import os
 from enum import Enum
 from functools import cached_property
+from typing import Union
 from uuid import UUID
 
 from mongoengine import EnumField, DateTimeField, EmbeddedDocument, FileField, Document, ReferenceField, CASCADE
@@ -144,15 +145,19 @@ class AminoAcid(Document, Entity):
     name: AminoAcidName = ValueObjectStringField(required=True, unique=True)
     content = FileField(required=True)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if not self.id:
+    def __init__(self, id: AminoAcidId, experiment: Experiment, name: AminoAcidName, content: Union[bytes, str],
+                 *args,
+                 **values):
+        if not id:
             raise NoLabsException('Amino acid id is invalid', ErrorCodes.invalid_aa_id)
-        if self.name:
+        if not name:
             raise NoLabsException('Amino acid name is invalid', ErrorCodes.invalid_aa_name)
-        if not self.content:
+        if not content:
             raise NoLabsException('Amino acid content is invalid', ErrorCodes.invalid_aa_content)
+        if not experiment:
+            raise NoLabsException('Amino acid must be in experiment', ErrorCodes.invalid_experiment_id)
+
+        super().__init__(id=id, experiment=experiment, name=name, content=content, *args, **values)
 
         EventDispatcher.raise_event(AminoAcidCreatedEvent(self))
 
@@ -168,15 +173,25 @@ class Protein(Document, Entity):
     name: ProteinName = ValueObjectStringField(required=True)
     content = FileField(required=True)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if not self.id:
+    def __init__(
+            self,
+            id: ProteinId,
+            experiment: Experiment,
+            name: ProteinName,
+            content: Union[bytes, str],
+            *args,
+            **kwargs
+    ):
+        if not id:
             raise NoLabsException('Protein id is invalid', ErrorCodes.invalid_protein_id)
-        if not self.name:
+        if not name:
             raise NoLabsException('Protein name is invalid', ErrorCodes.invalid_protein_name)
-        if not self.content:
+        if not experiment:
+            raise NoLabsException('Protein must be in experiment', ErrorCodes.invalid_experiment_id)
+        if not content:
             raise NoLabsException('Protein content is empty', ErrorCodes.invalid_protein_content)
+
+        super().__init__(id=id, experiment=experiment, name=name, content=content, *args, **kwargs)
 
         EventDispatcher.raise_event(ProteinCreatedEvent(self))
 
@@ -192,17 +207,3 @@ class Job(Document, Entity):
     name: JobName = ValueObjectStringField(required=True)
     job_type: JobType = EnumField(JobType, required=True)
     created_at: dataclass = DateTimeField(default=datetime.datetime.utcnow)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if not self.id:
-            raise NoLabsException('Job id is invalid', ErrorCodes.invalid_job_id)
-        if not self.name:
-            raise NoLabsException('Job name is invalid', ErrorCodes.invalid_job_name)
-        if not self.job_type:
-            raise NoLabsException('Job type is invalid', ErrorCodes.invalid_job_type)
-
-    @property
-    def experiment_id(self) -> ExperimentId:
-        return self.experiment.id

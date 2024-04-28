@@ -1,27 +1,51 @@
-from dependency_injector import containers, providers
-
-from nolabs.refined.application.event_handlers.amino_acid_event_handlers import AminoAcidCreatedEventHandler
-from nolabs.refined.application.event_handlers.protein_event_handlers import ProteinCreatedEventHandler
-from nolabs.refined.application.features.experiments import GetExperimentsMetadataFeature, DeleteExperimentFeature, \
-    ChangeExperimentNameFeature, CreateExperimentFeature
-from nolabs.refined.settings import Settings
+__all__ = [
+    'EventHandlersContainer',
+    'ApplicationContainer'
+]
 
 
-class ExperimentsControllerContainer(containers.DeclarativeContainer):
-    get_experiments_metadata_feature = providers.Factory(GetExperimentsMetadataFeature)
-    delete_experiment_feature = providers.Factory(DeleteExperimentFeature)
-    change_experiment_name_feature = providers.Factory(ChangeExperimentNameFeature)
-    create_experiment_feature = providers.Factory(CreateExperimentFeature)
+from dependency_injector import providers, containers
+
+import nolabs.refined.application.features.experiments as experiments
+import nolabs.refined.application.event_handlers as event_handlers
+import nolabs.refined.application.features.amino_acid.localisation as localisation
+
+
+# region Features
+
+class ExperimentsFeaturesContainer(containers.DeclarativeContainer):
+    get_experiments_metadata_feature = providers.Factory(experiments.GetExperimentsMetadataFeature)
+    delete_experiment_feature = providers.Factory(experiments.DeleteExperimentFeature)
+    change_experiment_name_feature = providers.Factory(experiments.ChangeExperimentNameFeature)
+    create_experiment_feature = providers.Factory(experiments.CreateExperimentFeature)
+
+
+class AminoAcidFeaturesContainer(containers.DeclarativeContainer):
+    # region Localisation
+
+    get_jobs_feature = providers.Factory(localisation.GetJobsMetadataFeature)
+    get_job_feature = providers.Factory(localisation.GetJobFeature)
+    run_localisation_feature = providers.Factory(localisation.RunLocalisationFeature)
+    delete_job_feature = providers.Factory(localisation.DeleteJobFeature)
+    update = providers.Factory(localisation.UpdateJobFeature)
+
+    # endregion
+
+# endregion
 
 
 class EventHandlersContainer(containers.DeclarativeContainer):
     __self__ = providers.Self()
 
-    aa_created = providers.Factory(AminoAcidCreatedEventHandler)
-    protein_created = providers.Factory(ProteinCreatedEventHandler)
+    aa_created = providers.Factory(event_handlers.AminoAcidCreatedEventHandler)
+    protein_created = providers.Factory(event_handlers.ProteinCreatedEventHandler)
 
 
-class Container(containers.DeclarativeContainer):
-    settings = providers.Singleton(Settings)
-
-    # event handlers
+class ApplicationContainer(containers.DeclarativeContainer):
+    experiments_features = providers.Container(
+        ExperimentsFeaturesContainer
+    )
+    amino_acid_features = providers.Container(
+        AminoAcidFeaturesContainer
+    )
+    event_handlers = providers.Container(EventHandlersContainer)

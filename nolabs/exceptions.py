@@ -1,6 +1,17 @@
 from enum import Enum
 from typing import List, Any
 
+from pydantic.dataclasses import dataclass
+
+
+@dataclass
+class ErrorCode:
+    """
+    Will be used to represent and describe the error in application
+    """
+    code: int
+    description: str
+
 
 class ErrorCodes(Enum):
     unknown_exception = 0
@@ -13,9 +24,7 @@ class ErrorCodes(Enum):
     protein_design_update_metadata_error = 7
     drug_discovery_folding_error = 8
     folding_method_unknown = 9
-
     job_not_found = 9
-
     invalid_aa_name = 10
     invalid_aa_content = 11
     invalid_protein_name = 12
@@ -25,36 +34,24 @@ class ErrorCodes(Enum):
     invalid_experiment_id = 16
     invalid_experiment_name = 17
     invalid_job_id = 18
-
     invalid_root_directory = 19
     invalid_job_input = 20
     invalid_job_name = 21
     invalid_job_type = 22
-
     invalid_job_context_id = 23
     invalid_job_result = 24
     invalid_job_metadata_id = 25
-
     invalid_protein_location_probability = 26
     invalid_job_metadata = 27
-
     invalid_operation = 28
-
     invalid_job_state = 29
-
     duplicate_amino_acid = 30
     unknown_localisation_error = 31
     duplicate_protein = 32
-
     invalid_localisation_job_output = 33
     invalid_protein_solubility_probability = 34
-
     unaccessible_field = 35
     no_domain_event_handler = 36
-
-
-    # ++++ Biobuddy
-
     biobuddy_error_generating_response = 37
     biobuddy_unexpected_message_type = 38
 
@@ -70,10 +67,3 @@ class NoLabsException(Exception):
     @staticmethod
     def throw(error_code: ErrorCodes):
         raise NoLabsException('', error_code)
-
-
-
-
-def ensure_not_none(obj: Any):
-    if not obj:
-        raise ValueError()

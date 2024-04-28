@@ -1,6 +1,7 @@
 from typing import Annotated, List
 from uuid import UUID
 
+from dependency_injector.wiring import Provide
 from fastapi import APIRouter, Depends
 
 from nolabs.refined.application.controllers.experiments.api_models import ExperimentMetadataResponse, \
@@ -8,32 +9,36 @@ from nolabs.refined.application.controllers.experiments.api_models import Experi
 from nolabs.refined.application.features.experiments import GetExperimentsMetadataFeature, DeleteExperimentFeature, \
     ChangeExperimentNameFeature, CreateExperimentFeature
 
-
 router = APIRouter(
     prefix='/api/v1/experiments',
     tags=['Experiments']
 )
 
 
-@router.get('/experiments/all')
+@router.get('/experiments/all',
+            summary='Get all experiments'
+            )
 async def experiments(
-        feature: Annotated[GetExperimentsMetadataFeature, Depends(get_experiments_metadata_feature_dependency)]) -> List[ExperimentMetadataResponse]:
+        feature: Depends(Provide[GetExperimentsMetadataFeature])) -> List[ExperimentMetadataResponse]:
     return feature.handle()
 
 
-@router.delete('/experiment/{experiment_id}')
-async def delete_experiment(experiment_id: UUID, feature: Annotated[
-    DeleteExperimentFeature, Depends(delete_experiment_feature_dependency)]):
+@router.delete('/experiments/{experiment_id}',
+               summary='Delete experiment')
+async def delete_experiment(experiment_id: UUID,
+                            feature: DeleteExperimentFeature = Depends(Provide[DeleteExperimentFeature])):
     return feature.handle(experiment_id)
 
 
-@router.post('/experiment/name')
-async def change_experiment_name(request: ChangeExperimentNameRequest, feature: Annotated[
-    ChangeExperimentNameFeature, Depends(change_experiment_name_dependency)]):
+@router.post('/experiments/name',
+             summary='Change name of experiment'
+             )
+async def change_name(request: ChangeExperimentNameRequest,
+                                 feature: ChangeExperimentNameFeature = Depends(Provide[ChangeExperimentNameFeature])):
     return feature.handle(request)
 
 
-@router.post('/experiment')
-async def create_experiment(feature: Annotated[
-    CreateExperimentFeature, Depends(create_experiment_dependency)]) -> ExperimentMetadataResponse:
+@router.post('/experiments',
+             summary='Create experiment')
+async def create_experiment(feature: CreateExperimentFeature = Depends(Provide[CreateExperimentFeature])) -> ExperimentMetadataResponse:
     return feature.handle()

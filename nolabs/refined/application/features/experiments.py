@@ -37,8 +37,7 @@ class CreateExperimentFeature:
     def handle(self) -> ExperimentMetadataResponse:
         experiment = Experiment(
             id=ExperimentId(uuid.uuid4()),
-            name=ExperimentName('New experiment'),
-            created_at=datetime.datetime.utcnow()
+            name=ExperimentName('New experiment')
         )
         experiment.save()
         return map_experiment_to_metadata(experiment)

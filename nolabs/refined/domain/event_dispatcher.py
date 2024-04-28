@@ -3,7 +3,7 @@ from typing import Generic
 from dependency_injector.wiring import inject, Provide
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.application.event_handlers import EventHandlersContainer
+from nolabs.refined.application.di import EventHandlersContainer
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler, TDomainEvent
 
 

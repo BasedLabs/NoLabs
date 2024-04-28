@@ -73,41 +73,17 @@ class Test(Document):
     test1: CustomInt = CustomIntField()
     test2: CustomString2 = CustomStringField()
 
-    @classmethod
-    def pre_save(cls, sender, document, **kwargs):
-        pass
+    def __init__(self, id: CustomId, test1: CustomInt, test2: CustomString2, *args, **kwargs):
+        super().__init__(id=id, test1=test1, test2=test2, *args, **kwargs)
 
-class Test2(Document):
-    id: CustomId = CustomIdField(db_field='_id', primary_key=True)
-    test1: CustomInt = CustomIntField()
-    test2: CustomString2 = CustomStringField()
-    reference = ListField(ReferenceField(Test, reverse_delete_rule=PULL))
+        if int(test1) != 10:
+            raise ValueError
 
 
-objects: List[Test] = list(Test.objects.all())
 t = Test(id=CustomId(uuid.uuid4()),
          test1=CustomInt(10),
          test2=CustomString2('asd'))
-t3 = Test(id=CustomId(uuid.uuid4()),
-         test1=CustomInt(15),
-         test2=CustomString2('asd2222'))
-t2 = Test2(
-    id=CustomId(uuid.uuid4()),
-    test1=CustomInt(10),
-    test2=CustomString2('asd'),
-    reference=[t, t3]
-)
-
-# t = Test(id=uuid.uuid4(),
-#         value=10,
-#         value2='asd')
 t.save()
-t2.save()
-t2.save(cascade=True)
-
-t = Test.objects.get(id=t.id)
-t.delete()
-
-t2 = Test2.objects.get(id=t2.id)
+t2 = Test.objects.get(id=t.id)
 
 print(t)

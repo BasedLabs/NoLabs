@@ -12,12 +12,13 @@ from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.controllers.amino_acid.api_models import RunAminoAcidRequest
 from nolabs.refined.application.controllers.amino_acid.localisation.api_models import GetJobResponse, \
     JobPropertiesResponse, \
-    AminoAcidResponse, JobFastaPropertyResponse, RunJobResponse
+    AminoAcidResponse, JobFastaPropertyResponse, RunJobResponse, UpdateJobRequest, GetJobMetadataResponse
 from nolabs.refined.domain.models import LocalisationJob, LocalisationProbability
-from nolabs.refined.domain.models.common import JobId, AminoAcid, JobType, AminoAcidId, AminoAcidName, ExperimentId
+from nolabs.refined.domain.models.common import JobId, AminoAcid, JobType, AminoAcidId, AminoAcidName, ExperimentId, \
+    JobName
 from nolabs.refined.domain.models.experiment import Experiment
 from nolabs.refined.domain.repository import Repository
-from nolabs.refined.settings import Settings
+from nolabs.refined.infrastructure.settings import Settings
 from nolabs.utils.fasta import FastaReader
 
 
@@ -32,6 +33,63 @@ def map_probability_to_amino_acid_response(probability: LocalisationProbability)
         nuclear_proteins=probability.nuclear_proteins
     )
 
+# region Jobs
+
+class UpdateJobFeature:
+    _repository: Repository
+
+    def __init__(self, repository: Repository):
+        self._repository = repository
+
+    async def handle(self, job_id: UUID, request: UpdateJobRequest):
+        job_id = JobId(job_id)
+        job: LocalisationJob = self._repository.localisation_jobs.get(job_id=job_id)
+
+        updated = False
+        if job.name != request.job_name:
+            updated = True
+            job.name = JobName(request.job_name)
+
+        if updated:
+            job.save()
+
+
+class DeleteJobFeature:
+    _repository: Repository
+
+    def __init__(self, repository: Repository):
+        self._repository = repository
+
+    async def handle(self, job_id: UUID):
+        job_id = JobId(job_id)
+        self._repository.localisation_jobs.delete(job_id)
+
+
+class GetJobsMetadataFeature:
+    _repository: Repository
+
+    def __init__(self, repository: Repository):
+        self._repository = repository
+
+    async def handle(self, experiment_id: UUID) -> List[GetJobMetadataResponse]:
+        experiment_id = ExperimentId(experiment_id)
+        experiment = self._repository.experiments(experiment_id)
+
+        if not experiment:
+            NoLabsException.throw(ErrorCodes.experiment_not_found)
+
+        result: List[GetJobMetadataResponse] = []
+        job: LocalisationJob
+        for job in self._repository.localisation_jobs.filter(experiment=experiment):
+            result.append(
+                GetJobMetadataResponse(
+                    job_id=job.id.value,
+                    job_name=str(job.name)
+                )
+            )
+
+        return result
+
 
 class GetJobFeature:
     _repository: Repository
@@ -39,13 +97,7 @@ class GetJobFeature:
     def __init__(self, repository: Repository):
         self._repository = repository
 
-    async def handle(self, experiment_id: UUID, job_id: UUID) -> GetJobResponse:
-        experiment_id = ExperimentId(experiment_id)
-        experiment = self._repository.experiments.get(experiment_id)
-
-        if not experiment:
-            NoLabsException.throw(ErrorCodes.experiment_not_found)
-
+    async def handle(self, job_id: UUID) -> GetJobResponse:
         job_id = JobId(job_id)
         job = self._repository.localisation_jobs.get(id=job_id)
 
@@ -71,6 +123,8 @@ class GetJobFeature:
             )
         )
 
+# endregion
+
 
 class RunLocalisationFeature:
     _repository: Repository
@@ -94,7 +148,7 @@ class RunLocalisationFeature:
         if not job:
             job = LocalisationJob(
                 id=job_id,
-                job_type=JobType.LOCALISATION,
+                name=JobName('New job'),
                 experiment=experiment
             )
             self._repository.localisation_jobs.insert(job)
@@ -114,6 +168,7 @@ class RunLocalisationFeature:
 
             for probability in job.result:
                 results.append(map_probability_to_amino_acid_response(probability))
+
             return RunJobResponse(job_id=job_id.value,
                                   amino_acids=results)
         except Exception as e:

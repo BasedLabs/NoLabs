@@ -3,9 +3,15 @@ __all__ = [
 ]
 
 import os
+from enum import Enum
 
 from pydantic import Field, BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Environment(str, Enum):
+    LOCAL = 'local'
+    TEST = 'test'
 
 
 class MicroserviceSettings(BaseModel):
@@ -17,3 +23,10 @@ class Settings(BaseSettings):
                                                              f'appsettings.{os.environ["NOLABS_ENVIRONMENT"]}.json'))
 
     localisation: MicroserviceSettings = Field()
+
+    def get_environment(self) -> Environment:
+        key = 'NOLABS_ENVIRONMENT'
+        if key not in os.environ:
+            return Environment.LOCAL
+
+        return Environment[key]
