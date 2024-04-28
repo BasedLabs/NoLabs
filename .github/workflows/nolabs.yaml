@@ -21,6 +21,7 @@ jobs:
       microservice_name: "nolabs"
 
   nolabs-push:
+    if: github.repository == 'BasedLabs/NoLabs'
     needs: nolabs-build
 
     permissions:
@@ -30,4 +31,3 @@ jobs:
     uses: ./.github/workflows/push-docker.yaml
     with:
       microservice_name: "nolabs"
-      push: ${{ github.repository == 'BasedLabs/NoLabs' }}
