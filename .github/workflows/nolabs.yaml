@@ -7,12 +7,12 @@ name: NoLabs
 on:
   push:
     branches: feature/cicd
-    #paths:
-    #  - 'build/**'
-    #  - 'client/**'
-    #  - 'frontend/**'
-    #  - 'nolabs/**'
-    #  - 'build/**'
+    paths:
+      - 'build/**'
+      - 'client/**'
+      - 'frontend/**'
+      - 'nolabs/**'
+      - 'build/**'
 
 jobs:
   nolabs-build:
