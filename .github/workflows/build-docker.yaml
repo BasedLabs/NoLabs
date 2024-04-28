@@ -13,7 +13,7 @@ env:
   BUILD_CONTEXT: ''
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
 
     permissions:
