@@ -130,15 +130,64 @@ Select 'read:packages'
 $ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
+If you want to run a single feature **(recommended)**
+
+```bash
+$ docker compose up nolabs
+$ docker compose up diffdock
+$ docker compose up p2rank
+...
+```
+
+OR if you want to run everything on one machine:
+
 ```bash
 $ docker compose up
 ```
+Server will be available on http://localhost:9000
 
-OR if you want to run a single feature
+⚠️ **Warning:** For macOS users, there are known issues with running Docker Compose properly for certain setups. As an alternative, please follow these recommended steps to run `nolabs`:
 
-```bash
-$ docker compose up nolabs [gene_ontology|localisation|protein_design|solubility|conformations]
-```
+1. **Create a Python Environment with Python 3.11**
+   - First, ensure you have Python 3.11 installed. If not, you can download it from [python.org](https://www.python.org/downloads/) or use a version manager like `pyenv`.
+   - Create a new virtual environment:
+     ```bash
+     python3.11 -m venv nolabs-env
+     ```
+
+2. **Activate the Virtual Environment and Install Poetry**
+   - Activate the virtual environment:
+     ```bash
+     source nolabs-env/bin/activate
+     ```
+   - Install Poetry, a tool for dependency management and packaging in Python. You can install it with pip:
+     ```bash
+     pip install poetry uvicorn
+     ```
+
+3. **Install Dependencies Using Poetry**
+     ```bash
+     poetry install
+     ```
+
+4. **Start a Uvicorn Server**
+   - Set your environment variable and start the Uvicorn server with the following command:
+     ```bash
+     NOLABS_ENVIRONMENT=dev poetry run uvicorn nolabs.api:app --host=127.0.0.1 --port=8000
+     ```
+   - This command runs the `nolabs` API server on `localhost` at port `8000`.
+
+5. **Set Up the Frontend**
+   - In a separate terminal, ensure you have `npm` installed. If not, you can install Node.js and `npm` from [nodejs.org](https://nodejs.org/).
+   - Run `npm install` to install the necessary Node.js packages:
+     ```bash
+     npm install
+     ```
+  - After installing the packages, start the frontend development server:
+     ```bash
+     npm run dev
+     ```
+
 
 Server will be available on http://localhost:9000
 
