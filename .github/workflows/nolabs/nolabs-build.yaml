@@ -1,9 +1,7 @@
 name: NoLabs build
 
 on:
-  pull_request:
-    branches:
-      - feature/cicd-master
+  workflow_dispatch:
     types: [opened, synchronize]
     paths:
       - 'build/**'
