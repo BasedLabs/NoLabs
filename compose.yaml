@@ -184,7 +184,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790 --workers=1
   nolabs:
-    image: 'ghcr.io/basedlabs/reinvent:1.1.1'
+    image: 'ghcr.io/basedlabs/nolabs:1.1.1'
     network_mode: host
     build:
       context: .
