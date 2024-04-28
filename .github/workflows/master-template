@@ -12,18 +12,8 @@ on:
       - [PATHS]
 
 jobs:
-  build:
-    permissions:
-      contents: read
-      packages: write
-
-    uses: ./.github/workflows/build-docker.yaml
-    with:
-      microservice_name: [NAME]
-
-  push:
+  build-and-push:
     if: github.repository == 'BasedLabs/NoLabs'
-    needs: build
 
     permissions:
       contents: read

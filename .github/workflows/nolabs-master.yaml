@@ -18,23 +18,14 @@ on:
       - 'poetry.toml'
 
 jobs:
-  build:
-    permissions:
-      contents: read
-      packages: write
-
-    uses: ./.github/workflows/build-docker.yaml
-    with:
-      microservice_name: "nolabs"
-
-  push:
+  build-and-push:
     if: github.repository == 'BasedLabs/NoLabs'
-    needs: build
 
     permissions:
       contents: read
       packages: write
 
-    uses: ./.github/workflows/push-docker.yaml
+    uses: ./.github/workflows/build-and-push-image.yaml
     with:
       microservice_name: "nolabs"
+      push: true

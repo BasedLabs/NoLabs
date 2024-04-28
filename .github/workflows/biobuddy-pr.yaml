@@ -17,6 +17,7 @@ jobs:
       contents: read
       packages: write
 
-    uses: ./.github/workflows/build-docker.yaml
+    uses: ./.github/workflows/build-and-push-image.yaml
     with:
       microservice_name: "biobuddy"
+      push: false
