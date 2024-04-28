@@ -3,7 +3,7 @@ name: All
 on:
   push:
     branches:
-      - master
+      - feature/cicd
 
 jobs:
   nolabs:
@@ -14,6 +14,7 @@ jobs:
     uses: ./.github/workflows/build-and-push-docker.yaml
     with:
       microservice_name: "nolabs"
+      push: github.repository = 'owner/repo'
 
   biobuddy:
     permissions:
@@ -23,6 +24,7 @@ jobs:
     uses: ./.github/workflows/build-and-push-docker.yaml
     with:
       microservice_name: "biobuddy"
+      push: github.repository = 'owner/repo'
 
 # conformations:
 #   permissions:

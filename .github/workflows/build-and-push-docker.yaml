@@ -7,6 +7,11 @@ on:
         required: true
         type: string
         description: "Specify microservice name from compose.yaml"
+      push:
+        required: false
+        type: boolean
+        default: false
+        description: "Whether to push built image to NoLabs ghcr"
 
 env:
   IMAGE_TAG: ''
@@ -63,6 +68,6 @@ jobs:
         with:
           context: ${{ env.BUILD_CONTEXT }}
           file: ${{ env.BUILD_CONTEXT }}/build/Dockerfile
-          push: true
+          push: ${{ inputs.push }}
           tags: ${{ env.IMAGE_TAG }}
 
