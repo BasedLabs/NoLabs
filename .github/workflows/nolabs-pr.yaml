@@ -7,7 +7,7 @@ run-name: nolabs
 on:
   pull_request:
     branches:
-      - feature/cicd
+      - master
     paths:
       - 'build/**'
       - 'client/**'

@@ -5,9 +5,9 @@ run-name: biobuddy
 # Only if relevant files were changed
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/cicd
+      - master
     paths:
       - 'microservices/biobuddy/**'
 

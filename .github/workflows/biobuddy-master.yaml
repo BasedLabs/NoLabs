@@ -1,13 +1,13 @@
-name: BioBuddy
-run-name: BioBuddy
+name: biobuddy
+run-name: biobuddy
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
 
 on:
-  pull_request:
+  push:
     branches:
-      - feature/cicd
+      - master
     paths:
       - 'microservices/biobuddy/**'
 

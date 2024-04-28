@@ -7,7 +7,7 @@ run-name: nolabs
 on:
   push:
     branches:
-      - feature/cicd
+      - master
     paths:
       - 'build/**'
       - 'client/**'
