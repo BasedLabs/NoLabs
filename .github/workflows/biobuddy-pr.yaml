@@ -1,21 +1,15 @@
-name: nolabs
-run-name: nolabs
+name: biobuddy
+run-name: biobuddy
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
 
 on:
-  pull_request:
+  push:
     branches:
       - feature/cicd
     paths:
-      - 'build/**'
-      - 'client/**'
-      - 'frontend/**'
-      - 'nolabs/**'
-      - 'build/**'
-      - 'pyproject.toml'
-      - 'poetry.toml'
+      - 'microservices/biobuddy/**'
 
 jobs:
   build:
@@ -25,4 +19,4 @@ jobs:
 
     uses: ./.github/workflows/build-docker.yaml
     with:
-      microservice_name: "nolabs"
+      microservice_name: "biobuddy"

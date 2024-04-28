@@ -10,7 +10,7 @@ Welcome to the BioBuddy microservice. Follow these instructions to set up and te
 ## Setup Instructions
 
 ### 1. Navigate to the BioBuddy Directory
-Open your terminal and change to the BioBuddy directory:
+Open your terminal and change to the BioBuddy directory: 
 
 ```bash
 cd nolabs/microservices/biobuddy
