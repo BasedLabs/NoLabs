@@ -30,4 +30,4 @@ jobs:
     uses: ./.github/workflows/push-docker.yaml
     with:
       microservice_name: "nolabs"
-      push: ${{ github.repository = 'BasedLabs/NoLabs' }}
+      push: ${{ github.repository == 'BasedLabs/NoLabs' }}
