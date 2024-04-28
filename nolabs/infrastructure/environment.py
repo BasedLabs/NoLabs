@@ -1,5 +1,3 @@
-import argparse
-
 __all__ = ['is_dev', ]
 
 import os
