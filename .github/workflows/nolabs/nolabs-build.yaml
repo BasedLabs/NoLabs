@@ -2,7 +2,6 @@ name: NoLabs build
 
 on:
   workflow_dispatch:
-    types: [opened, synchronize]
     paths:
       - 'build/**'
       - 'client/**'
