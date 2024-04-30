@@ -68,7 +68,7 @@ const useGeneOntologyStore = defineStore("geneOntology", {
                     return {
                         experiment: {
                             id: experimentId,
-                            name: 'New localisation',
+                            name: 'New experiment',
                             aminoAcids: [],
                             properties: {
                                 aminoAcidSequence: undefined,

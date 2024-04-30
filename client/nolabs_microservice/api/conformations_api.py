@@ -304,7 +304,7 @@ class ConformationsApi:
 
         return self.api_client.param_serialize(
             method='POST',
-            resource_path='/api/v1/conformations/change-localisation-name',
+            resource_path='/api/v1/conformations/change-experiment-name',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -543,7 +543,7 @@ class ConformationsApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/api/v1/conformations/create-localisation',
+            resource_path='/api/v1/conformations/create-experiment',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -802,7 +802,7 @@ class ConformationsApi:
 
         return self.api_client.param_serialize(
             method='DELETE',
-            resource_path='/api/v1/conformations/delete-localisation',
+            resource_path='/api/v1/conformations/delete-experiment',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1300,7 +1300,7 @@ class ConformationsApi:
 
         return self.api_client.param_serialize(
             method='GET',
-            resource_path='/api/v1/conformations/get-localisation',
+            resource_path='/api/v1/conformations/get-experiment',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

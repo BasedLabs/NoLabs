@@ -32,7 +32,7 @@ export default defineComponent({
       this.$q.dialog({
         color: 'info',
         title: 'Prompt',
-        message: 'Enter new localisation name',
+        message: 'Enter new experiment name',
         prompt: {
           model: this.experimentMetaData.name,
           required: true,
@@ -45,7 +45,7 @@ export default defineComponent({
           return;
         this.$q.loading.show({
           spinner: QSpinnerOrbit,
-          message: 'Changing localisation name'
+          message: 'Changing experiment name'
         });
         await this.onExperimentNameChangeSubmit(data);
         this.experimentMetaData.name = data;

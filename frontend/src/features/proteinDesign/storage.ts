@@ -64,7 +64,7 @@ const useProteinDesignStore = defineStore("proteinDesign", {
                     return {
                         experiment: {
                             id: experimentId,
-                            name: "New localisation",
+                            name: "New experiment",
                             generatedPdbs: [],
                             properties: {
                                 inputPdbFile: null,

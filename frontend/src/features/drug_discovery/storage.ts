@@ -115,21 +115,21 @@ export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
                 await deleteExperimentApi(experimentId);
                 this.experiments = this.experiments.filter(exp => exp.id !== experimentId);
             } catch (error) {
-                console.error('Error deleting localisation:', error);
+                console.error('Error deleting experiment:', error);
             }
         },
         async changeExperimentName(experimentId: string, experimentName: string) {
             try {
                 return await changeExperimentNameApi(experimentId, experimentName);
             } catch (error) {
-                console.error('Error deleting localisation:', error);
+                console.error('Error deleting experiment:', error);
             }
         },
         async getExperimentMetaData(experimentId: string) {
             try {
                 return await getExperimentMetadataApi(experimentId);
             } catch (error) {
-                console.error('Error deleting localisation:', error);
+                console.error('Error deleting experiment:', error);
             }
         },
         async uploadTargetToExperiment(experimentId: string, targetFile: File, metaData?: Record<string, string>) {

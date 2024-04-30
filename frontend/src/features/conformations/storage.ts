@@ -84,7 +84,7 @@ const useConformationsStore = defineStore("conformations", {
                     return {
                         experiment: {
                             id: experimentId,
-                            name: 'New localisation',
+                            name: 'New experiment',
                             pdbContent: null,
                             timeline: [],
                             properties: {

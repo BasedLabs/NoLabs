@@ -65,7 +65,7 @@ const useFoldingStore = defineStore("folding", {
                     return {
                         experiment: {
                             id: experimentId,
-                            name: "New localisation",
+                            name: "New experiment",
                             aminoAcids: [],
                             properties: {
                                 aminoAcidSequence: null,

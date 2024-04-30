@@ -140,7 +140,7 @@ export default defineComponent({
       this.$q.dialog({
         color: 'info',
         title: 'Prompt',
-        message: 'Enter new localisation name',
+        message: 'Enter new experiment name',
         prompt: {
           model: this.experiment!.name,
           required: true,
@@ -153,7 +153,7 @@ export default defineComponent({
           return;
         this.$q.loading.show({
           spinner: QSpinnerOrbit,
-          message: 'Changing localisation name'
+          message: 'Changing experiment name'
         });
         await this.store.changeExperimentName(this.experiment?.id as string, data);
         this.experiment!.name = data;
@@ -188,3 +188,4 @@ export default defineComponent({
   }
 })
 </script>
+  

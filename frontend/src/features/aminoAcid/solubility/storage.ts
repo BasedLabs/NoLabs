@@ -65,7 +65,7 @@ const useSolubilityStore = defineStore("solubility", {
                     return {
                         experiment: {
                             id: experimentId,
-                            name: "New localisation",
+                            name: "New experiment",
                             aminoAcids: [],
                             properties: {
                                 aminoAcidSequence: null,
