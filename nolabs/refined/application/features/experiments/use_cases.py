@@ -3,14 +3,12 @@ __all__ = [
     'CreateExperimentFeature'
 ]
 
-import datetime
 import uuid
 from typing import List
 
 from nolabs.refined.application.controllers.experiments.api_models import ExperimentMetadataResponse, \
-    ChangeExperimentNameRequest
-from nolabs.refined.domain.models.common import ExperimentId, ExperimentName
-from nolabs.refined.domain.models.experiment import Experiment
+    UpdateExperimentRequest
+from nolabs.refined.domain.models.common import ExperimentId, ExperimentName, Experiment
 
 
 def map_experiment_to_metadata(experiment: Experiment) -> ExperimentMetadataResponse:
@@ -23,7 +21,7 @@ def map_experiment_to_metadata(experiment: Experiment) -> ExperimentMetadataResp
 
 class GetExperimentsMetadataFeature:
     def handle(self) -> List[ExperimentMetadataResponse]:
-        experiments = Experiment.objects.all()
+        experiments: List[Experiment] = Experiment.objects.all()
 
         result: List[ExperimentMetadataResponse] = []
 
@@ -47,14 +45,18 @@ class DeleteExperimentFeature:
     def handle(self, experiment_id: uuid.UUID):
         assert experiment_id
 
-        Experiment.objects.delete(id=ExperimentId(experiment_id))
+        experiment = Experiment.objects.with_id(experiment_id)
+        if experiment:
+            experiment.delete()
 
 
-class ChangeExperimentNameFeature:
-    def handle(self, request: ChangeExperimentNameRequest):
+class UpdateExperimentFeature:
+    def handle(self, request: UpdateExperimentRequest):
         assert request
 
-        experiment = Experiment.objects.get(id=ExperimentId(request.id))
-        if experiment:
-            experiment.set_name(request.name)
-            experiment.save()
+        experiment = Experiment.objects.get(id=request.id)
+
+        if experiment and request.name:
+            experiment.set_name(ExperimentName(request.name))
+
+        experiment.save()

@@ -6,7 +6,7 @@ from pydantic import model_validator, BaseModel
 
 
 class RunAminoAcidRequest(BaseModel):
-    job_id: UUID
+    job_id: Optional[UUID]
     experiment_id: UUID
     fastas: List[UploadFile]
 

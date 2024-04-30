@@ -165,7 +165,7 @@ Server will be available on http://localhost:9000
      pip install poetry uvicorn
      ```
 
-3. **Install Dependencies Using Poetry**
+3. **Install ControllersDependencies Using Poetry**
      ```bash
      poetry install
      ```

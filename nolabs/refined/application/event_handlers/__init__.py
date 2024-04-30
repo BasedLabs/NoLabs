@@ -1,2 +1,2 @@
-from amino_acid_event_handlers import AminoAcidCreatedEventHandler, AminoAcidCreatedEvent
-from protein_event_handlers import ProteinCreatedEventHandler, ProteinCreatedEvent
+from .amino_acid_event_handlers import AminoAcidCreatedEventHandler, AminoAcidCreatedEvent
+from .protein_event_handlers import ProteinCreatedEventHandler, ProteinCreatedEvent

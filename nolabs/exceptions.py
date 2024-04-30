@@ -54,6 +54,7 @@ class ErrorCodes(Enum):
     no_domain_event_handler = 36
     biobuddy_error_generating_response = 37
     biobuddy_unexpected_message_type = 38
+    invalid_localisation_probability = 39
 
 
 class NoLabsException(Exception):

@@ -8,11 +8,11 @@ from pydantic.dataclasses import dataclass
 class AminoAcidResponse:
     sequence: str
     name: str
-    cytosolic_proteins: float
-    mitochondrial_proteins: float
-    nuclear_proteins: float
-    other_proteins: float
-    extracellular_secreted_proteins: float
+    cytosolic: float
+    mitochondrial: float
+    nuclear: float
+    other: float
+    extracellular: float
 
 
 @dataclass

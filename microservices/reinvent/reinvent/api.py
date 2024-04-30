@@ -88,7 +88,7 @@ async def delete(
     Delete configuration.
     """
     reinvent_instance = Reinvent()
-    return await reinvent_instance.delete(config_id)
+    return await reinvent_instance.delete()
 
 
 @preparation_router.post('/prepare-target')

@@ -5,6 +5,7 @@ from uuid import UUID
 
 from mongoengine import Document, ObjectIdField, UUIDField, IntField, DateTimeField, StringField, ReferenceField, \
     CASCADE, ListField, PULL
+from mongoengine.base import fields
 from pydantic.dataclasses import dataclass
 
 
@@ -32,13 +33,17 @@ class CustomId:
         print('Post init in id')
 
 
-class CustomIdField(UUIDField):
-
-    def to_python(self, value):
+class CustomIdField(fields.BaseField):
+    def to_mongo(self, value):
         if isinstance(value, CustomId):
             return value.value
-        return value
+        else:
+            return value
 
+    def to_python(self, value):
+        if isinstance(value, UUID):
+            return CustomId(value)
+        return value
 
 @dataclass
 class CustomString:
@@ -69,7 +74,7 @@ connect(host="mongodb://127.0.0.1:27017/my_db")
 
 
 class Test(Document):
-    id: CustomId = CustomIdField(db_field='_id', primary_key=True)
+    id: CustomId = CustomIdField(db_field="_id", primary_key=True)
     test1: CustomInt = CustomIntField()
     test2: CustomString2 = CustomStringField()
 
@@ -84,6 +89,8 @@ t = Test(id=CustomId(uuid.uuid4()),
          test1=CustomInt(10),
          test2=CustomString2('asd'))
 t.save()
-t2 = Test.objects.get(id=t.id)
 
+Test.objects.filter(id=t.id.value).delete()
+
+t2: Test = Test.objects.with_id(t.id.value)
 print(t)

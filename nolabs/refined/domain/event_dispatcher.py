@@ -1,20 +1,21 @@
-from typing import Generic
-
-from dependency_injector.wiring import inject, Provide
+from typing import Generic, List, get_args
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.application.di import EventHandlersContainer
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler, TDomainEvent
 
 
 class EventDispatcher:
-    @staticmethod
-    @inject
-    def raise_event(event: Generic[TDomainEvent],
-                    container: EventHandlersContainer = Provide[EventHandlersContainer]):
+    event_handlers: List[DomainEventHandler[TDomainEvent]] = []
+
+    @classmethod
+    def add_event_handler(cls, event_handler: DomainEventHandler[TDomainEvent]):
+        if not [eh for eh in cls.event_handlers if type(eh) == type(event_handler)]:
+            cls.event_handlers.append(event_handler)
+
+    @classmethod
+    def raise_event(cls, event: Generic[TDomainEvent]):
         event_handler: DomainEventHandler[TDomainEvent]
-        while ((event_handler := next(container.traverse(types=[DomainEventHandler[TDomainEvent]]), None))
-               is not None):
+        for event_handler in [eh for eh in cls.event_handlers if get_args(eh.__class__.__orig_bases__[0]) == event]:
             if not event_handler:
                 raise NoLabsException(f'No event handler was registered for domain event {str(event)}',
                                       ErrorCodes.no_domain_event_handler)

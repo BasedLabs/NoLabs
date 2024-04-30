@@ -1,6 +1,6 @@
 __all__ = [
     'ExperimentMetadataResponse',
-    'ChangeExperimentNameRequest',
+    'UpdateExperimentRequest',
     'ExperimentMetadataResponse',
     'TimelineResponse'
 ]
@@ -19,7 +19,7 @@ class ExperimentMetadataResponse:
 
 
 @dataclass
-class ChangeExperimentNameRequest:
+class UpdateExperimentRequest:
     id: UUID
     name: str
 

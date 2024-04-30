@@ -17,8 +17,10 @@ from nolabs.modules.drug_discovery.services.ligand_file_management import Ligand
 from nolabs.modules.drug_discovery.services.target_file_management import TargetsFileManagement
 from nolabs.infrastructure.settings import Settings
 
+
 def check_biobuddy_enabled_dependency() -> CheckBioBuddyEnabledFeature:
     return CheckBioBuddyEnabledFeature()
+
 
 def file_management_dependency(settings: Annotated[Settings, Depends(settings_dependency)]) -> FileManagement:
     return FileManagement(settings=settings)
@@ -44,53 +46,57 @@ Depends(file_management_dependency)]) -> LoadConversationFeature:
 
 
 def query_rcsb_pdb_by_id_function(settings: Annotated[Settings, Depends(settings_dependency)],
-                                             target_file_management: Annotated[TargetsFileManagement,
-                                             Depends(target_file_management_dependency)]
-                                             ) -> QueryRcsbPdbByIdFunction:
+                                  target_file_management: Annotated[TargetsFileManagement,
+                                  Depends(target_file_management_dependency)]
+                                  ) -> QueryRcsbPdbByIdFunction:
     return QueryRcsbPdbByIdFunction(settings=settings, targets_file_management=target_file_management)
 
 
 def query_rcsb_pdb_by_names_function(settings: Annotated[Settings, Depends(settings_dependency)],
-                                                target_file_management: Annotated[TargetsFileManagement,
-                                                Depends(target_file_management_dependency)]
-                                                ) -> QueryRcsbPdbByNamesFunction:
+                                     target_file_management: Annotated[TargetsFileManagement,
+                                     Depends(target_file_management_dependency)]
+                                     ) -> QueryRcsbPdbByNamesFunction:
     return QueryRcsbPdbByNamesFunction(settings=settings, targets_file_management=target_file_management)
 
 
 def query_chembl_function(settings: Annotated[Settings, Depends(settings_dependency)],
-                                     ligands_file_management: Annotated[LigandsFileManagement,
-                                     Depends(ligand_file_management_dependency)]
-                                     ) -> QueryChemblFunction:
+                          ligands_file_management: Annotated[LigandsFileManagement,
+                          Depends(ligand_file_management_dependency)]
+                          ) -> QueryChemblFunction:
     return QueryChemblFunction(settings=settings, ligands_file_management=ligands_file_management)
 
+
 def query_chembl_by_condition_function(settings: Annotated[Settings, Depends(settings_dependency)],
-                                     ligands_file_management: Annotated[LigandsFileManagement,
-                                     Depends(ligand_file_management_dependency)]
-                                     ) -> QueryChemblByConditionFunction:
+                                       ligands_file_management: Annotated[LigandsFileManagement,
+                                       Depends(ligand_file_management_dependency)]
+                                       ) -> QueryChemblByConditionFunction:
     return QueryChemblByConditionFunction(settings=settings, ligands_file_management=ligands_file_management)
 
+
 def create_message_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
-                                              file_management: Annotated[FileManagement,
-                                              Depends(file_management_dependency)]
-                                              ) -> CreateMessageFeature:
+                              file_management: Annotated[FileManagement,
+                              Depends(file_management_dependency)]
+                              ) -> CreateMessageFeature:
     return CreateMessageFeature(settings=settings, file_management=file_management)
 
+
 def edit_message_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
-                                              file_management: Annotated[FileManagement,
-                                              Depends(file_management_dependency)]
-                                              ) -> EditMessageFeature:
-    return EditMessageFeature(settings=settings, file_management=file_management,)
+                            file_management: Annotated[FileManagement,
+                            Depends(file_management_dependency)]
+                            ) -> EditMessageFeature:
+    return EditMessageFeature(settings=settings, file_management=file_management, )
+
 
 def send_query_dependency(settings: Annotated[Settings, Depends(settings_dependency)],
-                                              file_management: Annotated[FileManagement,
-                                              Depends(file_management_dependency)],
-                                              target_file_management: Annotated[TargetsFileManagement,
-                                              Depends(target_file_management_dependency)],
-                                              ligands_file_management: Annotated[LigandsFileManagement,
-                                              Depends(ligand_file_management_dependency)]
-                                              ) -> SendQueryFeature:
+                          file_management: Annotated[FileManagement,
+                          Depends(file_management_dependency)],
+                          target_file_management: Annotated[TargetsFileManagement,
+                          Depends(target_file_management_dependency)],
+                          ligands_file_management: Annotated[LigandsFileManagement,
+                          Depends(ligand_file_management_dependency)]
+                          ) -> SendQueryFeature:
     return SendQueryFeature(settings=settings, file_management=file_management,
-                              functions=[query_rcsb_pdb_by_id_function(settings, target_file_management),
-                                         query_rcsb_pdb_by_names_function(settings, target_file_management),
-                                         query_chembl_function(settings, ligands_file_management),
-                                         query_chembl_by_condition_function(settings, ligands_file_management)])
+                            functions=[query_rcsb_pdb_by_id_function(settings, target_file_management),
+                                       query_rcsb_pdb_by_names_function(settings, target_file_management),
+                                       query_chembl_function(settings, ligands_file_management),
+                                       query_chembl_by_condition_function(settings, ligands_file_management)])
