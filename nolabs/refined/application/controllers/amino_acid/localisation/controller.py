@@ -12,7 +12,7 @@ from nolabs.refined.application.controllers.amino_acid.api_models import RunAmin
 from nolabs.refined.application.controllers.amino_acid.localisation.api_models import RunJobResponse, GetJobResponse, \
     GetJobMetadataResponse, UpdateJobRequest
 from nolabs.refined.application.controllers.amino_acid.localisation.di import LocalisationDependencies
-from nolabs.refined.application.features.amino_acid.localisation.use_cases import RunLocalisationFeature, \
+from nolabs.refined.application.usecases.amino_acid.localisation.use_cases import RunLocalisationFeature, \
     GetJobFeature, DeleteJobFeature, GetJobsMetadataFeature, UpdateJobFeature
 
 router = APIRouter(

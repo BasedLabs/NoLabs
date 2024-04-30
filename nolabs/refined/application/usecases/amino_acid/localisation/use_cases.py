@@ -14,7 +14,7 @@ from nolabs.refined.application.controllers.amino_acid.api_models import RunAmin
 from nolabs.refined.application.controllers.amino_acid.localisation.api_models import GetJobResponse, \
     JobPropertiesResponse, \
     AminoAcidResponse, JobFastaPropertyResponse, RunJobResponse, UpdateJobRequest, GetJobMetadataResponse
-from nolabs.refined.application.features.amino_acid.services import get_input_amino_acids
+from nolabs.refined.application.usecases.amino_acid.services import get_input_amino_acids
 from nolabs.refined.domain.models import LocalisationJob
 from nolabs.refined.domain.models.common import JobId, AminoAcid, Experiment, LocalisationProbability, AminoAcidId, \
     AminoAcidName, ExperimentId, \

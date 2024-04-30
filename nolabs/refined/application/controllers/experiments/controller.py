@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from nolabs.refined.application.controllers.experiments.api_models import ExperimentMetadataResponse, \
     UpdateExperimentRequest
 from nolabs.refined.application.controllers.experiments.di import ExperimentsDependencies
-from nolabs.refined.application.features.experiments.use_cases import GetExperimentsMetadataFeature, \
+from nolabs.refined.application.usecases.experiments.use_cases import GetExperimentsMetadataFeature, \
     DeleteExperimentFeature, \
     CreateExperimentFeature, UpdateExperimentFeature
 

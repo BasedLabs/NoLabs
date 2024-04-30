@@ -3,7 +3,7 @@ __all__ = [
 ]
 
 
-from nolabs.refined.application.features.experiments.use_cases import GetExperimentsMetadataFeature, \
+from nolabs.refined.application.usecases.experiments.use_cases import GetExperimentsMetadataFeature, \
     CreateExperimentFeature, DeleteExperimentFeature, UpdateExperimentFeature
 
 
