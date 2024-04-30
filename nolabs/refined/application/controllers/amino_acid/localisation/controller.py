@@ -24,7 +24,6 @@ router = APIRouter(
 
 @router.post('/jobs/start',
              summary='Start localisation job and get probabilities of localisation of certain amino acids in cell')
-@inject
 async def start(
         feature: Annotated[
             RunLocalisationFeature, Depends(LocalisationDependencies.start)],
@@ -51,7 +50,6 @@ async def jobs_metadata(experiment_id: UUID,
 
 @router.get('/jobs/{job_id}',
             summary='Get job execution result')
-@inject
 async def job(job_id: UUID, feature: Annotated[
     GetJobFeature, Depends(LocalisationDependencies.get_job)]) -> GetJobResponse:
     return await feature.handle(job_id=job_id)
@@ -59,7 +57,6 @@ async def job(job_id: UUID, feature: Annotated[
 
 @router.delete('/jobs/{jod_id}',
                summary='Delete job')
-@inject
 async def delete_job(job_id: UUID,
                      feature: Annotated[DeleteJobFeature, Depends(LocalisationDependencies.delete_job)]):
     return await feature.handle(job_id=job_id)
@@ -67,7 +64,6 @@ async def delete_job(job_id: UUID,
 
 @router.patch('/jobs/{job_id}',
              summary='Update job')
-@inject
 async def update(job_id: UUID,
                 request: UpdateJobRequest,
                 feature: Annotated[UpdateJobFeature, Depends(LocalisationDependencies.update_job)]):

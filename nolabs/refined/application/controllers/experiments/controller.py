@@ -5,7 +5,6 @@ __all__ = [
 from typing import List, Annotated
 from uuid import UUID
 
-from dependency_injector.wiring import inject
 from fastapi import APIRouter, Depends
 from nolabs.refined.application.controllers.experiments.api_models import ExperimentMetadataResponse, \
     UpdateExperimentRequest
@@ -31,7 +30,6 @@ async def experiments(
 
 @router.delete('/experiments/{experiment_id}',
                summary='Delete experiment')
-@inject
 async def delete_experiment(experiment_id: UUID,
                             feature: Annotated[
                                 DeleteExperimentFeature, Depends(ExperimentsDependencies.delete_experiment)]):
@@ -49,7 +47,6 @@ async def update_experiment(request: UpdateExperimentRequest,
 
 @router.post('/experiments',
              summary='Create experiment')
-@inject
 async def create_experiment(feature: Annotated[
     CreateExperimentFeature, Depends(ExperimentsDependencies.create_experiment)]) -> ExperimentMetadataResponse:
     return feature.handle()
