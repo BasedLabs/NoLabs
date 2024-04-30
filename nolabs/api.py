@@ -11,7 +11,6 @@ from nolabs.controllers.solubility.solubility import router as solubility_router
 from nolabs.controllers.folding.folding import router as folding_router
 from nolabs.controllers.small_molecules_design.small_molecules_design import router as small_molecules_design_router
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
-from nolabs.refined.domain.repository import Repository
 
 app = FastAPI(
     title='NoLabs',

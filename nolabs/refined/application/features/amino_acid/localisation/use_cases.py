@@ -39,15 +39,15 @@ def map_to_amino_acid_response(amino_acid: AminoAcid) -> AminoAcidResponse:
 class UpdateJobFeature:
     async def handle(self, job_id: UUID, request: UpdateJobRequest):
         job_id = JobId(job_id)
-        job: LocalisationJob = LocalisationJob.objects.get(job_id=job_id)
+        job: LocalisationJob = LocalisationJob.objects.with_id(job_id.value)
 
-        updated = False
+        if not job:
+            return
+
         if job.name != request.job_name:
-            updated = True
-            job.name = JobName(request.job_name)
+            job.set_name(JobName(request.job_name))
 
-        if updated:
-            job.save()
+        job.save()
 
 
 class DeleteJobFeature:
@@ -67,14 +67,14 @@ class GetJobsMetadataFeature:
         experiment = Experiment.objects.with_id(experiment_id.value)
 
         if not experiment:
-            raise NoLabsException('Experiment not found', ErrorCodes.experiment_not_found)
+            raise NoLabsException(ErrorCodes.experiment_not_found)
 
         result: List[GetJobMetadataResponse] = []
         job: LocalisationJob
         for job in LocalisationJob.objects.filter(experiment=experiment):
             result.append(
                 GetJobMetadataResponse(
-                    job_id=job.id.value,
+                    job_id=job.id,
                     job_name=str(job.name)
                 )
             )
@@ -88,7 +88,7 @@ class GetJobFeature:
         job: LocalisationJob = LocalisationJob.objects.with_id(job_id.value)
 
         if not job:
-            NoLabsException.throw(ErrorCodes.job_not_found)
+            raise NoLabsException(ErrorCodes.job_not_found)
 
         amino_acids = job.amino_acids
 
@@ -124,13 +124,13 @@ class RunLocalisationFeature:
         assert request.experiment_id
 
         if not request.fastas:
-            raise NoLabsException('You did not specify amino acids', ErrorCodes.invalid_job_input)
+            raise NoLabsException(ErrorCodes.invalid_job_input)
 
         experiment_id = ExperimentId(request.experiment_id)
         experiment: Experiment = Experiment.objects.with_id(experiment_id.value)
 
         if not experiment:
-            raise NoLabsException('Experiment not found', ErrorCodes.experiment_not_found)
+            raise NoLabsException(ErrorCodes.experiment_not_found)
 
         if not request.job_id:
             job = LocalisationJob(
@@ -139,10 +139,13 @@ class RunLocalisationFeature:
                 experiment=experiment
             )
             job.save()
-            job_id = job.id
+            job_id = JobId(job.id)
         else:
             job_id = JobId(request.job_id)
             job: LocalisationJob = LocalisationJob.objects.with_id(job_id.value)
+
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
         try:
             input_amino_acids = await get_input_amino_acids(experiment=experiment, request=request)
@@ -168,7 +171,7 @@ class RunLocalisationFeature:
                     )
 
                     if result.errors:
-                        raise NoLabsException(result.errors, ErrorCodes.amino_acid_localisation_run_error)
+                        raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
 
                     localisation_probability = LocalisationProbability(
                         cytosolic=result.cytosolic_proteins,
@@ -194,6 +197,6 @@ class RunLocalisationFeature:
         except Exception as e:
             print(e)
             if not isinstance(e, NoLabsException):
-                raise NoLabsException('Unknown localisation error', ErrorCodes.unknown_localisation_error)
+                raise NoLabsException(ErrorCodes.unknown_localisation_error) from e
             raise e
 

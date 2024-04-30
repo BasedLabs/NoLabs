@@ -14,57 +14,57 @@ class ErrorCode:
 
 
 class ErrorCodes(Enum):
-    unknown_exception = 0
-    conformations_update_metadata_error = 1
-    amino_acid_solubility_run_error = 2
-    no_amino_acids = 3
-    experiment_not_found = 4
-    amino_acid_localisation_run_error = 5
-    protein_design_run_error = 6
-    protein_design_update_metadata_error = 7
-    drug_discovery_folding_error = 8
-    folding_method_unknown = 9
-    job_not_found = 9
-    invalid_aa_name = 10
-    invalid_aa_content = 11
-    invalid_protein_name = 12
-    invalid_protein_content = 13
-    invalid_protein_id = 14
-    invalid_aa_id = 15
-    invalid_experiment_id = 16
-    invalid_experiment_name = 17
-    invalid_job_id = 18
-    invalid_root_directory = 19
-    invalid_job_input = 20
-    invalid_job_name = 21
-    invalid_job_type = 22
-    invalid_job_context_id = 23
-    invalid_job_result = 24
-    invalid_job_metadata_id = 25
-    invalid_protein_location_probability = 26
-    invalid_job_metadata = 27
-    invalid_operation = 28
-    invalid_job_state = 29
-    duplicate_amino_acid = 30
-    unknown_localisation_error = 31
-    duplicate_protein = 32
-    invalid_localisation_job_output = 33
-    invalid_protein_solubility_probability = 34
-    unaccessible_field = 35
-    no_domain_event_handler = 36
-    biobuddy_error_generating_response = 37
-    biobuddy_unexpected_message_type = 38
-    invalid_localisation_probability = 39
+    unknown_exception = ErrorCode(code=0, description="Unknown exception")
+    conformations_update_metadata_error = ErrorCode(code=1, description="Error while updating conformations metadata")
+    amino_acid_solubility_run_error = ErrorCode(code=2, description="Amino acid solubility run error")
+    no_amino_acids = ErrorCode(code=3, description="Amino acids weren't provided")
+    experiment_not_found = ErrorCode(code=4, description="Experiment not found")
+    amino_acid_localisation_run_error = ErrorCode(code=5, description="Amino acid localisation run error")
+    protein_design_run_error = ErrorCode(code=6, description="Protein design run error")
+    protein_design_update_metadata_error = ErrorCode(code=7, description="Error while updating protein design metadata")
+    drug_discovery_folding_error = ErrorCode(code=8, description="Drug discovery folding error")
+    folding_method_unknown = ErrorCode(code=9, description="Folding method is unknown")
+    job_not_found = ErrorCode(code=10, description="Job not found")
+    invalid_aa_name = ErrorCode(code=11, description="Invalid amino acid name")
+    invalid_aa_content = ErrorCode(code=12, description="Invalid amino acid content")
+    invalid_protein_name = ErrorCode(code=13, description="Invalid protein name")
+    invalid_protein_content = ErrorCode(code=14, description="Invalid protein content")
+    invalid_protein_id = ErrorCode(code=15, description="Invalid protein id")
+    invalid_aa_id = ErrorCode(code=16, description="Invalid amino acid id")
+    invalid_experiment_id = ErrorCode(code=17, description="Invalid experiment id")
+    invalid_experiment_name = ErrorCode(code=18, description="Experiment not found")
+    invalid_job_id = ErrorCode(code=19, description="Invalid job id")
+    invalid_root_directory = ErrorCode(code=20, description="Invalid root directory")
+    invalid_job_input = ErrorCode(code=21, description="Invalid job input")
+    invalid_job_name = ErrorCode(code=22, description="Invalid job name")
+    invalid_job_type = ErrorCode(code=23, description="Invalid job type")
+    invalid_job_context_id = ErrorCode(code=24, description="Invalid job context id")
+    invalid_job_result = ErrorCode(code=25, description="Invalid job result")
+    duplicate_amino_acid = ErrorCode(code=26, description="Duplicate amino acid")
+    unknown_localisation_error = ErrorCode(code=27, description="Unknown localisation job error")
+    duplicate_protein = ErrorCode(code=28, description="Duplicate protein")
+    invalid_localisation_job_output = ErrorCode(code=29, description="Invalid localisation job output")
+    invalid_protein_solubility_probability = ErrorCode(code=30, description="Invalid protein solubility probability value")
+    no_domain_event_handler = ErrorCode(code=31, description="No domain event handler for this event")
+    biobuddy_error_generating_response = ErrorCode(code=32, description="Biobuddy error generating response")
+    biobuddy_unexpected_message_type = ErrorCode(code=33, description="Biobuddy unexpected message type")
+    invalid_localisation_probability = ErrorCode(code=34, description="Invalid localisation probability value")
+
+
+if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):
+    raise ValueError("Invalid ErrorCode initialization")
 
 
 class NoLabsException(Exception):
-    def __init__(self, messages: List[str] | str, error_code: ErrorCodes):
-        if isinstance(messages, str):
-            self.messages = [messages]
-        else:
-            self.messages = messages
-        self.error_code = error_code
+    def __init__(self, error_code: ErrorCodes, messages: str | List[str] | None = None):
+        self.error_code = error_code.value.code
 
-    @staticmethod
-    def throw(error_code: ErrorCodes):
-        raise NoLabsException('', error_code)
+        if messages:
+            if isinstance(messages, str):
+                self.messages = [messages]
+            else:
+                self.messages = messages
+        else:
+            self.messages = [
+                error_code.value.description
+            ]

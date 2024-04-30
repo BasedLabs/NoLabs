@@ -15,18 +15,19 @@ __all__ = ['Protein',
 import datetime
 import os
 import uuid
-from enum import Enum
 from functools import cached_property
 from typing import Union
 from uuid import UUID
 
-from mongoengine import EnumField, DateTimeField, FileField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
-    FloatField, EmbeddedDocumentField, BinaryField, fields
+from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
+    FloatField, EmbeddedDocumentField, BinaryField, UUIDField
+from pydantic import model_validator
 from pydantic.dataclasses import dataclass
+from typing_extensions import Self
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.event_dispatcher import EventDispatcher
-from nolabs.refined.infrastructure.mongo_fields import ValueObjectUUIDField, ValueObjectStringField
+from nolabs.refined.infrastructure.mongo_fields import ValueObjectStringField
 from nolabs.seedwork.domain.entities import Entity
 from nolabs.seedwork.domain.events import DomainEvent
 from nolabs.seedwork.domain.value_objects import ValueObject, ValueObjectString, ValueObjectUUID
@@ -34,156 +35,103 @@ from nolabs.seedwork.domain.value_objects import ValueObject, ValueObjectString,
 
 @dataclass
 class ExperimentId(ValueObjectUUID):
-    def __post_init__(self):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
         if not self.value:
-            NoLabsException.throw(ErrorCodes.invalid_experiment_id)
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
+        return self
 
     def __eq__(self, other):
-        if not isinstance(other, ProteinId):
+        if not isinstance(other, ExperimentId):
             return False
 
         return self.value == other.value
 
-    class Field(fields.BaseField):
-        def to_mongo(self, value):
-            if isinstance(value, ExperimentId):
-                return value.value
-            else:
-                return value
-
-        def to_python(self, value):
-            if isinstance(value, UUID):
-                return ExperimentId(value)
-            return value
-
 
 @dataclass
 class ExperimentName(ValueObjectString):
-    def __post_init__(self):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
         if not self.value:
-            raise NoLabsException('Experiment name cannot be empty', ErrorCodes.invalid_experiment_name)
+            raise NoLabsException(ErrorCodes.invalid_experiment_name)
 
         if len(self.value) < 1 or len(self.value) > 1000:
-            raise NoLabsException('Length of experiment name must be between 1 and 1000',
-                                  ErrorCodes.invalid_experiment_name)
-
-    class Field(fields.BaseField):
-        def to_mongo(self, value):
-            if isinstance(value, ExperimentName):
-                return value.value
-            else:
-                return value
-
-        def to_python(self, value):
-            if isinstance(value, str):
-                return ExperimentName(value)
-            return value
+            raise NoLabsException(ErrorCodes.invalid_experiment_name)
+        return self
 
 
 class Experiment(Document, Entity):
-    id: ExperimentId = ExperimentId.Field(db_field='_id', primary_key=True, required=True)
-    name: ExperimentName = ExperimentName.Field(required=True)
+    id: UUID = UUIDField(primary_key=True, required=True)
+    name: ExperimentName = ValueObjectStringField(required=True, factory=ExperimentName)
     created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
 
-    def __init__(self, id: ExperimentId, name: ExperimentName, created_at: datetime.datetime | None = None, *args, **kwargs):
+    def __init__(self, id: ExperimentId, name: ExperimentName, created_at: datetime.datetime | None = None, *args,
+                 **kwargs):
         if not id:
-            raise NoLabsException('Experiment id is empty', ErrorCodes.invalid_experiment_id)
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
         if not name:
-            raise NoLabsException('Experiment name is empty', ErrorCodes.invalid_experiment_name)
+            raise NoLabsException(ErrorCodes.invalid_experiment_name)
 
         created_at = created_at if created_at else datetime.datetime.now(tz=datetime.timezone.utc)
 
-        super().__init__(id=id, name=name, created_at=created_at, *args, **kwargs)
+        super().__init__(id=id.value if isinstance(id, ExperimentId) else id, name=name, created_at=created_at, *args, **kwargs)
+
+    @property
+    def iid(self) -> ExperimentId:
+        return ExperimentId(self.id)
 
     def set_name(self, name: ExperimentName):
         if not name:
-            raise NoLabsException('Name cannot be empty', ErrorCodes.invalid_experiment_name)
+            raise NoLabsException(ErrorCodes.invalid_experiment_name)
 
         self.name = name
-
-    def delete(self, signal_kwargs=None, **write_concern):
-        self.__class__.objects.filter(id=self.id.value).delete()
 
 
 @dataclass
 class ProteinName(ValueObjectString):
-    def __post_init__(self):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
         if not self.value:
-            raise NoLabsException('Protein name cannot be empty', ErrorCodes.invalid_protein_name)
+            raise NoLabsException(ErrorCodes.invalid_protein_name)
 
         if len(self.value) < 1 or len(self.value) > 1000:
-            raise NoLabsException('Length of protein name must be between 1 and 1000', ErrorCodes.invalid_protein_name)
-
-    class Field(fields.BaseField):
-        def to_mongo(self, value):
-            if isinstance(value, ProteinName):
-                return value.value
-            else:
-                return value
-
-        def to_python(self, value):
-            if isinstance(value, str):
-                return ProteinName(value)
-            return value
+            raise NoLabsException(ErrorCodes.invalid_protein_name)
+        return self
 
 
 @dataclass
 class AminoAcidName(ValueObjectString):
-    def __post_init__(self):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
         if not self.value or not isinstance(self.value, str):
-            raise NoLabsException('Amino acid name cannot be empty', ErrorCodes.invalid_aa_name)
+            raise NoLabsException(ErrorCodes.invalid_aa_name)
 
         if '.fasta' in self.value:
             self.value = os.path.basename(self.value).replace('.fasta', '')
+        return self
 
     @cached_property
     def fasta_name(self):
         return f'{self.value}.fasta'
 
-    class Field(fields.BaseField):
-        def to_mongo(self, value):
-            if isinstance(value, AminoAcidName):
-                return value.value
-            else:
-                return value
-
-        def to_python(self, value):
-            if isinstance(value, str):
-                return AminoAcidName(value)
-            return value
-
 
 @dataclass
 class ProteinId(ValueObjectUUID):
-    def __post_init__(self):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
         if not self.value:
-            NoLabsException.throw(ErrorCodes.invalid_protein_id)
-
-    def __eq__(self, other):
-        if not isinstance(other, ProteinId):
-            return False
-
-        return self.value == other.value
-
-    class Field(fields.BaseField):
-        def to_mongo(self, value):
-            if isinstance(value, ProteinId):
-                return value.value
-            else:
-                return value
-
-        def to_python(self, value):
-            if isinstance(value, UUID):
-                return ProteinId(value)
-            return value
+            raise NoLabsException(ErrorCodes.invalid_protein_id)
+        return self
 
 
 @dataclass
 class AminoAcidId(ValueObjectUUID):
-    def __post_init__(self):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
         if not self.value:
-            NoLabsException.throw(ErrorCodes.invalid_aa_id)
+            raise NoLabsException(ErrorCodes.invalid_aa_id)
+        return self
 
     def __hash__(self):
         return hash(self.value)
@@ -194,65 +142,28 @@ class AminoAcidId(ValueObjectUUID):
 
         return self.value == other.value
 
-    class Field(fields.BaseField):
-        def to_mongo(self, value):
-            if isinstance(value, AminoAcidId):
-                return value.value
-            else:
-                return value
-
-        def to_python(self, value):
-            if isinstance(value, UUID):
-                return AminoAcidId(value)
-            return value
-
 
 @dataclass
 class JobId(ValueObjectUUID):
     value: UUID
 
-    def __post_init__(self):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
         if not self.value:
-            NoLabsException.throw(ErrorCodes.invalid_job_id)
-
-    def __eq__(self, other):
-        if not isinstance(other, ProteinId):
-            return False
-
-        return self.value == other.value
-
-    class Field(fields.BaseField):
-        def to_mongo(self, value):
-            if isinstance(value, JobId):
-                return value.value
-            else:
-                return value
-
-        def to_python(self, value):
-            if isinstance(value, UUID):
-                return JobId(value)
-            return value
+            raise NoLabsException(ErrorCodes.invalid_job_id)
+        return self
 
 
+@dataclass
 class JobName(ValueObjectString):
-    def __post_init__(self):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
         if not self.value:
-            NoLabsException.throw(ErrorCodes.invalid_job_name)
+            raise NoLabsException(ErrorCodes.invalid_job_name)
 
         if len(self.value) < 1 or len(self.value) > 100:
-            NoLabsException.throw(ErrorCodes.invalid_job_name)
-
-    class Field(fields.BaseField):
-        def to_mongo(self, value):
-            if isinstance(value, JobName):
-                return value.value
-            else:
-                return value
-
-        def to_python(self, value):
-            if isinstance(value, str):
-                return JobName(value)
-            return value
+            raise NoLabsException(ErrorCodes.invalid_job_name)
+        return self
 
 
 class LocalisationProbability(EmbeddedDocument, ValueObject):
@@ -274,9 +185,9 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
 
         for value in values:
             if not value:
-                NoLabsException.throw(ErrorCodes.invalid_protein_location_probability)
+                raise NoLabsException(ErrorCodes.invalid_localisation_probability)
             if value < 0 or value > 1.0:
-                NoLabsException.throw(ErrorCodes.invalid_protein_location_probability)
+                raise NoLabsException(ErrorCodes.invalid_localisation_probability)
 
         super().__init__(
             cytosolic=cytosolic,
@@ -289,9 +200,9 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
 
 
 class AminoAcid(Document, Entity):
-    id: AminoAcidId = AminoAcidId.Field(db_field='_id', primary_key=True, required=True)
+    id: UUID = UUIDField(primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
-    name: AminoAcidName = AminoAcidName.Field(required=True)
+    name: AminoAcidName = ValueObjectStringField(required=True, factory=AminoAcidName)
     content = BinaryField(required=True)
 
     localisation: LocalisationProbability = EmbeddedDocumentField(LocalisationProbability, required=False)
@@ -299,29 +210,33 @@ class AminoAcid(Document, Entity):
     def __init__(self, id: AminoAcidId, experiment: Experiment, name: AminoAcidName, content: Union[bytes, str], *args,
                  **kwargs):
         if not id:
-            raise NoLabsException('Amino acid id is invalid', ErrorCodes.invalid_aa_id)
+            raise NoLabsException(ErrorCodes.invalid_aa_id)
         if not name:
-            raise NoLabsException('Amino acid name is invalid', ErrorCodes.invalid_aa_name)
+            raise NoLabsException(ErrorCodes.invalid_aa_name)
         if not content:
-            raise NoLabsException('Amino acid content is invalid', ErrorCodes.invalid_aa_content)
+            raise NoLabsException(ErrorCodes.invalid_aa_content)
         if not experiment:
-            raise NoLabsException('Amino acid must be in experiment', ErrorCodes.invalid_experiment_id)
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
         if isinstance(content, str):
             content = content.encode('utf-8')
 
-        super().__init__(id=id, experiment=experiment, name=name, content=content, *args, **kwargs)
+        super().__init__(id=id.value if isinstance(id, AminoAcidId) else id, experiment=experiment, name=name, content=content, *args, **kwargs)
 
         EventDispatcher.raise_event(AminoAcidCreatedEvent(self))
 
+    @property
+    def iid(self) -> AminoAcidId:
+        return AminoAcidId(self.id)
+
     def set_name(self, name: AminoAcidName):
         if not name:
-            NoLabsException.throw(ErrorCodes.invalid_aa_name)
+            raise NoLabsException(ErrorCodes.invalid_aa_name)
         self.name = name
 
     def set_content(self, content: Union[bytes, str]):
         if not content:
-            raise NoLabsException('Amino acid content is invalid', ErrorCodes.invalid_aa_content)
+            raise NoLabsException(ErrorCodes.invalid_aa_content)
 
         if isinstance(content, str):
             content = content.encode('utf-8')
@@ -336,7 +251,7 @@ class AminoAcid(Document, Entity):
 
     def set_localisation_probability(self, localisation: LocalisationProbability):
         if not localisation:
-            raise NoLabsException('Localisation probability is empty', ErrorCodes.invalid_localisation_probability)
+            raise NoLabsException(ErrorCodes.invalid_localisation_probability)
 
         self.localisation = localisation
 
@@ -356,14 +271,11 @@ class AminoAcid(Document, Entity):
             content=content
         )
 
-    def delete(self, signal_kwargs=None, **write_concern):
-        self.__class__.objects.filter(id=self.id.value).delete()
-
 
 class Protein(Document, Entity):
-    id: ProteinId = ProteinId.Field(db_field='_id', primary_key=True, required=True)
+    id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
-    name: ProteinName = ProteinName.Field(required=True)
+    name: ProteinName = ValueObjectStringField(required=True, factory=ProteinName)
     content = BinaryField(required=True)
 
     def __init__(
@@ -376,29 +288,36 @@ class Protein(Document, Entity):
             **kwargs
     ):
         if not id:
-            raise NoLabsException('Protein id is invalid', ErrorCodes.invalid_protein_id)
+            raise NoLabsException(ErrorCodes.invalid_protein_id)
         if not name:
-            raise NoLabsException('Protein name is invalid', ErrorCodes.invalid_protein_name)
+            raise NoLabsException(ErrorCodes.invalid_protein_name)
         if not experiment:
-            raise NoLabsException('Protein must be in experiment', ErrorCodes.invalid_experiment_id)
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
         if not content:
-            raise NoLabsException('Protein content is empty', ErrorCodes.invalid_protein_content)
+            raise NoLabsException(ErrorCodes.invalid_protein_content)
 
         if isinstance(content, str):
             content = content.encode('utf-8')
 
-        super().__init__(id=id, experiment=experiment, name=name, content=content, *args, **kwargs)
+        super().__init__(id=id.value if isinstance(id, ProteinId) else id,
+                         experiment=experiment,
+                         name=name,
+                         content=content, *args, **kwargs)
 
         EventDispatcher.raise_event(ProteinCreatedEvent(self))
 
+    @property
+    def iid(self) -> ProteinId:
+        return ProteinId(self.id)
+
     def set_name(self, name: ProteinName):
         if not name:
-            NoLabsException.throw(ErrorCodes.invalid_protein_name)
+            raise NoLabsException(ErrorCodes.invalid_protein_name)
         self.name = name
 
     def set_content(self, content: Union[bytes, str]):
         if not content:
-            raise NoLabsException('Protein content is invalid', ErrorCodes.invalid_protein_content)
+            raise NoLabsException(ErrorCodes.invalid_protein_content)
 
         if isinstance(content, str):
             content = content.encode('utf-8')
@@ -427,22 +346,36 @@ class Protein(Document, Entity):
             content=content
         )
 
-    def delete(self, signal_kwargs=None, **write_concern):
-        self.__class__.objects.filter(id=self.id.value).delete()
-
 
 class Job(Document, Entity):
-    id: JobId = JobId.Field(db_field='_id', primary_key=True, required=True)
+    id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
-    name: JobName = JobName.Field(required=True)
+    name: JobName = ValueObjectStringField(required=True, factory=JobName)
     created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
 
     meta = {
         'allow_inheritance': True
     }
 
-    def delete(self, signal_kwargs=None, **write_concern):
-        self.__class__.objects.filter(id=self.id.value).delete()
+    def __init__(self, id: JobId, name: JobName, experiment: Experiment, *args, **kwargs):
+        if not id:
+            raise NoLabsException(ErrorCodes.invalid_job_id)
+        if not name:
+            raise NoLabsException(ErrorCodes.invalid_job_name)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
+
+        super().__init__(id=id.value if isinstance(id, JobId) else id, name=name, experiment=experiment, *args, **kwargs)
+
+    def set_name(self, name: JobName):
+        if not name:
+            raise NoLabsException(ErrorCodes.invalid_job_name)
+
+        self.name = name
+
+    @property
+    def iid(self) -> JobId:
+        return JobId(self.id)
 
 
 # region events

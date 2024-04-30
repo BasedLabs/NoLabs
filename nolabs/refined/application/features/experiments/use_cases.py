@@ -13,7 +13,7 @@ from nolabs.refined.domain.models.common import ExperimentId, ExperimentName, Ex
 
 def map_experiment_to_metadata(experiment: Experiment) -> ExperimentMetadataResponse:
     return ExperimentMetadataResponse(
-        id=experiment.id.value,
+        id=experiment.id,
         name=str(experiment.name),
         date=experiment.created_at
     )

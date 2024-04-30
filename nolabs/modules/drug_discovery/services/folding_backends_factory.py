@@ -19,9 +19,8 @@ def run_folding(fasta_content: str, settings: Settings, method: FoldingMethods) 
         with ApiClient(configuration=configuration) as client:
             api_instance = DefaultApi(client)
             if len(fasta_content) > 400:
-                raise NoLabsException(messages=["Light folding does not support sequences longer than 400. Please use "
-                                                "other folding backend"],
-                                      error_code=ErrorCodes.drug_discovery_folding_error)
+                raise NoLabsException(ErrorCodes.drug_discovery_folding_error, ["Light folding does not support sequences longer than 400. Please use "
+                                                "other folding backend"])
             request = microservice.RunEsmFoldPredictionRequest(protein_sequence=fasta_content)
             return api_instance.predict_through_api_run_folding_post(
                 run_esm_fold_prediction_request=request).pdb_content

@@ -57,7 +57,8 @@ For example, you can ask
 To enable biobuddy run this command when starting nolabs:
 
 ```shell
-$ ENABLE_BIOBUDDY=true docker compose up nolabs
+$ ENABLE_BIOBUDDY=true docker compose up nolabs mongo
+# mongo is required
 ```
 
 And also start the biobuddy microservice:
@@ -133,7 +134,8 @@ $ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 If you want to run a single feature **(recommended)**
 
 ```bash
-$ docker compose up nolabs
+$ docker compose up nolabs mongo
+# mongo is required
 $ docker compose up diffdock
 $ docker compose up p2rank
 ...

@@ -26,7 +26,7 @@ class FileManagement(ExperimentsFileManagementBase):
 
     async def set_properties(self, experiment_id: ExperimentId, request: RunSimulationsRequest):
         if not request or not request.pdb_file or not request.pdb_file.filename:
-            raise NoLabsException(['No PDB file provided'], error_code=ErrorCodes.conformations_update_metadata_error)
+            raise NoLabsException(ErrorCodes.conformations_update_metadata_error, ['No PDB file provided'])
 
         self.ensure_experiment_folder_exists(experiment_id=experiment_id)
 
@@ -67,7 +67,7 @@ class FileManagement(ExperimentsFileManagementBase):
                          timeline: List[TimelineResponse],
                          request: RunSimulationsRequest):
         if not request or not request.pdb_file or not request.pdb_file.filename:
-            raise NoLabsException(['No PDB file provided'], error_code=ErrorCodes.conformations_update_metadata_error)
+            raise NoLabsException(ErrorCodes.conformations_update_metadata_error, ['No PDB file provided'])
 
         self.ensure_experiment_folder_exists(experiment_id=experiment_id)
 

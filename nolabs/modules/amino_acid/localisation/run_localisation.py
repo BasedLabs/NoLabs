@@ -47,7 +47,7 @@ class RunLocalisationFeature(RunAminoAcidInferenceFeature[FileManagement]):
             results: List[AminoAcidResponse] = []
 
             if not amino_acids:
-                raise NoLabsException(['No amino acids'], ErrorCodes.no_amino_acids)
+                raise NoLabsException(ErrorCodes.no_amino_acids)
 
             for amino_acid in amino_acids:
                 result = api_instance.run_localisation_prediction_run_localisation_prediction_post(
@@ -56,7 +56,7 @@ class RunLocalisationFeature(RunAminoAcidInferenceFeature[FileManagement]):
                     )
                 )
                 if result.errors:
-                    raise NoLabsException(result.errors, ErrorCodes.amino_acid_localisation_run_error)
+                    raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
                 results.append(AminoAcidResponse(
                     sequence=amino_acid.sequence,
                     name=amino_acid.name,

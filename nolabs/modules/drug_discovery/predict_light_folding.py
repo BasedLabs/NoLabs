@@ -23,9 +23,8 @@ class PredictEsmFoldLightFeature:
         _, sequence, _ = self._file_management.get_target_data(experiment_id, target_id)
 
         if len(sequence) > 400:
-            raise NoLabsException(messages=["Light folding does not support sequences longer than 400. Please use "
-                                            "other folding backend"],
-                                  error_code=ErrorCodes.drug_discovery_folding_error)
+            raise NoLabsException(ErrorCodes.drug_discovery_folding_error,
+                                  ["Light folding does not support sequences longer than 400. Please use other folding backend"])
 
         pdb_content = run_folding(sequence, self._settings, FoldingMethods.esmfold_light)
 

@@ -43,7 +43,7 @@ class RunProteinDesignFeature:
             )
 
             if response.errors and not response.pdbs_content:
-                raise NoLabsException(response.errors, ErrorCodes.protein_design_run_error)
+                raise NoLabsException(ErrorCodes.protein_design_run_error, response.errors)
 
             await self._file_management.set_result(experiment_id=experiment_id, pdbs_content=response.pdbs_content,
                                                    request=request)

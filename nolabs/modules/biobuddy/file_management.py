@@ -108,5 +108,4 @@ class FileManagement(ExperimentsFileManagementBase):
                           type=MessageType.FUNCTIONS)
             return msg
         else:
-            raise NoLabsException(['Unexpected message type'],
-                                  ErrorCodes.biobuddy_unexpected_message_type)
+            raise NoLabsException(ErrorCodes.biobuddy_unexpected_message_type)

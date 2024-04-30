@@ -14,4 +14,4 @@ class FoldingMethods(str, Enum):
         :raises NoLabsException: if parameter is not a valid FoldingMethods enum
         """
         if s not in [e for e in FoldingMethods]:
-            raise NoLabsException([s], ErrorCodes.folding_method_unknown)
+            raise NoLabsException(ErrorCodes.folding_method_unknown, [s])

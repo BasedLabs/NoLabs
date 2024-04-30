@@ -71,4 +71,4 @@ async def delete_job(job_id: UUID,
 async def update(job_id: UUID,
                 request: UpdateJobRequest,
                 feature: Annotated[UpdateJobFeature, Depends(LocalisationDependencies.update_job)]):
-   return feature.handle(job_id=job_id, request=request)
+   return await feature.handle(job_id=job_id, request=request)

@@ -13,6 +13,6 @@ class DeleteExperimentFeature:
         experiment_id = ExperimentId(id)
 
         if not self._file_management.metadata_exists(experiment_id):
-            raise NoLabsException(messages=["This localisation not found"], error_code=ErrorCodes.experiment_not_found)
+            raise NoLabsException(error_code=ErrorCodes.experiment_not_found)
 
         self._file_management.delete_experiment_folder(experiment_id)

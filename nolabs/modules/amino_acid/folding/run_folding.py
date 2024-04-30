@@ -48,7 +48,7 @@ class RunFoldingFeature(RunAminoAcidInferenceFeature[FileManagement]):
             results: List[AminoAcidResponse] = []
 
             if not amino_acids:
-                raise NoLabsException(['No amino acids'], ErrorCodes.no_amino_acids)
+                raise NoLabsException(ErrorCodes.no_amino_acids)
 
             for amino_acid in amino_acids:
                 result = api_instance.predict_run_folding_post(

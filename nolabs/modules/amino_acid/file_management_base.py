@@ -55,8 +55,7 @@ class AminoAcidFileManagementBase(ExperimentsFileManagementBase):
         if request.fastas:
             for fasta in request.fastas:
                 if not fasta.filename:
-                    raise NoLabsException(['Cannot obtain name of fasta file'],
-                                          ErrorCodes.amino_acid_localisation_run_error)
+                    raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
                 sequences.append(
                     {'sequence': (await fasta.read()).decode('utf-8'), 'filename': slugify.slugify(fasta.filename)})
                 await fasta.seek(0)

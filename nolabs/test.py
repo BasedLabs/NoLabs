@@ -17,11 +17,17 @@ class CustomInt:
         return self.value
 
 
-class CustomIntField(IntField):
+class CustomIntField(fields.BaseField):
 
-    def to_python(self, value):
+    def to_mongo(self, value):
         if isinstance(value, CustomInt):
             return value.value
+        else:
+            return value
+
+    def to_python(self, value):
+        if isinstance(value, int):
+            return CustomInt(value)
         return value
 
 
@@ -43,7 +49,8 @@ class CustomIdField(fields.BaseField):
     def to_python(self, value):
         if isinstance(value, UUID):
             return CustomId(value)
-        return value
+        return value.value
+
 
 @dataclass
 class CustomString:
@@ -60,11 +67,16 @@ class CustomString2(CustomString):
         return self.value
 
 
-class CustomStringField(StringField):
-
-    def to_python(self, value):
+class CustomStringField(fields.BaseField):
+    def to_mongo(self, value):
         if isinstance(value, CustomString):
             return value.value
+        else:
+            return value
+
+    def to_python(self, value):
+        if isinstance(value, str):
+            return CustomString(value)
         return value
 
 
@@ -73,24 +85,34 @@ from mongoengine import connect
 connect(host="mongodb://127.0.0.1:27017/my_db")
 
 
+class Test2(Document):
+    id: UUID = UUIDField(primary_key=True, default=uuid.uuid4)
+    name: str = StringField()
+
+
 class Test(Document):
-    id: CustomId = CustomIdField(db_field="_id", primary_key=True)
+    id: UUID = UUIDField(primary_key=True, default=uuid.uuid4)
     test1: CustomInt = CustomIntField()
-    test2: CustomString2 = CustomStringField()
+    test2: CustomString = CustomStringField()
+    tests: List[Test2] = ListField(ReferenceField(Test2))
 
-    def __init__(self, id: CustomId, test1: CustomInt, test2: CustomString2, *args, **kwargs):
-        super().__init__(id=id, test1=test1, test2=test2, *args, **kwargs)
+    def __init__(self, test1: CustomInt, test2: CustomString, tests: List[Test2], *args, **kwargs):
+        super().__init__(test1=test1, test2=test2, tests=tests, *args, **kwargs)
 
-        if int(test1) != 10:
-            raise ValueError
+    @property
+    def iid(self) -> CustomId:
+        return CustomId(self.id)
 
 
-t = Test(id=CustomId(uuid.uuid4()),
-         test1=CustomInt(10),
-         test2=CustomString2('asd'))
-t.save()
+t = Test(id=uuid.uuid4(),
+         test1=CustomInt(15),
+         test2=CustomString('asd'),
+         tests=[
+             Test2(id=uuid.uuid4(), name='ahuel')
+         ])
+t.save(cascade=True)
+t2: Test = Test.objects(test2='asd', test1=15).all()
+ahuels = t2.tests
+t2.delete()
 
-Test.objects.filter(id=t.id.value).delete()
-
-t2: Test = Test.objects.with_id(t.id.value)
 print(t)

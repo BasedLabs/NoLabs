@@ -17,6 +17,5 @@ class EventDispatcher:
         event_handler: DomainEventHandler[TDomainEvent]
         for event_handler in [eh for eh in cls.event_handlers if get_args(eh.__class__.__orig_bases__[0]) == event]:
             if not event_handler:
-                raise NoLabsException(f'No event handler was registered for domain event {str(event)}',
-                                      ErrorCodes.no_domain_event_handler)
+                raise NoLabsException(ErrorCodes.no_domain_event_handler)
             event_handler.handle(event)

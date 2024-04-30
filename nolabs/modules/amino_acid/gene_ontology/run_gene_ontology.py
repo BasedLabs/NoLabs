@@ -109,7 +109,7 @@ class RunGeneOntologyFeature(RunAminoAcidInferenceFeature[FileManagement]):
 
             results: List[AminoAcidResponse] = []
             if not amino_acids:
-                raise NoLabsException(['No amino acids'], ErrorCodes.no_amino_acids)
+                raise NoLabsException(ErrorCodes.no_amino_acids)
             for amino_acid in amino_acids:
                 result = api_instance.run_go_prediction_run_go_prediction_post(
                     run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
@@ -118,7 +118,7 @@ class RunGeneOntologyFeature(RunAminoAcidInferenceFeature[FileManagement]):
                 )
 
                 if result.errors:
-                    raise NoLabsException(result.errors, ErrorCodes.amino_acid_solubility_run_error)
+                    raise NoLabsException(ErrorCodes.amino_acid_solubility_run_error)
 
                 confidences = [(g.name, g.confidence) for g in result.go_confidence]
 

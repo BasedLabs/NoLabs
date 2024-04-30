@@ -27,7 +27,7 @@ class FileManagement(ExperimentsFileManagementBase):
 
     async def set_properties(self, experiment_id: ExperimentId, request: RunProteinDesignRequest):
         if not request or not request.pdb_file or not request.pdb_file.filename:
-            raise NoLabsException(['No PDB file provided'], error_code=ErrorCodes.protein_design_update_metadata_error)
+            raise NoLabsException(ErrorCodes.protein_design_update_metadata_error, ['No PDB file provided'])
 
         await request.pdb_file.seek(0)
 
@@ -58,7 +58,7 @@ class FileManagement(ExperimentsFileManagementBase):
 
     async def set_result(self, experiment_id: ExperimentId, pdbs_content: List[str], request: RunProteinDesignRequest):
         if not request or not request.pdb_file or not request.pdb_file.filename:
-            raise NoLabsException(['No PDB file provided'], error_code=ErrorCodes.protein_design_update_metadata_error)
+            raise NoLabsException(ErrorCodes.protein_design_update_metadata_error, ['No PDB file provided'])
 
         experiment_folder = self.experiment_folder(experiment_id)
 

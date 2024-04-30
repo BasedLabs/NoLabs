@@ -1,24 +1,45 @@
-from mongoengine import StringField, UUIDField, FloatField, BinaryField, FileField
+from mongoengine import fields
 
-from nolabs.seedwork.domain.value_objects import ValueObjectString, ValueObjectUUID, ValueObjectFloat, ValueObjectBinary
+from nolabs.seedwork.domain.value_objects import ValueObjectString
 
 
-class ValueObjectStringField(StringField):
-    def to_python(self, value):
+class ValueObjectStringField(fields.BaseField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        if 'factory' not in kwargs:
+            raise ValueError
+
+        self.factory = kwargs['factory']
+
+    def to_mongo(self, value):
         if isinstance(value, ValueObjectString):
             return value.value
+        else:
+            return value
+
+    def to_python(self, value):
+        if isinstance(value, str):
+            return self.factory(value)
         return value
 
 
-class ValueObjectUUIDField(UUIDField):
-    def to_python(self, value):
-        if isinstance(value, ValueObjectUUID):
-            return value.value
-        return value
+class ValueObjectFloatField(fields.BaseField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
+        if 'factory' not in kwargs:
+            raise ValueError
 
-class ValueObjectFloatField(FloatField):
-    def to_python(self, value):
-        if isinstance(value, ValueObjectFloat):
+        self.factory = kwargs['factory']
+
+    def to_mongo(self, value):
+        if isinstance(value, ValueObjectString):
             return value.value
+        else:
+            return value
+
+    def to_python(self, value):
+        if isinstance(value, str):
+            return self.factory(value)
         return value

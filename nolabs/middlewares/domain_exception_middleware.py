@@ -14,7 +14,7 @@ def add_domain_exception_middleware(app: FastAPI):
         except NoLabsException as e:
             return JSONResponse(content={
                 'errors': e.messages,
-                'error_code': e.error_code.value
+                'error_code': e.error_code
             }, headers={'Content-Type': 'application/problem+json'}, status_code=200)
         except Exception as e:
             logger.exception('Exception occured in application')
