@@ -122,7 +122,7 @@ def atom37_to_frames(
            represented as flat 12 dimensional array.
       * 'rigidgroups_gt_exists': Mask denoting whether the atom positions for
           the given frame are available in the ground truth, e.g. if they were
-          resolved in the localisation.
+          resolved in the experiment.
       * 'rigidgroups_group_exists': Mask denoting whether given group is in
           principle present for given amino acid type.
       * 'rigidgroups_group_is_ambiguous': Mask denoting whether frame is

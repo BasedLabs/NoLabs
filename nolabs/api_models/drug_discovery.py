@@ -291,7 +291,7 @@ class GetLoneLigandDataResponse:
     ligand_smiles: str
 
 # # #
-# Running the localisation and showing results section
+# Running the experiment and showing results section
 # # #
 @pcdataclass.dataclass
 class ResultMetaData:
