@@ -1,4 +1,4 @@
-from nolabs.refined.application.event_handlers import AminoAcidCreatedEventHandler, ProteinCreatedEventHandler
+from nolabs.refined.application.event_handlers import ProteinCreatedEventHandler
 from nolabs.refined.domain.event_dispatcher import EventDispatcher
 
 
@@ -6,7 +6,6 @@ class EventHandlersDependencies:
     @staticmethod
     def inject():
         event_handlers = [
-            AminoAcidCreatedEventHandler(),
             ProteinCreatedEventHandler()
         ]
 

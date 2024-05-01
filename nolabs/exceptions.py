@@ -25,12 +25,9 @@ class ErrorCodes(Enum):
     drug_discovery_folding_error = ErrorCode(code=8, description="Drug discovery folding error")
     folding_method_unknown = ErrorCode(code=9, description="Folding method is unknown")
     job_not_found = ErrorCode(code=10, description="Job not found")
-    invalid_aa_name = ErrorCode(code=11, description="Invalid amino acid name")
-    invalid_aa_content = ErrorCode(code=12, description="Invalid amino acid content")
     invalid_protein_name = ErrorCode(code=13, description="Invalid protein name")
     invalid_protein_content = ErrorCode(code=14, description="Invalid protein content")
     invalid_protein_id = ErrorCode(code=15, description="Invalid protein id")
-    invalid_aa_id = ErrorCode(code=16, description="Invalid amino acid id")
     invalid_experiment_id = ErrorCode(code=17, description="Invalid experiment id")
     invalid_experiment_name = ErrorCode(code=18, description="Experiment not found")
     invalid_job_id = ErrorCode(code=19, description="Invalid job id")
@@ -49,6 +46,15 @@ class ErrorCodes(Enum):
     biobuddy_error_generating_response = ErrorCode(code=32, description="Biobuddy error generating response")
     biobuddy_unexpected_message_type = ErrorCode(code=33, description="Biobuddy unexpected message type")
     invalid_localisation_probability = ErrorCode(code=34, description="Invalid localisation probability value")
+    protein_not_found_in_job_inputs = ErrorCode(code=35, description="Protein not found in job inputs")
+    protein_amino_acid_sequence_not_found = ErrorCode(code=36, description="Protein amino acid sequence not found")
+    invalid_folding_backend = ErrorCode(code=37, description="Invalid folding backend")
+    invalid_gene_ontology = ErrorCode(code=38, description="Invalid gene ontology")
+    gene_ontology_run_error = ErrorCode(code=39, description="Gene ontology run error")
+    invalid_solubility_probability = ErrorCode(code=40, description="Invalid solubility probability")
+    unknown_solubility_error = ErrorCode(code=41, description='Unknown error in solubility job')
+    unknown_gene_ontology_error = ErrorCode(code=42, description='Unknown error in gene ontology job')
+    unknown_folding_error = ErrorCode(code=43, description='Unknown error in folding job')
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

@@ -4,8 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
-from nolabs.refined.application.controllers.amino_acid.localisation.controller import router as localisation_router
-from nolabs.refined.application.controllers.experiments.controller import router as experiment_router
+from nolabs.refined.application.amino_acid.localisation.controller import router as localisation_router
+from nolabs.refined.application.experiments.controller import router as experiment_router
+from nolabs.refined.application.jobs.controller import router as job_router
+from nolabs.refined.application.amino_acid.folding.controller import router as folding_router
+from nolabs.refined.application.amino_acid.gene_ontology.controller import router as gene_ontology_router
 from nolabs.refined.application.event_handlers.di import EventHandlersDependencies
 from nolabs.refined.infrastructure.mongo_connector import mongo_connect
 from nolabs.refined.infrastructure.settings import Settings
@@ -29,6 +32,9 @@ async def startup_event():
 
 app.include_router(localisation_router)
 app.include_router(experiment_router)
+app.include_router(folding_router)
+app.include_router(job_router)
+app.include_router(gene_ontology_router)
 add_domain_exception_middleware(app)
 
 app.add_middleware(

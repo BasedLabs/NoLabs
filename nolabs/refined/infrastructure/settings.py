@@ -24,6 +24,9 @@ settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
 
 class Settings(BaseSettings):
     localisation: MicroserviceSettings = MicroserviceSettings()
+    esmfold: MicroserviceSettings = MicroserviceSettings()
+    gene_ontology: MicroserviceSettings = MicroserviceSettings()
+    solubility: MicroserviceSettings = MicroserviceSettings()
     connection_string: str
 
     @classmethod
