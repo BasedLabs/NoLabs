@@ -119,7 +119,105 @@ class ProteinId(ValueObjectUUID):
     def post_root(self) -> Self:
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_protein_id)
+
         return self
+
+
+@dataclass
+class LigandId(ValueObjectUUID):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_ligand_id)
+
+        return self
+
+
+@dataclass
+class LigandName(ValueObjectString):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_ligand_name)
+
+        return self
+
+
+class Ligand(Document, Entity):
+    id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
+    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
+    name: LigandName | None = ValueObjectStringField(required=False, factory=LigandName)
+    smiles_content: bytes | None = BinaryField(required=True)
+
+    def __init__(
+            self,
+            id: LigandId,
+            experiment: Experiment,
+            name: LigandName,
+            smiles_content: Union[bytes, str, None] = None,
+            *args,
+            **kwargs
+    ):
+        if not id:
+            raise NoLabsException(ErrorCodes.invalid_ligand_id)
+        if not name:
+            raise NoLabsException(ErrorCodes.invalid_ligand_name)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
+
+        if isinstance(smiles_content, str):
+            smiles_content = smiles_content.encode('utf-8')
+
+        super().__init__(id=id.value if isinstance(id, LigandId) else id,
+                         experiment=experiment,
+                         name=name,
+                         smiles_content=smiles_content,
+                         *args, **kwargs)
+
+        EventDispatcher.raise_event(LigandCreatedEvent(self))
+
+    @property
+    def iid(self) -> LigandId:
+        return LigandId(self.id)
+
+    def set_name(self, name: LigandName | None):
+        self.name = name
+
+    def set_smiles(self, smiles_content: Union[bytes, str]):
+        if not smiles_content:
+            raise NoLabsException(ErrorCodes.invalid_smiles)
+
+        if isinstance(smiles_content, str):
+            smiles_content = smiles_content.encode('utf-8')
+
+        self.smiles_content = smiles_content
+
+    def get_smiles(self) -> str | None:
+        if self.smiles_content:
+            return self.smiles_content.decode('utf-8')
+
+        return None
+
+    @classmethod
+    def create(cls, experiment: Experiment,
+               name: LigandName | None = None,
+               smiles_content: Union[bytes, str, None] = None):
+        ligands = cls.objects.filter(name=name.value, experiment=experiment)
+        if ligands:
+            ligand: Ligand = ligands[0]
+
+            if smiles_content:
+                ligand.set_smiles(smiles_content)
+
+            ligand.set_name(name)
+            return ligand
+
+        return Ligand(
+            LigandId(uuid.uuid4()),
+            experiment=experiment,
+            name=name,
+            smiles_content=smiles_content
+        )
 
 
 @dataclass
@@ -315,6 +413,15 @@ class Protein(Document, Entity):
 
         self.localisation = localisation
 
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        if not isinstance(other, Protein):
+            return False
+
+        return self.id == other.id
+
 
 class Job(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
@@ -354,5 +461,11 @@ class ProteinCreatedEvent(DomainEvent):
 
     def __init__(self, protein: Protein):
         self.protein = protein
+
+class LigandCreatedEvent(DomainEvent):
+    ligand: Ligand
+
+    def __init__(self, ligand: Ligand):
+        self.ligand = ligand
 
 # endregion

@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     esmfold: MicroserviceSettings = MicroserviceSettings()
     gene_ontology: MicroserviceSettings = MicroserviceSettings()
     solubility: MicroserviceSettings = MicroserviceSettings()
+    reinvent_microservice: MicroserviceSettings = MicroserviceSettings()
     connection_string: str
 
     @classmethod

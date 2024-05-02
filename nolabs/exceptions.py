@@ -55,6 +55,13 @@ class ErrorCodes(Enum):
     unknown_solubility_error = ErrorCode(code=41, description='Unknown error in solubility job')
     unknown_gene_ontology_error = ErrorCode(code=42, description='Unknown error in gene ontology job')
     unknown_folding_error = ErrorCode(code=43, description='Unknown error in folding job')
+    invalid_ligand_name = ErrorCode(code=44, description='Invalid ligand name')
+    invalid_ligand_id = ErrorCode(code=45, description="Invalid ligand id")
+    duplicate_ligand = ErrorCode(code=46, description="Duplicate ligand")
+    invalid_smiles = ErrorCode(code=47, description="Invalid smiles")
+    small_molecules_design_empty_output = ErrorCode(code=48, description="Empty output in small molecules design job")
+    protein_is_undefined = ErrorCode(code=49, description="Protein is undefined")
+    protein_pdb_is_empty = ErrorCode(code=50, description="Protein pdb content is empty")
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

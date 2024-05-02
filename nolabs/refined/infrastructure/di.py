@@ -1,6 +1,7 @@
 import localisation_microservice
 import esmfold_microservice
 import gene_ontology_microservice
+import reinvent_microservice
 import solubility_microservice
 
 from nolabs.refined.infrastructure.settings import Settings
@@ -46,3 +47,12 @@ class InfrastructureDependencies:
         )
         client = solubility_microservice.ApiClient(configuration=configuration)
         return solubility_microservice.DefaultApi(client)
+
+    @staticmethod
+    def reinvent_microservice() -> reinvent_microservice.ReinventApi:
+        settings = Settings.load()
+        configuration = reinvent_microservice.Configuration(
+            host=settings.reinvent_microservice.microservice
+        )
+        client = reinvent_microservice.ApiClient(configuration=configuration)
+        return reinvent_microservice.ReinventApi(api_client=client)
