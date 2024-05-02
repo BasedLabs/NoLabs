@@ -17,21 +17,24 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, StrictBool, StrictInt, StrictStr
+from pydantic import BaseModel, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
+from rcsb_pdb_query_microservice.models.evalue_cutoff import EvalueCutoff
+from rcsb_pdb_query_microservice.models.identity_cutoff import IdentityCutoff
 from rcsb_pdb_query_microservice.models.job_id import JobId
 from typing import Optional, Set
 from typing_extensions import Self
 
-class GetFastaFilesBySearchQueryRequest(BaseModel):
+class SequenceQueryRequest(BaseModel):
     """
-    GetFastaFilesBySearchQueryRequest
+    SequenceQueryRequest
     """ # noqa: E501
-    search_query: StrictStr
-    max_results: Optional[StrictInt] = None
-    exact_match: Optional[StrictBool] = False
+    sequence: StrictStr
+    sequence_type: StrictStr
+    identity_cutoff: Optional[IdentityCutoff] = None
+    evalue_cutoff: Optional[EvalueCutoff] = None
     job_id: Optional[JobId] = None
-    __properties: ClassVar[List[str]] = ["search_query", "max_results", "exact_match", "job_id"]
+    __properties: ClassVar[List[str]] = ["sequence", "sequence_type", "identity_cutoff", "evalue_cutoff", "job_id"]
 
     model_config = {
         "populate_by_name": True,
@@ -51,7 +54,7 @@ class GetFastaFilesBySearchQueryRequest(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of GetFastaFilesBySearchQueryRequest from a JSON string"""
+        """Create an instance of SequenceQueryRequest from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -72,6 +75,12 @@ class GetFastaFilesBySearchQueryRequest(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of identity_cutoff
+        if self.identity_cutoff:
+            _dict['identity_cutoff'] = self.identity_cutoff.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of evalue_cutoff
+        if self.evalue_cutoff:
+            _dict['evalue_cutoff'] = self.evalue_cutoff.to_dict()
         # override the default output from pydantic by calling `to_dict()` of job_id
         if self.job_id:
             _dict['job_id'] = self.job_id.to_dict()
@@ -79,7 +88,7 @@ class GetFastaFilesBySearchQueryRequest(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of GetFastaFilesBySearchQueryRequest from a dict"""
+        """Create an instance of SequenceQueryRequest from a dict"""
         if obj is None:
             return None
 
@@ -87,9 +96,10 @@ class GetFastaFilesBySearchQueryRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "search_query": obj.get("search_query"),
-            "max_results": obj.get("max_results"),
-            "exact_match": obj.get("exact_match") if obj.get("exact_match") is not None else False,
+            "sequence": obj.get("sequence"),
+            "sequence_type": obj.get("sequence_type"),
+            "identity_cutoff": IdentityCutoff.from_dict(obj["identity_cutoff"]) if obj.get("identity_cutoff") is not None else None,
+            "evalue_cutoff": EvalueCutoff.from_dict(obj["evalue_cutoff"]) if obj.get("evalue_cutoff") is not None else None,
             "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
         })
         return _obj

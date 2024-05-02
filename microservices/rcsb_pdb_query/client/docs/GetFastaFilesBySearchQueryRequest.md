@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **search_query** | **str** |  | 
 **max_results** | **int** |  | [optional] 
+**exact_match** | **bool** |  | [optional] [default to False]
 **job_id** | [**JobId**](JobId.md) |  | [optional] 
 
 ## Example
