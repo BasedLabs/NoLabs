@@ -24,7 +24,6 @@ jupyter = "^1.0.0"
 esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 diffdock-microservice = {path = "microservices/diffdock/client"}
-pubmed-query-microservice = {path = "microservices/pubmed_query/client"}
 aiohttp = "^3.9.3"
 dependency-injector = "^4.41.0"
 leaf-basedlabs = "^0.0.9"
