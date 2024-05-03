@@ -25,7 +25,6 @@ esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 diffdock-microservice = {path = "microservices/diffdock/client"}
 pubmed-query-microservice = {path = "microservices/pubmed_query/client"}
-chembl-query-microservice = {path = "microservices/chembl_query/client"}
 aiohttp = "^3.9.3"
 dependency-injector = "^4.41.0"
 leaf-basedlabs = "^0.0.9"
@@ -40,7 +39,7 @@ conformations-microservice = {path = "microservices/conformations/client"}
 gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
 protein-design-microservice = {path = "microservices/protein_design/client"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
-rcsb-pdb-query-microservice = {path = "microservices/rcsb_pdb_query/client"}
+external-data-query-microservice = {path = "microservices/extarnal_data_query/client"}
 
 [project]
 dependencies = [
