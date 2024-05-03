@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import List, Optional
 
-from pubmed_query.mixins import BaseModelMixin
+from external_data_query.mixins import BaseModelMixin
 
 @dataclasses.dataclass
 class FetchedArticle:

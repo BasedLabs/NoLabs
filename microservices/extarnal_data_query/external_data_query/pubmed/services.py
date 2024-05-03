@@ -1,7 +1,6 @@
 from Bio import Entrez
 import requests
-from pubmed_query.api_models import PubMedSearchRequest, PubMedSearchResponse, FetchedArticle
-from pubmed_query.loggers import logger
+from external_data_query.pubmed.api_models import PubMedSearchRequest, PubMedSearchResponse, FetchedArticle
 import certifi
 import os
 os.environ['SSL_CERT_FILE'] = certifi.where()
