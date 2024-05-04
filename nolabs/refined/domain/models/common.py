@@ -17,7 +17,7 @@ from typing import Union, Dict, Any
 from uuid import UUID
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
-    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField
+    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, PULL
 from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from typing_extensions import Self
@@ -298,6 +298,12 @@ class Protein(Document, Entity):
     gene_ontology: Dict[str, Any] | None = DictField(required=False)
     soluble_probability: SolubleProbability | None = ValueObjectFloatField(required=False, factory=SolubleProbability)
 
+    binders = ListField(ReferenceField('Protein', required=False, reverse_delete_rule=PULL))
+    '''
+    Conformations content
+    '''
+    md_content: bytes | None = BinaryField(required=False)
+
     def __init__(
             self,
             id: ProteinId,
@@ -351,6 +357,21 @@ class Protein(Document, Entity):
     def get_fasta(self) -> str | None:
         if self.fasta_content:
             return self.fasta_content.decode('utf-8')
+
+        return None
+
+    def set_md(self, md_content: Union[bytes, str]):
+        if not md_content:
+            raise NoLabsException(ErrorCodes.invalid_protein_content)
+
+        if isinstance(md_content, str):
+            md_content = md_content.encode('utf-8')
+
+        self.md_content = md_content
+
+    def get_md(self) -> str | None:
+        if self.md_content:
+            return self.md_content.decode('utf-8')
 
         return None
 
@@ -412,6 +433,16 @@ class Protein(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_localisation_probability)
 
         self.localisation = localisation
+
+    def set_protein_binder(self, protein: 'Protein'):
+        if self == protein:
+            raise NoLabsException(ErrorCodes.protein_cannot_be_binder_to_itself)
+
+        for binder in self.binders:
+            if binder == protein:
+                return
+
+        self.binders.append(protein)
 
     def __hash__(self):
         return hash(self.id)

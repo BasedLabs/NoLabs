@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     gene_ontology: MicroserviceSettings = MicroserviceSettings()
     solubility: MicroserviceSettings = MicroserviceSettings()
     reinvent_microservice: MicroserviceSettings = MicroserviceSettings()
+    protein_design: MicroserviceSettings = MicroserviceSettings()
+    conformations: MicroserviceSettings = MicroserviceSettings()
     connection_string: str
 
     @classmethod

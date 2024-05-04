@@ -36,7 +36,7 @@ async def start(
     ))
 
 
-@router.get('/jobs/{job_id}',
+@router.get('/jobs',
             summary='Get job execution result')
 async def job(job_id: UUID, feature: Annotated[
     GetLocalisationJobFeature, Depends(LocalisationDependencies.get_job)]) -> GetJobResponse:

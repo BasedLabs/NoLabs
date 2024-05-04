@@ -3,6 +3,8 @@ import esmfold_microservice
 import gene_ontology_microservice
 import reinvent_microservice
 import solubility_microservice
+import protein_design_microservice
+import conformations_microservice
 
 from nolabs.refined.infrastructure.settings import Settings
 
@@ -56,3 +58,21 @@ class InfrastructureDependencies:
         )
         client = reinvent_microservice.ApiClient(configuration=configuration)
         return reinvent_microservice.ReinventApi(api_client=client)
+
+    @staticmethod
+    def protein_design_microservice() -> protein_design_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = protein_design_microservice.Configuration(
+            host=settings.protein_design.microservice
+        )
+        client = protein_design_microservice.ApiClient(configuration=configuration)
+        return protein_design_microservice.DefaultApi(client)
+
+    @staticmethod
+    def conformations_microservice() -> conformations_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = protein_design_microservice.Configuration(
+            host=settings.conformations.microservice
+        )
+        client = conformations_microservice.ApiClient(configuration=configuration)
+        return conformations_microservice.DefaultApi(client)

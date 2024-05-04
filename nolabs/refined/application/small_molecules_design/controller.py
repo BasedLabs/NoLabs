@@ -27,14 +27,14 @@ async def status(
     return await feature.handle(job_id=job_id)
 
 
-@router.post("/jobs/{experiment_id}/learning")
+@router.post("/jobs/{job_id}/learning")
 async def learning(
         feature: Annotated[StartLearningJobFeature, Depends(SmallMoleculesDesignDependencies.start_learning)],
         job_id: UUID):
     return await feature.handle(job_id=job_id)
 
 
-@router.post("/jobs/{experiment_id}/sampling")
+@router.post("/jobs/{job_id}/sampling")
 async def sampling(
         feature: Annotated[StartSamplingJobFeature, Depends(SmallMoleculesDesignDependencies.start_sampling)],
         job_id: UUID,

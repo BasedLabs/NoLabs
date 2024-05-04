@@ -9,6 +9,8 @@ from nolabs.refined.application.experiments.controller import router as experime
 from nolabs.refined.application.jobs.controller import router as job_router
 from nolabs.refined.application.amino_acid.folding.controller import router as folding_router
 from nolabs.refined.application.amino_acid.gene_ontology.controller import router as gene_ontology_router
+from nolabs.refined.application.conformations.controller import router as conformations_controller
+from nolabs.refined.application.protein_design.controller import router as protein_design_controller
 from nolabs.refined.application.event_handlers.di import EventHandlersDependencies
 from nolabs.refined.infrastructure.mongo_connector import mongo_connect
 from nolabs.refined.infrastructure.settings import Settings
@@ -35,6 +37,8 @@ app.include_router(experiment_router)
 app.include_router(folding_router)
 app.include_router(job_router)
 app.include_router(gene_ontology_router)
+app.include_router(conformations_controller)
+app.include_router(protein_design_controller)
 add_domain_exception_middleware(app)
 
 app.add_middleware(
