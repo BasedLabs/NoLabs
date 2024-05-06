@@ -69,6 +69,13 @@ class RunProteinDesignFeature:
         job_id = JobId(request.job_id)
         job: ProteinDesignJob = ProteinDesignJob.objects.with_id(id=job_id.value)
 
+        if not job:
+            job = ProteinDesignJob(
+                id=JobId(request.job_id),
+                name=JobName('New protein design job'),
+                experiment=Experiment.objects.with_id(request.experiment_id),
+            )
+
         protein = Protein.create(
             experiment=job.experiment,
             name=ProteinName(value=request.pdb_file.filename),

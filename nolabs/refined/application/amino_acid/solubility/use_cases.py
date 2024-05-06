@@ -1,10 +1,11 @@
 __all__ = [
-    'GetSolubilityJobFeature',
-    'RunSolubilityJobFeature'
+    'GetJobFeature',
+    'RunJobFeature',
+    'Set'
 ]
 
 import uuid
-from typing import List
+from typing import List, Tuple
 from uuid import UUID
 
 from solubility_microservice import DefaultApi, RunSolubilityPredictionRequest
@@ -13,123 +14,138 @@ from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.amino_acid.api_models import RunAminoAcidRequest
 from nolabs.refined.application.amino_acid.solubility.api_models import GetJobResponse, \
     JobPropertiesResponse, \
-    AminoAcidResponse, JobFastaPropertyResponse, RunJobResponse
+    AminoAcidResponse, JobFastaPropertyResponse, RunJobResponse, JobResponse, JobResult, SetupJobRequest
 from nolabs.refined.application.amino_acid.services import get_input_proteins
 from nolabs.refined.domain.models import LocalisationJob
 from nolabs.refined.domain.models.common import JobId, Experiment, ExperimentId, \
     JobName, Protein, SolubleProbability
 from nolabs.refined.domain.models.solubility import SolubilityJob
 from nolabs.refined.infrastructure.settings import Settings
+from nolabs.utils import generate_uuid
 
 
-def map_to_amino_acid_response(protein: Protein) -> AminoAcidResponse:
-    return AminoAcidResponse(
-        sequence=protein.get_fasta(),
-        name=str(protein.name),
-        soluble_probability=protein.soluble_probability.value
+def map_job_to_response(job: SolubilityJob) -> JobResponse:
+    return JobResponse(
+        job_id=job.iid.value,
+        job_name=job.name.value,
+        proteins=[p.iid.value for p in job.proteins],
+        result=[
+            JobResult(
+                protein_id=item.protein_id,
+                soluble_probability=item.soluble_probability
+            )
+            for item in job.results
+        ]
     )
 
+class GetJobFeature:
+    """
+    Use case - get job information.
+    """
 
-class GetSolubilityJobFeature:
-    async def handle(self, job_id: UUID) -> GetJobResponse:
-        job_id = JobId(job_id)
-        job: SolubilityJob = SolubilityJob.objects.with_id(job_id.value)
+    async def handle(self, job_id: UUID) -> JobResponse:
+        try:
+            job_id = JobId(job_id)
+            job: SolubilityJob = SolubilityJob.objects.with_id(job_id.value)
 
-        if not job:
-            raise NoLabsException(ErrorCodes.job_not_found)
+            if not job:
+                raise NoLabsException(ErrorCodes.job_not_found)
 
-        proteins = job.proteins
+            return map_job_to_response(job)
+        except Exception as e:
+            if isinstance(e, NoLabsException):
+                raise e
 
-        return GetJobResponse(
-            job_id=job_id.value,
-            job_name=str(job.name),
-            amino_acids=[
-                map_to_amino_acid_response(protein)
-                for protein in job.proteins
-            ],
-            properties=JobPropertiesResponse(
-                fastas=[
-                    JobFastaPropertyResponse(
-                        filename=f.name.fasta_name,
-                        content=f.get_fasta()
-                    ) for f in proteins
-                ]
-            )
-        )
+            raise NoLabsException(ErrorCodes.unknown_exception) from e
 
 
-class RunSolubilityJobFeature:
-    _settings: Settings
+class RunJobFeature:
     _api: DefaultApi
 
-    def __init__(self, api: DefaultApi, settings: Settings):
-        self._settings = settings
+    def __init__(self, api: DefaultApi):
         self._api = api
 
-    async def handle(self, request: RunAminoAcidRequest) -> RunJobResponse:
-        assert request
-        assert request.experiment_id
-
-        if not request.fastas:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        experiment_id = ExperimentId(request.experiment_id)
-        experiment: Experiment = Experiment.objects.with_id(experiment_id.value)
-
-        if not experiment:
-            raise NoLabsException(ErrorCodes.experiment_not_found)
-
-        if not request.job_id:
-            job = SolubilityJob(
-                id=JobId(uuid.uuid4()),
-                name=JobName('New job'),
-                experiment=experiment
-            )
-            job.save()
-            job_id = JobId(job.id)
-        else:
-            job_id = JobId(request.job_id)
-            job: SolubilityJob = LocalisationJob.objects.with_id(job_id.value)
-
-        if not job:
-            raise NoLabsException(ErrorCodes.job_not_found)
-
+    async def handle(self, job_id: UUID) -> JobResponse:
         try:
-            input_proteins = await get_input_proteins(experiment=experiment, request=request)
+            assert job_id
 
-            job.set_proteins(input_proteins)
-            job.save(cascade=True)
+            job_id = JobId(job_id)
+            job: SolubilityJob = SolubilityJob.objects.with_id(job_id.value)
 
-            job.clear_result()
+            if not job:
+                raise NoLabsException(ErrorCodes.job_not_found)
+
+            result: List[Tuple[Protein, float]] = []
 
             for protein in job.proteins:
-                sequence = protein.get_fasta()
-                result = self._api.run_solubility_run_solubility_prediction_post(
+                response = self._api.run_solubility_run_solubility_prediction_post(
                     run_solubility_prediction_request=RunSolubilityPredictionRequest(
-                        amino_acid_sequence=sequence
+                        amino_acid_sequence=protein.get_fasta()
                     )
                 )
-                if result.errors:
-                    raise NoLabsException(ErrorCodes.amino_acid_solubility_run_error, result.errors)
 
-                soluble_probability = SolubleProbability(result.soluble_probability)
+                if response.errors:
+                    raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
 
-                job.set_result(protein, soluble_probability=soluble_probability)
-                protein.set_solubility_probability(soluble_probability=soluble_probability)
-                protein.save()
+                soluble_probability = response.soluble_probability
 
+                result.append((protein, soluble_probability))
+
+            job.set_result(result)
             job.save(cascade=True)
 
-            results: List[AminoAcidResponse] = []
+            for protein, prob in result:
+                protein.set_solubility_probability(SolubleProbability(prob))
+                protein.save(cascade=True)
 
-            for protein in job.proteins:
-                results.append(map_to_amino_acid_response(protein))
+            return map_job_to_response(job)
+        except Exception as e:
+            print(e)
+            if not isinstance(e, NoLabsException):
+                raise NoLabsException(ErrorCodes.unknown_exception) from e
+            raise e
 
-            return RunJobResponse(job_id=job_id.value,
-                                  amino_acids=results)
+
+class SetupJobFeature:
+    """
+    Use case - create new or update existing job.
+    """
+    async def handle(self, request: SetupJobRequest) -> JobResponse:
+        try:
+            assert request
+
+            job_id = JobId(request.job_id if request.job_id else generate_uuid())
+            job_name = JobName(request.job_name if request.job_name else 'New solubility job')
+
+            experiment = Experiment.objects.with_id(id=request.experiment_id)
+
+            if not experiment:
+                raise NoLabsException(ErrorCodes.experiment_not_found)
+
+            job: SolubilityJob = SolubilityJob.objects.with_id(job_id.value)
+
+            if not job:
+                job = SolubilityJob(
+                    id=job_id,
+                    name=job_name,
+                    experiment=experiment
+                )
+
+            proteins: List[Protein] = []
+            for protein_id in request.proteins:
+                protein = Protein.objects.get(id=protein_id)
+
+                if not protein:
+                    raise NoLabsException(ErrorCodes.protein_not_found)
+
+                proteins.append(protein)
+
+            job.set_proteins(proteins=proteins)
+            job.save(cascade=True)
+
+            return map_job_to_response(job)
         except Exception as e:
             print(e)
             if not isinstance(e, NoLabsException):
                 raise NoLabsException(ErrorCodes.unknown_solubility_error) from e
             raise e
-

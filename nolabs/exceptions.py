@@ -63,6 +63,10 @@ class ErrorCodes(Enum):
     protein_is_undefined = ErrorCode(code=49, description="Protein is undefined")
     protein_pdb_is_empty = ErrorCode(code=50, description="Protein pdb content is empty")
     protein_cannot_be_binder_to_itself = ErrorCode(code=51, description='Protein cannot be binder to itself')
+    empty_binding_pockets = ErrorCode(code=52, description="Empty binding pockets")
+    protein_not_found = ErrorCode(code=53, description="Protein not found")
+    invalid_msa = ErrorCode(code=54, description="Invalid msa")
+    protein_fasta_is_empty = ErrorCode(code=55, description="Protein fasta is empty")
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

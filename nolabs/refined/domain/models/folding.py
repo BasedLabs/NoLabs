@@ -4,11 +4,11 @@ __all__ = [
 ]
 
 from enum import Enum
-from typing import List
+from typing import List, Tuple
 from uuid import UUID
 
 from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
-    UUIDField, BinaryField, StringField
+    UUIDField, BinaryField, StringField, EnumField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Job, Protein, LocalisationProbability
@@ -16,6 +16,8 @@ from nolabs.refined.domain.models.common import Job, Protein, LocalisationProbab
 
 class FoldingBackendEnum(str, Enum):
     esmfold = 'esmfold'
+    esmfold_light = 'esmfold_light'
+    rosettafold = 'rosettafold'
 
 
 class FoldingJobResult(EmbeddedDocument):
@@ -25,45 +27,43 @@ class FoldingJobResult(EmbeddedDocument):
     """
     protein_id: UUID = UUIDField(required=True)
     pdb_content: bytes = BinaryField(required=True)
-    backend: str = StringField(required=True)
+
 
 
 class FoldingJob(Job):
     proteins: List[Protein] = ListField(ReferenceField(Protein, required=False, reverse_delete_rule=PULL))
     foldings: List[FoldingJobResult] = EmbeddedDocumentListField(FoldingJobResult)
+    backend: FoldingBackendEnum = EnumField(FoldingBackendEnum, required=False)
 
-    def set_proteins(self, proteins: List[Protein]):
+    def set_inputs(self, proteins: List[Protein], backend: FoldingBackendEnum):
+        self.foldings = []
+
         if not proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
+        for protein in proteins:
+            if not Protein.objects.with_id(protein.iid.value):
+                raise NoLabsException(ErrorCodes.protein_not_found)
+
+        self.backend = backend
         self.proteins = proteins
 
-    def clear_result(self):
-        self.foldings = []
-
-    def set_result(self, protein: Protein, backend: FoldingBackendEnum, pdb_content: bytes):
+    def set_result(self, result: List[Tuple[Protein, str | bytes]]):
         if not self.proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
-        if not backend:
-            raise NoLabsException(ErrorCodes.invalid_folding_backend)
+        if not result:
+            raise NoLabsException(ErrorCodes.invalid_job_result)
 
-        if protein not in self.proteins:
-            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
+        self.foldings = []
 
-        if not protein.fasta_content:
-            raise NoLabsException(ErrorCodes.protein_amino_acid_sequence_not_found)
+        for protein, pdb in result:
+            if not [p for p in self.proteins if p.iid == protein.iid]:
+                continue
 
-        existing_result = [res for res in self.foldings if res.protein_id == protein.id]
-        if existing_result:
-            folding_result = existing_result[0]
-            folding_result.protein_id = protein.id
-            folding_result.pdb_content = pdb_content
-            folding_result.backend = backend.value
-        else:
-            result = FoldingJobResult(
-                protein_id=protein.id,
-                pdb_content=pdb_content,
-                backend=backend.value
+            self.foldings.append(
+                FoldingJobResult(
+                    protein_id=protein.iid.value,
+                    pdb_content=pdb if isinstance(pdb, bytes) else pdb.encode('utf-8')
+                )
             )
-            self.foldings.append(result)

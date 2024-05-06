@@ -13,11 +13,11 @@ import os
 import uuid
 from functools import cached_property, lru_cache
 from pathlib import Path
-from typing import Union, Dict, Any
+from typing import Union, Dict, Any, List
 from uuid import UUID
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
-    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, PULL
+    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, PULL, IntField
 from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from typing_extensions import Self
@@ -297,6 +297,9 @@ class Protein(Document, Entity):
     localisation: LocalisationProbability | None = EmbeddedDocumentField(LocalisationProbability, required=False)
     gene_ontology: Dict[str, Any] | None = DictField(required=False)
     soluble_probability: SolubleProbability | None = ValueObjectFloatField(required=False, factory=SolubleProbability)
+    binding_pockets: List[int] = ListField(IntField(), required=False)
+    manual_binding_pockets: List[int] = ListField(IntField(), required=False)
+    msa: bytes = BinaryField(required=False)
 
     binders = ListField(ReferenceField('Protein', required=False, reverse_delete_rule=PULL))
     '''
@@ -402,6 +405,18 @@ class Protein(Document, Entity):
 
         self.soluble_probability = soluble_probability
 
+    def set_binding_pockets(self, binding_pockets: List[int]):
+        if not binding_pockets:
+            raise NoLabsException(ErrorCodes.empty_binding_pockets)
+
+        self.binding_pockets = binding_pockets
+
+    def set_manual_binding_pockets(self, binding_pockets: List[int]):
+        if not binding_pockets:
+            raise NoLabsException(ErrorCodes.empty_binding_pockets)
+
+        self.manual_binding_pockets = binding_pockets
+
     @classmethod
     def create(cls, experiment: Experiment,
                name: ProteinName,
@@ -443,6 +458,16 @@ class Protein(Document, Entity):
                 return
 
         self.binders.append(protein)
+
+    def set_msa(self, msa: bytes | bool):
+        if not msa:
+            raise NoLabsException(ErrorCodes.invalid_msa)
+
+        if isinstance(msa, str):
+            msa = msa.encode('utf-8')
+
+        self.msa = msa
+
 
     def __hash__(self):
         return hash(self.id)
@@ -492,6 +517,7 @@ class ProteinCreatedEvent(DomainEvent):
 
     def __init__(self, protein: Protein):
         self.protein = protein
+
 
 class LigandCreatedEvent(DomainEvent):
     ligand: Ligand

@@ -2,7 +2,7 @@ __all__ = [
     'GeneOntologyJob'
 ]
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 from uuid import UUID
 
 from mongoengine import ReferenceField, ListField, PULL, DictField, EmbeddedDocument, UUIDField, \
@@ -21,35 +21,32 @@ class GeneOntologyJob(Job):
     proteins: List[Protein] = ListField(ReferenceField(Protein, required=False, reverse_delete_rule=PULL))
     gene_ontologies: List[GeneOntologyJobResult] = EmbeddedDocumentListField(GeneOntologyJobResult)
 
-    def set_proteins(self, proteins: List[Protein]):
+    def set_inputs(self, proteins: List[Protein]):
         if not proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
+        self.gene_ontologies = []
         self.proteins = proteins
 
     def clear_result(self):
         self.gene_ontologies = []
 
-    def set_result(self, protein: Protein, gene_ontology: Dict[str, Any]):
-        if not gene_ontology:
-            raise NoLabsException(ErrorCodes.invalid_gene_ontology)
-
+    def set_result(self, result: List[Tuple[Protein, Dict[str, Any]]]):
         if not self.proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
-        if protein not in self.proteins:
-            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
+        if not result:
+            raise NoLabsException(ErrorCodes.invalid_job_result)
 
-        if not protein.fasta_content:
-            raise NoLabsException(ErrorCodes.protein_amino_acid_sequence_not_found)
+        self.gene_ontologies = []
 
-        existing_result = [res for res in self.gene_ontologies if res.protein_id == protein.id]
-        if existing_result:
-            gene_ontology_job_result = existing_result[0]
-            gene_ontology_job_result.gene_ontology = gene_ontology
-        else:
-            gene_ontology_job_result = GeneOntologyJobResult(
-                protein_id=protein.id,
-                gene_ontology=gene_ontology
+        for protein, go in result:
+            if not [p for p in self.proteins if p.iid == protein.iid]:
+                continue
+
+            self.gene_ontologies.append(
+                GeneOntologyJobResult(
+                    protein_id=protein.iid.value,
+                    gene_ontology=go
+                )
             )
-            self.gene_ontologies.append(gene_ontology_job_result)

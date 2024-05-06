@@ -2,42 +2,41 @@ __all__ = [
     'router',
 ]
 
-from typing import List, Annotated, Optional
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Form, File, UploadFile
+import fastapi
 
-from nolabs.refined.application.amino_acid.api_models import RunAminoAcidRequest
-from nolabs.refined.application.amino_acid.solubility.api_models import RunJobResponse, GetJobResponse
+from nolabs.refined.application.amino_acid.solubility.api_models import JobResponse, SetupJobRequest
 from nolabs.refined.application.amino_acid.solubility.di import SolubilityDependencies
-from nolabs.refined.application.amino_acid.solubility.use_cases import RunSolubilityJobFeature, \
-    GetSolubilityJobFeature
+from nolabs.refined.application.amino_acid.solubility.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
 
-router = APIRouter(
+router = fastapi.APIRouter(
     prefix='/api/v1/localisation',
     tags=['Localisation'],
 
 )
 
 
-@router.post('/jobs/start',
+@router.post('/jobs/start/{job_id}',
              summary='Start solubility probability determination job and get probability of protein being soluble')
-async def start(
+async def run_job(
         feature: Annotated[
-            RunSolubilityJobFeature, Depends(SolubilityDependencies.start)],
-        job_id: Optional[UUID] = Form(None),
-        experiment_id: UUID = Form(),
-        fastas: List[UploadFile] = File(default_factory=list)
-) -> RunJobResponse:
-    return await feature.handle(RunAminoAcidRequest(
-        job_id=job_id,
-        experiment_id=experiment_id,
-        fastas=fastas
-    ))
+            RunJobFeature, fastapi.Depends(SolubilityDependencies.run_job)],
+        job_id: UUID
+) -> JobResponse:
+    return await feature.handle(job_id=job_id)
 
 
 @router.get('/jobs/{job_id}',
-            summary='Get job execution result')
-async def job(job_id: UUID, feature: Annotated[
-    GetSolubilityJobFeature, Depends(SolubilityDependencies.get_job)]) -> GetJobResponse:
+            summary='Get job')
+async def get_job(job_id: UUID, feature: Annotated[
+    GetJobFeature, fastapi.Depends(SolubilityDependencies.get_job)]) -> JobResponse:
     return await feature.handle(job_id=job_id)
+
+
+@router.post('/jobs',
+            summary='Setup job')
+async def setup_job(request: SetupJobRequest, feature: Annotated[
+    SetupJobFeature, fastapi.Depends(SolubilityDependencies.setup_job)]) -> JobResponse:
+    return await feature.handle(request=request)

@@ -2,16 +2,15 @@ __all__ = [
     'router',
 ]
 
-from typing import List, Annotated, Optional
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Form, File, UploadFile
+from fastapi import APIRouter, Depends
 
-from nolabs.refined.application.amino_acid.api_models import RunAminoAcidRequest
-from nolabs.refined.application.amino_acid.localisation.api_models import RunJobResponse, GetJobResponse
+from nolabs.refined.application.amino_acid.folding.use_cases import RunJobFeature
+from nolabs.refined.application.amino_acid.localisation.api_models import JobResponse, SetupJobRequest
 from nolabs.refined.application.amino_acid.localisation.di import LocalisationDependencies
-from nolabs.refined.application.amino_acid.localisation.use_cases import RunLocalisationFeature, \
-    GetLocalisationJobFeature
+from nolabs.refined.application.amino_acid.localisation.use_cases import GetJobFeature, SetupJobFeature
 
 router = APIRouter(
     prefix='/api/v1/localisation',
@@ -20,24 +19,25 @@ router = APIRouter(
 )
 
 
-@router.post('/jobs/start',
-             summary='Start localisation job and get probabilities of localisation of certain amino acids in cell')
-async def start(
+@router.post('/jobs/start/{job_id}',
+             summary='Start localisation job')
+async def run_job(
         feature: Annotated[
-            RunLocalisationFeature, Depends(LocalisationDependencies.start)],
-        job_id: Optional[UUID] = Form(None),
-        experiment_id: UUID = Form(),
-        fastas: List[UploadFile] = File(default_factory=list)
-) -> RunJobResponse:
-    return await feature.handle(RunAminoAcidRequest(
-        job_id=job_id,
-        experiment_id=experiment_id,
-        fastas=fastas
-    ))
+            RunJobFeature, Depends(LocalisationDependencies.run_job)],
+        job_id: UUID
+) -> JobResponse:
+    return await feature.handle(job_id=job_id)
+
+
+@router.get('/jobs/{job_id}',
+            summary='Get job')
+async def get_job(job_id: UUID, feature: Annotated[
+    GetJobFeature, Depends(LocalisationDependencies.get_job)]) -> JobResponse:
+    return await feature.handle(job_id=job_id)
 
 
 @router.get('/jobs',
-            summary='Get job execution result')
-async def job(job_id: UUID, feature: Annotated[
-    GetLocalisationJobFeature, Depends(LocalisationDependencies.get_job)]) -> GetJobResponse:
-    return await feature.handle(job_id=job_id)
+            summary='Get job')
+async def setup_job(request: SetupJobRequest, feature: Annotated[
+    SetupJobFeature, Depends(LocalisationDependencies.setup_job)]) -> JobResponse:
+    return await feature.handle(request=request)

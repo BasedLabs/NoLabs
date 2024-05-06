@@ -7,19 +7,21 @@ from typing import Annotated
 from fastapi import Depends
 from localisation_microservice import DefaultApi
 
-from nolabs.refined.application.amino_acid.localisation.use_cases import RunLocalisationFeature, GetLocalisationJobFeature
+from nolabs.refined.application.amino_acid.localisation.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
-from nolabs.refined.infrastructure.settings import Settings
 
 
 class LocalisationDependencies:
     @staticmethod
-    def start(
-            settings: Annotated[Settings, Depends(InfrastructureDependencies.settings)],
+    def run_job(
             api: Annotated[DefaultApi, Depends(InfrastructureDependencies.localisation_microservice)]
-    ) -> RunLocalisationFeature:
-        return RunLocalisationFeature(settings=settings, api=api)
+    ) -> RunJobFeature:
+        return RunJobFeature(api=api)
 
     @staticmethod
-    def get_job() -> GetLocalisationJobFeature:
-        return GetLocalisationJobFeature()
+    def get_job() -> GetJobFeature:
+        return GetJobFeature()
+
+    @staticmethod
+    def setup_job() -> SetupJobFeature:
+        return SetupJobFeature()

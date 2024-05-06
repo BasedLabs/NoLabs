@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-import dataclasses
+from pydantic.dataclasses import dataclass
 
 
-@dataclasses.dataclass
+@dataclass
 class RunEsmFoldPredictionRequest:
     protein_sequence: str
     job_id: str = None
 
 
-@dataclasses.dataclass
+@dataclass
 class RunEsmFoldPredictionResponse:
     pdb_content: str
 
-@dataclasses.dataclass
+@dataclass
 class IsJobRunningResponse:
     is_running: bool

@@ -1,6 +1,7 @@
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 from uuid import UUID
 
+from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 
 
@@ -12,39 +13,40 @@ class RunGeneOntologyResponseDataNode:
 
 
 @dataclass
-class AminoAcidResponse:
-    sequence: str
-    name: str
+class JobResult:
+    protein_id: UUID
     go: Dict[str, RunGeneOntologyResponseDataNode]
 
 
 @dataclass
-class RunGeneOntologyResponse:
-    experiment_id: str
-    experiment_name: str
-    amino_acids: List[AminoAcidResponse]
-
-
-@dataclass
-class RunJobResponse:
-    job_id: UUID
-    amino_acids: List[AminoAcidResponse]
-
-
-@dataclass
-class JobFastaPropertyResponse:
-    filename: str
-    content: str
-
-
-@dataclass
-class JobPropertiesResponse:
-    fastas: List[JobFastaPropertyResponse]
-
-
-@dataclass
-class GetJobResponse:
+class JobResponse:
     job_id: UUID
     job_name: str
-    amino_acids: List[AminoAcidResponse]
-    properties: JobPropertiesResponse
+    proteins: List[UUID]
+    result: List[JobResult]
+
+
+class SetupJobRequest(BaseModel):
+    job_id: Optional[UUID]
+    job_name: Optional[str]
+    experiment_id: UUID
+    proteins: List[UUID]
+
+    @classmethod
+    @model_validator(mode='after')
+    def check_inputs(cls, data: Any) -> Any:
+        if not data.amino_acids:
+            raise ValueError('You did not provide proteins')
+        return data
+
+
+@dataclass
+class RunJobRequest:
+    job_id: UUID
+
+
+@dataclass
+class GetJobStatusResponse:
+    running: bool
+
+

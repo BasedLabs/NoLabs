@@ -17,7 +17,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   esmfold:
-    image: 'ghcr.io/basedlabs/esmfold:1.0.0'
+    image: 'ghcr.io/basedlabs/esmfold:1.0.1'
     network_mode: host
     build:
       context: microservices/esmfold
@@ -31,7 +31,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   esmfold_light:
-    image: 'ghcr.io/basedlabs/esmfold-light:1.0.0'
+    image: 'ghcr.io/basedlabs/esmfold-light:1.0.1'
     network_mode: host
     build:
       context: microservices/esmfold_light

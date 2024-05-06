@@ -4,7 +4,7 @@ __all__ = [
 ]
 
 from enum import Enum
-from typing import List
+from typing import List, Tuple
 from uuid import UUID
 
 from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
@@ -29,29 +29,20 @@ class SolubilityJob(Job):
 
         self.proteins = proteins
 
-    def clear_result(self):
-        self.results = []
-
-    def set_result(self, protein: Protein, soluble_probability: SolubleProbability):
-        if not soluble_probability:
-            raise NoLabsException(ErrorCodes.invalid_solubility_probability)
-
+    def set_result(self, result: List[Tuple[Protein, float]]):
         if not self.proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
-        if protein not in self.proteins:
-            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
+        if not result:
+            raise NoLabsException(ErrorCodes.invalid_job_result)
 
-        if not protein.fasta_content:
-            raise NoLabsException(ErrorCodes.protein_amino_acid_sequence_not_found)
+        self.results = []
 
-        existing_result = [res for res in self.results if res.protein_id == protein.id]
-        if existing_result:
-            soluble_probability_existing = existing_result[0]
-            soluble_probability_existing.soluble_probability = soluble_probability.value
-        else:
-            result = SolubilityJobResult(
-                protein_id=protein.id,
-                soluble_probability=soluble_probability.value
-            )
-            self.results.append(result)
+        for protein, prob in result:
+            if not [p for p in self.proteins if p.iid == protein.iid]:
+                raise NoLabsException(ErrorCodes.protein_not_found)
+
+            self.results.append(SolubilityJobResult(
+                protein_id=protein.iid.value,
+                soluble_probability=prob
+            ))

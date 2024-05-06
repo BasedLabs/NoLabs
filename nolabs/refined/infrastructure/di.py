@@ -1,12 +1,16 @@
 import localisation_microservice
 import esmfold_microservice
+import esmfold_light_microservice
+import rosettafold_microservice
 import gene_ontology_microservice
 import reinvent_microservice
 import solubility_microservice
 import protein_design_microservice
 import conformations_microservice
+import p2rank_microservice
+import msa_light_microservice
 
-from nolabs.refined.infrastructure.settings import Settings
+from nolabs.refined.infrastructure.settings import Settings, MsaLightMicroserviceSettings
 
 
 class InfrastructureDependencies:
@@ -31,6 +35,24 @@ class InfrastructureDependencies:
         )
         client = esmfold_microservice.ApiClient(configuration=configuration)
         return esmfold_microservice.DefaultApi(client)
+
+    @staticmethod
+    def esmfold_light_microservice() -> esmfold_light_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = esmfold_light_microservice.Configuration(
+            host=settings.esmfold_light.microservice
+        )
+        client = esmfold_light_microservice.ApiClient(configuration=configuration)
+        return esmfold_light_microservice.DefaultApi(client)
+
+    @staticmethod
+    def rosettafold_microservice() -> rosettafold_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = rosettafold_microservice.Configuration(
+            host=settings.rosettafold.microservice
+        )
+        client = rosettafold_microservice.ApiClient(configuration=configuration)
+        return rosettafold_microservice.DefaultApi(client)
 
     @staticmethod
     def gene_ontology_microservice() -> gene_ontology_microservice.DefaultApi:
@@ -76,3 +98,26 @@ class InfrastructureDependencies:
         )
         client = conformations_microservice.ApiClient(configuration=configuration)
         return conformations_microservice.DefaultApi(client)
+
+    @staticmethod
+    def p2rank_microservice() -> p2rank_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = p2rank_microservice.Configuration(
+            host=settings.p2rank.microservice
+        )
+        client = p2rank_microservice.ApiClient(configuration=configuration)
+        return p2rank_microservice.DefaultApi(client)
+
+    @staticmethod
+    def msa_light_microservice() -> msa_light_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = msa_light_microservice.Configuration(
+            host=settings.msa_light_microservice.microservice
+        )
+        client = msa_light_microservice.ApiClient(configuration=configuration)
+        return msa_light_microservice.DefaultApi(client)
+
+    @staticmethod
+    def msa_light_settings() -> MsaLightMicroserviceSettings:
+        settings = Settings.load()
+        return settings.msa_light

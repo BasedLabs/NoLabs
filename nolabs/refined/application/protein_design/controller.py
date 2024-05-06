@@ -23,6 +23,7 @@ router = APIRouter(
 @router.post('/jobs/start')
 async def inference(feature: Annotated[RunProteinDesignFeature, Depends(ProteinDesignDependencies.start)],
                     job_id: UUID = Form(None),
+                    experiment_id: UUID = Form(),
                     pdb_file: UploadFile = File(),
                     contig: str = Form('50'),
                     number_of_designs: int = Form(1),
@@ -31,6 +32,7 @@ async def inference(feature: Annotated[RunProteinDesignFeature, Depends(ProteinD
                     ) -> RunProteinDesignResponse:
     return await feature.handle(RunProteinDesignRequest(
         job_id=job_id,
+        experiment_id=experiment_id,
         pdb_file=pdb_file,
         contig=contig,
         number_of_designs=number_of_designs,

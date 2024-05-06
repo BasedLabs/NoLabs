@@ -1,21 +1,21 @@
 from __future__ import annotations
 
-import dataclasses
+from pydantic.dataclasses import dataclass
 from typing import List, Optional
 
 from esmfold.mixins import BaseModelMixin
 
 
-@dataclasses.dataclass
+@dataclass
 class RunEsmFoldPredictionRequest(BaseModelMixin):
     protein_sequence: str
     job_id: str = None
 
-@dataclasses.dataclass
+@dataclass
 class RunEsmFoldPredictionResponse(BaseModelMixin):
     errors: List[str]
     pdb_content: Optional[str] = None
 
-@dataclasses.dataclass
+@dataclass
 class IsJobRunningResponse:
     is_running: bool
