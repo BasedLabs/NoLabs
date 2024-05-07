@@ -63,10 +63,10 @@ class PredictUmolDockingFeature:
         )
         with UmolApiClient(configuration=configuration) as client:
             api_instance = UmolDefaultApi(client)
-            request = umol_microservice.RunUmolPredictionRequest(protein_sequence=fasta_contents,
-                                                                 msa_content=msa_contents,
-                                                                 pocket_ids=pocket_ids,
-                                                                 ligand_smiles=ligand_smiles,
+            request = umol_microservice.RunUmolPredictionRequest(protein_sequence=fasta_contents, # protein
+                                                                 msa_content=msa_contents, # protein
+                                                                 pocket_ids=pocket_ids, # protein
+                                                                 ligand_smiles=ligand_smiles, # ligand
                                                                  job_id=job_id.value)
             response = api_instance.predict_run_umol_post(run_umol_prediction_request=request)
 

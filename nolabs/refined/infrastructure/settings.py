@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     conformations: MicroserviceSettings = MicroserviceSettings()
     p2rank: MicroserviceSettings = MicroserviceSettings()
     msa_light: MsaLightMicroserviceSettings = MsaLightMicroserviceSettings()
+    umol: MicroserviceSettings = MicroserviceSettings()
+    diffdock: MicroserviceSettings = MicroserviceSettings()
     connection_string: str
 
     @classmethod

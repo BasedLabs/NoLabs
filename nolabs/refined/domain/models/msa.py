@@ -38,9 +38,7 @@ class MsaGenerationJob(Job):
     def set_result(self,
                    protein: Protein,
                    msa: bytes | str):
-        msa = None
-
-        if not self.protein:
+        if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
         if protein != self.protein:

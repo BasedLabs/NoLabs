@@ -47,8 +47,6 @@ class SmallMoleculesDesignJob(Job):
                    batch_size: int,
                    minscore: float,
                    epochs: int):
-        self.ligands = []
-
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
@@ -86,16 +84,26 @@ class SmallMoleculesDesignJob(Job):
             raise NoLabsException(ErrorCodes.invalid_job_input,
                                   ['Number of epochs cannot be empty or be a negative number'])
 
-        self.protein = protein
-        self.center_x = center_x
-        self.center_y = center_y
-        self.center_z = center_z
-        self.size_x = size_x
-        self.size_y = size_y
-        self.size_z = size_z
-        self.batch_size = batch_size
-        self.minscore = minscore
-        self.epochs = epochs
+        if self.center_x != center_x or \
+                self.center_y != center_y or \
+                self.center_z != center_z or \
+                self.size_x != size_x or \
+                self.size_y != size_y or \
+                self.size_z != size_z or \
+                self.batch_size != batch_size or \
+                self.minscore != minscore or \
+                self.epochs != epochs:
+            self.ligands = []
+            self.protein = protein
+            self.center_x = center_x
+            self.center_y = center_y
+            self.center_z = center_z
+            self.size_x = size_x
+            self.size_y = size_y
+            self.size_z = size_z
+            self.batch_size = batch_size
+            self.minscore = minscore
+            self.epochs = epochs
 
     def set_result(self, protein: Protein, ligands: List[Ligand]):
         if not ligands:

@@ -17,7 +17,8 @@ from typing import Union, Dict, Any, List
 from uuid import UUID
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
-    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, PULL, IntField
+    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, PULL, IntField, \
+    EmbeddedDocumentListField, Q
 from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from typing_extensions import Self
@@ -123,170 +124,6 @@ class ProteinId(ValueObjectUUID):
         return self
 
 
-@dataclass
-class LigandId(ValueObjectUUID):
-    @model_validator(mode='after')
-    def post_root(self) -> Self:
-        if not self.value:
-            raise NoLabsException(ErrorCodes.invalid_ligand_id)
-
-        return self
-
-
-@dataclass
-class LigandName(ValueObjectString):
-    @model_validator(mode='after')
-    def post_root(self) -> Self:
-        if not self.value:
-            raise NoLabsException(ErrorCodes.invalid_ligand_name)
-
-        return self
-
-
-@dataclass
-class DrugLikenessScore(ValueObjectFloat):
-    @model_validator(mode='after')
-    def post_root(self) -> Self:
-        if not self.value:
-            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score)
-
-        if self.value < 0 or self.value > 1.0:
-            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score, 'Drug likeness score must be in a range [0,1.0]')
-
-        return self
-
-
-@dataclass
-class DesignedLigandScore(ValueObjectFloat):
-    """
-    Average weighted score of a designed ligand.
-    """
-    @model_validator(mode='after')
-    def post_root(self) -> Self:
-        if not self.value:
-            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score)
-
-        if self.value < 0 or self.value > 1.0:
-            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score, 'Designed ligand score must be in a range [0,1.0]')
-
-        return self
-
-
-class Ligand(Document, Entity):
-    id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
-    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
-    name: LigandName | None = ValueObjectStringField(required=False, factory=LigandName)
-    smiles_content: bytes | None = BinaryField(required=True)
-
-    drug_likeness: DrugLikenessScore | None = ValueObjectFloatField(factory=DrugLikenessScore, required=False)
-    drug_score: DesignedLigandScore | None = FloatField(factory=DesignedLigandScore, required=False)
-
-    def __init__(
-            self,
-            id: LigandId,
-            experiment: Experiment,
-            name: LigandName,
-            smiles_content: Union[bytes, str, None] = None,
-            *args,
-            **kwargs
-    ):
-        if not id:
-            raise NoLabsException(ErrorCodes.invalid_ligand_id)
-        if not name:
-            raise NoLabsException(ErrorCodes.invalid_ligand_name)
-        if not experiment:
-            raise NoLabsException(ErrorCodes.invalid_experiment_id)
-
-        if isinstance(smiles_content, str):
-            smiles_content = smiles_content.encode('utf-8')
-
-        super().__init__(id=id.value if isinstance(id, LigandId) else id,
-                         experiment=experiment,
-                         name=name,
-                         smiles_content=smiles_content,
-                         *args, **kwargs)
-
-        EventDispatcher.raise_event(LigandCreatedEvent(self))
-
-    @property
-    def iid(self) -> LigandId:
-        return LigandId(self.id)
-
-    def set_name(self, name: LigandName | None):
-        self.name = name
-
-    def set_smiles(self, smiles_content: Union[bytes, str]):
-        if not smiles_content:
-            raise NoLabsException(ErrorCodes.invalid_smiles)
-
-        if isinstance(smiles_content, str):
-            smiles_content = smiles_content.encode('utf-8')
-
-        self.smiles_content = smiles_content
-
-    def get_smiles(self) -> str | None:
-        if self.smiles_content:
-            return self.smiles_content.decode('utf-8')
-
-        return None
-
-    def set_drug_likeness_score(self, score: DrugLikenessScore):
-        if not score:
-            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score)
-
-        self.drug_likeness = score
-
-    def set_designed_ligand_score(self, score: DesignedLigandScore):
-        if not score:
-            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score)
-
-        self.drug_score = score
-
-    @classmethod
-    def create(cls, experiment: Experiment,
-               name: LigandName | None = None,
-               smiles_content: Union[bytes, str, None] = None):
-        ligands = cls.objects.filter(name=name.value, experiment=experiment)
-        if ligands:
-            ligand: Ligand = ligands[0]
-
-            if smiles_content:
-                ligand.set_smiles(smiles_content)
-
-            ligand.set_name(name)
-            return ligand
-
-        return Ligand(
-            LigandId(uuid.uuid4()),
-            experiment=experiment,
-            name=name,
-            smiles_content=smiles_content
-        )
-
-
-@dataclass
-class JobId(ValueObjectUUID):
-    value: UUID
-
-    @model_validator(mode='after')
-    def post_root(self) -> Self:
-        if not self.value:
-            raise NoLabsException(ErrorCodes.invalid_job_id)
-        return self
-
-
-@dataclass
-class JobName(ValueObjectString):
-    @model_validator(mode='after')
-    def post_root(self) -> Self:
-        if not self.value:
-            raise NoLabsException(ErrorCodes.invalid_job_name)
-
-        if len(self.value) < 1 or len(self.value) > 100:
-            raise NoLabsException(ErrorCodes.invalid_job_name)
-        return self
-
-
 class SolubleProbability(ValueObjectFloat):
     @model_validator(mode='after')
     def post_root(self) -> Self:
@@ -331,7 +168,6 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
             *args,
             **kwargs)
 
-
 class Protein(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
@@ -341,15 +177,12 @@ class Protein(Document, Entity):
     localisation: LocalisationProbability | None = EmbeddedDocumentField(LocalisationProbability, required=False)
     gene_ontology: Dict[str, Any] | None = DictField(required=False)
     soluble_probability: SolubleProbability | None = ValueObjectFloatField(required=False, factory=SolubleProbability)
-    binding_pockets: List[int] = ListField(IntField(), required=False)
-    manual_binding_pockets: List[int] = ListField(IntField(), required=False)
-    msa: bytes = BinaryField(required=False)
+    msa: bytes | None = BinaryField(required=False)
 
-    binders = ListField(ReferenceField('Protein', required=False, reverse_delete_rule=PULL))
+    md_content: bytes | None = BinaryField(required=False)
     '''
     Conformations content
     '''
-    md_content: bytes | None = BinaryField(required=False)
 
     def __init__(
             self,
@@ -382,6 +215,18 @@ class Protein(Document, Entity):
                          *args, **kwargs)
 
         EventDispatcher.raise_event(ProteinCreatedEvent(self))
+
+    def get_msa(self) -> str | None:
+        if self.msa:
+            return self.msa.decode('utf-8')
+
+        return None
+
+    def get_protein_binders(self) -> List['ProteinBinder']:
+        return ProteinBinder.objects(Q(protein1=self) or Q(protein2=self))
+
+    def get_ligand_binders(self) -> List['LigandBinder']:
+        return LigandBinder.objects(protein=self)
 
     @property
     def iid(self) -> ProteinId:
@@ -449,18 +294,6 @@ class Protein(Document, Entity):
 
         self.soluble_probability = soluble_probability
 
-    def set_binding_pockets(self, binding_pockets: List[int]):
-        if not binding_pockets:
-            raise NoLabsException(ErrorCodes.empty_binding_pockets)
-
-        self.binding_pockets = binding_pockets
-
-    def set_manual_binding_pockets(self, binding_pockets: List[int]):
-        if not binding_pockets:
-            raise NoLabsException(ErrorCodes.empty_binding_pockets)
-
-        self.manual_binding_pockets = binding_pockets
-
     @classmethod
     def create(cls, experiment: Experiment,
                name: ProteinName,
@@ -493,15 +326,16 @@ class Protein(Document, Entity):
 
         self.localisation = localisation
 
-    def set_protein_binder(self, protein: 'Protein'):
+    def add_protein_binder(self, protein: 'Protein'):
         if self == protein:
             raise NoLabsException(ErrorCodes.protein_cannot_be_binder_to_itself)
 
-        for binder in self.binders:
-            if binder == protein:
+        for binder in self.get_protein_binders():
+            if binder.protein1 == protein or binder.protein2 == protein:
                 return
 
-        self.binders.append(protein)
+        binder = ProteinBinder(protein1=self, protein2=protein)
+        binder.save()
 
     def set_msa(self, msa: bytes | bool):
         if not msa:
@@ -512,15 +346,265 @@ class Protein(Document, Entity):
 
         self.msa = msa
 
-
     def __hash__(self):
-        return hash(self.id)
+        return hash(self.iid)
 
     def __eq__(self, other):
         if not isinstance(other, Protein):
             return False
 
-        return self.id == other.id
+        return self.iid == other.iid
+
+
+@dataclass
+class LigandId(ValueObjectUUID):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_ligand_id)
+
+        return self
+
+
+@dataclass
+class LigandName(ValueObjectString):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_ligand_name)
+
+        return self
+
+
+@dataclass
+class DrugLikenessScore(ValueObjectFloat):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score)
+
+        if self.value < 0 or self.value > 1.0:
+            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score,
+                                  'Drug likeness score must be in a range [0,1.0]')
+
+        return self
+
+
+@dataclass
+class DesignedLigandScore(ValueObjectFloat):
+    """
+    Average weighted score of a designed ligand.
+    """
+
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score)
+
+        if self.value < 0 or self.value > 1.0:
+            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score,
+                                  'Designed ligand score must be in a range [0,1.0]')
+
+        return self
+
+
+
+
+class Ligand(Document, Entity):
+    id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
+    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
+    name: LigandName | None = ValueObjectStringField(required=False, factory=LigandName)
+    smiles_content: bytes | None = BinaryField(required=False)
+    sdf_content: bytes | None = BinaryField(required=False)
+
+    drug_likeness: DrugLikenessScore | None = ValueObjectFloatField(factory=DrugLikenessScore, required=False)
+    designed_ligand_score: DesignedLigandScore | None = FloatField(factory=DesignedLigandScore, required=False)
+
+    def __init__(
+            self,
+            id: LigandId,
+            experiment: Experiment,
+            name: LigandName,
+            smiles_content: Union[bytes, str, None] = None,
+            sdf_content: Union[bytes, str, None] = None,
+            *args,
+            **kwargs
+    ):
+        if not id:
+            raise NoLabsException(ErrorCodes.invalid_ligand_id)
+        if not name:
+            raise NoLabsException(ErrorCodes.invalid_ligand_name)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
+
+        if not smiles_content and not sdf_content:
+            raise NoLabsException(ErrorCodes.ligand_initialization_error,
+                                  'Cannot create a ligand without smiles and sdf content')
+
+        if smiles_content:
+            self.set_smiles(smiles_content)
+
+        if sdf_content:
+            self.set_sdf(sdf_content)
+
+        super().__init__(id=id.value if isinstance(id, LigandId) else id,
+                         experiment=experiment,
+                         name=name,
+                         smiles_content=smiles_content,
+                         sdf_content=sdf_content,
+                         *args, **kwargs)
+
+        EventDispatcher.raise_event(LigandCreatedEvent(self))
+
+    def __hash__(self):
+        return self.iid.__hash__()
+
+    def __eq__(self, other):
+        if isinstance(other, Ligand):
+            return self.iid == other.iid
+
+        return False
+
+    @property
+    def iid(self) -> LigandId:
+        return LigandId(self.id)
+
+    def set_name(self, name: LigandName | None):
+        self.name = name
+
+    def set_smiles(self, smiles_content: Union[bytes, str]):
+        if not smiles_content:
+            raise NoLabsException(ErrorCodes.invalid_smiles)
+
+        if isinstance(smiles_content, str):
+            smiles_content = smiles_content.encode('utf-8')
+
+        self.smiles_content = smiles_content
+
+    def get_sdf(self) -> str | None:
+        if self.sdf_content:
+            return self.sdf_content.decode('utf-8')
+
+        return None
+
+    def get_smiles(self) -> str | None:
+        if self.smiles_content:
+            return self.smiles_content.decode('utf-8')
+
+        return None
+
+    def set_sdf(self, sdf: str | bytes):
+        if isinstance(sdf, str):
+            sdf = sdf.encode('utf-8')
+
+        return None
+
+    def set_drug_likeness_score(self, score: DrugLikenessScore):
+        if not score:
+            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score)
+
+        self.drug_likeness = score
+
+    def set_designed_ligand_score(self, score: DesignedLigandScore):
+        if not score:
+            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score)
+
+        self.designed_ligand_score = score
+
+    @classmethod
+    def create(cls, experiment: Experiment,
+               name: LigandName | None = None,
+               smiles_content: Union[bytes, str, None] = None,
+               sdf_content: Union[bytes, str, None] = None) -> 'Ligand':
+        ligands = cls.objects.filter(name=name.value, experiment=experiment)
+        if ligands:
+            ligand: Ligand = ligands[0]
+
+            if smiles_content:
+                ligand.set_smiles(smiles_content)
+
+            ligand.set_name(name)
+            return ligand
+
+        return Ligand(
+            LigandId(uuid.uuid4()),
+            experiment=experiment,
+            name=name,
+            smilesContent=smiles_content,
+            sdf_content=sdf_content
+        )
+
+    def add_binding(self,
+                    protein: 'Protein',
+                    sdf_content: bytes | None,
+                    minimized_affinity: float | None,
+                    scored_affinity: float | None,
+                    confidence: float | None,
+                    plddt_array: List[int],
+                    pdb_content: bytes | str | None = None):
+
+        if not protein:
+            raise NoLabsException(ErrorCodes.protein_is_undefined)
+
+        if not sdf_content:
+            raise NoLabsException(ErrorCodes.sdf_content_is_undefined)
+
+        if isinstance(sdf_content, str):
+            sdf_content = sdf_content.encode()
+
+        if isinstance(pdb_content, str):
+            pdb_content = pdb_content.encode()
+
+        for existing_binding in LigandBinder.objects.filter(ligand=self):
+            if existing_binding.protein == protein and existing_binding.ligand == self:
+                existing_binding.sdf_content = sdf_content
+                existing_binding.scored_affinity = scored_affinity if scored_affinity else existing_binding.scored_affinity
+                existing_binding.minimized_affinity = minimized_affinity if minimized_affinity else existing_binding.minimized_affinity
+                existing_binding.confidence = confidence if confidence else existing_binding.confidence
+                existing_binding.plddt_array = plddt_array if plddt_array else existing_binding.plddt_array
+                existing_binding.pdb_content = pdb_content if pdb_content else existing_binding.pdb_content
+                existing_binding.save()
+                return
+
+        LigandBinder(
+            protein=protein,
+            ligand=self,
+            sdf_content=sdf_content,
+            minimized_affinity=minimized_affinity,
+            scored_affinity=scored_affinity,
+            confidence=confidence,
+            plddt_array=plddt_array,
+            pdb_content=pdb_content
+        ).save()
+
+    def get_bindings(self) -> List['LigandBinder']:
+        return LigandBinder.objects.filter(ligand=self)
+
+
+@dataclass
+class JobId(ValueObjectUUID):
+    value: UUID
+
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_job_id)
+        return self
+
+
+@dataclass
+class JobName(ValueObjectString):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_job_name)
+
+        if len(self.value) < 1 or len(self.value) > 100:
+            raise NoLabsException(ErrorCodes.invalid_job_name)
+        return self
+
+
+
 
 
 class Job(Document, Entity):
@@ -553,6 +637,22 @@ class Job(Document, Entity):
     @property
     def iid(self) -> JobId:
         return JobId(self.id)
+
+
+class ProteinBinder(Document):
+    protein1: Protein = ReferenceField(Protein, required=True)
+    protein2: Protein = ReferenceField(Protein, required=True)
+
+
+class LigandBinder(Document):
+    protein: Protein = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+    ligand: Ligand = ReferenceField(Ligand, required=True, reverse_delete_rule=CASCADE)
+    sdf_content: bytes | None = BinaryField(required=True)
+    minimized_affinity: float | None = FloatField(required=False)
+    scored_affinity: float | None = FloatField(required=False)
+    confidence: float | None = FloatField(required=False)
+    plddt_array: List[int] = ListField(IntField, required=False)
+    pdb_content: bytes | None = BinaryField(required=False)
 
 
 # region events

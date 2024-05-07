@@ -3,6 +3,7 @@ import uuid
 from typing import List
 from uuid import UUID
 
+from jinja2.nodes import Test
 from mongoengine import Document, ObjectIdField, UUIDField, IntField, DateTimeField, StringField, ReferenceField, \
     CASCADE, ListField, PULL
 from mongoengine.base import fields
@@ -88,6 +89,7 @@ connect(host="mongodb://127.0.0.1:27017/my_db")
 class Test2(Document):
     id: UUID = UUIDField(primary_key=True, default=uuid.uuid4)
     name: str = StringField()
+    test: 'Test' = ReferenceField('Test')
 
 
 class Test(Document):
@@ -96,8 +98,8 @@ class Test(Document):
     test2: CustomString = CustomStringField()
     tests: List[Test2] = ListField(ReferenceField(Test2))
 
-    def __init__(self, test1: CustomInt, test2: CustomString, tests: List[Test2], *args, **kwargs):
-        super().__init__(test1=test1, test2=test2, tests=tests, *args, **kwargs)
+    def __init__(self, test1: CustomInt, test2: CustomString, *args, **kwargs):
+        super().__init__(test1=test1, test2=test2, *args, **kwargs)
 
     @property
     def iid(self) -> CustomId:
@@ -106,13 +108,13 @@ class Test(Document):
 
 t = Test(id=uuid.uuid4(),
          test1=CustomInt(15),
-         test2=CustomString('asd'),
-         tests=[
-             Test2(id=uuid.uuid4(), name='ahuel')
-         ])
+         test2=CustomString('asd'))
 t.save(cascade=True)
-t2: Test = Test.objects(test2='asd', test1=15).all()
-ahuels = t2.tests
-t2.delete()
+test2 = Test2(id=uuid.uuid4(),
+              name='asd',
+              test=t)
+test2.save(cascade=True)
+
+t = Test.objects.with_id(t.iid.value)
 
 print(t)

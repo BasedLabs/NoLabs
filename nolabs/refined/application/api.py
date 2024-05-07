@@ -1,19 +1,19 @@
-import sys
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
-from nolabs.refined.application.amino_acid.localisation.controller import router as localisation_router
-from nolabs.refined.application.experiments.controller import router as experiment_router
-from nolabs.refined.application.jobs.controller import router as job_router
-from nolabs.refined.application.amino_acid.folding.controller import router as folding_router
-from nolabs.refined.application.amino_acid.gene_ontology.controller import router as gene_ontology_router
-from nolabs.refined.application.conformations.controller import router as conformations_controller
-from nolabs.refined.application.protein_design.controller import router as protein_design_controller
-from nolabs.refined.application.binding_pockets.controller import router as binding_pockets_controller
-from nolabs.refined.application.msa_generation.controller import router as msa_generation_controller
+from nolabs.refined.application.use_cases.localisation.controller import router as localisation_router
+from nolabs.refined.application.use_cases.experiments.controller import router as experiment_router
+from nolabs.refined.application.use_cases.jobs.controller import router as job_router
+from nolabs.refined.application.use_cases.folding.controller import router as folding_router
+from nolabs.refined.application.use_cases.gene_ontology.controller import router as gene_ontology_router
+from nolabs.refined.application.use_cases.conformations.controller import router as conformations_controller
+from nolabs.refined.application.use_cases.protein_design.controller import router as protein_design_controller
+from nolabs.refined.application.use_cases.binding_pockets.controller import router as binding_pockets_controller
+from nolabs.refined.application.use_cases.msa_generation.controller import router as msa_generation_controller
+from nolabs.refined.application.use_cases.umol.controller import router as umol_controller
 from nolabs.refined.application.event_handlers.di import EventHandlersDependencies
+from nolabs.refined.application.use_cases.diffdock.controller import router as diffdock_router
 from nolabs.refined.infrastructure.mongo_connector import mongo_connect
 from nolabs.refined.infrastructure.settings import Settings
 
@@ -43,6 +43,8 @@ app.include_router(conformations_controller)
 app.include_router(protein_design_controller)
 app.include_router(binding_pockets_controller)
 app.include_router(msa_generation_controller)
+app.include_router(diffdock_router)
+app.include_router(umol_controller)
 add_domain_exception_middleware(app)
 
 app.add_middleware(

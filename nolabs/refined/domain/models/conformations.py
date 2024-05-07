@@ -5,15 +5,12 @@ __all__ = [
 from datetime import datetime
 from enum import Enum
 from typing import List
-from uuid import UUID
 
-from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
-    UUIDField, CASCADE, StringField, IntField, EnumField, BooleanField, BinaryField, DateTimeField, \
-    EmbeddedDocumentField
+from mongoengine import ReferenceField, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
+    CASCADE, StringField, IntField, EnumField, BooleanField, BinaryField, DateTimeField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.application.conformations.api_models import IntegratorsRequest
-from nolabs.refined.domain.models.common import Job, Protein, LocalisationProbability
+from nolabs.refined.domain.models.common import Job, Protein
 
 
 class Integrator(str, Enum):

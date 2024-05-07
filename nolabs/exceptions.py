@@ -70,6 +70,16 @@ class ErrorCodes(Enum):
     binding_pockets_prediction_run_error = ErrorCode(code=56, description="Binding pockets prediction run error")
     invalid_drug_likeness_score = ErrorCode(code=57, description='Invalid drug likeness score')
     invalid_designed_ligand_score = ErrorCode(code=58, description='Invalid designed ligand score')
+    invalid_binding_backend = ErrorCode(code=59, description='Invalid binding backend')
+    ligand_is_undefined = ErrorCode(code=60, description="Ligand is undefined")
+    sdf_content_is_undefined = ErrorCode(code=61, description="Sdf content is undefined")
+    binding_backend_is_undefined = ErrorCode(code=62, description="Binding backend is undefined")
+    ligand_not_found = ErrorCode(code=63, description="Ligand not found")
+    ligand_initialization_error = ErrorCode(code=64, description="Ligand initialization error")
+    diffdock_api_error = ErrorCode(code=65, description="Diffdock microservice api error")
+    protein_msa_is_empty = ErrorCode(code=66, description="Protein msa is empty")
+    ligand_smiles_is_empty = ErrorCode(code=67, description="Ligand smiles is empty")
+    ligand_not_found_in_job_inputs = ErrorCode(code=68, description='Ligand not found in job inputs')
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

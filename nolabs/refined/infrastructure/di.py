@@ -9,6 +9,8 @@ import protein_design_microservice
 import conformations_microservice
 import p2rank_microservice
 import msa_light_microservice
+import diffdock_microservice
+import umol_microservice
 
 from nolabs.refined.infrastructure.settings import Settings, MsaLightMicroserviceSettings
 
@@ -121,3 +123,21 @@ class InfrastructureDependencies:
     def msa_light_settings() -> MsaLightMicroserviceSettings:
         settings = Settings.load()
         return settings.msa_light
+
+    @staticmethod
+    def diffdock_microservice() -> diffdock_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = diffdock_microservice.Configuration(
+            host=settings.diffdock_microservice.microservice
+        )
+        client = diffdock_microservice.ApiClient(configuration=configuration)
+        return diffdock_microservice.DefaultApi(api_client=client)
+
+    @staticmethod
+    def umol_microservice() -> umol_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = umol_microservice.Configuration(
+            host=settings.umol_microservice.microservice
+        )
+        client = umol_microservice.ApiClient(configuration=configuration)
+        return umol_microservice.DefaultApi(api_client=client)

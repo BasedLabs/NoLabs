@@ -22,4 +22,4 @@ def add_domain_exception_middleware(app: FastAPI):
                 'errors': ['Unknown server error'],
                 'error_code': ErrorCodes.unknown_exception.value,
             }, headers={'Content-Type': 'application/problem+json'},
-                status_code=200)
+                status_code=500)

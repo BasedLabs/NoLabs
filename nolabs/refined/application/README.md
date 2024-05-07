@@ -1,19 +1,26 @@
-1 domain context per module
-Each context has
+## Application layer guide
 
-RunJobFeature - takes job_id as input and runs job, returns JobResponse
+One concern per one module inside `application`
+Each context has:
 
-SetupJobFeature - takes inputs (optional id, name, etc), experiment_id, and setups Job, returning JobResponse
+- RunJobFeature - takes job_id as input and runs job, returns JobResponse
 
-GetJobFeature - takes job_id as input and returns JobResponse
+- SetupJobFeature - takes inputs (optional id, name, etc), experiment_id, and setups Job, returns JobResponse
 
-GetJobStatusFeature - returns status of job
+- GetJobFeature - takes job_id as input and returns JobResponse
+
+- GetJobStatusFeature - returns status of job
 
 set_inputs on the job overrides previous results
 
-Dependencies methods must be Feature name without 'Feature' suffix
-Controller methods names must be Feature name without 'Feature' suffix
+Dependencies methods must be Feature name without 'Feature' suffix. GetJobFeature -> get_job
+Controller methods names must be Feature name without 'Feature' suffix RunJobFeature -> run_job
 
 Wrap features body in try catch with Exception -> NoLabsException wrapping
 
-# TODO add experiment id to responses
+# TODO
+- To set up domain models changes reflect jobs set_result
+- To change set_input for jobs to `__init__`
+- To add mappings between exceptions and return codes
+- Logging
+- Self code review
