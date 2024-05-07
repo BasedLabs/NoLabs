@@ -20,7 +20,7 @@ router = APIRouter(
 )
 
 
-@router.post('/jobs/start/{job_id}',
+@router.post('/jobs/run/{job_id}',
              summary='Start folding job')
 async def start_job(
         feature: Annotated[

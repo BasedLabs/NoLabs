@@ -143,11 +143,43 @@ class LigandName(ValueObjectString):
         return self
 
 
+@dataclass
+class DrugLikenessScore(ValueObjectFloat):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score)
+
+        if self.value < 0 or self.value > 1.0:
+            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score, 'Drug likeness score must be in a range [0,1.0]')
+
+        return self
+
+
+@dataclass
+class DesignedLigandScore(ValueObjectFloat):
+    """
+    Average weighted score of a designed ligand.
+    """
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        if not self.value:
+            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score)
+
+        if self.value < 0 or self.value > 1.0:
+            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score, 'Designed ligand score must be in a range [0,1.0]')
+
+        return self
+
+
 class Ligand(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     name: LigandName | None = ValueObjectStringField(required=False, factory=LigandName)
     smiles_content: bytes | None = BinaryField(required=True)
+
+    drug_likeness: DrugLikenessScore | None = ValueObjectFloatField(factory=DrugLikenessScore, required=False)
+    drug_score: DesignedLigandScore | None = FloatField(factory=DesignedLigandScore, required=False)
 
     def __init__(
             self,
@@ -197,6 +229,18 @@ class Ligand(Document, Entity):
             return self.smiles_content.decode('utf-8')
 
         return None
+
+    def set_drug_likeness_score(self, score: DrugLikenessScore):
+        if not score:
+            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score)
+
+        self.drug_likeness = score
+
+    def set_designed_ligand_score(self, score: DesignedLigandScore):
+        if not score:
+            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score)
+
+        self.drug_score = score
 
     @classmethod
     def create(cls, experiment: Experiment,

@@ -14,7 +14,8 @@ class JobResponse:
     binding_pockets: List[int]
 
 
-class SetupJobRequest(BaseModel):
+@dataclass
+class SetupJobRequest:
     job_id: Optional[UUID]
     job_name: Optional[str]
     experiment_id: UUID

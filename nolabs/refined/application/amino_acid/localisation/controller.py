@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.post('/jobs/start/{job_id}',
+@router.post('/jobs/run/{job_id}',
              summary='Start localisation job')
 async def run_job(
         feature: Annotated[

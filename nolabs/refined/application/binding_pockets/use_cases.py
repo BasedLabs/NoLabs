@@ -1,17 +1,17 @@
 __all__ = [
-    'SetManualBindingPocketsFeature',
-    'PredictBindingPocketsFeature',
-    'GetBindingPocketsFeature'
+    'GetJobFeature',
+    'RunJobFeature',
+    'SetupJobFeature',
+    'GetJobStatusFeature'
 ]
 
-from typing import List
+from typing import List, Tuple
 from uuid import UUID
 
 import p2rank_microservice
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.application.binding_pockets.api_models import BindingPocketsResponse, \
-    PredictBindingPocketsRequest, GetJobStatusResponse, JobResponse, SetupJobRequest
+from nolabs.refined.application.binding_pockets.api_models import GetJobStatusResponse, JobResponse, SetupJobRequest
 from nolabs.refined.domain.models import Protein, JobId, JobName, Experiment
 from nolabs.refined.domain.models.pocket_prediction import PocketPredictionJob
 from nolabs.utils import generate_uuid
@@ -88,17 +88,44 @@ class SetupJobFeature:
             raise e
 
 
+class RunJobFeature:
+    """
+    Use case - start job.
+    """
+    _api: p2rank_microservice.DefaultApi
 
+    def __init__(self, api: p2rank_microservice.DefaultApi):
+        self._api = api
 
-class SetManualBindingPocketsFeature:
-    async def handle(self, protein_id: UUID, binding_pockets: List[int]):
-        protein = Protein.objects.with_id(id=protein_id)
+    async def handle(self, job_id: UUID) -> JobResponse:
+        try:
+            assert job_id
 
-        if not protein:
-            raise NoLabsException(ErrorCodes.protein_not_found)
+            job_id = JobId(job_id)
+            job: PocketPredictionJob = PocketPredictionJob.objects.with_id(job_id.value)
 
-        protein.set_manual_binding_pockets(binding_pockets=binding_pockets)
-        protein.save()
+            if not job:
+                raise NoLabsException(ErrorCodes.job_not_found)
+
+            response = self._api.predict_run_p2rank_post(
+                run_p2_rank_prediction_request=p2rank_microservice.RunP2RankPredictionRequest(
+                    job_id=job_id,
+                    pdb_contents=job.protein.get_pdb()
+                )
+            )
+
+            job.set_result(protein=job.protein, pocket_ids=response.pocket_ids)
+            job.save(cascade=True)
+
+            job.protein.set_binding_pockets(binding_pockets=response.pocket_ids)
+            job.protein.save()
+
+            return map_job_to_response(job)
+        except Exception as e:
+            print(e)
+            if not isinstance(e, NoLabsException):
+                raise NoLabsException(ErrorCodes.unknown_exception) from e
+            raise e
 
 
 class GetJobStatusFeature:

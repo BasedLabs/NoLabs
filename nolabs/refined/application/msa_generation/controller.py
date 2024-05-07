@@ -7,11 +7,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Form, File, UploadFile
 
-from nolabs.refined.application.msa_generation.api_models import PredictMsaRequest, PredictMsaResponse, \
-    GetJobStatusResponse
+from nolabs.refined.application.msa_generation.api_models import GetJobStatusResponse, JobResponse, SetupJobRequest
 from nolabs.refined.application.msa_generation.di import MsaGenerationDependencies
-from nolabs.refined.application.msa_generation.use_cases import RunMsaGenerationJobFeature, GetJobStatusFeature, \
-    GetMsaPredictionJobResultFeature
+from nolabs.refined.application.msa_generation.use_cases import GetJobStatusFeature, RunJobFeature, GetJobFeature, \
+    SetupJobFeature
 
 router = APIRouter(
     prefix='/api/v1/msa-generation',
@@ -20,25 +19,30 @@ router = APIRouter(
 )
 
 
-@router.post('/jobs/start',
-             summary='Start msa generation job and get msa result')
-async def start(
-        feature: Annotated[
-            RunMsaGenerationJobFeature, Depends(MsaGenerationDependencies.start)],
-        request: PredictMsaRequest
-) -> PredictMsaResponse:
-    return await feature.handle(request=request)
+@router.post('/jobs/run/{job_id}')
+async def run_job(
+        feature: Annotated[RunJobFeature, Depends(MsaGenerationDependencies.run_job)],
+        job_id: UUID
+) -> JobResponse:
+    return await feature.handle(job_id=job_id)
 
 
 @router.get('/jobs/{job_id}',
-            summary='Get job execution result')
-async def job(job_id: UUID, feature: Annotated[
-    GetMsaPredictionJobResultFeature, Depends(MsaGenerationDependencies.get_job)]) -> PredictMsaResponse:
+            summary='Get job')
+async def get_job(job_id: UUID, feature: Annotated[
+    GetJobFeature, Depends(MsaGenerationDependencies.get_job)]) -> JobResponse:
     return await feature.handle(job_id=job_id)
 
 
 @router.get('/jobs/{job_id}/status',
             summary='Get job execution status')
-async def job(job_id: UUID, feature: Annotated[
-    GetJobStatusFeature, Depends(MsaGenerationDependencies.get_status)]) -> GetJobStatusResponse:
+async def get_job_status(job_id: UUID, feature: Annotated[
+    GetJobStatusFeature, Depends(MsaGenerationDependencies.get_job_status)]) -> GetJobStatusResponse:
     return await feature.handle(job_id=job_id)
+
+
+@router.post('/jobs',
+            summary='Setup job')
+async def get_job_status(request: SetupJobRequest, feature: Annotated[
+    SetupJobFeature, Depends(MsaGenerationDependencies.setup_job)]) -> JobResponse:
+    return await feature.handle(request=request)

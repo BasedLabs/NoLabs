@@ -67,6 +67,9 @@ class ErrorCodes(Enum):
     protein_not_found = ErrorCode(code=53, description="Protein not found")
     invalid_msa = ErrorCode(code=54, description="Invalid msa")
     protein_fasta_is_empty = ErrorCode(code=55, description="Protein fasta is empty")
+    binding_pockets_prediction_run_error = ErrorCode(code=56, description="Binding pockets prediction run error")
+    invalid_drug_likeness_score = ErrorCode(code=57, description='Invalid drug likeness score')
+    invalid_designed_ligand_score = ErrorCode(code=58, description='Invalid designed ligand score')
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

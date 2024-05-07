@@ -1,26 +1,18 @@
 __all__ = [
     'GetJobFeature',
     'RunJobFeature',
-    'Set'
+    'SetupJobFeature'
 ]
 
-import uuid
 from typing import List, Tuple
 from uuid import UUID
 
 from solubility_microservice import DefaultApi, RunSolubilityPredictionRequest
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.application.amino_acid.api_models import RunAminoAcidRequest
-from nolabs.refined.application.amino_acid.solubility.api_models import GetJobResponse, \
-    JobPropertiesResponse, \
-    AminoAcidResponse, JobFastaPropertyResponse, RunJobResponse, JobResponse, JobResult, SetupJobRequest
-from nolabs.refined.application.amino_acid.services import get_input_proteins
-from nolabs.refined.domain.models import LocalisationJob
-from nolabs.refined.domain.models.common import JobId, Experiment, ExperimentId, \
-    JobName, Protein, SolubleProbability
+from nolabs.refined.application.amino_acid.solubility.api_models import JobResponse, JobResult, SetupJobRequest
+from nolabs.refined.domain.models.common import JobId, Experiment, JobName, Protein, SolubleProbability
 from nolabs.refined.domain.models.solubility import SolubilityJob
-from nolabs.refined.infrastructure.settings import Settings
 from nolabs.utils import generate_uuid
 
 

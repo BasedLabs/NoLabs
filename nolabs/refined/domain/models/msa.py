@@ -27,6 +27,9 @@ class MsaGenerationJob(Job):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
+        if not protein.fasta_content:
+            raise NoLabsException(ErrorCodes.protein_fasta_is_empty, 'Cannot run msa job on empty fasta')
+
         self.protein = protein
 
     def clear_result(self):
@@ -35,6 +38,8 @@ class MsaGenerationJob(Job):
     def set_result(self,
                    protein: Protein,
                    msa: bytes | str):
+        msa = None
+
         if not self.protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 

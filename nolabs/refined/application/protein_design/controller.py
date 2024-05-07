@@ -2,16 +2,14 @@ __all__ = [
     'router',
 ]
 
-from typing import List, Annotated, Optional
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Form, File, UploadFile
+from fastapi import APIRouter, Depends
 
-from nolabs.refined.application.protein_design.api_models import RunProteinDesignRequest, GetJobResponse, \
-    RunProteinDesignResponse
+from nolabs.refined.application.protein_design.api_models import SetupJobRequest, JobResponse
 from nolabs.refined.application.protein_design.di import ProteinDesignDependencies
-from nolabs.refined.application.protein_design.use_cases import RunProteinDesignFeature, \
-    GetProteinDesignJobFeature
+from nolabs.refined.application.protein_design.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
 
 router = APIRouter(
     prefix='/api/v1/protein-design',
@@ -20,28 +18,23 @@ router = APIRouter(
 )
 
 
-@router.post('/jobs/start')
-async def inference(feature: Annotated[RunProteinDesignFeature, Depends(ProteinDesignDependencies.start)],
-                    job_id: UUID = Form(None),
-                    experiment_id: UUID = Form(),
-                    pdb_file: UploadFile = File(),
-                    contig: str = Form('50'),
-                    number_of_designs: int = Form(1),
-                    timesteps: int = Form(None),
-                    hotspots: str = Form(None),
-                    ) -> RunProteinDesignResponse:
-    return await feature.handle(RunProteinDesignRequest(
-        job_id=job_id,
-        experiment_id=experiment_id,
-        pdb_file=pdb_file,
-        contig=contig,
-        number_of_designs=number_of_designs,
-        timesteps=timesteps,
-        hotspots=hotspots
-    ))
+@router.post('/jobs/run/{job_id}')
+async def run_job(
+        feature: Annotated[RunJobFeature, Depends(ProteinDesignDependencies.run_job)],
+        job_id: UUID
+) -> JobResponse:
+    return await feature.handle(job_id=job_id)
 
 
-@router.get('/jobs/{job_id}')
-async def get_experiment(experiment_id: UUID, job_id: UUID, feature: Annotated[
-    GetProteinDesignJobFeature, Depends(ProteinDesignDependencies.get_job)]) -> GetJobResponse:
-    return await feature.handle(experiment_id=experiment_id, job_id=job_id)
+@router.get('/jobs/{job_id}',
+            summary='Get job')
+async def get_job(job_id: UUID, feature: Annotated[
+    GetJobFeature, Depends(ProteinDesignDependencies.get_job)]) -> JobResponse:
+    return await feature.handle(job_id=job_id)
+
+
+@router.post('/jobs',
+            summary='Setup job')
+async def get_job_status(request: SetupJobRequest, feature: Annotated[
+    SetupJobFeature, Depends(ProteinDesignDependencies.setup_job)]) -> JobResponse:
+    return await feature.handle(request=request)

@@ -26,7 +26,15 @@ class SmallMoleculesDesignJob(Job):
     minscore: float = FloatField(default=0.4),
     epochs: int = IntField(default=50)
 
+    sampling_size: int = IntField(default=5)
+
     ligands: List[Ligand] = ListField(ReferenceField(Ligand, required=False, reverse_delete_rule=PULL))
+
+    def change_sampling_size(self, sampling_size: int):
+        if not sampling_size or sampling_size <= 0:
+            raise NoLabsException(ErrorCodes.invalid_job_input)
+
+        self.sampling_size = sampling_size
 
     def set_inputs(self,
                    protein: Protein,
@@ -39,6 +47,8 @@ class SmallMoleculesDesignJob(Job):
                    batch_size: int,
                    minscore: float,
                    epochs: int):
+        self.ligands = []
+
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
@@ -87,11 +97,8 @@ class SmallMoleculesDesignJob(Job):
         self.minscore = minscore
         self.epochs = epochs
 
-    def clear_result(self):
-        self.ligands = []
-
-    def append_result(self, protein: Protein, ligand: Ligand):
-        if not ligand:
+    def set_result(self, protein: Protein, ligands: List[Ligand]):
+        if not ligands:
             raise NoLabsException(ErrorCodes.small_molecules_design_empty_output)
 
         if not self.protein:
@@ -100,11 +107,4 @@ class SmallMoleculesDesignJob(Job):
         if protein != protein:
             raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
-        if not protein.pdb_content:
-            raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
-
-        existing_result = [res for res in self.ligands if res.id == ligand.id]
-        if existing_result:
-            self.ligands = [res for res in self.ligands if res.id != ligand.id] + [ligand]
-        else:
-            self.ligands.append(ligand)
+        self.ligands = ligands

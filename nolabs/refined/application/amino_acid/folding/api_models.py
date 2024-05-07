@@ -36,20 +36,14 @@ class JobResponse:
     result: List[JobResult]
 
 
-class SetupJobRequest(BaseModel):
+@dataclass
+class SetupJobRequest:
     job_id: Optional[UUID]
     job_name: Optional[str]
     experiment_id: UUID
 
     backend: Optional[FoldingBackendEnum]
     proteins: List[UUID]
-
-    @classmethod
-    @model_validator(mode='after')
-    def check_inputs(cls, data: Any) -> Any:
-        if not data.amino_acids:
-            raise ValueError('You did not provide proteins')
-        return data
 
 
 @dataclass

@@ -12,5 +12,8 @@ GetJobStatusFeature - returns status of job
 set_inputs on the job overrides previous results
 
 Dependencies methods must be Feature name without 'Feature' suffix
+Controller methods names must be Feature name without 'Feature' suffix
 
 Wrap features body in try catch with Exception -> NoLabsException wrapping
+
+# TODO add experiment id to responses

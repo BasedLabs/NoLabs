@@ -65,6 +65,9 @@ class ConformationsJob(Job):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
+        if not protein.pdb_content:
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Cannot run conformations on protein without pdb specified')
+
         if not total_frames or total_frames <= 0:
             raise NoLabsException(ErrorCodes.invalid_job_input, ['Total frames must be greater than 0'])
 

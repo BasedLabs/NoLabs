@@ -5,25 +5,25 @@ from typing import Annotated
 import msa_light_microservice
 from fastapi import Depends
 
-from nolabs.refined.application.msa_generation.use_cases import RunMsaGenerationJobFeature, GetJobStatusFeature, \
-    GetMsaPredictionJobResultFeature
+from nolabs.refined.application.msa_generation.use_cases import RunJobFeature, GetJobStatusFeature, GetJobFeature, \
+    SetupJobFeature
 from nolabs.refined.infrastructure.settings import MsaLightMicroserviceSettings
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
 
 
 class MsaGenerationDependencies:
     @staticmethod
-    def start(
+    def run_job(
             settings: Annotated[MsaLightMicroserviceSettings, Depends(InfrastructureDependencies.msa_light_settings)],
             api: Annotated[msa_light_microservice.DefaultApi, Depends(InfrastructureDependencies.msa_light_microservice)],
-    ) -> RunMsaGenerationJobFeature:
-        return RunMsaGenerationJobFeature(
+    ) -> RunJobFeature:
+        return RunJobFeature(
             settings=settings,
             api=api
         )
 
     @staticmethod
-    def get_status(
+    def get_job_status(
             api: Annotated[msa_light_microservice.DefaultApi, Depends(InfrastructureDependencies.msa_light_microservice)]
     ) -> GetJobStatusFeature:
         return GetJobStatusFeature(
@@ -31,5 +31,9 @@ class MsaGenerationDependencies:
         )
 
     @staticmethod
-    def get_job() -> GetMsaPredictionJobResultFeature:
-        return GetMsaPredictionJobResultFeature()
+    def get_job() -> GetJobFeature:
+        return GetJobFeature()
+
+    @staticmethod
+    def setup_job() -> SetupJobFeature:
+        return SetupJobFeature()

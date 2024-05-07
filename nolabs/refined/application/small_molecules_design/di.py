@@ -29,16 +29,16 @@ class SmallMoleculesDesignDependencies:
         return GetJobSmilesFeature(api=api)
 
     @staticmethod
-    def save_properties(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> SavePropertiesFeature:
-        return SavePropertiesFeature(api=api)
+    def setup_job(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> SetupJobFeature:
+        return SetupJobFeature(api=api)
 
     @staticmethod
-    def start_learning(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> StartLearningJobFeature:
-        return StartLearningJobFeature(api=api)
+    def run_learning(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> RunLearningStageJobFeature:
+        return RunLearningStageJobFeature(api=api)
 
     @staticmethod
-    def start_sampling(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> StartSamplingJobFeature:
-        return StartSamplingJobFeature(api=api)
+    def run_sampling(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> RunSamplingStageJobFeature:
+        return RunSamplingStageJobFeature(api=api)
 
     @staticmethod
     def stop_job(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> StopJobFeature:

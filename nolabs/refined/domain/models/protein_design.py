@@ -51,7 +51,9 @@ class ProteinDesignJob(Job):
 
     def set_result(self,
                    protein: Protein,
-                   binder: Protein):
+                   binders: List[Protein]):
+        self.binders = []
+
         if not self.protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
@@ -61,8 +63,4 @@ class ProteinDesignJob(Job):
         if not protein.pdb_content:
             raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
 
-        for existing_binder in self.binders:
-            if existing_binder == binder:
-                return
-
-        self.binders.append(binder)
+        self.binders = binders

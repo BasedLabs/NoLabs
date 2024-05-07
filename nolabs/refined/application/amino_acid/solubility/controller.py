@@ -18,7 +18,7 @@ router = fastapi.APIRouter(
 )
 
 
-@router.post('/jobs/start/{job_id}',
+@router.post('/jobs/run/{job_id}',
              summary='Start solubility probability determination job and get probability of protein being soluble')
 async def run_job(
         feature: Annotated[

@@ -7,46 +7,38 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class RunProteinDesignRequest:
+class JobResponse:
     job_id: UUID
+    job_name: str
     experiment_id: UUID
-    pdb_file: Optional[UploadFile] = None
-    contig: str = '50'
+    protein_id: UUID
+
+    binder_ids: List[UUID]
+
     number_of_designs: int = 1
     timesteps: Optional[int] = None
     hotspots: Optional[str] = None
 
 
 @dataclass
-class RunProteinDesignResponse:
-    job_id: UUID
-    pdb_files: List[str]
+class SetupJobRequest:
+    job_id: Optional[UUID]
+    job_name: Optional[str]
+    experiment_id: UUID
+    protein_id: UUID
 
+    binder_ids: List[UUID]
 
-@dataclass
-class JobPropertiesResponse:
-    pdb_file: str
-    pdb_file_name: str
-    contig: str
-    number_of_designs: int
-    hotspots: Optional[str] = None
+    number_of_designs: int = 1
     timesteps: Optional[int] = None
-
-    @staticmethod
-    def default() -> JobPropertiesResponse:
-        return JobPropertiesResponse(
-            pdb_file='',
-            pdb_file_name='',
-            contig='',
-            number_of_designs=2,
-            hotspots=None,
-            timesteps=None
-        )
+    hotspots: Optional[str] = None
 
 
 @dataclass
-class GetJobResponse:
+class RunJobRequest:
     job_id: UUID
-    job_name: str
-    pdb_files: List[str]
-    properties: JobPropertiesResponse
+
+
+@dataclass
+class GetJobStatusResponse:
+    running: bool
