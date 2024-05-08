@@ -86,6 +86,15 @@ class Experiment(Document, Entity):
 
         self.name = name
 
+    def __hash__(self):
+        return self.iid.__hash__()
+
+    def __eq__(self, other):
+        if isinstance(other, Experiment):
+            return self.iid == other.iid
+
+        return False
+
 
 @dataclass
 class ProteinName(ValueObjectString):
@@ -299,7 +308,7 @@ class Protein(Document, Entity):
                name: ProteinName,
                fasta_content: Union[bytes, str, None] = None,
                pdb_content: Union[bytes, str, None] = None):
-        proteins = cls.objects.filter(name=name.value, experiment=experiment)
+        proteins = cls.objects(name=name.value, experiment=experiment)
         if proteins:
             protein: Protein = proteins[0]
 
@@ -516,7 +525,7 @@ class Ligand(Document, Entity):
                name: LigandName | None = None,
                smiles_content: Union[bytes, str, None] = None,
                sdf_content: Union[bytes, str, None] = None) -> 'Ligand':
-        ligands = cls.objects.filter(name=name.value, experiment=experiment)
+        ligands = cls.objects(name=name.value, experiment=experiment)
         if ligands:
             ligand: Ligand = ligands[0]
 

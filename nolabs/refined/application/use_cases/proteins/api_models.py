@@ -1,11 +1,12 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from uuid import UUID
 
+from fastapi import UploadFile
 from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class ProteinLocalisation:
+class ProteinLocalisationResponse:
     cytosolic: float
     mitochondrial: float
     nuclear: float
@@ -14,14 +15,28 @@ class ProteinLocalisation:
 
 
 @dataclass
-class Protein:
+class ProteinResponse:
     id: UUID
     name: str
     experiment_id: UUID
-    fasta_content: str | None
-    pdb_content: str | None
-    localisation: ProteinLocalisation
-    gene_ontology: Dict[str, Any]
-    soluble_probability: float
-    msa: str | None
-    md_pdb_content: str | None
+    fasta_content: Optional[str]
+    pdb_content: Optional[str]
+    localisation: Optional[ProteinLocalisationResponse]
+    gene_ontology: Optional[Dict[str, Any]]
+    soluble_probability: Optional[float]
+    msa: Optional[str]
+    md_pdb_content: Optional[str]
+
+
+@dataclass
+class ProteinSearchQuery:
+    name: Optional[str]
+    experiment_id: Optional[UUID]
+
+
+@dataclass
+class UploadProteinRequest:
+    experiment_id: UUID
+    name: Optional[str]
+    fasta: Optional[UploadFile]
+    pdb: Optional[UploadFile]

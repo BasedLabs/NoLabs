@@ -14,6 +14,8 @@ from nolabs.refined.application.use_cases.msa_generation.controller import route
 from nolabs.refined.application.use_cases.umol.controller import router as umol_controller
 from nolabs.refined.application.event_handlers.di import EventHandlersDependencies
 from nolabs.refined.application.use_cases.diffdock.controller import router as diffdock_router
+from nolabs.refined.application.use_cases.proteins.controller import router as proteins_router
+from nolabs.refined.application.use_cases.ligands.controller import router as ligand_router
 from nolabs.refined.infrastructure.mongo_connector import mongo_connect
 from nolabs.refined.infrastructure.settings import Settings
 
@@ -45,6 +47,8 @@ app.include_router(binding_pockets_controller)
 app.include_router(msa_generation_controller)
 app.include_router(diffdock_router)
 app.include_router(umol_controller)
+app.include_router(proteins_router)
+app.include_router(ligand_router)
 add_domain_exception_middleware(app)
 
 app.add_middleware(

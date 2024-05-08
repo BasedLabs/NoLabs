@@ -29,7 +29,7 @@ class JobResponse:
     job_name: str
     samples_per_complex: int
     protein_id: UUID
-    ligand_ids: List[UUID]
+    ligand_id: UUID
     result: List[JobResult]
 
 
@@ -39,7 +39,7 @@ class SetupJobRequest:
     job_name: Optional[str]
     experiment_id: UUID
     protein_id: UUID
-    ligand_ids: List[UUID]
+    ligand_id: UUID
     samples_per_complex: Optional[int] = 40
 
 

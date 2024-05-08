@@ -26,7 +26,7 @@ def map_job_to_response(job: DiffDockBindingJob) -> JobResponse:
         job_name=job.name.value,
         samples_per_complex=job.samples_per_complex,
         protein_id=job.protein.iid.value,
-        ligand_ids=[l.iid.value for l in job.ligands],
+        ligand_id=job.ligand.iid.value,
         result=[
             JobResult(
                 ligand_id=res.ligand_id,
@@ -92,15 +92,12 @@ class SetupJobFeature:
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)
 
-            ligands: List[Ligand] = []
-            for ligand_id in request.ligand_ids:
-                ligand = Ligand.objects.with_id(ligand_id)
-                if not ligand:
-                    raise NoLabsException(ErrorCodes.ligand_is_undefined)
-                ligands.append(ligand)
+            ligand = Ligand.objects.with_id(request.ligand_id)
+            if not ligand:
+                raise NoLabsException(ErrorCodes.ligand_is_undefined)
 
             job.set_input(protein=protein,
-                          ligands=ligands,
+                          ligand=ligand,
                           samples_per_complex=request.samples_per_complex)
             job.save(cascade=True)
 
@@ -162,40 +159,41 @@ class RunJobFeature:
 
             result: List[DiffDockJobResult] = []
 
-            for ligand in job.ligands:
-                request = diffdock_microservice.RunDiffDockPredictionRequest(pdb_contents=job.protein.get_pdb(),
-                                                                             sdf_contents=ligand.get_sdf(),
-                                                                             samples_per_complex=job.samples_per_complex,
-                                                                             job_id=job_id.value,
-                                                                             )
-                response = self._diffdock.predict_run_docking_post(
-                    run_diff_dock_prediction_request=request, _request_timeout=(1000.0, 1000.0))
+            ligand = job.ligand
 
-                if not response.success:
-                    raise NoLabsException(ErrorCodes.diffdock_api_error, response.message)
+            request = diffdock_microservice.RunDiffDockPredictionRequest(pdb_contents=job.protein.get_pdb(),
+                                                                         sdf_contents=ligand.get_sdf(),
+                                                                         samples_per_complex=job.samples_per_complex,
+                                                                         job_id=job_id.value,
+                                                                         )
+            response = self._diffdock.predict_run_docking_post(
+                run_diff_dock_prediction_request=request, _request_timeout=(1000.0, 1000.0))
 
-                for item in response.sdf_results:
-                    ligand.add_binding(
-                        protein=job.protein,
+            if not response.success:
+                raise NoLabsException(ErrorCodes.diffdock_api_error, response.message)
+
+            for item in response.sdf_results:
+                ligand.add_binding(
+                    protein=job.protein,
+                    sdf_content=item.sdf_content,
+                    minimized_affinity=item.minimized_affinity,
+                    scored_affinity=item.scored_affinity,
+                    confidence=item.confidence,
+                    plddt_array=[]
+                )
+                ligand.save(cascade=True)
+                result.append(
+                    DiffDockJobResult(
+                        ligand_id=ligand.iid.value,
                         sdf_content=item.sdf_content,
                         minimized_affinity=item.minimized_affinity,
                         scored_affinity=item.scored_affinity,
-                        confidence=item.confidence,
-                        plddt_array=[]
+                        confidence=item.confidence
                     )
-                    ligand.save(cascade=True)
-                    result.append(
-                        DiffDockJobResult(
-                            ligand_id=ligand.iid.value,
-                            sdf_content=item.sdf_content,
-                            minimized_affinity=item.minimized_affinity,
-                            scored_affinity=item.scored_affinity,
-                            confidence=item.confidence
-                        )
-                    )
+                )
 
             job.set_result(protein=job.protein,
-                           ligands=job.ligands,
+                           ligand=ligand,
                            result=result)
             job.save(cascade=True)
 

@@ -157,8 +157,7 @@ class RunJobFeature:
                 job_id=job_id.value,
                 msa_content=job.protein.get_msa()
             )
-            response = self._umol.predict_run_umol_post(run_umol_prediction_request=request,
-                                                        _request_timeout=(1000.0, 1000.0))
+            response = self._umol.predict_run_umol_post(run_umol_prediction_request=request)
 
             if response.errors:
                 raise NoLabsException(ErrorCodes.diffdock_api_error, response.errors)

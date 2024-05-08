@@ -40,14 +40,14 @@ class DiffDockJobResult(EmbeddedDocument):
 
 class DiffDockBindingJob(Job):
     protein: Protein = ReferenceField(Protein, required=False, reverse_delete_rule=CASCADE)
-    ligands: List[Ligand] = ListField(ReferenceField(Ligand, required=False, reverse_delete_rule=PULL))
+    ligand: Ligand = ReferenceField(Ligand, required=False, reverse_delete_rule=CASCADE)
     samples_per_complex: int = IntField(required=False, default=40)
 
     result: List[DiffDockJobResult] = EmbeddedDocumentListField(DiffDockJobResult)
 
     def set_input(self,
                   protein: Protein,
-                  ligands: List[Ligand],
+                  ligand: Ligand,
                   samples_per_complex: int
                   ):
         if not protein:
@@ -56,19 +56,19 @@ class DiffDockBindingJob(Job):
         if not protein.pdb_content:
             raise NoLabsException(ErrorCodes.protein_pdb_is_empty, 'Cannot run binding job on empty pdb')
 
-        if not ligands:
-            raise NoLabsException(ErrorCodes.ligand_is_undefined, 'Empty ligands input')
+        if not ligand:
+            raise NoLabsException(ErrorCodes.ligand_is_undefined, 'Empty ligand input')
 
         if samples_per_complex <= 0:
             raise NoLabsException(ErrorCodes.invalid_job_input, 'Samples per complex must be greater than 0')
 
         self.protein = protein
-        self.ligands = ligands
+        self.ligand = ligand
         self.samples_per_complex = samples_per_complex
 
     def set_result(self,
                    protein: Protein,
-                   ligands: List[Ligand],
+                   ligand: Ligand,
                    result: List[DiffDockJobResult]):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
@@ -76,7 +76,7 @@ class DiffDockBindingJob(Job):
         if protein != self.protein:
             raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
-        if set(l.iid for l in self.ligands) != set(l.iid for l in ligands):
+        if not ligand or ligand != self.ligand:
             raise NoLabsException(ErrorCodes.invalid_job_input, 'Some or all of ligands were not a part of job input')
 
         if not result:
