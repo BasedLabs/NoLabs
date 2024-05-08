@@ -7,11 +7,11 @@ from enum import Enum
 from typing import List, Tuple
 from uuid import UUID
 
-from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
-    UUIDField, BinaryField, StringField, EnumField
+from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, EmbeddedDocumentListField, \
+    UUIDField, BinaryField, EnumField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.domain.models.common import Job, Protein, LocalisationProbability
+from nolabs.refined.domain.models.common import Job, Protein
 
 
 class FoldingBackendEnum(str, Enum):
@@ -31,19 +31,24 @@ class FoldingJobResult(EmbeddedDocument):
 
 
 class FoldingJob(Job):
-    proteins: List[Protein] = ListField(ReferenceField(Protein, required=False, reverse_delete_rule=PULL))
+    # region Inputs
+
+    proteins: List[Protein] = ListField(ReferenceField(Protein, required=True, reverse_delete_rule=PULL))
+    backend: FoldingBackendEnum = EnumField(FoldingBackendEnum, required=True)
+
+    # endregion
+
     foldings: List[FoldingJobResult] = EmbeddedDocumentListField(FoldingJobResult)
-    backend: FoldingBackendEnum = EnumField(FoldingBackendEnum, required=False)
 
     def set_inputs(self, proteins: List[Protein], backend: FoldingBackendEnum):
         self.foldings = []
 
         if not proteins:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Protein was not found')
 
         for protein in proteins:
             if not Protein.objects.with_id(protein.iid.value):
-                raise NoLabsException(ErrorCodes.protein_not_found)
+                raise NoLabsException(ErrorCodes.invalid_job_input, 'Protein was not found in list of proteins')
 
         self.backend = backend
         self.proteins = proteins
@@ -59,7 +64,7 @@ class FoldingJob(Job):
 
         for protein, pdb in result:
             if not [p for p in self.proteins if p.iid == protein.iid]:
-                continue
+                raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
             self.foldings.append(
                 FoldingJobResult(

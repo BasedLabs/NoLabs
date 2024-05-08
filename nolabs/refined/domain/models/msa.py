@@ -13,23 +13,26 @@ from nolabs.refined.domain.models.common import Job, Protein, LocalisationProbab
 
 
 class MsaGenerationJob(Job):
-    protein: Protein | None = ReferenceField(Protein, required=False, reverse_delete_rule=CASCADE)
-    msa: bytes | None = BinaryField(required=False)
+    # region Inputs
+
+    protein: Protein | None = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+    msa: bytes | None = BinaryField(required=True)
+
+    # endregion
 
     contig: str = StringField(required=False)
     number_of_designs: int = IntField(required=False, default=2)
     hotspots: str = StringField(required=False)
     timesteps: int = IntField(required=False, default=50)
 
-    def set_input(self,
-                  protein: Protein
-                  ):
+    def set_input(self, protein: Protein):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
         if not protein.fasta_content:
             raise NoLabsException(ErrorCodes.protein_fasta_is_empty, 'Cannot run msa job on empty fasta')
 
+        self.clear_result()
         self.protein = protein
 
     def clear_result(self):

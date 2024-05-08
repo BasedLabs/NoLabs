@@ -9,16 +9,15 @@ __all__ = ['Protein',
            'ProteinCreatedEvent']
 
 import datetime
-import os
 import uuid
-from functools import cached_property, lru_cache
+from functools import lru_cache
 from pathlib import Path
 from typing import Union, Dict, Any, List
 from uuid import UUID
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
-    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, PULL, IntField, \
-    EmbeddedDocumentListField, Q
+    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
+    Q
 from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from typing_extensions import Self
@@ -35,8 +34,11 @@ from nolabs.seedwork.domain.value_objects import ValueObject, ValueObjectString,
 class ExperimentId(ValueObjectUUID):
     @model_validator(mode='after')
     def post_root(self) -> Self:
-        if not self.value:
+        try:
+            uuid.UUID(str(self.value))
+        except ValueError:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
+
         return self
 
     def __eq__(self, other):
@@ -53,13 +55,13 @@ class ExperimentName(ValueObjectString):
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_experiment_name)
 
-        if len(self.value) < 1 or len(self.value) > 1000:
+        if len(self.value) > 1000:
             raise NoLabsException(ErrorCodes.invalid_experiment_name)
         return self
 
 
 class Experiment(Document, Entity):
-    id: UUID = UUIDField(primary_key=True, required=True)
+    id: UUID = UUIDField(primary_key=True)
     name: ExperimentName = ValueObjectStringField(required=True, factory=ExperimentName)
     created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
 
@@ -103,7 +105,7 @@ class ProteinName(ValueObjectString):
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_protein_name)
 
-        if len(self.value) < 1 or len(self.value) > 1000:
+        if len(self.value) > 1000:
             raise NoLabsException(ErrorCodes.invalid_protein_name)
 
         value = Path(self.value).stem
@@ -127,7 +129,9 @@ class ProteinName(ValueObjectString):
 class ProteinId(ValueObjectUUID):
     @model_validator(mode='after')
     def post_root(self) -> Self:
-        if not self.value:
+        try:
+            uuid.UUID(str(self.value))
+        except ValueError:
             raise NoLabsException(ErrorCodes.invalid_protein_id)
 
         return self
@@ -177,8 +181,9 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
             *args,
             **kwargs)
 
+
 class Protein(Document, Entity):
-    id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
+    id: UUID = UUIDField(primary_key=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     name: ProteinName = ValueObjectStringField(required=True, factory=ProteinName)
     fasta_content: bytes | None = BinaryField(required=False)
@@ -193,37 +198,38 @@ class Protein(Document, Entity):
     Conformations content
     '''
 
-    def __init__(
-            self,
-            id: ProteinId,
-            experiment: Experiment,
-            name: ProteinName,
-            fasta_content: Union[bytes, str, None] = None,
-            pdb_content: Union[bytes, str, None] = None,
-            *args,
-            **kwargs
-    ):
-        if not id:
-            raise NoLabsException(ErrorCodes.invalid_protein_id)
-        if not name:
-            raise NoLabsException(ErrorCodes.invalid_protein_name)
-        if not experiment:
-            raise NoLabsException(ErrorCodes.invalid_experiment_id)
-
-        if isinstance(fasta_content, str):
-            fasta_content = fasta_content.encode('utf-8')
-
-        if isinstance(fasta_content, str):
-            pdb_content = pdb_content.encode('utf-8')
-
-        super().__init__(id=id.value if isinstance(id, ProteinId) else id,
-                         experiment=experiment,
-                         name=name,
-                         fasta_content=fasta_content,
-                         pdb_content=pdb_content,
-                         *args, **kwargs)
-
-        EventDispatcher.raise_event(ProteinCreatedEvent(self))
+    # TODO check if we need this
+    # def __init__(
+    #         self,
+    #         id: ProteinId,
+    #         experiment: Experiment,
+    #         name: ProteinName,
+    #         fasta_content: Union[bytes, str, None] = None,
+    #         pdb_content: Union[bytes, str, None] = None,
+    #         *args,
+    #         **kwargs
+    # ):
+    #     if not id:
+    #         raise NoLabsException(ErrorCodes.invalid_protein_id)
+    #     if not name:
+    #         raise NoLabsException(ErrorCodes.invalid_protein_name)
+    #     if not experiment:
+    #         raise NoLabsException(ErrorCodes.invalid_experiment_id)
+#
+    #     if isinstance(fasta_content, str):
+    #         fasta_content = fasta_content.encode('utf-8')
+#
+    #     if isinstance(fasta_content, str):
+    #         pdb_content = pdb_content.encode('utf-8')
+#
+    #     super().__init__(id=id.value if isinstance(id, ProteinId) else id,
+    #                      experiment=experiment,
+    #                      name=name,
+    #                      fasta_content=fasta_content,
+    #                      pdb_content=pdb_content,
+    #                      *args, **kwargs)
+#
+    #     EventDispatcher.raise_event(ProteinCreatedEvent(self))
 
     def get_msa(self) -> str | None:
         if self.msa:
@@ -244,6 +250,7 @@ class Protein(Document, Entity):
     def set_name(self, name: ProteinName):
         if not name:
             raise NoLabsException(ErrorCodes.invalid_protein_name)
+
         self.name = name
 
     def set_fasta(self, fasta_content: Union[bytes, str]):
@@ -307,7 +314,26 @@ class Protein(Document, Entity):
     def create(cls, experiment: Experiment,
                name: ProteinName,
                fasta_content: Union[bytes, str, None] = None,
-               pdb_content: Union[bytes, str, None] = None):
+               pdb_content: Union[bytes, str, None] = None,
+               *args,
+               **kwargs):
+        if not id:
+            raise NoLabsException(ErrorCodes.invalid_protein_id)
+
+        if not name:
+            raise NoLabsException(ErrorCodes.invalid_protein_name)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
+
+        if fasta_content and isinstance(fasta_content, str):
+            fasta_content = fasta_content.encode('utf-8')
+
+        if pdb_content and isinstance(fasta_content, str):
+            pdb_content = pdb_content.encode('utf-8')
+
+        if not fasta_content and not pdb_content:
+            raise NoLabsException(ErrorCodes.protein_initialization_error)
+
         proteins = cls.objects(name=name.value, experiment=experiment)
         if proteins:
             protein: Protein = proteins[0]
@@ -321,13 +347,19 @@ class Protein(Document, Entity):
             protein.set_name(name)
             return protein
 
-        return Protein(
-            ProteinId(uuid.uuid4()),
+        protein = Protein(
+            id=ProteinId(uuid.uuid4()).value,
             experiment=experiment,
             name=name,
             fasta_content=fasta_content,
-            pdb_content=pdb_content
+            pdb_content=pdb_content,
+            *args,
+            **kwargs
         )
+
+        EventDispatcher.raise_event(ProteinCreatedEvent(protein))
+
+        return protein
 
     def set_localisation_probability(self, localisation: LocalisationProbability):
         if not localisation:
@@ -356,7 +388,7 @@ class Protein(Document, Entity):
         self.msa = msa
 
     def __hash__(self):
-        return hash(self.iid)
+        return self.iid.__hash__
 
     def __eq__(self, other):
         if not isinstance(other, Protein):
@@ -369,7 +401,9 @@ class Protein(Document, Entity):
 class LigandId(ValueObjectUUID):
     @model_validator(mode='after')
     def post_root(self) -> Self:
-        if not self.value:
+        try:
+            uuid.UUID(str(self.value))
+        except ValueError:
             raise NoLabsException(ErrorCodes.invalid_ligand_id)
 
         return self
@@ -417,8 +451,6 @@ class DesignedLigandScore(ValueObjectFloat):
         return self
 
 
-
-
 class Ligand(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
@@ -429,41 +461,42 @@ class Ligand(Document, Entity):
     drug_likeness: DrugLikenessScore | None = ValueObjectFloatField(factory=DrugLikenessScore, required=False)
     designed_ligand_score: DesignedLigandScore | None = FloatField(factory=DesignedLigandScore, required=False)
 
-    def __init__(
-            self,
-            id: LigandId,
-            experiment: Experiment,
-            name: LigandName,
-            smiles_content: Union[bytes, str, None] = None,
-            sdf_content: Union[bytes, str, None] = None,
-            *args,
-            **kwargs
-    ):
-        if not id:
-            raise NoLabsException(ErrorCodes.invalid_ligand_id)
-        if not name:
-            raise NoLabsException(ErrorCodes.invalid_ligand_name)
-        if not experiment:
-            raise NoLabsException(ErrorCodes.invalid_experiment_id)
+   # TODO to check if we need it
+   #def __init__(
+   #        self,
+   #        id: LigandId,
+   #        experiment: Experiment,
+   #        name: LigandName,
+   #        smiles_content: Union[bytes, str, None] = None,
+   #        sdf_content: Union[bytes, str, None] = None,
+   #        *args,
+   #        **kwargs
+   #):
+   #    if not id:
+   #        raise NoLabsException(ErrorCodes.invalid_ligand_id)
+   #    if not name:
+   #        raise NoLabsException(ErrorCodes.invalid_ligand_name)
+   #    if not experiment:
+   #        raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
-        if not smiles_content and not sdf_content:
-            raise NoLabsException(ErrorCodes.ligand_initialization_error,
-                                  'Cannot create a ligand without smiles and sdf content')
+   #    if not smiles_content and not sdf_content:
+   #        raise NoLabsException(ErrorCodes.ligand_initialization_error,
+   #                              'Cannot create a ligand without smiles and sdf content')
 
-        if smiles_content:
-            self.set_smiles(smiles_content)
+   #    if smiles_content:
+   #        self.set_smiles(smiles_content)
 
-        if sdf_content:
-            self.set_sdf(sdf_content)
+   #    if sdf_content:
+   #        self.set_sdf(sdf_content)
 
-        super().__init__(id=id.value if isinstance(id, LigandId) else id,
-                         experiment=experiment,
-                         name=name,
-                         smiles_content=smiles_content,
-                         sdf_content=sdf_content,
-                         *args, **kwargs)
+   #    super().__init__(id=id.value if isinstance(id, LigandId) else id,
+   #                     experiment=experiment,
+   #                     name=name,
+   #                     smiles_content=smiles_content,
+   #                     sdf_content=sdf_content,
+   #                     *args, **kwargs)
 
-        EventDispatcher.raise_event(LigandCreatedEvent(self))
+   #    EventDispatcher.raise_event(LigandCreatedEvent(self))
 
     def __hash__(self):
         return self.iid.__hash__()
@@ -524,7 +557,26 @@ class Ligand(Document, Entity):
     def create(cls, experiment: Experiment,
                name: LigandName | None = None,
                smiles_content: Union[bytes, str, None] = None,
-               sdf_content: Union[bytes, str, None] = None) -> 'Ligand':
+               sdf_content: Union[bytes, str, None] = None,
+               *args,
+               **kwargs) -> 'Ligand':
+        if not id:
+            raise NoLabsException(ErrorCodes.invalid_ligand_id)
+        if not name:
+            raise NoLabsException(ErrorCodes.invalid_ligand_name)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.invalid_experiment_id)
+
+        if not smiles_content and not sdf_content:
+            raise NoLabsException(ErrorCodes.ligand_initialization_error,
+                                  'Cannot create a ligand without smiles and sdf content')
+
+        if smiles_content and isinstance(smiles_content, str):
+            smiles_content = smiles_content.encode()
+
+        if sdf_content and isinstance(sdf_content, str):
+            sdf_content = sdf_content.encode()
+
         ligands = cls.objects(name=name.value, experiment=experiment)
         if ligands:
             ligand: Ligand = ligands[0]
@@ -536,11 +588,13 @@ class Ligand(Document, Entity):
             return ligand
 
         return Ligand(
-            LigandId(uuid.uuid4()),
+            id=LigandId(uuid.uuid4()).value,
             experiment=experiment,
             name=name,
             smilesContent=smiles_content,
-            sdf_content=sdf_content
+            sdf_content=sdf_content,
+            *args,
+            **kwargs
         )
 
     def add_binding(self,
@@ -551,7 +605,6 @@ class Ligand(Document, Entity):
                     confidence: float | None,
                     plddt_array: List[int],
                     pdb_content: bytes | str | None = None):
-
         if not protein:
             raise NoLabsException(ErrorCodes.protein_is_undefined)
 
@@ -584,10 +637,10 @@ class Ligand(Document, Entity):
             confidence=confidence,
             plddt_array=plddt_array,
             pdb_content=pdb_content
-        ).save()
+        ).save() # TODO to check maybe save is not relevant here
 
     def get_bindings(self) -> List['LigandBinder']:
-        return LigandBinder.objects.filter(ligand=self)
+        return LigandBinder.objects(ligand=self)
 
 
 @dataclass
@@ -596,8 +649,11 @@ class JobId(ValueObjectUUID):
 
     @model_validator(mode='after')
     def post_root(self) -> Self:
-        if not self.value:
+        try:
+            uuid.UUID(str(self.value))
+        except ValueError:
             raise NoLabsException(ErrorCodes.invalid_job_id)
+
         return self
 
 
@@ -608,12 +664,9 @@ class JobName(ValueObjectString):
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_job_name)
 
-        if len(self.value) < 1 or len(self.value) > 100:
+        if len(self.value) > 100:
             raise NoLabsException(ErrorCodes.invalid_job_name)
         return self
-
-
-
 
 
 class Job(Document, Entity):

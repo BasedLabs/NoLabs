@@ -142,7 +142,7 @@ class SetupJobFeature:
 
                 proteins.append(protein)
 
-            job.set_proteins(proteins=proteins)
+            job.set_input(proteins=proteins)
             job.save(cascade=True)
 
             return map_job_to_response(job)

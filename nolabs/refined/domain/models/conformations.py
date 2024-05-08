@@ -31,20 +31,28 @@ class ConformationsTimeline(EmbeddedDocument):
 
 
 class ConformationsJob(Job):
-    protein: Protein | None = ReferenceField(Protein, required=False, reverse_delete_rule=CASCADE)
+    # region Inputs
+    protein: Protein | None = ReferenceField(Protein, reverse_delete_rule=CASCADE, required=True)
+
+    integrator: Integrator = EnumField(Integrator, default=Integrator.langevin, required=True)
+    total_frames: int = IntField(default=10000, required=True)
+    temperature_k: float = FloatField(default=273.15, required=True)
+    take_frame_every: int = IntField(default=1000, required=True)
+    step_size: float = FloatField(default=0.002, required=True)
+    replace_non_standard_residues: bool = BooleanField(default=False, required=True)
+    add_missing_atoms: bool = BooleanField(default=False, required=True)
+    add_missing_hydrogens: bool = BooleanField(default=False, required=True)
+    friction_coeff: float = FloatField(default=1.0, required=True)
+    ignore_missing_atoms: bool = BooleanField(default=False, required=True)
+
+    # endregion
+
+    # region Outputs
+
     md_content: bytes | None = BinaryField(required=False)
     timeline: List[ConformationsTimeline] = EmbeddedDocumentListField(ConformationsTimeline, required=False)
 
-    integrator: Integrator = EnumField(Integrator, default=Integrator.langevin)
-    total_frames: int = IntField(default=10000)
-    temperature_k: float = FloatField(default=273.15)
-    take_frame_every: int = IntField(default=1000)
-    step_size: float = FloatField(default=0.002)
-    replace_non_standard_residues: bool = BooleanField(default=False)
-    add_missing_atoms: bool = BooleanField(default=False)
-    add_missing_hydrogens: bool = BooleanField(default=False)
-    friction_coeff: float = FloatField(default=1.0)
-    ignore_missing_atoms: bool = BooleanField(default=False)
+    # endregion
 
     def set_input(self,
                   protein: Protein,
@@ -60,28 +68,29 @@ class ConformationsJob(Job):
                   ignore_missing_atoms: bool = False,
                   ):
         if not protein:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Protein is not provided')
 
         if not protein.pdb_content:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Cannot run conformations on protein without pdb specified')
+            raise NoLabsException(ErrorCodes.invalid_job_input,
+                                  'Cannot run conformations on protein without pdb specified')
 
         if not total_frames or total_frames <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Total frames must be greater than 0'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Total frames must be greater than 0')
 
         if not temperature_k or temperature_k <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Temperature K must be greater than 0'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Temperature K must be greater than 0')
 
         if not take_frame_every or take_frame_every <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Take frame rate must be greater than 0'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Take frame rate must be greater than 0')
 
         if not step_size or step_size <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Step size must be greater than 0'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Step size must be greater than 0')
 
         if friction_coeff < 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Friction coefficient must be greater than 0'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Friction coefficient must be greater than 0')
 
         if not integrator:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['You must specify integrator'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'You must specify integrator')
 
         self.total_frames = total_frames
         self.temperature_k = temperature_k
@@ -97,12 +106,9 @@ class ConformationsJob(Job):
         self.md_content = None
         self.timeline = []
 
-    def append_timeline(self, protein: Protein, timeline: ConformationsTimeline):
+    def append_timeline(self, timeline: ConformationsTimeline):
         if not self.protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        if protein != self.protein:
-            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
         self.timeline.append(timeline)
 
@@ -110,15 +116,21 @@ class ConformationsJob(Job):
                    protein: Protein,
                    md_content: bytes | str | None):
         if not self.protein:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Cannot set a result on a job without inputs')
+
+        if not protein:
+            raise NoLabsException(ErrorCodes.protein_is_undefined, 'Protein must be provided in job result set')
 
         if protein != self.protein:
-            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
+            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs,
+                                  'Protein does not match with protein this job was run')
 
         if not protein.pdb_content:
-            raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
+            raise NoLabsException(ErrorCodes.protein_pdb_is_empty,
+                                  'Cannot set a result on a job with a protein without pdb content')
 
         if isinstance(md_content, str):
             md_content = md_content.encode('utf-8')
 
+        self.clear_result()
         self.md_content = md_content

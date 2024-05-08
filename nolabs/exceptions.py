@@ -80,6 +80,7 @@ class ErrorCodes(Enum):
     protein_msa_is_empty = ErrorCode(code=66, description="Protein msa is empty")
     ligand_smiles_is_empty = ErrorCode(code=67, description="Ligand smiles is empty")
     ligand_not_found_in_job_inputs = ErrorCode(code=68, description='Ligand not found in job inputs')
+    protein_initialization_error = ErrorCode(code=69, description="Protein initialization error")
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

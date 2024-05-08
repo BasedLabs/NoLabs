@@ -165,7 +165,7 @@ class RunJobFeature:
                         tl_entry = TimelineResponse('Generate gromacs files error', error,
                                                     created_at=datetime.datetime.utcnow())
                         timeline.append(tl_entry)
-                        job.append_timeline(protein=protein, timeline=map_timeline(tl_entry))
+                        job.append_timeline(timeline=map_timeline(tl_entry))
                         job.save()
 
                     if generate_gromacs_files_response.gro and generate_gromacs_files_response.top:
@@ -175,7 +175,7 @@ class RunJobFeature:
                             created_at=datetime.datetime.utcnow()
                         )
                         timeline.append(tl_entry)
-                        job.append_timeline(protein=protein, timeline=map_timeline(tl_entry))
+                        job.append_timeline(timeline=map_timeline(tl_entry))
                         job.save()
                         gromacs_simulations_result = self._run_gromacs_simulations(generate_gromacs_files_response.gro,
                                                                                    generate_gromacs_files_response.top,
@@ -188,7 +188,7 @@ class RunJobFeature:
                                 created_at=datetime.datetime.utcnow()
                             )
                             timeline.append(tl_entry)
-                            job.append_timeline(protein=protein, timeline=map_timeline(tl_entry))
+                            job.append_timeline(timeline=map_timeline(tl_entry))
                             job.save()
 
                         if gromacs_simulations_result.pdb_content:
@@ -209,7 +209,7 @@ class RunJobFeature:
                         created_at=datetime.datetime.utcnow()
                     )
                     timeline.append(tl_entry)
-                    job.append_timeline(protein=protein, timeline=map_timeline(tl_entry))
+                    job.append_timeline(timeline=map_timeline(tl_entry))
                     pdb_simulations_result = self._run_pdb_simulations(pdb_content, open_mm_ff,
                                                                        open_mm_water_ff, job)
 
@@ -219,7 +219,7 @@ class RunJobFeature:
                         created_at=datetime.datetime.utcnow()
                     )
                     timeline.append(tl_entry)
-                    job.append_timeline(protein=protein, timeline=map_timeline(tl_entry))
+                    job.append_timeline(timeline=map_timeline(tl_entry))
                     job.save()
 
                     for error in pdb_simulations_result.errors:
@@ -229,7 +229,7 @@ class RunJobFeature:
                             created_at=datetime.datetime.utcnow()
                         )
                         timeline.append(tl_entry)
-                        job.append_timeline(protein=protein, timeline=map_timeline(tl_entry))
+                        job.append_timeline(timeline=map_timeline(tl_entry))
                         job.save()
 
                     if pdb_simulations_result.pdb_content:

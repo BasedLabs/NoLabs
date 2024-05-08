@@ -18,7 +18,11 @@ class GeneOntologyJobResult(EmbeddedDocument):
 
 
 class GeneOntologyJob(Job):
-    proteins: List[Protein] = ListField(ReferenceField(Protein, required=False, reverse_delete_rule=PULL))
+    # region Inputs
+
+    proteins: List[Protein] = ListField(ReferenceField(Protein, required=True, reverse_delete_rule=PULL))
+
+    # endregion
     gene_ontologies: List[GeneOntologyJobResult] = EmbeddedDocumentListField(GeneOntologyJobResult)
 
     def set_inputs(self, proteins: List[Protein]):
@@ -33,7 +37,7 @@ class GeneOntologyJob(Job):
 
     def set_result(self, result: List[Tuple[Protein, Dict[str, Any]]]):
         if not self.proteins:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Cannot set a result on a job without inputs')
 
         if not result:
             raise NoLabsException(ErrorCodes.invalid_job_result)
@@ -42,7 +46,8 @@ class GeneOntologyJob(Job):
 
         for protein, go in result:
             if not [p for p in self.proteins if p.iid == protein.iid]:
-                continue
+                raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs,
+                                      'Cannot set result for this protein since it is not found in job inputs')
 
             self.gene_ontologies.append(
                 GeneOntologyJobResult(

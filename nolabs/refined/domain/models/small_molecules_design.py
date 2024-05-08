@@ -14,7 +14,11 @@ from nolabs.refined.domain.models.common import Job, Protein, LocalisationProbab
 
 
 class SmallMoleculesDesignJob(Job):
-    protein: Protein = ReferenceField(Protein, required=False, reverse_delete_rule=CASCADE)
+    # region Inputs
+
+    protein: Protein = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+
+    # endregion
 
     center_x: float = FloatField(default=0.0)
     center_y: float = FloatField(default=0.0)

@@ -5,7 +5,6 @@ from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 
 
-
 @dataclass
 class JobResponse:
     job_id: UUID

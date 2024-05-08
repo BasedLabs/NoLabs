@@ -26,10 +26,15 @@ class LocalisationJobResult(EmbeddedDocument):
 
 
 class LocalisationJob(Job):
-    proteins: List[Protein] = ListField(ReferenceField(Protein, required=False, reverse_delete_rule=PULL))
+    # region Inputs
+
+    proteins: List[Protein] = ListField(ReferenceField(Protein, required=True, reverse_delete_rule=PULL))
+
+    # endregion
+
     probabilities: List[LocalisationJobResult] = EmbeddedDocumentListField(LocalisationJobResult)
 
-    def set_proteins(self, proteins: List[Protein]):
+    def set_input(self, proteins: List[Protein]):
         if not proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
@@ -50,7 +55,7 @@ class LocalisationJob(Job):
 
         for protein, prob in result:
             if not [p for p in self.proteins if p.iid == protein.iid]:
-                raise NoLabsException(ErrorCodes.protein_not_found)
+                raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs, 'This protein is not in input proteins')
 
             self.probabilities.append(LocalisationJobResult(
                 protein_id=protein.iid.value,

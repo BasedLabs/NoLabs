@@ -13,7 +13,12 @@ from nolabs.refined.domain.models.common import Job, Protein, LocalisationProbab
 
 
 class PocketPredictionJob(Job):
-    protein: Protein | None = ReferenceField(Protein, required=False, reverse_delete_rule=CASCADE)
+    # region Inputs
+
+    protein: Protein | None = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+
+    # endregion
+
     pocket_ids: List[int] = ListField(IntField())
 
     def set_input(self,
@@ -22,6 +27,11 @@ class PocketPredictionJob(Job):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
+        if not protein.pdb_content:
+            raise NoLabsException(ErrorCodes.protein_pdb_is_empty,
+                                  'Cannot run pocket prediction job on empty protein pdb')
+
+        self.pocket_ids = []
         self.protein = protein
 
     def set_result(self,

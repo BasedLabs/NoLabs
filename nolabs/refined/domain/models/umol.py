@@ -13,9 +13,13 @@ from nolabs.refined.domain.models.common import Job, Protein, Ligand
 
 
 class UmolBindingJob(Job):
-    protein: Protein = ReferenceField(Protein, required=False, reverse_delete_rule=CASCADE)
-    ligand: Ligand = ReferenceField(Ligand, required=False, reverse_delete_rule=CASCADE)
-    pocket_ids: List[int] = ListField(IntField())
+    # region Inputs
+
+    protein: Protein = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+    ligand: Ligand = ReferenceField(Ligand, required=True, reverse_delete_rule=CASCADE)
+    pocket_ids: List[int] = ListField(IntField(), required=True)
+
+    # endregion
 
     predicted_pdb: bytes = BinaryField(required=False)
     predicted_sdf: bytes = BinaryField(required=False)

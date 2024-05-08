@@ -13,8 +13,12 @@ from nolabs.refined.domain.models.common import Job, Protein, LocalisationProbab
 
 
 class ProteinDesignJob(Job):
-    protein: Protein | None = ReferenceField(Protein, required=False, reverse_delete_rule=CASCADE)
-    binders: List[Protein] = ListField(ReferenceField(Protein, required=False, reverse_delete_rule=PULL))
+    # region Inputs
+
+    protein: Protein | None = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+    binders: List[Protein] = ListField(ReferenceField(Protein, required=True, reverse_delete_rule=PULL))
+
+    # endregion
 
     contig: str = StringField(required=False)
     number_of_designs: int = IntField(required=False, default=2)
@@ -31,23 +35,24 @@ class ProteinDesignJob(Job):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
+        if not protein.pdb_content:
+            raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
+
         if not contig:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Contig cannot be empty'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Contig cannot be empty')
 
         if not number_of_designs or number_of_designs <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Number of designs must be greater than 0'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Number of designs must be greater than 0')
 
         if not timesteps or timesteps <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Timesteps must be greater than 0'])
+            raise NoLabsException(ErrorCodes.invalid_job_input, 'Timesteps must be greater than 0')
 
+        self.binders = []
         self.contig = contig
         self.number_of_designs = number_of_designs
         self.hotspots = hotspots
         self.timesteps = timesteps
         self.protein = protein
-
-    def clear_result(self):
-        self.binder = None
 
     def set_result(self,
                    protein: Protein,

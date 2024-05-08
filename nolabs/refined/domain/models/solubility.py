@@ -20,18 +20,31 @@ class SolubilityJobResult(EmbeddedDocument):
 
 
 class SolubilityJob(Job):
-    proteins: List[Protein] = ListField(ReferenceField(Protein, required=False, reverse_delete_rule=PULL))
+    # region Inputs
+
+    proteins: List[Protein] = ListField(ReferenceField(Protein, required=True, reverse_delete_rule=PULL))
+
+    # endregion
+
     results: List[SolubilityJobResult] = EmbeddedDocumentListField(SolubilityJobResult)
 
     def set_proteins(self, proteins: List[Protein]):
         if not proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
+        for protein in proteins:
+            if not protein.fasta_content:
+                raise NoLabsException(ErrorCodes.protein_fasta_is_empty)
+
         self.proteins = proteins
 
     def set_result(self, result: List[Tuple[Protein, float]]):
         if not self.proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
+
+        for protein in proteins:
+            if not protein.fasta_content:
+                raise NoLabsException(ErrorCodes.protein_fasta_is_empty)
 
         if not result:
             raise NoLabsException(ErrorCodes.invalid_job_result)
@@ -40,7 +53,7 @@ class SolubilityJob(Job):
 
         for protein, prob in result:
             if not [p for p in self.proteins if p.iid == protein.iid]:
-                raise NoLabsException(ErrorCodes.protein_not_found)
+                raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
             self.results.append(SolubilityJobResult(
                 protein_id=protein.iid.value,
