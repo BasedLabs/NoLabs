@@ -45,7 +45,8 @@ class GetJobsMetadataFeature:
             result.append(
                 GetJobMetadataResponse(
                     job_id=job.id,
-                    job_name=str(job.name)
+                    job_name=str(job.name),
+                    type=str(type(job))
                 )
             )
 

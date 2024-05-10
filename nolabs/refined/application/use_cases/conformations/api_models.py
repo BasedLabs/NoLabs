@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic.dataclasses import dataclass
 
-from nolabs.api_models.experiment import TimelineResponse
+from nolabs.refined.application.use_cases.experiments.api_models import TimelineResponse
 
 
 class IntegratorsRequest(Enum):
@@ -35,15 +35,16 @@ class JobResponse:
     ignore_missing_atoms: bool
     integrator: IntegratorsRequest
 
-    md_pdb: str | None
+    md_pdb: Optional[str] = None
 
 
 @dataclass
 class SetupJobRequest:
-    job_id: Optional[UUID]
-    job_name: Optional[str]
     experiment_id: UUID
     protein_id: UUID
+
+    job_id: Optional[UUID] = None
+    job_name: Optional[str] = None
 
     total_frames: int = 10000
     temperature_k: float = 273.15

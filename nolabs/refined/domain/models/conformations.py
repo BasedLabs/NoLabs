@@ -23,12 +23,8 @@ class Integrator(str, Enum):
 
 class ConformationsTimeline(EmbeddedDocument):
     message: str = StringField()
-    error: str | None = StringField()
+    error: str | None = StringField(required=False)
     created_at: datetime = DateTimeField(default=datetime.utcnow)
-
-    def __init__(self, message: str, error: str | None, created_at: datetime, *args, **kwargs):
-        super().__init__(message=message, error=error, created_at=created_at, *args, **kwargs)
-
 
 class ConformationsJob(Job):
     # region Inputs
@@ -92,6 +88,10 @@ class ConformationsJob(Job):
         if not integrator:
             raise NoLabsException(ErrorCodes.invalid_job_input, 'You must specify integrator')
 
+        self.timeline = []
+        self.md_content = None
+
+        self.protein = protein
         self.total_frames = total_frames
         self.temperature_k = temperature_k
         self.take_frame_every = take_frame_every

@@ -18,9 +18,9 @@ from pydantic.dataclasses import dataclass
 class JobResult:
     ligand_id: UUID
     sdf_content: str
-    minimized_affinity: Optional[float]
-    scored_affinity: Optional[float]
-    confidence: Optional[float]
+    minimized_affinity: Optional[float] = None
+    scored_affinity: Optional[float] = None
+    confidence: Optional[float] = None
 
 
 @dataclass
@@ -35,12 +35,12 @@ class JobResponse:
 
 @dataclass
 class SetupJobRequest:
-    job_id: Optional[UUID]
-    job_name: Optional[str]
     experiment_id: UUID
     protein_id: UUID
     ligand_id: UUID
     samples_per_complex: Optional[int] = 40
+    job_id: Optional[UUID] = None
+    job_name: Optional[str] = None
 
 
 @dataclass

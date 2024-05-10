@@ -45,8 +45,6 @@ class JobResponse:
 
 @dataclass
 class SetupJobRequest:
-    job_id: Optional[UUID]
-    job_name: Optional[str]
     experiment_id: UUID
     protein_id: UUID
 
@@ -60,6 +58,9 @@ class SetupJobRequest:
     batch_size: int = 50
     minscore: float = 0.4
     epochs: int = 128
+
+    job_id: Optional[UUID] = None
+    job_name: Optional[str] = None
 
     # Sampling
     sampling_size: int = 5

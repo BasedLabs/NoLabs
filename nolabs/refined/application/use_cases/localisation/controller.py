@@ -36,8 +36,8 @@ async def get_job(job_id: UUID, feature: Annotated[
     return await feature.handle(job_id=job_id)
 
 
-@router.get('/jobs',
-            summary='Get job')
+@router.post('/jobs',
+            summary='Setup job')
 async def setup_job(request: SetupJobRequest, feature: Annotated[
     SetupJobFeature, Depends(LocalisationDependencies.setup_job)]) -> JobResponse:
     return await feature.handle(request=request)

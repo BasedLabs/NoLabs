@@ -36,7 +36,7 @@ async def get_job(job_id: UUID, feature: Annotated[
 
 
 @router.post('/jobs',
-             summary='Get job')
+             summary='Setup job')
 async def setup_job(request: SetupJobRequest, feature: Annotated[
     SetupJobFeature, Depends(GeneOntologyDependencies.setup_job)]) -> JobResponse:
     return await feature.handle(request=request)

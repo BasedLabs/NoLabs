@@ -14,12 +14,14 @@ from typing import List
 from uuid import UUID
 
 import reinvent_microservice
+from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.small_molecules_design.api_models import GetJobStatusResponse, LogsResponse, \
     SmilesResponse, JobResponse, SetupJobRequest
 from nolabs.refined.domain.models.common import JobId, Job, JobName, Experiment, Protein
 from nolabs.refined.domain.models.small_molecules_design import SmallMoleculesDesignJob
+from nolabs.utils import generate_uuid
 
 
 def map_job_to_response(job: SmallMoleculesDesignJob) -> JobResponse:
@@ -166,6 +168,9 @@ class SetupJobFeature:
 
     async def handle(self, request: SetupJobRequest) -> JobResponse:
         try:
+            job_id = JobId(request.job_id if request.job_id else generate_uuid())
+            job_name = JobName(request.job_name if request.job_name else 'New small molecules design job')
+
             experiment = Experiment.objects.with_id(request.experiment_id)
 
             if not experiment:
@@ -176,11 +181,12 @@ class SetupJobFeature:
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)
 
-            job = SmallMoleculesDesignJob.objects.with_id(request.job_id)
+            job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
+
             if not job:
                 job = SmallMoleculesDesignJob(
                     id=JobId(request.job_id),
-                    name=JobName('New small molecules design job'),
+                    name=job_name,
                     experiment=experiment
                 )
 

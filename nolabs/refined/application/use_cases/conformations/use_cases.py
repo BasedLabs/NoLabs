@@ -10,6 +10,7 @@ from typing import List
 from uuid import UUID
 
 import conformations_microservice
+from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.conformations.api_models import IntegratorsRequest, JobResponse, SetupJobRequest
@@ -58,19 +59,13 @@ class GetJobFeature:
     """
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            job_id = JobId(job_id)
-            job: ConformationsJob = ConformationsJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: ConformationsJob = ConformationsJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            if isinstance(e, NoLabsException):
-                raise e
-
-            raise NoLabsException(ErrorCodes.unknown_exception) from e
+        return map_job_to_response(job)
 
 
 class SetupJobFeature:
@@ -78,50 +73,44 @@ class SetupJobFeature:
     Use case - create new or update existing job.
     """
     async def handle(self, request: SetupJobRequest) -> JobResponse:
-        try:
-            assert request
+        assert request
 
-            job_id = JobId(request.job_id if request.job_id else generate_uuid())
-            job_name = JobName(request.job_name if request.job_name else 'New binding pocket prediction job')
+        job_id = JobId(request.job_id or generate_uuid())
+        job_name = JobName(request.job_name or 'New conformations job')
 
-            experiment = Experiment.objects.with_id(request.experiment_id)
+        experiment = Experiment.objects.with_id(request.experiment_id)
 
-            if not experiment:
-                raise NoLabsException(ErrorCodes.experiment_not_found)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: ConformationsJob = ConformationsJob.objects.with_id(job_id.value)
+        job: ConformationsJob = ConformationsJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
-            if not job:
-                job = ConformationsJob(
-                    id=job_id,
-                    name=job_name,
-                    experiment=experiment
-                )
+        if not job:
+            job = ConformationsJob(
+                id=job_id,
+                name=job_name,
+                experiment=experiment
+            )
 
-            protein = Protein.objects.get(id=request.protein_id)
+        protein = Protein.objects.with_id(request.protein_id)
 
-            if not protein:
-                raise NoLabsException(ErrorCodes.protein_not_found)
+        if not protein:
+            raise NoLabsException(ErrorCodes.protein_not_found)
 
-            job.set_input(protein=protein,
-                          integrator=Integrator(request.integrator.value),
-                          total_frames=request.total_frames,
-                          temperature_k=request.temperature_k,
-                          take_frame_every=request.take_frame_every,
-                          step_size=request.step_size,
-                          replace_non_standard_residues=request.replace_non_standard_residues,
-                          add_missing_atoms=request.add_missing_atoms,
-                          add_missing_hydrogens=request.add_missing_hydrogens,
-                          friction_coeff=request.friction_coeff,
-                          ignore_missing_atoms=request.ignore_missing_atoms)
-            job.save(cascade=True)
+        job.set_input(protein=protein,
+                      integrator=Integrator(request.integrator.value),
+                      total_frames=request.total_frames,
+                      temperature_k=request.temperature_k,
+                      take_frame_every=request.take_frame_every,
+                      step_size=request.step_size,
+                      replace_non_standard_residues=request.replace_non_standard_residues,
+                      add_missing_atoms=request.add_missing_atoms,
+                      add_missing_hydrogens=request.add_missing_hydrogens,
+                      friction_coeff=request.friction_coeff,
+                      ignore_missing_atoms=request.ignore_missing_atoms)
+        job.save(cascade=True)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        return map_job_to_response(job)
 
 
 class RunJobFeature:
@@ -162,7 +151,7 @@ class RunJobFeature:
                         ))
 
                     for error in generate_gromacs_files_response.errors:
-                        tl_entry = TimelineResponse('Generate gromacs files error', error,
+                        tl_entry = TimelineResponse(message='Generate gromacs files error', error=error,
                                                     created_at=datetime.datetime.utcnow())
                         timeline.append(tl_entry)
                         job.append_timeline(timeline=map_timeline(tl_entry))
@@ -194,7 +183,7 @@ class RunJobFeature:
                         if gromacs_simulations_result.pdb_content:
                             job.set_result(protein=protein,
                                            md_content=gromacs_simulations_result.pdb_content)
-                            protein.set_pdb(gromacs_simulations_result.pdb_content)
+                            protein.set_md(gromacs_simulations_result.pdb_content)
                             job.save(cascade=True)
                             protein.save(cascade=True)
                             return map_job_to_response(job)
@@ -292,7 +281,7 @@ class RunJobFeature:
             temperature_k=job.temperature_k,
             friction_coeff=job.friction_coeff,
             step_size=job.step_size,
-            integrator=microservice.Integrators(request.integrator.value),  # type: ignore
+            integrator=conformations_microservice.Integrators(job.integrator.value),  # type: ignore
             take_frame_every=job.take_frame_every,
             total_frames=job.total_frames,
             top=top,
@@ -310,7 +299,7 @@ class RunJobFeature:
             temperature_k=job.temperature_k,
             friction_coeff=job.friction_coeff,
             step_size=job.step_size,
-            integrator=microservice.Integrators(request.integrator.value),  # type: ignore
+            integrator=conformations_microservice.Integrators(job.integrator.value),  # type: ignore
             take_frame_every=job.take_frame_every,
             total_frames=job.total_frames,
             pdb_content=pdb_content,

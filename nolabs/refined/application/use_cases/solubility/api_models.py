@@ -21,10 +21,11 @@ class JobResponse:
 
 @dataclass
 class SetupJobRequest:
-    job_id: Optional[UUID]
-    job_name: Optional[str]
     experiment_id: UUID
     proteins: List[UUID]
+
+    job_id: Optional[UUID] = None
+    job_name: Optional[str] = None
 
     @classmethod
     @model_validator(mode='after')

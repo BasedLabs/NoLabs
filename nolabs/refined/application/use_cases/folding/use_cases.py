@@ -11,6 +11,7 @@ from uuid import UUID
 import esmfold_light_microservice
 import esmfold_microservice
 import rosettafold_microservice
+from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.folding.api_models import GetJobStatusResponse, JobResult, JobResponse, \
@@ -41,19 +42,13 @@ class GetJobFeature:
     Use case - get job information.
     """
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            job_id = JobId(job_id)
-            job: FoldingJob = FoldingJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: FoldingJob = FoldingJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            if isinstance(e, NoLabsException):
-                raise e
-
-            raise NoLabsException(ErrorCodes.unknown_exception) from e
+        return map_job_to_response(job)
 
 
 class SetupJobFeature:
@@ -61,45 +56,39 @@ class SetupJobFeature:
     Use case - create new or update existing job.
     """
     async def handle(self, request: SetupJobRequest) -> JobResponse:
-        try:
-            assert request
+        assert request
 
-            job_id = JobId(request.job_id if request.job_id else generate_uuid())
-            job_name = JobName(request.job_name if request.job_name else 'New folding job')
-            folding_backend = FoldingBackendEnum(request.backend) if request.backend else FoldingBackendEnum.esmfold
+        job_id = JobId(request.job_id if request.job_id else generate_uuid())
+        job_name = JobName(request.job_name if request.job_name else 'New folding job')
+        folding_backend = FoldingBackendEnum(request.backend) if request.backend else FoldingBackendEnum.esmfold
 
-            experiment = Experiment.objects.with_id(request.experiment_id)
+        experiment = Experiment.objects.with_id(request.experiment_id)
 
-            if not experiment:
-                raise NoLabsException(ErrorCodes.experiment_not_found)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: FoldingJob = FoldingJob.objects.with_id(job_id.value)
+        job: FoldingJob = FoldingJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
-            if not job:
-                job = FoldingJob(
-                    id=job_id,
-                    name=job_name,
-                    experiment=experiment
-                )
+        if not job:
+            job = FoldingJob(
+                id=job_id,
+                name=job_name,
+                experiment=experiment
+            )
 
-            proteins: List[Protein] = []
-            for protein_id in request.proteins:
-                protein = Protein.objects.get(id=protein_id)
+        proteins: List[Protein] = []
+        for protein_id in request.proteins:
+            protein = Protein.objects.with_id(protein_id)
 
-                if not protein:
-                    raise NoLabsException(ErrorCodes.protein_not_found)
+            if not protein:
+                raise NoLabsException(ErrorCodes.protein_not_found)
 
-                proteins.append(protein)
+            proteins.append(protein)
 
-            job.set_inputs(proteins=proteins, backend=folding_backend)
-            job.save(cascade=True)
+        job.set_inputs(proteins=proteins, backend=folding_backend)
+        job.save(cascade=True)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        return map_job_to_response(job)
 
 
 class GetJobStatusFeature:
@@ -119,38 +108,32 @@ class GetJobStatusFeature:
         self._rosettafold = rosettafold
 
     async def handle(self, job_id: UUID) -> GetJobStatusResponse:
-        try:
-            job: FoldingJob = FoldingJob.objects.with_id(job_id)
+        job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            folding_backend = job.backend
+        folding_backend = job.backend
 
-            if folding_backend == FoldingBackendEnum.esmfold:
-                response = self._esmfold.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
-                return GetJobStatusResponse(
-                    running=response.is_running
-                )
+        if folding_backend == FoldingBackendEnum.esmfold:
+            response = self._esmfold.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
+            return GetJobStatusResponse(
+                running=response.is_running
+            )
 
-            if folding_backend == FoldingBackendEnum.esmfold_light:
-                response = self._esmfold_light.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
-                return GetJobStatusResponse(
-                    running=response.is_running
-                )
+        if folding_backend == FoldingBackendEnum.esmfold_light:
+            response = self._esmfold_light.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
+            return GetJobStatusResponse(
+                running=response.is_running
+            )
 
-            if folding_backend == FoldingBackendEnum.rosettafold:
-                response = self._rosettafold.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
-                return GetJobStatusResponse(
-                    running=response.is_running
-                )
+        if folding_backend == FoldingBackendEnum.rosettafold:
+            response = self._rosettafold.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
+            return GetJobStatusResponse(
+                running=response.is_running
+            )
 
-            raise NoLabsException(ErrorCodes.invalid_folding_backend)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        raise NoLabsException(ErrorCodes.invalid_folding_backend)
 
 
 class RunJobFeature:
@@ -170,43 +153,37 @@ class RunJobFeature:
         self._rosettafold = rosettafold
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            assert job_id
+        assert job_id
 
-            job_id = JobId(job_id)
-            job: FoldingJob = FoldingJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: FoldingJob = FoldingJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            result: List[Tuple[Protein, str]] = []
+        result: List[Tuple[Protein, str]] = []
 
-            for protein in job.proteins:
-                sequence = protein.get_fasta()
-                pdb_content, errors = self.request_factory(job_id=job.iid, sequence=sequence,
-                                                           folding_backend=FoldingBackendEnum(job.backend))
+        for protein in job.proteins:
+            sequence = protein.get_fasta()
+            pdb_content, errors = self.request_factory(job_id=job.iid, sequence=sequence,
+                                                       folding_backend=FoldingBackendEnum(job.backend))
 
-                if errors:
-                    raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
+            if errors:
+                raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
 
-                result.append((protein, pdb_content))
+            result.append((protein, pdb_content))
 
-            job.set_result(result=[
-                (protein, pdb) for protein, pdb in result
-            ])
+        job.set_result(result=[
+            (protein, pdb) for protein, pdb in result
+        ])
 
-            job.save(cascade=True)
+        job.save(cascade=True)
 
-            for protein, pdb in result:
-                protein.set_pdb(pdb)
-                protein.save()
+        for protein, pdb in result:
+            protein.set_pdb(pdb)
+            protein.save()
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        return map_job_to_response(job)
 
     def request_factory(self, job_id: JobId, sequence: str, folding_backend: FoldingBackendEnum) -> Tuple[
         str, List[str]]:

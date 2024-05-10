@@ -7,6 +7,7 @@ __all__ = [
 from typing import List, Tuple
 from uuid import UUID
 
+from mongoengine import Q
 from solubility_microservice import DefaultApi, RunSolubilityPredictionRequest
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
@@ -114,7 +115,7 @@ class SetupJobFeature:
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: SolubilityJob = SolubilityJob.objects.with_id(job_id.value)
+            job: SolubilityJob = SolubilityJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
             if not job:
                 job = SolubilityJob(
@@ -125,7 +126,7 @@ class SetupJobFeature:
 
             proteins: List[Protein] = []
             for protein_id in request.proteins:
-                protein = Protein.objects.get(id=protein_id)
+                protein = Protein.objects.with_id(protein_id)
 
                 if not protein:
                     raise NoLabsException(ErrorCodes.protein_not_found)

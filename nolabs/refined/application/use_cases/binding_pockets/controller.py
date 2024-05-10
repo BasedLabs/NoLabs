@@ -7,9 +7,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from nolabs.refined.application.use_cases.binding_pockets.api_models import JobResponse, SetupJobRequest
+from nolabs.refined.application.use_cases.binding_pockets.api_models import JobResponse, SetupJobRequest, \
+    GetJobStatusResponse
 from nolabs.refined.application.use_cases.binding_pockets.di import BindingPocketsDependencies
-from nolabs.refined.application.use_cases.binding_pockets.use_cases import RunJobFeature, SetupJobFeature
+from nolabs.refined.application.use_cases.binding_pockets.use_cases import RunJobFeature, SetupJobFeature, \
+    GetJobStatusFeature
 
 router = APIRouter(
     prefix='/api/v1/binding-pockets',
@@ -41,6 +43,6 @@ async def setup_job(request: SetupJobRequest, feature: Annotated[
 
 
 @router.get('/jobs/{job_id}/status', summary='Job status')
-async def get_job_status(request: SetupJobRequest, feature: Annotated[
-    SetupJobFeature, Depends(BindingPocketsDependencies.get_job_status)]) -> JobResponse:
-    return await feature.handle(request=request)
+async def get_job_status(job_id: UUID, feature: Annotated[
+    GetJobStatusFeature, Depends(BindingPocketsDependencies.get_job_status)]) -> GetJobStatusResponse:
+    return await feature.handle(job_id=job_id)

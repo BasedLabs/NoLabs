@@ -5,8 +5,6 @@ from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.nolabs_logging import logger
 
 
-error_codes_mapping
-
 
 def add_domain_exception_middleware(app: FastAPI):
     @app.middleware("http")
@@ -23,6 +21,6 @@ def add_domain_exception_middleware(app: FastAPI):
             logger.exception('Exception occured in application')
             return JSONResponse(content={
                 'errors': ['Unknown server error'],
-                'error_code': ErrorCodes.unknown_exception.value,
+                'error_code': ErrorCodes.unknown_exception.value.code,
             }, headers={'Content-Type': 'application/problem+json'},
                 status_code=500)

@@ -8,6 +8,7 @@ from typing import List, Tuple
 from uuid import UUID
 
 from localisation_microservice import DefaultApi, RunLocalisationPredictionRequest
+from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.localisation.api_models import JobResponse, JobResult, SetupJobRequest
@@ -124,7 +125,7 @@ class SetupJobFeature:
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: LocalisationJob = LocalisationJob.objects.with_id(job_id.value)
+            job: LocalisationJob = LocalisationJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
             if not job:
                 job = LocalisationJob(
@@ -135,7 +136,7 @@ class SetupJobFeature:
 
             proteins: List[Protein] = []
             for protein_id in request.proteins:
-                protein = Protein.objects.get(id=protein_id)
+                protein = Protein.objects.with_id(protein_id)
 
                 if not protein:
                     raise NoLabsException(ErrorCodes.protein_not_found)

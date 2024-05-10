@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Tuple
 from uuid import UUID
 
 from gene_ontology_microservice import DefaultApi, RunGeneOntologyPredictionRequest
+from mongoengine import Q
 
 from nolabs.domain.gene_ontology import OboNode
 from nolabs.exceptions import NoLabsException, ErrorCodes
@@ -30,7 +31,7 @@ def map_job_to_response(job: GeneOntologyJob) -> JobResponse:
             JobResult(
                 protein_id=item.protein_id,
                 go={key: RunGeneOntologyResponseDataNode(name=obo['name'], namespace=obo['namespace'],
-                                                         edges=obo['edges']) for key, obo in item.gene_ontology}
+                                                         edges=obo['edges']) for key, obo in item.gene_ontology.items()}
             )
             for item in job.gene_ontologies
         ]
@@ -43,19 +44,13 @@ class GetJobFeature:
     """
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            job_id = JobId(job_id)
-            job: GeneOntologyJob = GeneOntologyJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: GeneOntologyJob = GeneOntologyJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            if isinstance(e, NoLabsException):
-                raise e
-
-            raise NoLabsException(ErrorCodes.unknown_exception) from e
+        return map_job_to_response(job)
 
 
 class RunJobFeature:
@@ -65,47 +60,41 @@ class RunJobFeature:
         self._api = api
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            assert job_id
+        assert job_id
 
-            job_id = JobId(job_id)
-            job: GeneOntologyJob = GeneOntologyJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: GeneOntologyJob = GeneOntologyJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            result: List[Tuple[Protein, Dict[str, Any]]] = []
+        result: List[Tuple[Protein, Dict[str, Any]]] = []
 
-            for protein in job.proteins:
-                response = self._api.run_go_prediction_run_go_prediction_post(
-                    run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
-                        amino_acid_sequence=protein.get_fasta()
-                    )
+        for protein in job.proteins:
+            response = self._api.run_go_prediction_run_go_prediction_post(
+                run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
+                    amino_acid_sequence=protein.get_fasta()
                 )
+            )
 
-                if response.errors:
-                    raise NoLabsException(ErrorCodes.gene_ontology_run_error, response.errors)
+            if response.errors:
+                raise NoLabsException(ErrorCodes.gene_ontology_run_error, response.errors)
 
-                confidences = [(g.name, g.confidence) for g in response.go_confidence]
+            confidences = [(g.name, g.confidence) for g in response.go_confidence]
 
-                go = {key: {'name': value.name, 'namespace': value.namespace, 'edges': value.edges} for key, value in
-                      self._read_obo(confidences).items()}
+            go = {key: {'name': value.name, 'namespace': value.namespace, 'edges': value.edges} for key, value in
+                  self._read_obo(confidences).items()}
 
-                result.append((protein, go))
+            result.append((protein, go))
 
-            job.set_result(result=result)
-            job.save(cascade=True)
+        job.set_result(result=result)
+        job.save(cascade=True)
 
-            for protein, go in result:
-                protein.set_gene_ontology(go)
-                protein.save()
+        for protein, go in result:
+            protein.set_gene_ontology(go)
+            protein.save()
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_folding_error) from e
-            raise e
+        return map_job_to_response(job)
 
 
     def _read_obo(self, obo: List[Tuple[str, float]]) -> Dict[str, OboNode]:
@@ -167,41 +156,35 @@ class SetupJobFeature:
     Use case - create new or update existing job.
     """
     async def handle(self, request: SetupJobRequest) -> JobResponse:
-        try:
-            assert request
+        assert request
 
-            job_id = JobId(request.job_id if request.job_id else generate_uuid())
-            job_name = JobName(request.job_name if request.job_name else 'New gene ontology job')
+        job_id = JobId(request.job_id or generate_uuid())
+        job_name = JobName(request.job_name or 'New gene ontology job')
 
-            experiment = Experiment.objects.with_id(request.experiment_id)
+        experiment = Experiment.objects.with_id(request.experiment_id)
 
-            if not experiment:
-                raise NoLabsException(ErrorCodes.experiment_not_found)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: GeneOntologyJob = GeneOntologyJob.objects.with_id(job_id.value)
+        job: GeneOntologyJob = GeneOntologyJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
-            if not job:
-                job = GeneOntologyJob(
-                    id=job_id,
-                    name=job_name,
-                    experiment=experiment
-                )
+        if not job:
+            job = GeneOntologyJob(
+                id=job_id,
+                name=job_name,
+                experiment=experiment
+            )
 
-            proteins: List[Protein] = []
-            for protein_id in request.proteins:
-                protein = Protein.objects.get(id=protein_id)
+        proteins: List[Protein] = []
+        for protein_id in request.proteins:
+            protein = Protein.objects.with_id(protein_id)
 
-                if not protein:
-                    raise NoLabsException(ErrorCodes.protein_not_found)
+            if not protein:
+                raise NoLabsException(ErrorCodes.protein_not_found)
 
-                proteins.append(protein)
+            proteins.append(protein)
 
-            job.set_inputs(proteins=proteins)
-            job.save(cascade=True)
+        job.set_inputs(proteins=proteins)
+        job.save(cascade=True)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_folding_error) from e
-            raise e
+        return map_job_to_response(job)

@@ -28,6 +28,7 @@ from nolabs.refined.infrastructure.mongo_fields import ValueObjectStringField, V
 from nolabs.seedwork.domain.entities import Entity
 from nolabs.seedwork.domain.events import DomainEvent
 from nolabs.seedwork.domain.value_objects import ValueObject, ValueObjectString, ValueObjectUUID, ValueObjectFloat
+from nolabs.utils.fasta import FastaReader
 
 
 @dataclass
@@ -193,6 +194,7 @@ class Protein(Document, Entity):
     soluble_probability: SolubleProbability | None = ValueObjectFloatField(required=False, factory=SolubleProbability)
     msa: bytes | None = BinaryField(required=False)
 
+    binding_pockets: List[int] = ListField(IntField())
     md_content: bytes | None = BinaryField(required=False)
     '''
     Conformations content
@@ -215,20 +217,20 @@ class Protein(Document, Entity):
     #         raise NoLabsException(ErrorCodes.invalid_protein_name)
     #     if not experiment:
     #         raise NoLabsException(ErrorCodes.invalid_experiment_id)
-#
+    #
     #     if isinstance(fasta_content, str):
     #         fasta_content = fasta_content.encode('utf-8')
-#
+    #
     #     if isinstance(fasta_content, str):
     #         pdb_content = pdb_content.encode('utf-8')
-#
+    #
     #     super().__init__(id=id.value if isinstance(id, ProteinId) else id,
     #                      experiment=experiment,
     #                      name=name,
     #                      fasta_content=fasta_content,
     #                      pdb_content=pdb_content,
     #                      *args, **kwargs)
-#
+    #
     #     EventDispatcher.raise_event(ProteinCreatedEvent(self))
 
     def get_msa(self) -> str | None:
@@ -257,10 +259,21 @@ class Protein(Document, Entity):
         if not fasta_content:
             raise NoLabsException(ErrorCodes.invalid_protein_content)
 
-        if isinstance(fasta_content, str):
-            fasta_content = fasta_content.encode('utf-8')
+        fasta_reader = FastaReader()
 
-        self.fasta_content = fasta_content
+        aas = fasta_reader.get_ids2seqs(
+            fasta_content if isinstance(fasta_content, str) else fasta_content.decode('utf-8'))
+
+        if not aas:
+            raise NoLabsException(ErrorCodes.fasta_file_is_invalid, f'Fasta does not contain amino acids {str(self.name)}')
+
+        if len(aas) > 1:
+            raise NoLabsException(ErrorCodes.fasta_file_is_invalid,
+                                  f'Fasta contains more than one protein for protein {str(self.name)}')
+
+        fasta_content = aas[0].sequence
+
+        self.fasta_content = fasta_content.encode('utf-8')
 
     def get_fasta(self) -> str | None:
         if self.fasta_content:
@@ -310,6 +323,12 @@ class Protein(Document, Entity):
 
         self.soluble_probability = soluble_probability
 
+    def set_binding_pockets(self, binding_pockets: List[int]):
+        if not binding_pockets:
+            raise NoLabsException(ErrorCodes.empty_binding_pockets)
+
+        self.binding_pockets = binding_pockets
+
     @classmethod
     def create(cls, experiment: Experiment,
                name: ProteinName,
@@ -351,11 +370,15 @@ class Protein(Document, Entity):
             id=ProteinId(uuid.uuid4()).value,
             experiment=experiment,
             name=name,
-            fasta_content=fasta_content,
-            pdb_content=pdb_content,
             *args,
             **kwargs
         )
+
+        if fasta_content:
+            protein.set_fasta(fasta_content)
+
+        if pdb_content:
+            protein.set_pdb(pdb_content)
 
         EventDispatcher.raise_event(ProteinCreatedEvent(protein))
 
@@ -416,6 +439,10 @@ class LigandName(ValueObjectString):
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
 
+        value = Path(self.value).stem
+
+        self.value = value
+
         return self
 
 
@@ -461,42 +488,42 @@ class Ligand(Document, Entity):
     drug_likeness: DrugLikenessScore | None = ValueObjectFloatField(factory=DrugLikenessScore, required=False)
     designed_ligand_score: DesignedLigandScore | None = FloatField(factory=DesignedLigandScore, required=False)
 
-   # TODO to check if we need it
-   #def __init__(
-   #        self,
-   #        id: LigandId,
-   #        experiment: Experiment,
-   #        name: LigandName,
-   #        smiles_content: Union[bytes, str, None] = None,
-   #        sdf_content: Union[bytes, str, None] = None,
-   #        *args,
-   #        **kwargs
-   #):
-   #    if not id:
-   #        raise NoLabsException(ErrorCodes.invalid_ligand_id)
-   #    if not name:
-   #        raise NoLabsException(ErrorCodes.invalid_ligand_name)
-   #    if not experiment:
-   #        raise NoLabsException(ErrorCodes.invalid_experiment_id)
+    # TODO to check if we need it
+    # def __init__(
+    #        self,
+    #        id: LigandId,
+    #        experiment: Experiment,
+    #        name: LigandName,
+    #        smiles_content: Union[bytes, str, None] = None,
+    #        sdf_content: Union[bytes, str, None] = None,
+    #        *args,
+    #        **kwargs
+    # ):
+    #    if not id:
+    #        raise NoLabsException(ErrorCodes.invalid_ligand_id)
+    #    if not name:
+    #        raise NoLabsException(ErrorCodes.invalid_ligand_name)
+    #    if not experiment:
+    #        raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
-   #    if not smiles_content and not sdf_content:
-   #        raise NoLabsException(ErrorCodes.ligand_initialization_error,
-   #                              'Cannot create a ligand without smiles and sdf content')
+    #    if not smiles_content and not sdf_content:
+    #        raise NoLabsException(ErrorCodes.ligand_initialization_error,
+    #                              'Cannot create a ligand without smiles and sdf content')
 
-   #    if smiles_content:
-   #        self.set_smiles(smiles_content)
+    #    if smiles_content:
+    #        self.set_smiles(smiles_content)
 
-   #    if sdf_content:
-   #        self.set_sdf(sdf_content)
+    #    if sdf_content:
+    #        self.set_sdf(sdf_content)
 
-   #    super().__init__(id=id.value if isinstance(id, LigandId) else id,
-   #                     experiment=experiment,
-   #                     name=name,
-   #                     smiles_content=smiles_content,
-   #                     sdf_content=sdf_content,
-   #                     *args, **kwargs)
+    #    super().__init__(id=id.value if isinstance(id, LigandId) else id,
+    #                     experiment=experiment,
+    #                     name=name,
+    #                     smiles_content=smiles_content,
+    #                     sdf_content=sdf_content,
+    #                     *args, **kwargs)
 
-   #    EventDispatcher.raise_event(LigandCreatedEvent(self))
+    #    EventDispatcher.raise_event(LigandCreatedEvent(self))
 
     def __hash__(self):
         return self.iid.__hash__()
@@ -591,7 +618,7 @@ class Ligand(Document, Entity):
             id=LigandId(uuid.uuid4()).value,
             experiment=experiment,
             name=name,
-            smilesContent=smiles_content,
+            smiles_content=smiles_content,
             sdf_content=sdf_content,
             *args,
             **kwargs
@@ -637,7 +664,7 @@ class Ligand(Document, Entity):
             confidence=confidence,
             plddt_array=plddt_array,
             pdb_content=pdb_content
-        ).save() # TODO to check maybe save is not relevant here
+        ).save()  # TODO to check maybe save is not relevant here
 
     def get_bindings(self) -> List['LigandBinder']:
         return LigandBinder.objects(ligand=self)

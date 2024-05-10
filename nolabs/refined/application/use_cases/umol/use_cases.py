@@ -8,6 +8,7 @@ __all__ = [
 from uuid import UUID
 
 import umol_microservice
+from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.umol.api_models import JobResponse, JobResult, \
@@ -70,7 +71,7 @@ class SetupJobFeature:
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: UmolBindingJob = UmolBindingJob.objects.with_id(job_id.value)
+            job: UmolBindingJob = UmolBindingJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
             if not job:
                 job = UmolBindingJob(

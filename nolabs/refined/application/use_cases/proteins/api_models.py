@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from uuid import UUID
 
 from fastapi import UploadFile
@@ -19,24 +19,34 @@ class ProteinResponse:
     id: UUID
     name: str
     experiment_id: UUID
-    fasta_content: Optional[str]
-    pdb_content: Optional[str]
-    localisation: Optional[ProteinLocalisationResponse]
-    gene_ontology: Optional[Dict[str, Any]]
-    soluble_probability: Optional[float]
-    msa: Optional[str]
-    md_pdb_content: Optional[str]
+
+    binding_pockets: List[int]
+    localisation: Optional[ProteinLocalisationResponse] = None
+    gene_ontology: Optional[Dict[str, Any]] = None
+    soluble_probability: Optional[float] = None
+    msa: Optional[str] = None
+    md_pdb_content: Optional[str] = None
+    fasta_content: Optional[str] = None
+    pdb_content: Optional[str] = None
 
 
 @dataclass
 class ProteinSearchQuery:
-    name: Optional[str]
-    experiment_id: Optional[UUID]
+    name: Optional[str] = None
+    experiment_id: Optional[UUID] = None
 
 
 @dataclass
 class UploadProteinRequest:
     experiment_id: UUID
-    name: Optional[str]
-    fasta: Optional[UploadFile]
-    pdb: Optional[UploadFile]
+    name: Optional[str] = None
+    fasta: Optional[UploadFile] = None
+    pdb: Optional[UploadFile] = None
+
+
+@dataclass
+class UpdateProteinRequest:
+    protein_id: UUID
+    name: Optional[str] = None
+    fasta: Optional[UploadFile] = None
+    pdb: Optional[UploadFile] = None

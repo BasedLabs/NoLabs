@@ -11,6 +11,7 @@ from uuid import UUID
 import diffdock_microservice
 import umol_microservice
 from diffdock_microservice import RunDiffDockPredictionRequest
+from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.diffdock.api_models import JobResponse, JobResult, \
@@ -46,19 +47,13 @@ class GetJobFeature:
     """
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            job_id = JobId(job_id)
-            job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            if isinstance(e, NoLabsException):
-                raise e
-
-            raise NoLabsException(ErrorCodes.unknown_exception) from e
+        return map_job_to_response(job)
 
 
 class SetupJobFeature:
@@ -67,46 +62,40 @@ class SetupJobFeature:
     """
 
     async def handle(self, request: SetupJobRequest) -> JobResponse:
-        try:
-            assert request
+        assert request
 
-            job_id = JobId(request.job_id if request.job_id else generate_uuid())
-            job_name = JobName(request.job_name if request.job_name else 'New protein ligand DIFFDOCK binding job')
+        job_id = JobId(request.job_id if request.job_id else generate_uuid())
+        job_name = JobName(request.job_name if request.job_name else 'New protein ligand DIFFDOCK binding job')
 
-            experiment = Experiment.objects.with_id(request.experiment_id)
+        experiment = Experiment.objects.with_id(request.experiment_id)
 
-            if not experiment:
-                raise NoLabsException(ErrorCodes.experiment_not_found)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id.value)
+        job: DiffDockBindingJob = DiffDockBindingJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
-            if not job:
-                job = DiffDockBindingJob(
-                    id=job_id,
-                    name=job_name,
-                    experiment=experiment
-                )
+        if not job:
+            job = DiffDockBindingJob(
+                id=job_id,
+                name=job_name,
+                experiment=experiment
+            )
 
-            protein = Protein.objects.with_id(request.protein_id)
+        protein = Protein.objects.with_id(request.protein_id)
 
-            if not protein:
-                raise NoLabsException(ErrorCodes.protein_not_found)
+        if not protein:
+            raise NoLabsException(ErrorCodes.protein_not_found)
 
-            ligand = Ligand.objects.with_id(request.ligand_id)
-            if not ligand:
-                raise NoLabsException(ErrorCodes.ligand_is_undefined)
+        ligand = Ligand.objects.with_id(request.ligand_id)
+        if not ligand:
+            raise NoLabsException(ErrorCodes.ligand_is_undefined)
 
-            job.set_input(protein=protein,
-                          ligand=ligand,
-                          samples_per_complex=request.samples_per_complex)
-            job.save(cascade=True)
+        job.set_input(protein=protein,
+                      ligand=ligand,
+                      samples_per_complex=request.samples_per_complex)
+        job.save(cascade=True)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        return map_job_to_response(job)
 
 
 class GetJobStatusFeature:
@@ -120,22 +109,17 @@ class GetJobStatusFeature:
         self._diffdock = diffdock
 
     async def handle(self, job_id: UUID) -> GetJobStatusResponse:
-        try:
-            job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id)
+        job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            response = self._diffdock.is_job_running_job_job_id_is_running_get(
-                job_id=job.iid.value
-            )
-            return GetJobStatusResponse(
-                running=response.is_running
-            )
-        except Exception as e:
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        response = self._diffdock.is_job_running_job_job_id_is_running_get(
+            job_id=job.iid.value
+        )
+        return GetJobStatusResponse(
+            running=response.is_running
+        )
 
 
 class RunJobFeature:
@@ -148,57 +132,52 @@ class RunJobFeature:
         self._diffdock = diffdock
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            assert job_id
+        assert job_id
 
-            job_id = JobId(job_id)
-            job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            result: List[DiffDockJobResult] = []
+        result: List[DiffDockJobResult] = []
 
-            ligand = job.ligand
+        ligand = job.ligand
 
-            request = diffdock_microservice.RunDiffDockPredictionRequest(pdb_contents=job.protein.get_pdb(),
-                                                                         sdf_contents=ligand.get_sdf(),
-                                                                         samples_per_complex=job.samples_per_complex,
-                                                                         job_id=job_id.value,
-                                                                         )
-            response = self._diffdock.predict_run_docking_post(
-                run_diff_dock_prediction_request=request, _request_timeout=(1000.0, 1000.0))
+        request = diffdock_microservice.RunDiffDockPredictionRequest(pdb_contents=job.protein.get_pdb(),
+                                                                     sdf_contents=ligand.get_sdf(),
+                                                                     samples_per_complex=job.samples_per_complex,
+                                                                     job_id=job_id.value,
+                                                                     )
+        response = self._diffdock.predict_run_docking_post(
+            run_diff_dock_prediction_request=request, _request_timeout=(1000.0, 1000.0))
 
-            if not response.success:
-                raise NoLabsException(ErrorCodes.diffdock_api_error, response.message)
+        if not response.success:
+            raise NoLabsException(ErrorCodes.diffdock_api_error, response.message)
 
-            for item in response.sdf_results:
-                ligand.add_binding(
-                    protein=job.protein,
+        for item in response.sdf_results:
+            ligand.add_binding(
+                protein=job.protein,
+                sdf_content=item.sdf_content,
+                minimized_affinity=item.minimized_affinity,
+                scored_affinity=item.scored_affinity,
+                confidence=item.confidence,
+                plddt_array=[]
+            )
+            ligand.save(cascade=True)
+            result.append(
+                DiffDockJobResult(
+                    ligand_id=ligand.iid.value,
                     sdf_content=item.sdf_content,
                     minimized_affinity=item.minimized_affinity,
                     scored_affinity=item.scored_affinity,
-                    confidence=item.confidence,
-                    plddt_array=[]
+                    confidence=item.confidence
                 )
-                ligand.save(cascade=True)
-                result.append(
-                    DiffDockJobResult(
-                        ligand_id=ligand.iid.value,
-                        sdf_content=item.sdf_content,
-                        minimized_affinity=item.minimized_affinity,
-                        scored_affinity=item.scored_affinity,
-                        confidence=item.confidence
-                    )
-                )
+            )
 
-            job.set_result(protein=job.protein,
-                           ligand=ligand,
-                           result=result)
-            job.save(cascade=True)
+        job.set_result(protein=job.protein,
+                       ligand=ligand,
+                       result=result)
+        job.save(cascade=True)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        return map_job_to_response(job)

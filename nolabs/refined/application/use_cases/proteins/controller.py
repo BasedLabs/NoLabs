@@ -11,10 +11,10 @@ from nolabs.refined.application.use_cases.protein_design.api_models import Setup
 from nolabs.refined.application.use_cases.protein_design.di import ProteinDesignDependencies
 from nolabs.refined.application.use_cases.protein_design.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
 from nolabs.refined.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinResponse, \
-    UploadProteinRequest
+    UploadProteinRequest, UpdateProteinRequest
 from nolabs.refined.application.use_cases.proteins.di import ProteinsControllerDependencies
 from nolabs.refined.application.use_cases.proteins.use_cases import SearchProteinsFeature, GetProteinFeature, \
-    UploadProteinFeature, DeleteProteinFeature
+    UploadProteinFeature, DeleteProteinFeature, UpdateProteinFeature
 
 router = APIRouter(
     prefix='/api/v1/objects/proteins',
@@ -54,6 +54,24 @@ async def upload_protein(
         fasta=fasta,
         pdb=pdb
     ))
+
+
+@router.patch('', summary='Update protein')
+async def update_protein(
+        feature: Annotated[
+            UpdateProteinFeature, Depends(ProteinsControllerDependencies.update_protein)],
+        protein_id: UUID = Form(),
+        name: Optional[str] = Form(None),
+        fasta: UploadFile = File(None),
+        pdb: UploadFile = File(None)) -> ProteinResponse:
+    return await feature.handle(
+        request=UpdateProteinRequest(
+            protein_id=protein_id,
+            name=name,
+            fasta=fasta,
+            pdb=pdb
+        )
+    )
 
 
 @router.delete('/{protein_id}', summary='Delete protein')

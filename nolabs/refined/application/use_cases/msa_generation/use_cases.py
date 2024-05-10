@@ -8,6 +8,7 @@ __all__ = [
 from uuid import UUID
 
 import msa_light_microservice
+from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.msa_generation.api_models import JobResponse, SetupJobRequest, GetJobStatusResponse
@@ -65,7 +66,7 @@ class SetupJobFeature:
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: MsaGenerationJob = MsaGenerationJob.objects.with_id(job_id.value)
+            job: MsaGenerationJob = MsaGenerationJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
             if not job:
                 job = MsaGenerationJob(
@@ -74,7 +75,7 @@ class SetupJobFeature:
                     experiment=experiment
                 )
 
-            protein = Protein.objects.get(id=request.protein_id)
+            protein = Protein.objects.with_id(request.protein_id)
 
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)

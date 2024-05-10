@@ -6,6 +6,7 @@ __all__ = [
 import uuid
 from typing import List
 
+from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.experiments.api_models import ExperimentMetadataResponse, \
     UpdateExperimentRequest
 from nolabs.refined.domain.models.common import ExperimentId, ExperimentName, Experiment
@@ -54,9 +55,12 @@ class UpdateExperimentFeature:
     def handle(self, request: UpdateExperimentRequest):
         assert request
 
-        experiment = Experiment.objects.get(id=request.id)
+        experiment = Experiment.objects.with_id(request.id)
 
-        if experiment and request.name:
+        if not experiment:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
+
+        if request.name:
             experiment.set_name(ExperimentName(request.name))
 
         experiment.save()

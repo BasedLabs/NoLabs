@@ -40,7 +40,7 @@ class LocalisationJob(Job):
 
         for protein in proteins:
             if not protein.get_fasta():
-                raise NoLabsException(ErrorCodes.protein_fasta_is_empty)
+                raise NoLabsException(ErrorCodes.protein_fasta_is_empty, f'Protein fasta is empty, {str(protein.name)}')
 
         self.proteins = proteins
 
@@ -55,7 +55,8 @@ class LocalisationJob(Job):
 
         for protein, prob in result:
             if not [p for p in self.proteins if p.iid == protein.iid]:
-                raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs, 'This protein is not in input proteins')
+                raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs,
+                                      'This protein is not in input proteins')
 
             self.probabilities.append(LocalisationJobResult(
                 protein_id=protein.iid.value,

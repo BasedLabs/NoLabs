@@ -1,25 +1,25 @@
 import datetime
 
-import pydantic
+from pydantic.dataclasses import dataclass
 
 
-@pydantic.dataclasses.dataclass
+@dataclass
 class ChangeExperimentNameRequest:
     id: str
     name: str
 
-@pydantic.dataclasses.dataclass
+@dataclass
 class ExperimentMetadataRequest:
     id: str
 
-@pydantic.dataclasses.dataclass
+@dataclass
 class ExperimentMetadataResponse:
     id: str
     name: str
     date: datetime.datetime
 
 
-@pydantic.dataclasses.dataclass
+@dataclass
 class TimelineResponse:
     message: str
     error: str | None

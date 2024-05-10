@@ -12,3 +12,4 @@ class UpdateJobRequest:
 class GetJobMetadataResponse:
     job_id: UUID
     job_name: str
+    type: str

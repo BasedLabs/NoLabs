@@ -6,6 +6,7 @@ __all__ = [
 ]
 
 import datetime
+from typing import Optional
 from uuid import UUID
 
 from pydantic.dataclasses import dataclass
@@ -33,6 +34,6 @@ class ExperimentMetadataResponse:
 
 @dataclass
 class TimelineResponse:
-    message: str
-    error: str | None
     created_at: datetime.datetime
+    message: Optional[str] = None
+    error: Optional[str] = None

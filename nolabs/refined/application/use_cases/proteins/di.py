@@ -1,4 +1,5 @@
-from nolabs.refined.application.use_cases.proteins.use_cases import SearchProteinsFeature, GetProteinFeature, DeleteProteinFeature, UploadProteinFeature
+from nolabs.refined.application.use_cases.proteins.use_cases import SearchProteinsFeature, GetProteinFeature, \
+    DeleteProteinFeature, UploadProteinFeature, UpdateProteinFeature
 
 
 class ProteinsControllerDependencies:
@@ -17,3 +18,7 @@ class ProteinsControllerDependencies:
     @staticmethod
     def delete_protein() -> DeleteProteinFeature:
         return DeleteProteinFeature()
+
+    @staticmethod
+    def update_protein() -> UpdateProteinFeature:
+        return UpdateProteinFeature()

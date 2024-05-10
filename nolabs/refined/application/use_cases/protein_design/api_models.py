@@ -22,8 +22,6 @@ class JobResponse:
 
 @dataclass
 class SetupJobRequest:
-    job_id: Optional[UUID]
-    job_name: Optional[str]
     experiment_id: UUID
     protein_id: UUID
 
@@ -32,6 +30,8 @@ class SetupJobRequest:
     number_of_designs: int = 1
     timesteps: Optional[int] = None
     hotspots: Optional[str] = None
+    job_id: Optional[UUID] = None
+    job_name: Optional[str] = None
 
 
 @dataclass

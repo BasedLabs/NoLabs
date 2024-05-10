@@ -81,6 +81,11 @@ class ErrorCodes(Enum):
     ligand_smiles_is_empty = ErrorCode(code=67, description="Ligand smiles is empty")
     ligand_not_found_in_job_inputs = ErrorCode(code=68, description='Ligand not found in job inputs')
     protein_initialization_error = ErrorCode(code=69, description="Protein initialization error")
+    fasta_file_is_invalid = ErrorCode(code=70, description='Fasta file is invalid')
+    pdb_file_is_invalid = ErrorCode(code=71, description='Pdb file is invalid')
+    invalid_ligand_content = ErrorCode(code=72, description='Invalid ligand content')
+    smiles_file_is_invalid = ErrorCode(code=73, description='Smiles file is invalid')
+    sdf_file_is_invalid = ErrorCode(code=74, description='Sdf file is invalid')
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):
