@@ -105,7 +105,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   diffdock:
-    image: 'ghcr.io/basedlabs/diffdock:1.0.0'
+    image: 'ghcr.io/basedlabs/diffdock:1.0.1'
     network_mode: host
     build:
       context: microservices/diffdock
