@@ -2,7 +2,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from biobuddy.api_models import SendMessageToBioBuddyResponse, SendMessageToBioBuddyRequest
-from biobuddy.prompts import generate_strategy_prompt, generate_system_prompt
+from biobuddy.prompts import generate_strategy_prompt, generate_system_prompt, generate_workflow_prompt
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_openai import ChatOpenAI
 
@@ -40,6 +40,18 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
         "input": strategy_prompt,
         "history": history_messages
     })
+
+    if "<WORKFLOW>" in completion.content:
+        new_strategy_prompt = generate_workflow_prompt(request.message_content)
+        completion = runnable.invoke({
+            "input": new_strategy_prompt,
+            "history": history_messages
+        })
+        response_content = completion.content
+        return SendMessageToBioBuddyResponse(
+            reply_type="workflow_reply",
+            content=response_content
+        )
 
     if "<PLAN>" in completion.content:
         plan_text = completion.content.split("<PLAN>:")[1].strip()

@@ -22,12 +22,6 @@
       <TargetDetail v-if="target.data" :experiment-id="experimentId" :original-target="target"></TargetDetail>
     </q-expansion-item>
   </q-list>
-  <q-page-sticky position="bottom-right" :offset="[100, 50]">
-    <q-btn size="lg" push round color="info" icon="add" @click="uploadTargetDialog = true">
-      <q-tooltip>Add targets to the experiment</q-tooltip>
-    </q-btn>
-  </q-page-sticky>
-
   <q-dialog v-model="uploadTargetDialog">
     <q-card>
       <q-card-section>

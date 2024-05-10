@@ -16,6 +16,7 @@
     "@quasar/extras": "^1.16.4",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
+    "@vue-flow/core": "^1.33.6",
     "3dmol": "^2.0.6",
     "axios": "^1.6.5",
     "axios-retry": "^4.0.0",

@@ -40,13 +40,7 @@
       </q-card>
     </q-item>
   </q-list>
-
-
-  <q-page-sticky position="bottom-right" :offset="[100, 50]">
-    <q-btn size="lg" push round color="info" icon="add" @click="uploadLigandDialog = true">
-      <q-tooltip>Add ligands to the experiment</q-tooltip>
-    </q-btn>
-  </q-page-sticky>
+  
   <q-dialog v-model="uploadLigandDialog">
     <q-card>
       <q-card-section>
