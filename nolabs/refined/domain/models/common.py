@@ -14,6 +14,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Union, Dict, Any, List
 from uuid import UUID
+from Bio import SeqIO
+import io
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
     FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
@@ -257,29 +259,27 @@ class Protein(Document, Entity):
 
     def set_fasta(self, fasta_content: Union[bytes, str]):
         if not fasta_content:
-            raise NoLabsException(ErrorCodes.invalid_protein_content)
+            raise NoLabsException(ErrorCodes.protein_fasta_is_empty)
 
-        fasta_reader = FastaReader()
+        if isinstance(fasta_content, str):
+            fasta_content = fasta_content.encode('utf-8')
 
-        aas = fasta_reader.get_ids2seqs(
-            fasta_content if isinstance(fasta_content, str) else fasta_content.decode('utf-8'))
-
-        if not aas:
-            raise NoLabsException(ErrorCodes.fasta_file_is_invalid, f'Fasta does not contain amino acids {str(self.name)}')
-
-        if len(aas) > 1:
-            raise NoLabsException(ErrorCodes.fasta_file_is_invalid,
-                                  f'Fasta contains more than one protein for protein {str(self.name)}')
-
-        fasta_content = aas[0].sequence
-
-        self.fasta_content = fasta_content.encode('utf-8')
+        self.fasta_content = fasta_content
 
     def get_fasta(self) -> str | None:
         if self.fasta_content:
             return self.fasta_content.decode('utf-8')
 
         return None
+
+    def get_amino_acid_sequence(self) -> str | None:
+        fasta = self.get_fasta()
+        if fasta:
+            res = ''
+            for chain in SeqIO.parse(io.StringIO(fasta), 'fasta'):
+                res += str(chain.seq)
+
+            return res
 
     def set_md(self, md_content: Union[bytes, str]):
         if not md_content:
@@ -566,7 +566,7 @@ class Ligand(Document, Entity):
         if isinstance(sdf, str):
             sdf = sdf.encode('utf-8')
 
-        return None
+        self.sdf_content = sdf
 
     def set_drug_likeness_score(self, score: DrugLikenessScore):
         if not score:
@@ -610,6 +610,9 @@ class Ligand(Document, Entity):
 
             if smiles_content:
                 ligand.set_smiles(smiles_content)
+
+            if sdf_content:
+                ligand.set_sdf(sdf_content)
 
             ligand.set_name(name)
             return ligand

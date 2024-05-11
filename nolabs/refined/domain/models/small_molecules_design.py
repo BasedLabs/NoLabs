@@ -26,8 +26,8 @@ class SmallMoleculesDesignJob(Job):
     size_x: float = FloatField(default=5.0)
     size_y: float = FloatField(default=5.0)
     size_z: float = FloatField(default=5.0)
-    batch_size: int = IntField(default=128),
-    minscore: float = FloatField(default=0.4),
+    batch_size: int = IntField(default=128)
+    minscore: float = FloatField(default=0.4)
     epochs: int = IntField(default=50)
 
     sampling_size: int = IntField(default=5)

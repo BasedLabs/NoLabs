@@ -3,6 +3,9 @@ from typing import Annotated
 from fastapi import Depends
 from reinvent_microservice import ReinventApi
 
+from nolabs.refined.application.use_cases.small_molecules_design.use_cases import DeleteJobFeature, GetJobStatus, \
+    GetJobFeature, GetJobLogsFeature, GetJobSmilesFeature, SetupJobFeature, RunLearningStageJobFeature, \
+    RunSamplingStageJobFeature, StopJobFeature
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
 
 

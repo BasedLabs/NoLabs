@@ -69,7 +69,7 @@ class InfrastructureDependencies:
     def solubility_microservice() -> solubility_microservice.DefaultApi:
         settings = Settings.load()
         configuration = solubility_microservice.Configuration(
-            host=settings.solubility_microservice.microservice
+            host=settings.solubility.microservice
         )
         client = solubility_microservice.ApiClient(configuration=configuration)
         return solubility_microservice.DefaultApi(client)
@@ -78,7 +78,7 @@ class InfrastructureDependencies:
     def reinvent_microservice() -> reinvent_microservice.ReinventApi:
         settings = Settings.load()
         configuration = reinvent_microservice.Configuration(
-            host=settings.reinvent_microservice.microservice
+            host=settings.reinvent.microservice
         )
         client = reinvent_microservice.ApiClient(configuration=configuration)
         return reinvent_microservice.ReinventApi(api_client=client)
@@ -128,7 +128,7 @@ class InfrastructureDependencies:
     def diffdock_microservice() -> diffdock_microservice.DefaultApi:
         settings = Settings.load()
         configuration = diffdock_microservice.Configuration(
-            host=settings.diffdock_microservice.microservice
+            host=settings.diffdock.microservice
         )
         client = diffdock_microservice.ApiClient(configuration=configuration)
         return diffdock_microservice.DefaultApi(api_client=client)

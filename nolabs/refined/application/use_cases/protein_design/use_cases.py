@@ -68,17 +68,17 @@ class SetupJobFeature:
                 experiment=experiment
             )
 
-        protein = job.protein
+        protein = Protein.objects(id=request.protein_id, experiment=experiment).first()
 
         if not protein:
             raise NoLabsException(ErrorCodes.protein_not_found)
 
         job.set_input(
             protein=protein,
-            contig=job.contig,
-            number_of_designs=job.number_of_designs,
-            hotspots=job.hotspots,
-            timesteps=job.timesteps
+            contig=request.contig,
+            number_of_designs=request.number_of_designs,
+            hotspots=request.hotspots,
+            timesteps=request.timesteps
         )
         job.save(cascade=True)
 
@@ -120,9 +120,9 @@ class RunJobFeature:
         for i, pdb in enumerate(response.pdbs_content):
             binder = Protein.create(
                 experiment=job.experiment,
-                name=ProteinName(f'{job.protein.name.value}-binder-{str(i)}')
+                name=ProteinName(f'{job.protein.name.value}-binder-{str(i)}'),
+                pdb_content=pdb
             )
-            binder.set_pdb(pdb)
             binders.append(binder)
 
             job.protein.add_protein_binder(binder)

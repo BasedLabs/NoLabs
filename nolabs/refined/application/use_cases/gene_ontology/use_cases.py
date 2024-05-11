@@ -73,7 +73,7 @@ class RunJobFeature:
         for protein in job.proteins:
             response = self._api.run_go_prediction_run_go_prediction_post(
                 run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
-                    amino_acid_sequence=protein.get_fasta()
+                    amino_acid_sequence=protein.get_amino_acid_sequence()
                 )
             )
 
@@ -177,7 +177,7 @@ class SetupJobFeature:
 
         proteins: List[Protein] = []
         for protein_id in request.proteins:
-            protein = Protein.objects.with_id(protein_id)
+            protein = Protein.objects(id=protein_id, experiment=experiment).first()
 
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)

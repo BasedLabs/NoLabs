@@ -78,7 +78,7 @@ class SetupJobFeature:
 
         proteins: List[Protein] = []
         for protein_id in request.proteins:
-            protein = Protein.objects.with_id(protein_id)
+            protein = Protein.objects(id=protein_id, experiment=experiment).first()
 
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)
@@ -116,15 +116,15 @@ class GetJobStatusFeature:
         folding_backend = job.backend
 
         if folding_backend == FoldingBackendEnum.esmfold:
-            response = self._esmfold.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
+            response = self._esmfold.is_job_running_job_job_id_is_running_get(job_id=str(job.iid.value))
             return GetJobStatusResponse(
-                running=response.is_running
+                running=response['is_running']
             )
 
         if folding_backend == FoldingBackendEnum.esmfold_light:
             response = self._esmfold_light.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
             return GetJobStatusResponse(
-                running=response.is_running
+                running=response['is_running']
             )
 
         if folding_backend == FoldingBackendEnum.rosettafold:
@@ -164,12 +164,16 @@ class RunJobFeature:
         result: List[Tuple[Protein, str]] = []
 
         for protein in job.proteins:
-            sequence = protein.get_fasta()
+            sequence = protein.get_amino_acid_sequence()
+
+            if not sequence:
+                raise NoLabsException(ErrorCodes.protein_fasta_is_empty, f'Protein sequence is empty for protein {protein.name}')
+
             pdb_content, errors = self.request_factory(job_id=job.iid, sequence=sequence,
                                                        folding_backend=FoldingBackendEnum(job.backend))
 
             if errors:
-                raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
+                raise NoLabsException(ErrorCodes.folding_run_error, errors)
 
             result.append((protein, pdb_content))
 

@@ -25,8 +25,7 @@ class SetupJobRequest:
     experiment_id: UUID
     protein_id: UUID
 
-    binder_ids: List[UUID]
-
+    contig: str
     number_of_designs: int = 1
     timesteps: Optional[int] = None
     hotspots: Optional[str] = None

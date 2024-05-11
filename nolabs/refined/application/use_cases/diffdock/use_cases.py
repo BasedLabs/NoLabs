@@ -81,12 +81,12 @@ class SetupJobFeature:
                 experiment=experiment
             )
 
-        protein = Protein.objects.with_id(request.protein_id)
+        protein = Protein.objects(id=request.protein_id, experiment=experiment).first()
 
         if not protein:
             raise NoLabsException(ErrorCodes.protein_not_found)
 
-        ligand = Ligand.objects.with_id(request.ligand_id)
+        ligand = Ligand.objects(id=request.ligand_id, experiment=experiment).first()
         if not ligand:
             raise NoLabsException(ErrorCodes.ligand_is_undefined)
 
@@ -147,7 +147,7 @@ class RunJobFeature:
         request = diffdock_microservice.RunDiffDockPredictionRequest(pdb_contents=job.protein.get_pdb(),
                                                                      sdf_contents=ligand.get_sdf(),
                                                                      samples_per_complex=job.samples_per_complex,
-                                                                     job_id=job_id.value,
+                                                                     job_id=str(job_id.value),
                                                                      )
         response = self._diffdock.predict_run_docking_post(
             run_diff_dock_prediction_request=request, _request_timeout=(1000.0, 1000.0))

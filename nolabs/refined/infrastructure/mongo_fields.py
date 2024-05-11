@@ -1,6 +1,6 @@
 from mongoengine import fields
 
-from nolabs.seedwork.domain.value_objects import ValueObjectString
+from nolabs.seedwork.domain.value_objects import ValueObjectString, ValueObjectFloat
 
 
 class ValueObjectStringField(fields.BaseField):
@@ -34,12 +34,12 @@ class ValueObjectFloatField(fields.BaseField):
         self.factory = kwargs['factory']
 
     def to_mongo(self, value):
-        if isinstance(value, ValueObjectString):
+        if isinstance(value, ValueObjectFloat):
             return value.value
         else:
             return value
 
     def to_python(self, value):
-        if isinstance(value, str):
+        if isinstance(value, float):
             return self.factory(value)
         return value

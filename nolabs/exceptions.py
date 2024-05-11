@@ -86,6 +86,8 @@ class ErrorCodes(Enum):
     invalid_ligand_content = ErrorCode(code=72, description='Invalid ligand content')
     smiles_file_is_invalid = ErrorCode(code=73, description='Smiles file is invalid')
     sdf_file_is_invalid = ErrorCode(code=74, description='Sdf file is invalid')
+    reinvent_cannot_run_sampling = ErrorCode(code=75, description='Cannot run sampling')
+    folding_run_error = ErrorCode(code=76, description='Folding run error')
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

@@ -12,8 +12,8 @@ from nolabs.refined.application.use_cases.solubility.di import SolubilityDepende
 from nolabs.refined.application.use_cases.solubility.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
 
 router = fastapi.APIRouter(
-    prefix='/api/v1/localisation',
-    tags=['Localisation'],
+    prefix='/api/v1/solubility',
+    tags=['Solubility'],
 
 )
 

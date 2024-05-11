@@ -17,7 +17,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   esmfold:
-    image: 'ghcr.io/basedlabs/esmfold:1.0.1'
+    image: 'ghcr.io/basedlabs/esmfold:1.0.0'
     network_mode: host
     build:
       context: microservices/esmfold
@@ -108,7 +108,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   diffdock:
-    image: 'ghcr.io/basedlabs/diffdock:1.0.0'
+    image: 'ghcr.io/basedlabs/diffdock:1.0.1'
     network_mode: host
     build:
       context: microservices/diffdock
@@ -173,9 +173,9 @@ services:
       context: microservices/rosettafold
       dockerfile: build/Dockerfile
     volumes:
-      - .:/RoseTTAFold/bfd
-      - .:/RoseTTAFold/pdb100_2021Mar03
-      - .:/RoseTTAFold/UniRef30_2020_06
+      - /media/jt/Local Disk/RoseTTAFold/bfd:/RoseTTAFold/bfd
+      - /media/jt/Local Disk/RoseTTAFold/pdb100_2021Mar03:/RoseTTAFold/pdb100_2021Mar03
+      - /media/jt/Local Disk/RoseTTAFold/UniRef30_2020_06:/RoseTTAFold/UniRef30_2020_06
     command: --host=0.0.0.0 --port=5738
   reinvent:
     image: 'ghcr.io/basedlabs/reinvent:1.0.0'

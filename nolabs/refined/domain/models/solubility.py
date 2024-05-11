@@ -42,7 +42,7 @@ class SolubilityJob(Job):
         if not self.proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
-        for protein in proteins:
+        for protein in self.proteins:
             if not protein.fasta_content:
                 raise NoLabsException(ErrorCodes.protein_fasta_is_empty)
 

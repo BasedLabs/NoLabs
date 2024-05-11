@@ -80,12 +80,12 @@ class SetupJobFeature:
                     experiment=experiment
                 )
 
-            protein = Protein.objects.with_id(request.protein_id)
+            protein = Protein.objects(id=request.protein_id, experiment=experiment).first()
 
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)
 
-            ligand = Ligand.objects.with_id(request.ligand_id)
+            ligand = Ligand.objects(id=request.protein_id, experiment=experiment).first()
 
             job.set_input(
                 protein=protein,
@@ -152,7 +152,7 @@ class RunJobFeature:
                 raise NoLabsException(ErrorCodes.job_not_found)
 
             request = umol_microservice.RunUmolPredictionRequest(
-                protein_sequence=job.protein.get_fasta(),
+                protein_sequence=job.protein.get_amino_acid_sequence(),
                 ligand_smiles=job.ligand.get_smiles(),
                 pocket_ids=job.pocket_ids,
                 job_id=job_id.value,

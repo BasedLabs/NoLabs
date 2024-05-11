@@ -49,6 +49,8 @@ class FoldingJob(Job):
         for protein in proteins:
             if not Protein.objects.with_id(protein.iid.value):
                 raise NoLabsException(ErrorCodes.invalid_job_input, 'Protein was not found in list of proteins')
+            if not protein.fasta_content:
+                raise NoLabsException(ErrorCodes.protein_fasta_is_empty, 'Cannot run folding on a protein without fasta content')
 
         self.backend = backend
         self.proteins = proteins

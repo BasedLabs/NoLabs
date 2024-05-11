@@ -34,11 +34,11 @@ class SearchLigandsFeature:
         db_query = Q()
 
         if query.name:
-            db_query = db_query or Q(name__icontains=query.name)
+            db_query = db_query & Q(name__icontains=query.name)
 
         if query.experiment_id:
             experiment = Experiment.objects.with_id(query.experiment_id)
-            db_query = db_query or Q(experiment=experiment)
+            db_query = db_query & Q(experiment=experiment)
 
         return [map_ligand_to_response(l) for l in Ligand.objects(db_query)]
 
@@ -66,9 +66,15 @@ class UploadLigandFeature:
         name = request.name
 
         if request.smiles:
+            ext = pathlib.Path(request.smiles.filename).suffix
+            if ext not in ['.smiles', '.smi']:
+                raise NoLabsException(ErrorCodes.smiles_file_is_invalid)
             name = name or request.smiles.filename
 
         if request.sdf:
+            ext = pathlib.Path(request.sdf.filename).suffix
+            if ext not in ['.sdf']:
+                raise NoLabsException(ErrorCodes.sdf_file_is_invalid)
             name = name or request.sdf.filename
 
         ligand_name = LigandName(name)

@@ -59,44 +59,38 @@ class RunJobFeature:
         self._api = api
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            assert job_id
+        assert job_id
 
-            job_id = JobId(job_id)
-            job: SolubilityJob = SolubilityJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: SolubilityJob = SolubilityJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            result: List[Tuple[Protein, float]] = []
+        result: List[Tuple[Protein, float]] = []
 
-            for protein in job.proteins:
-                response = self._api.run_solubility_run_solubility_prediction_post(
-                    run_solubility_prediction_request=RunSolubilityPredictionRequest(
-                        amino_acid_sequence=protein.get_fasta()
-                    )
+        for protein in job.proteins:
+            response = self._api.run_solubility_run_solubility_prediction_post(
+                run_solubility_prediction_request=RunSolubilityPredictionRequest(
+                    amino_acid_sequence=protein.get_amino_acid_sequence()
                 )
+            )
 
-                if response.errors:
-                    raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
+            if response.errors:
+                raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
 
-                soluble_probability = response.soluble_probability
+            soluble_probability = response.soluble_probability
 
-                result.append((protein, soluble_probability))
+            result.append((protein, soluble_probability))
 
-            job.set_result(result)
-            job.save(cascade=True)
+        job.set_result(result)
+        job.save(cascade=True)
 
-            for protein, prob in result:
-                protein.set_solubility_probability(SolubleProbability(prob))
-                protein.save(cascade=True)
+        for protein, prob in result:
+            protein.set_solubility_probability(SolubleProbability(prob))
+            protein.save(cascade=True)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        return map_job_to_response(job)
 
 
 class SetupJobFeature:
@@ -126,7 +120,7 @@ class SetupJobFeature:
 
             proteins: List[Protein] = []
             for protein_id in request.proteins:
-                protein = Protein.objects.with_id(protein_id)
+                protein = Protein.objects(id=protein_id, experiment=experiment).first()
 
                 if not protein:
                     raise NoLabsException(ErrorCodes.protein_not_found)

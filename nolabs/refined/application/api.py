@@ -7,11 +7,13 @@ from nolabs.refined.application.use_cases.experiments.controller import router a
 from nolabs.refined.application.use_cases.jobs.controller import router as job_router
 from nolabs.refined.application.use_cases.folding.controller import router as folding_router
 from nolabs.refined.application.use_cases.gene_ontology.controller import router as gene_ontology_router
+from nolabs.refined.application.use_cases.solubility.controller import router as solubility_router
 from nolabs.refined.application.use_cases.conformations.controller import router as conformations_controller
 from nolabs.refined.application.use_cases.protein_design.controller import router as protein_design_controller
 from nolabs.refined.application.use_cases.binding_pockets.controller import router as binding_pockets_controller
 from nolabs.refined.application.use_cases.msa_generation.controller import router as msa_generation_controller
 from nolabs.refined.application.use_cases.umol.controller import router as umol_controller
+from nolabs.refined.application.use_cases.small_molecules_design.controller import router as small_molecules_design_router
 from nolabs.refined.application.event_handlers.di import EventHandlersDependencies
 from nolabs.refined.application.use_cases.diffdock.controller import router as diffdock_router
 from nolabs.refined.application.use_cases.proteins.controller import router as proteins_router
@@ -41,10 +43,12 @@ app.include_router(experiment_router)
 app.include_router(folding_router)
 app.include_router(job_router)
 app.include_router(gene_ontology_router)
+app.include_router(solubility_router)
 app.include_router(conformations_controller)
 app.include_router(protein_design_controller)
 app.include_router(binding_pockets_controller)
 app.include_router(msa_generation_controller)
+app.include_router(small_molecules_design_router)
 app.include_router(diffdock_router)
 app.include_router(umol_controller)
 app.include_router(proteins_router)

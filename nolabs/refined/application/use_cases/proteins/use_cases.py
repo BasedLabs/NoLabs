@@ -16,7 +16,6 @@ from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinResponse, \
     ProteinLocalisationResponse, UploadProteinRequest, UpdateProteinRequest
 from nolabs.refined.domain.models.common import Protein, Experiment, ProteinName
-from nolabs.utils.fasta import FastaReader
 
 
 def map_protein_to_response(protein: Protein) -> ProteinResponse:
@@ -46,7 +45,7 @@ class SearchProteinsFeature:
         db_query = Q()
 
         if query.name:
-            db_query = db_query or Q(name__icontains=query.name)
+            db_query = db_query & Q(name__icontains=query.name)
 
         if query.experiment_id:
             experiment = Experiment.objects.with_id(query.experiment_id)
@@ -54,7 +53,7 @@ class SearchProteinsFeature:
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            db_query = db_query or Q(experiment=experiment)
+            db_query = db_query & Q(experiment=experiment)
 
         return [map_protein_to_response(p) for p in Protein.objects(db_query)]
 
