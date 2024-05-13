@@ -24,7 +24,7 @@ components = [
     Component(
         name="DockingProteinOnLigand",
         inputs=["pdb", "smiles"],
-        outputs=["docked_pdb"],
+        outputs=["pdb"],
         description="Performs docking of protein on ligand, accepts PDB file and SMILES string, and generates a PDB file."
     ),
     Component(

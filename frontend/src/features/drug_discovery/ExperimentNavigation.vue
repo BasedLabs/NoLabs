@@ -1,17 +1,22 @@
 <template>
-  <q-page class="bg-black q-pl-md q-pr-md">
+  <q-page class="bg-black q-pl-md">
     <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id=" this.$route.params.experimentId" />
-    <button @click="generateWorkflow">Generate Workflow</button>
-    <q-btn-dropdown color="primary" label="Add Node" icon="add" dense persistent>
-      <q-list>
-        <q-item v-for="option in componentOptions" :key="option.value" clickable v-close-popup @click="addComponent(option)">
-          <q-item-section>
-            <q-item-label>{{ option.label }}</q-item-label>
-            <q-item-label caption>{{ option.description }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-btn-dropdown>
+    <div class="row no-wrap items-center">
+      <button @click="generateWorkflow">Generate Workflow</button>
+      <q-btn-dropdown color="primary" label="Add Node" icon="add" dense persistent>
+        <q-list>
+          <q-item v-for="option in componentOptions" :key="option.value" clickable v-close-popup @click="addComponent(option)">
+            <q-item-section>
+              <q-item-label>{{ option.label }}</q-item-label>
+              <q-item-label caption>{{ option.description }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+      <q-space />
+      <q-btn class="q-ma-sm" color="green" icon="not_started">Run workflow</q-btn>
+    </div>
+
     <div class="map-container">
       <VueFlow class="workflow"
                v-if="elements"
@@ -19,6 +24,7 @@
                @nodeDragStop="onNodeDragStopHandler"
                :edges="elements.edges"
                @connect="onConnect"
+               @node-click="onNodeClick"
                fit-view-on-init>
         <template #node-protein-list>
           <ProteinListNode />
@@ -26,9 +32,35 @@
         <template #node-ligand-list="{ id }">
           <LigandListNode :nodeId="id" :onDeleteNode="onDeleteNode" />
         </template>
+        <template #node-esmfold>
+          <EsmFoldNode />
+        </template>
+        <template #node-diffdock>
+          <DiffDockNode />
+        </template>
+        <template #node-rfdiffusion>
+          <RfDiffusionNode />
+        </template>
       </VueFlow>
     </div>
   </q-page>
+
+  <q-drawer v-model="sideMenuOpen" show-if-above bordered content-style="background-color: white;" :side="'right'">
+    <!-- Close button -->
+    <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close"/>
+
+    <!-- Side menu content -->
+    <q-card>
+      <q-card-section>
+        <q-item>
+          <q-item-section>
+            <q-item-label v-if="selectedNode">{{ selectedNode.label }}</q-item-label>
+            <q-item-label  v-if="selectedNode" caption>{{ selectedNode.description }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-card-section>
+    </q-card>
+  </q-drawer>
 
 </template>
 
@@ -37,18 +69,29 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 
 import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
+import ProteinListNode from "./components/workflow/ProteinListNode.vue";
+import LigandListNode from "./components/workflow/LigandListNode.vue";
 import {useDrugDiscoveryStore} from "./storage";
 import {defineComponent} from "vue";
 import {checkBioBuddyEnabled} from "../biobuddy/api";
 import { ref } from 'vue';
-import {Edge, Elements, Position, updateEdge, useVueFlow} from '@vue-flow/core';
+import {Edge, Position} from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
-import ProteinListNode from "./components/workflow/ProteinListNode.vue";
-import LigandListNode from "./components/workflow/LigandListNode.vue";
+import EsmFoldNode from "./components/workflow/EsmFoldNode.vue";
+import DiffDockNode from "./components/workflow/DiffDockNode.vue";
+import RfDiffusionNode from "./components/workflow/RfDiffusionNode.vue";
+
 
 export default defineComponent({
   name: "ExperimentNavigation",
-  components: {BioBuddyChat, VueFlow, ProteinListNode, LigandListNode},
+  components: {
+    BioBuddyChat,
+    VueFlow,
+    ProteinListNode,
+    LigandListNode,
+    EsmFoldNode,
+    DiffDockNode,
+    RfDiffusionNode},
   data() {
     return {
       step: 1, // This can be a reactive property based on the current route if needed
@@ -56,6 +99,8 @@ export default defineComponent({
         experimentId: null as string | null,
         metadata: null
       },
+      sideMenuOpen: false,
+      selectedNode: null as Node | null,
       selectedComponent: null as string | null,
       specialNodeProps: [],
       splitterModel: 20,
@@ -74,7 +119,7 @@ export default defineComponent({
             {
               "id": "1",
               "name": "DownloadFromRCSB",
-              "type": "component",
+              "type": "protein-list",
               "inputs": [],
               "outputs": ["pdb_file"],
               "description": "Downloads target protein data from RCSB PDB."
@@ -82,7 +127,7 @@ export default defineComponent({
             {
               "id": "2",
               "name": "DownloadFromChembl",
-              "type": "component",
+              "type": "ligand-list",
               "inputs": [],
               "outputs": ["smiles_string"],
               "description": "Downloads ligands from ChEMBL in SMILES format."
@@ -90,15 +135,15 @@ export default defineComponent({
             {
               "id": "3",
               "name": "DockingProteinOnLigand",
-              "type": "component",
+              "type": "diffdock",
               "inputs": ["pdb_file", "smiles_string"],
-              "outputs": ["docked_pdb_file"],
+              "outputs": ["pdb_file"],
               "description": "Performs docking of protein on ligand."
             },
             {
               "id": "4",
               "name": "GenerateProteins",
-              "type": "component",
+              "type": "rfdiffusion",
               "inputs": [],
               "outputs": ["generated_fasta_file"],
               "description": "Generates new protein sequences."
@@ -106,7 +151,7 @@ export default defineComponent({
             {
               "id": "5",
               "name": "RunFolding",
-              "type": "component",
+              "type": "esmfold",
               "inputs": ["generated_fasta_file"],
               "outputs": ["generated_pdb_file"],
               "description": "Folds generated protein sequences into 3D structures."
@@ -197,8 +242,8 @@ export default defineComponent({
 
       // Calculate positions for each node
       let currentX = 100;
-      const layerWidth = 200; // Width difference between layers
-      const layerHeight = 100; // Height difference between nodes within a layer
+      const layerWidth = 500; // Width difference between layers
+      const layerHeight = 500; // Height difference between nodes within a layer
       Object.values(nodesByDepth).forEach((nodesAtDepth: Node[], depth: number) => {
         const numNodes = nodesAtDepth.length;
         const startY = 100 + (numNodes * layerHeight) / 2;
@@ -288,6 +333,13 @@ export default defineComponent({
         this.elements.nodes.splice(index, 1);
       }
     },
+    onNodeClick(node: Node) {
+      this.selectedNode = node;
+      this.sideMenuOpen = true;
+    },
+    closeSideMenu() {
+      this.sideMenuOpen = false;
+    },
     onNodeDragStopHandler(event: any) {
       const id = event.node.id;
       const newPosition = event.node.position;
@@ -314,8 +366,8 @@ body {
 }
 
 .map-container {
-  width: 800px;
-  height: 800px;
+  width: 100vw;
+  height: 100vh;
 }
 
 .workflow {

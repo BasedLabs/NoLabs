@@ -1,8 +1,15 @@
 <template>
-  <q-card>
-    <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
+  <q-card style="width: 400px">
+    <div class="row no-wrap items-center">
+      <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
+      <q-space />
+      <q-btn icon="settings"> </q-btn>
+    </div>
+
     <LigandsList v-if="experimentId" :experiment-id="this.experimentId" />
+    <q-btn class="full-width" icon="open_in_new" label="Open in a new tab"> </q-btn>
   </q-card>
+  <Handle type="source" :position="Position.Right"/>
 </template>
 
 <script lang="ts">
@@ -12,11 +19,18 @@ import {useDrugDiscoveryStore} from "../../storage";
 import {useRoute} from "vue-router";
 import {Notify, QSpinnerOrbit} from "quasar";
 import LigandsList from "../ligands/LigandsList.vue";
+import { Handle, Position } from '@vue-flow/core'
 
 export default defineComponent({
   name: "LigandsListNode",
+  computed: {
+    Position() {
+      return Position
+    }
+  },
   components: {
-    LigandsList
+    LigandsList,
+    Handle
   },
   props: {
     nodeId: String,
