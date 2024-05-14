@@ -1,6 +1,6 @@
 <template>
   <q-page class="bg-black q-pl-md">
-    <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id=" this.$route.params.experimentId" />
+    <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id="this.experiment.experimentId" />
     <div class="row no-wrap items-center">
       <button @click="generateWorkflow">Generate Workflow</button>
       <q-btn-dropdown color="primary" label="Add Node" icon="add" dense persistent>
@@ -26,26 +26,26 @@
                @connect="onConnect"
                @node-click="onNodeClick"
                fit-view-on-init>
-        <template #node-protein-list>
-          <ProteinListNode />
+        <template #node-protein-list="{ id }">
+          <ProteinListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
         </template>
         <template #node-ligand-list="{ id }">
-          <LigandListNode :nodeId="id" :onDeleteNode="onDeleteNode" />
+          <LigandListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
         </template>
-        <template #node-esmfold>
-          <EsmFoldNode />
+        <template #node-esmfold="{ id }">
+          <EsmFoldNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
         </template>
-        <template #node-diffdock>
-          <DiffDockNode />
+        <template #node-diffdock="{ id }">
+          <DiffDockNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
         </template>
-        <template #node-rfdiffusion>
-          <RfDiffusionNode />
+        <template #node-rfdiffusion="{ id }">
+          <RfDiffusionNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
         </template>
       </VueFlow>
     </div>
   </q-page>
 
-  <q-drawer v-model="sideMenuOpen" show-if-above bordered content-style="background-color: white;" :side="'right'">
+  <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;" side="right">
     <!-- Close button -->
     <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close"/>
 
@@ -55,13 +55,27 @@
         <q-item>
           <q-item-section>
             <q-item-label v-if="selectedNode">{{ selectedNode.label }}</q-item-label>
-            <q-item-label  v-if="selectedNode" caption>{{ selectedNode.description }}</q-item-label>
+            <q-item-label v-if="selectedNode" caption>{{ selectedNode.description }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-card-section>
     </q-card>
   </q-drawer>
 
+  <q-dialog v-model="modalOpen" persistent>
+    <q-card style="min-width: 70vw; min-height: 70vh;">
+      <q-card-section>
+        <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'protein-list'" :experiment-id="experiment.experimentId"/>
+        <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'" :experiment-id="experiment.experimentId"/>
+        <EsmFoldNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'" :experiment-id="experiment.experimentId"/>
+        <DiffDockNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'diffdock'" :experiment-id="experiment.experimentId"/>
+        <RfDiffusionNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'rfdiffusion'" :experiment-id="experiment.experimentId"/>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="Close" color="primary" v-close-popup @click="closeModal"/>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script lang="ts">
@@ -70,17 +84,31 @@ import '@vue-flow/core/dist/theme-default.css';
 
 import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
 import ProteinListNode from "./components/workflow/ProteinListNode.vue";
+import ProteinListNodeContent from "./components/workflow/ProteinListNodeContent.vue";
 import LigandListNode from "./components/workflow/LigandListNode.vue";
+import LigandListNodeContent from "./components/workflow/LigandListNodeContent.vue";
 import {useDrugDiscoveryStore} from "./storage";
 import {defineComponent} from "vue";
 import {checkBioBuddyEnabled} from "../biobuddy/api";
 import { ref } from 'vue';
-import {Edge, Position} from '@vue-flow/core';
+import {Edge, Position, Node as FlowNode} from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import EsmFoldNode from "./components/workflow/EsmFoldNode.vue";
+import EsmFoldNodeContent from "./components/workflow/EsmFoldNodeContent.vue";
 import DiffDockNode from "./components/workflow/DiffDockNode.vue";
+import DiffDockNodeContent from "./components/workflow/DiffDockNodeContent.vue";
 import RfDiffusionNode from "./components/workflow/RfDiffusionNode.vue";
+import RfDiffusionNodeContent from "./components/workflow/RfDiffusionNodeContent.vue";
 
+// Define custom Node type
+interface Node extends FlowNode {
+  id: string;
+  name: string;
+  type: string;
+  inputs: string[];
+  outputs: string[];
+  description: string;
+}
 
 export default defineComponent({
   name: "ExperimentNavigation",
@@ -88,10 +116,16 @@ export default defineComponent({
     BioBuddyChat,
     VueFlow,
     ProteinListNode,
+    ProteinListNodeContent,
     LigandListNode,
+    LigandListNodeContent,
     EsmFoldNode,
+    EsmFoldNodeContent,
     DiffDockNode,
-    RfDiffusionNode},
+    DiffDockNodeContent,
+    RfDiffusionNode,
+    RfDiffusionNodeContent
+  },
   data() {
     return {
       step: 1, // This can be a reactive property based on the current route if needed
@@ -100,6 +134,7 @@ export default defineComponent({
         metadata: null
       },
       sideMenuOpen: false,
+      modalOpen: false,
       selectedNode: null as Node | null,
       selectedComponent: null as string | null,
       specialNodeProps: [],
@@ -111,7 +146,10 @@ export default defineComponent({
         { label: 'Input Node', value: 'input', description: 'Represents an input node.' },
         { label: 'Output Node', value: 'output', description: 'Represents an output node.' },
       ],
-      elements: [],
+      elements: {
+        nodes: [] as Node[],
+        edges: [] as Edge[]
+      },
       jsonData: {
         "workflow": {
           "name": "Protein-Ligand Interaction and Protein Generation Workflow",
@@ -250,28 +288,16 @@ export default defineComponent({
 
         nodesAtDepth.forEach((node, index) => {
           const position = { x: currentX, y: startY - index * layerHeight };
-          const nodeData = {
+          const nodeData: Node = {
             id: node.id,
+            name: node.name,
             type: node.type,
-            label: node.name,
+            inputs: node.inputs,
+            outputs: node.outputs,
+            description: node.description,
             position,
             data: { description: node.description }
           };
-
-          // Set sourcePosition and targetPosition for special nodes
-          if (node.type === 'special') {
-            nodeData.sourcePosition = Position.Right;
-            nodeData.targetPosition = Position.Left;
-            nodeData.specialNodeProps = {
-              // Add any special properties needed for the special node component
-              // For example:
-              // specialProperty: node.specialProperty
-            };
-          } else {
-            // Set default sourcePosition and targetPosition
-            nodeData.sourcePosition = Position.Right;
-            nodeData.targetPosition = Position.Left;
-          }
 
           nodes.push(nodeData);
         });
@@ -307,8 +333,11 @@ export default defineComponent({
       // Create the new node
       const newNode: Node = {
         id: newNodeId,
+        name: option.label,
         type: option.value,
-        label: option.label,
+        inputs: [],
+        outputs: [],
+        description: option.description,
         position: { x: 100, y: 100 },
         data: { description: option.description },
         sourcePosition: Position.Right,
@@ -318,29 +347,42 @@ export default defineComponent({
       // Add the new node to the elements
       this.elements?.nodes.push(newNode);
     },
-    onConnect(params) {
-      const newEdge = {
+    onConnect(params: { source: string, target: string }) {
+      const newEdge: Edge = {
         id: `e${params.source}-${params.target}`,
         source: params.source,
         target: params.target,
       };
       this.elements.edges.push(newEdge);
     },
-    onDeleteNode(nodeId: String) {
-      console.log(nodeId);
+    onDeleteNode(nodeId: string) {
       const index = this.elements.nodes.findIndex(node => node.id === nodeId);
       if (index !== -1) {
         this.elements.nodes.splice(index, 1);
       }
     },
-    onNodeClick(node: Node) {
-      this.selectedNode = node;
-      this.sideMenuOpen = true;
+    openSettings(nodeId: string) {
+      const node = this.elements.nodes.find(node => node.id === nodeId);
+      if (node) {
+        this.selectedNode = node;
+        this.sideMenuOpen = true;
+      }
+    },
+    onNodeClick(event: MouseEvent & { node: Node }) {
+      if (event.target && (event.target as HTMLElement).closest('.settings-btn')) {
+        return; // Do nothing if the settings button is clicked
+      }
+      // Open modal for node content only
+      this.selectedNode = event.node;
+      this.modalOpen = true;
     },
     closeSideMenu() {
       this.sideMenuOpen = false;
     },
-    onNodeDragStopHandler(event: any) {
+    closeModal() {
+      this.modalOpen = false;
+    },
+    onNodeDragStopHandler(event: { node: Node }) {
       const id = event.node.id;
       const newPosition = event.node.position;
 
@@ -355,12 +397,10 @@ export default defineComponent({
       await store.changeExperimentName(this.experiment.experimentId as string, newExperimentName);
     }
   }
-}
-)
+})
 </script>
 
 <style scoped>
-
 body {
   overflow-x: hidden;
 }
@@ -374,5 +414,4 @@ body {
   height: 100%;
   width: 100%;
 }
-
 </style>
