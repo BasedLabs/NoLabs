@@ -1,11 +1,9 @@
 import asyncio
 import inspect
-import uuid
 from abc import ABC, abstractmethod
 from asyncio import Task
-from dataclasses import dataclass, is_dataclass
-from typing import Optional, List, Callable, Set, Any, Type, Dict, Union, Tuple
-from uuid import UUID
+from dataclasses import dataclass
+from typing import Optional, List, Callable, Set, Any, Type, Dict, Union, Tuple, get_type_hints
 
 from pydantic import ValidationError, BaseModel
 
@@ -29,27 +27,31 @@ class Pipe:
     value: Dict[str, Any] = {}
     schema: Schema
 
-    def __init__(self, type: Type, value: Dict[str, Any] = None):
+    def __init__(self, type: Type, value: Union[Dict[str, Any], None] = None):
+        if value is None:
+            value = {}
+
         if not issubclass(type, BaseModel):
             raise ValueError("Parameter is not a pydantic @dataclass")
 
-        if value and not self.validate_value(value):
+        if value and not self.get_value_errors(value):
             raise ValueError("Input value type is not compatible with type")
 
         self.value = value
+        self.type = type
         self.schema = Schema.get_schema(cls=type)
 
-    def validate(self) -> List[ParameterValidationResult]:
-        return self.validate_value(self.value)
+    def get_errors(self) -> List[ParameterValidationResult]:
+        return self.get_value_errors(self.value)
 
-    def validate_value(self, value: Union[Dict[str, Any], Any]) -> List[ParameterValidationResult]:
+    def get_value_errors(self, value: Union[Dict[str, Any], Any]) -> List[ParameterValidationResult]:
         try:
             _ = self.type(**value)
         except ValidationError as e:
             return [
                 ParameterValidationResult(
-                    msg=error.msg,
-                    loc=error.loc
+                    msg=error['msg'],
+                    loc=error['loc']  # type: ignore
                 )
                 for error in e.errors()
             ]
@@ -57,7 +59,14 @@ class Pipe:
         return []
 
     def set_value(self, value: Any):
-        errors = self.validate_value(value=value)
+        if self.is_pydantic_type(value):
+            value = value.dict()
+
+        if value is self.type:
+            self.value = value.dict()
+            return
+
+        errors = self.get_value_errors(value=value)
         if errors:
             raise ValueError(errors)
 
@@ -81,7 +90,7 @@ class Pipe:
 
     @property
     def instance(self) -> Type:
-        errors = self.validate_value(self.value)
+        errors = self.get_value_errors(self.value)
 
         if errors:
             raise ValueError(errors)
@@ -94,9 +103,13 @@ class Pipe:
     def to_dict(self) -> Dict[str, Any]:
         return self.value
 
+    @staticmethod
+    def is_pydantic_type(t: Type) -> bool:
+        return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
+
 
 class Function(ABC):
-    id: UUID
+    id: str
     name: str
     signature: str
 
@@ -106,11 +119,10 @@ class Function(ABC):
     executing: bool = False
     last_exception: Optional[Exception] = None
 
-    previous: List['Function']
-    next: List['Function']
+    previous: List['Function'] = []
 
     def __init__(self,
-                 id: UUID,
+                 id: str,
                  name: str,
                  signature: str,
                  input: Pipe,
@@ -129,11 +141,17 @@ class Function(ABC):
     def terminate(self):
         ...
 
+    def __hash__(self):
+        return self.id.__hash__()
+
+    def __eq__(self, other):
+        if not isinstance(other, Function):
+            return False
+
+        return self.id == other.id
+
     def set_previous(self, functions: List['Function']):
         self.previous = functions
-
-    def set_next(self, functions: List['Function']):
-        self.next = functions
 
     def map_parameter(self, function: 'Function', path_from: List[str], path_to: List[str]) -> Optional[
         SchemaValidationIssue]:
@@ -147,13 +165,12 @@ class Function(ABC):
             path_to=path_to
         )
 
-    def set_parameters(self, from_function: 'Function'):
-        if from_function not in self.previous:
-            raise ValueError('Cannot set parameter for unmapped function')
-
-        for prop in self.input.schema.mapped_properties:
-            input_parameter = from_function.output.get_parameter(prop.path_from)
-            self.input.set_parameter(path=prop.path_to, param=input_parameter)
+    def set_parameters_from_previous(self):
+        for function in self.previous:
+            for prop in self.input.schema.mapped_properties:
+                if prop.mapping_function_id == function.id:
+                    input_parameter = function.output.get_parameter(prop.path_from)
+                    self.input.set_parameter(path=prop.path_to, param=input_parameter)
 
 
 class PythonFunction(Function):
@@ -174,7 +191,7 @@ class PythonFunction(Function):
         signature = f'def {name}{str(inspect.signature(pointer))}'
 
         super().__init__(
-            id=uuid.uuid4(),
+            id=f'{pointer.__module__}.{pointer.__qualname__}',
             name=name,
             signature=signature,
             input=self._parse_input_parameter(),
@@ -182,7 +199,7 @@ class PythonFunction(Function):
         )
 
     async def execute(self):
-        input_validation_errors = self.input.validate()
+        input_validation_errors = self.input.get_errors()
         if input_validation_errors:
             raise ValueError(input_validation_errors)
 
@@ -225,11 +242,14 @@ class PythonFunction(Function):
 
         parameter = list(sig.parameters.values())[0]
 
-        if not is_dataclass(parameter.annotation):
+        hints = get_type_hints(self._pointer)
+        param_type = hints[parameter.name]
+
+        if not Pipe.is_pydantic_type(param_type):
             raise ValueError('Input parameter is not a pydantic @dataclass')
 
         return Pipe(
-            type=parameter.annotation
+            type=param_type
         )
 
     def _parse_function_name(self) -> str:
@@ -238,18 +258,14 @@ class PythonFunction(Function):
     def _parse_return_parameter(self) -> Pipe:
         sig = inspect.signature(self._pointer)
 
+        output_param = sig.return_annotation
+
+        if not Pipe.is_pydantic_type(output_param):
+            raise ValueError('You can use only pydantic BaseModel inherited class as return value of your function')
+
         return Pipe(
-            type=sig.return_annotation
+            type=output_param
         )
-
-    def __hash__(self):
-        return hash(self._pointer)
-
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, PythonFunction):
-            return False
-
-        return self._pointer == other._pointer
 
 
 @dataclass
@@ -268,86 +284,32 @@ class WorkflowContext:
 
         self.graph = graph
 
-    async def execute_single(self,
-                             function: Function,
-                             terminate: bool = False):
-        found = False
-
-        def validate_node_in_graph(validation_function: Function):
-            global found
-            if validation_function == function:
-                found = True  # type: ignore
-
-            found = False  # type: ignore
-
-        self._traverse(self.graph[0], validate_node_in_graph, visited=set())
-
-        if not found:
-            raise ValueError('Node is not in graph')
-
-        execution_queue: List[Task]
-
-        for previous_node in node.previous:
-            if not previous_node.function.output.validate():
-                return
-
-        if node.function.executing and terminate:
-            await node.function.terminate()
-
-        await node.function.execute()
-
     async def execute(self, terminate: bool = False):
         if terminate:
-            to_terminate: Set[WorkflowGraphNode] = set()
+            for function in self.graph:
+                await function.terminate()
 
-            def _(node: WorkflowGraphNode):
-                if node.function.executing and node not in to_terminate:
-                    to_terminate.add(node)
+        executed: List[Function] = []
 
-            self._traverse(self.graph[0], _, set())
-
-            for node in to_terminate:
-                await node.function.terminate()
-
-        head: List[WorkflowGraphNode] = []
-
-        def append_to_queue(node: WorkflowGraphNode):
-            if not node.next:
-                head.append(node)
-
-        self._traverse(self.graph[0], append_to_queue, set())
-
-        problems = []
-
-        async def execute(node: WorkflowGraphNode):
+        async def execute(function: Function):
+            nonlocal executed
             """Backwards propagation of execution (from head to tail - dependencies)"""
-            nonlocal problems
-            input_validation_problems = node.function.input.validate()
-            if not input_validation_problems:
-                matcher = node.parameters_matcher
+            for previous_function in function.previous:
+                if previous_function.output.get_errors():
+                    await execute(previous_function)
 
-                for entry in matcher.entries:
-                    for prev_node in node.previous:
-                        if prev_node.function == entry.function:
+                # If we get errors anyway - throw exception
+                if previous_function.output.get_errors():
+                    raise ValueError(f'Cannot execute function {function.id}')
 
-                await node.function.execute()
-            else:
-                for prev_node in node.previous:
-                    await execute(prev_node)
-                    errors = prev_node.function.output.validate()
-                    if errors:
-                        problems += errors
-                        return
+            function.set_parameters_from_previous()
 
-                for input_parameter in node.function.inputs:
-                    for previous_node in node.previous:
-                        if input_parameter.type_is_compatible(previous_node.function.returns.type):
-                            input_parameter.set_value(previous_node.function.returns.value)
+            await function.execute()
+            executed.append(function)
 
-                await node.function.execute()
-
-        for head_node in head:
-            await execute(head_node)
+        for function in self.graph:
+            if function not in executed:
+                await execute(function=function)
 
     def validate(self, graph: List[Function]) -> WorkflowGraphValidationResult:
         if not graph:
@@ -362,26 +324,9 @@ class WorkflowContext:
                 problems=['Execution graph is cyclic']
             )
 
-        problems: List[str] = []
-
-        def validate_call_chain(function: Function):
-            prev_return_params = [function.output for node in node.previous]
-
-            for input_param in function.inputs:
-                validated = False
-                for ret_param in prev_return_params:
-                    if input_param.type_is_compatible(ret_param.type):
-                        validated = True
-
-                if not validated:
-                    problems.append(
-                        f'Input parameter {input_param.name} is not filled for function {node.function.name}')
-
-        self._traverse(node=graph[0], action=validate_call_chain, visited=set())
-
         return WorkflowGraphValidationResult(
-            valid=not problems,
-            problems=problems
+            valid=True,
+            problems=[]
         )
 
     def is_cyclic(self, graph):
@@ -397,7 +342,7 @@ class WorkflowContext:
             visited.add(vertex)
             recursion_stack.add(vertex)
 
-            for neighbor in vertex.previous + vertex.next:
+            for neighbor in vertex.previous:
                 if dfs(neighbor):
                     return True
 
@@ -410,20 +355,3 @@ class WorkflowContext:
                     return True
 
         return False
-
-    def _traverse(self,
-                  node: Function,
-                  action: Callable[[Function], None],
-                  visited: Set[Function]):
-        if node in visited:
-            return
-
-        action(node)
-
-        visited.add(node)
-
-        for previous_node in node.previous:
-            self._traverse(node=previous_node, action=action, visited=visited)
-
-        for next_node in node.next:
-            self._traverse(node=next_node, action=action, visited=visited)

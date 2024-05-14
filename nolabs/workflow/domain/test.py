@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 from typing import Optional, List, Tuple, Dict, Any
 from uuid import UUID, uuid4
@@ -58,10 +59,13 @@ class Input(BaseModel):
 #)
 #print(o.dict())
 
-errors = input_schema.try_set_mapping(
-    source_schema=another_input_schema,
-    function_id=uuid4(),
-    path_from=['d'],
-    path_to=['d']
-)
-print(errors)
+pretty_schema = json.dumps(Input.schema(), indent=4)
+print(pretty_schema)
+
+#errors = input_schema.try_set_mapping(
+#    source_schema=another_input_schema,
+#    function_id=uuid4(),
+#    path_from=['d'],
+#    path_to=['d']
+#)
+#print(errors)

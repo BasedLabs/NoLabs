@@ -27,7 +27,8 @@ class Schema(BaseModel):
     const: Optional[Any] = None
     example: Optional[Any] = None
 
-    def _find_property(self, schema: 'Schema', path_to: List[str]) -> Optional['Property']:
+    @classmethod
+    def _find_property(cls, schema: 'Schema', path_to: List[str]) -> Optional['Property']:
         if not path_to:
             return None
 
@@ -43,20 +44,20 @@ class Schema(BaseModel):
                 # Path to is not empty and we must go deeper
                 if path_to:
                     if property.ref:
-                        ref_type_name = self._get_ref_type_name(property.ref)
-                        if not self.defs:
+                        ref_type_name = cls._get_ref_type_name(property.ref)
+                        if not schema.defs:
                             return None
-                        ref_schema = self.defs[ref_type_name]
-                        return self._find_property(schema=ref_schema, path_to=path_to)
+                        ref_schema = schema.defs[ref_type_name]
+                        return cls._find_property(schema=ref_schema, path_to=path_to)
                     # Property anyOf is not None and can find property type definition
                     if property.anyOf:
                         for any_of_type in property.anyOf:
                             ref = any_of_type.ref if isinstance(any_of_type, Property) else any_of_type['$ref']
-                            ref_type_name = self._get_ref_type_name(ref)
-                            if not self.defs:
+                            ref_type_name = cls._get_ref_type_name(ref)
+                            if not schema.defs:
                                 return None
-                            ref_schema = self.defs[ref_type_name]
-                            return self._find_property(schema=ref_schema, path_to=path_to)
+                            ref_schema = schema.defs[ref_type_name]
+                            return cls._find_property(schema=ref_schema, path_to=path_to)
                 else:
                     return property
 
@@ -66,18 +67,28 @@ class Schema(BaseModel):
     def mapped_properties(self) -> List['Property']:
         result: List[Property] = []
 
+        if not self.properties:
+            return result
+
         for _, property in self.properties.items():
             if property.mapping_function_id:
                 result.append(property)
 
+        if not self.defs:
+            return result
+
         for _, definition in self.defs.items():
+            if not definition or not definition.properties:
+                continue
+
             for _, property in definition.properties.items():
                 if property.mapping_function_id:
                     result.append(property)
 
         return result
 
-    def _get_ref_type_name(self, ref: str) -> str:
+    @staticmethod
+    def _get_ref_type_name(ref: str) -> str:
         return ref.split('/')[-1]
 
     def find_property(self, path: List[str]) -> Optional['Property']:
@@ -91,7 +102,7 @@ class Schema(BaseModel):
                 property.path_from = []
 
     def try_set_mapping(self, source_schema: 'Schema',
-                        function_id: UUID,
+                        function_id: str,
                         path_from: List[str],
                         path_to: List[str]) -> Optional[SchemaValidationIssue]:
         if not path_from or not path_to:
@@ -110,7 +121,16 @@ class Schema(BaseModel):
                 loc=path_to
             )
 
-        if source_property.type != target_property.type or source_property.type != target_property.type:
+        validation_passed = False
+
+        for any_of in source_property.anyOf:
+            if any_of and (any_of.type == target_property.type or any_of.format == target_property.format):
+                validation_passed = True
+
+        if source_property.type == target_property.type or source_property.format == target_property.format:
+            validation_passed = True
+
+        if not validation_passed:
             return SchemaValidationIssue(
                 msg=f'Properties "{path_from[-1]}" and "{path_to[-1]}" has incompatible types or formats',
                 loc=path_to
@@ -130,8 +150,27 @@ class Schema(BaseModel):
         return Schema(**cls.schema())
 
     @property
-    def required_are_mapped(self) -> bool:
+    def get_unmapped_properties(self) -> List['Property']:
+        result: List[Property] = []
 
+        if not self.properties:
+            return result
+
+        for name, property in self.properties.items():
+            if name in self.required and not property.mapping_function_id:
+                result.append(property)
+
+        if not self.defs:
+            return result
+
+        for _, definition in self.defs.items():
+            if not definition or not definition.properties:
+                continue
+            for name, property in definition.properties.items():
+                if name in self.required and not property.mapping_function_id:
+                    result.append(property)
+
+        return result
 
 
 class Property(BaseModel):
@@ -149,7 +188,7 @@ class Property(BaseModel):
     anyOf: List[Union['Property', dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(alias='$ref', default=None)
 
-    mapping_function_id: Optional[UUID] = None
+    mapping_function_id: Optional[str] = None
     path_from: List[str] = Field(default_factory=list)
     path_to: List[str] = Field(default_factory=list)
 
