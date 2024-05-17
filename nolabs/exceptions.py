@@ -88,6 +88,7 @@ class ErrorCodes(Enum):
     sdf_file_is_invalid = ErrorCode(code=74, description='Sdf file is invalid')
     reinvent_cannot_run_sampling = ErrorCode(code=75, description='Cannot run sampling')
     folding_run_error = ErrorCode(code=76, description='Folding run error')
+    workflow_not_found = ErrorCode(code=77, description="Workflow not found")
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

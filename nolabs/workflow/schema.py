@@ -1,6 +1,5 @@
 from dataclasses import field
 from typing import Optional, Union, Dict, List, Any
-from uuid import UUID
 
 from pydantic import Field, BaseModel
 from pydantic.dataclasses import dataclass
@@ -94,7 +93,7 @@ class Schema(BaseModel):
     def find_property(self, path: List[str]) -> Optional['Property']:
         return self._find_property(schema=self, path_to=path)
 
-    def remove_mapping(self, path_to: List[str]):
+    def unmap(self, path_to: List[str]):
         for property in self.mapped_properties:
             if property.path_to == path_to:
                 property.mapping_function_id = None
@@ -150,7 +149,7 @@ class Schema(BaseModel):
         return Schema(**cls.schema())
 
     @property
-    def get_unmapped_properties(self) -> List['Property']:
+    def unmapped_properties(self) -> List['Property']:
         result: List[Property] = []
 
         if not self.properties:
@@ -167,6 +166,7 @@ class Schema(BaseModel):
             if not definition or not definition.properties:
                 continue
             for name, property in definition.properties.items():
+                # TODO check default value
                 if name in self.required and not property.mapping_function_id:
                     result.append(property)
 

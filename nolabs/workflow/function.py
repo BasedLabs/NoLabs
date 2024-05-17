@@ -1,17 +1,26 @@
+__all__ = [
+    'PropertyValidationError',
+    'PythonFunction',
+    'Schema'
+]
+
 import asyncio
 import inspect
+import uuid
 from abc import ABC, abstractmethod
 from asyncio import Task
 from dataclasses import dataclass
-from typing import Optional, List, Callable, Set, Any, Type, Dict, Union, Tuple, get_type_hints
+from typing import Optional, List, Any, Type, Dict, Union, Tuple, get_type_hints, TypeVar, Generic
 
 from pydantic import ValidationError, BaseModel
 
+from nolabs.workflow.component import Component
+from nolabs.workflow.exceptions import WorkflowException
 from nolabs.workflow.schema import Schema, SchemaValidationIssue
 
 
 @dataclass
-class ParameterValidationResult:
+class PropertyValidationError:
     msg: str
     loc: Tuple[str]
 
@@ -22,116 +31,10 @@ class ParameterValidationResult:
         return f'{self.msg}: {self.loc}'
 
 
-class Pipe:
-    type: Type
-    value: Dict[str, Any] = {}
-    schema: Schema
-
-    def __init__(self, type: Type, value: Union[Dict[str, Any], None] = None):
-        if value is None:
-            value = {}
-
-        if not issubclass(type, BaseModel):
-            raise ValueError("Parameter is not a pydantic @dataclass")
-
-        if value and not self.get_value_errors(value):
-            raise ValueError("Input value type is not compatible with type")
-
-        self.value = value
-        self.type = type
-        self.schema = Schema.get_schema(cls=type)
-
-    def get_errors(self) -> List[ParameterValidationResult]:
-        return self.get_value_errors(self.value)
-
-    def get_value_errors(self, value: Union[Dict[str, Any], Any]) -> List[ParameterValidationResult]:
-        try:
-            _ = self.type(**value)
-        except ValidationError as e:
-            return [
-                ParameterValidationResult(
-                    msg=error['msg'],
-                    loc=error['loc']  # type: ignore
-                )
-                for error in e.errors()
-            ]
-
-        return []
-
-    def set_value(self, value: Any):
-        if self.is_pydantic_type(value):
-            value = value.dict()
-
-        if value is self.type:
-            self.value = value.dict()
-            return
-
-        errors = self.get_value_errors(value=value)
-        if errors:
-            raise ValueError(errors)
-
-        self.value = value
-
-    def set_parameter(self, path: List[str], param: Any):
-        current_level = self.value
-        for key in path[:-1]:
-            if key not in current_level:
-                current_level[key] = {}
-            current_level = current_level[key]
-        current_level[path[-1]] = param
-
-    def get_parameter(self, path: List[str]) -> Any:
-        current_level = self.value
-        for key in path[:-1]:
-            if key not in current_level:
-                current_level[key] = {}
-            current_level = current_level[key]
-        return current_level[path[-1]]
-
-    @property
-    def instance(self) -> Type:
-        errors = self.get_value_errors(self.value)
-
-        if errors:
-            raise ValueError(errors)
-
-        return self.type(**self.value)
-
-    def reset_value(self):
-        self.value = {}
-
-    def to_dict(self) -> Dict[str, Any]:
-        return self.value
-
-    @staticmethod
-    def is_pydantic_type(t: Type) -> bool:
-        return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
-
-
 class Function(ABC):
     id: str
     name: str
     signature: str
-
-    input: Pipe
-    output: Pipe
-
-    executing: bool = False
-    last_exception: Optional[Exception] = None
-
-    previous: List['Function'] = []
-
-    def __init__(self,
-                 id: str,
-                 name: str,
-                 signature: str,
-                 input: Pipe,
-                 output: Pipe):
-        self.id = id
-        self.name = name
-        self.signature = signature
-        self.input = input
-        self.output = output
 
     @abstractmethod
     async def execute(self):
@@ -150,70 +53,176 @@ class Function(ABC):
 
         return self.id == other.id
 
+    @abstractmethod
     def set_previous(self, functions: List['Function']):
-        self.previous = functions
+        ...
 
-    def map_parameter(self, function: 'Function', path_from: List[str], path_to: List[str]) -> Optional[
+    @abstractmethod
+    def try_map_property(self, function: 'Function', path_from: List[str], path_to: List[str]) -> Optional[
         SchemaValidationIssue]:
-        if function not in self.previous:
-            raise ValueError('Cannot map parameter for unmapped function')
+        ...
 
-        return self.input.schema.try_set_mapping(
-            source_schema=function.output.schema,
-            function_id=function.id,
-            path_from=path_from,
-            path_to=path_to
-        )
+    @abstractmethod
+    def unmap(self, path_to: List[str]) -> Optional[SchemaValidationIssue]:
+        ...
 
-    def set_parameters_from_previous(self):
-        for function in self.previous:
-            for prop in self.input.schema.mapped_properties:
-                if prop.mapping_function_id == function.id:
-                    input_parameter = function.output.get_parameter(prop.path_from)
-                    self.input.set_parameter(path=prop.path_to, param=input_parameter)
+    @abstractmethod
+    def set_properties_from_previous(self):
+        ...
+
+    @property
+    @abstractmethod
+    def unmapped_properties(self) -> List[PropertyValidationError]:
+        ...
+
+    @abstractmethod
+    def validate_output(self) -> List[PropertyValidationError]:
+        ...
 
 
-class PythonFunction(Function):
-    _pointer: Callable
+TInput = TypeVar('TInput', bound=BaseModel)
+TOutput = TypeVar('TOutput', bound=BaseModel)
+TParameter = TypeVar('TParameter', bound=BaseModel)
+
+
+class PythonParameter(Generic[TParameter]):
+    _type: Type[TParameter]
+    _dictionary: Dict[str, Any] = {}
+    schema: Schema
+
+    def __init__(self, type: Type[TParameter], dictionary: Union[Dict[str, Any], None] = None):
+        if dictionary is None:
+            dictionary = {}
+
+        if not issubclass(type, BaseModel):
+            raise WorkflowException(f"Parameter of type {type} is not a pydantic @dataclass")
+
+        if dictionary and not self.validate_dictionary(dictionary):
+            raise WorkflowException(f"Input value type {type} is not compatible with type")
+
+        self._dictionary = dictionary
+        self._type = type
+        self.schema = Schema.get_schema(cls=type)
+
+    def validate(self) -> List[PropertyValidationError]:
+        return self.validate_dictionary(self._dictionary)
+
+    def validate_dictionary(self, dictionary: Dict[str, Any]) -> List[PropertyValidationError]:
+        try:
+            _ = self._type(**dictionary)
+        except ValidationError as e:
+            return [
+                PropertyValidationError(
+                    msg=error['msg'],
+                    loc=error['loc']  # type: ignore
+                )
+                for error in e.errors()
+            ]
+
+        return []
+
+    def set_instance(self, instance: TParameter):
+        if not self.is_pydantic_type(instance):
+            raise WorkflowException(f'Cannot set instance other than {str(self._type)}')
+
+        value = instance.dict()
+
+        errors = self.validate_dictionary(dictionary=value)
+        if errors:
+            raise WorkflowException(', '.join([str(err) for err in errors]))
+
+        self._dictionary = value
+
+    def set_parameter(self, path: List[str], param: Any):
+        current_level = self._dictionary
+        for key in path[:-1]:
+            if key not in current_level:
+                current_level[key] = {}
+            current_level = current_level[key]
+        current_level[path[-1]] = param
+
+    def get_parameter(self, path: List[str]) -> Any:
+        current_level = self._dictionary
+        for key in path[:-1]:
+            if key not in current_level:
+                current_level[key] = {}
+            current_level = current_level[key]
+        return current_level[path[-1]]
+
+    @property
+    def instance(self) -> TParameter:
+        errors = self.validate_dictionary(self._dictionary)
+
+        if errors:
+            raise WorkflowException(', '.join([str(err) for err in errors]))
+
+        return self._type(**self._dictionary)
+
+    def reset_value(self):
+        self._dictionary = {}
+
+    @property
+    def dict(self) -> Dict[str, Any]:
+        return self._dictionary
+
+    @staticmethod
+    def is_pydantic_type(t: Any) -> bool:
+        return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
+
+
+class PythonFunction(Function, Generic[TInput, TOutput]):
     _task: Optional[Task] = None
     _execution_timeout: int = 3600
+    _component: Component[TInput, TOutput]
+
+    _input: PythonParameter[TInput]
+    _output: PythonParameter[TOutput]
+
+    title: str
+
+    executing: bool = False
+    last_exception: Optional[Exception] = None
+
+    previous: List['Function'] = []
 
     def __init__(self,
-                 pointer: Callable,
+                 component: Component[TInput, TOutput],
                  execution_timeout: int = 3600):
-        if not inspect.iscoroutinefunction(pointer):
-            raise ValueError('Function must be a coroutine')
+        if not isinstance(component, Component):
+            raise WorkflowException(f'Component must be instance of {Component}')
 
-        self._pointer = pointer
+        if not inspect.iscoroutinefunction(component.handle):
+            raise WorkflowException(f'Function {str(component.handle)} must be a coroutine')
+
+        self._component = component
         self._execution_timeout = execution_timeout
 
         name = self._parse_function_name()
-        signature = f'def {name}{str(inspect.signature(pointer))}'
+        signature = f'def {name}{str(inspect.signature(component.handle))}'
 
-        super().__init__(
-            id=f'{pointer.__module__}.{pointer.__qualname__}',
-            name=name,
-            signature=signature,
-            input=self._parse_input_parameter(),
-            output=self._parse_return_parameter()
-        )
+        self.id = str(uuid.uuid4())
+        self.name = component.name
+        self.signature = signature
+        self._input = self._parse_input_parameter()
+        self._output = self._parse_return_parameter()
+        self.title = component.title
 
     async def execute(self):
-        input_validation_errors = self.input.get_errors()
+        input_validation_errors = self._input.validate()
         if input_validation_errors:
-            raise ValueError(input_validation_errors)
+            raise WorkflowException(', '.join([str(err) for err in input_validation_errors]))
 
         self.executing = True
 
         try:
-            self.output.reset_value()
+            self._output.reset_value()
 
             self._task = asyncio.create_task(
-                asyncio.wait_for(self._pointer(self.input.instance), self._execution_timeout))
+                asyncio.wait_for(self._component.handle(self._input.instance), self._execution_timeout))
 
             result = await self._task
 
-            self.output.set_value(result)
+            self._output.set_instance(result)
         except Exception as e:
             if not isinstance(e, asyncio.CancelledError):
                 self.last_exception = e
@@ -234,124 +243,97 @@ class PythonFunction(Function):
 
         await asyncio.wait_for(condition(), timeout=timeout)
 
-    def _parse_input_parameter(self) -> Pipe:
-        sig = inspect.signature(self._pointer)
+    def _parse_input_parameter(self) -> PythonParameter:
+        sig = inspect.signature(self._component.handle)
 
         if len(sig.parameters) != 1:
-            raise ValueError('Your function must have exactly one pydantic @dataclass input parameter')
+            raise WorkflowException('Your function must have exactly one pydantic @dataclass input parameter')
 
         parameter = list(sig.parameters.values())[0]
 
-        hints = get_type_hints(self._pointer)
+        hints = get_type_hints(self._component.handle)
         param_type = hints[parameter.name]
 
-        if not Pipe.is_pydantic_type(param_type):
-            raise ValueError('Input parameter is not a pydantic @dataclass')
+        if not PythonParameter.is_pydantic_type(param_type):
+            raise WorkflowException(f'Input parameter with type {param_type} is not a pydantic {str(BaseModel)}')
 
-        return Pipe(
+        return PythonParameter(
             type=param_type
         )
 
-    def _parse_function_name(self) -> str:
-        return self._pointer.__name__
+    def set_input(self, instance: TInput):
+        self._input.set_instance(instance=instance)
 
-    def _parse_return_parameter(self) -> Pipe:
-        sig = inspect.signature(self._pointer)
+    def get_output(self) -> TOutput:
+        return self._output.instance
+
+    def validate_input(self):
+        return self._input.validate()
+
+    def _parse_function_name(self) -> str:
+        return type(self._component).__name__
+
+    def _parse_return_parameter(self) -> PythonParameter:
+        sig = inspect.signature(self._component.handle)
 
         output_param = sig.return_annotation
 
-        if not Pipe.is_pydantic_type(output_param):
-            raise ValueError('You can use only pydantic BaseModel inherited class as return value of your function')
+        if not PythonParameter.is_pydantic_type(output_param):
+            raise WorkflowException(
+                f'Input parameter with type {output_param} is not a pydantic {str(BaseModel)}')
 
-        return Pipe(
+        return PythonParameter(
             type=output_param
         )
 
+    def set_previous(self, functions: List['Function']):
+        for property in self._input.schema.mapped_properties:
+            found = False
+            for function in functions:
+                if property.mapping_function_id == function.id:
+                    found = True
+                    break
+            if not found:
+                self._input.schema.unmap(property.path_to)
 
-@dataclass
-class WorkflowGraphValidationResult:
-    valid: bool
-    problems: List[str]
+        self.previous = functions
 
+    def try_map_property(self, function: 'Function', path_from: List[str], path_to: List[str]) -> Optional[
+        SchemaValidationIssue]:
+        if function not in self.previous:
+            raise WorkflowException(f'Cannot map parameter {path_to} for unmapped function {function.id}')
 
-class WorkflowContext:
-    graph: List[Function]
+        if not isinstance(function, PythonFunction):
+            raise ValueError(f'Function is not a {PythonFunction}') # TODO change later
 
-    def __init__(self, graph: List[Function]):
-        validation_result = self.validate(graph)
-        if not validation_result.valid:
-            raise ValueError('Graph validation issues: ', ', '.join(validation_result.problems))
-
-        self.graph = graph
-
-    async def execute(self, terminate: bool = False):
-        if terminate:
-            for function in self.graph:
-                await function.terminate()
-
-        executed: List[Function] = []
-
-        async def execute(function: Function):
-            nonlocal executed
-            """Backwards propagation of execution (from head to tail - dependencies)"""
-            for previous_function in function.previous:
-                if previous_function.output.get_errors():
-                    await execute(previous_function)
-
-                # If we get errors anyway - throw exception
-                if previous_function.output.get_errors():
-                    raise ValueError(f'Cannot execute function {function.id}')
-
-            function.set_parameters_from_previous()
-
-            await function.execute()
-            executed.append(function)
-
-        for function in self.graph:
-            if function not in executed:
-                await execute(function=function)
-
-    def validate(self, graph: List[Function]) -> WorkflowGraphValidationResult:
-        if not graph:
-            return WorkflowGraphValidationResult(
-                valid=False,
-                problems=['Execution graph is empty']
-            )
-
-        if self.is_cyclic(graph):
-            return WorkflowGraphValidationResult(
-                valid=False,
-                problems=['Execution graph is cyclic']
-            )
-
-        return WorkflowGraphValidationResult(
-            valid=True,
-            problems=[]
+        return self._input.schema.try_set_mapping(
+            source_schema=function._output.schema,
+            function_id=function.id,
+            path_from=path_from,
+            path_to=path_to
         )
 
-    def is_cyclic(self, graph):
-        visited: Set[WorkflowGraphNode] = set()  # type: ignore
-        recursion_stack = set()
+    def unmap(self, path_to: List[str]) -> Optional[SchemaValidationIssue]:
+        return self._input.schema.unmap(path_to=path_to)
 
-        def dfs(vertex: Function):
-            if vertex in recursion_stack:
-                return True
-            if vertex in visited:
-                return False
+    def set_properties_from_previous(self):
+        for function in self.previous:
+            if not isinstance(function, PythonFunction):
+                raise ValueError(f'Function is not a {PythonFunction}')  # TODO change later
+            for prop in self._input.schema.mapped_properties:
+                if prop.mapping_function_id == function.id:
+                    input_parameter = function._output.get_parameter(prop.path_from)
+                    self._input.set_parameter(path=prop.path_to, param=input_parameter)
 
-            visited.add(vertex)
-            recursion_stack.add(vertex)
+    @property
+    def unmapped_properties(self) -> List[PropertyValidationError]:
+        result = []
+        for prop in self._input.schema.unmapped_properties:
+            result.append(PropertyValidationError(
+                msg='Unmapped property',
+                loc=[prop.title]  # type: ignore
+            ))
+        return result
 
-            for neighbor in vertex.previous:
-                if dfs(neighbor):
-                    return True
-
-            recursion_stack.remove(vertex)
-            return False
-
-        for vertex in graph:
-            if vertex not in visited:
-                if dfs(vertex):
-                    return True
-
-        return False
+    def validate_output(self) -> List[PropertyValidationError]:
+        return self._output.validate()

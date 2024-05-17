@@ -12,7 +12,7 @@ import datetime
 import uuid
 from functools import lru_cache
 from pathlib import Path
-from typing import Union, Dict, Any, List
+from typing import Union, Dict, Any, List, Optional
 from uuid import UUID
 from Bio import SeqIO
 import io
