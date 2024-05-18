@@ -2,9 +2,16 @@ __all__ = [
     'mongo_connect'
 ]
 
+from mongoengine import connect, disconnect
 
-from mongoengine import connect
+
+connection = None
 
 
 def mongo_connect(connection_string: str):
-    connect(host=connection_string)
+    connection = connect(host=connection_string)
+    return connection
+
+
+def mongo_disconnect():
+    disconnect()

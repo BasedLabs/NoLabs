@@ -1,7 +1,7 @@
 __all__ = [
     'PropertyValidationError',
     'PythonFunction',
-    'Schema'
+    'Properties'
 ]
 
 import asyncio
@@ -9,26 +9,13 @@ import inspect
 import uuid
 from abc import ABC, abstractmethod
 from asyncio import Task
-from dataclasses import dataclass
-from typing import Optional, List, Any, Type, Dict, Union, Tuple, get_type_hints, TypeVar, Generic
+from typing import Optional, List, Any, Type, Dict, Union, get_type_hints, TypeVar, Generic
 
 from pydantic import ValidationError, BaseModel
 
 from nolabs.workflow.component import Component
 from nolabs.workflow.exceptions import WorkflowException
-from nolabs.workflow.schema import Schema, SchemaValidationIssue
-
-
-@dataclass
-class PropertyValidationError:
-    msg: str
-    loc: Tuple[str]
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return f'{self.msg}: {self.loc}'
+from nolabs.workflow.properties import ParameterSchema, Property, PropertyValidationError
 
 
 class Function(ABC):
@@ -59,11 +46,11 @@ class Function(ABC):
 
     @abstractmethod
     def try_map_property(self, function: 'Function', path_from: List[str], path_to: List[str]) -> Optional[
-        SchemaValidationIssue]:
+        PropertyValidationError]:
         ...
 
     @abstractmethod
-    def unmap(self, path_to: List[str]) -> Optional[SchemaValidationIssue]:
+    def unmap(self, path_to: List[str]) -> Optional[PropertyValidationError]:
         ...
 
     @abstractmethod
@@ -88,7 +75,7 @@ TParameter = TypeVar('TParameter', bound=BaseModel)
 class PythonParameter(Generic[TParameter]):
     _type: Type[TParameter]
     _dictionary: Dict[str, Any] = {}
-    schema: Schema
+    schema: ParameterSchema
 
     def __init__(self, type: Type[TParameter], dictionary: Union[Dict[str, Any], None] = None):
         if dictionary is None:
@@ -102,7 +89,7 @@ class PythonParameter(Generic[TParameter]):
 
         self._dictionary = dictionary
         self._type = type
-        self.schema = Schema.get_schema(cls=type)
+        self.schema = ParameterSchema.get_instance(cls=type)
 
     def validate(self) -> List[PropertyValidationError]:
         return self.validate_dictionary(self._dictionary)
@@ -191,17 +178,16 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
         if not isinstance(component, Component):
             raise WorkflowException(f'Component must be instance of {Component}')
 
-        if not inspect.iscoroutinefunction(component.handle):
-            raise WorkflowException(f'Function {str(component.handle)} must be a coroutine')
+        if not inspect.iscoroutinefunction(component.start):
+            raise WorkflowException(f'Function {str(component.start)} must be a coroutine')
 
         self._component = component
         self._execution_timeout = execution_timeout
 
         name = self._parse_function_name()
-        signature = f'def {name}{str(inspect.signature(component.handle))}'
+        signature = f'def {name}{str(inspect.signature(component.start))}'
 
         self.id = str(uuid.uuid4())
-        self.name = component.name
         self.signature = signature
         self._input = self._parse_input_parameter()
         self._output = self._parse_return_parameter()
@@ -218,7 +204,7 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
             self._output.reset_value()
 
             self._task = asyncio.create_task(
-                asyncio.wait_for(self._component.handle(self._input.instance), self._execution_timeout))
+                asyncio.wait_for(self._component.start(self._input.instance), self._execution_timeout))
 
             result = await self._task
 
@@ -244,14 +230,14 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
         await asyncio.wait_for(condition(), timeout=timeout)
 
     def _parse_input_parameter(self) -> PythonParameter:
-        sig = inspect.signature(self._component.handle)
+        sig = inspect.signature(self._component.start)
 
         if len(sig.parameters) != 1:
             raise WorkflowException('Your function must have exactly one pydantic @dataclass input parameter')
 
         parameter = list(sig.parameters.values())[0]
 
-        hints = get_type_hints(self._component.handle)
+        hints = get_type_hints(self._component.start)
         param_type = hints[parameter.name]
 
         if not PythonParameter.is_pydantic_type(param_type):
@@ -274,7 +260,7 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
         return type(self._component).__name__
 
     def _parse_return_parameter(self) -> PythonParameter:
-        sig = inspect.signature(self._component.handle)
+        sig = inspect.signature(self._component.start)
 
         output_param = sig.return_annotation
 
@@ -286,25 +272,32 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
             type=output_param
         )
 
-    def set_previous(self, functions: List['Function']):
-        for property in self._input.schema.mapped_properties:
-            found = False
-            for function in functions:
-                if property.mapping_function_id == function.id:
-                    found = True
-                    break
-            if not found:
-                self._input.schema.unmap(property.path_to)
+    def remove_previous(self, function: 'PythonFunction'):
+        if function not in self.previous:
+            return
 
-        self.previous = functions
+        self.previous.remove(function)
+
+        if not self._input.schema.properties.items():
+            return
+
+        for _, property in self._input.schema.properties.items():
+            if property.source_function_id == function.id:
+                property.unmap()
+
+    def add_previous(self, function: 'PythonFunction'):
+        if function in self.previous:
+            return
+
+        self.previous.append(function)
 
     def try_map_property(self, function: 'Function', path_from: List[str], path_to: List[str]) -> Optional[
-        SchemaValidationIssue]:
+        PropertyValidationError]:
         if function not in self.previous:
             raise WorkflowException(f'Cannot map parameter {path_to} for unmapped function {function.id}')
 
         if not isinstance(function, PythonFunction):
-            raise ValueError(f'Function is not a {PythonFunction}') # TODO change later
+            raise ValueError(f'Function is not a {PythonFunction}')  # TODO change later
 
         return self._input.schema.try_set_mapping(
             source_schema=function._output.schema,
@@ -313,17 +306,28 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
             path_to=path_to
         )
 
-    def unmap(self, path_to: List[str]) -> Optional[SchemaValidationIssue]:
-        return self._input.schema.unmap(path_to=path_to)
-
     def set_properties_from_previous(self):
         for function in self.previous:
             if not isinstance(function, PythonFunction):
                 raise ValueError(f'Function is not a {PythonFunction}')  # TODO change later
             for prop in self._input.schema.mapped_properties:
-                if prop.mapping_function_id == function.id:
+                if prop.source_function_id == function.id:
                     input_parameter = function._output.get_parameter(prop.path_from)
                     self._input.set_parameter(path=prop.path_to, param=input_parameter)
+
+    @property
+    def input_properties(self) -> Dict[str, Property]:
+        if not self._input.schema.properties:
+            return {}
+
+        return self._input.schema.properties
+
+    @property
+    def output_properties(self) -> Dict[str, Property]:
+        if not self._output.schema.properties:
+            return {}
+
+        return self._output.schema.properties
 
     @property
     def unmapped_properties(self) -> List[PropertyValidationError]:
@@ -337,3 +341,7 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
 
     def validate_output(self) -> List[PropertyValidationError]:
         return self._output.validate()
+
+    @property
+    def component_id(self) -> str:
+        return self._component.id

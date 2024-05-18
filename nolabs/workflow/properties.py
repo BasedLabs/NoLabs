@@ -1,18 +1,26 @@
 from dataclasses import field
-from typing import Optional, Union, Dict, List, Any
+from typing import Optional, Union, Dict, List, Any, Tuple
 
 from pydantic import Field, BaseModel
 from pydantic.dataclasses import dataclass
 
+from nolabs.workflow.exceptions import WorkflowException
+
 
 @dataclass
-class SchemaValidationIssue:
+class PropertyValidationError:
     msg: str
     loc: List[str]
 
+    def __repr__(self):
+        return self.__str__()
 
-class Schema(BaseModel):
-    defs: Optional[Dict[str, 'Schema']] = Field(alias='$defs', default_factory=dict)
+    def __str__(self):
+        return f'{self.msg}: {self.loc}'
+
+
+class ParameterSchema(BaseModel):
+    defs: Optional[Dict[str, 'ParameterSchema']] = Field(alias='$defs', default_factory=dict)
     description: Optional[str] = None
     properties: Optional[Dict[str, 'Property']] = Field(default_factory=dict)
     required: List[str] = field(default_factory=list)
@@ -21,13 +29,26 @@ class Schema(BaseModel):
     anyOf: List[Union['Property', dict]] = Field(default_factory=list)
     default: Optional[Any] = None
     items: Optional[Union['Items', List['Items']]] = None
-    additionalProperties: Optional[Union[bool, 'Schema']] = True
+    additionalProperties: Optional[Union[bool, 'ParameterSchema']] = True
     format: Optional[str] = None
     const: Optional[Any] = None
     example: Optional[Any] = None
 
+    def __post_model_init__(self, __context):
+        def _(property: Property, prop_name):
+            property.path_to.append(prop_name)
+
+            if not property.properties:
+                return
+
+            for nested_name, nested in property.properties.items():
+                _(property=nested, prop_name=nested_name)
+
+        for name, property in self.properties.items():
+            _(property=property, prop_name=name)
+
     @classmethod
-    def _find_property(cls, schema: 'Schema', path_to: List[str]) -> Optional['Property']:
+    def _find_property(cls, schema: 'ParameterSchema', path_to: List[str]) -> Optional['Property']:
         if not path_to:
             return None
 
@@ -70,7 +91,7 @@ class Schema(BaseModel):
             return result
 
         for _, property in self.properties.items():
-            if property.mapping_function_id:
+            if property.source_function_id:
                 result.append(property)
 
         if not self.defs:
@@ -81,7 +102,7 @@ class Schema(BaseModel):
                 continue
 
             for _, property in definition.properties.items():
-                if property.mapping_function_id:
+                if property.source_function_id:
                     result.append(property)
 
         return result
@@ -93,29 +114,25 @@ class Schema(BaseModel):
     def find_property(self, path: List[str]) -> Optional['Property']:
         return self._find_property(schema=self, path_to=path)
 
-    def unmap(self, path_to: List[str]):
-        for property in self.mapped_properties:
-            if property.path_to == path_to:
-                property.mapping_function_id = None
-                property.path_to = []
-                property.path_from = []
-
-    def try_set_mapping(self, source_schema: 'Schema',
+    def try_set_mapping(self, source_schema: 'Properties',
                         function_id: str,
                         path_from: List[str],
-                        path_to: List[str]) -> Optional[SchemaValidationIssue]:
+                        path_to: List[str]) -> Optional[PropertyValidationError]:
         if not path_from or not path_to:
-            raise ValueError('Path from or path two are empty')
+            raise WorkflowException(
+                msg='Path from or path two are empty'
+            )
 
         source_property = self._find_property(schema=source_schema, path_to=path_from)
         if not source_property:
-            return SchemaValidationIssue(
+            return PropertyValidationError(
                 msg=f'Property does not exist in source schema',
                 loc=path_from
             )
+
         target_property = self._find_property(schema=self, path_to=path_to)
         if not target_property:
-            return SchemaValidationIssue(
+            return PropertyValidationError(
                 msg=f'Property does not exist in target schema',
                 loc=path_to
             )
@@ -130,23 +147,26 @@ class Schema(BaseModel):
             validation_passed = True
 
         if not validation_passed:
-            return SchemaValidationIssue(
+            return PropertyValidationError(
                 msg=f'Properties "{path_from[-1]}" and "{path_to[-1]}" has incompatible types or formats',
                 loc=path_to
             )
 
-        target_property.mapping_function_id = function_id
-        target_property.path_from = path_from
-        target_property.path_to = path_to
+        target_property.map(
+            source_function_id=function_id,
+            path_from=path_from
+        )
 
         return None
 
     @staticmethod
-    def get_schema(cls) -> 'Schema':
+    def get_instance(cls) -> 'ParameterSchema':
         if not issubclass(cls, BaseModel):
-            raise ValueError('Schema must be a subclass of BaseModel')
+            raise WorkflowException(
+                f'Schema must be a subclass of {BaseModel}'
+            )
 
-        return Schema(**cls.schema())
+        return ParameterSchema(**cls.schema())
 
     @property
     def unmapped_properties(self) -> List['Property']:
@@ -156,7 +176,7 @@ class Schema(BaseModel):
             return result
 
         for name, property in self.properties.items():
-            if name in self.required and not property.mapping_function_id:
+            if name in self.required and not property.source_function_id:
                 result.append(property)
 
         if not self.defs:
@@ -167,10 +187,25 @@ class Schema(BaseModel):
                 continue
             for name, property in definition.properties.items():
                 # TODO check default value
-                if name in self.required and not property.mapping_function_id:
+                if name in self.required and not property.source_function_id:
                     result.append(property)
 
         return result
+
+    def unmap(self, property: Optional['Property'] = None, path_to: Optional[List[str]] = None):
+        if not property and not path_to:
+            raise WorkflowException(
+                msg='You must provide either property or path_to'
+            )
+
+        if path_to:
+            property = self._find_property(schema=self, path_to=path_to)
+            if property:
+                property.unmap()
+                return
+
+        if property:
+            property.unmap()
 
 
 class Property(BaseModel):
@@ -185,12 +220,20 @@ class Property(BaseModel):
     default: Optional[Any] = None
     example: Optional[Any] = None
     title: Optional[str] = None
+    path_to: List[str] = Field(default_factory=list)
     anyOf: List[Union['Property', dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(alias='$ref', default=None)
 
-    mapping_function_id: Optional[str] = None
+    source_function_id: Optional[str] = None
     path_from: List[str] = Field(default_factory=list)
-    path_to: List[str] = Field(default_factory=list)
+
+    def unmap(self):
+        self.source_function_id = None
+        self.path_from = []
+
+    def map(self, source_function_id: str, path_from: List[str]):
+        self.source_function_id = source_function_id
+        self.path_from = path_from
 
 
 class Items(BaseModel):

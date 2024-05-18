@@ -3,15 +3,11 @@ __all__ = [
 ]
 
 import os
-from enum import Enum
 
-from pydantic import Field, BaseModel
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 
-
-class Environment(str, Enum):
-    LOCAL = 'local'
-    TEST = 'test'
+from nolabs.refined.infrastructure.environment import Environment
 
 
 class MicroserviceSettings(BaseModel):
