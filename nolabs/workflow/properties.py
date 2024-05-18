@@ -22,7 +22,7 @@ class PropertyValidationError:
 class ParameterSchema(BaseModel):
     defs: Optional[Dict[str, 'ParameterSchema']] = Field(alias='$defs', default_factory=dict)
     description: Optional[str] = None
-    properties: Optional[Dict[str, 'Property']] = Field(default_factory=dict)
+    properties: Dict[str, 'Property'] = Field(default_factory=dict)
     required: List[str] = field(default_factory=list)
     title: Optional[str] = None
     type: Optional[Union[str, List[str]]] = None
@@ -114,7 +114,7 @@ class ParameterSchema(BaseModel):
     def find_property(self, path: List[str]) -> Optional['Property']:
         return self._find_property(schema=self, path_to=path)
 
-    def try_set_mapping(self, source_schema: 'Properties',
+    def try_set_mapping(self, source_schema: 'ParameterSchema',
                         function_id: str,
                         path_from: List[str],
                         path_to: List[str]) -> Optional[PropertyValidationError]:

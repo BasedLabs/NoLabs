@@ -41,16 +41,8 @@ class Function(ABC):
         return self.id == other.id
 
     @abstractmethod
-    def set_previous(self, functions: List['Function']):
-        ...
-
-    @abstractmethod
     def try_map_property(self, function: 'Function', path_from: List[str], path_to: List[str]) -> Optional[
         PropertyValidationError]:
-        ...
-
-    @abstractmethod
-    def unmap(self, path_to: List[str]) -> Optional[PropertyValidationError]:
         ...
 
     @abstractmethod
@@ -158,7 +150,6 @@ class PythonParameter(Generic[TParameter]):
 
 
 class PythonFunction(Function, Generic[TInput, TOutput]):
-    _task: Optional[Task] = None
     _execution_timeout: int = 3600
     _component: Component[TInput, TOutput]
 
@@ -167,7 +158,6 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
 
     title: str
 
-    executing: bool = False
     last_exception: Optional[Exception] = None
 
     previous: List['Function'] = []
@@ -198,36 +188,19 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
         if input_validation_errors:
             raise WorkflowException(', '.join([str(err) for err in input_validation_errors]))
 
-        self.executing = True
-
         try:
             self._output.reset_value()
 
-            self._task = asyncio.create_task(
+            result = await asyncio.create_task(
                 asyncio.wait_for(self._component.start(self._input.instance), self._execution_timeout))
-
-            result = await self._task
 
             self._output.set_instance(result)
         except Exception as e:
             if not isinstance(e, asyncio.CancelledError):
                 self.last_exception = e
-        finally:
-            self._task = None
-
-        self.executing = False
 
     async def terminate(self, timeout: int = 10):
-        if not self._task:
-            return
-
-        self._task.cancel()
-
-        async def condition():
-            while self._task is not None:
-                await asyncio.sleep(0.1)
-
-        await asyncio.wait_for(condition(), timeout=timeout)
+        await asyncio.wait_for(self._component.stop(), timeout=timeout)
 
     def _parse_input_parameter(self) -> PythonParameter:
         sig = inspect.signature(self._component.start)
@@ -345,3 +318,5 @@ class PythonFunction(Function, Generic[TInput, TOutput]):
     @property
     def component_id(self) -> str:
         return self._component.id
+
+    def load

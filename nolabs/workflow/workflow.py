@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Dict
+from uuid import UUID
 
 from nolabs.workflow.component import Component
 from nolabs.workflow.exceptions import WorkflowException
@@ -15,6 +16,7 @@ class WorkflowValidationError:
 class Workflow:
     running: bool
     functions: List[PythonFunction]
+    executing_workflows: Dict[UUID, 'Workflow']
 
     def __init__(self, functions: List[PythonFunction]):
         error = Workflow.validate_graph(functions)
@@ -23,7 +25,9 @@ class Workflow:
 
         self.functions = functions
 
-    async def execute(self, terminate: bool = False):
+    async def execute(self,
+                      terminate: bool = False,
+                      load_parameters: bool = False):
         try:
             self.running = True
 
@@ -90,9 +94,6 @@ class Workflow:
             PythonFunction(component=component) for component in components
         ]
 
-        graph_validation_result = Workflow.validate_graph(graph=functions)
-        workflow_schema.error = graph_validation_result.msg
-
         if Workflow.validate_graph(graph=functions):
             return False
 
@@ -120,24 +121,63 @@ class Workflow:
 
         return True
 
-    @staticmethod
-    def create_from_schema(workflow_schema: WorkflowSchemaModel, components: List[Component]) -> 'Workflow':
-        if not workflow_schema.valid:
+    @classmethod
+    def create_from_schema(cls, workflow_schema_model: WorkflowSchemaModel, components: List[Component]) -> 'Workflow':
+        error = cls.validate_schema(workflow_schema=workflow_schema_model, components=components)
+
+        if error:
+            raise WorkflowException(
+                msg=f'Schema is nov valid. Run {cls.set_schema_errors} to get schema errors'
+            )
+
+        functions = [
+            PythonFunction(component=component) for component in components
+        ]
+
+        for workflow_component in workflow_schema_model.workflow_components:
+            function: PythonFunction | None = cls._find_function(component_id=workflow_component.component_id,
+                                                                 functions=functions)
+
+            if not function:
+                raise WorkflowException(
+                    msg=f'Component with id {workflow_component.component_id} not found'
+                )
+
+            # Check that function mappings exist
+            for mapping in workflow_component.mappings:
+                source_function: PythonFunction | None = cls._find_function(component_id=mapping.source_component_id,
+                                                                            functions=functions)
+
+                if not source_function:
+                    raise WorkflowException(
+                        msg=f'Component with id {mapping.source_component_id} not found'
+                    )
+
+                function.add_previous(function=source_function)
+                function.try_map_property(function=source_function,
+                                          path_from=mapping.source_path,
+                                          path_to=mapping.target_path)
+
+        return Workflow(
+            functions=functions
+        )
 
     @classmethod
     def set_schema_errors(
             cls,
             workflow_schema: WorkflowSchemaModel,
             components: List[Component]):
-        component_not_found_template = lambda c_id: f'Component with id {workflow_component.component_id} not found'
+        component_not_found_template = lambda c_id: f'Component with id {c_id} not found'
 
         schema_valid = True
         functions = [
             PythonFunction(component=component) for component in components
         ]
 
-        graph_validation_result = Workflow.validate_graph(graph=functions)
-        workflow_schema.error = graph_validation_result.msg
+        graph_validation_error = Workflow.validate_graph(graph=functions)
+
+        if graph_validation_error:
+            workflow_schema.error = graph_validation_error.msg
 
         if Workflow.validate_graph(graph=functions):
             workflow_schema.error = 'Workflow must be acyclic'

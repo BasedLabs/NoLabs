@@ -33,4 +33,7 @@ class Component(Generic[TInput, TOutput]):
     def id(self) -> str:
         ...
 
+    def input(self, workflow_component_id: ) -> TInput:
+        pass
+
 

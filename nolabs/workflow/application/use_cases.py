@@ -71,7 +71,7 @@ class CreateWorkflowSchemaFeature:
             experiment_id=experiment_id,
             error=None,
             components=components_models,
-            workflow=[]
+            workflow_components=[]
         )
 
         db_model = WorkflowSchemaDbModel.create(
@@ -125,12 +125,46 @@ class SetWorkflowSchemaFeature:
 
         db_model.save(cascade=True)
 
+        return workflow_schema
+
 
 class StartWorkflowFeature:
+    async def handle(self, experiment_id: UUID, components: List[Component]):
+        experiment: Experiment = Experiment.objects.with_id(experiment_id)
+
+        if not experiment:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
+
+        db_models: List[WorkflowSchemaDbModel] = WorkflowSchemaDbModel.objects(experiment=experiment)
+
+        if not db_models:
+            raise NoLabsException(ErrorCodes.workflow_not_found)
+
+        workflow_schema_model = db_models[0].get_workflow_value()
+
+        workflow = Workflow.create_from_schema(
+            workflow_schema_model=workflow_schema_model,
+            components=components)
+
+        await workflow.execute(terminate=True)
+
+
+class StopWorkflowFeature:
     async def handle(self, experiment_id: UUID):
         experiment: Experiment = Experiment.objects.with_id(experiment_id)
 
         if not experiment:
             raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        db_models: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects(experiment=experiment)
+        db_models: List[WorkflowSchemaDbModel] = WorkflowSchemaDbModel.objects(experiment=experiment)
+
+        if not db_models:
+            raise NoLabsException(ErrorCodes.workflow_not_found)
+
+        workflow_schema_model = db_models[0].get_workflow_value()
+
+        workflow = Workflow.create_from_schema(
+            workflow_schema_model=workflow_schema_model,
+            components=components)
+
+        await workflow.execute(terminate=True)
