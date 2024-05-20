@@ -8,7 +8,7 @@ from fastapi import Depends
 
 from nolabs.refined.application.use_cases.test_app.components import PlusOneComponent, PlusTwoComponent
 from nolabs.refined.application.use_cases.test_app.di import TestAppDependencies
-from nolabs.workflow.component import Component
+from nolabs.workflow.function import Component
 
 
 class WorkflowDependencies:

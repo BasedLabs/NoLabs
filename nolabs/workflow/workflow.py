@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict
 from uuid import UUID
 
-from nolabs.workflow.component import Component
+from nolabs.workflow.component import PythonFunction
 from nolabs.workflow.exceptions import WorkflowException
-from nolabs.workflow.function import PythonFunction
+from nolabs.workflow.component import PythonComponent
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel
 
 
@@ -15,15 +15,15 @@ class WorkflowValidationError:
 
 class Workflow:
     running: bool
-    functions: List[PythonFunction]
+    components: List[PythonComponent]
     executing_workflows: Dict[UUID, 'Workflow']
 
-    def __init__(self, functions: List[PythonFunction]):
-        error = Workflow.validate_graph(functions)
+    def __init__(self, components: List[PythonComponent]):
+        error = Workflow.validate_graph(components)
         if error:
             raise WorkflowException(error.msg)
 
-        self.functions = functions
+        self.components = components
 
     async def execute(self,
                       terminate: bool = False,
@@ -31,40 +31,40 @@ class Workflow:
         try:
             self.running = True
 
-            for function in self.functions:
-                if function.unmapped_properties and function.validate_input():
-                    raise WorkflowException(f'There were unmapped properties: {function.unmapped_properties}')
+            for component in self.components:
+                if component.unmapped_properties and component.validate_input():
+                    raise WorkflowException(f'There were unmapped properties: {component.unmapped_properties}')
 
             if terminate:
-                for function in self.functions:
-                    await function.terminate()
+                for component in self.components:
+                    await component.terminate()
 
-            executed: List[PythonFunction] = []
+            executed: List[PythonComponent] = []
 
-            async def execute(function: PythonFunction):
+            async def execute(component: PythonComponent):
                 nonlocal executed
-                for previous_function in function.previous:
-                    if previous_function.validate_output():
-                        await execute(previous_function)  # type: ignore # TODO Change later
+                for previous_component in component.previous:
+                    if previous_component.validate_output():
+                        await execute(previous_component)  # type: ignore # TODO Change later
 
                     # If we get errors anyway - throw exception
-                    if previous_function.validate_output():
-                        raise WorkflowException(f'Cannot execute function {function.id}')
+                    if previous_component.validate_output():
+                        raise WorkflowException(f'Cannot execute component {component.id}')
 
-                function.set_properties_from_previous()
+                component.set_properties_from_previous()
 
-                await function.execute()
-                executed.append(function)
+                await component.execute()
+                executed.append(component)
 
-            for function in self.functions:
-                if function not in executed:
-                    await execute(function=function)
+            for component in self.components:
+                if component not in executed:
+                    await execute(component=component)
 
         finally:
             self.running = False
 
     @staticmethod
-    def validate_graph(graph: List[PythonFunction]) -> Optional[WorkflowValidationError]:
+    def validate_graph(graph: List[PythonComponent]) -> Optional[WorkflowValidationError]:
         if not graph:
             return WorkflowValidationError(
                 msg='Workflow graph is empty'
@@ -78,43 +78,43 @@ class Workflow:
         return None
 
     @classmethod
-    def _find_function(cls, functions: List[PythonFunction], component_id: str) -> Optional[PythonFunction]:
-        for function in functions:
-            if function.component_id == component_id:
-                return function
+    def _find_component(cls, components: List[PythonComponent], component_id: str) -> Optional[PythonComponent]:
+        for component in components:
+            if component.component_id == component_id:
+                return component
         return None
 
     @classmethod
     def validate_schema(
             cls,
             workflow_schema: WorkflowSchemaModel,
-            components: List[Component]
+            functions: List[PythonFunction]
     ) -> bool:
-        functions = [
-            PythonFunction(component=component) for component in components
+        components = [
+            PythonComponent(function=function) for function in functions
         ]
 
-        if Workflow.validate_graph(graph=functions):
+        if Workflow.validate_graph(graph=components):
             return False
 
         for workflow_component in workflow_schema.workflow_components:
-            function = cls._find_function(component_id=workflow_component.component_id, functions=functions)
+            component = cls._find_component(component_id=workflow_component.component_id, components=components)
 
             # Check that component exists
-            if not function:
+            if not component:
                 return False
 
-            # Check that function mappings exist
+            # Check that component mappings exist
             for mapping in workflow_component.mappings:
-                source_function = cls._find_function(component_id=mapping.source_component_id, functions=functions)
+                source_component = cls._find_component(component_id=mapping.source_component_id, components=components)
 
-                if not source_function:
+                if not source_component:
                     return False
 
-                function.add_previous(function=source_function)
-                error = function.try_map_property(function=source_function,
-                                                  path_from=mapping.source_path,
-                                                  path_to=mapping.target_path)
+                component.add_previous(component=source_component)
+                error = component.try_map_property(component=source_component,
+                                                   path_from=mapping.source_path,
+                                                   path_to=mapping.target_path)
 
                 if error:
                     return False
@@ -122,90 +122,91 @@ class Workflow:
         return True
 
     @classmethod
-    def create_from_schema(cls, workflow_schema_model: WorkflowSchemaModel, components: List[Component]) -> 'Workflow':
-        error = cls.validate_schema(workflow_schema=workflow_schema_model, components=components)
+    def create_from_schema(cls, workflow_schema_model: WorkflowSchemaModel,
+                           functions: List[PythonFunction]) -> 'Workflow':
+        error = cls.validate_schema(workflow_schema=workflow_schema_model, functions=functions)
 
         if error:
             raise WorkflowException(
                 msg=f'Schema is nov valid. Run {cls.set_schema_errors} to get schema errors'
             )
 
-        functions = [
-            PythonFunction(component=component) for component in components
+        components = [
+            PythonComponent(function=function) for function in functions
         ]
 
         for workflow_component in workflow_schema_model.workflow_components:
-            function: PythonFunction | None = cls._find_function(component_id=workflow_component.component_id,
-                                                                 functions=functions)
+            component: PythonComponent | None = cls._find_component(component_id=workflow_component.component_id,
+                                                                    components=components)
 
-            if not function:
+            if not component:
                 raise WorkflowException(
                     msg=f'Component with id {workflow_component.component_id} not found'
                 )
 
-            # Check that function mappings exist
+            # Check that component mappings exist
             for mapping in workflow_component.mappings:
-                source_function: PythonFunction | None = cls._find_function(component_id=mapping.source_component_id,
-                                                                            functions=functions)
+                source_component: PythonComponent | None = cls._find_component(component_id=mapping.source_component_id,
+                                                                               components=components)
 
-                if not source_function:
+                if not source_component:
                     raise WorkflowException(
                         msg=f'Component with id {mapping.source_component_id} not found'
                     )
 
-                function.add_previous(function=source_function)
-                function.try_map_property(function=source_function,
-                                          path_from=mapping.source_path,
-                                          path_to=mapping.target_path)
+                component.add_previous(component=source_component)
+                component.try_map_property(component=source_component,
+                                           path_from=mapping.source_path,
+                                           path_to=mapping.target_path)
 
         return Workflow(
-            functions=functions
+            components=components
         )
 
     @classmethod
     def set_schema_errors(
             cls,
             workflow_schema: WorkflowSchemaModel,
-            components: List[Component]):
+            functions: List[PythonFunction]):
         component_not_found_template = lambda c_id: f'Component with id {c_id} not found'
 
         schema_valid = True
-        functions = [
-            PythonFunction(component=component) for component in components
+        components = [
+            PythonComponent(function=function) for function in functions
         ]
 
-        graph_validation_error = Workflow.validate_graph(graph=functions)
+        graph_validation_error = Workflow.validate_graph(graph=components)
 
         if graph_validation_error:
             workflow_schema.error = graph_validation_error.msg
 
-        if Workflow.validate_graph(graph=functions):
+        if Workflow.validate_graph(graph=components):
             workflow_schema.error = 'Workflow must be acyclic'
             schema_valid = False
 
         for workflow_component in workflow_schema.workflow_components:
-            function = cls._find_function(component_id=workflow_component.component_id, functions=functions)
+            component = cls._find_component(component_id=workflow_component.component_id, components=components)
 
             # Check that component exists
-            if not function:
+            if not component:
                 workflow_component.error = component_not_found_template(workflow_component.component_id)
                 schema_valid = False
                 continue
 
-            # Check that function mappings exist
+            # Check that component mappings exist
             for mapping in workflow_component.mappings:
-                source_function = cls._find_function(component_id=mapping.source_component_id, functions=functions)
+                source_component = cls._find_component(component_id=mapping.source_component_id, components=components)
 
-                if not source_function:
+                if not source_component:
                     mapping.error = f'Component with id {mapping.source_component_id} does not exist'
                     schema_valid = False
                     continue
 
-                function.add_previous(function=source_function)
+                component.add_previous(component=source_component)
 
-                error = function.try_map_property(function=source_function,
-                                                  path_from=mapping.source_path,
-                                                  path_to=mapping.target_path)
+                error = component.try_map_property(component=source_component,
+                                                   path_from=mapping.source_path,
+                                                   path_to=mapping.target_path)
 
                 if error:
                     mapping.error = error.msg
@@ -215,11 +216,11 @@ class Workflow:
         return schema_valid
 
     @staticmethod
-    def is_cyclic(graph):
+    def is_cyclic(graph: List[PythonComponent]) -> bool:
         visited: Set[WorkflowGraphNode] = set()  # type: ignore
         recursion_stack = set()
 
-        def dfs(vertex: PythonFunction):
+        def dfs(vertex: PythonComponent):
             if vertex in recursion_stack:
                 return True
             if vertex in visited:

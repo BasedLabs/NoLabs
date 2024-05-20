@@ -6,6 +6,7 @@ from pydantic import BaseModel, create_model
 from nolabs.exceptions import NoLabsException
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature
 from nolabs.workflow.component import Component
+from nolabs.workflow.function import PythonFunction
 from tests.tests_preparations import mongo_disconnect, mongo_connect, seed_experiment
 
 
@@ -31,7 +32,7 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase):
         Input = create_model('Input', number=(int, ...))
         Output = create_model('Output', number=(int, ...))
 
-        class ComponentTest(Component):
+        class ComponentTest(PythonFunction[Input, Output]):
             @property
             def id(self) -> str:
                 return 'hello'
@@ -60,7 +61,7 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase):
         Input = create_model('Input', number=(int, ...))
         Output = create_model('Output', number=(int, ...))
 
-        class ComponentTest(Component):
+        class ComponentTest(PythonFunction[Input, Output]):
             @property
             def id(self) -> str:
                 return 'hello'
@@ -113,7 +114,7 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase):
                     'Output', a=(_type, ...)
                 )
 
-                class ComponentTest(Component):
+                class ComponentTest(PythonFunction[Input, Output]):
                     @property
                     def id(self) -> str:
                         return 'Test'
@@ -162,7 +163,7 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase):
         class Output(BaseModel):
             number: int  # type: ignore
 
-        class ComponentTest(Component):
+        class ComponentTest(PythonFunction[Input, Output]):
 
             @property
             def id(self) -> str:

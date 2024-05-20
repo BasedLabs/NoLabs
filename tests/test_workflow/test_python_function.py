@@ -1,59 +1,52 @@
+import uuid
 from typing import Optional
 from unittest import IsolatedAsyncioTestCase
 
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
-from nolabs.workflow.component import Component
 from nolabs.workflow.function import PythonFunction
+from nolabs.workflow.component import PythonComponent
 
 
-class TestPythonFunction(IsolatedAsyncioTestCase):
+class TestPythonFunctions(IsolatedAsyncioTestCase):
     def shortDescription(self):
         return PythonFunction.__name__
 
-    async def test_two_functions_simple_mapping(self):
+    async def test_two_components_simple_mapping(self):
         """
         Happy path
         """
 
         # arrange
 
-        class Input(BaseModel):
-            number: int  # type: ignore
+        Input = create_model('Input', number=(int, ...))
+        Output = create_model('Output', number=(int, ...))
 
-        class Output(BaseModel):
-            number: int  # type: ignore
+        class PythonNumberOne(PythonFunction[Input, Output]):
 
-        class ComponentNumberOne(Component):
-            @property
-            def name(self) -> str:
-                return 'Simple pipe'
+            async def execute(self):
+                self.set_output_parameter(Output(number=10))
 
-            async def start(self, parameter: Input) -> Output:
-                return Output(number=parameter.number)
+        class PythonSimplePipe(PythonFunction[Input, Output]):
+            async def execute(self):
+                self.set_output_parameter(Output(
+                    number=self.input_parameter.number + 1
+                ))
 
-        class ComponentSimplePipe(Component):
-            async def start(self, parameter: Input) -> Output:
-                return Output(number=parameter.number)
-
-            @property
-            def name(self) -> str:
-                return 'Simple pipe'
-
-        function1 = PythonFunction(
-            component=ComponentNumberOne()
+        component1 = PythonComponent(
+            function=PythonNumberOne(uuid.uuid4())
         )
 
-        function2 = PythonFunction(
-            component=ComponentSimplePipe()
+        component2 = PythonComponent(
+            function=PythonSimplePipe(uuid.uuid4())
         )
 
-        function2.set_previous([function1])
+        component2.add_previous(component1)
 
         # act
 
         errors = [
-            function2.try_map_property(function=function1, path_from=['number'], path_to=['number'])
+            component2.try_map_property(component=component1, path_from=['number'], path_to=['number'])
         ]
 
         # assert
@@ -62,27 +55,23 @@ class TestPythonFunction(IsolatedAsyncioTestCase):
 
     async def test_returns_error_if_unmapped_property_exists(self):
         # arrange
-        class Input(BaseModel):
-            number: int  # type: ignore
 
-        class Output(BaseModel):
-            number: int  # type: ignore
+        Input = create_model('Input', number=(int, ...))
+        Output = create_model('Output', number=(int, ...))
 
-        class ComponentNumberOne(Component):
-            @property
-            def name(self) -> str:
-                return 'Simple pipe'
+        class PythonNumberOne(PythonFunction[Input, Output]):
+            async def execute(self):
+                self.set_output_parameter({
+                    'number': 10
+                })
 
-            async def start(self, parameter: Input) -> Output:
-                return Output(number=parameter.number + 5)
-
-        function1 = PythonFunction(
-            component=ComponentNumberOne()
+        component1 = PythonComponent(
+            function=PythonNumberOne(uuid.uuid4())
         )
 
         # act
 
-        unmapped_properties = function1.unmapped_properties
+        unmapped_properties = component1.unmapped_properties
 
         # assert
 
@@ -93,27 +82,22 @@ class TestPythonFunction(IsolatedAsyncioTestCase):
 
         # arrange
 
-        class Input(BaseModel):
-            number: Optional[int] = 10
+        Input = create_model('Input', number=(Optional[int], 10))
+        Output = create_model('Output', number=(int, ...))
 
-        class Output(BaseModel):
-            number: int  # type: ignore
+        class PythonNumberOne(PythonFunction[Input, Output]):
+            async def execute(self):
+                self.set_output_parameter(Output(
+                    number=10
+                ))
 
-        class ComponentNumberOne(Component):
-            @property
-            def name(self) -> str:
-                return 'Simple pipe'
-
-            async def start(self, parameter: Input) -> Output:
-                return Output(number=parameter.number + 5)  # type: ignore
-
-        function1 = PythonFunction(
-            component=ComponentNumberOne()
+        component1 = PythonComponent(
+            function=PythonNumberOne(uuid.uuid4())
         )
 
         # act
 
-        unmapped_properties = function1.unmapped_properties
+        unmapped_properties = component1.unmapped_properties
 
         # assert
 
@@ -121,41 +105,32 @@ class TestPythonFunction(IsolatedAsyncioTestCase):
 
     async def test_returns_error_for_format_mismatch(self):
         # arrange
-        class Input(BaseModel):
-            number: Optional[int] = 10  # type: ignore
+        Input = create_model('Input', number=(int, ...))
+        Output = create_model('Output', binary=(bytes, ...))
 
-        class Output(BaseModel):
-            binary: bytes  # type: ignore
+        class PythonNumberOne(PythonFunction[Input, Output]):
+            async def execute(self):
+                self.set_output_parameter(Output(
+                    binary='Hello there'.encode()
+                ))
 
-        class ComponentNumberOne(Component):
-            @property
-            def name(self) -> str:
-                return 'Simple pipe'
+        class PythonNumberTwo(PythonFunction[Input, Output]):
+            async def execute(self):
+                self.set_output_parameter(Output(binary='hello'.encode('utf-8')))  # type: ignore
 
-            async def start(self, parameter: Input) -> Output:
-                return Output(binary='hello'.encode('utf-8'))  # type: ignore
-
-        class ComponentNumberTwo(Component):
-            @property
-            def name(self) -> str:
-                return 'Simple pipe'
-
-            async def start(self, parameter: Input) -> Output:
-                return Output(binary='hello'.encode('utf-8'))  # type: ignore
-
-        function1 = PythonFunction(
-            component=ComponentNumberOne()
+        component1 = PythonComponent(
+            function=PythonNumberOne(uuid.uuid4())
         )
 
-        function2 = PythonFunction(
-            component=ComponentNumberTwo()
+        component2 = PythonComponent(
+            function=PythonNumberTwo((uuid.uuid4()))
         )
 
-        function2.set_previous([function1])
+        component2.add_previous(component1)
 
         # act
 
-        error = function2.try_map_property(function1, ['binary'], ['number'])
+        error = component2.try_map_property(component1, ['binary'], ['number'])
 
         # assert
         self.assertIsNotNone(error)
@@ -167,41 +142,30 @@ class TestPythonFunction(IsolatedAsyncioTestCase):
 
         # arrange
 
-        class Input(BaseModel):
-            number: Optional[int] = 10  # type: ignore
+        Input = create_model('Input', number=(Optional[int], 10))
+        Output = create_model('Output', number2=(float, ...))
 
-        class Output(BaseModel):
-            number2: float  # type: ignore
+        class PythonNumberOne(PythonFunction[Input, Output]):
+            async def execute(self):
+                self.set_output_parameter(Output(number2=10.0))  # type: ignore
 
-        class ComponentNumberOne(Component):
-            @property
-            def name(self) -> str:
-                return 'Simple pipe'
+        class PythonNumberTwo(PythonFunction[Input, Output]):
+            async def execute(self):
+                self.set_output_parameter(Output(number2=10.0))  # type: ignore
 
-            async def start(self, parameter: Input) -> Output:
-                return Output(number2=10.0)  # type: ignore
-
-        class ComponentNumberTwo(Component):
-            @property
-            def name(self) -> str:
-                return 'Simple pipe'
-
-            async def start(self, parameter: Input) -> Output:
-                return Output(number2=10.0)  # type: ignore
-
-        function1 = PythonFunction(
-            component=ComponentNumberOne()
+        component1 = PythonComponent(
+            function=PythonNumberOne(uuid.uuid4())
         )
 
-        function2 = PythonFunction(
-            component=ComponentNumberTwo()
+        component2 = PythonComponent(
+            function=PythonNumberTwo(uuid.uuid4())
         )
 
-        function2.set_previous([function1])
+        component2.add_previous(component1)
 
         # act
 
-        error = function2.try_map_property(function1, ['number2'], ['number'])
+        error = component2.try_map_property(component1, ['number2'], ['number'])
 
         # assert
 

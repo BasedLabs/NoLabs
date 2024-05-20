@@ -1,7 +1,7 @@
 from dataclasses import field
-from typing import Optional, Union, Dict, List, Any, Tuple
+from typing import Optional, Union, Dict, List, Any, Tuple, Type, TypeVar, Generic
 
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, ValidationError
 from pydantic.dataclasses import dataclass
 
 from nolabs.workflow.exceptions import WorkflowException
@@ -19,7 +19,9 @@ class PropertyValidationError:
         return f'{self.msg}: {self.loc}'
 
 
-class ParameterSchema(BaseModel):
+TParameter = TypeVar('TParameter', bound=BaseModel)
+
+class ParameterSchema(BaseModel, Generic[TParameter]):
     defs: Optional[Dict[str, 'ParameterSchema']] = Field(alias='$defs', default_factory=dict)
     description: Optional[str] = None
     properties: Dict[str, 'Property'] = Field(default_factory=dict)
@@ -33,19 +35,7 @@ class ParameterSchema(BaseModel):
     format: Optional[str] = None
     const: Optional[Any] = None
     example: Optional[Any] = None
-
-    def __post_model_init__(self, __context):
-        def _(property: Property, prop_name):
-            property.path_to.append(prop_name)
-
-            if not property.properties:
-                return
-
-            for nested_name, nested in property.properties.items():
-                _(property=nested, prop_name=nested_name)
-
-        for name, property in self.properties.items():
-            _(property=property, prop_name=name)
+    python_type: Type[TParameter]
 
     @classmethod
     def _find_property(cls, schema: 'ParameterSchema', path_to: List[str]) -> Optional['Property']:
@@ -91,7 +81,7 @@ class ParameterSchema(BaseModel):
             return result
 
         for _, property in self.properties.items():
-            if property.source_function_id:
+            if property.source_component_id:
                 result.append(property)
 
         if not self.defs:
@@ -102,7 +92,7 @@ class ParameterSchema(BaseModel):
                 continue
 
             for _, property in definition.properties.items():
-                if property.source_function_id:
+                if property.source_component_id:
                     result.append(property)
 
         return result
@@ -115,7 +105,7 @@ class ParameterSchema(BaseModel):
         return self._find_property(schema=self, path_to=path)
 
     def try_set_mapping(self, source_schema: 'ParameterSchema',
-                        function_id: str,
+                        component_id: str,
                         path_from: List[str],
                         path_to: List[str]) -> Optional[PropertyValidationError]:
         if not path_from or not path_to:
@@ -153,20 +143,24 @@ class ParameterSchema(BaseModel):
             )
 
         target_property.map(
-            source_function_id=function_id,
-            path_from=path_from
+            source_component_id=component_id,
+            path_from=path_from,
+            path_to=path_to
         )
 
         return None
 
     @staticmethod
-    def get_instance(cls) -> 'ParameterSchema':
+    def get_instance(cls: Type) -> 'ParameterSchema':
         if not issubclass(cls, BaseModel):
             raise WorkflowException(
                 f'Schema must be a subclass of {BaseModel}'
             )
 
-        return ParameterSchema(**cls.schema())
+        schema = cls.schema()
+        schema['python_type'] = cls
+
+        return ParameterSchema(**schema)
 
     @property
     def unmapped_properties(self) -> List['Property']:
@@ -176,7 +170,7 @@ class ParameterSchema(BaseModel):
             return result
 
         for name, property in self.properties.items():
-            if name in self.required and not property.source_function_id:
+            if name in self.required and not property.source_component_id:
                 result.append(property)
 
         if not self.defs:
@@ -187,7 +181,7 @@ class ParameterSchema(BaseModel):
                 continue
             for name, property in definition.properties.items():
                 # TODO check default value
-                if name in self.required and not property.source_function_id:
+                if name in self.required and not property.source_component_id:
                     result.append(property)
 
         return result
@@ -207,6 +201,20 @@ class ParameterSchema(BaseModel):
         if property:
             property.unmap()
 
+    def validate_dictionary(self, dictionary: Dict[str, Any]) -> List[PropertyValidationError]:
+        try:
+            _ = self.python_type(**dictionary)
+        except ValidationError as e:
+            return [
+                PropertyValidationError(
+                    msg=error['msg'],
+                    loc=error['loc']  # type: ignore
+                )
+                for error in e.errors()
+            ]
+
+        return []
+
 
 class Property(BaseModel):
     type: Optional[Union[str, List[str]]] = None
@@ -224,16 +232,17 @@ class Property(BaseModel):
     anyOf: List[Union['Property', dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(alias='$ref', default=None)
 
-    source_function_id: Optional[str] = None
+    source_component_id: Optional[str] = None
     path_from: List[str] = Field(default_factory=list)
 
     def unmap(self):
-        self.source_function_id = None
+        self.source_component_id = None
         self.path_from = []
 
-    def map(self, source_function_id: str, path_from: List[str]):
-        self.source_function_id = source_function_id
+    def map(self, source_component_id: str, path_from: List[str], path_to: List[str]):
+        self.source_component_id = source_component_id
         self.path_from = path_from
+        self.path_to = path_to
 
 
 class Items(BaseModel):

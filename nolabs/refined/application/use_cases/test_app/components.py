@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from nolabs.workflow.component import Component, TInput, TOutput
+from nolabs.workflow.function import Component, TInput, TOutput
 
 
 class Input(BaseModel):

@@ -4,7 +4,7 @@ from unittest import IsolatedAsyncioTestCase
 from pydantic import BaseModel, create_model
 
 from nolabs.workflow.application.use_cases import GetWorkflowSchemaFeature, CreateWorkflowSchemaFeature
-from nolabs.workflow.component import Component
+from nolabs.workflow.function import Component
 from tests.tests_preparations import mongo_disconnect, mongo_connect, seed_experiment
 
 

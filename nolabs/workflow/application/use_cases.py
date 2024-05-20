@@ -7,8 +7,8 @@ from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Experiment
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel
 from nolabs.workflow.application.mongoengine_models import WorkflowSchemaDbModel
-from nolabs.workflow.component import Component
-from nolabs.workflow.function import PythonFunction, Function
+from nolabs.workflow.function import Component
+from nolabs.workflow.component import PythonFunction, Function
 from nolabs.workflow.properties import Property
 from nolabs.workflow.workflow import Workflow
 
