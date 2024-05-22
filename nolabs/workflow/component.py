@@ -65,6 +65,8 @@ def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
 
 
+
+
 class PythonComponent(Generic[TInput, TOutput], Component):
     _execution_timeout: int = 3600
     _function: PythonFunction[TInput, TOutput]
@@ -244,3 +246,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
             raise ValueError('Instantiate class with generics specified')
         input_parameter_type, output_parameter_type = args
         return input_parameter_type, output_parameter_type
+
+    async def restore_function(self):
+        self._function.restore()
+

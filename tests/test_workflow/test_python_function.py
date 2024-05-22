@@ -2,10 +2,10 @@ import uuid
 from typing import Optional
 from unittest import IsolatedAsyncioTestCase
 
-from pydantic import BaseModel, create_model
+from pydantic import create_model
 
-from nolabs.workflow.function import PythonFunction
 from nolabs.workflow.component import PythonComponent
+from nolabs.workflow.function import PythonFunction
 
 
 class TestPythonFunctions(IsolatedAsyncioTestCase):

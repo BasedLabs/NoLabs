@@ -21,7 +21,7 @@ class PropertyModel(BaseModel):
 
 class ComponentModel(BaseModel):
     id: str
-    title: str
+    name: str
     input: Dict[str, PropertyModel]
     output: Dict[str, PropertyModel]
 

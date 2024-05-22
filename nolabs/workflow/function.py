@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypeVar, Generic, Any, Dict, Union, Type, get_args
+from typing import TypeVar, Generic, Any, Dict, Union, Type, get_args, List
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -21,6 +21,8 @@ class PythonFunction(Generic[TInput, TOutput]):
     input_parameter_type: Type[TInput]
     output_parameter_type: Type[TOutput]
 
+    job_ids: List[UUID]
+
     def __init__(self, id: UUID):
         self.id = id
 
@@ -29,14 +31,16 @@ class PythonFunction(Generic[TInput, TOutput]):
         self._input_parameter_dict = {}
         self._output_parameter_dict = {}
 
-
     async def state(self) -> PythonFunctionState:
         return PythonFunctionState(
             running=False
         )
 
+    async def restore(self):
+        ...
+
     async def stop(self):
-        pass
+        ...
 
     @abstractmethod
     async def execute(self):
