@@ -1,16 +1,15 @@
 import uuid
-from typing import Optional
+from typing import Optional, Type
 from unittest import IsolatedAsyncioTestCase
 
 from pydantic import create_model
 
-from nolabs.workflow.component import PythonComponent
-from nolabs.workflow.function import PythonFunction
+from nolabs.workflow.component import PythonComponent, TOutput, TInput
 
 
-class TestPythonFunctions(IsolatedAsyncioTestCase):
+class TestPythonComponents(IsolatedAsyncioTestCase):
     def shortDescription(self):
-        return PythonFunction.__name__
+        return PythonComponent.__name__
 
     async def test_two_components_simple_mapping(self):
         """
@@ -22,24 +21,31 @@ class TestPythonFunctions(IsolatedAsyncioTestCase):
         Input = create_model('Input', number=(int, ...))
         Output = create_model('Output', number=(int, ...))
 
-        class PythonNumberOne(PythonFunction[Input, Output]):
+        class PythonNumberOne(PythonComponent[Input, Output]):
 
-            async def execute(self):
-                self.set_output_parameter(Output(number=10))
+            async def restore_parameters(self):
+                pass
 
-        class PythonSimplePipe(PythonFunction[Input, Output]):
-            async def execute(self):
-                self.set_output_parameter(Output(
-                    number=self.input_parameter.number + 1
-                ))
+            @property
+            def _input_parameter_type(self) -> Type[TInput]:
+                pass
 
-        component1 = PythonComponent(
-            function=PythonNumberOne(uuid.uuid4())
-        )
+            @property
+            def _output_parameter_type(self) -> Type[TOutput]:
+                pass
 
-        component2 = PythonComponent(
-            function=PythonSimplePipe(uuid.uuid4())
-        )
+            async def _execute(self):
+                self.output = Output(number=10)
+
+        class PythonSimplePipe(PythonComponent[Input, Output]):
+            async def _execute(self):
+                self.output = Output(
+                    number=self.input.number + 1
+                )
+
+        component1 = PythonNumberOne(uuid.uuid4())
+
+        component2 = PythonSimplePipe(uuid.uuid4())
 
         component2.add_previous(component1)
 
@@ -59,15 +65,13 @@ class TestPythonFunctions(IsolatedAsyncioTestCase):
         Input = create_model('Input', number=(int, ...))
         Output = create_model('Output', number=(int, ...))
 
-        class PythonNumberOne(PythonFunction[Input, Output]):
-            async def execute(self):
-                self.set_output_parameter({
+        class PythonNumberOne(PythonComponent[Input, Output]):
+            async def _execute(self):
+                self.output = {
                     'number': 10
-                })
+                }
 
-        component1 = PythonComponent(
-            function=PythonNumberOne(uuid.uuid4())
-        )
+        component1 = PythonNumberOne(uuid.uuid4())
 
         # act
 
@@ -85,15 +89,24 @@ class TestPythonFunctions(IsolatedAsyncioTestCase):
         Input = create_model('Input', number=(Optional[int], 10))
         Output = create_model('Output', number=(int, ...))
 
-        class PythonNumberOne(PythonFunction[Input, Output]):
-            async def execute(self):
-                self.set_output_parameter(Output(
-                    number=10
-                ))
+        class PythonNumberOne(PythonComponent[Input, Output]):
+            async def restore_parameters(self):
+                pass
 
-        component1 = PythonComponent(
-            function=PythonNumberOne(uuid.uuid4())
-        )
+            @property
+            def _input_parameter_type(self) -> Type[Input]:
+                return Input
+
+            @property
+            def _output_parameter_type(self) -> Type[Output]:
+                return Output
+
+            async def _execute(self):
+                self.output = Output(
+                    number=10
+                )
+
+        component1 = PythonNumberOne(uuid.uuid4())
 
         # act
 
@@ -108,23 +121,19 @@ class TestPythonFunctions(IsolatedAsyncioTestCase):
         Input = create_model('Input', number=(int, ...))
         Output = create_model('Output', binary=(bytes, ...))
 
-        class PythonNumberOne(PythonFunction[Input, Output]):
-            async def execute(self):
-                self.set_output_parameter(Output(
+        class PythonNumberOne(PythonComponent[Input, Output]):
+            async def _execute(self):
+                self.output = Output(
                     binary='Hello there'.encode()
-                ))
+                )
 
-        class PythonNumberTwo(PythonFunction[Input, Output]):
+        class PythonNumberTwo(PythonComponent[Input, Output]):
             async def execute(self):
-                self.set_output_parameter(Output(binary='hello'.encode('utf-8')))  # type: ignore
+                self.output = Output(binary='hello'.encode('utf-8'))  # type: ignore
 
-        component1 = PythonComponent(
-            function=PythonNumberOne(uuid.uuid4())
-        )
+        component1 = PythonNumberOne(uuid.uuid4())
 
-        component2 = PythonComponent(
-            function=PythonNumberTwo((uuid.uuid4()))
-        )
+        component2 = PythonNumberTwo((uuid.uuid4()))
 
         component2.add_previous(component1)
 
@@ -145,21 +154,16 @@ class TestPythonFunctions(IsolatedAsyncioTestCase):
         Input = create_model('Input', number=(Optional[int], 10))
         Output = create_model('Output', number2=(float, ...))
 
-        class PythonNumberOne(PythonFunction[Input, Output]):
+        class PythonNumberOne(PythonComponent[Input, Output]):
             async def execute(self):
-                self.set_output_parameter(Output(number2=10.0))  # type: ignore
+                self.output = Output(number2=10.0)
 
-        class PythonNumberTwo(PythonFunction[Input, Output]):
+        class PythonNumberTwo(PythonComponent[Input, Output]):
             async def execute(self):
-                self.set_output_parameter(Output(number2=10.0))  # type: ignore
+                self.output = Output(number2=10.0)  # type: ignore
 
-        component1 = PythonComponent(
-            function=PythonNumberOne(uuid.uuid4())
-        )
-
-        component2 = PythonComponent(
-            function=PythonNumberTwo(uuid.uuid4())
-        )
+        component1 = PythonNumberOne(uuid.uuid4())
+        component2 = PythonNumberTwo(uuid.uuid4())
 
         component2.add_previous(component1)
 

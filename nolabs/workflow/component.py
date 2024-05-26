@@ -4,22 +4,20 @@ __all__ = [
 ]
 
 import asyncio
-import inspect
 import uuid
 from abc import ABC, abstractmethod
-from typing import Optional, List, Any, Type, Dict, Union, get_type_hints, TypeVar, Generic, Tuple, get_args
+from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic, Tuple, get_args
 
-from pydantic import ValidationError, BaseModel
+from pydantic import BaseModel
 
-from nolabs.workflow.function import PythonFunction
 from nolabs.workflow.exceptions import WorkflowException
 from nolabs.workflow.properties import ParameterSchema, Property, PropertyValidationError
 
 
 class Component(ABC):
-    id: str
+    id: uuid.UUID
     name: str
-    signature: str
+    job_ids: List[uuid.UUID]
 
     @abstractmethod
     async def execute(self):
@@ -65,61 +63,51 @@ def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
 
 
-
-
 class PythonComponent(Generic[TInput, TOutput], Component):
     _execution_timeout: int = 3600
-    _function: PythonFunction[TInput, TOutput]
 
     _input_schema: ParameterSchema[TInput]
     _output_schema: ParameterSchema[TOutput]
+
+    _input_parameter_dict: Dict[str, Any]
+    _output_parameter_dict: Dict[str, Any]
 
     last_exception: Optional[Exception] = None
 
     previous: List['Component']
 
     def __init__(self,
-                 function: PythonFunction[TInput, TOutput],
+                 id: uuid.UUID,
                  execution_timeout: int = 3600):
-        if not isinstance(function, PythonFunction):
-            raise WorkflowException(f'Function must be instance of {PythonFunction}')
-
-        self._function = function
         self._execution_timeout = execution_timeout
 
-        if 'execute' not in dir(function):
-            raise ValueError('Function must have execute method')
+        self.id = id
+        self._input_schema = ParameterSchema.get_instance(cls=self._input_parameter_type)
+        self._output_schema = ParameterSchema.get_instance(cls=self._output_parameter_type)
 
-        name = self._parse_function_name()
-        signature = f'def {name}{str(inspect.signature(function.execute))}'
-
-        input_type, output_type = self._parse_parameter_types()
-
-        self.id = str(uuid.uuid4())
-        self.signature = signature
-        self._input_schema = ParameterSchema.get_instance(cls=input_type)
-        self._output_schema = ParameterSchema.get_instance(cls=output_type)
+        self._input_parameter_dict = {}
+        self._output_parameter_dict = {}
 
         self.previous = []
 
     async def execute(self):
-        input_validation_errors = self._input_schema.validate_dictionary(self._function.input_parameter_dict)
+        input_validation_errors = self._input_schema.validate_dictionary(self._input_parameter_dict)
         if input_validation_errors:
             raise WorkflowException(', '.join([str(err) for err in input_validation_errors]))
 
         try:
             await asyncio.create_task(
-                asyncio.wait_for(self._function.execute(), self._execution_timeout))
+                asyncio.wait_for(self._execute(), self._execution_timeout))
         except Exception as e:
             if not isinstance(e, asyncio.CancelledError):
                 self.last_exception = e
 
     async def terminate(self, timeout: int = 10):
-        await asyncio.wait_for(self._function.stop(), timeout=timeout)
+        await asyncio.wait_for(self.stop(), timeout=timeout)
 
     def set_input(self, instance: TInput):
         if not is_pydantic_type(instance):
-            raise WorkflowException(f'Cannot set instance other than {str(TInput)}')
+            raise WorkflowException(f'Type must inherit from {BaseModel}')
 
         value = instance.dict()
 
@@ -127,16 +115,26 @@ class PythonComponent(Generic[TInput, TOutput], Component):
         if errors:
             raise WorkflowException(', '.join([str(err) for err in errors]))
 
-        self._function.set_input_parameter(instance)
+        self._input_parameter_dict = instance.dict()
 
-    def get_output(self) -> TOutput:
-        return self._function.output_parameter
+    @property
+    def output(self) -> TOutput:
+        return self._output_parameter_type(**self._output_parameter_dict)
+
+    @output.setter
+    def output(self, output_parameter: Union[TOutput, Dict[str, Any]]):
+        if isinstance(output_parameter, BaseModel):
+            self._output_parameter_dict = output_parameter.dict()
+            return
+
+        self._output_parameter_dict = output_parameter
+
+    @property
+    def input(self) -> TInput:
+        return self._input_parameter_type(**self._input_parameter_dict)
 
     def validate_input(self):
-        return self._input_schema.validate_dictionary(dictionary=self._function.input_parameter_dict)
-
-    def _parse_function_name(self) -> str:
-        return type(self._function).__name__
+        return self._input_schema.validate_dictionary(dictionary=self._input_parameter_dict)
 
     def remove_previous(self, component: 'PythonComponent'):
         if component not in self.previous:
@@ -144,7 +142,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
 
         self.previous.remove(component)
 
-        if not self._input_schema.schema.properties.items():
+        if not self._input_schema.properties.items():
             return
 
         for _, property in self._input_schema.properties.items():
@@ -188,7 +186,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
 
                     path = prop.path_from
 
-                    current_level = component._function.output_parameter_dict
+                    current_level = component._output_parameter_dict
 
                     # Find output parameter from output of previous component
 
@@ -202,7 +200,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
 
                     path = prop.path_to
 
-                    current_level = self._function.input_parameter_dict
+                    current_level = self._input_parameter_dict
                     for key in path[:-1]:
                         if key not in current_level:
                             current_level[key] = {}
@@ -234,19 +232,36 @@ class PythonComponent(Generic[TInput, TOutput], Component):
         return result
 
     def validate_output(self) -> List[PropertyValidationError]:
-        return self._output_schema.validate_dictionary(self._function.output_parameter_dict)
-
-    @property
-    def component_id(self) -> str:
-        return str(self._function.id)
+        return self._output_schema.validate_dictionary(self._output_parameter_dict)
 
     def _parse_parameter_types(self) -> Tuple[Type[TInput], Type[TOutput]]:
-        args = get_args(self._function.__orig_bases__[0])
+        args = get_args(self._function.__orig_bases__[0])  # type: ignore
         if not args:
             raise ValueError('Instantiate class with generics specified')
         input_parameter_type, output_parameter_type = args
         return input_parameter_type, output_parameter_type
 
-    async def restore_function(self):
-        self._function.restore()
+    # region Function
 
+    @abstractmethod
+    def _execute(self):
+        ...
+
+    @abstractmethod
+    async def restore_parameters(self):
+        ...
+
+    @property
+    @abstractmethod
+    def _input_parameter_type(self) -> Type[TInput]:
+        ...
+
+    @property
+    @abstractmethod
+    def _output_parameter_type(self) -> Type[TOutput]:
+        ...
+
+    async def stop(self):
+        ...
+
+    # endregion

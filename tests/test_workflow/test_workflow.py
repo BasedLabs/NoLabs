@@ -55,7 +55,7 @@ class TestWorkflow(IsolatedAsyncioTestCase):
         # assert
 
         self.assertEqual(component2.validate_output(), [])
-        instance: Output = component2.get_output()  # type: ignore
+        instance: Output = component2.output()  # type: ignore
         self.assertEqual(instance.number, 11)
 
     async def test_reverse_tree_components_run(self):
@@ -117,7 +117,7 @@ class TestWorkflow(IsolatedAsyncioTestCase):
         # assert
 
         self.assertEqual(component3.validate_output(), [])
-        instance: Output = component3.get_output()  # type: ignore
+        instance: Output = component3.output()  # type: ignore
         self.assertEqual(instance.number, 20)
 
     async def test_tree_components_run(self):
@@ -171,11 +171,11 @@ class TestWorkflow(IsolatedAsyncioTestCase):
         # assert
 
         self.assertEqual(component2.validate_output(), [])
-        instance: Output = component2.get_output()  # type: ignore
+        instance: Output = component2.output()  # type: ignore
         self.assertEqual(instance.number, 20)
 
         self.assertEqual(component3.validate_output(), [])
-        instance: Output = component3.get_output()  # type: ignore
+        instance: Output = component3.output()  # type: ignore
         self.assertEqual(instance.number, 20)
 
     async def test_diamond_run(self):
@@ -251,7 +251,7 @@ class TestWorkflow(IsolatedAsyncioTestCase):
         # assert
 
         self.assertEqual(component4.validate_output(), [])
-        instance: Output = component4.get_output()  # type: ignore
+        instance: Output = component4.output()  # type: ignore
         self.assertEqual(instance.number, 40)
 
     async def test_presevses_last_exception(self):

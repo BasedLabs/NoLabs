@@ -20,7 +20,6 @@ class PropertyModel(BaseModel):
 
 
 class ComponentModel(BaseModel):
-    id: str
     name: str
     input: Dict[str, PropertyModel]
     output: Dict[str, PropertyModel]
@@ -29,14 +28,13 @@ class ComponentModel(BaseModel):
 class MappingModel(BaseModel):
     source_path: List[str]
     target_path: List[str]
-    source_component_id: str
+    source_component_id: uuid.UUID
     error: Optional[str] = None
 
 
 class WorkflowComponentModel(BaseModel):
-    function_id: uuid.UUID
-    title: str
-    component_id: str
+    name: str
+    component_id: uuid.UUID
     job_ids: List[uuid.UUID] = Field(default_factory=list)
     mappings: List[MappingModel] = Field(default_factory=list)
     error: Optional[str] = None

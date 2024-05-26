@@ -1,5 +1,6 @@
 from dataclasses import field
 from typing import Optional, Union, Dict, List, Any, Tuple, Type, TypeVar, Generic
+from uuid import UUID
 
 from pydantic import Field, BaseModel, ValidationError
 from pydantic.dataclasses import dataclass
@@ -105,7 +106,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
         return self._find_property(schema=self, path_to=path)
 
     def try_set_mapping(self, source_schema: 'ParameterSchema',
-                        component_id: str,
+                        component_id: UUID,
                         path_from: List[str],
                         path_to: List[str]) -> Optional[PropertyValidationError]:
         if not path_from or not path_to:
@@ -232,14 +233,14 @@ class Property(BaseModel):
     anyOf: List[Union['Property', dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(alias='$ref', default=None)
 
-    source_component_id: Optional[str] = None
+    source_component_id: Optional[UUID] = None
     path_from: List[str] = Field(default_factory=list)
 
     def unmap(self):
         self.source_component_id = None
         self.path_from = []
 
-    def map(self, source_component_id: str, path_from: List[str], path_to: List[str]):
+    def map(self, source_component_id: UUID, path_from: List[str], path_to: List[str]):
         self.source_component_id = source_component_id
         self.path_from = path_from
         self.path_to = path_to

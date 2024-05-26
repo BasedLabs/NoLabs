@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict
 from uuid import UUID
 
-from nolabs.workflow.component import PythonFunction
+from nolabs.workflow.component_factory import PythonComponentFactory
 from nolabs.workflow.exceptions import WorkflowException
 from nolabs.workflow.component import PythonComponent
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel
@@ -15,19 +15,13 @@ class WorkflowValidationError:
 
 class Workflow:
     running: bool
-    components: List[PythonComponent]
     executing_workflows: Dict[UUID, 'Workflow']
+    components: List[PythonComponent]
 
     def __init__(self, components: List[PythonComponent]):
-        error = Workflow.validate_graph(components)
-        if error:
-            raise WorkflowException(error.msg)
-
         self.components = components
 
-    async def execute(self,
-                      terminate: bool = False,
-                      load_parameters: bool = False):
+    async def execute(self, terminate: bool = False, restart: bool = False):
         try:
             self.running = True
 
@@ -56,6 +50,10 @@ class Workflow:
                 await component.execute()
                 executed.append(component)
 
+            if not restart:
+                for component in self.components:
+                    await component.restore_parameters()
+
             for component in self.components:
                 if component not in executed:
                     await execute(component=component)
@@ -78,9 +76,9 @@ class Workflow:
         return None
 
     @classmethod
-    def _find_component(cls, components: List[PythonComponent], component_id: str) -> Optional[PythonComponent]:
+    def _find_component(cls, components: List[PythonComponent], component_id: UUID) -> Optional[PythonComponent]:
         for component in components:
-            if component.component_id == component_id:
+            if component.id == component_id:
                 return component
         return None
 
@@ -88,10 +86,11 @@ class Workflow:
     def validate_schema(
             cls,
             workflow_schema: WorkflowSchemaModel,
-            functions: List[PythonFunction]
+            component_factory: PythonComponentFactory
     ) -> bool:
-        components = [
-            PythonComponent(function=function) for function in functions
+        components: List[PythonComponent] = [
+            component_factory.create_component(name=wf.name, id=wf.component_id) for wf in
+            workflow_schema.workflow_components
         ]
 
         if Workflow.validate_graph(graph=components):
@@ -99,7 +98,6 @@ class Workflow:
 
         for workflow_component in workflow_schema.workflow_components:
             component = cls._find_component(component_id=workflow_component.component_id, components=components)
-
             # Check that component exists
             if not component:
                 return False
@@ -122,18 +120,19 @@ class Workflow:
         return True
 
     @classmethod
-    def create_from_schema(cls, workflow_schema_model: WorkflowSchemaModel,
-                           functions: List[PythonFunction]) -> 'Workflow':
-        error = cls.validate_schema(workflow_schema=workflow_schema_model, functions=functions)
+    def create_from_schema(cls,
+                           workflow_schema_model: WorkflowSchemaModel,
+                           component_factory: PythonComponentFactory) -> 'Workflow':
+        error = cls.validate_schema(
+            workflow_schema=workflow_schema_model,
+            component_factory=component_factory)
 
         if error:
             raise WorkflowException(
                 msg=f'Schema is nov valid. Run {cls.set_schema_errors} to get schema errors'
             )
 
-        components = [
-            PythonComponent(function=function) for function in functions
-        ]
+        components: List[PythonComponent] = component_factory.all_components()
 
         for workflow_component in workflow_schema_model.workflow_components:
             component: PythonComponent | None = cls._find_component(component_id=workflow_component.component_id,
@@ -167,12 +166,13 @@ class Workflow:
     def set_schema_errors(
             cls,
             workflow_schema: WorkflowSchemaModel,
-            functions: List[PythonFunction]):
+            component_factory: PythonComponentFactory):
         component_not_found_template = lambda c_id: f'Component with id {c_id} not found'
 
         schema_valid = True
-        components = [
-            PythonComponent(function=function) for function in functions
+        components: List[PythonComponent] = [
+            component_factory.create_component(name=wf.name, id=wf.component_id) for wf in
+            workflow_schema.workflow_components
         ]
 
         graph_validation_error = Workflow.validate_graph(graph=components)

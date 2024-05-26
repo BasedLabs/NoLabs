@@ -1,4 +1,11 @@
-from fastapi import APIRouter
+from typing import Annotated, Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends
+from .di import WorkflowDependencies
+from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, SetWorkflowSchemaFeature, \
+    StartWorkflowFeature, StopWorkflowFeature
+from ..workflow_schema import WorkflowSchemaModel
 
 router = APIRouter(
     prefix='/api/v1/workflow',
@@ -7,10 +14,46 @@ router = APIRouter(
 )
 
 
+@router.post('/{experiment_id}', summary='Create workflow schema')
+async def create_schema(
+        feature: Annotated[
+            CreateWorkflowSchemaFeature, Depends(WorkflowDependencies.create_workflow_schema)],
+        experiment_id: UUID
+) -> WorkflowSchemaModel:
+    return await feature.handle(experiment_id=experiment_id)
+
+
 @router.get('/{experiment_id}', summary='Get workflow schema')
 async def get_schema(
         feature: Annotated[
-            RunJobFeature, Depends(GeneOntologyDependencies.run_job)],
-        job_id: UUID
-) -> JobResponse:
-    return await feature.handle(job_id=job_id)
+            GetWorkflowSchemaFeature, Depends(WorkflowDependencies.get_workflow_schema)],
+        experiment_id: UUID
+) -> Optional[WorkflowSchemaModel]:
+    return await feature.handle(experiment_id=experiment_id)
+
+
+@router.put('/{experiment_id}', summary='Set workflow schema')
+async def set_workflow_schema(
+        feature: Annotated[
+            SetWorkflowSchemaFeature, Depends(WorkflowDependencies.set_workflow_schema)],
+        workflow_schema: WorkflowSchemaModel
+) -> WorkflowSchemaModel:
+    return await feature.handle(workflow_schema=workflow_schema)
+
+
+@router.post('/{experiment_id}/start', summary='Start workflow schema')
+async def start_workflow_schema(
+        feature: Annotated[
+            StartWorkflowFeature, Depends(WorkflowDependencies.start_workflow_schema)],
+        experiment_id: UUID
+):
+    return await feature.handle(experiment_id=experiment_id)
+
+
+@router.post('/{experiment_id}/stop', summary='Stop workflow schema')
+async def stop_workflow_schema(
+        feature: Annotated[
+            StopWorkflowFeature, Depends(WorkflowDependencies.stop_workflow_schema)],
+        experiment_id: UUID
+):
+    return await feature.handle(experiment_id=experiment_id)

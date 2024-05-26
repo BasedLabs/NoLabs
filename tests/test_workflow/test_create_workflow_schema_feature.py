@@ -5,8 +5,7 @@ from pydantic import BaseModel, create_model
 
 from nolabs.exceptions import NoLabsException
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature
-from nolabs.workflow.component import Component
-from nolabs.workflow.function import PythonFunction
+from nolabs.workflow.component import PythonComponent
 from tests.tests_preparations import mongo_disconnect, mongo_connect, seed_experiment
 
 
@@ -32,13 +31,9 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase):
         Input = create_model('Input', number=(int, ...))
         Output = create_model('Output', number=(int, ...))
 
-        class ComponentTest(PythonFunction[Input, Output]):
-            @property
-            def id(self) -> str:
-                return 'hello'
-
-            async def start(self, parameter: Input) -> Output:
-                return Output(number=5)
+        class ComponentTest(PythonComponent[Input, Output]):
+            async def _execute(self):
+                self.output = Output(number=5))
 
         experiment = seed_experiment()
         sut = CreateWorkflowSchemaFeature()
@@ -46,7 +41,7 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase):
         # arrange
 
         with self.assertRaises(NoLabsException) as context:
-            workflow_schema = await sut.start(experiment_id=experiment.id, components=[
+            workflow_schema = await sut.exe(experiment_id=experiment.id, components=[
                 ComponentTest(),
                 ComponentTest()
             ])

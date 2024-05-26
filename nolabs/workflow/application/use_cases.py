@@ -5,12 +5,11 @@ from uuid import UUID
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Experiment
-from nolabs.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel
 from nolabs.workflow.application.mongoengine_models import WorkflowSchemaDbModel
-from nolabs.workflow.function import PythonFunction
-from nolabs.workflow.component import PythonComponent
+from nolabs.workflow.component_factory import PythonComponentFactory
 from nolabs.workflow.properties import Property
 from nolabs.workflow.workflow import Workflow
+from nolabs.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel
 
 
 def map_property(property: Property) -> PropertyModel:
@@ -35,9 +34,12 @@ def map_property(property: Property) -> PropertyModel:
 
 
 class CreateWorkflowSchemaFeature:
-    async def handle(self,
-                     experiment_id: UUID,
-                     functions: List[PythonFunction]) -> WorkflowSchemaModel:
+    factory: PythonComponentFactory
+
+    def __init__(self, factory: PythonComponentFactory):
+        self.factory = factory
+
+    async def handle(self, experiment_id: UUID) -> WorkflowSchemaModel:
         experiment: Experiment = Experiment.objects.with_id(experiment_id)
 
         if not experiment:
@@ -50,19 +52,12 @@ class CreateWorkflowSchemaFeature:
 
         components_models: List[ComponentModel] = []
 
-        ids = Counter([func.id for func in functions])
+        names = Counter([comp.name for comp in self.factory.all_components()])
 
-        for id, count in ids.items():
-            if count > 1:
-                raise NoLabsException(ErrorCodes.same_component_already_registered, messages=str(id))
-
-        for function in functions:
-            component = PythonComponent(
-                function=function
-            )
+        for component_name in names:
+            component = self.factory.create_component(name=component_name)
             components_models.append(ComponentModel(
-                id=component.id,
-                name=component.name,
+                name=component_name,
                 input={name: map_property(prop) for name, prop in component.input_properties.items()},
                 output={name: map_property(prop) for name, prop in component.output_properties.items()}
             ))
@@ -100,16 +95,18 @@ class GetWorkflowSchemaFeature:
 
 
 class SetWorkflowSchemaFeature:
-    async def handle(self,
-                     workflow_schema: WorkflowSchemaModel,
-                     functions: List[PythonFunction]
-                     ) -> WorkflowSchemaModel:
+    factory: PythonComponentFactory
+
+    def __init__(self, factory: PythonComponentFactory):
+        self.factory = factory
+
+    async def handle(self, workflow_schema: WorkflowSchemaModel) -> WorkflowSchemaModel:
         experiment: Experiment = Experiment.objects.with_id(workflow_schema.experiment_id)
 
         if not experiment:
             raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        Workflow.set_schema_errors(workflow_schema=workflow_schema, functions=functions)
+        Workflow.set_schema_errors(workflow_schema=workflow_schema, component_factory=self.factory)
 
         db_models: List[WorkflowSchemaDbModel] = WorkflowSchemaDbModel.objects(experiment=experiment)
 
@@ -129,7 +126,12 @@ class SetWorkflowSchemaFeature:
 
 
 class StartWorkflowFeature:
-    async def handle(self, experiment_id: UUID, functions: List[PythonFunction]):
+    factory: PythonComponentFactory
+
+    def __init__(self, factory: PythonComponentFactory):
+        self.factory = factory
+
+    async def handle(self, experiment_id: UUID):
         experiment: Experiment = Experiment.objects.with_id(experiment_id)
 
         if not experiment:
@@ -144,13 +146,18 @@ class StartWorkflowFeature:
 
         workflow = Workflow.create_from_schema(
             workflow_schema_model=workflow_schema_model,
-            functions=functions)
+            component_factory=self.factory)
 
         await workflow.execute(terminate=True)
 
 
 class StopWorkflowFeature:
-    async def handle(self, experiment_id: UUID, functions: List[PythonFunction]):
+    factory: PythonComponentFactory
+
+    def __init__(self, factory: PythonComponentFactory):
+        self.factory = factory
+
+    async def handle(self, experiment_id: UUID):
         experiment: Experiment = Experiment.objects.with_id(experiment_id)
 
         if not experiment:
@@ -165,6 +172,6 @@ class StopWorkflowFeature:
 
         workflow = Workflow.create_from_schema(
             workflow_schema_model=workflow_schema_model,
-            functions=functions)
+            component_factory=self.factory)
 
         await workflow.execute(terminate=True)

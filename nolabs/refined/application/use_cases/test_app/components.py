@@ -1,43 +1,60 @@
-from typing import Optional
+from typing import Type
 
+from biobuddy_microservice import DefaultApi
 from pydantic import BaseModel
 
-from nolabs.workflow.function import Component, TInput, TOutput
+from nolabs.workflow.component import PythonComponent
 
 
-class Input(BaseModel):
-    number: Optional[int] = 10
-
-
-class Output(BaseModel):
+class InputA(BaseModel):
     number: int
 
 
-class PlusOneComponent(Component):
+class OutputA(BaseModel):
+    number: int
+
+
+class InputPlusOneComponent(PythonComponent[InputA, OutputA]):
     @property
-    def title(self) -> str:
-        return 'One plus one component'
+    def _input_parameter_type(self) -> Type[InputA]:
+        return InputA
 
     @property
-    def name(self) -> str:
-        return 'OnePlusOneComponent'
+    def _output_parameter_type(self) -> Type[OutputA]:
+        return OutputA
 
-    async def handle(self, parameter: Input) -> Output:
-        return Output(
-            number=parameter.number + 1  # type: ignore
+    api: DefaultApi
+    name = 'Input plus one'
+
+    def _execute(self):
+        inp = self.input
+        output = OutputA(
+            number=inp.number + 1
         )
+        self.output = output
+
+    async def _restore_parameters(self):
+        pass
 
 
-class PlusTwoComponent(Component):
+class InputPlusTwoComponent(PythonComponent[InputA, OutputA]):
     @property
-    def title(self) -> str:
-        return 'One plus one component'
+    def _input_parameter_type(self) -> Type[InputA]:
+        return InputA
 
     @property
-    def name(self) -> str:
-        return 'OnePlusOneComponent'
+    def _output_parameter_type(self) -> Type[OutputA]:
+        return OutputA
 
-    async def handle(self, parameter: Input) -> Output:
-        return Output(
-            number=parameter.number + 2  # type: ignore
+    api: DefaultApi
+    name = 'Input plus two'
+
+    def _execute(self):
+        inp = self.input
+        output = OutputA(
+            number=inp.number + 2
         )
+        self.output = output
+
+    async def _restore_parameters(self):
+        pass
