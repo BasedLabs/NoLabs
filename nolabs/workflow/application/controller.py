@@ -4,13 +4,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from .di import WorkflowDependencies
 from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, SetWorkflowSchemaFeature, \
-    StartWorkflowFeature, StopWorkflowFeature
+    StartWorkflowFeature, StopWorkflowFeature, GetComponentJobIdsFeature
 from ..workflow_schema import WorkflowSchemaModel
 
 router = APIRouter(
     prefix='/api/v1/workflow',
     tags=['Workflow'],
-
 )
 
 
@@ -32,7 +31,7 @@ async def get_schema(
     return await feature.handle(experiment_id=experiment_id)
 
 
-@router.put('/{experiment_id}', summary='Set workflow schema')
+@router.put('/', summary='Set workflow schema')
 async def set_workflow_schema(
         feature: Annotated[
             SetWorkflowSchemaFeature, Depends(WorkflowDependencies.set_workflow_schema)],
@@ -42,18 +41,27 @@ async def set_workflow_schema(
 
 
 @router.post('/{experiment_id}/start', summary='Start workflow schema')
-async def start_workflow_schema(
+async def start_workflow(
         feature: Annotated[
-            StartWorkflowFeature, Depends(WorkflowDependencies.start_workflow_schema)],
+            StartWorkflowFeature, Depends(WorkflowDependencies.start_workflow)],
         experiment_id: UUID
 ):
     return await feature.handle(experiment_id=experiment_id)
 
 
 @router.post('/{experiment_id}/stop', summary='Stop workflow schema')
-async def stop_workflow_schema(
+async def stop_workflow(
         feature: Annotated[
-            StopWorkflowFeature, Depends(WorkflowDependencies.stop_workflow_schema)],
+            StopWorkflowFeature, Depends(WorkflowDependencies.stop_workflow)],
         experiment_id: UUID
 ):
     return await feature.handle(experiment_id=experiment_id)
+
+
+@router.post('/components/job-ids', summary='Get component job ids')
+async def get_component_job_ids(
+        feature: Annotated[
+            GetComponentJobIdsFeature, Depends(WorkflowDependencies.get_component_job_ids)],
+        experiment_id: UUID
+):
+    return await feature.handle()

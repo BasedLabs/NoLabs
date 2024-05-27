@@ -5,6 +5,8 @@ from uuid import UUID
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Experiment
+from nolabs.workflow.application.api_models import GetComponentJobIdsResponse, GetComponentJobIdsRequest, \
+    GetComponentParametersResponse, GetComponentParametersRequest
 from nolabs.workflow.application.mongoengine_models import WorkflowSchemaDbModel
 from nolabs.workflow.component_factory import PythonComponentFactory
 from nolabs.workflow.properties import Property
@@ -145,10 +147,11 @@ class StartWorkflowFeature:
         workflow_schema_model = db_models[0].get_workflow_value()
 
         workflow = Workflow.create_from_schema(
-            workflow_schema_model=workflow_schema_model,
+            workflow_schema=workflow_schema_model,
             component_factory=self.factory)
 
         await workflow.execute(terminate=True)
+        pass
 
 
 class StopWorkflowFeature:
@@ -171,7 +174,42 @@ class StopWorkflowFeature:
         workflow_schema_model = db_models[0].get_workflow_value()
 
         workflow = Workflow.create_from_schema(
-            workflow_schema_model=workflow_schema_model,
+            workflow_schema=workflow_schema_model,
             component_factory=self.factory)
 
         await workflow.execute(terminate=True)
+
+
+class GetComponentJobIdsFeature:
+    factory: PythonComponentFactory
+
+    def __init__(self, factory: PythonComponentFactory):
+        self.factory = factory
+
+    async def handle(self, request: GetComponentJobIdsRequest) -> GetComponentJobIdsResponse:
+        if not self.factory.component_exists(name=request.name):
+            raise NoLabsException(ErrorCodes.component_not_found)
+
+        component = self.factory.create_component_instance(name=request.name, id=request.component_id)
+
+        return GetComponentJobIdsResponse(
+            job_ids=component.job_ids
+        )
+
+
+class GetComponentParametersFeature:
+    factory: PythonComponentFactory
+
+    def __init__(self, factory: PythonComponentFactory):
+        self.factory = factory
+
+    async def handle(self, request: GetComponentParametersRequest) -> GetComponentParametersResponse:
+        if not self.factory.component_exists(name=request.name):
+            raise NoLabsException(ErrorCodes.component_not_found)
+
+        component = self.factory.create_component_instance(name=request.name, id=request.component_id)
+
+        return GetComponentParametersResponse(
+            input_dict=component.input_dict,
+            output_dict=component.output_dict
+        )

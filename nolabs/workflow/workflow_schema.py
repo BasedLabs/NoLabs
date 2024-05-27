@@ -32,12 +32,19 @@ class MappingModel(BaseModel):
     error: Optional[str] = None
 
 
+class DefaultWorkflowComponentModelValue(BaseModel):
+    path_to: List[str]
+    value: Optional[Any] = None
+    error: Optional[str] = None
+
+
 class WorkflowComponentModel(BaseModel):
     name: str
     component_id: uuid.UUID
     job_ids: List[uuid.UUID] = Field(default_factory=list)
     mappings: List[MappingModel] = Field(default_factory=list)
     error: Optional[str] = None
+    defaults: List[DefaultWorkflowComponentModelValue] = Field(default_factory=list)
 
 
 class WorkflowSchemaModel(BaseModel):

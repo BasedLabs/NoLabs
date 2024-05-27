@@ -10,7 +10,7 @@ from fastapi import Depends
 
 from nolabs.refined.application.use_cases.test_app.components import InputPlusOneComponent, InputPlusTwoComponent
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
-    SetWorkflowSchemaFeature, StartWorkflowFeature, StopWorkflowFeature
+    SetWorkflowSchemaFeature, StartWorkflowFeature, StopWorkflowFeature, GetComponentJobIdsFeature
 from nolabs.workflow.component_factory import PythonComponentFactory
 
 
@@ -41,15 +41,21 @@ class WorkflowDependencies:
         )
 
     @staticmethod
-    def start_workflow_schema(factory: Annotated[
+    def start_workflow(factory: Annotated[
         PythonComponentFactory, Depends(WorkflowDependencies.components_factory)]) -> StartWorkflowFeature:
         return StartWorkflowFeature(
             factory=factory
         )
 
     @staticmethod
-    def stop_workflow_schema(factory: Annotated[
+    def stop_workflow(factory: Annotated[
         PythonComponentFactory, Depends(WorkflowDependencies.components_factory)]) -> StopWorkflowFeature:
         return StopWorkflowFeature(
+            factory=factory
+        )
+
+    @staticmethod
+    def get_component_job_ids(factory: Annotated[PythonComponentFactory, Depends(WorkflowDependencies.components_factory)]) -> GetComponentJobIdsFeature:
+        return GetComponentJobIdsFeature(
             factory=factory
         )

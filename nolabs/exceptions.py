@@ -90,6 +90,12 @@ class ErrorCodes(Enum):
     folding_run_error = ErrorCode(code=76, description='Folding run error')
     workflow_not_found = ErrorCode(code=77, description="Workflow not found")
     same_component_already_registered = ErrorCode(code=78, description="Same component was already registered")
+    component_has_unmapped_properties = ErrorCode(code=79, description='Component has unmapped properties')
+    cannot_start_component = ErrorCode(code=80, description='Cannot start component')
+    invalid_workflow_schema = ErrorCode(code=81, description='Invalid workflow schema')
+    component_not_found = ErrorCode(code=82, description='Component not found')
+    component_input_invalid = ErrorCode(code=83, description='Component input is invalid')
+
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

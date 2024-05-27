@@ -2,8 +2,8 @@ import uuid
 from typing import Dict, Optional, Type, List
 from uuid import UUID
 
+from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.workflow.component import PythonComponent
-from nolabs.workflow.exceptions import WorkflowException
 
 
 class PythonComponentFactory:
@@ -12,9 +12,15 @@ class PythonComponentFactory:
     def __init__(self, components: Dict[str, Type[PythonComponent]]):
         self.components = components
 
-    def create_component(self, name, id: Optional[UUID] = None) -> PythonComponent:
+    def component_exists(self, name: str) -> bool:
         if name not in self.components:
-            raise WorkflowException('Component was not found in components')
+            return False
+
+        return True
+
+    def create_component_instance(self, name: str, id: Optional[UUID] = None) -> PythonComponent:
+        if not self.component_exists(name=name):
+            raise NoLabsException(ErrorCodes.component_not_found)
 
         if id:
             return self.components[name](id)

@@ -33,7 +33,7 @@ class InputPlusOneComponent(PythonComponent[InputA, OutputA]):
         )
         self.output = output
 
-    async def _restore_parameters(self):
+    async def restore_parameters(self):
         pass
 
 
@@ -56,5 +56,5 @@ class InputPlusTwoComponent(PythonComponent[InputA, OutputA]):
         )
         self.output = output
 
-    async def _restore_parameters(self):
+    async def restore_parameters(self):
         pass

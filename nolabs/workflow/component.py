@@ -10,7 +10,7 @@ from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic, Tup
 
 from pydantic import BaseModel
 
-from nolabs.workflow.exceptions import WorkflowException
+from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.workflow.properties import ParameterSchema, Property, PropertyValidationError
 
 
@@ -93,7 +93,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
     async def execute(self):
         input_validation_errors = self._input_schema.validate_dictionary(self._input_parameter_dict)
         if input_validation_errors:
-            raise WorkflowException(', '.join([str(err) for err in input_validation_errors]))
+            raise NoLabsException(ErrorCodes.component_input_invalid, ', '.join([str(err) for err in input_validation_errors]))
 
         try:
             await asyncio.create_task(
@@ -107,13 +107,13 @@ class PythonComponent(Generic[TInput, TOutput], Component):
 
     def set_input(self, instance: TInput):
         if not is_pydantic_type(instance):
-            raise WorkflowException(f'Type must inherit from {BaseModel}')
+            raise ValueError(f'Type must inherit from {BaseModel}')
 
         value = instance.dict()
 
         errors = self._input_schema.validate_dictionary(dictionary=value)
         if errors:
-            raise WorkflowException(', '.join([str(err) for err in errors]))
+            raise NoLabsException(ErrorCodes.component_input_invalid, ', '.join([str(err) for err in errors]))
 
         self._input_parameter_dict = instance.dict()
 
@@ -133,21 +133,16 @@ class PythonComponent(Generic[TInput, TOutput], Component):
     def input(self) -> TInput:
         return self._input_parameter_type(**self._input_parameter_dict)
 
+    @property
+    def input_dict(self) -> Dict[str, Any]:
+        return self._input_parameter_dict
+
+    @property
+    def output_dict(self) -> Dict[str, Any]:
+        return self._output_parameter_dict
+
     def validate_input(self):
         return self._input_schema.validate_dictionary(dictionary=self._input_parameter_dict)
-
-    def remove_previous(self, component: 'PythonComponent'):
-        if component not in self.previous:
-            return
-
-        self.previous.remove(component)
-
-        if not self._input_schema.properties.items():
-            return
-
-        for _, property in self._input_schema.properties.items():
-            if property.source_component_id == component.id:
-                property.unmap()
 
     def add_previous(self, component: Union['PythonComponent', List['PythonComponent']]):
         if isinstance(component, list):
@@ -165,7 +160,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
     def try_map_property(self, component: 'Component', path_from: List[str], path_to: List[str]) -> Optional[
         PropertyValidationError]:
         if component not in self.previous:
-            raise WorkflowException(f'Cannot map parameter {path_to} for unmapped component {component.id}')
+            raise ValueError(f'Cannot map parameter {path_to} for unmapped component {component.id}')
 
         if not isinstance(component, PythonComponent):
             raise ValueError(f'Component is not a {PythonComponent}')  # TODO change later
@@ -177,7 +172,21 @@ class PythonComponent(Generic[TInput, TOutput], Component):
             path_to=path_to
         )
 
+    def try_set_default(self, path_to: List[str], value: Any) -> Optional[PropertyValidationError]:
+        return self._input_schema.try_set_default(path_to=path_to, value=value)
+
     def set_properties_from_previous(self):
+        for prop in self._input_schema.mapped_properties:
+            if prop.default:
+                path = prop.path_to
+
+                current_level = self._input_parameter_dict
+                for key in path[:-1]:
+                    if key not in current_level:
+                        current_level[key] = {}
+                    current_level = current_level[key]
+                current_level[path[-1]] = prop.default
+
         for component in self.previous:
             if not isinstance(component, PythonComponent):
                 raise ValueError(f'Component is not a {PythonComponent}')  # TODO change later
@@ -206,6 +215,8 @@ class PythonComponent(Generic[TInput, TOutput], Component):
                             current_level[key] = {}
                         current_level = current_level[key]
                     current_level[path[-1]] = input_parameter
+                    continue
+
 
     @property
     def input_properties(self) -> Dict[str, Property]:

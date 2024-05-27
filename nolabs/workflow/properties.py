@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import Field, BaseModel, ValidationError
 from pydantic.dataclasses import dataclass
 
-from nolabs.workflow.exceptions import WorkflowException
+from nolabs.exceptions import NoLabsException
 
 
 @dataclass
@@ -21,6 +21,7 @@ class PropertyValidationError:
 
 
 TParameter = TypeVar('TParameter', bound=BaseModel)
+
 
 class ParameterSchema(BaseModel, Generic[TParameter]):
     defs: Optional[Dict[str, 'ParameterSchema']] = Field(alias='$defs', default_factory=dict)
@@ -82,7 +83,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
             return result
 
         for _, property in self.properties.items():
-            if property.source_component_id:
+            if property.source_component_id or property.default:
                 result.append(property)
 
         if not self.defs:
@@ -93,7 +94,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
                 continue
 
             for _, property in definition.properties.items():
-                if property.source_component_id:
+                if property.source_component_id or property.default:
                     result.append(property)
 
         return result
@@ -110,9 +111,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
                         path_from: List[str],
                         path_to: List[str]) -> Optional[PropertyValidationError]:
         if not path_from or not path_to:
-            raise WorkflowException(
-                msg='Path from or path two are empty'
-            )
+            raise ValueError('Path from or path two are empty')
 
         source_property = self._find_property(schema=source_schema, path_to=path_from)
         if not source_property:
@@ -151,10 +150,26 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
 
         return None
 
+    def try_set_default(self,
+                        path_to: List[str],
+                        value: Optional[Any] = None) -> Optional[PropertyValidationError]:
+        if not path_to:
+            raise ValueError('Path from or path two are empty')
+
+        target_property = self._find_property(schema=self, path_to=path_to)
+        if not target_property:
+            return PropertyValidationError(
+                msg=f'Property does not exist in target schema',
+                loc=path_to
+            )
+
+        target_property.default = value
+        target_property.path_to = path_to
+
     @staticmethod
     def get_instance(cls: Type) -> 'ParameterSchema':
         if not issubclass(cls, BaseModel):
-            raise WorkflowException(
+            raise ValueError(
                 f'Schema must be a subclass of {BaseModel}'
             )
 
@@ -171,7 +186,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
             return result
 
         for name, property in self.properties.items():
-            if name in self.required and not property.source_component_id:
+            if name in self.required and not (property.default or property.source_component_id):
                 result.append(property)
 
         if not self.defs:
@@ -182,15 +197,15 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
                 continue
             for name, property in definition.properties.items():
                 # TODO check default value
-                if name in self.required and not property.source_component_id:
+                if name in self.required and not (property.default or property.source_component_id):
                     result.append(property)
 
         return result
 
     def unmap(self, property: Optional['Property'] = None, path_to: Optional[List[str]] = None):
         if not property and not path_to:
-            raise WorkflowException(
-                msg='You must provide either property or path_to'
+            raise ValueError(
+                'You must provide either property or path_to'
             )
 
         if path_to:

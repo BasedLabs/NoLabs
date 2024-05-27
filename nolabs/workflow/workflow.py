@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict
 from uuid import UUID
 
+from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.workflow.component_factory import PythonComponentFactory
-from nolabs.workflow.exceptions import WorkflowException
 from nolabs.workflow.component import PythonComponent
-from nolabs.workflow.workflow_schema import WorkflowSchemaModel
+from nolabs.workflow.workflow_schema import WorkflowSchemaModel, WorkflowComponentModel
 
 
 @dataclass
@@ -27,7 +27,7 @@ class Workflow:
 
             for component in self.components:
                 if component.unmapped_properties and component.validate_input():
-                    raise WorkflowException(f'There were unmapped properties: {component.unmapped_properties}')
+                    raise NoLabsException(ErrorCodes.component_has_unmapped_properties, ', '.join(c.msg for c in component.unmapped_properties))
 
             if terminate:
                 for component in self.components:
@@ -37,13 +37,14 @@ class Workflow:
 
             async def execute(component: PythonComponent):
                 nonlocal executed
+                previous_component: PythonComponent
                 for previous_component in component.previous:
                     if previous_component.validate_output():
                         await execute(previous_component)  # type: ignore # TODO Change later
 
                     # If we get errors anyway - throw exception
                     if previous_component.validate_output():
-                        raise WorkflowException(f'Cannot execute component {component.id}')
+                        raise NoLabsException(ErrorCodes.cannot_start_component, f'Output is invalid, dict: {previous_component.output_dict}')
 
                 component.set_properties_from_previous()
 
@@ -76,20 +77,13 @@ class Workflow:
         return None
 
     @classmethod
-    def _find_component(cls, components: List[PythonComponent], component_id: UUID) -> Optional[PythonComponent]:
-        for component in components:
-            if component.id == component_id:
-                return component
-        return None
-
-    @classmethod
     def validate_schema(
             cls,
             workflow_schema: WorkflowSchemaModel,
             component_factory: PythonComponentFactory
     ) -> bool:
         components: List[PythonComponent] = [
-            component_factory.create_component(name=wf.name, id=wf.component_id) for wf in
+            component_factory.create_component_instance(name=wf.name, id=wf.component_id) for wf in
             workflow_schema.workflow_components
         ]
 
@@ -97,17 +91,25 @@ class Workflow:
             return False
 
         for workflow_component in workflow_schema.workflow_components:
-            component = cls._find_component(component_id=workflow_component.component_id, components=components)
             # Check that component exists
-            if not component:
+            if not component_factory.component_exists(name=workflow_component.name):
                 return False
+
+            component = component_factory.create_component_instance(name=workflow_component.name,
+                                                           id=workflow_component.component_id)
 
             # Check that component mappings exist
             for mapping in workflow_component.mappings:
-                source_component = cls._find_component(component_id=mapping.source_component_id, components=components)
-
-                if not source_component:
+                source_components = [c for c in workflow_schema.workflow_components if
+                                     c.component_id == mapping.source_component_id]
+                if not source_components:
                     return False
+
+                if not source_components:
+                    return False
+
+                source_component = component_factory.create_component_instance(name=source_components[0].name,
+                                                                      id=source_components[0].component_id)
 
                 component.add_previous(component=source_component)
                 error = component.try_map_property(component=source_component,
@@ -117,46 +119,50 @@ class Workflow:
                 if error:
                     return False
 
+            for default in workflow_component.defaults:
+                error = component.try_set_default(default.path_to, value=default.value)
+
+                if error:
+                    return False
+
         return True
 
     @classmethod
     def create_from_schema(cls,
-                           workflow_schema_model: WorkflowSchemaModel,
+                           workflow_schema: WorkflowSchemaModel,
                            component_factory: PythonComponentFactory) -> 'Workflow':
-        error = cls.validate_schema(
-            workflow_schema=workflow_schema_model,
+        valid = cls.validate_schema(
+            workflow_schema=workflow_schema,
             component_factory=component_factory)
 
-        if error:
-            raise WorkflowException(
-                msg=f'Schema is nov valid. Run {cls.set_schema_errors} to get schema errors'
+        if not valid:
+            raise NoLabsException(ErrorCodes.invalid_workflow_schema, f'Run {cls.set_schema_errors} to get schema errors')
+
+        components: List[PythonComponent] = []
+
+        component: WorkflowComponentModel
+        for component in workflow_schema.workflow_components:
+            components.append(
+                component_factory.create_component_instance(name=component.name, id=component.component_id)
             )
 
-        components: List[PythonComponent] = component_factory.all_components()
-
-        for workflow_component in workflow_schema_model.workflow_components:
-            component: PythonComponent | None = cls._find_component(component_id=workflow_component.component_id,
-                                                                    components=components)
+        for workflow_component in workflow_schema.workflow_components:
+            component: PythonComponent = [c for c in components if c.id == workflow_component.component_id][0]
 
             if not component:
-                raise WorkflowException(
-                    msg=f'Component with id {workflow_component.component_id} not found'
-                )
+                raise NoLabsException(ErrorCodes.component_not_found)
 
             # Check that component mappings exist
             for mapping in workflow_component.mappings:
-                source_component: PythonComponent | None = cls._find_component(component_id=mapping.source_component_id,
-                                                                               components=components)
-
-                if not source_component:
-                    raise WorkflowException(
-                        msg=f'Component with id {mapping.source_component_id} not found'
-                    )
+                source_component: PythonComponent = [c for c in components if c.id == mapping.source_component_id][0]
 
                 component.add_previous(component=source_component)
                 component.try_map_property(component=source_component,
                                            path_from=mapping.source_path,
                                            path_to=mapping.target_path)
+
+            for default in workflow_component.defaults:
+                component.try_set_default(default.path_to, value=default.value)
 
         return Workflow(
             components=components
@@ -170,8 +176,15 @@ class Workflow:
         component_not_found_template = lambda c_id: f'Component with id {c_id} not found'
 
         schema_valid = True
+
+        for component in workflow_schema.workflow_components:
+            if component.name not in [c_name for c_name in component_factory.components.keys()]:
+                component.error = f'Component with name {component.name} not found'
+                workflow_schema.valid = False
+                return
+
         components: List[PythonComponent] = [
-            component_factory.create_component(name=wf.name, id=wf.component_id) for wf in
+            component_factory.create_component_instance(name=wf.name, id=wf.component_id) for wf in
             workflow_schema.workflow_components
         ]
 
@@ -185,22 +198,24 @@ class Workflow:
             schema_valid = False
 
         for workflow_component in workflow_schema.workflow_components:
-            component = cls._find_component(component_id=workflow_component.component_id, components=components)
-
             # Check that component exists
-            if not component:
+            if not component_factory.component_exists(name=workflow_component.name):
                 workflow_component.error = component_not_found_template(workflow_component.component_id)
                 schema_valid = False
                 continue
 
+            component: PythonComponent = component_factory.create_component_instance(name=workflow_component.name,
+                                                                            id=workflow_component.component_id)
+
             # Check that component mappings exist
             for mapping in workflow_component.mappings:
-                source_component = cls._find_component(component_id=mapping.source_component_id, components=components)
+                source_components = [c for c in workflow_schema.workflow_components if
+                                     c.component_id == mapping.source_component_id]
+                if not source_components:
+                    raise NoLabsException(ErrorCodes.component_not_found)
 
-                if not source_component:
-                    mapping.error = f'Component with id {mapping.source_component_id} does not exist'
-                    schema_valid = False
-                    continue
+                source_component = component_factory.create_component_instance(name=source_components[0].name,
+                                                                      id=source_components[0].component_id)
 
                 component.add_previous(component=source_component)
 
@@ -210,6 +225,12 @@ class Workflow:
 
                 if error:
                     mapping.error = error.msg
+                    schema_valid = False
+
+            for default in workflow_component.defaults:
+                error = component.try_set_default(path_to=default.path_to, value=default.value)
+                if error:
+                    default.error = error.msg
                     schema_valid = False
 
         workflow_schema.valid = schema_valid
