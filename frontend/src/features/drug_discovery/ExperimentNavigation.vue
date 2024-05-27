@@ -1,6 +1,6 @@
 <template>
   <q-page class="bg-black q-pl-md">
-    <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id="this.experiment.experimentId" />
+    <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id="experiment.experimentId" />
     <div class="row no-wrap items-center">
       <button @click="generateWorkflow">Generate Workflow</button>
       <q-btn-dropdown color="primary" label="Add Node" icon="add" dense persistent>
@@ -24,22 +24,21 @@
                @nodeDragStop="onNodeDragStopHandler"
                :edges="elements.edges"
                @connect="onConnect"
-               @node-click="onNodeClick"
                fit-view-on-init>
         <template #node-protein-list="{ id }">
-          <ProteinListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
+          <ProteinListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-ligand-list="{ id }">
-          <LigandListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
+          <LigandListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-esmfold="{ id }">
-          <EsmFoldNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
+          <EsmFoldNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-diffdock="{ id }">
-          <DiffDockNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
+          <DiffDockNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-rfdiffusion="{ id }">
-          <RfDiffusionNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" />
+          <RfDiffusionNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
       </VueFlow>
     </div>
@@ -64,6 +63,9 @@
 
   <q-dialog v-model="modalOpen" persistent>
     <q-card style="min-width: 70vw; min-height: 70vh;">
+      <q-card-actions align="right">
+        <q-btn flat round dense icon="close" v-close-popup @click="closeModal"/>
+      </q-card-actions>
       <q-card-section>
         <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'protein-list'" :experiment-id="experiment.experimentId"/>
         <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'" :experiment-id="experiment.experimentId"/>
@@ -71,9 +73,6 @@
         <DiffDockNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'diffdock'" :experiment-id="experiment.experimentId"/>
         <RfDiffusionNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'rfdiffusion'" :experiment-id="experiment.experimentId"/>
       </q-card-section>
-      <q-card-actions align="right">
-        <q-btn flat label="Close" color="primary" v-close-popup @click="closeModal"/>
-      </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
@@ -90,7 +89,6 @@ import LigandListNodeContent from "./components/workflow/LigandListNodeContent.v
 import {useDrugDiscoveryStore} from "./storage";
 import {defineComponent} from "vue";
 import {checkBioBuddyEnabled} from "../biobuddy/api";
-import { ref } from 'vue';
 import {Edge, Position, Node as FlowNode} from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import EsmFoldNode from "./components/workflow/EsmFoldNode.vue";
@@ -157,7 +155,7 @@ export default defineComponent({
             {
               "id": "1",
               "name": "DownloadFromRCSB",
-              "type": "protein-list",
+              "type": "component",
               "inputs": [],
               "outputs": ["pdb_file"],
               "description": "Downloads target protein data from RCSB PDB."
@@ -165,7 +163,7 @@ export default defineComponent({
             {
               "id": "2",
               "name": "DownloadFromChembl",
-              "type": "ligand-list",
+              "type": "component",
               "inputs": [],
               "outputs": ["smiles_string"],
               "description": "Downloads ligands from ChEMBL in SMILES format."
@@ -368,14 +366,6 @@ export default defineComponent({
         this.sideMenuOpen = true;
       }
     },
-    onNodeClick(event: MouseEvent & { node: Node }) {
-      if (event.target && (event.target as HTMLElement).closest('.settings-btn')) {
-        return; // Do nothing if the settings button is clicked
-      }
-      // Open modal for node content only
-      this.selectedNode = event.node;
-      this.modalOpen = true;
-    },
     closeSideMenu() {
       this.sideMenuOpen = false;
     },
@@ -395,6 +385,13 @@ export default defineComponent({
     async onExperimentNameChange(newExperimentName: string) {
       const store = useDrugDiscoveryStore();
       await store.changeExperimentName(this.experiment.experimentId as string, newExperimentName);
+    },
+    openNodeDialog(nodeId: string) {
+      const node = this.elements.nodes.find(node => node.id === nodeId);
+      if (node) {
+        this.selectedNode = node;
+        this.modalOpen = true;
+      }
     }
   }
 })

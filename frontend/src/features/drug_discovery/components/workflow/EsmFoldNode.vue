@@ -6,8 +6,8 @@
       <q-btn icon="settings" @click="openSettings"> </q-btn>
     </div>
 
-    <EsmFoldNodeContent :jobs="jobs" :results="results" />
-    <q-btn class="full-width" icon="open_in_new" label="Open in a new tab"> </q-btn>
+    <EsmFoldNodeContent :results="results" />
+    <q-btn @click="openDialogue" class="full-width" icon="open_in_new" label="Extended view"> </q-btn>
     <Handle type="source" :position="Position.Right"/>
     <Handle type="target" :position="Position.Left"/>
   </q-card>
@@ -33,10 +33,7 @@ export default defineComponent({
     nodeId: String,
     onDeleteNode: Function,
     onOpenSettings: Function,
-    jobs: {
-      type: Array,
-      default: () => []
-    },
+    onOpenDialog: Function,
     results: {
       type: Array,
       default: () => []
@@ -49,6 +46,9 @@ export default defineComponent({
     openSettings() {
       this.onOpenSettings(this.nodeId);
     },
+    openDialogue() {
+      this.onOpenDialog(this.nodeId);
+    }
   }
 });
 </script>

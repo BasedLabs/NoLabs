@@ -96,12 +96,12 @@ class GetJobStatusFeature:
     Use case - set job status.
     """
     _esmfold: esmfold_microservice.DefaultApi
-    _esmfold_light: esmfold_microservice.DefaultApi
+    _esmfold_light: esmfold_light_microservice.DefaultApi
     _rosettafold: rosettafold_microservice.DefaultApi
 
     def __init__(self,
                  esmfold: esmfold_microservice.DefaultApi,
-                 esmfold_light: esmfold_microservice.DefaultApi,
+                 esmfold_light: esmfold_light_microservice.DefaultApi,
                  rosettafold: rosettafold_microservice.DefaultApi):
         self._esmfold = esmfold
         self._esmfold_light = esmfold_light
@@ -122,13 +122,13 @@ class GetJobStatusFeature:
             )
 
         if folding_backend == FoldingBackendEnum.esmfold_light:
-            response = self._esmfold_light.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
+            response = self._esmfold_light.is_job_running_job_job_id_is_running_get(job_id=str(job.iid.value))
             return GetJobStatusResponse(
-                running=response['is_running']
+                running=response.is_running
             )
 
         if folding_backend == FoldingBackendEnum.rosettafold:
-            response = self._rosettafold.is_job_running_job_job_id_is_running_get(job_id=job.iid.value)
+            response = self._rosettafold.is_job_running_job_job_id_is_running_get(job_id=str(job.iid.value))
             return GetJobStatusResponse(
                 running=response.is_running
             )

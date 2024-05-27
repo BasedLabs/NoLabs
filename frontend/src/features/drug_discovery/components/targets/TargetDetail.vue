@@ -16,10 +16,10 @@
   </q-card>
   <q-card v-if="target.data">
     <q-card-section>
-      <div class="text-h6 q-pa-sm">Target: {{ this.target.metaData.target_name }}
+      <div class="text-h6 q-pa-sm">Target: {{ target.metaData.target_name }}
         <q-btn round @click="changeTargetName"
                 color="info" size="sm" flat icon="edit"/></div>
-      <div class="text-h7 q-pl-sm q-pb-md text-info" ><a class="text-light-blue" :href="this.target.metaData.link" target="_blank">{{ this.target.metaData.link }}</a></div>
+      <div class="text-h7 q-pl-sm q-pb-md text-info" ><a class="text-light-blue" :href="target.metaData.link" target="_blank">{{ target.metaData.link }}</a></div>
       <q-card-section class="rounded-borders bg-black">
         <div class="text-h7 q-pl-md">Sequence:</div>
         <div class="fasta-sequence q-gutter-sm q-pa-md">
@@ -55,8 +55,8 @@
       <q-btn v-if="!hasPdb" color="primary" @click="predictStructure">
         Predict 3D structure
       </q-btn>
-      <PdbViewer v-if="hasPdb && this.pdbFile" :pdb-file="this.pdbFile"
-                 :pocket-ids="this.target.data.pocketIds" :key="this.pdbFile.size"/>
+      <PdbViewer v-if="hasPdb && pdbFile" :pdb-file="pdbFile"
+                 :pocket-ids="target.data.pocketIds" :key="pdbFile.size"/>
       <q-btn v-if="hasPdb && !bindingPocketAvailable" color="secondary" @click="fetchAndShowPocket">
         Show Binding Pocket
       </q-btn>
