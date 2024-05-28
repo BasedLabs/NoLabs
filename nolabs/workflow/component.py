@@ -8,6 +8,7 @@ import uuid
 from abc import ABC, abstractmethod
 from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic, Tuple, get_args
 
+from mongoengine import Document, UUIDField, ListField
 from pydantic import BaseModel
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
@@ -57,6 +58,10 @@ class Component(ABC):
 
 TInput = TypeVar('TInput', bound=BaseModel)
 TOutput = TypeVar('TOutput', bound=BaseModel)
+
+class PythonComponentDbModel(Document):
+    id: uuid.UUID = UUIDField(primary_key=True)
+    job_ids: List[uuid.UUID] = ListField(UUIDField)
 
 
 def is_pydantic_type(t: Any) -> bool:
@@ -252,6 +257,26 @@ class PythonComponent(Generic[TInput, TOutput], Component):
         input_parameter_type, output_parameter_type = args
         return input_parameter_type, output_parameter_type
 
+    def _append_job_id(self, job_id: uuid.UUID):
+        db_model = PythonComponentDbModel.objects.with_id(self.id)
+
+        if not db_model:
+            db_model = PythonComponentDbModel(
+                id=self.id,
+                job_ids=[]
+            )
+
+        db_model.job_ids.append(job_id)
+        db_model.save()
+
+    def get_job_ids(self) -> List[uuid.UUID]:
+        db_model = PythonComponentDbModel.objects.with_id(self.id)
+
+        if not db_model:
+            return []
+
+        return db_model.job_ids
+
     # region Function
 
     @abstractmethod
@@ -259,7 +284,8 @@ class PythonComponent(Generic[TInput, TOutput], Component):
         ...
 
     @abstractmethod
-    async def restore_parameters(self):
+    async def restore_output(self):
+        """Restores output and job_ids"""
         ...
 
     @property

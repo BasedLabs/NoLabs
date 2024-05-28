@@ -23,7 +23,7 @@ class TestPythonComponents(IsolatedAsyncioTestCase):
 
         class PythonNumberOne(PythonComponent[Input, Output]):
 
-            async def restore_parameters(self):
+            async def restore_output(self):
                 pass
 
             @property
@@ -90,7 +90,7 @@ class TestPythonComponents(IsolatedAsyncioTestCase):
         Output = create_model('Output', number=(int, ...))
 
         class PythonNumberOne(PythonComponent[Input, Output]):
-            async def restore_parameters(self):
+            async def restore_output(self):
                 pass
 
             @property

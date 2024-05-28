@@ -4,11 +4,11 @@ __all__ = [
     'WorkflowDependencies'
 ]
 
-from typing import Annotated, Self
+from typing import Annotated
 
 from fastapi import Depends
 
-from nolabs.refined.application.use_cases.test_app.components import InputPlusOneComponent, InputPlusTwoComponent
+from nolabs.refined.application.use_cases.folding.workflow import FoldingComponent
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
     SetWorkflowSchemaFeature, StartWorkflowFeature, StopWorkflowFeature, GetComponentJobIdsFeature
 from nolabs.workflow.component_factory import PythonComponentFactory
@@ -19,8 +19,7 @@ class WorkflowDependencies:
     def components_factory() -> PythonComponentFactory:
         return PythonComponentFactory(
             components={
-                InputPlusOneComponent.name: InputPlusOneComponent,
-                InputPlusTwoComponent.name: InputPlusTwoComponent
+                FoldingComponent.name: FoldingComponent
             }
         )
 

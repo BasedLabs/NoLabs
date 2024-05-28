@@ -5,7 +5,7 @@ __all__ = [
     'GetJobStatusFeature'
 ]
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from uuid import UUID
 
 import esmfold_light_microservice
@@ -145,9 +145,12 @@ class RunJobFeature:
     _rosettafold: rosettafold_microservice.DefaultApi
 
     def __init__(self,
-                 esmfold: esmfold_microservice.DefaultApi,
-                 esmfold_light: esmfold_microservice.DefaultApi,
-                 rosettafold: rosettafold_microservice.DefaultApi):
+                 esmfold: Optional[esmfold_microservice.DefaultApi] = None,
+                 esmfold_light: Optional[esmfold_microservice.DefaultApi] = None,
+                 rosettafold: Optional[rosettafold_microservice.DefaultApi] = None):
+        if not esmfold and not esmfold_light and not rosettafold:
+            raise NoLabsException(ErrorCodes.folding_run_error, 'You must specify at least one folding backend')
+
         self._esmfold = esmfold
         self._esmfold_light = esmfold_light
         self._rosettafold = rosettafold

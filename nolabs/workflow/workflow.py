@@ -53,7 +53,7 @@ class Workflow:
 
             if not restart:
                 for component in self.components:
-                    await component.restore_parameters()
+                    await component.restore_output()
 
             for component in self.components:
                 if component not in executed:
