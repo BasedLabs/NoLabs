@@ -7,7 +7,7 @@ from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Experiment
 from nolabs.workflow.application.api_models import GetComponentJobIdsResponse, GetComponentJobIdsRequest, \
     GetComponentParametersResponse, GetComponentParametersRequest
-from nolabs.workflow.application.mongoengine_models import WorkflowSchemaDbModel
+from nolabs.workflow.application.models import WorkflowSchemaDbModel
 from nolabs.workflow.component_factory import PythonComponentFactory
 from nolabs.workflow.properties import Property
 from nolabs.workflow.workflow import Workflow
@@ -57,7 +57,7 @@ class CreateWorkflowSchemaFeature:
         names = Counter([comp.name for comp in self.factory.all_components()])
 
         for component_name in names:
-            component = self.factory.create_component(name=component_name)
+            component = self.factory.create_component_instance(name=component_name)
             components_models.append(ComponentModel(
                 name=component_name,
                 input={name: map_property(prop) for name, prop in component.input_properties.items()},
@@ -146,12 +146,12 @@ class StartWorkflowFeature:
 
         workflow_schema_model = db_models[0].get_workflow_value()
 
-        workflow = Workflow.create_from_schema(
+        workflow = Workflow(
             workflow_schema=workflow_schema_model,
-            component_factory=self.factory)
+            factory=self.factory
+        )
 
-        await workflow.execute(terminate=True)
-        pass
+        await workflow.execute()
 
 
 class StopWorkflowFeature:
@@ -173,11 +173,12 @@ class StopWorkflowFeature:
 
         workflow_schema_model = db_models[0].get_workflow_value()
 
-        workflow = Workflow.create_from_schema(
+        workflow = Workflow(
             workflow_schema=workflow_schema_model,
-            component_factory=self.factory)
+            factory=self.factory
+        )
 
-        await workflow.execute(terminate=True)
+        await workflow.st()
 
 
 class GetComponentJobIdsFeature:

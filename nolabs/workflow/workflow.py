@@ -3,9 +3,10 @@ from typing import List, Optional, Dict
 from uuid import UUID
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
+from nolabs.workflow.application.models import WorkflowSchemaDbModel
 from nolabs.workflow.component_factory import PythonComponentFactory
 from nolabs.workflow.component import PythonComponent
-from nolabs.workflow.workflow_schema import WorkflowSchemaModel, WorkflowComponentModel
+from nolabs.workflow.workflow_schema import WorkflowSchemaModel, WorkflowComponentModel, JobValidationError
 
 
 @dataclass
@@ -16,48 +17,68 @@ class WorkflowValidationError:
 class Workflow:
     running: bool
     executing_workflows: Dict[UUID, 'Workflow']
-    components: List[PythonComponent]
+    workflow_schema: WorkflowSchemaModel
+    factory: PythonComponentFactory
 
-    def __init__(self, components: List[PythonComponent]):
-        self.components = components
+    def __init__(self, workflow_schema: WorkflowSchemaModel, factory: PythonComponentFactory):
+        self.workflow_schema = workflow_schema
+        self.factory = factory
 
-    async def execute(self, terminate: bool = False, restart: bool = False):
+    async def execute(self):
         try:
+            db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(self.workflow_schema.workflow_id)
+
             self.running = True
 
-            for component in self.components:
-                if component.unmapped_properties and component.validate_input():
-                    raise NoLabsException(ErrorCodes.component_has_unmapped_properties, ', '.join(c.msg for c in component.unmapped_properties))
-
-            if terminate:
-                for component in self.components:
-                    await component.terminate()
-
-            executed: List[PythonComponent] = []
+            components = self.create_from_schema(workflow_schema=self.workflow_schema, component_factory=self.factory)
 
             async def execute(component: PythonComponent):
-                nonlocal executed
-                previous_component: PythonComponent
-                for previous_component in component.previous:
-                    if previous_component.validate_output():
-                        await execute(previous_component)  # type: ignore # TODO Change later
+                for previous in component.previous:
+                    await execute(previous)
 
-                    # If we get errors anyway - throw exception
-                    if previous_component.validate_output():
-                        raise NoLabsException(ErrorCodes.cannot_start_component, f'Output is invalid, dict: {previous_component.output_dict}')
+                    validation_errors = previous.validate_output()
 
-                component.set_properties_from_previous()
+                    if validation_errors:
+                        self.workflow_schema.get_wf_component(previous.id).error = ', '.join(
+                            [ve.msg for ve in validation_errors])
+                        self.workflow_schema.valid = False
+                        db_model.set_workflow_value(self.workflow_schema)
+                        db_model.save()
+
+                    return
+
+                input_changed = component.set_input_from_previous()
+
+                if not input_changed:
+                    return
+
+                validation_errors = component.validate_input()
+
+                if validation_errors:
+                    self.workflow_schema.get_wf_component(component.id).error = ', '.join(
+                        [ve.msg for ve in validation_errors])
+                    db_model.set_workflow_value(self.workflow_schema)
+                    db_model.save()
+                    return
+
+                await component.setup_jobs()
+
+                jobs_validation_errors = await component.prevalidate_jobs()
+
+                if jobs_validation_errors:
+                    self.workflow_schema.get_wf_component(component.id).error = [JobValidationError(
+                        job_id=ve.job_id,
+                        msg=ve.msg
+                    ) for ve in jobs_validation_errors]
+                else:
+                    self.workflow_schema.get_wf_component(component.id).jobs_errors = []
+                    db_model.set_workflow_value(self.workflow_schema)
+                    db_model.save()
 
                 await component.execute()
-                executed.append(component)
 
-            if not restart:
-                for component in self.components:
-                    await component.restore_output()
-
-            for component in self.components:
-                if component not in executed:
-                    await execute(component=component)
+            for component in components:
+                await execute(component=component)
 
         finally:
             self.running = False
@@ -96,7 +117,7 @@ class Workflow:
                 return False
 
             component = component_factory.create_component_instance(name=workflow_component.name,
-                                                           id=workflow_component.component_id)
+                                                                    id=workflow_component.component_id)
 
             # Check that component mappings exist
             for mapping in workflow_component.mappings:
@@ -109,7 +130,7 @@ class Workflow:
                     return False
 
                 source_component = component_factory.create_component_instance(name=source_components[0].name,
-                                                                      id=source_components[0].component_id)
+                                                                               id=source_components[0].component_id)
 
                 component.add_previous(component=source_component)
                 error = component.try_map_property(component=source_component,
@@ -130,13 +151,14 @@ class Workflow:
     @classmethod
     def create_from_schema(cls,
                            workflow_schema: WorkflowSchemaModel,
-                           component_factory: PythonComponentFactory) -> 'Workflow':
+                           component_factory: PythonComponentFactory) -> List[PythonComponent]:
         valid = cls.validate_schema(
             workflow_schema=workflow_schema,
             component_factory=component_factory)
 
         if not valid:
-            raise NoLabsException(ErrorCodes.invalid_workflow_schema, f'Run {cls.set_schema_errors} to get schema errors')
+            raise NoLabsException(ErrorCodes.invalid_workflow_schema,
+                                  f'Run {cls.set_schema_errors} to get schema errors')
 
         components: List[PythonComponent] = []
 
@@ -164,9 +186,7 @@ class Workflow:
             for default in workflow_component.defaults:
                 component.try_set_default(default.path_to, value=default.value)
 
-        return Workflow(
-            components=components
-        )
+        return components
 
     @classmethod
     def set_schema_errors(
@@ -205,7 +225,7 @@ class Workflow:
                 continue
 
             component: PythonComponent = component_factory.create_component_instance(name=workflow_component.name,
-                                                                            id=workflow_component.component_id)
+                                                                                     id=workflow_component.component_id)
 
             # Check that component mappings exist
             for mapping in workflow_component.mappings:
@@ -215,7 +235,7 @@ class Workflow:
                     raise NoLabsException(ErrorCodes.component_not_found)
 
                 source_component = component_factory.create_component_instance(name=source_components[0].name,
-                                                                      id=source_components[0].component_id)
+                                                                               id=source_components[0].component_id)
 
                 component.add_previous(component=source_component)
 

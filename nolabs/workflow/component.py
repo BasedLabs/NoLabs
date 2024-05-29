@@ -5,149 +5,95 @@ __all__ = [
 
 import asyncio
 import uuid
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic, Tuple, get_args
 
-from mongoengine import Document, UUIDField, ListField
+from mongoengine import Document, UUIDField, StringField, IntField, ReferenceField, DictField
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from nolabs.refined.domain.models.common import Experiment, Job
 from nolabs.workflow.properties import ParameterSchema, Property, PropertyValidationError
 
 
-class Component(ABC):
-    id: uuid.UUID
-    name: str
-    job_ids: List[uuid.UUID]
-
-    @abstractmethod
-    async def execute(self):
-        ...
-
-    @abstractmethod
-    def terminate(self):
-        ...
-
-    def __hash__(self):
-        return self.id.__hash__()
-
-    def __eq__(self, other):
-        if not isinstance(other, Component):
-            return False
-
-        return self.id == other.id
-
-    @abstractmethod
-    def try_map_property(self, component: 'Component', path_from: List[str], path_to: List[str]) -> Optional[
-        PropertyValidationError]:
-        ...
-
-    @abstractmethod
-    def set_properties_from_previous(self):
-        ...
-
-    @property
-    @abstractmethod
-    def unmapped_properties(self) -> List[PropertyValidationError]:
-        ...
-
-    @abstractmethod
-    def validate_output(self) -> List[PropertyValidationError]:
-        ...
+@dataclass
+class JobValidationError:
+    job_id: uuid.UUID
+    msg: str
 
 
 TInput = TypeVar('TInput', bound=BaseModel)
 TOutput = TypeVar('TOutput', bound=BaseModel)
-
-class PythonComponentDbModel(Document):
-    id: uuid.UUID = UUIDField(primary_key=True)
-    job_ids: List[uuid.UUID] = ListField(UUIDField)
 
 
 def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
 
 
-class PythonComponent(Generic[TInput, TOutput], Component):
-    _execution_timeout: int = 3600
+class PythonComponent(Generic[TInput, TOutput], Document):
+    id: uuid.UUID = UUIDField(primary_key=True)
+    experiment: Experiment = ReferenceField(Experiment)
+    name: str = StringField(required=True)
+    execution_timeout: int = IntField(default=3600)
 
     _input_schema: ParameterSchema[TInput]
     _output_schema: ParameterSchema[TOutput]
 
-    _input_parameter_dict: Dict[str, Any]
-    _output_parameter_dict: Dict[str, Any]
+    input_parameter_dict: Dict[str, Any] = DictField(default=dict)
+    output_parameter_dict: Dict[str, Any] = DictField(default=dict)
 
-    last_exception: Optional[Exception] = None
+    _previous: List['PythonComponent']
 
-    previous: List['Component']
+    jobs: List[Job] = ReferenceField(Job)
 
-    def __init__(self,
-                 id: uuid.UUID,
-                 execution_timeout: int = 3600):
-        self._execution_timeout = execution_timeout
+    meta = {
+        'allow_inheritance': True
+    }
+
+    def __init__(self, id: uuid.UUID, experiment: Experiment, execution_timeout: int = 3600, *args, **values):
+        self.execution_timeout = execution_timeout
 
         self.id = id
         self._input_schema = ParameterSchema.get_instance(cls=self._input_parameter_type)
         self._output_schema = ParameterSchema.get_instance(cls=self._output_parameter_type)
 
-        self._input_parameter_dict = {}
-        self._output_parameter_dict = {}
+        self._previous = []
 
-        self.previous = []
+        self.experiment = experiment
 
-    async def execute(self):
-        input_validation_errors = self._input_schema.validate_dictionary(self._input_parameter_dict)
-        if input_validation_errors:
-            raise NoLabsException(ErrorCodes.component_input_invalid, ', '.join([str(err) for err in input_validation_errors]))
-
-        try:
-            await asyncio.create_task(
-                asyncio.wait_for(self._execute(), self._execution_timeout))
-        except Exception as e:
-            if not isinstance(e, asyncio.CancelledError):
-                self.last_exception = e
+        super().__init__(id=id, experiment=experiment, execution_timeout=execution_timeout, *args, **values)
 
     async def terminate(self, timeout: int = 10):
         await asyncio.wait_for(self.stop(), timeout=timeout)
 
-    def set_input(self, instance: TInput):
-        if not is_pydantic_type(instance):
-            raise ValueError(f'Type must inherit from {BaseModel}')
-
-        value = instance.dict()
-
-        errors = self._input_schema.validate_dictionary(dictionary=value)
-        if errors:
-            raise NoLabsException(ErrorCodes.component_input_invalid, ', '.join([str(err) for err in errors]))
-
-        self._input_parameter_dict = instance.dict()
-
     @property
     def output(self) -> TOutput:
-        return self._output_parameter_type(**self._output_parameter_dict)
+        return self._output_parameter_type(**self.output_parameter_dict)
 
     @output.setter
     def output(self, output_parameter: Union[TOutput, Dict[str, Any]]):
         if isinstance(output_parameter, BaseModel):
-            self._output_parameter_dict = output_parameter.dict()
+            self.output_parameter_dict = output_parameter.dict()
             return
 
-        self._output_parameter_dict = output_parameter
+        self.output_parameter_dict = output_parameter
+
+        self.save()
 
     @property
     def input(self) -> TInput:
-        return self._input_parameter_type(**self._input_parameter_dict)
+        return self._input_parameter_type(**self.input_parameter_dict)
 
     @property
     def input_dict(self) -> Dict[str, Any]:
-        return self._input_parameter_dict
+        return self.input_parameter_dict
 
     @property
     def output_dict(self) -> Dict[str, Any]:
-        return self._output_parameter_dict
+        return self.output_parameter_dict
 
     def validate_input(self):
-        return self._input_schema.validate_dictionary(dictionary=self._input_parameter_dict)
+        return self._input_schema.validate_dictionary(dictionary=self.input_parameter_dict)
 
     def add_previous(self, component: Union['PythonComponent', List['PythonComponent']]):
         if isinstance(component, list):
@@ -162,7 +108,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
 
         self.previous.append(component)
 
-    def try_map_property(self, component: 'Component', path_from: List[str], path_to: List[str]) -> Optional[
+    def try_map_property(self, component: 'PythonComponent', path_from: List[str], path_to: List[str]) -> Optional[
         PropertyValidationError]:
         if component not in self.previous:
             raise ValueError(f'Cannot map parameter {path_to} for unmapped component {component.id}')
@@ -180,16 +126,26 @@ class PythonComponent(Generic[TInput, TOutput], Component):
     def try_set_default(self, path_to: List[str], value: Any) -> Optional[PropertyValidationError]:
         return self._input_schema.try_set_default(path_to=path_to, value=value)
 
-    def set_properties_from_previous(self):
+    def set_input_from_previous(self) -> bool:
+        """
+        returns: True if input was changed
+        """
+
+        changed = False
+
         for prop in self._input_schema.mapped_properties:
             if prop.default:
                 path = prop.path_to
 
-                current_level = self._input_parameter_dict
+                current_level = self.input_parameter_dict
                 for key in path[:-1]:
                     if key not in current_level:
                         current_level[key] = {}
                     current_level = current_level[key]
+
+                if current_level[path[-1]] != prop.default:
+                    changed = True
+
                 current_level[path[-1]] = prop.default
 
         for component in self.previous:
@@ -200,7 +156,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
 
                     path = prop.path_from
 
-                    current_level = component._output_parameter_dict
+                    current_level = component.output_parameter_dict
 
                     # Find output parameter from output of previous component
 
@@ -214,14 +170,21 @@ class PythonComponent(Generic[TInput, TOutput], Component):
 
                     path = prop.path_to
 
-                    current_level = self._input_parameter_dict
+                    current_level = self.input_parameter_dict
                     for key in path[:-1]:
                         if key not in current_level:
                             current_level[key] = {}
                         current_level = current_level[key]
                     current_level[path[-1]] = input_parameter
+
+                    if current_level[path[-1]] != input_parameter:
+                        changed = True
+
                     continue
 
+        self.save()
+
+        return changed
 
     @property
     def input_properties(self) -> Dict[str, Property]:
@@ -238,6 +201,10 @@ class PythonComponent(Generic[TInput, TOutput], Component):
         return self._output_schema.properties
 
     @property
+    def previous(self) -> List['PythonComponent']:
+        return self._previous
+
+    @property
     def unmapped_properties(self) -> List[PropertyValidationError]:
         result = []
         for prop in self._input_schema.unmapped_properties:
@@ -248,7 +215,7 @@ class PythonComponent(Generic[TInput, TOutput], Component):
         return result
 
     def validate_output(self) -> List[PropertyValidationError]:
-        return self._output_schema.validate_dictionary(self._output_parameter_dict)
+        return self._output_schema.validate_dictionary(self.output_parameter_dict)
 
     def _parse_parameter_types(self) -> Tuple[Type[TInput], Type[TOutput]]:
         args = get_args(self._function.__orig_bases__[0])  # type: ignore
@@ -257,36 +224,15 @@ class PythonComponent(Generic[TInput, TOutput], Component):
         input_parameter_type, output_parameter_type = args
         return input_parameter_type, output_parameter_type
 
-    def _append_job_id(self, job_id: uuid.UUID):
-        db_model = PythonComponentDbModel.objects.with_id(self.id)
+    @abstractmethod
+    async def setup_jobs(self):
+        ...
 
-        if not db_model:
-            db_model = PythonComponentDbModel(
-                id=self.id,
-                job_ids=[]
-            )
-
-        db_model.job_ids.append(job_id)
-        db_model.save()
-
-    def get_job_ids(self) -> List[uuid.UUID]:
-        db_model = PythonComponentDbModel.objects.with_id(self.id)
-
-        if not db_model:
-            return []
-
-        return db_model.job_ids
+    @abstractmethod
+    async def prevalidate_jobs(self) -> List[JobValidationError]:
+        ...
 
     # region Function
-
-    @abstractmethod
-    def _execute(self):
-        ...
-
-    @abstractmethod
-    async def restore_output(self):
-        """Restores output and job_ids"""
-        ...
 
     @property
     @abstractmethod
@@ -301,4 +247,17 @@ class PythonComponent(Generic[TInput, TOutput], Component):
     async def stop(self):
         ...
 
+    @abstractmethod
+    async def execute(self):
+        pass
+
     # endregion
+
+    def __hash__(self):
+        return self.id.__hash__()
+
+    def __eq__(self, other):
+        if not isinstance(other, PythonComponent):
+            return False
+
+        return self.id == other.id

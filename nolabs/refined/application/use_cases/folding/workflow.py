@@ -3,17 +3,16 @@ from typing import List, Type
 
 from pydantic import BaseModel
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.folding.api_models import FoldingBackendEnum, SetupJobRequest
 from nolabs.refined.application.use_cases.folding.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
-from nolabs.refined.domain.models.common import ExperimentId, Experiment, Protein
+from nolabs.refined.domain.models.common import Protein
+from nolabs.refined.domain.models.folding import FoldingJob
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import PythonComponent
+from nolabs.workflow.component import PythonComponent, JobValidationError
 
 
 class FoldingComponentInput(BaseModel):
     protein_ids: List[uuid.UUID]
-    experiment_id: uuid.UUID
 
 
 class FoldingComponentOutput(BaseModel):
@@ -23,68 +22,61 @@ class FoldingComponentOutput(BaseModel):
 class FoldingComponent(PythonComponent[FoldingComponentInput, FoldingComponentOutput]):
     name = 'Folding'
 
-    async def _execute(self):
-        setup_job_feature = SetupJobFeature()
+    async def execute(self):
         run_job_feature = RunJobFeature(
             esmfold=InfrastructureDependencies.esmfold_microservice()
         )
         get_job_feature = GetJobFeature()
 
-        experiment_id = ExperimentId(self.input.experiment_id)
+        for job in self.jobs:
+            await run_job_feature.handle(job_id=job.id)
 
-        experiment = Experiment.objects.with_id(experiment_id)
+        items: List[uuid.UUID] = []
 
-        if not experiment:
-            raise NoLabsException(ErrorCodes.experiment_not_found)
+        for job in self.jobs:
+            get_result = await get_job_feature.handle(job_id=job.id)
+
+            for protein_id in get_result.proteins:
+                items.append(protein_id)
+
+        self.output = FoldingComponentOutput(
+            protein_ids=items
+        )
+
+    async def setup_jobs(self):
+        setup_job_feature = SetupJobFeature()
+
+        self.jobs = []
 
         for protein_id in self.input.protein_ids:
             protein = Protein.objects.with_id(protein_id)
 
-            protein.save()
-
             result = await setup_job_feature.handle(request=SetupJobRequest(
-                experiment_id=experiment_id.value,
+                experiment_id=self.experiment.id,
                 backend=FoldingBackendEnum.esmfold,
                 proteins=[protein.id],
                 job_id=None,
                 job_name=f'Folding {protein.name.fasta_name}'
             ))
 
-            self._append_job_id(result.job_id)
+            self.jobs.append(FoldingJob.objects.with_id(result.job_id))
 
-        for job_id in self.job_ids:
-            await run_job_feature.handle(job_id=job_id)
+        self.save(cascade=True)
 
-        items: List[uuid.UUID] = []
+    async def prevalidate_jobs(self) -> List[JobValidationError]:
+        validation_errors = []
 
-        for job_id in self.job_ids:
-            get_result = await get_job_feature.handle(job_id=job_id)
+        job: FoldingJob
+        for job in self.jobs:
+            if not job.proteins:
+                validation_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=f'No proteins'
+                    )
+                )
 
-            for protein_id in get_result.proteins:
-                items.append(protein_id)
-
-        self.output = FoldingComponentOutput(
-            protein_ids=items
-        )
-
-    async def restore_output(self):
-        get_job_feature = GetJobFeature()
-
-        job_ids = self.get_job_ids()
-
-        self.job_ids = job_ids
-
-        items: List[uuid.UUID] = []
-
-        for job_id in self.job_ids:
-            get_result = await get_job_feature.handle(job_id=job_id)
-
-            for protein_id in get_result.proteins:
-                items.append(protein_id)
-
-        self.output = FoldingComponentOutput(
-            protein_ids=items
-        )
+        return validation_errors
 
     @property
     def _input_parameter_type(self) -> Type[FoldingComponentInput]:

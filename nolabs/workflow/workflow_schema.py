@@ -38,6 +38,11 @@ class DefaultWorkflowComponentModelValue(BaseModel):
     error: Optional[str] = None
 
 
+class JobValidationError(BaseModel):
+    job_id: uuid.UUID
+    msg: str
+
+
 class WorkflowComponentModel(BaseModel):
     name: str
     component_id: uuid.UUID
@@ -45,11 +50,16 @@ class WorkflowComponentModel(BaseModel):
     mappings: List[MappingModel] = Field(default_factory=list)
     error: Optional[str] = None
     defaults: List[DefaultWorkflowComponentModelValue] = Field(default_factory=list)
+    jobs_errors: List[JobValidationError]
 
 
 class WorkflowSchemaModel(BaseModel):
+    workflow_id: uuid.UUID
     experiment_id: uuid.UUID
     components: List[ComponentModel]
     workflow_components: List[WorkflowComponentModel]
     error: Optional[str] = None
     valid: bool = True
+
+    def get_wf_component(self, component_id: uuid.UUID):
+        return [wc for wc in self.workflow_components if wc.component_id == component_id]
