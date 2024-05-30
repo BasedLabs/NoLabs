@@ -4,29 +4,28 @@ __all__ = [
     'WorkflowDependencies'
 ]
 
-from typing import Annotated
+from typing import Annotated, Type, Dict
 
 from fastapi import Depends
 
 from nolabs.refined.application.use_cases.folding.workflow import FoldingComponent
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
     SetWorkflowSchemaFeature, StartWorkflowFeature, StopWorkflowFeature, GetComponentJobIdsFeature
-from nolabs.workflow.component_factory import PythonComponentFactory
+from nolabs.workflow.component import PythonComponent
 
 
 class WorkflowDependencies:
     @staticmethod
-    def components_factory() -> PythonComponentFactory:
-        return PythonComponentFactory(
-            components={
-                FoldingComponent.name: FoldingComponent
-            }
-        )
+    def available_components() -> Dict[str, Type[PythonComponent]]:
+        return {
+            FoldingComponent.name: FoldingComponent
+        }
 
     @staticmethod
-    def create_workflow_schema(factory: Annotated[PythonComponentFactory, Depends(WorkflowDependencies.components_factory)]) -> CreateWorkflowSchemaFeature:
+    def create_workflow_schema(components: Annotated[
+        Dict[str, Type[PythonComponent]], Depends(WorkflowDependencies.available_components)]) -> CreateWorkflowSchemaFeature:
         return CreateWorkflowSchemaFeature(
-            factory=factory
+            available_components=components
         )
 
     @staticmethod
@@ -34,27 +33,19 @@ class WorkflowDependencies:
         return GetWorkflowSchemaFeature()
 
     @staticmethod
-    def set_workflow_schema(factory: Annotated[PythonComponentFactory, Depends(WorkflowDependencies.components_factory)]) -> SetWorkflowSchemaFeature:
+    def set_workflow_schema(components: Annotated[
+        Dict[str, Type[PythonComponent]], Depends(WorkflowDependencies.available_components)]) -> SetWorkflowSchemaFeature:
         return SetWorkflowSchemaFeature(
-            factory=factory
+            available_components=components
         )
 
     @staticmethod
-    def start_workflow(factory: Annotated[
-        PythonComponentFactory, Depends(WorkflowDependencies.components_factory)]) -> StartWorkflowFeature:
+    def start_workflow(components: Annotated[
+        Dict[str, Type[PythonComponent]], Depends(WorkflowDependencies.available_components)]) -> StartWorkflowFeature:
         return StartWorkflowFeature(
-            factory=factory
+            available_components=components
         )
 
     @staticmethod
-    def stop_workflow(factory: Annotated[
-        PythonComponentFactory, Depends(WorkflowDependencies.components_factory)]) -> StopWorkflowFeature:
-        return StopWorkflowFeature(
-            factory=factory
-        )
-
-    @staticmethod
-    def get_component_job_ids(factory: Annotated[PythonComponentFactory, Depends(WorkflowDependencies.components_factory)]) -> GetComponentJobIdsFeature:
-        return GetComponentJobIdsFeature(
-            factory=factory
-        )
+    def get_component_job_ids() -> GetComponentJobIdsFeature:
+        return GetComponentJobIdsFeature()

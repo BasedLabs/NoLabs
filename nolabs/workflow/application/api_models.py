@@ -11,7 +11,6 @@ class GetComponentJobIdsResponse:
 
 @dataclass
 class GetComponentJobIdsRequest:
-    name: str
     component_id: UUID
 
 
@@ -23,5 +22,4 @@ class GetComponentParametersResponse:
 
 @dataclass
 class GetComponentParametersRequest:
-    name: str
     component_id: UUID

@@ -51,17 +51,11 @@ class PythonComponent(Generic[TInput, TOutput], Document):
     }
 
     def __init__(self, id: uuid.UUID, experiment: Experiment, execution_timeout: int = 3600, *args, **values):
-        self.execution_timeout = execution_timeout
-
-        self.id = id
+        super().__init__(id=id, experiment=experiment, execution_timeout=execution_timeout, *args, **values)
         self._input_schema = ParameterSchema.get_instance(cls=self._input_parameter_type)
         self._output_schema = ParameterSchema.get_instance(cls=self._output_parameter_type)
 
         self._previous = []
-
-        self.experiment = experiment
-
-        super().__init__(id=id, experiment=experiment, execution_timeout=execution_timeout, *args, **values)
 
     async def terminate(self, timeout: int = 10):
         await asyncio.wait_for(self.stop(), timeout=timeout)

@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from nolabs.refined.application.use_cases.folding.api_models import FoldingBackendEnum, SetupJobRequest
 from nolabs.refined.application.use_cases.folding.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
-from nolabs.refined.domain.models.common import Protein
+from nolabs.refined.domain.models.common import Protein, Experiment
 from nolabs.refined.domain.models.folding import FoldingJob
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
 from nolabs.workflow.component import PythonComponent, JobValidationError

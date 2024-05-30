@@ -49,15 +49,6 @@ async def start_workflow(
     return await feature.handle(experiment_id=experiment_id)
 
 
-@router.post('/{experiment_id}/stop', summary='Stop workflow schema')
-async def stop_workflow(
-        feature: Annotated[
-            StopWorkflowFeature, Depends(WorkflowDependencies.stop_workflow)],
-        experiment_id: UUID
-):
-    return await feature.handle(experiment_id=experiment_id)
-
-
 @router.post('/components/job-ids', summary='Get component job ids')
 async def get_component_job_ids(
         feature: Annotated[
