@@ -5,7 +5,8 @@
       <button @click="generateWorkflow">Generate Workflow</button>
       <q-btn-dropdown color="primary" label="Add Node" icon="add" dense persistent>
         <q-list>
-          <q-item v-for="option in componentOptions" :key="option.value" clickable v-close-popup @click="addComponent(option)">
+          <q-item v-for="option in componentOptions" :key="option.value" clickable v-close-popup
+            @click="addComponent(option)">
             <q-item-section>
               <q-item-label>{{ option.label }}</q-item-label>
               <q-item-label caption>{{ option.description }}</q-item-label>
@@ -18,27 +19,32 @@
     </div>
 
     <div class="map-container">
-      <VueFlow class="workflow"
-               v-if="elements"
-               :nodes="elements.nodes"
-               @nodeDragStop="onNodeDragStopHandler"
-               :edges="elements.edges"
-               @connect="onConnect"
-               fit-view-on-init>
+      <VueFlow class="workflow" :elevate-edges-on-select="true" v-if="elements" :nodes="elements.nodes" @nodeDragStop="onNodeDragStopHandler"
+        :edges="elements.edges" @connect="onConnect" fit-view-on-init>
         <template #node-protein-list="{ id }">
-          <ProteinListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
+          <ProteinListNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
+            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
+            :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-ligand-list="{ id }">
-          <LigandListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
+          <LigandListNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
+            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
+            :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-esmfold="{ id }">
-          <EsmFoldNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
+          <EsmFoldNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
+            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
+            :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-diffdock="{ id }">
-          <DiffDockNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
+          <DiffDockNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
+            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
+            :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-rfdiffusion="{ id }">
-          <RfDiffusionNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
+          <RfDiffusionNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
+            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
+            :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
       </VueFlow>
     </div>
@@ -46,7 +52,7 @@
 
   <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;" side="right">
     <!-- Close button -->
-    <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close"/>
+    <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close" />
 
     <!-- Side menu content -->
     <q-card>
@@ -64,14 +70,19 @@
   <q-dialog v-model="modalOpen" persistent>
     <q-card style="min-width: 70vw; min-height: 70vh;">
       <q-card-actions align="right">
-        <q-btn flat round dense icon="close" v-close-popup @click="closeModal"/>
+        <q-btn flat round dense icon="close" v-close-popup @click="closeModal" />
       </q-card-actions>
       <q-card-section>
-        <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'protein-list'" :experiment-id="experiment.experimentId"/>
-        <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'" :experiment-id="experiment.experimentId"/>
-        <EsmFoldNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'" :experiment-id="experiment.experimentId"/>
-        <DiffDockNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'diffdock'" :experiment-id="experiment.experimentId"/>
-        <RfDiffusionNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'rfdiffusion'" :experiment-id="experiment.experimentId"/>
+        <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'protein-list'"
+          :experiment-id="experiment.experimentId" />
+        <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'"
+          :experiment-id="experiment.experimentId" />
+        <EsmFoldNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
+          :experiment-id="experiment.experimentId" />
+        <DiffDockNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'diffdock'"
+          :experiment-id="experiment.experimentId" />
+        <RfDiffusionNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'rfdiffusion'"
+          :experiment-id="experiment.experimentId" />
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -86,10 +97,10 @@ import ProteinListNode from "./components/workflow/ProteinListNode.vue";
 import ProteinListNodeContent from "./components/workflow/ProteinListNodeContent.vue";
 import LigandListNode from "./components/workflow/LigandListNode.vue";
 import LigandListNodeContent from "./components/workflow/LigandListNodeContent.vue";
-import {useDrugDiscoveryStore} from "./storage";
-import {defineComponent} from "vue";
-import {checkBioBuddyEnabled} from "../biobuddy/api";
-import {Edge, Position, Node as FlowNode} from '@vue-flow/core';
+import { useDrugDiscoveryStore } from "./storage";
+import { defineComponent } from "vue";
+import { checkBioBuddyEnabled } from "../biobuddy/api";
+import { Edge, Position, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import EsmFoldNode from "./components/workflow/EsmFoldNode.vue";
 import EsmFoldNodeContent from "./components/workflow/EsmFoldNodeContent.vue";
@@ -194,14 +205,6 @@ export default defineComponent({
             },
             {
               "id": "6",
-              "name": "DockingProteinOnProtein",
-              "type": "component",
-              "inputs": ["pdb_file", "generated_pdb_file"],
-              "outputs": ["protein_complex_pdb_file"],
-              "description": "Performs docking of generated protein on target protein."
-            },
-            {
-              "id": "7",
               "name": "CalculateBlast",
               "type": "component",
               "inputs": ["protein_complex_pdb_file"],
@@ -210,12 +213,11 @@ export default defineComponent({
             }
           ],
           "edges": [
-            {"from": "1", "to": "3"},
-            {"from": "2", "to": "3"},
-            {"from": "4", "to": "5"},
-            {"from": "5", "to": "6"},
-            {"from": "1", "to": "6"},
-            {"from": "6", "to": "7"}
+            { "from": "1-output-pdb_file", "to": "3-input-pdb_file" },
+            { "from": "2-output-smiles_string", "to": "3-input-smiles_string" },
+            { "from": "4-output-generated_fasta_file", "to": "5-input-generated_fasta_file" },
+            { "from": "5-output-generated_pdb_file", "to": "3-input-generated_pdb_file" },
+            { "from": "1-output-pdb_file", "to": "6-input-pdb_file" }
           ]
         }
       }
@@ -251,99 +253,74 @@ export default defineComponent({
       }
     },
     generateWorkflow() {
-      const nodes: Node[] = []; // Define nodes as Node array
-      const edges: Edge[] = []; // Define edges as Edge array
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
 
-      // Helper function to get the depth of a node in the graph
-      const getNodeDepth = (nodeId: string): number => {
-        const incomingEdges = this.jsonData.workflow.edges.filter(edge => edge.to === nodeId);
-        if (incomingEdges.length === 0) return 0; // Node has no incoming edges, depth is 0
-        const parentDepths = incomingEdges.map(edge => getNodeDepth(edge.from));
-        return Math.max(...parentDepths) + 1; // Depth is the maximum parent depth plus 1
-      };
+    // Helper function to get the depth of a node in the graph
+    const getNodeDepth = (nodeId: string): number => {
+      const incomingEdges = this.jsonData.workflow.edges.filter(edge => edge.to.split('-')[0] === nodeId);
+      if (incomingEdges.length === 0) return 0; // Node has no incoming edges, depth is 0
+      const parentDepths = incomingEdges.map(edge => getNodeDepth(edge.from.split('-')[0]));
+      return Math.max(...parentDepths) + 1; // Depth is the maximum parent depth plus 1
+    };
 
-      // Calculate depths for all nodes
-      const depths: { [key: string]: number } = {};
-      this.jsonData.workflow.nodes.forEach(node => {
-        depths[node.id] = getNodeDepth(node.id);
-      });
+    // Calculate depths for all nodes
+    const depths: { [key: string]: number } = {};
+    this.jsonData.workflow.nodes.forEach(node => {
+      depths[node.id] = getNodeDepth(node.id);
+    });
 
-      // Group nodes by depth
-      const nodesByDepth: { [key: number]: Node[] } = {};
-      this.jsonData.workflow.nodes.forEach(node => {
-        const depth = depths[node.id];
-        if (!nodesByDepth[depth]) nodesByDepth[depth] = [];
-        nodesByDepth[depth].push(node);
-      });
+    // Group nodes by depth
+    const nodesByDepth: { [key: number]: Node[] } = {};
+    this.jsonData.workflow.nodes.forEach(node => {
+      const depth = depths[node.id];
+      if (!nodesByDepth[depth]) nodesByDepth[depth] = [];
+      nodesByDepth[depth].push(node);
+    });
 
-      // Calculate positions for each node
-      let currentX = 100;
-      const layerWidth = 500; // Width difference between layers
-      const layerHeight = 500; // Height difference between nodes within a layer
-      Object.values(nodesByDepth).forEach((nodesAtDepth: Node[], depth: number) => {
-        const numNodes = nodesAtDepth.length;
-        const startY = 100 + (numNodes * layerHeight) / 2;
+    // Calculate positions for each node
+    let currentX = 100;
+    const layerWidth = 500; // Width difference between layers
+    const layerHeight = 300; // Height difference between nodes within a layer
+    Object.values(nodesByDepth).forEach((nodesAtDepth: Node[], depth: number) => {
+      const numNodes = nodesAtDepth.length;
+      const startY = 100 + (numNodes * layerHeight) / 2;
 
-        nodesAtDepth.forEach((node, index) => {
-          const position = { x: currentX, y: startY - index * layerHeight };
-          const nodeData: Node = {
-            id: node.id,
-            name: node.name,
-            type: node.type,
+      nodesAtDepth.forEach((node, index) => {
+        const position = { x: currentX, y: startY - index * layerHeight };
+        const nodeData: Node = {
+          id: node.id,
+          name: node.name,
+          type: node.type,
+          data: {
+            description: node.description,
             inputs: node.inputs,
             outputs: node.outputs,
-            description: node.description,
-            position,
-            data: { description: node.description }
-          };
+            draggable: false
+          },
+          position
+        };
 
-          nodes.push(nodeData);
-        });
-
-        // Update currentX for the next layer
-        currentX += layerWidth;
+        nodes.push(nodeData);
       });
 
-      // Add edges
-      this.jsonData.workflow.edges.forEach(edge => {
-        edges.push({
-          id: `e${edge.from}-${edge.to}`,
-          source: edge.from,
-          target: edge.to
-        });
+      // Update currentX for the next layer
+      currentX += layerWidth;
+    });
+
+    // Add edges for nested nodes
+    this.jsonData.workflow.edges.forEach(edge => {
+      edges.push({
+        id: `e${edge.from}-to-${edge.to}`,
+        source: edge.from.split('-')[0],
+        target: edge.to.split('-')[0],
+        sourceHandle: edge.from,
+        targetHandle: edge.to,
+        style: { zIndex: 1 } // Ensure edges are on top
       });
+    });
 
-      this.elements = { nodes, edges };
-    },
-    addComponent(option: any) {
-      // Find the maximum ID among existing nodes
-      let maxId = 0;
-      this.elements?.nodes.forEach(node => {
-        const idNumber = parseInt(node.id);
-        if (!isNaN(idNumber) && idNumber > maxId) {
-          maxId = idNumber;
-        }
-      });
-
-      // Increment the maximum ID by one to generate a new unique ID
-      const newNodeId = `${maxId + 1}`;
-
-      // Create the new node
-      const newNode: Node = {
-        id: newNodeId,
-        name: option.label,
-        type: option.value,
-        inputs: [],
-        outputs: [],
-        description: option.description,
-        position: { x: 100, y: 100 },
-        data: { description: option.description },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left
-      };
-
-      // Add the new node to the elements
-      this.elements?.nodes.push(newNode);
+    this.elements = { nodes, edges };
     },
     onConnect(params: { source: string, target: string }) {
       const newEdge: Edge = {
@@ -410,5 +387,15 @@ body {
 .workflow {
   height: 100%;
   width: 100%;
+}
+
+.vue-flow__edge {
+  z-index: 2;
+  position: relative;
+}
+
+.vue-flow__node {
+  z-index: 1;
+  position: relative;
 }
 </style>
