@@ -5,21 +5,22 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class GetComponentJobIdsResponse:
-    job_ids: List[UUID]
-
-
-@dataclass
 class GetComponentJobIdsRequest:
     component_id: UUID
 
 
 @dataclass
-class GetComponentParametersResponse:
+class GetComponentStateResponse:
     input_dict: Dict[str, Any]
     output_dict: Dict[str, Any]
+    job_ids: List[UUID]
 
 
 @dataclass
-class GetComponentParametersRequest:
+class GetComponentStateRequest:
     component_id: UUID
+
+
+@dataclass
+class AllWorkflowSchemasResponse:
+    ids: List[UUID]

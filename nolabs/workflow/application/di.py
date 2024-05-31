@@ -10,7 +10,7 @@ from fastapi import Depends
 
 from nolabs.refined.application.use_cases.folding.workflow import FoldingComponent
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
-    SetWorkflowSchemaFeature, StartWorkflowFeature, StopWorkflowFeature, GetComponentJobIdsFeature
+    SetWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature
 from nolabs.workflow.component import PythonComponent
 
 
@@ -27,6 +27,10 @@ class WorkflowDependencies:
         return CreateWorkflowSchemaFeature(
             available_components=components
         )
+
+    @staticmethod
+    def delete_workflow_schema() -> DeleteWorkflowSchemaFeature:
+        return DeleteWorkflowSchemaFeature()
 
     @staticmethod
     def get_workflow_schema() -> GetWorkflowSchemaFeature:
@@ -47,5 +51,5 @@ class WorkflowDependencies:
         )
 
     @staticmethod
-    def get_component_job_ids() -> GetComponentJobIdsFeature:
-        return GetComponentJobIdsFeature()
+    def all_workflow_schemas():
+        return AllWorkflowSchemasFeature()

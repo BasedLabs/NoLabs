@@ -8,11 +8,10 @@ import uuid
 from abc import abstractmethod
 from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic, Tuple, get_args
 
-from mongoengine import Document, UUIDField, StringField, IntField, ReferenceField, DictField
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
-from nolabs.refined.domain.models.common import Experiment, Job
+from nolabs.refined.domain.models.common import Job, Experiment
 from nolabs.workflow.properties import ParameterSchema, Property, PropertyValidationError
 
 
@@ -30,28 +29,51 @@ def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
 
 
-class PythonComponent(Generic[TInput, TOutput], Document):
-    id: uuid.UUID = UUIDField(primary_key=True)
-    experiment: Experiment = ReferenceField(Experiment)
-    name: str = StringField(required=True)
-    execution_timeout: int = IntField(default=3600)
+class PythonComponent(Generic[TInput, TOutput]):
+    id: uuid.UUID
+    name: str
+    execution_timeout: int
+    experiment: Experiment
 
     _input_schema: ParameterSchema[TInput]
     _output_schema: ParameterSchema[TOutput]
 
-    input_parameter_dict: Dict[str, Any] = DictField(default=dict)
-    output_parameter_dict: Dict[str, Any] = DictField(default=dict)
+    input_parameter_dict: Dict[str, Any]
+    output_parameter_dict: Dict[str, Any]
 
     _previous: List['PythonComponent']
 
-    jobs: List[Job] = ReferenceField(Job)
+    jobs: List[Job] = []
 
-    meta = {
-        'allow_inheritance': True
-    }
+    def __init__(self, id: uuid.UUID,
+                 experiment: Experiment,
+                 jobs: Optional[List[Job]] = None,
+                 input_parameter_dict: Optional[Dict[str, Any]] = None,
+                 output_parameter_dict: Optional[Dict[str, Any]] = None,
+                 execution_timeout: int = 3600):
+        self.id = id
+        self.execution_timeout = execution_timeout
 
-    def __init__(self, id: uuid.UUID, experiment: Experiment, execution_timeout: int = 3600, *args, **values):
-        super().__init__(id=id, experiment=experiment, execution_timeout=execution_timeout, *args, **values)
+        self.experiment = experiment
+
+        self.input_parameter_dict = {}
+        self.output_parameter_dict = {}
+
+        if not jobs:
+            self.jobs = []
+        else:
+            self.jobs = jobs
+
+        if not input_parameter_dict:
+            self.input_parameter_dict = {}
+        else:
+            self.input_parameter_dict = input_parameter_dict
+
+        if not output_parameter_dict:
+            self.output_parameter_dict = {}
+        else:
+            self.output_parameter_dict = output_parameter_dict
+
         self._input_schema = ParameterSchema.get_instance(cls=self._input_parameter_type)
         self._output_schema = ParameterSchema.get_instance(cls=self._output_parameter_type)
 
@@ -71,8 +93,6 @@ class PythonComponent(Generic[TInput, TOutput], Document):
             return
 
         self.output_parameter_dict = output_parameter
-
-        self.save()
 
     @property
     def input(self) -> TInput:
@@ -175,8 +195,6 @@ class PythonComponent(Generic[TInput, TOutput], Document):
                         changed = True
 
                     continue
-
-        self.save()
 
         return changed
 

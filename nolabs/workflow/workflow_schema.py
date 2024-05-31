@@ -54,7 +54,7 @@ class WorkflowComponentModel(BaseModel):
 
 
 class WorkflowSchemaModel(BaseModel):
-    experiment_id: uuid.UUID
+    workflow_id: uuid.UUID
     components: List[ComponentModel]
     workflow_components: List[WorkflowComponentModel]
     error: Optional[str] = None
