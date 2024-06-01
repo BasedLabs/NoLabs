@@ -124,7 +124,7 @@ class SetWorkflowSchemaFeature:
                 return workflow_schema
 
         components: List[PythonComponent] = [
-            PythonComponent(id=wf.component_id) for wf in
+            PythonComponent(id=wf.component_id, experiment=db_model.experiment) for wf in
             workflow_schema.workflow_components
         ]
 

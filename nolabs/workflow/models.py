@@ -11,7 +11,7 @@ from nolabs.workflow.workflow_schema import WorkflowSchemaModel
 
 class WorkflowSchemaDbModel(Document):
     id: UUID = UUIDField(primary_key=True)
-    experiment: Experiment = ReferenceField(Experiment, unique=True, required=True, reverse_delete_rule=CASCADE)
+    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     value: bytes = BinaryField(required=True)
 
     @staticmethod

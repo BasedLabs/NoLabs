@@ -9,6 +9,7 @@ from typing import Annotated, Type, Dict
 from fastapi import Depends
 
 from nolabs.refined.application.use_cases.folding.workflow import FoldingComponent
+from nolabs.refined.application.use_cases.proteins.workflow import ProteinsComponent
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
     SetWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature
 from nolabs.workflow.component import PythonComponent
@@ -18,7 +19,8 @@ class WorkflowDependencies:
     @staticmethod
     def available_components() -> Dict[str, Type[PythonComponent]]:
         return {
-            FoldingComponent.name: FoldingComponent
+            FoldingComponent.name: FoldingComponent,
+            ProteinsComponent.name: ProteinsComponent
         }
 
     @staticmethod
