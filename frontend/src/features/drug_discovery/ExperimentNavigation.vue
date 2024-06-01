@@ -1,15 +1,14 @@
 <template>
   <q-page class="bg-black q-pl-md">
-    <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id="experiment.experimentId" />
+    <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id="experiment.experimentId as string" />
     <div class="row no-wrap items-center">
       <button @click="generateWorkflow">Generate Workflow</button>
       <q-btn-dropdown color="primary" label="Add Node" icon="add" dense persistent>
         <q-list>
-          <q-item v-for="option in componentOptions" :key="option.value" clickable v-close-popup
+          <q-item v-for="option in componentOptions" :key="option.name" clickable v-close-popup
             @click="addComponent(option)">
             <q-item-section>
-              <q-item-label>{{ option.label }}</q-item-label>
-              <q-item-label caption>{{ option.description }}</q-item-label>
+              <q-item-label>{{ option.name }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -19,8 +18,8 @@
     </div>
 
     <div class="map-container">
-      <VueFlow class="workflow" :elevate-edges-on-select="true" v-if="elements" :nodes="elements.nodes" @nodeDragStop="onNodeDragStopHandler"
-        :edges="elements.edges" @connect="onConnect" fit-view-on-init>
+      <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes" :nodeDragStop="onNodeDragStopHandler"
+        :edges="elements.edges" :connect="onConnect" fit-view-on-init>
         <template #node-protein-list="{ id }">
           <ProteinListNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
             :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
@@ -31,7 +30,7 @@
             :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
             :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
-        <template #node-esmfold="{ id }">
+        <template #node-Folding="{ id }">
           <EsmFoldNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
             :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
             :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
@@ -100,7 +99,7 @@ import LigandListNodeContent from "./components/workflow/LigandListNodeContent.v
 import { useDrugDiscoveryStore } from "./storage";
 import { defineComponent } from "vue";
 import { checkBioBuddyEnabled } from "../biobuddy/api";
-import { Edge, Position, Node as FlowNode } from '@vue-flow/core';
+import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import EsmFoldNode from "./components/workflow/EsmFoldNode.vue";
 import EsmFoldNodeContent from "./components/workflow/EsmFoldNodeContent.vue";
@@ -108,6 +107,8 @@ import DiffDockNode from "./components/workflow/DiffDockNode.vue";
 import DiffDockNodeContent from "./components/workflow/DiffDockNodeContent.vue";
 import RfDiffusionNode from "./components/workflow/RfDiffusionNode.vue";
 import RfDiffusionNodeContent from "./components/workflow/RfDiffusionNodeContent.vue";
+import { getWorkflow } from 'src/features/drug_discovery/refinedApi';
+import { ComponentModel_Output } from 'src/refinedApi/client';
 
 // Define custom Node type
 interface Node extends FlowNode {
@@ -149,78 +150,12 @@ export default defineComponent({
       specialNodeProps: [],
       splitterModel: 20,
       bioBuddyEnabled: false,
-      componentOptions: [
-        { label: 'Protein List Node', value: 'protein-list', description: 'Downloads target protein data from RCSB PDB in FASTA format.' },
-        { label: 'Ligand List Node', value: 'ligand-list', description: 'Downloads ligands from ChEMBL in SMILES format.' },
-        { label: 'Input Node', value: 'input', description: 'Represents an input node.' },
-        { label: 'Output Node', value: 'output', description: 'Represents an output node.' },
-      ],
+      componentOptions: [] as Array<{ name: string; description: string }>,
       elements: {
         nodes: [] as Node[],
         edges: [] as Edge[]
       },
-      jsonData: {
-        "workflow": {
-          "name": "Protein-Ligand Interaction and Protein Generation Workflow",
-          "nodes": [
-            {
-              "id": "1",
-              "name": "DownloadFromRCSB",
-              "type": "component",
-              "inputs": [],
-              "outputs": ["pdb_file"],
-              "description": "Downloads target protein data from RCSB PDB."
-            },
-            {
-              "id": "2",
-              "name": "DownloadFromChembl",
-              "type": "component",
-              "inputs": [],
-              "outputs": ["smiles_string"],
-              "description": "Downloads ligands from ChEMBL in SMILES format."
-            },
-            {
-              "id": "3",
-              "name": "DockingProteinOnLigand",
-              "type": "diffdock",
-              "inputs": ["pdb_file", "smiles_string"],
-              "outputs": ["pdb_file"],
-              "description": "Performs docking of protein on ligand."
-            },
-            {
-              "id": "4",
-              "name": "GenerateProteins",
-              "type": "rfdiffusion",
-              "inputs": [],
-              "outputs": ["generated_fasta_file"],
-              "description": "Generates new protein sequences."
-            },
-            {
-              "id": "5",
-              "name": "RunFolding",
-              "type": "esmfold",
-              "inputs": ["generated_fasta_file"],
-              "outputs": ["generated_pdb_file"],
-              "description": "Folds generated protein sequences into 3D structures."
-            },
-            {
-              "id": "6",
-              "name": "CalculateBlast",
-              "type": "component",
-              "inputs": ["protein_complex_pdb_file"],
-              "outputs": ["similarity_scores"],
-              "description": "Calculates similarity scores between protein complexes."
-            }
-          ],
-          "edges": [
-            { "from": "1-output-pdb_file", "to": "3-input-pdb_file" },
-            { "from": "2-output-smiles_string", "to": "3-input-smiles_string" },
-            { "from": "4-output-generated_fasta_file", "to": "5-input-generated_fasta_file" },
-            { "from": "5-output-generated_pdb_file", "to": "3-input-generated_pdb_file" },
-            { "from": "1-output-pdb_file", "to": "6-input-pdb_file" }
-          ]
-        }
-      }
+      workflowId: "1049cda6-729b-4c66-910b-944dee7631ab" // Example workflow ID
     };
   },
   async mounted() {
@@ -235,6 +170,9 @@ export default defineComponent({
       console.error('Error checking BioBuddy enabled status:', error);
       this.bioBuddyEnabled = false;
     }
+
+    await this.fetchComponentOptions();
+    await this.generateWorkflow();
   },
   methods: {
     setStepBasedOnRoute() {
@@ -252,75 +190,112 @@ export default defineComponent({
           this.step = 1; // Default step if the route name doesn't match
       }
     },
-    generateWorkflow() {
-    const nodes: Node[] = [];
-    const edges: Edge[] = [];
+    async fetchComponentOptions() {
+      try {
+        const workflow = await getWorkflow(this.workflowId);
+        if (!workflow) {
+          console.error("Failed to load workflow");
+          return;
+        }
 
-    // Helper function to get the depth of a node in the graph
-    const getNodeDepth = (nodeId: string): number => {
-      const incomingEdges = this.jsonData.workflow.edges.filter(edge => edge.to.split('-')[0] === nodeId);
-      if (incomingEdges.length === 0) return 0; // Node has no incoming edges, depth is 0
-      const parentDepths = incomingEdges.map(edge => getNodeDepth(edge.from.split('-')[0]));
-      return Math.max(...parentDepths) + 1; // Depth is the maximum parent depth plus 1
-    };
+        this.componentOptions = workflow.components.map(component => ({
+          name: component.name,
+          description: this.getDescriptionString(component)
+        }));
+      } catch (error) {
+        console.error("Error fetching component options:", error);
+      }
+    },
+    getDescriptionString(component: ComponentModel_Output): string {
+      // Assuming 'description' is a property within 'input', and converting it to string if it exists
+      const inputKeys = Object.keys(component.input || {});
+      const description = inputKeys.length > 0 ? component.input[inputKeys[0]].description : null;
+      return description || "No description available";
+    },
+    async generateWorkflow() {
+      try {
+        const workflow = await getWorkflow(this.workflowId);
+        if (!workflow) {
+          console.error("Failed to load workflow");
+          return;
+        }
 
-    // Calculate depths for all nodes
-    const depths: { [key: string]: number } = {};
-    this.jsonData.workflow.nodes.forEach(node => {
-      depths[node.id] = getNodeDepth(node.id);
-    });
+        const nodes: Node[] = [];
+        const edges: Edge[] = [];
 
-    // Group nodes by depth
-    const nodesByDepth: { [key: number]: Node[] } = {};
-    this.jsonData.workflow.nodes.forEach(node => {
-      const depth = depths[node.id];
-      if (!nodesByDepth[depth]) nodesByDepth[depth] = [];
-      nodesByDepth[depth].push(node);
-    });
+        // Create a map for component inputs and outputs
+        const componentIOMap: { [key: string]: { inputs: string[], outputs: string[] } } = {};
+        workflow.components.forEach(component => {
+          const inputs = Object.keys(component.input || {});
+          const outputs = Object.keys(component.output || {});
+          componentIOMap[component.name] = { inputs, outputs };
+        });
 
-    // Calculate positions for each node
-    let currentX = 100;
-    const layerWidth = 500; // Width difference between layers
-    const layerHeight = 300; // Height difference between nodes within a layer
-    Object.values(nodesByDepth).forEach((nodesAtDepth: Node[], depth: number) => {
-      const numNodes = nodesAtDepth.length;
-      const startY = 100 + (numNodes * layerHeight) / 2;
+        // Process workflow_components to create nodes
+        workflow.workflow_components.forEach(component => {
+          const { inputs, outputs } = componentIOMap[component.name] || { inputs: [], outputs: [] };
+          const nodeData: Node = {
+            id: component.component_id,
+            name: component.name,
+            type: component.name, // Assuming 'component' type for all nodes
+            data: {
+              description: component.name,
+              inputs,
+              outputs,
+              draggable: false
+            },
+            position: { x: 100, y: 100 } // Default position, should be calculated based on layout logic
+          };
+          nodes.push(nodeData);
+        });
 
-      nodesAtDepth.forEach((node, index) => {
-        const position = { x: currentX, y: startY - index * layerHeight };
-        const nodeData: Node = {
-          id: node.id,
-          name: node.name,
-          type: node.type,
-          data: {
-            description: node.description,
-            inputs: node.inputs,
-            outputs: node.outputs,
-            draggable: false
-          },
-          position
-        };
+        // Process mappings to create edges
+        workflow.workflow_components.forEach(component => {
+          component.mappings?.forEach(mapping => {
+            edges.push({
+              id: `e${mapping.source_component_id}-to-${component.component_id}`,
+              source: mapping.source_component_id,
+              target: component.component_id,
+              sourceHandle: `${mapping.source_component_id}-output-${mapping.source_path[0]}`,
+              targetHandle: `${component.component_id}-input-${mapping.target_path[0]}`,
+            });
+          });
+        });
 
-        nodes.push(nodeData);
+        this.elements = { nodes, edges };
+      } catch (error) {
+        console.error("Error generating workflow:", error);
+      }
+    },
+    addComponent(option: any) {
+      // Find the maximum ID among existing nodes
+      let maxId = 0;
+      this.elements?.nodes.forEach(node => {
+        const idNumber = parseInt(node.id);
+        if (!isNaN(idNumber) && idNumber > maxId) {
+          maxId = idNumber;
+        }
       });
 
-      // Update currentX for the next layer
-      currentX += layerWidth;
-    });
+      // Increment the maximum ID by one to generate a new unique ID
+      const newNodeId = `${maxId + 1}`;
 
-    // Add edges for nested nodes
-    this.jsonData.workflow.edges.forEach(edge => {
-      edges.push({
-        id: `e${edge.from}-to-${edge.to}`,
-        source: edge.from.split('-')[0],
-        target: edge.to.split('-')[0],
-        sourceHandle: edge.from,
-        targetHandle: edge.to,
-        style: { zIndex: 1 } // Ensure edges are on top
-      });
-    });
+      // Create the new node
+      const newNode: Node = {
+        id: newNodeId,
+        name: option.name,
+        type: option.name,
+        data: {
+          description: option.description,
+          inputs: [],
+          outputs: [],
+          draggable: false
+        },
+        position: { x: 100, y: 100 },
+      };
 
-    this.elements = { nodes, edges };
+      // Add the new node to the elements
+      this.elements?.nodes.push(newNode);
     },
     onConnect(params: { source: string, target: string }) {
       const newEdge: Edge = {
@@ -390,12 +365,12 @@ body {
 }
 
 .vue-flow__edge {
-  z-index: 2;
+  z-index: 10 !important;
   position: relative;
 }
 
 .vue-flow__node {
-  z-index: 1;
+  z-index: 5 !important;
   position: relative;
 }
 </style>

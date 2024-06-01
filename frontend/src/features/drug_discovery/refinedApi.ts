@@ -9,6 +9,9 @@ import {
   ProteinsService,
   nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest,
   UpdateJobRequest,
+  WorkflowService,
+  WorkflowSchemaModel_Output,
+  AllWorkflowSchemasResponse
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 
@@ -50,3 +53,12 @@ export function changeJobName(jobId: string, newName: string): CancelablePromise
   const jobRequest = { job_name: newName } as UpdateJobRequest;
   return JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(jobId, jobRequest);
 }
+
+export function getWorkflow(workflowId: string): CancelablePromise<(WorkflowSchemaModel_Output | null)> {
+  return WorkflowService.getSchemaApiV1WorkflowWorkflowIdGet(workflowId);
+}
+
+export function getExistingWorkflows(experimentId: string): CancelablePromise<AllWorkflowSchemasResponse> {
+  return WorkflowService.getSchemaApiV1WorkflowAllExperimentIdGet(experimentId);
+}
+
