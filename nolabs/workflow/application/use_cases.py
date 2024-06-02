@@ -124,7 +124,7 @@ class SetWorkflowSchemaFeature:
                 return workflow_schema
 
         components: List[PythonComponent] = [
-            PythonComponent(id=wf.component_id, experiment=db_model.experiment) for wf in
+            self.available_components[wf.name](id=wf.component_id, experiment=db_model.experiment) for wf in
             workflow_schema.workflow_components
         ]
 
@@ -226,7 +226,7 @@ class StartWorkflowFeature:
             component_db_model: PythonComponentDbModel = PythonComponentDbModel.objects.with_id(
                 workflow_component.component_id)
             if component_db_model:
-                component: PythonComponent = PythonComponent(id=workflow_component.component_id,
+                component: PythonComponent = self.available_components[workflow_component.name](id=workflow_component.component_id,
                                                              jobs=component_db_model.jobs,
                                                              input_parameter_dict=component_db_model.input_parameter_dict,
                                                              output_parameter_dict=component_db_model.output_parameter_dict,
