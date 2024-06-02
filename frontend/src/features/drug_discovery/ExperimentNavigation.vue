@@ -20,8 +20,8 @@
 
     <div class="map-container">
       <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes" :nodeDragStop="onNodeDragStopHandler"
-        :edges="elements.edges" :connect="onConnect" fit-view-on-init>
-        <template #node-protein-list="{ id }">
+        :edges="elements.edges" @connect="onConnect" fit-view-on-init>
+        <template #node-Proteins="{ id }">
           <ProteinListNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
             :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
             :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
@@ -33,16 +33,6 @@
         </template>
         <template #node-Folding="{ id }">
           <EsmFoldNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
-            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
-            :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
-        </template>
-        <template #node-diffdock="{ id }">
-          <DiffDockNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
-            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
-            :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
-        </template>
-        <template #node-rfdiffusion="{ id }">
-          <RfDiffusionNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
             :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
             :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
@@ -79,10 +69,6 @@
           :experiment-id="experiment.experimentId" />
         <EsmFoldNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
           :experiment-id="experiment.experimentId" />
-        <DiffDockNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'diffdock'"
-          :experiment-id="experiment.experimentId" />
-        <RfDiffusionNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'rfdiffusion'"
-          :experiment-id="experiment.experimentId" />
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -104,10 +90,6 @@ import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import EsmFoldNode from "./components/workflow/EsmFoldNode.vue";
 import EsmFoldNodeContent from "./components/workflow/EsmFoldNodeContent.vue";
-import DiffDockNode from "./components/workflow/DiffDockNode.vue";
-import DiffDockNodeContent from "./components/workflow/DiffDockNodeContent.vue";
-import RfDiffusionNode from "./components/workflow/RfDiffusionNode.vue";
-import RfDiffusionNodeContent from "./components/workflow/RfDiffusionNodeContent.vue";
 import { getWorkflow, sendWorkflowUpdate } from 'src/features/drug_discovery/refinedApi';
 import {
   ComponentModel_Output,
@@ -140,11 +122,7 @@ export default defineComponent({
     LigandListNode,
     LigandListNodeContent,
     EsmFoldNode,
-    EsmFoldNodeContent,
-    DiffDockNode,
-    DiffDockNodeContent,
-    RfDiffusionNode,
-    RfDiffusionNodeContent
+    EsmFoldNodeContent
   },
   data() {
     return {
@@ -170,7 +148,6 @@ export default defineComponent({
   },
   async mounted() {
     const store = useDrugDiscoveryStore();
-    this.setStepBasedOnRoute();
     this.experiment.experimentId = this.$route.params.experimentId as string;
     this.experiment.metadata = await store.getExperimentMetaData(this.experiment.experimentId);
     try {
@@ -185,21 +162,6 @@ export default defineComponent({
     await this.generateWorkflow();
   },
   methods: {
-    setStepBasedOnRoute() {
-      switch (this.$route.name) {
-        case 'Upload targets':
-          this.step = 1;
-          break;
-        case 'Upload ligands':
-          this.step = 2;
-          break;
-        case 'Run docking':
-          this.step = 3;
-          break;
-        default:
-          this.step = 1; // Default step if the route name doesn't match
-      }
-    },
     async fetchComponentOptions() {
       try {
         const workflow = await getWorkflow(this.workflowId);
@@ -302,12 +264,14 @@ export default defineComponent({
           name: node.name,
           component_id: node.id,
           job_ids: [],
-          mappings: this.elements.edges.filter(edge => edge.source === node.id || edge.target === node.id).map(edge => ({
-            source_path: [edge.sourceHandle],
-            target_path: [edge.targetHandle],
-            source_component_id: edge.source,
-            error: null
-          }) as MappingModel),
+          mappings: this.elements.edges
+            .filter(edge => edge.target === node.id)
+            .map(edge => ({
+              source_path: [edge.sourceHandle?.split('-output-')[1]],
+              target_path: [edge.targetHandle?.split('-input-')[1]],
+              source_component_id: edge.sourceHandle?.split('-output-')[0],
+              error: null
+            }) as MappingModel),
           error: null,
           defaults: [],
           jobs_errors: []
@@ -346,11 +310,13 @@ export default defineComponent({
       // Send the workflow update
       this.sendWorkflowUpdate();
     },
-    onConnect(params: { source: string, target: string }) {
+    onConnect(params: { source: string, target: string, sourceHandle: string, targetHandle: string }) {
       const newEdge: Edge = {
-        id: `e${params.source}-${params.target}`,
-        source: params.source,
-        target: params.target,
+        id: `e${params.sourceHandle}-to-${params.targetHandle}`,
+        source: params.sourceHandle.split('-output-')[0],
+        target: params.targetHandle.split('-input-')[0],
+        sourceHandle: params.sourceHandle,
+        targetHandle: params.targetHandle,
       };
       this.elements.edges.push(newEdge);
 

@@ -6,10 +6,11 @@
         <q-btn icon="settings" @click="openSettings"> </q-btn>
       </div>
 
-      <ProteinListNodeContent v-if="experimentId" :experiment-id="this.experimentId" />
+      <ProteinListNodeContent v-if="experimentId" :experiment-id="experimentId" />
       <q-btn class="full-width" icon="open_in_new" label="Open in a new tab"> </q-btn>
     </q-card>
-  <Handle type="source" :position="Position.Right"/>
+
+    <NodeHandles :nodeId="nodeId" :inputs="inputs" :outputs="outputs" />
 </template>
 
 <script lang="ts">
@@ -17,8 +18,9 @@ import {defineComponent} from "vue";
 import {useDrugDiscoveryStore} from "../../storage";
 import {useRoute} from "vue-router";
 import {Notify, QSpinnerOrbit} from "quasar";
-import {Handle, Position} from "@vue-flow/core";
+import {Position} from "@vue-flow/core";
 import ProteinListNodeContent from "./ProteinListNodeContent.vue";
+import NodeHandles from './nodeTemplates/NodeHandles.vue'
 
 export default defineComponent({
   name: "LigandsListNode",
@@ -29,12 +31,25 @@ export default defineComponent({
   },
   components: {
     ProteinListNodeContent,
-    Handle
+    NodeHandles
   },
   props: {
     nodeId: String,
+    inputs: {
+      type: Array,
+      default: () => []
+    },
+    outputs: {
+      type: Array,
+      default: () => []
+    },
     onDeleteNode: Function,
     onOpenSettings: Function,
+    onOpenDialog: Function,
+    results: {
+      type: Array,
+      default: () => []
+    },
   },
   data() {
     return {
@@ -70,6 +85,9 @@ export default defineComponent({
     },
     openSettings() {
       this.onOpenSettings(this.nodeId);
+    },
+    openDialogue() {
+      this.onOpenDialog(this.nodeId);
     },
   }
 })
