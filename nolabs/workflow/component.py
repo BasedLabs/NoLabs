@@ -64,6 +64,8 @@ class Component(Generic[TInput, TOutput]):
         else:
             self.jobs = jobs
 
+        print("INPUT PARAM:", input_parameter_dict)
+
         if not input_parameter_dict:
             self.input_parameter_dict = {}
         else:

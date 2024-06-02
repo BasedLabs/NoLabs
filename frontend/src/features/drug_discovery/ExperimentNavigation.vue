@@ -9,6 +9,7 @@
             @click="addComponent(option)">
             <q-item-section>
               <q-item-label>{{ option.name }}</q-item-label>
+              <q-item-label caption>{{ option.description }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -107,8 +108,17 @@ import DiffDockNode from "./components/workflow/DiffDockNode.vue";
 import DiffDockNodeContent from "./components/workflow/DiffDockNodeContent.vue";
 import RfDiffusionNode from "./components/workflow/RfDiffusionNode.vue";
 import RfDiffusionNodeContent from "./components/workflow/RfDiffusionNodeContent.vue";
-import { getWorkflow } from 'src/features/drug_discovery/refinedApi';
-import { ComponentModel_Output } from 'src/refinedApi/client';
+import { getWorkflow, sendWorkflowUpdate } from 'src/features/drug_discovery/refinedApi';
+import {
+  ComponentModel_Output,
+  WorkflowSchemaModel_Input,
+  ComponentModel_Input,
+  PropertyModel_Output,
+  WorkflowComponentModel,
+  MappingModel
+} from 'src/refinedApi/client';
+
+import { v4 as uuidv4 } from 'uuid';
 
 // Define custom Node type
 interface Node extends FlowNode {
@@ -150,12 +160,12 @@ export default defineComponent({
       specialNodeProps: [],
       splitterModel: 20,
       bioBuddyEnabled: false,
-      componentOptions: [] as Array<{ name: string; description: string }>,
+      componentOptions: [] as Array<{ name: string; type: string; inputs: Record<string, PropertyModel_Output>, outputs: Record<string, PropertyModel_Output>, description: string }>,
       elements: {
         nodes: [] as Node[],
         edges: [] as Edge[]
       },
-      workflowId: "1049cda6-729b-4c66-910b-944dee7631ab" // Example workflow ID
+      workflowId: "d35dd2d8-8962-4ce2-b0c0-c9cbb5cfee4e" // Example workflow ID
     };
   },
   async mounted() {
@@ -200,6 +210,9 @@ export default defineComponent({
 
         this.componentOptions = workflow.components.map(component => ({
           name: component.name,
+          type: component.name, // Assuming type is the same as name, adjust if different
+          inputs: component.input,
+          outputs: component.output,
           description: this.getDescriptionString(component)
         }));
       } catch (error) {
@@ -224,22 +237,23 @@ export default defineComponent({
         const edges: Edge[] = [];
 
         // Create a map for component inputs and outputs
-        const componentIOMap: { [key: string]: { inputs: string[], outputs: string[] } } = {};
+        const componentIOMap: { [key: string]: { inputs: string[], outputs: string[], type: string, description: string } } = {};
         workflow.components.forEach(component => {
           const inputs = Object.keys(component.input || {});
           const outputs = Object.keys(component.output || {});
-          componentIOMap[component.name] = { inputs, outputs };
+          const description = this.getDescriptionString(component);
+          componentIOMap[component.name] = { inputs, outputs, type: component.name, description }; // Assuming type is the same as name, adjust if different
         });
 
         // Process workflow_components to create nodes
         workflow.workflow_components.forEach(component => {
-          const { inputs, outputs } = componentIOMap[component.name] || { inputs: [], outputs: [] };
+          const { inputs, outputs, type, description } = componentIOMap[component.name] || { inputs: [], outputs: [], type: '', description: '' };
           const nodeData: Node = {
             id: component.component_id,
             name: component.name,
-            type: component.name, // Assuming 'component' type for all nodes
+            type: type, // Use the type from componentIOMap
             data: {
-              description: component.name,
+              description: description,
               inputs,
               outputs,
               draggable: false
@@ -263,39 +277,74 @@ export default defineComponent({
         });
 
         this.elements = { nodes, edges };
+
+        // Send the workflow update
+        this.sendWorkflowUpdate();
       } catch (error) {
         console.error("Error generating workflow:", error);
       }
     },
+    async sendWorkflowUpdate() {
+      const workflowUpdate: WorkflowSchemaModel_Input = {
+        workflow_id: this.workflowId,
+        components: this.componentOptions.map(option => ({
+          name: option.name,
+          input: Object.keys(option.inputs).reduce((acc, key) => {
+            acc[key] = option.inputs[key];
+            return acc;
+          }, {} as Record<string, PropertyModel_Output>),
+          output: Object.keys(option.outputs).reduce((acc, key) => {
+            acc[key] = option.outputs[key];
+            return acc;
+          }, {} as Record<string, PropertyModel_Output>)
+        }) as ComponentModel_Input),
+        workflow_components: this.elements.nodes.map(node => ({
+          name: node.name,
+          component_id: node.id,
+          job_ids: [],
+          mappings: this.elements.edges.filter(edge => edge.source === node.id || edge.target === node.id).map(edge => ({
+            source_path: [edge.sourceHandle],
+            target_path: [edge.targetHandle],
+            source_component_id: edge.source,
+            error: null
+          }) as MappingModel),
+          error: null,
+          defaults: [],
+          jobs_errors: []
+        }) as WorkflowComponentModel),
+        error: null,
+        valid: true
+      };
+      try {
+        await sendWorkflowUpdate(workflowUpdate);
+        console.log('Workflow updated successfully');
+      } catch (error) {
+        console.error('Error updating workflow:', error);
+      }
+    },
     addComponent(option: any) {
-      // Find the maximum ID among existing nodes
-      let maxId = 0;
-      this.elements?.nodes.forEach(node => {
-        const idNumber = parseInt(node.id);
-        if (!isNaN(idNumber) && idNumber > maxId) {
-          maxId = idNumber;
-        }
-      });
-
-      // Increment the maximum ID by one to generate a new unique ID
-      const newNodeId = `${maxId + 1}`;
+      // Generate a new UUID for the node ID
+      const newNodeId = uuidv4();
 
       // Create the new node
       const newNode: Node = {
         id: newNodeId,
         name: option.name,
-        type: option.name,
+        type: option.type, // Use type from option
         data: {
           description: option.description,
-          inputs: [],
-          outputs: [],
+          inputs: option.inputs,
+          outputs: option.outputs,
           draggable: false
         },
-        position: { x: 100, y: 100 },
+        position: { x: 100, y: 100 }, // Default position
       };
 
       // Add the new node to the elements
       this.elements?.nodes.push(newNode);
+
+      // Send the workflow update
+      this.sendWorkflowUpdate();
     },
     onConnect(params: { source: string, target: string }) {
       const newEdge: Edge = {
@@ -304,11 +353,18 @@ export default defineComponent({
         target: params.target,
       };
       this.elements.edges.push(newEdge);
+
+      // Send the workflow update
+      this.sendWorkflowUpdate();
     },
     onDeleteNode(nodeId: string) {
       const index = this.elements.nodes.findIndex(node => node.id === nodeId);
       if (index !== -1) {
         this.elements.nodes.splice(index, 1);
+        this.elements.edges = this.elements.edges.filter(edge => edge.source !== nodeId && edge.target !== nodeId);
+
+        // Send the workflow update
+        this.sendWorkflowUpdate();
       }
     },
     openSettings(nodeId: string) {
@@ -332,6 +388,9 @@ export default defineComponent({
       const nodeToUpdate = this.elements.nodes.find((node: Node) => node.id === id);
       if (nodeToUpdate) {
         nodeToUpdate.position = newPosition;
+
+        // Send the workflow update
+        this.sendWorkflowUpdate();
       }
     },
     async onExperimentNameChange(newExperimentName: string) {

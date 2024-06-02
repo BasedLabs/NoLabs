@@ -181,6 +181,8 @@ class SetWorkflowSchemaFeature:
     async def handle(self, workflow_schema: WorkflowSchemaModel) -> WorkflowSchemaModel:
         db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_schema.workflow_id)
 
+        print("WORKFLOW SCHEMA:", workflow_schema)
+
         # Validate components names
         for component in workflow_schema.workflow_components:
             if component.name not in [c_name for c_name in self.available_components.keys()]:

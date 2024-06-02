@@ -11,7 +11,8 @@ import {
   UpdateJobRequest,
   WorkflowService,
   WorkflowSchemaModel_Output,
-  AllWorkflowSchemasResponse
+  AllWorkflowSchemasResponse,
+  WorkflowSchemaModel_Input
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 
@@ -62,3 +63,10 @@ export function getExistingWorkflows(experimentId: string): CancelablePromise<Al
   return WorkflowService.getSchemaApiV1WorkflowAllExperimentIdGet(experimentId);
 }
 
+export function sendWorkflowUpdate(workflow: WorkflowSchemaModel_Input): CancelablePromise<any> {
+  return WorkflowService.setWorkflowSchemaApiV1WorkflowPut(workflow)
+}
+
+export function startWorkflow(experimentId: string): CancelablePromise<any> {
+  return WorkflowService.startWorkflowApiV1WorkflowExperimentIdStartPost(experimentId)
+}

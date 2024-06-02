@@ -167,6 +167,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
 
     @staticmethod
     def get_instance(cls: Type) -> 'ParameterSchema':
+        print("CLASS:", cls)
         if not issubclass(cls, BaseModel):
             raise ValueError(
                 f'Schema must be a subclass of {BaseModel}'
