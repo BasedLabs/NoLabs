@@ -15,15 +15,15 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {useDrugDiscoveryStore} from "../../storage";
+
 import {useRoute} from "vue-router";
 import {Notify, QSpinnerOrbit} from "quasar";
 import {Position} from "@vue-flow/core";
 import ProteinListNodeContent from "./ProteinListNodeContent.vue";
-import NodeHandles from './nodeTemplates/NodeHandles.vue'
+import NodeHandles from '../NodeHandles.vue'
 
 export default defineComponent({
-  name: "LigandsListNode",
+  name: "ProteinListNode",
   computed: {
     Position() {
       return Position
@@ -58,7 +58,6 @@ export default defineComponent({
     };
   },
   async mounted() {
-    const store = useDrugDiscoveryStore();
     const route = useRoute();
 
     this.experimentId = route.params.experimentId as string;
@@ -67,7 +66,7 @@ export default defineComponent({
       message: `Fetching targets for experiment`
     });
     try {
-      await store.fetchTargetsForExperiment(this.experimentId);
+      //await store.fetchTargetsForExperiment(this.experimentId);
     } catch (e) {
       Notify.create({
         type: "negative",

@@ -79,8 +79,8 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 
 import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
-import ProteinListNode from "./components/workflow/ProteinListNode.vue";
-import ProteinListNodeContent from "./components/workflow/ProteinListNodeContent.vue";
+import ProteinListNode from "./components/workflow/nodeTemplates/dataSourceNodes/ProteinListNode.vue";
+import ProteinListNodeContent from "./components/workflow/nodeTemplates/dataSourceNodes/ProteinListNodeContent.vue";
 import LigandListNode from "./components/workflow/LigandListNode.vue";
 import LigandListNodeContent from "./components/workflow/LigandListNodeContent.vue";
 import { useDrugDiscoveryStore } from "./storage";
@@ -297,8 +297,8 @@ export default defineComponent({
         type: option.type, // Use type from option
         data: {
           description: option.description,
-          inputs: option.inputs,
-          outputs: option.outputs,
+          inputs: Object.keys(option.inputs || {}),
+          outputs: Object.keys(option.outputs || {}),
           draggable: false
         },
         position: { x: 100, y: 100 }, // Default position

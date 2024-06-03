@@ -12,7 +12,10 @@ import {
   WorkflowService,
   WorkflowSchemaModel_Output,
   AllWorkflowSchemasResponse,
-  WorkflowSchemaModel_Input
+  WorkflowSchemaModel_Input,
+  ProteinSearchQuery,
+  Body_upload_protein_api_v1_objects_proteins_post,
+  Body_update_protein_api_v1_objects_proteins_patch
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 
@@ -69,4 +72,36 @@ export function sendWorkflowUpdate(workflow: WorkflowSchemaModel_Input): Cancela
 
 export function startWorkflow(experimentId: string): CancelablePromise<any> {
   return WorkflowService.startWorkflowApiV1WorkflowExperimentIdStartPost(experimentId)
+}
+
+export function getAllProteins(experimentId: string): CancelablePromise<Array<ProteinResponse>> {
+  const searchQuery = {name: '', experiment_id: experimentId} as ProteinSearchQuery;
+  return ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost(searchQuery);
+}
+
+export function uploadProtein(
+  experimentId: string,
+  name?: string,
+  fasta?: Blob,
+  pdb?: Blob
+): CancelablePromise<ProteinResponse> {
+  const uploadProtein = {
+    experiment_id: experimentId,
+    name: name,
+    fasta: fasta,
+    pdb: pdb
+  } as Body_upload_protein_api_v1_objects_proteins_post;
+  return ProteinsService.uploadProteinApiV1ObjectsProteinsPost(uploadProtein);
+}
+
+export function deleteProtein(proteinId: string): CancelablePromise<any> {
+  return ProteinsService.deleteProteinApiV1ObjectsProteinsProteinIdDelete(proteinId);
+}
+
+export function updateProteinName(proteinId: string, newName: string): CancelablePromise<ProteinResponse> {
+  const newRequest = {
+    protein_id: proteinId,
+    name: newName
+  } as Body_update_protein_api_v1_objects_proteins_patch;
+  return ProteinsService.updateProteinApiV1ObjectsProteinsPatch(newRequest);
 }
