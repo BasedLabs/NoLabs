@@ -1,6 +1,6 @@
 <template>
     <q-list bordered separator class="bg-black">
-        <q-item-label header class="text-white">Upload proteins</q-item-label>
+        <q-item-label header class="text-white text-h6">Protein List</q-item-label>
         <q-item>
             <q-btn size="md" class="full-width q-pm-sm" push color="info" @click="uploadProteinDialog = true">
                 + upload proteins

@@ -7,7 +7,7 @@
       :outputs="['PDB']"
       imageSrc="/folding_pic.png"
     />
-    <node-content-body :results="results" />
+    <node-content-body :jobIds="jobIds" :jobType="'Folding'" />
   </q-card>
 </template>
 
@@ -23,7 +23,7 @@ export default defineComponent({
     NodeContentBody,
   },
   props: {
-    results: Array,
+    jobIds: Array<string>,
   },
 });
 </script>

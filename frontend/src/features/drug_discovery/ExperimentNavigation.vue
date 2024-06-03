@@ -32,8 +32,10 @@
             :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-Folding="{ id }">
-          <EsmFoldNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
-            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" :onDeleteNode="onDeleteNode"
+          <JobNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
+            :outputs="elements.nodes.find(n => n.id === id)?.data.outputs" 
+            :jobIds="elements.nodes.find(n => n.id === id)?.data.jobIds"
+            :onDeleteNode="onDeleteNode"
             :onOpenSettings="openSettings" :onOpenDialog="openNodeDialog" />
         </template>
       </VueFlow>
@@ -67,8 +69,8 @@
           :experiment-id="experiment.experimentId" />
         <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'"
           :experiment-id="experiment.experimentId" />
-        <EsmFoldNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
-          :experiment-id="experiment.experimentId" />
+        <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
+          :experiment-id="experiment.experimentId" :jobIds="selectedNode?.data.jobIds" />
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -88,8 +90,8 @@ import { defineComponent } from "vue";
 import { checkBioBuddyEnabled } from "../biobuddy/api";
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
-import EsmFoldNode from "./components/workflow/EsmFoldNode.vue";
-import EsmFoldNodeContent from "./components/workflow/EsmFoldNodeContent.vue";
+import JobNode from "./components/workflow/JobNode.vue";
+import JobNodeContent from "./components/workflow/JobNodeContent.vue";
 import { getWorkflow, sendWorkflowUpdate } from 'src/features/drug_discovery/refinedApi';
 import {
   ComponentModel_Output,
@@ -109,6 +111,7 @@ interface Node extends FlowNode {
   type: string;
   inputs: string[];
   outputs: string[];
+  jobIds: string[];
   description: string;
 }
 
@@ -121,8 +124,8 @@ export default defineComponent({
     ProteinListNodeContent,
     LigandListNode,
     LigandListNodeContent,
-    EsmFoldNode,
-    EsmFoldNodeContent
+    JobNode,
+    JobNodeContent
   },
   data() {
     return {
@@ -218,6 +221,7 @@ export default defineComponent({
               description: description,
               inputs,
               outputs,
+              jobIds: component.job_ids,
               draggable: false
             },
             position: { x: 100, y: 100 } // Default position, should be calculated based on layout logic
@@ -263,7 +267,7 @@ export default defineComponent({
         workflow_components: this.elements.nodes.map(node => ({
           name: node.name,
           component_id: node.id,
-          job_ids: [],
+          job_ids: node.data.jobIds,
           mappings: this.elements.edges
             .filter(edge => edge.target === node.id)
             .map(edge => ({
@@ -299,6 +303,7 @@ export default defineComponent({
           description: option.description,
           inputs: Object.keys(option.inputs || {}),
           outputs: Object.keys(option.outputs || {}),
+          jobIds: [],
           draggable: false
         },
         position: { x: 100, y: 100 }, // Default position

@@ -6,7 +6,7 @@
       <q-btn icon="settings" @click="openSettings"> </q-btn>
     </div>
 
-    <EsmFoldNodeContent :results="results" />
+    <EsmFoldNodeContent :jobIds="jobIds" :results="results" />
     <q-btn @click="openDialogue" class="full-width" icon="open_in_new" label="Extended view"> </q-btn>
   </q-card>
   
@@ -16,11 +16,11 @@
 <script>
 import { defineComponent } from 'vue';
 import { Position } from "@vue-flow/core";
-import EsmFoldNodeContent from './EsmFoldNodeContent.vue';
+import EsmFoldNodeContent from './JobNodeContent.vue';
 import NodeHandles from './nodeTemplates/NodeHandles.vue'
 
 export default defineComponent({
-  name: 'EsmFoldNode',
+  name: 'JobNode',
   components: {
     EsmFoldNodeContent,
     NodeHandles
@@ -38,6 +38,10 @@ export default defineComponent({
     onDeleteNode: Function,
     onOpenSettings: Function,
     onOpenDialog: Function,
+    jobIds: {
+      type: Array,
+      default: () => []
+    },
     results: {
       type: Array,
       default: () => []
