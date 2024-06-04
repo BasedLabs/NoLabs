@@ -23,7 +23,7 @@ class RunSimulationsRequest:
     experiment_id: str
     integrator: IntegratorsRequest = IntegratorsRequest.langevin
     total_frames: int = 10000
-    temperature_k: float = 273.15
+    temperature_k: float = 309.75
     take_frame_every: int = 1000
     step_size: float = 0.002
     replace_non_standard_residues: bool = False

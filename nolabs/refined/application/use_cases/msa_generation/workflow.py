@@ -19,7 +19,7 @@ class MsaGenerationOutput(BaseModel):
     proteins_with_msa: List[uuid.UUID]
 
 
-class ProteinDesignComponent(Component[MsaGenerationInput, MsaGenerationOutput]):
+class MsaGenerationComponent(Component[MsaGenerationInput, MsaGenerationOutput]):
     name = 'Msa generation'
 
     async def execute(self):

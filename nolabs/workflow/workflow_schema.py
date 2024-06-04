@@ -51,6 +51,8 @@ class WorkflowComponentModel(BaseModel):
     error: Optional[str] = None
     defaults: List[DefaultWorkflowComponentModelValue] = Field(default_factory=list)
     jobs_errors: List[JobValidationError]
+    x: float = 0.0
+    y: float = 0.0
 
 
 class WorkflowSchemaModel(BaseModel):

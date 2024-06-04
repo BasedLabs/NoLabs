@@ -13,14 +13,14 @@ from nolabs.refined.domain.models.common import Job, Protein, Ligand
 
 
 class DiffDockJobResult(EmbeddedDocument):
-    ligand_id: UUID = UUIDField(required=True)
+    complex_id: UUID = UUIDField(required=True)
     sdf_content: bytes = BinaryField(required=True)
     minimized_affinity: float = FloatField(required=False)
     scored_affinity: float = FloatField(required=False)
     confidence: float = FloatField(required=False)
 
     def __init__(self,
-                 ligand_id: UUID,
+                 complex_id: UUID,
                  sdf_content: bytes | str,
                  minimized_affinity: float,
                  scored_affinity: float,
@@ -30,7 +30,7 @@ class DiffDockJobResult(EmbeddedDocument):
             sdf_content = sdf_content.encode('utf-8')
 
         super().__init__(
-            ligand_id=ligand_id,
+            complex_id=complex_id,
             sdf_content=sdf_content,
             minimized_affinity=minimized_affinity,
             scored_affinity=scored_affinity,
@@ -52,7 +52,7 @@ class DiffDockBindingJob(Job):
     def set_input(self,
                   protein: Protein,
                   ligand: Ligand,
-                  samples_per_complex: int
+                  samples_per_complex: int = 1
                   ):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input, 'Target protein must be set for a diffdock job')
@@ -74,6 +74,9 @@ class DiffDockBindingJob(Job):
         self.protein = protein
         self.ligand = ligand
         self.samples_per_complex = samples_per_complex
+
+    def input_valid(self) -> bool:
+        return bool(self.protein and self.ligand)
 
     def set_result(self,
                    protein: Protein,

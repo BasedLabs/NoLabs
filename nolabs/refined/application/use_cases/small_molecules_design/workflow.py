@@ -176,7 +176,23 @@ class SmallMoleculesDesignSamplingComponent(Component[SmallMoleculesDesignSampli
         pass
 
     async def prevalidate_jobs(self) -> List[JobValidationError]:
-        return []
+        job: SmallMoleculesDesignJob
+
+        api = InfrastructureDependencies.reinvent_microservice()
+
+        errors = []
+
+        for job in self.jobs:
+            contig_result = api.get_config_api_reinvent_reinvent_config_id_get(config_id=str(job.id))
+            if not contig_result.actual_instance.sampling_allowed:
+                errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg='You must run learning stage to run sampling. This job is not ready'
+                    )
+                )
+
+        return errors
 
     @property
     def _input_parameter_type(self) -> Type[SmallMoleculesDesignSamplingInput]:

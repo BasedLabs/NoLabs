@@ -3,27 +3,27 @@ from typing import List, Type
 
 from pydantic import BaseModel
 
-from nolabs.refined.application.use_cases.localisation.api_models import SetupJobRequest
-from nolabs.refined.application.use_cases.localisation.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
+from nolabs.refined.application.use_cases.gene_ontology.api_models import SetupJobRequest
+from nolabs.refined.application.use_cases.gene_ontology.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
 from nolabs.refined.domain.models.common import Protein, Experiment
-from nolabs.refined.domain.models.localisation import LocalisationJob
+from nolabs.refined.domain.models.gene_ontology import GeneOntologyJob
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
 from nolabs.workflow.component import Component, JobValidationError
 
 
-class LocalisationComponentInput(BaseModel):
+class GeneOntologyComponentInput(BaseModel):
     proteins: List[uuid.UUID]
 
 
-class LocalisationComponentOutput(BaseModel):
-    proteins: List[uuid.UUID]
+class GeneOntologyComponentOutput(BaseModel):
+    proteins_with_gene_ontology: List[uuid.UUID]
 
 
-class LocalisationComponent(Component[LocalisationComponentInput, LocalisationComponentOutput]):
-    name = 'Localisation'
+class GeneOntologyComponent(Component[GeneOntologyComponentInput, GeneOntologyComponentOutput]):
+    name = 'GeneOntology'
 
     async def execute(self):
-        run_job_feature = RunJobFeature(api=InfrastructureDependencies.localisation_microservice())
+        run_job_feature = RunJobFeature(api=InfrastructureDependencies.gene_ontology_microservice())
         get_job_feature = GetJobFeature()
 
         for job in self.jobs:
@@ -37,8 +37,8 @@ class LocalisationComponent(Component[LocalisationComponentInput, LocalisationCo
             for protein_id in get_result.proteins:
                 items.append(protein_id)
 
-        self.output = LocalisationComponentOutput(
-            proteins=items
+        self.output = GeneOntologyComponentOutput(
+            proteins_with_gene_ontology=items
         )
 
     async def setup_jobs(self):
@@ -52,16 +52,15 @@ class LocalisationComponent(Component[LocalisationComponentInput, LocalisationCo
             result = await setup_job_feature.handle(request=SetupJobRequest(
                 experiment_id=self.experiment.id,
                 proteins=[protein.id],
-                job_id=None,
-                job_name=f'Localisation {protein.name.fasta_name}'
+                job_name=f'GeneOntology {protein.name.fasta_name}'
             ))
 
-            self.jobs.append(LocalisationJob.objects.with_id(result.job_id))
+            self.jobs.append(GeneOntologyJob.objects.with_id(result.job_id))
 
     async def prevalidate_jobs(self) -> List[JobValidationError]:
         validation_errors = []
 
-        job: LocalisationJob
+        job: GeneOntologyJob
         for job in self.jobs:
             if not job.proteins:
                 validation_errors.append(
@@ -74,9 +73,9 @@ class LocalisationComponent(Component[LocalisationComponentInput, LocalisationCo
         return validation_errors
 
     @property
-    def _input_parameter_type(self) -> Type[LocalisationComponentInput]:
-        return LocalisationComponentInput
+    def _input_parameter_type(self) -> Type[GeneOntologyComponentInput]:
+        return GeneOntologyComponentInput
 
     @property
-    def _output_parameter_type(self) -> Type[LocalisationComponentOutput]:
-        return LocalisationComponentOutput
+    def _output_parameter_type(self) -> Type[GeneOntologyComponentOutput]:
+        return GeneOntologyComponentOutput

@@ -12,11 +12,11 @@ from nolabs.workflow.component import Component, JobValidationError
 
 
 class FoldingComponentInput(BaseModel):
-    protein_ids: List[uuid.UUID]
+    proteins: List[uuid.UUID]
 
 
 class FoldingComponentOutput(BaseModel):
-    protein_ids: List[uuid.UUID]
+    proteins: List[uuid.UUID]
 
 
 class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput]):
@@ -40,7 +40,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
                 items.append(protein_id)
 
         self.output = FoldingComponentOutput(
-            protein_ids=items
+            proteins=items
         )
 
     async def setup_jobs(self):
@@ -48,14 +48,13 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
         self.jobs = []
 
-        for protein_id in self.input.protein_ids:
+        for protein_id in self.input.proteins:
             protein = Protein.objects.with_id(protein_id)
 
             result = await setup_job_feature.handle(request=SetupJobRequest(
                 experiment_id=self.experiment.id,
                 backend=FoldingBackendEnum.esmfold,
                 proteins=[protein.id],
-                job_id=None,
                 job_name=f'Folding {protein.name.fasta_name}'
             ))
 

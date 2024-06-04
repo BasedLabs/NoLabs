@@ -54,7 +54,7 @@ class ConformationsJob(Job):
                   protein: Protein,
                   integrator: Integrator = Integrator.langevin,
                   total_frames: int = 10000,
-                  temperature_k: float = 273.15,
+                  temperature_k: float = 309.75,
                   take_frame_every: int = 1000,
                   step_size: float = 0.002,
                   replace_non_standard_residues: bool = False,
@@ -111,6 +111,9 @@ class ConformationsJob(Job):
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
         self.timeline.append(timeline)
+
+    def input_valid(self) -> bool:
+        return not not self.protein
 
     def set_result(self,
                    protein: Protein,

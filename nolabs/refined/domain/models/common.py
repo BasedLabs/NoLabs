@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ['Protein',
            'ProteinId',
            'ProteinName',
@@ -24,13 +26,13 @@ from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from typing_extensions import Self
 
+from microservices.umol.umol.umol_source.src.net.common.protein import Protein
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.event_dispatcher import EventDispatcher
 from nolabs.refined.infrastructure.mongo_fields import ValueObjectStringField, ValueObjectFloatField
 from nolabs.seedwork.domain.entities import Entity
 from nolabs.seedwork.domain.events import DomainEvent
 from nolabs.seedwork.domain.value_objects import ValueObject, ValueObjectString, ValueObjectUUID, ValueObjectFloat
-from nolabs.utils.fasta import FastaReader
 
 
 @dataclass
@@ -198,6 +200,15 @@ class Protein(Document, Entity):
 
     binding_pockets: List[int] = ListField(IntField())
     md_content: bytes | None = BinaryField(required=False)
+
+    source_binding_protein = ReferenceField('Protein', required=False)
+    binding_ligand: Ligand = ReferenceField('Ligand', required=False)
+    sdf_content: bytes | None = BinaryField(required=False)
+    minimized_affinity: float | None = FloatField(required=False)
+    scored_affinity: float | None = FloatField(required=False)
+    confidence: float | None = FloatField(required=False)
+    plddt_array: List[int] = ListField(IntField, required=False)
+
     '''
     Conformations content
     '''
@@ -455,43 +466,6 @@ class Ligand(Document, Entity):
     drug_likeness: DrugLikenessScore | None = ValueObjectFloatField(factory=DrugLikenessScore, required=False)
     designed_ligand_score: DesignedLigandScore | None = FloatField(factory=DesignedLigandScore, required=False)
 
-    # TODO to check if we need it
-    # def __init__(
-    #        self,
-    #        id: LigandId,
-    #        experiment: Experiment,
-    #        name: LigandName,
-    #        smiles_content: Union[bytes, str, None] = None,
-    #        sdf_content: Union[bytes, str, None] = None,
-    #        *args,
-    #        **kwargs
-    # ):
-    #    if not id:
-    #        raise NoLabsException(ErrorCodes.invalid_ligand_id)
-    #    if not name:
-    #        raise NoLabsException(ErrorCodes.invalid_ligand_name)
-    #    if not experiment:
-    #        raise NoLabsException(ErrorCodes.invalid_experiment_id)
-
-    #    if not smiles_content and not sdf_content:
-    #        raise NoLabsException(ErrorCodes.ligand_initialization_error,
-    #                              'Cannot create a ligand without smiles and sdf content')
-
-    #    if smiles_content:
-    #        self.set_smiles(smiles_content)
-
-    #    if sdf_content:
-    #        self.set_sdf(sdf_content)
-
-    #    super().__init__(id=id.value if isinstance(id, LigandId) else id,
-    #                     experiment=experiment,
-    #                     name=name,
-    #                     smiles_content=smiles_content,
-    #                     sdf_content=sdf_content,
-    #                     *args, **kwargs)
-
-    #    EventDispatcher.raise_event(LigandCreatedEvent(self))
-
     def __hash__(self):
         return self.iid.__hash__()
 
@@ -606,7 +580,7 @@ class Ligand(Document, Entity):
                     scored_affinity: float | None = None,
                     confidence: float | None = None,
                     plddt_array: List[int] | None = None,
-                    pdb_content: bytes | str | None = None):
+                    pdb_content: bytes | str | None = None) -> Protein:
         if not plddt_array:
             plddt_array = []
 
@@ -619,27 +593,28 @@ class Ligand(Document, Entity):
         if isinstance(pdb_content, str):
             pdb_content = pdb_content.encode()
 
-        for existing_binding in LigandBinder.objects.filter(ligand=self):
-            if existing_binding.protein == protein and existing_binding.ligand == self:
-                existing_binding.sdf_content = sdf_content
-                existing_binding.scored_affinity = scored_affinity if scored_affinity else existing_binding.scored_affinity
-                existing_binding.minimized_affinity = minimized_affinity if minimized_affinity else existing_binding.minimized_affinity
-                existing_binding.confidence = confidence if confidence else existing_binding.confidence
-                existing_binding.plddt_array = plddt_array if plddt_array else existing_binding.plddt_array
-                existing_binding.pdb_content = pdb_content if pdb_content else existing_binding.pdb_content
-                existing_binding.save()
-                return
+        complexes = Protein.objects(ligand=self, protein=protein)
 
-        LigandBinder(
-            protein=protein,
-            ligand=self,
-            sdf_content=sdf_content,
-            minimized_affinity=minimized_affinity,
-            scored_affinity=scored_affinity,
-            confidence=confidence,
-            plddt_array=plddt_array,
-            pdb_content=pdb_content
-        ).save()  # TODO to check maybe save is not relevant here
+        if complexes:
+            complex = complexes[0]
+        else:
+            complex = Protein.create(
+                experiment=self.experiment,
+                name=ProteinName(f'{str(protein.name)}-{str(self.name)}-complex'),
+                pdb_content=pdb_content,
+                fasta_content=protein.fasta_content
+            )
+
+        complex.sdf_content = sdf_content
+        complex.scored_affinity = scored_affinity if scored_affinity else complex.scored_affinity
+        complex.minimized_affinity = minimized_affinity if minimized_affinity else complex.minimized_affinity
+        complex.confidence = confidence if confidence else complex.confidence
+        complex.plddt_array = plddt_array if plddt_array else complex.plddt_array
+        complex.pdb_content = pdb_content if pdb_content else complex.pdb_content
+
+        complex.save()
+
+        return complex
 
     def get_bindings(self) -> List['LigandBinder']:
         return LigandBinder.objects(ligand=self)

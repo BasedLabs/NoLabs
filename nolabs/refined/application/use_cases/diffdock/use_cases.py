@@ -5,12 +5,10 @@ __all__ = [
     'GetJobStatusFeature'
 ]
 
-from typing import List, Tuple
+from typing import List
 from uuid import UUID
 
 import diffdock_microservice
-import umol_microservice
-from diffdock_microservice import RunDiffDockPredictionRequest
 from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
@@ -30,7 +28,7 @@ def map_job_to_response(job: DiffDockBindingJob) -> JobResponse:
         ligand_id=job.ligand.iid.value,
         result=[
             JobResult(
-                ligand_id=res.ligand_id,
+                complex_id=res.complex_id,
                 sdf_content=res.sdf_content.decode('utf-8'),
                 minimized_affinity=res.minimized_affinity,
                 scored_affinity=res.scored_affinity,
@@ -156,7 +154,7 @@ class RunJobFeature:
             raise NoLabsException(ErrorCodes.diffdock_api_error, response.message)
 
         for item in response.sdf_results:
-            ligand.add_binding(
+            complex = ligand.add_binding(
                 protein=job.protein,
                 sdf_content=item.sdf_content,
                 minimized_affinity=item.minimized_affinity,
@@ -164,10 +162,9 @@ class RunJobFeature:
                 confidence=item.confidence,
                 plddt_array=[]
             )
-            ligand.save(cascade=True)
             result.append(
                 DiffDockJobResult(
-                    ligand_id=ligand.iid.value,
+                    complex_id=complex.iid.value,
                     sdf_content=item.sdf_content,
                     minimized_affinity=item.minimized_affinity,
                     scored_affinity=item.scored_affinity,

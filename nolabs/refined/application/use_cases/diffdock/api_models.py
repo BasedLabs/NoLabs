@@ -16,7 +16,7 @@ from pydantic.dataclasses import dataclass
 
 @dataclass
 class JobResult:
-    ligand_id: UUID
+    complex_id: UUID
     sdf_content: str
     minimized_affinity: Optional[float] = None
     scored_affinity: Optional[float] = None

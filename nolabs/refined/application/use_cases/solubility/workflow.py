@@ -12,11 +12,11 @@ from nolabs.workflow.component import Component, JobValidationError
 
 
 class SolubilityComponentInput(BaseModel):
-    protein_ids: List[uuid.UUID]
+    proteins: List[uuid.UUID]
 
 
 class SolubilityComponentOutput(BaseModel):
-    protein_ids: List[uuid.UUID]
+    proteins_with_solubility: List[uuid.UUID]
 
 
 class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponentOutput]):
@@ -38,7 +38,7 @@ class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponen
                 items.append(protein_id)
 
         self.output = SolubilityComponentOutput(
-            protein_ids=items
+            proteins_with_solubility=items
         )
 
     async def setup_jobs(self):
@@ -46,19 +46,16 @@ class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponen
 
         self.jobs = []
 
-        for protein_id in self.input.protein_ids:
+        for protein_id in self.input.proteins:
             protein = Protein.objects.with_id(protein_id)
 
             result = await setup_job_feature.handle(request=SetupJobRequest(
                 experiment_id=self.experiment.id,
                 proteins=[protein.id],
-                job_id=None,
                 job_name=f'Solubility {protein.name.fasta_name}'
             ))
 
             self.jobs.append(SolubilityJob.objects.with_id(result.job_id))
-
-        self.save(cascade=True)
 
     async def prevalidate_jobs(self) -> List[JobValidationError]:
         validation_errors = []
