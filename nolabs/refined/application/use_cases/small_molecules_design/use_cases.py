@@ -207,7 +207,16 @@ class RunLearningStageJobFeature:
         self._api = api
 
     async def handle(self, job_id: UUID):
-        self._api.learning_api_reinvent_config_id_start_learning_post(config_id=str(job_id))
+        job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
+
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
+
+        if job.input_valid():
+            self._api.learning_api_reinvent_config_id_start_learning_post(config_id=str(job_id))
+            return
+
+        raise NoLabsException(ErrorCodes.invalid_job_input, 'Binding pocket box is undefined for the job')
 
 
 class RunSamplingStageJobFeature:

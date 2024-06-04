@@ -1,6 +1,6 @@
 __all__ = [
     'PropertyValidationError',
-    'PythonComponent',
+    'Component',
 ]
 
 import asyncio
@@ -29,7 +29,7 @@ def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
 
 
-class PythonComponent(Generic[TInput, TOutput]):
+class Component(Generic[TInput, TOutput]):
     id: uuid.UUID
     name: str
     execution_timeout: int
@@ -41,7 +41,7 @@ class PythonComponent(Generic[TInput, TOutput]):
     input_parameter_dict: Dict[str, Any]
     output_parameter_dict: Dict[str, Any]
 
-    _previous: List['PythonComponent']
+    _previous: List['Component']
 
     jobs: List[Job] = []
 
@@ -109,7 +109,7 @@ class PythonComponent(Generic[TInput, TOutput]):
     def validate_input(self):
         return self._input_schema.validate_dictionary(dictionary=self.input_parameter_dict)
 
-    def add_previous(self, component: Union['PythonComponent', List['PythonComponent']]):
+    def add_previous(self, component: Union['Component', List['Component']]):
         if isinstance(component, list):
             for c in component:
                 if c not in self.previous:
@@ -122,13 +122,13 @@ class PythonComponent(Generic[TInput, TOutput]):
 
         self.previous.append(component)
 
-    def try_map_property(self, component: 'PythonComponent', path_from: List[str], path_to: List[str]) -> Optional[
+    def try_map_property(self, component: 'Component', path_from: List[str], path_to: List[str]) -> Optional[
         PropertyValidationError]:
         if component not in self.previous:
             raise ValueError(f'Cannot map parameter {path_to} for unmapped component {component.id}')
 
-        if not isinstance(component, PythonComponent):
-            raise ValueError(f'Component is not a {PythonComponent}')  # TODO change later
+        if not isinstance(component, Component):
+            raise ValueError(f'Component is not a {Component}')  # TODO change later
 
         return self._input_schema.try_set_mapping(
             source_schema=component._output_schema,
@@ -163,8 +163,8 @@ class PythonComponent(Generic[TInput, TOutput]):
                 current_level[path[-1]] = prop.default
 
         for component in self.previous:
-            if not isinstance(component, PythonComponent):
-                raise ValueError(f'Component is not a {PythonComponent}')  # TODO change later
+            if not isinstance(component, Component):
+                raise ValueError(f'Component is not a {Component}')  # TODO change later
             for prop in self._input_schema.mapped_properties:
                 if prop.source_component_id == component.id:
 
@@ -213,7 +213,7 @@ class PythonComponent(Generic[TInput, TOutput]):
         return self._output_schema.properties
 
     @property
-    def previous(self) -> List['PythonComponent']:
+    def previous(self) -> List['Component']:
         return self._previous
 
     @property
@@ -269,7 +269,7 @@ class PythonComponent(Generic[TInput, TOutput]):
         return self.id.__hash__()
 
     def __eq__(self, other):
-        if not isinstance(other, PythonComponent):
+        if not isinstance(other, Component):
             return False
 
         return self.id == other.id

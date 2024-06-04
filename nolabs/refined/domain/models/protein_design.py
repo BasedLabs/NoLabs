@@ -54,6 +54,13 @@ class ProteinDesignJob(Job):
         self.timesteps = timesteps
         self.protein = protein
 
+    def input_valid(self) -> bool:
+        if (not self.protein or not self.contig or not self.protein.pdb_content or not self.number_of_designs or
+                self.number_of_designs <= 0 or not self.timesteps or self.timesteps <= 0):
+            return False
+
+        return True
+
     def set_result(self,
                    protein: Protein,
                    binders: List[Protein]):

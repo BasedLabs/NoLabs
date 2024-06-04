@@ -20,11 +20,6 @@ class MsaGenerationJob(Job):
 
     # endregion
 
-    contig: str = StringField(required=False)
-    number_of_designs: int = IntField(required=False, default=2)
-    hotspots: str = StringField(required=False)
-    timesteps: int = IntField(required=False, default=50)
-
     def set_input(self, protein: Protein):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
@@ -37,6 +32,9 @@ class MsaGenerationJob(Job):
 
     def clear_result(self):
         self.msa = None
+
+    def input_valid(self) -> bool:
+        return not not self.protein
 
     def set_result(self,
                    protein: Protein,

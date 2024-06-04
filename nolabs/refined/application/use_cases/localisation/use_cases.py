@@ -35,25 +35,20 @@ def map_job_to_response(job: LocalisationJob) -> JobResponse:
         ]
     )
 
+
 class GetJobFeature:
     """
     Use case - get job information.
     """
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            job_id = JobId(job_id)
-            job: LocalisationJob = LocalisationJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: LocalisationJob = LocalisationJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            if isinstance(e, NoLabsException):
-                raise e
-
-            raise NoLabsException(ErrorCodes.unknown_exception) from e
+        return map_job_to_response(job)
 
 
 class RunJobFeature:
@@ -63,93 +58,81 @@ class RunJobFeature:
         self._api = api
 
     async def handle(self, job_id: UUID) -> JobResponse:
-        try:
-            assert job_id
+        assert job_id
 
-            job_id = JobId(job_id)
-            job: LocalisationJob = LocalisationJob.objects.with_id(job_id.value)
+        job_id = JobId(job_id)
+        job: LocalisationJob = LocalisationJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            result: List[Tuple[Protein, LocalisationProbability]] = []
+        result: List[Tuple[Protein, LocalisationProbability]] = []
 
-            for protein in job.proteins:
-                response = self._api.run_localisation_prediction_run_localisation_prediction_post(
-                    run_localisation_prediction_request=RunLocalisationPredictionRequest(
-                        amino_acid_sequence=protein.get_amino_acid_sequence()
-                    )
+        for protein in job.proteins:
+            response = self._api.run_localisation_prediction_run_localisation_prediction_post(
+                run_localisation_prediction_request=RunLocalisationPredictionRequest(
+                    amino_acid_sequence=protein.get_amino_acid_sequence()
                 )
+            )
 
-                if response.errors:
-                    raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
+            if response.errors:
+                raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
 
-                localisation_probability = LocalisationProbability(
-                    cytosolic=response.cytosolic_proteins,
-                    mitochondrial=response.mitochondrial_proteins,
-                    nuclear=response.nuclear_proteins,
-                    other=response.other_proteins,
-                    extracellular=response.extracellular_secreted_proteins
-                )
+            localisation_probability = LocalisationProbability(
+                cytosolic=response.cytosolic_proteins,
+                mitochondrial=response.mitochondrial_proteins,
+                nuclear=response.nuclear_proteins,
+                other=response.other_proteins,
+                extracellular=response.extracellular_secreted_proteins
+            )
 
-                result.append((protein, localisation_probability))
+            result.append((protein, localisation_probability))
 
-            job.set_result(result)
-            job.save(cascade=True)
+        job.set_result(result)
+        job.save(cascade=True)
 
-            for protein, prob in result:
-                protein.set_localisation_probability(prob)
-                protein.save(cascade=True)
+        for protein, prob in result:
+            protein.set_localisation_probability(prob)
+            protein.save(cascade=True)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        return map_job_to_response(job)
 
 
 class SetupJobFeature:
     """
     Use case - create new or update existing job.
     """
+
     async def handle(self, request: SetupJobRequest) -> JobResponse:
-        try:
-            assert request
+        assert request
 
-            job_id = JobId(request.job_id if request.job_id else generate_uuid())
-            job_name = JobName(request.job_name if request.job_name else 'New localisation job')
+        job_id = JobId(request.job_id if request.job_id else generate_uuid())
+        job_name = JobName(request.job_name if request.job_name else 'New localisation job')
 
-            experiment = Experiment.objects.with_id(request.experiment_id)
+        experiment = Experiment.objects.with_id(request.experiment_id)
 
-            if not experiment:
-                raise NoLabsException(ErrorCodes.experiment_not_found)
+        if not experiment:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: LocalisationJob = LocalisationJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
+        job: LocalisationJob = LocalisationJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
 
-            if not job:
-                job = LocalisationJob(
-                    id=job_id,
-                    name=job_name,
-                    experiment=experiment
-                )
+        if not job:
+            job = LocalisationJob(
+                id=job_id,
+                name=job_name,
+                experiment=experiment
+            )
 
-            proteins: List[Protein] = []
-            for protein_id in request.proteins:
-                protein = Protein.objects(id=protein_id, experiment=experiment).first()
+        proteins: List[Protein] = []
+        for protein_id in request.proteins:
+            protein = Protein.objects(id=protein_id, experiment=experiment).first()
 
-                if not protein:
-                    raise NoLabsException(ErrorCodes.protein_not_found)
+            if not protein:
+                raise NoLabsException(ErrorCodes.protein_not_found)
 
-                proteins.append(protein)
+            proteins.append(protein)
 
-            job.set_input(proteins=proteins)
-            job.save(cascade=True)
+        job.set_input(proteins=proteins)
+        job.save(cascade=True)
 
-            return map_job_to_response(job)
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_folding_error) from e
-            raise e
-
+        return map_job_to_response(job)

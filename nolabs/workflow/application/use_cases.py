@@ -6,8 +6,8 @@ from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Experiment
 from nolabs.workflow.application.api_models import GetComponentStateResponse, GetComponentStateRequest, \
     AllWorkflowSchemasResponse
-from nolabs.workflow.component import PythonComponent
-from nolabs.workflow.models import WorkflowSchemaDbModel, PythonComponentDbModel
+from nolabs.workflow.component import Component
+from nolabs.workflow.models import WorkflowSchemaDbModel, ComponentDbModel
 from nolabs.workflow.properties import Property
 from nolabs.workflow.workflow import Workflow
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel
@@ -55,11 +55,10 @@ class AllWorkflowSchemasFeature:
         )
 
 
-
 class CreateWorkflowSchemaFeature:
-    available_components: Dict[str, Type[PythonComponent]]
+    available_components: Dict[str, Type[Component]]
 
-    def __init__(self, available_components: Dict[str, Type[PythonComponent]]):
+    def __init__(self, available_components: Dict[str, Type[Component]]):
         self.available_components = available_components
 
     async def handle(self, experiment_id: UUID) -> WorkflowSchemaModel:
@@ -106,9 +105,9 @@ class GetWorkflowSchemaFeature:
 
 
 class SetWorkflowSchemaFeature:
-    available_components: Dict[str, Type[PythonComponent]]
+    available_components: Dict[str, Type[Component]]
 
-    def __init__(self, available_components: Dict[str, Type[PythonComponent]]):
+    def __init__(self, available_components: Dict[str, Type[Component]]):
         self.available_components = available_components
 
     async def handle(self, workflow_schema: WorkflowSchemaModel) -> WorkflowSchemaModel:
@@ -123,7 +122,7 @@ class SetWorkflowSchemaFeature:
                 db_model.save()
                 return workflow_schema
 
-        components: List[PythonComponent] = [
+        components: List[Component] = [
             self.available_components[wf.name](id=wf.component_id, experiment=db_model.experiment) for wf in
             workflow_schema.workflow_components
         ]
@@ -174,11 +173,11 @@ class SetWorkflowSchemaFeature:
 
         return workflow_schema
 
-    def is_cyclic(self, graph: List[PythonComponent]) -> bool:
+    def is_cyclic(self, graph: List[Component]) -> bool:
         visited: Set[WorkflowGraphNode] = set()  # type: ignore
         recursion_stack = set()
 
-        def dfs(vertex: PythonComponent):
+        def dfs(vertex: Component):
             if vertex in recursion_stack:
                 return True
             if vertex in visited:
@@ -203,9 +202,9 @@ class SetWorkflowSchemaFeature:
 
 
 class StartWorkflowFeature:
-    available_components: Dict[str, Type[PythonComponent]]
+    available_components: Dict[str, Type[Component]]
 
-    def __init__(self, available_components: Dict[str, Type[PythonComponent]]):
+    def __init__(self, available_components: Dict[str, Type[Component]]):
         self.available_components = available_components
 
     async def handle(self, experiment_id: UUID):
@@ -219,23 +218,24 @@ class StartWorkflowFeature:
             raise NoLabsException(ErrorCodes.invalid_workflow_schema,
                                   f'Run {SetWorkflowSchemaFeature.__name__} to get schema errors')
 
-        components: List[PythonComponent] = []
+        components: List[Component] = []
 
-        component: PythonComponent
+        component: Component
         for workflow_component in workflow_schema.workflow_components:
-            component_db_model: PythonComponentDbModel = PythonComponentDbModel.objects.with_id(
+            component_db_model: ComponentDbModel = ComponentDbModel.objects.with_id(
                 workflow_component.component_id)
             if component_db_model:
-                component: PythonComponent = self.available_components[workflow_component.name](id=workflow_component.component_id,
-                                                             jobs=component_db_model.jobs,
-                                                             input_parameter_dict=component_db_model.input_parameter_dict,
-                                                             output_parameter_dict=component_db_model.output_parameter_dict,
-                                                             experiment=experiment)
+                component: Component = self.available_components[workflow_component.name](
+                    id=workflow_component.component_id,
+                    jobs=component_db_model.jobs,
+                    input_parameter_dict=component_db_model.input_parameter_dict,
+                    output_parameter_dict=component_db_model.output_parameter_dict,
+                    experiment=experiment)
             else:
                 id = uuid.uuid4()
-                component: PythonComponent = self.available_components[workflow_component.name](id=id,
+                component: Component = self.available_components[workflow_component.name](id=id,
                                                                                                 experiment=experiment)
-                component_db_model = PythonComponentDbModel(
+                component_db_model = ComponentDbModel(
                     id=id,
                     workflow=db_model,
                     last_exception='',
@@ -248,14 +248,14 @@ class StartWorkflowFeature:
             components.append(component)
 
         for workflow_component in workflow_schema.workflow_components:
-            component: PythonComponent = [c for c in components if c.id == workflow_component.component_id][0]
+            component: Component = [c for c in components if c.id == workflow_component.component_id][0]
 
             if not component:
                 raise NoLabsException(ErrorCodes.component_not_found)
 
             # Check that component mappings exist
             for mapping in workflow_component.mappings:
-                source_component: PythonComponent = [c for c in components if c.id == mapping.source_component_id][0]
+                source_component: Component = [c for c in components if c.id == mapping.source_component_id][0]
 
                 component.add_previous(component=source_component)
                 component.try_map_property(component=source_component,
@@ -271,7 +271,7 @@ class StartWorkflowFeature:
 
 class GetComponentParametersFeature:
     async def handle(self, request: GetComponentStateRequest) -> GetComponentStateResponse:
-        component: PythonComponentDbModel = PythonComponentDbModel.objects.with_id(request.component_id)
+        component: ComponentDbModel = ComponentDbModel.objects.with_id(request.component_id)
 
         if not component:
             raise NoLabsException(ErrorCodes.component_not_found)

@@ -3,29 +3,27 @@ from typing import List, Type
 
 from pydantic import BaseModel
 
-from nolabs.refined.application.use_cases.folding.api_models import FoldingBackendEnum, SetupJobRequest
-from nolabs.refined.application.use_cases.folding.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
-from nolabs.refined.domain.models.common import Protein
-from nolabs.refined.domain.models.folding import FoldingJob
+from nolabs.refined.application.use_cases.localisation.api_models import SetupJobRequest
+from nolabs.refined.application.use_cases.localisation.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
+from nolabs.refined.domain.models.common import Protein, Experiment
+from nolabs.refined.domain.models.localisation import LocalisationJob
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
 from nolabs.workflow.component import Component, JobValidationError
 
 
-class FoldingComponentInput(BaseModel):
+class LocalisationComponentInput(BaseModel):
     protein_ids: List[uuid.UUID]
 
 
-class FoldingComponentOutput(BaseModel):
+class LocalisationComponentOutput(BaseModel):
     protein_ids: List[uuid.UUID]
 
 
-class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput]):
-    name = 'Folding'
+class LocalisationComponent(Component[LocalisationComponentInput, LocalisationComponentOutput]):
+    name = 'Localisation'
 
     async def execute(self):
-        run_job_feature = RunJobFeature(
-            esmfold=InfrastructureDependencies.esmfold_microservice()
-        )
+        run_job_feature = RunJobFeature(api=InfrastructureDependencies.localisation_microservice())
         get_job_feature = GetJobFeature()
 
         for job in self.jobs:
@@ -39,7 +37,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
             for protein_id in get_result.proteins:
                 items.append(protein_id)
 
-        self.output = FoldingComponentOutput(
+        self.output = LocalisationComponentOutput(
             protein_ids=items
         )
 
@@ -53,18 +51,19 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
             result = await setup_job_feature.handle(request=SetupJobRequest(
                 experiment_id=self.experiment.id,
-                backend=FoldingBackendEnum.esmfold,
                 proteins=[protein.id],
                 job_id=None,
-                job_name=f'Folding {protein.name.fasta_name}'
+                job_name=f'Localisation {protein.name.fasta_name}'
             ))
 
-            self.jobs.append(FoldingJob.objects.with_id(result.job_id))
+            self.jobs.append(LocalisationJob.objects.with_id(result.job_id))
+
+        self.save(cascade=True)
 
     async def prevalidate_jobs(self) -> List[JobValidationError]:
         validation_errors = []
 
-        job: FoldingJob
+        job: LocalisationJob
         for job in self.jobs:
             if not job.proteins:
                 validation_errors.append(
@@ -77,9 +76,9 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
         return validation_errors
 
     @property
-    def _input_parameter_type(self) -> Type[FoldingComponentInput]:
-        return FoldingComponentInput
+    def _input_parameter_type(self) -> Type[LocalisationComponentInput]:
+        return LocalisationComponentInput
 
     @property
-    def _output_parameter_type(self) -> Type[FoldingComponentOutput]:
-        return FoldingComponentOutput
+    def _output_parameter_type(self) -> Type[LocalisationComponentOutput]:
+        return LocalisationComponentOutput

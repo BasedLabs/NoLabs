@@ -8,7 +8,7 @@ from nolabs.refined.application.use_cases.solubility.use_cases import SetupJobFe
 from nolabs.refined.domain.models.common import Protein, Experiment
 from nolabs.refined.domain.models.solubility import SolubilityJob
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import PythonComponent, JobValidationError
+from nolabs.workflow.component import Component, JobValidationError
 
 
 class SolubilityComponentInput(BaseModel):
@@ -19,7 +19,7 @@ class SolubilityComponentOutput(BaseModel):
     protein_ids: List[uuid.UUID]
 
 
-class SolubilityComponent(PythonComponent[SolubilityComponentInput, SolubilityComponentOutput]):
+class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponentOutput]):
     name = 'Solubility'
 
     async def execute(self):

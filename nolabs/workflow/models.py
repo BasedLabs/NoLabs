@@ -33,7 +33,7 @@ class WorkflowSchemaDbModel(Document):
         self.value = pickle.dumps(value)
 
 
-class PythonComponentDbModel(Document):
+class ComponentDbModel(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
     workflow: WorkflowSchemaDbModel = ReferenceField(WorkflowSchemaDbModel, reverse_delete_rule=CASCADE)
 

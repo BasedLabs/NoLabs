@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
-from nolabs.workflow.component import PythonComponent
-from nolabs.workflow.models import PythonComponentDbModel, WorkflowSchemaDbModel
+from nolabs.workflow.component import Component
+from nolabs.workflow.models import ComponentDbModel, WorkflowSchemaDbModel
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel, JobValidationError
 
 
@@ -12,11 +12,11 @@ class WorkflowValidationError:
 
 
 class Workflow:
-    async def execute(self, workflow_schema: WorkflowSchemaModel, components: List[PythonComponent]):
+    async def execute(self, workflow_schema: WorkflowSchemaModel, components: List[Component]):
         workflow_db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_schema.workflow_id)
 
-        async def execute(component: PythonComponent):
-            component_db_model: PythonComponentDbModel = PythonComponentDbModel.objects.with_id(component.id)
+        async def execute(component: Component):
+            component_db_model: ComponentDbModel = ComponentDbModel.objects.with_id(component.id)
 
             for previous in component.previous:
                 await execute(previous)

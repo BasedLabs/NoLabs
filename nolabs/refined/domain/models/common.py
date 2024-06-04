@@ -202,39 +202,6 @@ class Protein(Document, Entity):
     Conformations content
     '''
 
-    # TODO check if we need this
-    # def __init__(
-    #         self,
-    #         id: ProteinId,
-    #         experiment: Experiment,
-    #         name: ProteinName,
-    #         fasta_content: Union[bytes, str, None] = None,
-    #         pdb_content: Union[bytes, str, None] = None,
-    #         *args,
-    #         **kwargs
-    # ):
-    #     if not id:
-    #         raise NoLabsException(ErrorCodes.invalid_protein_id)
-    #     if not name:
-    #         raise NoLabsException(ErrorCodes.invalid_protein_name)
-    #     if not experiment:
-    #         raise NoLabsException(ErrorCodes.invalid_experiment_id)
-    #
-    #     if isinstance(fasta_content, str):
-    #         fasta_content = fasta_content.encode('utf-8')
-    #
-    #     if isinstance(fasta_content, str):
-    #         pdb_content = pdb_content.encode('utf-8')
-    #
-    #     super().__init__(id=id.value if isinstance(id, ProteinId) else id,
-    #                      experiment=experiment,
-    #                      name=name,
-    #                      fasta_content=fasta_content,
-    #                      pdb_content=pdb_content,
-    #                      *args, **kwargs)
-    #
-    #     EventDispatcher.raise_event(ProteinCreatedEvent(self))
-
     def get_msa(self) -> str | None:
         if self.msa:
             return self.msa.decode('utf-8')
@@ -587,8 +554,6 @@ class Ligand(Document, Entity):
                sdf_content: Union[bytes, str, None] = None,
                *args,
                **kwargs) -> 'Ligand':
-        if not id:
-            raise NoLabsException(ErrorCodes.invalid_ligand_id)
         if not name:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
         if not experiment:
@@ -617,8 +582,15 @@ class Ligand(Document, Entity):
             ligand.set_name(name)
             return ligand
 
+        if 'id' not in kwargs:
+            id = LigandId(uuid.uuid4()).value
+        else:
+            id = kwargs.get('id')
+            if isinstance(id, LigandId):
+                id = id.value
+
         return Ligand(
-            id=LigandId(uuid.uuid4()).value,
+            id=id,
             experiment=experiment,
             name=name,
             smiles_content=smiles_content,
@@ -629,17 +601,17 @@ class Ligand(Document, Entity):
 
     def add_binding(self,
                     protein: 'Protein',
-                    sdf_content: bytes | None,
-                    minimized_affinity: float | None,
-                    scored_affinity: float | None,
-                    confidence: float | None,
-                    plddt_array: List[int],
+                    sdf_content: bytes | None = None,
+                    minimized_affinity: float | None = None,
+                    scored_affinity: float | None = None,
+                    confidence: float | None = None,
+                    plddt_array: List[int] | None = None,
                     pdb_content: bytes | str | None = None):
+        if not plddt_array:
+            plddt_array = []
+
         if not protein:
             raise NoLabsException(ErrorCodes.protein_is_undefined)
-
-        if not sdf_content:
-            raise NoLabsException(ErrorCodes.sdf_content_is_undefined)
 
         if isinstance(sdf_content, str):
             sdf_content = sdf_content.encode()
@@ -739,7 +711,7 @@ class ProteinBinder(Document):
 class LigandBinder(Document):
     protein: Protein = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
     ligand: Ligand = ReferenceField(Ligand, required=True, reverse_delete_rule=CASCADE)
-    sdf_content: bytes | None = BinaryField(required=True)
+    sdf_content: bytes | None = BinaryField(required=False)
     minimized_affinity: float | None = FloatField(required=False)
     scored_affinity: float | None = FloatField(required=False)
     confidence: float | None = FloatField(required=False)

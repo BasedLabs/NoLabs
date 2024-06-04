@@ -1,11 +1,11 @@
 from typing import List
 
-from nolabs.workflow.component import PythonComponent
+from nolabs.workflow.component import Component
 from nolabs.workflow.workflow_schema import ComponentModel
 
 
 class WorkflowTestsMixin:
-    def create_workflow(self, components: List[PythonComponent]):
+    def create_workflow(self, components: List[Component]):
         models = []
 
         for component in components:

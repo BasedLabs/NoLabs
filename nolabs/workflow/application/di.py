@@ -12,12 +12,12 @@ from nolabs.refined.application.use_cases.folding.workflow import FoldingCompone
 from nolabs.refined.application.use_cases.proteins.workflow import ProteinsComponent
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
     SetWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature
-from nolabs.workflow.component import PythonComponent
+from nolabs.workflow.component import Component
 
 
 class WorkflowDependencies:
     @staticmethod
-    def available_components() -> Dict[str, Type[PythonComponent]]:
+    def available_components() -> Dict[str, Type[Component]]:
         return {
             FoldingComponent.name: FoldingComponent,
             ProteinsComponent.name: ProteinsComponent
@@ -25,7 +25,7 @@ class WorkflowDependencies:
 
     @staticmethod
     def create_workflow_schema(components: Annotated[
-        Dict[str, Type[PythonComponent]], Depends(WorkflowDependencies.available_components)]) -> CreateWorkflowSchemaFeature:
+        Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)]) -> CreateWorkflowSchemaFeature:
         return CreateWorkflowSchemaFeature(
             available_components=components
         )
@@ -40,14 +40,14 @@ class WorkflowDependencies:
 
     @staticmethod
     def set_workflow_schema(components: Annotated[
-        Dict[str, Type[PythonComponent]], Depends(WorkflowDependencies.available_components)]) -> SetWorkflowSchemaFeature:
+        Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)]) -> SetWorkflowSchemaFeature:
         return SetWorkflowSchemaFeature(
             available_components=components
         )
 
     @staticmethod
     def start_workflow(components: Annotated[
-        Dict[str, Type[PythonComponent]], Depends(WorkflowDependencies.available_components)]) -> StartWorkflowFeature:
+        Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)]) -> StartWorkflowFeature:
         return StartWorkflowFeature(
             available_components=components
         )
