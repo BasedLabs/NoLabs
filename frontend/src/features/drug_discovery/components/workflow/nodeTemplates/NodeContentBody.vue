@@ -29,6 +29,31 @@
     </draggable>
   </q-card-section>
 
+  <q-card-section class="result-section q-pa-sm">
+    <h7 class="text-white q-pa-sm">Results</h7>
+    <draggable class="q-pa-sm" v-model="results" handle=".drag-handle" item-key="job_id">
+      <template #item="{ element }">
+        <q-item class="bg-grey-3 text-black q-pa-sm q-mb-sm q-border-radius-md">
+          <q-item-section>
+            <q-icon name="drag_indicator" class="drag-handle q-mr-sm" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ element.job_id }}</q-item-label>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ element.job_name }}</q-item-label>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Completed</q-item-label>
+          </q-item-section>
+          <q-item-section>
+            <q-btn @click="openJob(element)" label="View Job" dense />
+          </q-item-section>
+        </q-item>
+      </template>
+    </draggable>
+  </q-card-section>
+
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
       <esm-fold-job v-if="jobType === 'Folding'" :job-id="selectedJobId" />
@@ -61,6 +86,7 @@ export default defineComponent({
   data() {
     return {
       jobs: [] as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>,
+      results: [] as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>,
       selectedJobId: '',
       selectedJobType: '',
       showJobModal: false,
@@ -91,8 +117,15 @@ export default defineComponent({
       return { ...job, executionStatus };
     }));
 
+    // Separate jobs with results into the results array
+    jobsWithStatus.forEach(job => {
+      if (job && job.executionStatus && job.executionStatus.running === false) {
+        this.results.push(job);
+      } else if (job) {
+        this.jobs.push(job);
+      }
+    });
 
-    this.jobs = jobsWithStatus;
     this.loading = false;
   },
   methods: {
@@ -113,6 +146,11 @@ export default defineComponent({
 
 <style scoped>
 .job-section {
+  border: 1px dashed #ccc;
+  padding: 10px;
+}
+
+.result-section {
   border: 1px dashed #ccc;
   padding: 10px;
 }

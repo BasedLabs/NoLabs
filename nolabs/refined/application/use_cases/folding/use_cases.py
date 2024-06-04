@@ -146,7 +146,7 @@ class RunJobFeature:
 
     def __init__(self,
                  esmfold: Optional[esmfold_microservice.DefaultApi] = None,
-                 esmfold_light: Optional[esmfold_microservice.DefaultApi] = None,
+                 esmfold_light: Optional[esmfold_light_microservice.DefaultApi] = None,
                  rosettafold: Optional[rosettafold_microservice.DefaultApi] = None):
         if not esmfold and not esmfold_light and not rosettafold:
             raise NoLabsException(ErrorCodes.folding_run_error, 'You must specify at least one folding backend')
@@ -202,11 +202,11 @@ class RunJobFeature:
             return (response.pdb_content, response.errors)
 
         if folding_backend == FoldingBackendEnum.esmfold_light:
-            response = self._esmfold_light.predict_run_folding_post(
+            response = self._esmfold_light.predict_through_api_run_folding_post(
                 run_esm_fold_prediction_request=esmfold_light_microservice.RunEsmFoldPredictionRequest(
                     protein_sequence=sequence
                 ), _request_timeout=(1000.0, 1000.0))
-            return (response.pdb_content, response.errors)
+            return (response.pdb_content, [])
 
         if folding_backend == FoldingBackendEnum.rosettafold:
             response = self._rosettafold.run_folding_run_folding_post(
