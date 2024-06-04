@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type nolabs__refined__application__use_cases__diffdock__api_models__JobResult = {
-    ligand_id: string;
+    complex_id: string;
     sdf_content: string;
     minimized_affinity?: (number | null);
     scored_affinity?: (number | null);

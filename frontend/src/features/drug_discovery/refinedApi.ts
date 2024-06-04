@@ -70,7 +70,7 @@ export function sendWorkflowUpdate(workflow: WorkflowSchemaModel_Input): Cancela
   return WorkflowService.setWorkflowSchemaApiV1WorkflowPut(workflow)
 }
 
-export function startWorkflow(experimentId: string): CancelablePromise<any> {
+export function startWorkflowforExperiment(experimentId: string): CancelablePromise<any> {
   return WorkflowService.startWorkflowApiV1WorkflowExperimentIdStartPost(experimentId)
 }
 

@@ -13,5 +13,7 @@ export type WorkflowComponentModel = {
     error?: (string | null);
     defaults?: Array<DefaultWorkflowComponentModelValue>;
     jobs_errors: Array<JobValidationError>;
+    'x'?: number;
+    'y'?: number;
 };
 

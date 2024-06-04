@@ -15,11 +15,11 @@
         </q-list>
       </q-btn-dropdown>
       <q-space />
-      <q-btn class="q-ma-sm" color="green" icon="not_started">Run workflow</q-btn>
+      <q-btn class="q-ma-sm" color="green" icon="not_started" @click="startWorkflow"> Start workflow </q-btn>
     </div>
 
     <div class="map-container">
-      <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes" :nodeDragStop="onNodeDragStopHandler"
+      <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes" @nodeDragStop="onNodeDragStopHandler"
         :edges="elements.edges" @connect="onConnect" fit-view-on-init>
         <template #node-Proteins="{ id }">
           <ProteinListNode :nodeId="id" :inputs="elements.nodes.find(n => n.id === id)?.data.inputs"
@@ -92,7 +92,7 @@ import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import JobNode from "./components/workflow/JobNode.vue";
 import JobNodeContent from "./components/workflow/JobNodeContent.vue";
-import { getWorkflow, sendWorkflowUpdate } from 'src/features/drug_discovery/refinedApi';
+import { getWorkflow, sendWorkflowUpdate, startWorkflowforExperiment } from 'src/features/drug_discovery/refinedApi';
 import {
   ComponentModel_Output,
   WorkflowSchemaModel_Input,
@@ -224,7 +224,7 @@ export default defineComponent({
               jobIds: component.job_ids,
               draggable: false
             },
-            position: { x: 100, y: 100 } // Default position, should be calculated based on layout logic
+            position: { x: component.x !== undefined ? component.x : 100, y: component.y !== undefined ? component.y : 100 }
           };
           nodes.push(nodeData);
         });
@@ -268,6 +268,8 @@ export default defineComponent({
           name: node.name,
           component_id: node.id,
           job_ids: node.data.jobIds,
+          x: node.position.x,
+          y: node.position.y,
           mappings: this.elements.edges
             .filter(edge => edge.target === node.id)
             .map(edge => ({
@@ -351,6 +353,9 @@ export default defineComponent({
     closeModal() {
       this.modalOpen = false;
     },
+    startWorkflow() {
+      startWorkflowforExperiment(this.experiment.experimentId as string);
+    },
     onNodeDragStopHandler(event: { node: Node }) {
       const id = event.node.id;
       const newPosition = event.node.position;
@@ -360,7 +365,6 @@ export default defineComponent({
       if (nodeToUpdate) {
         nodeToUpdate.position = newPosition;
 
-        // Send the workflow update
         this.sendWorkflowUpdate();
       }
     },
