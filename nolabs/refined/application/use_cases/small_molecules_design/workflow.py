@@ -23,7 +23,7 @@ class SmallMoleculesDesignLearningOutputItem(BaseModel):
 
 
 class SmallMoleculesDesignLearningOutput(BaseModel):
-    items: List[SmallMoleculesDesignLearningOutputItem]
+    protein_ligands_pairs: List[SmallMoleculesDesignLearningOutputItem]
 
 
 class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearningInput, SmallMoleculesDesignLearningOutput]):
@@ -67,7 +67,7 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
             ))
 
         self.output = SmallMoleculesDesignLearningOutput(
-            items=result
+            protein_ligands_pairs=result
         )
 
     async def setup_jobs(self):

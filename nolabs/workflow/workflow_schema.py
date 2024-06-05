@@ -15,6 +15,7 @@ class ItemsModel(BaseModel):
     format: Optional[str] = None
     default: Optional[Any] = None
     example: Optional[Any] = None
+    items: Optional[Union['ItemsModel', List['ItemsModel']]] = None
 
 
 

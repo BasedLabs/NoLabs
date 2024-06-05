@@ -27,19 +27,28 @@ def map_items(i: Items, schema: ParameterSchema) -> ItemsModel:
     if ref:
         definition = schema.defs[schema.get_ref_type_name(ref)]
 
+    items = None
+
+    if i.items:
+        items = map_items(i.items, schema) if not isinstance(i.items, list) else [map_items(item, schema) for item in
+                                                                                  i.items]
+
+    properties = {name: map_property(prop, schema) for name, prop in (definition.properties if
+                                                                      definition.properties else {}).items()} if definition else \
+        {name: map_property(prop, schema) for name, prop in (i.properties if
+                                                             i.properties else {}).items()}
+
     return ItemsModel(
         type=i.type,
-        properties={name: map_property(prop, schema) for name, prop in (definition.properties if
-                                                                        definition.properties else {}).items()} if definition else
-        {name: map_property(prop, schema) for name, prop in (i.properties if
-                                                             i.properties else {}).items()},
+        properties=properties if not items else None,
         required=i.required,
         description=i.description,
         enum=i.enum,
         const=i.const,
         format=i.format,
         default=i.default,
-        example=i.example
+        example=i.example,
+        items=items
     )
 
 
@@ -69,7 +78,7 @@ def map_property(p: Union[Property, Items], schema: ParameterSchema) -> Property
 
     return PropertyModel(
         type=p.type,
-        properties=properties,
+        properties=properties if not items else None,
         required=p.required,
         description=p.description,
         enum=p.enum,
@@ -83,7 +92,7 @@ def map_property(p: Union[Property, Items], schema: ParameterSchema) -> Property
             for prop in p.anyOf
         ],
         ref=ref,
-        items=items if not properties else items
+        items=items
     )
 
 class DeleteWorkflowSchemaFeature:
