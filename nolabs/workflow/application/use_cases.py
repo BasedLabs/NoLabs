@@ -141,15 +141,17 @@ class CreateWorkflowSchemaFeature:
                 output=output_parameters
             ))
 
+        id = uuid.uuid4()
+
         workflow_schema = WorkflowSchemaModel(
-            workflow_id=uuid.uuid4(),
+            workflow_id=id,
             error=None,
             components=components_models,
             workflow_components=[]
         )
 
         db_model = WorkflowSchemaDbModel.create(
-            id=uuid.uuid4(),
+            id=id,
             experiment=experiment,
             value=workflow_schema
         )
