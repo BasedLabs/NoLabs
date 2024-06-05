@@ -37,7 +37,6 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
     format: Optional[str] = None
     const: Optional[Any] = None
     example: Optional[Any] = None
-    python_type: Type[TParameter]
 
     @classmethod
     def _find_property(cls, schema: 'ParameterSchema', path_to: List[str]) -> Optional['Property']:
@@ -56,7 +55,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
                 # Path to is not empty and we must go deeper
                 if path_to:
                     if property.ref:
-                        ref_type_name = cls._get_ref_type_name(property.ref)
+                        ref_type_name = cls.get_ref_type_name(property.ref)
                         if not schema.defs:
                             return None
                         ref_schema = schema.defs[ref_type_name]
@@ -65,7 +64,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
                     if property.anyOf:
                         for any_of_type in property.anyOf:
                             ref = any_of_type.ref if isinstance(any_of_type, Property) else any_of_type['$ref']
-                            ref_type_name = cls._get_ref_type_name(ref)
+                            ref_type_name = cls.get_ref_type_name(ref)
                             if not schema.defs:
                                 return None
                             ref_schema = schema.defs[ref_type_name]
@@ -100,7 +99,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
         return result
 
     @staticmethod
-    def _get_ref_type_name(ref: str) -> str:
+    def get_ref_type_name(ref: str) -> str:
         return ref.split('/')[-1]
 
     def find_property(self, path: List[str]) -> Optional['Property']:
@@ -174,7 +173,6 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
             )
 
         schema = cls.schema()
-        schema['python_type'] = cls
 
         return ParameterSchema(**schema)
 
@@ -217,9 +215,9 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
         if property:
             property.unmap()
 
-    def validate_dictionary(self, dictionary: Dict[str, Any]) -> List[PropertyValidationError]:
+    def validate_dictionary(self, t: Type, dictionary: Dict[str, Any]) -> List[PropertyValidationError]:
         try:
-            _ = self.python_type(**dictionary)
+            _ = t(**dictionary)
         except ValidationError as e:
             return [
                 PropertyValidationError(
@@ -268,6 +266,7 @@ class Items(BaseModel):
     items: Optional[Union['Items', List['Items']]] = None
     description: Optional[str] = None
     enum: List[Any] = Field(default_factory=list)
+    ref: Any = Field(alias='$ref', default=None)
     const: Optional[Any] = None
     format: Optional[str] = None
     default: Optional[Any] = None

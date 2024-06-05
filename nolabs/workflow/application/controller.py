@@ -29,7 +29,7 @@ async def create_schema(
         feature: Annotated[
             DeleteWorkflowSchemaFeature, Depends(WorkflowDependencies.delete_workflow_schema)],
         workflow_id: UUID
-) -> WorkflowSchemaModel:
+):
     return await feature.handle(workflow_id=workflow_id)
 
 

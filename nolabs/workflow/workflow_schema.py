@@ -4,6 +4,20 @@ from typing import Optional, List, Any, Dict, Union
 from pydantic import BaseModel, Field
 
 
+class ItemsModel(BaseModel):
+    type: Optional[Union[str, List[str]]] = None
+    properties: Optional[Dict[str, 'PropertyModel']] = Field(default_factory=dict)
+    required: List[str] = Field(default_factory=list)
+    description: Optional[str] = None
+    enum: List[Any] = Field(default_factory=list)
+    ref: Any = Field(alias='$ref', default=None)
+    const: Optional[Any] = None
+    format: Optional[str] = None
+    default: Optional[Any] = None
+    example: Optional[Any] = None
+
+
+
 class PropertyModel(BaseModel):
     type: Optional[Union[str, List[str]]] = None
     properties: Optional[Dict[str, 'PropertyModel']] = Field(default_factory=dict)
@@ -17,6 +31,7 @@ class PropertyModel(BaseModel):
     title: Optional[str] = None
     anyOf: List[Union['PropertyModel', dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(default=None)
+    items: Optional[Union['ItemsModel', List['ItemsModel']]] = None
 
 
 class ComponentModel(BaseModel):

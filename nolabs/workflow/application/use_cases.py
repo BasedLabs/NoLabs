@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, List, Dict, Type
+from typing import Optional, List, Dict, Type, Union
 from uuid import UUID
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
@@ -8,31 +8,83 @@ from nolabs.workflow.application.api_models import GetComponentStateResponse, Ge
     AllWorkflowSchemasResponse
 from nolabs.workflow.component import Component
 from nolabs.workflow.models import WorkflowSchemaDbModel, ComponentDbModel
-from nolabs.workflow.properties import Property
+from nolabs.workflow.properties import Property, ParameterSchema, Items
 from nolabs.workflow.workflow import Workflow
-from nolabs.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel
+from nolabs.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel, ItemsModel
 
 
-def map_property(property: Property) -> PropertyModel:
-    return PropertyModel(
-        type=property.type,
-        properties={name: map_property(prop) for name, prop in (property.properties if
-                                                                property.properties else {}).items()},
-        required=property.required,
-        description=property.description,
-        enum=property.enum,
-        const=property.const,
-        format=property.format,
-        default=property.default,
-        example=property.example,
-        title=property.title,
-        anyOf=[
-            map_property(prop)
-            for prop in property.anyOf
-        ],
-        ref=property.ref
+def map_items(i: Items, schema: ParameterSchema) -> ItemsModel:
+    ref = None
+
+    if i.ref:
+        ref = i.ref
+
+    if i.items and i.items.ref:
+        ref = i.items.ref
+
+    definition = None
+
+    if ref:
+        definition = schema.defs[schema.get_ref_type_name(ref)]
+
+    return ItemsModel(
+        type=i.type,
+        properties={name: map_property(prop, schema) for name, prop in (definition.properties if
+                                                                        definition.properties else {}).items()} if definition else
+        {name: map_property(prop, schema) for name, prop in (i.properties if
+                                                             i.properties else {}).items()},
+        required=i.required,
+        description=i.description,
+        enum=i.enum,
+        const=i.const,
+        format=i.format,
+        default=i.default,
+        example=i.example
     )
 
+
+def map_property(p: Union[Property, Items], schema: ParameterSchema) -> PropertyModel:
+    ref = None
+
+    if p.ref:
+        ref = p.ref
+
+    if p.items and p.items.ref:
+        ref = p.items.ref
+
+    definition = None
+
+    if ref:
+        definition = schema.defs[schema.get_ref_type_name(ref)]
+
+    items = None
+
+    if p.items:
+        items = map_items(p.items, schema) if not isinstance(p.items, list) else [map_items(item, schema) for item in p.items]
+
+    properties = {name: map_property(prop, schema) for name, prop in (definition.properties if
+                                                                        definition.properties else {}).items()} if definition else \
+        {name: map_property(prop, schema) for name, prop in (p.properties if
+                                                             p.properties else {}).items()}
+
+    return PropertyModel(
+        type=p.type,
+        properties=properties,
+        required=p.required,
+        description=p.description,
+        enum=p.enum,
+        const=p.const,
+        format=p.format,
+        default=p.default,
+        example=p.example,
+        title=p.title,
+        anyOf=[
+            map_property(prop, schema=schema)
+            for prop in p.anyOf
+        ],
+        ref=ref,
+        items=items if not properties else items
+    )
 
 class DeleteWorkflowSchemaFeature:
     async def handle(self, workflow_id: UUID):
@@ -40,7 +92,6 @@ class DeleteWorkflowSchemaFeature:
 
         if db_model:
             db_model.delete()
-
 
 class AllWorkflowSchemasFeature:
     async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
@@ -53,7 +104,6 @@ class AllWorkflowSchemasFeature:
         return AllWorkflowSchemasResponse(
             ids=[m.id for m in db_models]
         )
-
 
 class CreateWorkflowSchemaFeature:
     available_components: Dict[str, Type[Component]]
@@ -71,10 +121,15 @@ class CreateWorkflowSchemaFeature:
 
         for component_name, component_type in self.available_components.items():
             component = component_type(id=uuid.uuid4(), experiment=experiment)
+
+            output_schema = component.output_schema
+            output_parameters = {name: map_property(prop, output_schema) for name, prop in
+                                 output_schema.properties.items()}
+
             components_models.append(ComponentModel(
                 name=component_name,
-                input={name: map_property(prop) for name, prop in component.input_properties.items()},
-                output={name: map_property(prop) for name, prop in component.output_properties.items()}
+                input={},
+                output=output_parameters
             ))
 
         workflow_schema = WorkflowSchemaModel(
@@ -93,7 +148,6 @@ class CreateWorkflowSchemaFeature:
 
         return workflow_schema
 
-
 class GetWorkflowSchemaFeature:
     async def handle(self, workflow_id: UUID) -> Optional[WorkflowSchemaModel]:
         db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_id)
@@ -102,7 +156,6 @@ class GetWorkflowSchemaFeature:
             return None
 
         return db_model.get_workflow_value()
-
 
 class SetWorkflowSchemaFeature:
     available_components: Dict[str, Type[Component]]
@@ -200,7 +253,6 @@ class SetWorkflowSchemaFeature:
 
         return False
 
-
 class StartWorkflowFeature:
     available_components: Dict[str, Type[Component]]
 
@@ -234,7 +286,7 @@ class StartWorkflowFeature:
             else:
                 id = uuid.uuid4()
                 component: Component = self.available_components[workflow_component.name](id=id,
-                                                                                                experiment=experiment)
+                                                                                          experiment=experiment)
                 component_db_model = ComponentDbModel(
                     id=id,
                     workflow=db_model,
@@ -267,7 +319,6 @@ class StartWorkflowFeature:
 
         workflow = Workflow()
         await workflow.execute(workflow_schema=workflow_schema, components=components)
-
 
 class GetComponentParametersFeature:
     async def handle(self, request: GetComponentStateRequest) -> GetComponentStateResponse:

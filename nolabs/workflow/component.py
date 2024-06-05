@@ -107,7 +107,8 @@ class Component(Generic[TInput, TOutput]):
         return self.output_parameter_dict
 
     def validate_input(self):
-        return self._input_schema.validate_dictionary(dictionary=self.input_parameter_dict)
+        return self._input_schema.validate_dictionary(t=self._input_parameter_type,
+                                                      dictionary=self.input_parameter_dict)
 
     def add_previous(self, component: Union['Component', List['Component']]):
         if isinstance(component, list):
@@ -199,18 +200,12 @@ class Component(Generic[TInput, TOutput]):
         return changed
 
     @property
-    def input_properties(self) -> Dict[str, Property]:
-        if not self._input_schema.properties:
-            return {}
-
-        return self._input_schema.properties
+    def output_schema(self) -> ParameterSchema:
+        return self._output_schema
 
     @property
-    def output_properties(self) -> Dict[str, Property]:
-        if not self._output_schema.properties:
-            return {}
-
-        return self._output_schema.properties
+    def input_schema(self) -> ParameterSchema:
+        return self._input_schema
 
     @property
     def previous(self) -> List['Component']:
@@ -227,7 +222,8 @@ class Component(Generic[TInput, TOutput]):
         return result
 
     def validate_output(self) -> List[PropertyValidationError]:
-        return self._output_schema.validate_dictionary(self.output_parameter_dict)
+        return self._output_schema.validate_dictionary(t=self._output_parameter_type,
+                                                       dictionary=self.output_parameter_dict)
 
     def _parse_parameter_types(self) -> Tuple[Type[TInput], Type[TOutput]]:
         args = get_args(self._function.__orig_bases__[0])  # type: ignore

@@ -120,7 +120,7 @@ class SmallMoleculesDesignSamplingInput(BaseModel):
 
 class SmallMoleculesDesignSamplingOutputItem(BaseModel):
     protein: uuid.UUID
-    ligand_ids: List[uuid.UUID] = []
+    ligands: List[uuid.UUID]
 
 
 class SmallMoleculesDesignSamplingOutput(BaseModel):
@@ -165,7 +165,7 @@ class SmallMoleculesDesignSamplingComponent(Component[SmallMoleculesDesignSampli
 
             result.append(SmallMoleculesDesignSamplingOutputItem(
                 protein=job.protein.id,
-                ligand_ids=ligand_ids
+                ligands=ligand_ids
             ))
 
         self.output = SmallMoleculesDesignSamplingOutput(

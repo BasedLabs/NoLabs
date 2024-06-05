@@ -26,7 +26,6 @@ from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from typing_extensions import Self
 
-from microservices.umol.umol.umol_source.src.net.common.protein import Protein
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.event_dispatcher import EventDispatcher
 from nolabs.refined.infrastructure.mongo_fields import ValueObjectStringField, ValueObjectFloatField
