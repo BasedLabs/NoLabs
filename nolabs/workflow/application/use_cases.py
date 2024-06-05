@@ -135,9 +135,13 @@ class CreateWorkflowSchemaFeature:
             output_parameters = {name: map_property(prop, output_schema) for name, prop in
                                  output_schema.properties.items()}
 
+            input_schema = component.input_schema
+            input_parameters = {name: map_property(prop, input_schema) for name, prop in
+                                 input_schema.properties.items()}
+
             components_models.append(ComponentModel(
                 name=component_name,
-                input={},
+                input=input_parameters,
                 output=output_parameters
             ))
 
