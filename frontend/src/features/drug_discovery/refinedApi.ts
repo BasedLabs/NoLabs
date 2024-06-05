@@ -10,12 +10,14 @@ import {
   nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest,
   UpdateJobRequest,
   WorkflowService,
+  BiobuddyService,
   WorkflowSchemaModel_Output,
   AllWorkflowSchemasResponse,
   WorkflowSchemaModel_Input,
   ProteinSearchQuery,
   Body_upload_protein_api_v1_objects_proteins_post,
-  Body_update_protein_api_v1_objects_proteins_patch
+  Body_update_protein_api_v1_objects_proteins_patch,
+  CheckBioBuddyEnabledResponse
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 
@@ -104,4 +106,9 @@ export function updateProteinName(proteinId: string, newName: string): Cancelabl
     name: newName
   } as Body_update_protein_api_v1_objects_proteins_patch;
   return ProteinsService.updateProteinApiV1ObjectsProteinsPatch(newRequest);
+}
+
+export async function checkBiobuddyEnabled(): Promise<boolean> {
+  const response = await BiobuddyService.checkBiobuddyEnabledApiV1BiobuddyCheckBiobuddyEnabledGet();
+  return response.enabled;
 }

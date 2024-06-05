@@ -11,6 +11,7 @@ from nolabs.refined.application.use_cases.solubility.controller import router as
 from nolabs.refined.application.use_cases.conformations.controller import router as conformations_controller
 from nolabs.refined.application.use_cases.protein_design.controller import router as protein_design_controller
 from nolabs.refined.application.use_cases.binding_pockets.controller import router as binding_pockets_controller
+from nolabs.refined.application.use_cases.biobuddy.controller import router as biobuddy_controller
 from nolabs.refined.application.use_cases.msa_generation.controller import router as msa_generation_controller
 from nolabs.refined.application.use_cases.umol.controller import router as umol_controller
 from nolabs.refined.application.use_cases.small_molecules_design.controller import \
@@ -56,6 +57,7 @@ app.include_router(umol_controller)
 app.include_router(proteins_router)
 app.include_router(ligand_router)
 app.include_router(workflow_router)
+app.include_router(biobuddy_controller)
 add_domain_exception_middleware(app)
 
 app.add_middleware(

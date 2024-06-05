@@ -87,12 +87,13 @@ import LigandListNode from "./components/workflow/LigandListNode.vue";
 import LigandListNodeContent from "./components/workflow/LigandListNodeContent.vue";
 import { useDrugDiscoveryStore } from "./storage";
 import { defineComponent } from "vue";
-import { checkBioBuddyEnabled } from "../biobuddy/api";
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import JobNode from "./components/workflow/JobNode.vue";
 import JobNodeContent from "./components/workflow/JobNodeContent.vue";
-import { getWorkflow, sendWorkflowUpdate, startWorkflowforExperiment } from 'src/features/drug_discovery/refinedApi';
+import { getWorkflow,
+   sendWorkflowUpdate, 
+   startWorkflowforExperiment, checkBiobuddyEnabled } from 'src/features/drug_discovery/refinedApi';
 import {
   ComponentModel_Output,
   WorkflowSchemaModel_Input,
@@ -154,8 +155,7 @@ export default defineComponent({
     this.experiment.experimentId = this.$route.params.experimentId as string;
     this.experiment.metadata = await store.getExperimentMetaData(this.experiment.experimentId);
     try {
-      const response = await checkBioBuddyEnabled();
-      this.bioBuddyEnabled = response.enabled;
+      this.bioBuddyEnabled = await checkBiobuddyEnabled();
     } catch (error) {
       console.error('Error checking BioBuddy enabled status:', error);
       this.bioBuddyEnabled = false;

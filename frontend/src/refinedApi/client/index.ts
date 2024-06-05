@@ -12,6 +12,7 @@ export type { Body_update_ligand_api_v1_objects_ligands_patch } from './models/B
 export type { Body_update_protein_api_v1_objects_proteins_patch } from './models/Body_update_protein_api_v1_objects_proteins_patch';
 export type { Body_upload_ligand_api_v1_objects_ligands_post } from './models/Body_upload_ligand_api_v1_objects_ligands_post';
 export type { Body_upload_protein_api_v1_objects_proteins_post } from './models/Body_upload_protein_api_v1_objects_proteins_post';
+export type { CheckBioBuddyEnabledResponse } from './models/CheckBioBuddyEnabledResponse';
 export type { ComponentModel_Input } from './models/ComponentModel_Input';
 export type { ComponentModel_Output } from './models/ComponentModel_Output';
 export type { DefaultWorkflowComponentModelValue } from './models/DefaultWorkflowComponentModelValue';
@@ -75,6 +76,7 @@ export type { WorkflowSchemaModel_Input } from './models/WorkflowSchemaModel_Inp
 export type { WorkflowSchemaModel_Output } from './models/WorkflowSchemaModel_Output';
 
 export { BindingPocketsService } from './services/BindingPocketsService';
+export { BiobuddyService } from './services/BiobuddyService';
 export { ConformationsService } from './services/ConformationsService';
 export { DiffdockService } from './services/DiffdockService';
 export { ExperimentsService } from './services/ExperimentsService';
