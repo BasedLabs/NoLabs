@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { ItemsModel_Output } from './ItemsModel_Output';
 export type PropertyModel_Output = {
     type?: (string | Array<string> | null);
     properties?: (Record<string, PropertyModel_Output> | null);
@@ -15,5 +16,6 @@ export type PropertyModel_Output = {
     title?: (string | null);
     anyOf?: Array<(PropertyModel_Output | Record<string, any>)>;
     ref?: (string | null);
+    items?: (ItemsModel_Output | Array<ItemsModel_Output> | null);
 };
 

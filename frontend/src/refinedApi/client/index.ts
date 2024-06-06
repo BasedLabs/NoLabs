@@ -21,6 +21,8 @@ export { FoldingBackendEnum } from './models/FoldingBackendEnum';
 export type { GetJobMetadataResponse } from './models/GetJobMetadataResponse';
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export { IntegratorsRequest } from './models/IntegratorsRequest';
+export type { ItemsModel_Input } from './models/ItemsModel_Input';
+export type { ItemsModel_Output } from './models/ItemsModel_Output';
 export type { JobValidationError } from './models/JobValidationError';
 export type { LigandResponse } from './models/LigandResponse';
 export type { LigandSearchQuery } from './models/LigandSearchQuery';

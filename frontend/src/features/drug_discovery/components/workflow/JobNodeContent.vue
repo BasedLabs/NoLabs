@@ -1,13 +1,8 @@
 <template>
   <q-card>
-    <node-content-header
-      name="EsmFold"
-      description="Predicts 3D structures from protein sequences"
-      :inputs="['FASTA']"
-      :outputs="['PDB']"
-      imageSrc="/folding_pic.png"
-    />
-    <node-content-body :jobIds="jobIds" :jobType="'Folding'" />
+    <node-content-header :name="name" :description="description" :inputs="['FASTA']" :outputs="['PDB']"
+      imageSrc="/folding_pic.png" />
+    <node-content-body :name="name" :jobIds="jobIds" :jobType="'Folding'" />
   </q-card>
 </template>
 
@@ -17,13 +12,24 @@ import NodeContentHeader from 'src/features/drug_discovery/components/workflow/n
 import NodeContentBody from 'src/features/drug_discovery/components/workflow/nodeTemplates/NodeContentBody.vue';
 
 export default defineComponent({
-  name: 'EsmFoldNodeContent',
+  name: 'JobNodeContent',
   components: {
     NodeContentHeader,
     NodeContentBody,
   },
   props: {
-    jobIds: Array<string>,
+    name: {
+      type: String,
+      required: true
+    },
+    description: {
+      type: String,
+      required: true
+    },
+    jobIds: { type: Array<string>, required: true }
   },
+  mounted() {
+    console.log(this.name)
+  }
 });
 </script>

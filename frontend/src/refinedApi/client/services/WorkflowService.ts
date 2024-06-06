@@ -32,12 +32,12 @@ export class WorkflowService {
     /**
      * Delete workflow schema
      * @param workflowId
-     * @returns WorkflowSchemaModel_Output Successful Response
+     * @returns any Successful Response
      * @throws ApiError
      */
     public static createSchemaApiV1WorkflowWorkflowIdDelete(
         workflowId: string,
-    ): CancelablePromise<WorkflowSchemaModel_Output> {
+    ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/workflow/{workflow_id}',

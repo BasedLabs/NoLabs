@@ -59,7 +59,7 @@
       <esm-fold-job v-if="jobType === 'Folding'" :job-id="selectedJobId" />
 
       <!-- Add other job components based on job type -->
-      <q-card-actions align="right">
+      <q-card-actions>
         <q-btn flat label="Close" v-close-popup />
       </q-card-actions>
     </q-card>
@@ -68,9 +68,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { getFoldingJobApi, getFoldingJobStatus } from "../../../refinedApi";
-import { GetJobMetadataResponse, nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse } from "../../../../refinedApi/client";
-import EsmFoldJob from "../jobs/EsmFoldJob.vue";
+import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
+import { getFoldingJobApi, getFoldingJobStatus } from 'src/features/drug_discovery/refinedApi';
+import { GetJobMetadataResponse, nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse } from 'src/refinedApi/client';
+import EsmFoldJob from '../jobs/EsmFoldJob.vue';
 import draggable from 'vuedraggable';
 
 export default defineComponent({
@@ -80,7 +81,10 @@ export default defineComponent({
     draggable,
   },
   props: {
-    jobIds: Array<string>,
+    name: {
+      type: String,
+      required: true
+    },
     jobType: String
   },
   data() {
@@ -92,6 +96,12 @@ export default defineComponent({
       showJobModal: false,
       loading: false,
     };
+  },
+  computed: {
+    jobIds() {
+      const workflowStore = useWorkflowStore();
+      return workflowStore.elements.nodes.find(node => node.name === this.name)?.data.jobIds || [];
+    }
   },
   async mounted() {
     this.loading = true;

@@ -10,7 +10,7 @@
       <q-btn class="full-width" icon="open_in_new" label="Open in a new tab"> </q-btn>
     </q-card>
 
-    <NodeHandles :nodeId="nodeId" :inputs="inputs" :outputs="outputs" />
+    <NodeHandles :nodeId="nodeId" :inputs="useNodesData?.data.inputs" :outputs="useNodesData?.data.outputs" />
 </template>
 
 <script lang="ts">
@@ -18,15 +18,21 @@ import {defineComponent} from "vue";
 
 import {useRoute} from "vue-router";
 import {Notify, QSpinnerOrbit} from "quasar";
-import {Position} from "@vue-flow/core";
+import {Position, useNodesData} from "@vue-flow/core";
 import ProteinListNodeContent from "./ProteinListNodeContent.vue";
 import NodeHandles from '../NodeHandles.vue'
+import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
 
 export default defineComponent({
   name: "ProteinListNode",
   computed: {
     Position() {
       return Position
+    },
+    useNodesData() {
+      const workflowStore = useWorkflowStore();
+      const nodeData = workflowStore.getNodeById(this.nodeId as string);
+      return nodeData;
     }
   },
   components: {
@@ -43,9 +49,18 @@ export default defineComponent({
       type: Array,
       default: () => []
     },
-    onDeleteNode: Function,
-    onOpenSettings: Function,
-    onOpenDialog: Function,
+    onDeleteNode: {
+      type: Function,
+      required: true
+    },
+    onOpenSettings: {
+      type: Function,
+      required: true
+    },
+    onOpenDialog: {
+      type: Function,
+      required: true
+    },
     results: {
       type: Array,
       default: () => []
