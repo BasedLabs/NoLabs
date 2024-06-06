@@ -94,7 +94,7 @@ import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import JobNode from "./components/workflow/JobNode.vue";
 import JobNodeContent from "./components/workflow/JobNodeContent.vue";
-import { startWorkflowforExperiment, checkBiobuddyEnabled } from 'src/features/drug_discovery/refinedApi';
+import { startWorkflowforExperiment, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow } from 'src/features/drug_discovery/refinedApi';
 import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
 
 // Define custom Node type
@@ -141,7 +141,7 @@ export default defineComponent({
       specialNodeProps: [],
       splitterModel: 20,
       bioBuddyEnabled: false,
-      workflowId: "19fd2fa8-9a01-4755-adb2-b11a6b302e7f" // Example workflow ID
+      workflowId: "" // Set initially to empty
     };
   },
   computed: {
@@ -154,12 +154,16 @@ export default defineComponent({
     const store = useDrugDiscoveryStore();
     this.experiment.experimentId = this.$route.params.experimentId as string;
     this.experiment.metadata = await store.getExperimentMetaData(this.experiment.experimentId);
+
     try {
       this.bioBuddyEnabled = await checkBiobuddyEnabled();
     } catch (error) {
       console.error('Error checking BioBuddy enabled status:', error);
       this.bioBuddyEnabled = false;
     }
+
+    // Check if workflow exists, if not, create one
+    await this.checkAndCreateWorkflow();
 
     const workflowStore = useWorkflowStore();
     await workflowStore.fetchWorkflow(this.workflowId);
@@ -170,6 +174,17 @@ export default defineComponent({
     }, 2000); // Poll every 2 seconds
   },
   methods: {
+    async checkAndCreateWorkflow() {
+      const existingWorkflows = await getExistingWorkflows(this.experiment.experimentId as string);
+
+      if (existingWorkflows.ids.length === 0) {
+        await createWorkflow(this.experiment.experimentId as string);
+        const workflows = await getExistingWorkflows(this.experiment.experimentId as string);
+        this.workflowId = workflows.ids[0];
+      } else {
+        this.workflowId = existingWorkflows.ids[0];
+      }
+    },
     addComponent(option: any) {
       const workflowStore = useWorkflowStore();
       workflowStore.addComponent(option);
@@ -218,6 +233,7 @@ export default defineComponent({
   }
 })
 </script>
+
 
 <style scoped>
 body {

@@ -54,8 +54,6 @@
     </draggable>
   </q-card-section>
 
-  {{ nodeData?.data.error }}
-
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
       <esm-fold-job v-if="jobType === 'Folding'" :job-id="selectedJobId" />

@@ -60,6 +60,10 @@ export function changeJobName(jobId: string, newName: string): CancelablePromise
   return JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(jobId, jobRequest);
 }
 
+export function createWorkflow(experimentId: string): CancelablePromise<any> {
+  return WorkflowService.createSchemaApiV1WorkflowExperimentIdPost(experimentId);
+}
+
 export function getWorkflow(workflowId: string): CancelablePromise<(WorkflowSchemaModel_Output | null)> {
   return WorkflowService.getSchemaApiV1WorkflowWorkflowIdGet(workflowId);
 }

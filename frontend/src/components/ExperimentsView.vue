@@ -29,7 +29,7 @@
             </q-list>
             <q-card-actions align="right">
               <router-link style="text-decoration: none;"
-                           :to="{ name: this.pathToExperimentPage, params: { experimentId: props.row.id } }">
+                           :to="{ name: pathToExperimentPage, params: { experimentId: props.row.id } }">
                 <q-btn outline color="info" label="Open"/>
               </router-link>
               <q-btn outline class="q-mx-md" color="negative" label="Remove"
@@ -48,9 +48,9 @@ import {ExperimentListItem} from "src/components/types";
 
 
 type Store = {
-  createExperiment: () => Promise<{ experiment: ExperimentListItem | null, errors: [] }>,
+  createExperiment: () => Promise<ExperimentListItem>,
   deleteExperiment: (experimentId: string) => Promise<void>,
-  getExperiments: () => Promise<{ experiments: ExperimentListItem[] | null, errors: string[] }>
+  getExperiments: () => Promise<Array<ExperimentListItem>>
 }
 
 
@@ -101,8 +101,8 @@ export default defineComponent({
     async addExperimentClick() {
       const response = await this.store.createExperiment();
       this.experiments.push({
-        id: response.experiment!.id,
-        name: response.experiment!.name
+        id: response!.id,
+        name: response!.name
       })
     },
     async removeExperimentClick(experimentId: string) {
@@ -113,8 +113,8 @@ export default defineComponent({
   async mounted() {
     this.loading = true;
     const response = await this.store.getExperiments();
-    if(response.experiments != null){
-      this.experiments = response.experiments;
+    if(response.length > 0){
+      this.experiments = response;
     }
     this.loading = false;
   }

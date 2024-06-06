@@ -6,8 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 import {
     getWorkflow,
     sendWorkflowUpdate,
-    startWorkflowforExperiment,
-    checkBiobuddyEnabled
+    getExperimentsApi,
+    createExperimentApi,
+    deleteExperimentApi
 } from 'src/features/drug_discovery/refinedApi';
 import {
     ComponentModel_Output,
@@ -38,11 +39,20 @@ export const useWorkflowStore = defineStore('workflowStore', {
             nodes: [] as Node[],
             edges: [] as Edge[]
         },
-        workflowId: "19fd2fa8-9a01-4755-adb2-b11a6b302e7f" as string,
+        workflowId: "" as string,
         allowedTypes: ["Proteins", "Ligands", "DNA"],
         componentOptions: [] as Array<{ name: string; type: string; inputs: Record<string, PropertyModel_Output>, outputs: Record<string, PropertyModel_Output>, description: string }>
     }),
     actions: {
+        async createExperiment() {
+            return await createExperimentApi();
+        },
+        async deleteExperiment(experimentId: string) {
+            return await deleteExperimentApi(experimentId);
+        },
+        async getExperiments() {
+            return await getExperimentsApi();
+        },
         async getAllProteins(experimentId: string) {
             const response = await getAllProteins(experimentId);
             this.proteins = response;
@@ -80,6 +90,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             }
         },
         async fetchWorkflow(workflowId: string) {
+            this.workflowId = workflowId;
             try {
                 const workflow = await getWorkflow(workflowId);
                 if (!workflow) {
