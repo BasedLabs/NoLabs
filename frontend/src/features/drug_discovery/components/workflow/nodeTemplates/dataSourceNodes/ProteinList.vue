@@ -56,14 +56,10 @@ export default defineComponent({
             proteins: [] as ProteinResponse[]
         };
     },
-    computed: {
-        workflowStore() {
-            return useWorkflowStore();
-        },
-    },
     async mounted() {
-        await this.workflowStore.getAllProteins(this.experimentId);
-        this.proteins = this.workflowStore.proteins;
+        const workflowStore = useWorkflowStore();
+        await workflowStore.getAllProteins(this.experimentId);
+        this.proteins = workflowStore.proteins;
     },
     methods: {
         uploadProteinFiles() {
@@ -84,12 +80,13 @@ export default defineComponent({
                 spinner: QSpinnerOrbit,
                 message: `Uploading protein files`
             });
+            const workflowStore = useWorkflowStore();
 
             try {
                 for (let index = 0; index < files.length; index++) {
                     const file = files[index];
                     const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
-                    await this.workflowStore.uploadProteinToExperiment(this.experimentId, '', file, undefined, metaData);
+                    await workflowStore.uploadProteinToExperiment(this.experimentId, '', file, undefined, metaData);
                 }
             } catch (error) {
                 console.error('Error uploading protein files:', error);
@@ -99,12 +96,14 @@ export default defineComponent({
             }
         },
         async deleteProtein(proteinToDelete: ProteinResponse) {
+            const workflowStore = useWorkflowStore();
             this.$q.loading.show({
                 spinner: QSpinnerOrbit,
                 message: `Deleting protein`
             });
             try {
-                await this.workflowStore.deleteProteinFromExperiment(proteinToDelete.id);
+                await workflowStore.deleteProteinFromExperiment(proteinToDelete.id);
+                this.proteins = workflowStore.proteins;
             } catch (error) {
                 console.error('Error deleting protein:', error);
             }
