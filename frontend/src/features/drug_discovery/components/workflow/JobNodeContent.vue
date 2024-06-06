@@ -2,7 +2,7 @@
   <q-card>
     <node-content-header :name="name" :description="description" :inputs="['FASTA']" :outputs="['PDB']"
       imageSrc="/folding_pic.png" />
-    <node-content-body :name="name" :jobIds="jobIds" :jobType="'Folding'" />
+    <node-content-body :nodeId="nodeId" :name="name" :jobIds="jobIds" :jobType="'Folding'" />
   </q-card>
 </template>
 
@@ -18,6 +18,10 @@ export default defineComponent({
     NodeContentBody,
   },
   props: {
+    nodeId: {
+      type: String,
+      required: true
+    },
     name: {
       type: String,
       required: true

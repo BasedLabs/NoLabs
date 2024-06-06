@@ -69,7 +69,8 @@
           :experiment-id="experiment.experimentId" />
         <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'"
           :experiment-id="experiment.experimentId" />
-        <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
+        <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'" 
+          :node-id="selectedNode?.id"
           :experiment-id="experiment.experimentId" :name="selectedNode?.name" :description="selectedNode?.description"
           :jobIds="selectedNode?.data.jobIds" />
       </q-card-section>

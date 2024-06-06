@@ -10,7 +10,7 @@
       <q-btn icon="settings" @click="openSettings"> </q-btn>
     </div>
 
-    <JobNodeContent :name="nodeData?.name" :description="nodeData?.description" :jobIds="nodeData?.jobIds" :results="results" />
+    <JobNodeContent :nodeId="nodeId" :name="nodeData?.name" :description="nodeData?.description" :jobIds="nodeData?.data.jobIds" :results="results" />
     <q-btn @click="openDialogue" class="full-width" icon="open_in_new" label="Extended view"> </q-btn>
 
     <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
@@ -18,12 +18,11 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
 import JobNodeContent from './JobNodeContent.vue';
 import NodeHandles from './nodeTemplates/NodeHandles.vue';
 import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
 
-export default defineComponent({
+export default {
   name: 'JobNode',
   components: {
     JobNodeContent,
@@ -38,36 +37,33 @@ export default defineComponent({
     onOpenSettings: Function,
     onOpenDialog: Function
   },
-  setup(props) {
-    const workflowStore = useWorkflowStore();
-    const nodeData = workflowStore.getNodeById(props.nodeId);
-    
-    const deleteNode = () => {
-      if (props.onDeleteNode) {
-        props.onDeleteNode(props.nodeId);
-      }
-    };
-
-    const openSettings = () => {
-      if (props.onOpenSettings) {
-        props.onOpenSettings(props.nodeId);
-      }
-    };
-
-    const openDialogue = () => {
-      if (props.onOpenDialog) {
-        props.onOpenDialog(props.nodeId);
-      }
-    };
-
+  data() {
     return {
-      nodeData,
-      deleteNode,
-      openSettings,
-      openDialogue
+      nodeData: null
     };
+  },
+  created() {
+    const workflowStore = useWorkflowStore();
+    this.nodeData = workflowStore.getNodeById(this.nodeId);
+  },
+  methods: {
+    deleteNode() {
+      if (this.onDeleteNode) {
+        this.onDeleteNode(this.nodeId);
+      }
+    },
+    openSettings() {
+      if (this.onOpenSettings) {
+        this.onOpenSettings(this.nodeId);
+      }
+    },
+    openDialogue() {
+      if (this.onOpenDialog) {
+        this.onOpenDialog(this.nodeId);
+      }
+    }
   }
-});
+};
 </script>
 
 <style scoped>

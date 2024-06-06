@@ -19,7 +19,7 @@ import {
 } from 'src/refinedApi/client';
 
 // Define custom Node type
-interface Node extends FlowNode {
+export interface Node extends FlowNode {
     id: string;
     name: string;
     type: string;

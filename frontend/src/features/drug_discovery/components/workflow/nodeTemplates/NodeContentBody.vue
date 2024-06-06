@@ -54,10 +54,11 @@
     </draggable>
   </q-card-section>
 
+  {{ nodeData?.data.error }}
+
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
       <esm-fold-job v-if="jobType === 'Folding'" :job-id="selectedJobId" />
-
       <!-- Add other job components based on job type -->
       <q-card-actions>
         <q-btn flat label="Close" v-close-popup />
@@ -68,7 +69,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
+import { useWorkflowStore, Node } from 'src/features/drug_discovery/components/workflow/storage';
 import { getFoldingJobApi, getFoldingJobStatus } from 'src/features/drug_discovery/refinedApi';
 import { GetJobMetadataResponse, nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse } from 'src/refinedApi/client';
 import EsmFoldJob from '../jobs/EsmFoldJob.vue';
@@ -81,6 +82,7 @@ export default defineComponent({
     draggable,
   },
   props: {
+    nodeId: { type: String, required: true },
     name: {
       type: String,
       required: true
@@ -89,62 +91,62 @@ export default defineComponent({
   },
   data() {
     return {
-      jobs: [] as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>,
-      results: [] as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>,
       selectedJobId: '',
-      selectedJobType: '',
       showJobModal: false,
       loading: false,
+      error: null as string | null,
+      nodeData: null as Node | null,
+      jobs: [] as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>,
+      results: [] as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>,
     };
   },
-  computed: {
-    jobIds() {
-      const workflowStore = useWorkflowStore();
-      return workflowStore.elements.nodes.find(node => node.name === this.name)?.data.jobIds || [];
+  async created() {
+    const workflowStore = useWorkflowStore();
+    this.nodeData = workflowStore.getNodeById(this.nodeId);
+    await this.updateJobs();
+  },
+  watch: {
+    'nodeData.data.jobIds': {
+      handler: 'updateJobs',
+      immediate: true,
+      deep: true
     }
   },
-  async mounted() {
-    this.loading = true;
-    const jobsWithStatus = await Promise.all(this.jobIds.map(async (jobId, index) => {
-      let job;
-      let executionStatus;
-
-      switch (this.jobType) {
-        case 'Folding':
-          job = await getFoldingJobApi(jobId);
-          executionStatus = await getFoldingJobStatus(jobId);
-          break;
-        // Add cases for other job types and their respective API calls
-        // case 'anotherJobType':
-        //   job = await getAnotherJobTypeApi(jobId);
-        //   executionStatus = await getAnotherJobTypeStatus(jobId);
-        //   break;
-        default:
-          console.error(`Unknown job type: ${this.jobType}`);
-          return null; // Handle unknown job types
-      }
-
-      return { ...job, executionStatus };
-    }));
-
-    // Separate jobs with results into the results array
-    jobsWithStatus.forEach(job => {
-      if (job && job.executionStatus && job.executionStatus.running === false) {
-        this.results.push(job);
-      } else if (job) {
-        this.jobs.push(job);
-      }
-    });
-
-    this.loading = false;
-  },
   methods: {
+    async updateJobs() {
+      this.loading = true;
+      const jobsWithStatus = await Promise.all(this.nodeData?.data.jobIds.map(async (jobId) => {
+        let job;
+        let executionStatus;
+
+        switch (this.jobType) {
+          case 'Folding':
+            job = await getFoldingJobApi(jobId);
+            executionStatus = await getFoldingJobStatus(jobId);
+            break;
+          // Add cases for other job types and their respective API calls
+          // case 'anotherJobType':
+          //   job = await getAnotherJobTypeApi(jobId);
+          //   executionStatus = await getAnotherJobTypeStatus(jobId);
+          //   break;
+          default:
+            console.error(`Unknown job type: ${this.jobType}`);
+            return null; // Handle unknown job types
+        }
+
+        return { ...job, executionStatus };
+      }));
+
+      this.jobs = jobsWithStatus.filter(job => job && job.executionStatus && (job.executionStatus.running || !job.result || job.result.length === 0)) as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>;
+      this.results = jobsWithStatus.filter(job => job && job.executionStatus && job.result && job.result.length > 0) as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>;
+
+      this.loading = false;
+    },
     addJob() {
       // Logic to add a new job
     },
     openJob(job: GetJobMetadataResponse) {
       this.selectedJobId = job.job_id;
-      this.selectedJobType = job.type; // Assuming the job object has a 'type' property
       this.showJobModal = true;
     },
     updateJobOrder() {
