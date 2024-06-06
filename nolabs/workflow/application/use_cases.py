@@ -230,7 +230,7 @@ class SetWorkflowSchemaFeature:
             # Validate defaults
 
             for default in workflow_component.defaults:
-                error = component.try_set_default(path_to=default.path_to, value=default.value)
+                error = component.try_set_default(path_to=default.target_path, value=default.value)
                 if error:
                     default.error = error.msg
                     schema_valid = False
@@ -330,7 +330,7 @@ class StartWorkflowFeature:
                                            path_to=mapping.target_path)
 
             for default in workflow_component.defaults:
-                component.try_set_default(default.path_to, value=default.value)
+                component.try_set_default(default.target_path, value=default.value)
 
         workflow = Workflow()
         await workflow.execute(workflow_schema=workflow_schema, components=components)

@@ -49,7 +49,7 @@ class MappingModel(BaseModel):
 
 
 class DefaultWorkflowComponentModelValue(BaseModel):
-    path_to: List[str]
+    target_path: List[str]
     value: Optional[Any] = None
     error: Optional[str] = None
 
