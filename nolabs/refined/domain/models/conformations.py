@@ -32,7 +32,7 @@ class ConformationsJob(Job):
 
     integrator: Integrator = EnumField(Integrator, default=Integrator.langevin, required=True)
     total_frames: int = IntField(default=10000, required=True)
-    temperature_k: float = FloatField(default=273.15, required=True)
+    temperature_k: float = FloatField(default=309.75, required=True)
     take_frame_every: int = IntField(default=1000, required=True)
     step_size: float = FloatField(default=0.002, required=True)
     replace_non_standard_residues: bool = BooleanField(default=False, required=True)

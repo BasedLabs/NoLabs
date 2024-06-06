@@ -12,11 +12,11 @@ from nolabs.workflow.component import Component, JobValidationError
 
 
 class FoldingComponentInput(BaseModel):
-    proteins: List[uuid.UUID]
+    proteins_with_fasta: List[uuid.UUID]
 
 
 class FoldingComponentOutput(BaseModel):
-    proteins: List[uuid.UUID]
+    proteins_with_pdb: List[uuid.UUID]
 
 
 class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput]):
