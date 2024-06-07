@@ -53,7 +53,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
             result = await setup_job_feature.handle(request=SetupJobRequest(
                 experiment_id=self.experiment.id,
-                backend=FoldingBackendEnum.esmfold,
+                backend=FoldingBackendEnum.esmfold_light,
                 proteins=[protein.id],
                 job_name=f'Folding {protein.name.fasta_name}'
             ))
