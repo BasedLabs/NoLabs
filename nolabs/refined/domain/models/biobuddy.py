@@ -41,7 +41,7 @@ class Chat(Document):
     """
     Chat document containing messages between user and biobuddy
     """
-    chat_id: UUID = UUIDField(required=True)
+    experiment_id: UUID = UUIDField(required=True)
     messages: List[Union[TextMessage, FunctionCallMessage]] = EmbeddedDocumentListField(Message)
 
     def add_text_message(self, message_id: UUID, sender: UserRoleEnum, content: str, timestamp: str):
@@ -53,6 +53,38 @@ class Chat(Document):
             self.messages.append(message)
         else:
             raise ValueError('Invalid message content for text message')
+
+    def add_function_call_message(self, message_id: UUID, sender: UserRoleEnum, function_name: str, arguments: dict, timestamp: str):
+        if sender != UserRoleEnum.biobuddy:
+            raise ValueError('Only biobuddy can send function call messages')
+
+        if isinstance(function_name, str) and isinstance(arguments, dict):
+            message = FunctionCallMessage(message_id=message_id, sender=sender, function_name=function_name, arguments=str(arguments), timestamp=timestamp)
+            self.messages.append(message)
+        else:
+            raise ValueError('Invalid message content for function call message')
+
+    def load_conversation(self, experiment_id: UUID) -> 'Chat':
+        """
+        Load the conversation for the given experiment_id
+        """
+        return Chat.objects(experiment_id=experiment_id).first()
+
+    def edit_message(self, message_id: UUID, new_content: str):
+        """
+        Edit a user message. All messages after the edited one will be removed.
+        """
+        for i, message in enumerate(self.messages):
+            if message.message_id == message_id:
+                if message.sender != UserRoleEnum.user:
+                    raise ValueError('Only user messages can be edited')
+                if isinstance(message, TextMessage):
+                    message.content = new_content
+                    self.messages = self.messages[:i+1]
+                    return
+                else:
+                    raise ValueError('Message content type mismatch')
+        raise ValueError('Message ID not found')
 
     def add_function_call_message(self, message_id: UUID, sender: UserRoleEnum, function_name: str, arguments: dict, timestamp: str):
         if sender != UserRoleEnum.biobuddy:
