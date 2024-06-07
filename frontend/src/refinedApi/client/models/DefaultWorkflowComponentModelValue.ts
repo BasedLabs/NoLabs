@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type DefaultWorkflowComponentModelValue = {
-    path_to: Array<string>;
-    value?: null;
+    target_path: Array<string>;
+    value?: any | null;
     error?: (string | null);
 };
 

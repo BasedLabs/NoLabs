@@ -128,7 +128,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                             jobIds: component.job_ids,
                             draggable: false,
                             defaults: component.name === "Proteins" ?
-                                [{ path_to: inputs, value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue] : [],
+                                [{ target_path: inputs, value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue] : [],
                             error: component.error
                         },
                         position: { x: component.x !== undefined ? component.x : 100, y: component.y !== undefined ? component.y : 100 }
@@ -198,7 +198,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                             source_component_id: edge.sourceHandle?.split('-output-')[0],
                             error: edge.data?.text
                         }) as MappingModel),
-                    defaults: [],
+                    defaults: node.data.defaults,
                     jobs_errors: []
                 }) as WorkflowComponentModel),
                 error: null,
@@ -228,7 +228,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     jobIds: [],
                     draggable: false,
                     defaults: option.name === "Proteins" ?
-                        [{ path_to: Object.keys(option.inputs || {}) as string[], value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue] : [],
+                        [{ target_path: Object.keys(option.inputs || {}) as string[], value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue] : [],
                     error: null
                 },
                 position: { x: 100, y: 100 }, // Default position
