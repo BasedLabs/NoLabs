@@ -40,7 +40,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
                 items.append(protein_id)
 
         self.output = FoldingComponentOutput(
-            proteins=items
+            proteins_with_pdb=items
         )
 
     async def setup_jobs(self):
@@ -48,7 +48,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
         self.jobs = []
 
-        for protein_id in self.input.proteins:
+        for protein_id in self.input.proteins_with_fasta:
             protein = Protein.objects.with_id(protein_id)
 
             result = await setup_job_feature.handle(request=SetupJobRequest(
