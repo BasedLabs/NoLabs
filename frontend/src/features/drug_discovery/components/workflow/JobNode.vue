@@ -10,7 +10,7 @@
       <q-btn icon="settings" @click="openSettings"> </q-btn>
     </div>
 
-    <JobNodeContent :nodeId="nodeId" :name="nodeData?.name" :description="nodeData?.description" :jobIds="nodeData?.data.jobIds" :results="results" />
+    <JobNodeContent :nodeId="nodeId" :name="nodeData?.name" :description="nodeData?.description"/>
     <q-btn @click="openDialogue" class="full-width" icon="open_in_new" label="Extended view"> </q-btn>
 
     <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />

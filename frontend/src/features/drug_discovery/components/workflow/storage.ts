@@ -3,6 +3,7 @@ import { LigandResponse, ProteinResponse } from 'src/refinedApi/client';
 import { deleteProtein, getAllProteins, uploadProtein, updateProteinName } from 'src/features/drug_discovery/refinedApi';
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { v4 as uuidv4 } from 'uuid';
+import { Notify } from 'quasar';
 import {
     getWorkflow,
     sendWorkflowUpdate,
@@ -16,7 +17,8 @@ import {
     ComponentModel_Input,
     PropertyModel_Output,
     WorkflowComponentModel,
-    MappingModel
+    MappingModel,
+    DefaultWorkflowComponentModelValue
 } from 'src/refinedApi/client';
 
 // Define custom Node type
@@ -29,6 +31,7 @@ export interface Node extends FlowNode {
     jobIds: string[];
     description: string;
     error: string;
+    defaults: Array<DefaultWorkflowComponentModelValue>;
 }
 
 export const useWorkflowStore = defineStore('workflowStore', {
@@ -124,6 +127,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
                             outputs,
                             jobIds: component.job_ids,
                             draggable: false,
+                            defaults: component.name === "Proteins" ?
+                                [{ path_to: inputs, value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue] : [],
                             error: component.error
                         },
                         position: { x: component.x !== undefined ? component.x : 100, y: component.y !== undefined ? component.y : 100 }
@@ -222,6 +227,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     outputs: Object.keys(option.outputs || {}),
                     jobIds: [],
                     draggable: false,
+                    defaults: option.name === "Proteins" ?
+                        [{ path_to: Object.keys(option.inputs || {}) as string[], value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue] : [],
                     error: null
                 },
                 position: { x: 100, y: 100 }, // Default position
@@ -234,13 +241,55 @@ export const useWorkflowStore = defineStore('workflowStore', {
             this.sendWorkflowUpdate();
         },
         onConnect(params: { source: string, target: string, sourceHandle: string, targetHandle: string }) {
+            // Extract node IDs and handle types
+            const sourceNodeId = params.sourceHandle.split('-output-')[0];
+            const targetNodeId = params.targetHandle.split('-input-')[0];
+            const sourceHandleType = params.sourceHandle.includes('-output-') ? 'output' : 'input';
+            const targetHandleType = params.targetHandle.includes('-input-') ? 'input' : 'output';
+
+            // Validation 1: Only outputs and inputs can be connected (and not vice versa)
+            if (sourceHandleType !== 'output' || targetHandleType !== 'input') {
+                Notify.create({
+                    type: 'negative',
+                    message: 'Only outputs and inputs can be connected.',
+                });
+                return;
+            }
+
+            // Validation 2: Outputs and inputs of the same node can't be connected
+            if (sourceNodeId === targetNodeId) {
+                Notify.create({
+                    type: 'negative',
+                    message: 'Cannot connect outputs and inputs of the same node.',
+                });
+                return;
+            }
+
+            // Validation 3: Check if the same edge already exists
+            const edgeExists = this.elements.edges.some(edge =>
+                edge.source === sourceNodeId &&
+                edge.target === targetNodeId &&
+                edge.sourceHandle === params.sourceHandle &&
+                edge.targetHandle === params.targetHandle
+            );
+
+            if (edgeExists) {
+                Notify.create({
+                    type: 'negative',
+                    message: 'This connection already exists.',
+                });
+                return;
+            }
+
+            // If all validations pass, create and add the new edge
             const newEdge: Edge = {
                 id: `e${params.sourceHandle}-to-${params.targetHandle}`,
-                source: params.sourceHandle.split('-output-')[0],
-                target: params.targetHandle.split('-input-')[0],
+                source: sourceNodeId,
+                target: targetNodeId,
                 sourceHandle: params.sourceHandle,
                 targetHandle: params.targetHandle,
             };
+
             this.elements.edges.push(newEdge);
 
             // Send the workflow update

@@ -5,7 +5,7 @@
       </div>
       <div class="col-8 flex column justify-center text-center q-mb-md">
         <h5 class="q-mb-sm">{{ name }}</h5>
-        <h8 class="q-pa-sm">{{ description }}</h8>
+        <div class="q-pa-sm">{{ description }}</div>
         <div class="justify-center text-center text-white ">
           Inputs: <q-chip outline color="green" class="q-mr-sm" v-for="input in inputs" :key="input">{{ input }}</q-chip>
         </div>

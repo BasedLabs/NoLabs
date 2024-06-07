@@ -166,6 +166,7 @@ export default defineComponent({
     await this.checkAndCreateWorkflow();
 
     const workflowStore = useWorkflowStore();
+    await workflowStore.getAllProteins(this.experiment.experimentId);
     await workflowStore.fetchWorkflow(this.workflowId);
     this.elements = workflowStore.elements;
 

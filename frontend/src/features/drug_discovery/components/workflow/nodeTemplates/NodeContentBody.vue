@@ -1,6 +1,6 @@
 <template>
   <q-card-section class="job-section q-pa-sm">
-    <h7 class="text-white q-pa-sm">Jobs queue</h7>
+    <div class="text-white q-pa-sm">Jobs queue</div>
     <q-btn class="q-pa-sm" @click="addJob" label="+ Add Job" color="black" />
     <draggable class="q-pa-sm" v-model="jobs" handle=".drag-handle" @end="updateJobOrder" item-key="job_id">
       <template #item="{ element }">
@@ -30,7 +30,7 @@
   </q-card-section>
 
   <q-card-section class="result-section q-pa-sm">
-    <h7 class="text-white q-pa-sm">Results</h7>
+    <div class="text-white q-pa-sm">Results</div>
     <draggable class="q-pa-sm" v-model="results" handle=".drag-handle" item-key="job_id">
       <template #item="{ element }">
         <q-item class="bg-grey-3 text-black q-pa-sm q-mb-sm q-border-radius-md">
@@ -56,7 +56,7 @@
 
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
-      <esm-fold-job v-if="jobType === 'Folding'" :job-id="selectedJobId" />
+      <esm-fold-job v-if="name === 'Folding'" :job-id="selectedJobId" />
       <!-- Add other job components based on job type -->
       <q-card-actions>
         <q-btn flat label="Close" v-close-popup />
@@ -84,8 +84,7 @@ export default defineComponent({
     name: {
       type: String,
       required: true
-    },
-    jobType: String
+    }
   },
   data() {
     return {
@@ -117,7 +116,7 @@ export default defineComponent({
         let job;
         let executionStatus;
 
-        switch (this.jobType) {
+        switch (this.name) {
           case 'Folding':
             job = await getFoldingJobApi(jobId);
             executionStatus = await getFoldingJobStatus(jobId);
@@ -128,7 +127,7 @@ export default defineComponent({
           //   executionStatus = await getAnotherJobTypeStatus(jobId);
           //   break;
           default:
-            console.error(`Unknown job type: ${this.jobType}`);
+            console.error(`Unknown job type: ${this.name}`);
             return null; // Handle unknown job types
         }
 
