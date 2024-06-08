@@ -344,7 +344,11 @@ class GetComponentStateFeature:
         component: ComponentDbModel = ComponentDbModel.objects.with_id(request.component_id)
 
         if not component:
-            raise NoLabsException(ErrorCodes.component_not_found)
+            return GetComponentStateResponse(
+                input_dict={},
+                output_dict={},
+                job_ids=[]
+            )
 
         return GetComponentStateResponse(
             input_dict=component.input_parameter_dict,
