@@ -32,7 +32,7 @@ def mongo_disconnect():
     db_name = settings.connection_string.split('/')[-1]
 
     if mongodb_connection:
-        mongodb_connection.drop_database('nolabs')
+        mongodb_connection.drop_database(db_name)
 
     mongo_disconnect()
 

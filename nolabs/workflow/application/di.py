@@ -21,7 +21,8 @@ from nolabs.refined.application.use_cases.proteins.workflow import ProteinsCompo
 from nolabs.refined.application.use_cases.small_molecules_design.workflow import SmallMoleculesDesignLearningComponent
 from nolabs.refined.application.use_cases.solubility.workflow import SolubilityComponent
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
-    SetWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature
+    SetWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, \
+    GetComponentStateFeature
 from nolabs.workflow.component import Component
 
 
@@ -75,3 +76,7 @@ class WorkflowDependencies:
     @staticmethod
     def all_workflow_schemas():
         return AllWorkflowSchemasFeature()
+
+    @staticmethod
+    def get_component_state() -> GetComponentStateFeature:
+        return GetComponentStateFeature()

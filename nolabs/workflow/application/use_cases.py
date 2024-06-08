@@ -163,6 +163,7 @@ class CreateWorkflowSchemaFeature:
 
         return workflow_schema
 
+
 class GetWorkflowSchemaFeature:
     async def handle(self, workflow_id: UUID) -> Optional[WorkflowSchemaModel]:
         db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_id)
@@ -268,6 +269,7 @@ class SetWorkflowSchemaFeature:
 
         return False
 
+
 class StartWorkflowFeature:
     available_components: Dict[str, Type[Component]]
 
@@ -299,10 +301,10 @@ class StartWorkflowFeature:
                     output_parameter_dict=component_db_model.output_parameter_dict,
                     experiment=experiment)
             else:
-                id = uuid.uuid4()
+                id = workflow_component.component_id
                 component: Component = self.available_components[workflow_component.name](id=id,
                                                                                           experiment=experiment)
-                component_db_model = ComponentDbModel(
+                component_db_model = ComponentDbModel.create(
                     id=id,
                     workflow=db_model,
                     last_exception='',
@@ -335,7 +337,7 @@ class StartWorkflowFeature:
         workflow = Workflow()
         await workflow.execute(workflow_schema=workflow_schema, components=components)
 
-class GetComponentParametersFeature:
+class GetComponentStateFeature:
     async def handle(self, request: GetComponentStateRequest) -> GetComponentStateResponse:
         component: ComponentDbModel = ComponentDbModel.objects.with_id(request.component_id)
 

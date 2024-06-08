@@ -3,10 +3,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from .api_models import AllWorkflowSchemasResponse
+from .api_models import AllWorkflowSchemasResponse, GetComponentStateRequest
 from .di import WorkflowDependencies
 from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, SetWorkflowSchemaFeature, \
-    StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature
+    StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature
 from ..workflow_schema import WorkflowSchemaModel
 
 router = APIRouter(
@@ -67,3 +67,12 @@ async def start_workflow(
         experiment_id: UUID
 ):
     return await feature.handle(experiment_id=experiment_id)
+
+@router.get('/component/{component_id}/state', summary='Get state')
+async def get_component_state(
+        feature: Annotated[
+GetComponentStateFeature, Depends(WorkflowDependencies.get_component_state)
+        ],
+        component_id: UUID
+):
+    return await feature.handle(request=GetComponentStateRequest(component_id=component_id))
