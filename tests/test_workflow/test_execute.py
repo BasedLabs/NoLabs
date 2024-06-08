@@ -8,3 +8,4 @@ class TestWorkflowExecute(IsolatedAsyncioTestCase):
         mongo_connect()
 
     def test_linear_execute(self):
+        pass

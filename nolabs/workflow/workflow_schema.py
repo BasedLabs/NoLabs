@@ -62,7 +62,6 @@ class JobValidationError(BaseModel):
 class WorkflowComponentModel(BaseModel):
     name: str
     component_id: uuid.UUID
-    job_ids: List[uuid.UUID] = Field(default_factory=list)
     mappings: List[MappingModel] = Field(default_factory=list)
     error: Optional[str] = None
     defaults: List[DefaultWorkflowComponentModelValue] = Field(default_factory=list)
@@ -79,4 +78,4 @@ class WorkflowSchemaModel(BaseModel):
     valid: bool = True
 
     def get_wf_component(self, component_id: uuid.UUID):
-        return [wc for wc in self.workflow_components if wc.component_id == component_id]
+        return [wc for wc in self.workflow_components if wc.component_id == component_id][0]

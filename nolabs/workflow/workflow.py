@@ -30,44 +30,47 @@ class Workflow:
                     workflow_db_model.set_workflow_value(workflow_schema)
                     workflow_db_model.save()
 
-                return
+                    return
 
             input_changed = component.set_input_from_previous()
 
-            if not input_changed:
-                return
+            if input_changed:
+                component_db_model.input_parameter_dict = component.input_parameter_dict
+                component_db_model.save()
 
-            component_db_model.input_parameter_dict = component.input_parameter_dict
-            component_db_model.save()
+                validation_errors = component.validate_input()
 
-            validation_errors = component.validate_input()
+                if validation_errors:
+                    workflow_schema.get_wf_component(component.id).error = ', '.join(
+                        [ve.msg for ve in validation_errors])
+                    workflow_db_model.set_workflow_value(workflow_schema)
+                    workflow_db_model.save()
+                    return
 
-            if validation_errors:
-                workflow_schema.get_wf_component(component.id).error = ', '.join(
-                    [ve.msg for ve in validation_errors])
-                workflow_db_model.set_workflow_value(workflow_schema)
-                workflow_db_model.save()
-                return
-
-            await component.setup_jobs()
-            component_db_model.jobs = component.jobs
-            component_db_model.save()
-
-            jobs_validation_errors = await component.prevalidate_jobs()
-
-            if jobs_validation_errors:
-                workflow_schema.get_wf_component(component.id).error = [JobValidationError(
-                    job_id=ve.job_id,
-                    msg=ve.msg
-                ) for ve in jobs_validation_errors]
-            else:
-                workflow_schema.get_wf_component(component.id).jobs_errors = []
+                await component.setup_jobs()
+                component_db_model.jobs = component.jobs
+                workflow_component = workflow_schema.get_wf_component(component_db_model.id)
+                workflow_component.job_ids = [j.id for j in component.jobs]
+                component_db_model.save()
                 workflow_db_model.set_workflow_value(workflow_schema)
                 workflow_db_model.save()
 
-            await component.execute()
-            component_db_model.output_parameter_dict = component.output_parameter_dict
-            component_db_model.save()
+                jobs_validation_errors = await component.prevalidate_jobs()
+
+                if jobs_validation_errors:
+                    workflow_schema.get_wf_component(component.id).error = [JobValidationError(
+                        job_id=ve.job_id,
+                        msg=ve.msg
+                    ) for ve in jobs_validation_errors]
+                else:
+                    workflow_schema.get_wf_component(component.id).jobs_errors = []
+                    workflow_db_model.set_workflow_value(workflow_schema)
+                    workflow_db_model.save()
+
+            if component.validate_output():
+                await component.execute()
+                component_db_model.output_parameter_dict = component.output_parameter_dict
+                component_db_model.save()
 
         for component in components:
             await execute(component=component)

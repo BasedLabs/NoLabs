@@ -3,7 +3,8 @@ import uuid
 from typing import Dict, Any, List, Optional
 from uuid import UUID
 
-from mongoengine import Document, UUIDField, BinaryField, ReferenceField, CASCADE, DictField, StringField, IntField
+from mongoengine import Document, UUIDField, BinaryField, ReferenceField, CASCADE, DictField, StringField, IntField, \
+    ListField
 
 from nolabs.refined.domain.models.common import Experiment, Job
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel
@@ -37,22 +38,22 @@ class ComponentDbModel(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
     workflow: WorkflowSchemaDbModel = ReferenceField(WorkflowSchemaDbModel, reverse_delete_rule=CASCADE)
 
+    last_exception: Optional[str] = StringField(required=False)
+
     input_parameter_dict: Dict[str, Any] = DictField(default=dict)
     output_parameter_dict: Dict[str, Any] = DictField(default=dict)
 
-    jobs: List[Job] = ReferenceField(Job)
+    jobs: List[Job] = ListField(ReferenceField(Job), default=[])
 
-    def __init__(self, id: uuid.UUID, workflow: WorkflowSchemaDbModel, input_parameter_dict: Dict[str, Any],
-                 output_parameter_dict: Dict[str, Any], jobs: List[Job], *args,
-                 **values):
-        self.id = id
-        self.workflow = workflow
-        self.input_parameter_dict = input_parameter_dict
-        self.output_parameter_dict = output_parameter_dict
-        self.jobs = jobs
-        super().__init__(id=id,
-                         workflow=workflow,
-                         input_parameter_dict=input_parameter_dict,
-                         output_parameter_dict=output_parameter_dict,
-                         jobs=jobs,
-                         *args, **values)
+    @classmethod
+    def create(cls, id: uuid.UUID, workflow: WorkflowSchemaDbModel,
+               last_exception: Optional[str], input_parameter_dict: Dict[str, Any],
+                 output_parameter_dict: Dict[str, Any], jobs: List[Job]):
+        return ComponentDbModel(
+            id=id,
+            last_exception=last_exception,
+            workflow=workflow,
+            input_parameter_dict=input_parameter_dict,
+            output_parameter_dict=output_parameter_dict,
+            jobs=jobs
+        )

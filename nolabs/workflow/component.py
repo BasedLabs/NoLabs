@@ -154,13 +154,16 @@ class Component(Generic[TInput, TOutput]):
             if prop.default:
                 path = prop.path_to
 
+                if not prop.path_to:
+                    continue
+
                 current_level = self.input_parameter_dict
                 for key in path[:-1]:
                     if key not in current_level:
                         current_level[key] = {}
                     current_level = current_level[key]
 
-                if current_level[path[-1]] != prop.default:
+                if current_level.get(path[-1]) != prop.default:
                     changed = True
 
                 current_level[path[-1]] = prop.default
