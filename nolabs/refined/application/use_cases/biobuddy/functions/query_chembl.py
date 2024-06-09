@@ -1,10 +1,10 @@
 import json
 from typing import Dict, Any
 
-from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.biobuddy import FunctionCall, FunctionParam, ChemBLData, ChemBLMetaData, \
+
+from nolabs.refined.application.use_cases.biobuddy.api_models import FunctionCall, FunctionParam, ChemBLData, ChemBLMetaData, \
     FunctionCallReturnData
-from nolabs.modules.biobuddy.functions.base_function import BiobuddyFunction, FunctionParameterDefinition
+from nolabs.refined.application.use_cases.biobuddy.functions.base_function import BiobuddyFunction, FunctionParameterDefinition
 
 import chembl_query_microservice
 from nolabs.utils.sdf import smiles_to_sdf_string
@@ -92,7 +92,7 @@ class QueryChemblFunction(BiobuddyFunction):
         super().__init__("query_chembl", "Query Chembl database by search term to find the molecule",
                          parameters)
 
-    def execute(self, experiment_id: ExperimentId, arguments: Dict[str, Any]) -> FunctionCall:
+    def execute(self, arguments: Dict[str, Any]) -> FunctionCall:
         filters = str(arguments[self.parameters[0].name])
         if filters:
             filters = filters.replace("'", '"')
@@ -129,7 +129,7 @@ class QueryChemblFunction(BiobuddyFunction):
                 )
             ))
 
-        return FunctionCall(function_name='query_chembl', parameters=[FunctionParam(name="filters",
+        return FunctionCall(function_name='query_chembl', arguments=[FunctionParam(name="filters",
                                                                                     value=filters),
                                                                       FunctionParam(name="order_by",
                                                                                     value=order),

@@ -18,12 +18,13 @@ import biobuddy_microservice
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.biobuddy.api_models import CheckBioBuddyEnabledResponse, EditMessageRequest, \
     EditMessageResponse, LoadConversationRequest, LoadConversationResponse, CreateMessageRequest, CreateMessageResponse, \
-    SendQueryRequest, SendQueryResponse, FunctionParam
+    SendQueryRequest, SendQueryResponse
 from nolabs.refined.application.use_cases.biobuddy.api_models import Message as ApiMessage
 from nolabs.refined.application.use_cases.biobuddy.api_models import RegularMessage as ApiRegularMessage
 from nolabs.refined.application.use_cases.biobuddy.api_models import FunctionCall as ApiFunctionCall
 from nolabs.refined.application.use_cases.biobuddy.api_models import FunctionParam as ApiFunctionParam
-from nolabs.refined.domain.models.biobuddy import Chat, TextMessage, FunctionCall, UserRoleEnum
+from nolabs.refined.domain.models.biobuddy import Chat, TextMessage, FunctionCall, UserRoleEnum, FunctionParam, \
+    FunctionCallMessage
 
 
 class CheckBioBuddyEnabledFeature:
@@ -75,10 +76,32 @@ class LoadConversationFeature:
             raise NoLabsException(ErrorCodes.invalid_experiment_id, 'Experiment not found')
 
         messages = chat.messages
-        api_messages = [ApiMessage(id=message.message_id,
-                                   role=message.sender,
-                                   message=ApiRegularMessage(content=message.content) if isinstance(message, TextMessage) else ApiFunctionCall(**message.to_mongo()),
-                                   type='text' if isinstance(message, TextMessage) else 'function') for message in messages]
+        api_messages = []
+        for message in messages:
+            if isinstance(message, TextMessage):
+                api_message = ApiMessage(
+                    id=message.message_id,
+                    role=message.sender,
+                    message=ApiRegularMessage(content=message.content),
+                    type='text'
+                )
+            elif isinstance(message, FunctionCallMessage):
+                function_calls = [
+                    ApiFunctionCall(
+                        function_name=function_call.function_name,
+                        arguments=[ApiFunctionParam(name=param.name, value=param.value) for param in function_call.arguments]
+                    )
+                    for function_call in message.function_calls
+                ]
+                api_message = ApiMessage(
+                    id=message.message_id,
+                    role=message.sender,
+                    message=function_calls,
+                    type='function'
+                )
+            else:
+                continue
+            api_messages.append(api_message)
 
         return LoadConversationResponse(messages=api_messages)
 
@@ -145,17 +168,18 @@ class SendQueryFeature:
             function_name = function_dict['name']
             arguments = json.loads(function_dict['arguments'])
             if function_name in self._functions:
-                function_call = self._functions[function_name].execute(experiment_id=experiment_id,
-                                                                       arguments=arguments)
+                function_call = self._functions[function_name].execute(arguments=arguments)
 
                 regular_function_calls.append(FunctionCall(
                                                            function_name=function_call.function_name,
-                                                           arguments=arguments))
+                                                           arguments=[FunctionParam(name=param.name,
+                                                                                      value=str(param.value)) for param in
+                                                                     function_call.arguments]))
 
                 api_function_calls.append(ApiFunctionCall(function_name=function_call.function_name,
                                                           arguments=[ApiFunctionParam(name=param.name,
                                                                                       value=param.value) for param in
-                                                                     function_call.parameters],
+                                                                     function_call.arguments],
                                                           data=function_call.data))
 
         message_id = uuid.uuid4()
@@ -169,7 +193,7 @@ class SendQueryFeature:
         return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
                                                               role='assistant',
                                                               message=api_function_calls,
-                                                              type='functions'))
+                                                              type='function'))
 
     def _process_regular_ai_response(self, experiment_id: UUID, assistant_message) -> SendQueryResponse:
         message_id = uuid.uuid4()

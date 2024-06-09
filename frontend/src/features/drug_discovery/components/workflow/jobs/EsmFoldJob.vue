@@ -83,14 +83,13 @@
 
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent } from 'vue';
 import { QSpinnerOrbit, QSpinner, QInput } from 'quasar';
 import PdbViewer from 'src/components/PdbViewer.vue';
 import {
   nolabs__refined__application__use_cases__folding__api_models__JobResponse, ProteinResponse,
   nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse,
-  nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest,
-FoldingBackendEnum
+  nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest
 } from "../../../../../refinedApi/client";
 import { getFoldingJobApi, getProtein, getFoldingJobStatus, setupFoldingJob, changeJobName } from "../../../refinedApi";
 

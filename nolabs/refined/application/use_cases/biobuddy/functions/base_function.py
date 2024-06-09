@@ -2,8 +2,7 @@ from typing import Dict, Any, List
 
 from pydantic import dataclasses as pcdataclass
 
-from nolabs.api_models.biobuddy import FunctionCall
-from nolabs.domain.experiment import ExperimentId
+from nolabs.refined.application.use_cases.biobuddy.api_models import FunctionCall
 
 
 @pcdataclass.dataclass
@@ -21,7 +20,7 @@ class BiobuddyFunction:
         self.description = description
         self.parameters = parameters
 
-    def execute(self, experiment_id: ExperimentId, arguments: Dict[str, Any]) -> FunctionCall:
+    def execute(self, arguments: Dict[str, Any]) -> FunctionCall:
         raise NotImplementedError("Subclasses must implement this method")
 
 # Example derived class

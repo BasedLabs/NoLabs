@@ -17,7 +17,7 @@
               </p>
               <ul>
                 Params:
-                <li v-for="(param, pIndex) in functionCall.parameters" :key="`param-${fcIndex}-${pIndex}`">
+                <li v-for="(param, pIndex) in functionCall.arguments" :key="`param-${fcIndex}-${pIndex}`">
                   {{ param.name }}: {{ param.value }}
                 </li>
               </ul>
@@ -207,7 +207,7 @@ export default defineComponent({
     },
     getParameters(message: Message): Array<Array<FunctionParam>> {
       if (message.type === 'function') {
-        return (message.message as FunctionCall[]).map(fc => fc.parameters ? fc.parameters : []);
+        return (message.message as FunctionCall[]).map(fc => fc.arguments ? fc.arguments : []);
       }
       return [];
     }

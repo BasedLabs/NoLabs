@@ -45,7 +45,7 @@ class FunctionParam(EmbeddedDocument):
 
 class FunctionCall(EmbeddedDocument):
     function_name: str = StringField(required=True)
-    arguments: List[FunctionParam] = EmbeddedDocumentListField(FunctionParam)
+    arguments = EmbeddedDocumentListField(FunctionParam)
 
 class FunctionCallMessage(Message):
     """
