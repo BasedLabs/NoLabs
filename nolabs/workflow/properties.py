@@ -150,6 +150,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
         return None
 
     def try_set_default(self,
+                        input_type: Type[BaseModel],
                         path_to: List[str],
                         value: Optional[Any] = None) -> Optional[PropertyValidationError]:
         if not path_to:
@@ -159,6 +160,23 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
         if not target_property:
             return PropertyValidationError(
                 msg=f'Property does not exist in target schema',
+                loc=path_to
+            )
+
+        annotations = input_type.__annotations__
+        current_type = Type
+
+        for path in path_to:
+            if path not in annotations:
+                raise ValueError('Path is missing from the annotations')
+
+            current_type = annotations[path]
+            if hasattr(current_type, '__annotations__'):
+                annotations = current_type.__annotations__
+
+        if not isinstance(value, current_type):
+            return PropertyValidationError(
+                msg=f'Property has incompatible type',
                 loc=path_to
             )
 

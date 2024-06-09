@@ -5,7 +5,7 @@ from uuid import UUID
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Experiment
 from nolabs.workflow.application.api_models import GetComponentStateResponse, GetComponentStateRequest, \
-    AllWorkflowSchemasResponse
+    AllWorkflowSchemasResponse, JobErrorResponse, InputPropertyErrorResponse
 from nolabs.workflow.component import Component
 from nolabs.workflow.models import WorkflowSchemaDbModel, ComponentDbModel
 from nolabs.workflow.properties import Property, ParameterSchema, Items
@@ -69,10 +69,11 @@ def map_property(p: Union[Property, Items], schema: ParameterSchema) -> Property
     items = None
 
     if p.items:
-        items = map_items(p.items, schema) if not isinstance(p.items, list) else [map_items(item, schema) for item in p.items]
+        items = map_items(p.items, schema) if not isinstance(p.items, list) else [map_items(item, schema) for item in
+                                                                                  p.items]
 
     properties = {name: map_property(prop, schema) for name, prop in (definition.properties if
-                                                                        definition.properties else {}).items()} if definition else \
+                                                                      definition.properties else {}).items()} if definition else \
         {name: map_property(prop, schema) for name, prop in (p.properties if
                                                              p.properties else {}).items()}
 
@@ -95,12 +96,14 @@ def map_property(p: Union[Property, Items], schema: ParameterSchema) -> Property
         items=items
     )
 
+
 class DeleteWorkflowSchemaFeature:
     async def handle(self, workflow_id: UUID):
         db_model = WorkflowSchemaDbModel.objects.with_id(workflow_id)
 
         if db_model:
             db_model.delete()
+
 
 class AllWorkflowSchemasFeature:
     async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
@@ -113,6 +116,7 @@ class AllWorkflowSchemasFeature:
         return AllWorkflowSchemasResponse(
             ids=[m.id for m in db_models]
         )
+
 
 class CreateWorkflowSchemaFeature:
     available_components: Dict[str, Type[Component]]
@@ -137,7 +141,7 @@ class CreateWorkflowSchemaFeature:
 
             input_schema = component.input_schema
             input_parameters = {name: map_property(prop, input_schema) for name, prop in
-                                 input_schema.properties.items()}
+                                input_schema.properties.items()}
 
             components_models.append(ComponentModel(
                 name=component_name,
@@ -173,7 +177,8 @@ class GetWorkflowSchemaFeature:
 
         return db_model.get_workflow_value()
 
-class SetWorkflowSchemaFeature:
+
+class UpdateWorkflowSchemaFeature:
     available_components: Dict[str, Type[Component]]
 
     def __init__(self, available_components: Dict[str, Type[Component]]):
@@ -276,16 +281,15 @@ class StartWorkflowFeature:
     def __init__(self, available_components: Dict[str, Type[Component]]):
         self.available_components = available_components
 
-    async def handle(self, experiment_id: UUID):
-        experiment = Experiment.objects.with_id(experiment_id)
-
-        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects(experiment=experiment).first()
+    async def handle(self, workflow_id: UUID):
+        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects().with_id(workflow_id)
+        experiment = db_model.experiment
 
         workflow_schema = db_model.get_workflow_value()
 
         if not workflow_schema.valid:
             raise NoLabsException(ErrorCodes.invalid_workflow_schema,
-                                  f'Run {SetWorkflowSchemaFeature.__name__} to get schema errors')
+                                  f'Run {UpdateWorkflowSchemaFeature.__name__} to get schema errors')
 
         components: List[Component] = []
 
@@ -307,10 +311,12 @@ class StartWorkflowFeature:
                 component_db_model = ComponentDbModel.create(
                     id=id,
                     workflow=db_model,
-                    last_exception='',
                     input_parameter_dict={},
                     output_parameter_dict={},
-                    jobs=[]
+                    jobs=[],
+                    jobs_errors=[],
+                    input_property_errors=[],
+                    last_exceptions=[]
                 )
                 component_db_model.save()
 
@@ -326,7 +332,9 @@ class StartWorkflowFeature:
             for mapping in workflow_component.mappings:
                 source_component: Component = [c for c in components if c.id == mapping.source_component_id][0]
 
-                component.add_previous(component=source_component)
+                if not source_component in component.previous:
+                    component.add_previous(component=source_component)
+
                 component.try_map_property(component=source_component,
                                            path_from=mapping.source_path,
                                            path_to=mapping.target_path)
@@ -337,6 +345,7 @@ class StartWorkflowFeature:
         workflow = Workflow()
         await workflow.execute(workflow_schema=workflow_schema, components=components)
 
+
 class GetComponentStateFeature:
     async def handle(self, request: GetComponentStateRequest) -> GetComponentStateResponse:
         component: ComponentDbModel = ComponentDbModel.objects.with_id(request.component_id)
@@ -345,11 +354,29 @@ class GetComponentStateFeature:
             return GetComponentStateResponse(
                 input_dict={},
                 output_dict={},
-                job_ids=[]
+                job_ids=[],
+                jobs_errors=[],
+                last_exceptions=[],
+                input_property_errors=[]
             )
 
         return GetComponentStateResponse(
             input_dict=component.input_parameter_dict,
             output_dict=component.output_parameter_dict,
-            job_ids=[j.iid.value for j in component.jobs]
+            job_ids=[j.iid.value for j in component.jobs],
+            jobs_errors=[
+                JobErrorResponse(
+                    msg=e.msg,
+                    job_id=e.job_id
+                )
+                for e in component.jobs_errors
+            ],
+            input_property_errors=[
+                InputPropertyErrorResponse(
+                    loc=e.loc,
+                    msg=e.msg
+                )
+                for e in component.input_property_errors
+            ],
+            last_exceptions=component.last_exceptions
         )

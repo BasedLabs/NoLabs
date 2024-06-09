@@ -51,22 +51,22 @@ async def get_schema(
     return await feature.handle(experiment_id=experiment_id)
 
 
-@router.put('/', summary='Set workflow schema')
-async def set_workflow_schema(
+@router.put('/', summary='Update workflow schema')
+async def setup_workflow_schema(
         feature: Annotated[
-            SetWorkflowSchemaFeature, Depends(WorkflowDependencies.set_workflow_schema)],
+            SetWorkflowSchemaFeature, Depends(WorkflowDependencies.update_workflow_schema)],
         workflow_schema: WorkflowSchemaModel
 ) -> WorkflowSchemaModel:
     return await feature.handle(workflow_schema=workflow_schema)
 
 
-@router.post('/{experiment_id}/start', summary='Start workflow schema')
+@router.post('/{workflow_id}/start', summary='Start workflow schema')
 async def start_workflow(
         feature: Annotated[
             StartWorkflowFeature, Depends(WorkflowDependencies.start_workflow)],
-        experiment_id: UUID
+        workflow_id: UUID
 ):
-    return await feature.handle(experiment_id=experiment_id)
+    return await feature.handle(workflow_id=workflow_id)
 
 @router.get('/component/{component_id}/state', summary='Get state')
 async def get_component_state(

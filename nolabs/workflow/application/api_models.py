@@ -9,11 +9,27 @@ class GetComponentJobIdsRequest:
     component_id: UUID
 
 
+
+@dataclass
+class JobErrorResponse:
+    msg: str
+    job_id: UUID
+
+@dataclass
+class InputPropertyErrorResponse:
+    loc: List[str]
+    msg: str
+
+
 @dataclass
 class GetComponentStateResponse:
     input_dict: Dict[str, Any]
     output_dict: Dict[str, Any]
     job_ids: List[UUID]
+    jobs_errors: List[JobErrorResponse]
+    input_property_errors: List[InputPropertyErrorResponse]
+    last_exceptions: List[str]
+
 
 
 @dataclass
