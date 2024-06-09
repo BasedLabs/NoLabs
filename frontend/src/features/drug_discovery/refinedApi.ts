@@ -116,3 +116,4 @@ export async function checkBiobuddyEnabled(): Promise<boolean> {
   const response = await BiobuddyService.checkBiobuddyEnabledApiV1BiobuddyCheckBiobuddyEnabledGet();
   return response.enabled;
 }
+

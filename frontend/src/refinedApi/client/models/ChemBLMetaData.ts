@@ -2,9 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type DefaultWorkflowComponentModelValue = {
-    target_path: Array<string>;
-    value?: null;
-    error?: (string | null);
+export type ChemBLMetaData = {
+    chembl_id: string;
+    link: string;
+    pref_name: string;
 };
 

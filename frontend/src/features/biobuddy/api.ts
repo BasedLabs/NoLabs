@@ -2,10 +2,10 @@ import {
   CancelablePromise,
   BiobuddyService,
   LoadConversationResponse,
-  SaveMessageResponse,
+  CreateMessageResponse,
   CheckBioBuddyEnabledResponse,
   SendQueryResponse, EditMessageResponse,
-} from 'src/api/client';
+} from 'src/refinedApi/client';
 
 export function checkBioBuddyEnabled(): CancelablePromise<CheckBioBuddyEnabledResponse> {
   return BiobuddyService.checkBiobuddyEnabledApiV1BiobuddyCheckBiobuddyEnabledGet();
@@ -15,8 +15,8 @@ export function loadConversationApi(experimentId: string): CancelablePromise<Loa
   return BiobuddyService.loadConversationApiV1BiobuddyLoadConversationGet(experimentId);
 }
 
-export function saveMessageApi(experimentId: string, message: string): CancelablePromise<SaveMessageResponse> {
-  return BiobuddyService.saveMessageApiV1BiobuddyMessageCreatePost(experimentId, message);
+export function saveMessageApi(experimentId: string, message: string): CancelablePromise<CreateMessageResponse> {
+  return BiobuddyService.createMessageApiV1BiobuddyMessageCreatePost(experimentId, message);
 }
 
 export function editMessageApi(experimentId: string, messageId: string, message: string): CancelablePromise<EditMessageResponse> {

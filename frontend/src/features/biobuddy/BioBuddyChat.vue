@@ -64,7 +64,7 @@
 import {Notify} from 'quasar';
 import { defineComponent } from 'vue';
 import {editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi} from 'src/features/biobuddy/api';
-import {FunctionCall, type FunctionParam, Message} from "src/api/client";
+import {FunctionCall, type FunctionParam, Message} from "src/refinedApi/client";
 import MarkdownIt from 'markdown-it';
 import {useBioBuddyStore} from "./storage";
 import {obtainErrorResponse} from "../../api/errorWrapper";

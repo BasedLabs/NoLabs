@@ -1,3 +1,5 @@
+import biobuddy_microservice
+import chembl_query_microservice
 import localisation_microservice
 import esmfold_microservice
 import esmfold_light_microservice
@@ -19,6 +21,25 @@ class InfrastructureDependencies:
     @staticmethod
     def settings() -> Settings:
         return Settings.load()
+
+    @staticmethod
+    def biobuddy_microservice() -> biobuddy_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = biobuddy_microservice.Configuration(
+            host=settings.biobuddy.microservice
+        )
+        client = biobuddy_microservice.ApiClient(configuration=configuration)
+        return biobuddy_microservice.DefaultApi(client)
+
+    @staticmethod
+    def chembl_query_microservice() -> chembl_query_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = chembl_query_microservice.Configuration(
+            host=settings.chembl.microservice
+        )
+        client = chembl_query_microservice.ApiClient(configuration=configuration)
+        return chembl_query_microservice.DefaultApi(client)
+
 
     @staticmethod
     def localisation_microservice() -> localisation_microservice.DefaultApi:

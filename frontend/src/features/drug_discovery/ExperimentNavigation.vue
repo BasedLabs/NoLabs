@@ -170,9 +170,9 @@ export default defineComponent({
     await workflowStore.fetchWorkflow(this.workflowId);
     this.elements = workflowStore.elements;
 
-    setInterval(() => {
-      workflowStore.pollWorkflow();
-    }, 2000); // Poll every 2 seconds
+    //setInterval(() => {
+    //  workflowStore.pollWorkflow();
+    //}, 2000); // Poll every 2 seconds
   },
   methods: {
     async checkAndCreateWorkflow() {

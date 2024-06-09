@@ -2,9 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type DefaultWorkflowComponentModelValue = {
-    target_path: Array<string>;
-    value?: null;
-    error?: (string | null);
+import type { Message } from './Message';
+export type SendQueryResponse = {
+    biobuddy_response: Message;
 };
 

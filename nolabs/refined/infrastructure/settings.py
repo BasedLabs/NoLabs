@@ -24,6 +24,8 @@ settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
 
 class Settings(BaseSettings):
     localisation: MicroserviceSettings = MicroserviceSettings()
+    biobuddy: MicroserviceSettings = MicroserviceSettings()
+    chembl: MicroserviceSettings = MicroserviceSettings()
     esmfold: MicroserviceSettings = MicroserviceSettings()
     esmfold_light: MicroserviceSettings = MicroserviceSettings()
     rosettafold: MicroserviceSettings = MicroserviceSettings()
