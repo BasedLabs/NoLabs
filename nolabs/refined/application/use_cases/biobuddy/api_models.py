@@ -64,7 +64,7 @@ class FunctionCallReturnData(BaseModel):
 @dataclass
 class FunctionCall:
     function_name: str
-    parameters: List[FunctionParam]
+    arguments: List[FunctionParam]
     data: FunctionCallReturnData = None
 
 

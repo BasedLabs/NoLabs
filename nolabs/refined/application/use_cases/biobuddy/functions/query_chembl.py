@@ -109,6 +109,8 @@ class QueryChemblFunction(BiobuddyFunction):
         else:
             request = chembl_query_microservice.ChEMBLMoleculeRequest(filters=filters,
                                                                       limit=max_results)
+
+        print(request)
         molecules = self._chembl_microservice.query_query_chembl_post(ch_embl_molecule_request=request).molecules
 
         data = []

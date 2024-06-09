@@ -2,12 +2,12 @@ __all__ = [
     'Chat',
     'Message',
     'TextMessage',
-    'FunctionCallMessage',
+    'FunctionCall',
     'UserRoleEnum'
 ]
 
 from enum import Enum
-from typing import List, Union
+from typing import List, Union, Any
 from uuid import UUID
 
 from mongoengine import Document, EmbeddedDocument, StringField, UUIDField, EmbeddedDocumentListField, \
@@ -38,12 +38,20 @@ class TextMessage(Message):
     content: str = StringField(required=True)
 
 
+class FunctionParam(EmbeddedDocument):
+    name: str = StringField(required=True)
+    value: Any = StringField(required=False)
+
+
+class FunctionCall(EmbeddedDocument):
+    function_name: str = StringField(required=True)
+    arguments: List[FunctionParam] = EmbeddedDocumentListField(FunctionParam)
+
 class FunctionCallMessage(Message):
     """
     A message that contains function calls
     """
-    function_name: str = StringField(required=True)
-    arguments: dict = StringField(required=True)  # Assuming arguments are serialized as JSON strings
+    function_calls: List[FunctionCall] = EmbeddedDocumentListField(FunctionCall)
 
 
 class Chat(Document):
@@ -85,13 +93,12 @@ class Chat(Document):
                     raise ValueError('Message content type mismatch')
         raise ValueError('Message ID not found')
 
-    def add_function_call_message(self, message_id: UUID, sender: UserRoleEnum, function_name: str, arguments: dict):
+    def add_function_call_message(self, message_id: UUID, sender: UserRoleEnum, function_calls: List[FunctionCall]):
         if sender != UserRoleEnum.biobuddy:
             raise ValueError('Only biobuddy can send function call messages')
 
-        if isinstance(function_name, str) and isinstance(arguments, dict):
-            message = FunctionCallMessage(message_id=message_id, sender=sender, function_name=function_name,
-                                          arguments=str(arguments))
+        if isinstance(function_calls, list):
+            message = FunctionCallMessage(message_id=message_id, sender=sender, function_calls=function_calls)
             self.messages.append(message)
         else:
             raise ValueError('Invalid message content for function call message')

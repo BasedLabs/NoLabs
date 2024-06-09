@@ -7,7 +7,6 @@ __all__ = [
 ]
 
 import ast
-import dataclasses
 import json
 import os
 import uuid
@@ -19,12 +18,12 @@ import biobuddy_microservice
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.application.use_cases.biobuddy.api_models import CheckBioBuddyEnabledResponse, EditMessageRequest, \
     EditMessageResponse, LoadConversationRequest, LoadConversationResponse, CreateMessageRequest, CreateMessageResponse, \
-    SendQueryRequest, SendQueryResponse
+    SendQueryRequest, SendQueryResponse, FunctionParam
 from nolabs.refined.application.use_cases.biobuddy.api_models import Message as ApiMessage
 from nolabs.refined.application.use_cases.biobuddy.api_models import RegularMessage as ApiRegularMessage
 from nolabs.refined.application.use_cases.biobuddy.api_models import FunctionCall as ApiFunctionCall
-from nolabs.refined.domain.models.biobuddy import Chat, TextMessage, FunctionCallMessage, UserRoleEnum
-from nolabs.utils import generate_uuid
+from nolabs.refined.application.use_cases.biobuddy.api_models import FunctionParam as ApiFunctionParam
+from nolabs.refined.domain.models.biobuddy import Chat, TextMessage, FunctionCall, UserRoleEnum
 
 
 class CheckBioBuddyEnabledFeature:
@@ -78,15 +77,10 @@ class LoadConversationFeature:
         messages = chat.messages
         api_messages = [ApiMessage(id=message.message_id,
                                    role=message.sender,
-                                   message=ApiRegularMessage(content=message.content) if isinstance(message,
-                                                                                                    TextMessage)
-                                   else ApiFunctionCall(
-                                       **message.to_mongo()),
-                                   type='text' if isinstance(message, TextMessage) else 'function') for message in
-                        messages]
+                                   message=ApiRegularMessage(content=message.content) if isinstance(message, TextMessage) else ApiFunctionCall(**message.to_mongo()),
+                                   type='text' if isinstance(message, TextMessage) else 'function') for message in messages]
 
         return LoadConversationResponse(messages=api_messages)
-
 
 class CreateMessageFeature:
     def __init__(self):
@@ -154,19 +148,22 @@ class SendQueryFeature:
                 function_call = self._functions[function_name].execute(experiment_id=experiment_id,
                                                                        arguments=arguments)
 
-                regular_function_calls.append(FunctionCallMessage(function_name=function_call.function_name,
-                                                                  arguments=arguments,
-                                                                  message_id=generate_uuid(),
-                                                                  sender=UserRoleEnum.biobuddy))
-                api_function_calls.append(ApiFunctionCall(**dataclasses.asdict(function_call)))
+                regular_function_calls.append(FunctionCall(
+                                                           function_name=function_call.function_name,
+                                                           arguments=arguments))
+
+                api_function_calls.append(ApiFunctionCall(function_name=function_call.function_name,
+                                                          arguments=[ApiFunctionParam(name=param.name,
+                                                                                      value=param.value) for param in
+                                                                     function_call.parameters],
+                                                          data=function_call.data))
 
         message_id = uuid.uuid4()
         chat = Chat.objects(experiment_id=experiment_id).first()
         if not chat:
             chat = Chat(experiment_id=experiment_id, messages=[])
 
-        for call in regular_function_calls:
-            chat.messages.append(call)
+        chat.add_function_call_message(message_id, UserRoleEnum.biobuddy, regular_function_calls)
         chat.save()
 
         return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
@@ -184,7 +181,7 @@ class SendQueryFeature:
         chat.save()
 
         return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
-                                                              role='assistant',
+                                                              role=UserRoleEnum.biobuddy.value,
                                                               message=ApiRegularMessage(
                                                                   content=str(assistant_message.content)
                                                               ),
@@ -238,9 +235,9 @@ class SendQueryFeature:
             if isinstance(message, TextMessage):
                 previous_messages.append({'role': message.sender.value,
                                           'content': message.content})
-            elif isinstance(message, FunctionCallMessage):
+            elif isinstance(message, FunctionCall):
                 functions = [{"name": message.function_name, "arguments": message.arguments}]
-                previous_messages.append({'role': message.sender.value,
+                previous_messages.append({'role': UserRoleEnum.biobuddy.value,
                                           'content': f"I called {functions}"})
 
         return previous_messages
