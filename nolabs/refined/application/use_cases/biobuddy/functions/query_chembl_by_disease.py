@@ -1,24 +1,19 @@
 import json
 from typing import Dict, Any
 
-from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.biobuddy import FunctionCall, FunctionParam, ChemBLData, ChemBLMetaData, \
+from nolabs.refined.application.use_cases.biobuddy.api_models import FunctionCall, FunctionParam, ChemBLData, \
+    ChemBLMetaData, \
     FunctionCallReturnData
-from nolabs.modules.biobuddy.functions.base_function import BiobuddyFunction, FunctionParameterDefinition
-from nolabs.modules.drug_discovery.services.ligand_file_management import LigandsFileManagement
-from nolabs.infrastructure.settings import Settings
+from nolabs.refined.application.use_cases.biobuddy.functions.base_function import BiobuddyFunction, \
+    FunctionParameterDefinition
 
 import chembl_query_microservice
-from chembl_query_microservice import DefaultApi as chemblApiDefaultApi
-from chembl_query_microservice import ApiClient as chemblApiClient
-from chembl_query_microservice import Configuration as chemblApiConfiguration
 
 from nolabs.utils.sdf import smiles_to_sdf_string
 
 
 class QueryChemblByConditionFunction(BiobuddyFunction):
-    def __init__(self, settings: Settings,
-                 ligands_file_management: LigandsFileManagement):
+    def __init__(self, chembl_microservice: chembl_query_microservice.DefaultApi):
         parameters = [
             FunctionParameterDefinition(name="filters",
                                         type="string",
@@ -82,52 +77,46 @@ class QueryChemblByConditionFunction(BiobuddyFunction):
                                                       "molecules assocoated"
                                                       "with it",
                          parameters)
-        self._settings = settings
-        self._ligand_file_management = ligands_file_management
+        self._chembl_microservice = chembl_microservice
 
-    def execute(self, experiment_id: ExperimentId, arguments: Dict[str, Any]) -> FunctionCall:
+    def execute(self, arguments: Dict[str, Any]) -> FunctionCall:
         filters = str(arguments[self.parameters[0].name])
         if filters:
             filters = filters.replace("'", '"')
             filters = json.loads(filters)
         order = arguments[self.parameters[1].name]
         max_results = arguments[self.parameters[2].name]
-        configuration = chemblApiConfiguration(
-            host=self._settings.chembl_query_host,
-        )
-        with chemblApiClient(configuration=configuration) as client:
-            api_instance = chemblApiDefaultApi(client)
-            request = None
-            if order:
-                request = chembl_query_microservice.DrugIndicationRequest(filters=filters,
-                                                                          order_by=order,
-                                                                          limit=max_results)
-            else:
-                request = chembl_query_microservice.DrugIndicationRequest(filters=filters,
-                                                                          limit=max_results)
-            molecules = api_instance.query_query_chembl_by_condition_post(request).drugs
+        request = None
+        if order:
+            request = chembl_query_microservice.DrugIndicationRequest(filters=filters,
+                                                                      order_by=order,
+                                                                      limit=max_results)
+        else:
+            request = chembl_query_microservice.DrugIndicationRequest(filters=filters,
+                                                                      limit=max_results)
+        molecules = self._chembl_microservice.query_query_chembl_by_condition_post(request).drugs
 
-            data = []
+        data = []
 
-            for molecule in molecules:
-                molecule_smiles = molecule.smiles
-                sdf_content = smiles_to_sdf_string(molecule_smiles)
+        for molecule in molecules:
+            molecule_smiles = molecule.smiles
+            sdf_content = smiles_to_sdf_string(molecule_smiles)
 
-                molecule.pref_name = molecule.pref_name if molecule.pref_name else molecule.chembl_id
-                data.append(ChemBLData(
-                    content=sdf_content,
-                    metadata=ChemBLMetaData(
-                        pref_name=molecule.pref_name,
-                        chembl_id=molecule.chembl_id,
-                        link=molecule.link
-                    )
-                ))
+            molecule.pref_name = molecule.pref_name if molecule.pref_name else molecule.chembl_id
+            data.append(ChemBLData(
+                content=sdf_content,
+                metadata=ChemBLMetaData(
+                    pref_name=molecule.pref_name,
+                    chembl_id=molecule.chembl_id,
+                    link=molecule.link
+                )
+            ))
 
-            return FunctionCall(function_name='query_chembl_by_condition', parameters=[FunctionParam(name="filters",
-                                                                                                     value=filters),
-                                                                                       FunctionParam(name="order_by",
-                                                                                                     value=order),
-                                                                                       FunctionParam(name="max_results",
-                                                                                                     value=max_results),
-                                                                                       ],
-                                data=FunctionCallReturnData(files=data))
+        return FunctionCall(function_name='query_chembl_by_condition', arguments=[FunctionParam(name="filters",
+                                                                                                value=filters),
+                                                                                  FunctionParam(name="order_by",
+                                                                                                value=order),
+                                                                                  FunctionParam(name="max_results",
+                                                                                                value=max_results),
+                                                                                  ],
+                            data=FunctionCallReturnData(files=data))

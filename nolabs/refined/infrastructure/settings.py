@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     localisation: MicroserviceSettings = MicroserviceSettings()
     biobuddy: MicroserviceSettings = MicroserviceSettings()
     chembl: MicroserviceSettings = MicroserviceSettings()
+    rcsb_pdb: MicroserviceSettings = MicroserviceSettings()
     esmfold: MicroserviceSettings = MicroserviceSettings()
     esmfold_light: MicroserviceSettings = MicroserviceSettings()
     rosettafold: MicroserviceSettings = MicroserviceSettings()

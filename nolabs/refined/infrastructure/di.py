@@ -3,6 +3,7 @@ import chembl_query_microservice
 import localisation_microservice
 import esmfold_microservice
 import esmfold_light_microservice
+import rcsb_pdb_query_microservice
 import rosettafold_microservice
 import gene_ontology_microservice
 import reinvent_microservice
@@ -39,6 +40,15 @@ class InfrastructureDependencies:
         )
         client = chembl_query_microservice.ApiClient(configuration=configuration)
         return chembl_query_microservice.DefaultApi(client)
+
+    @staticmethod
+    def rcsb_pdb_query_microservice() -> rcsb_pdb_query_microservice.DefaultApi:
+        settings = Settings.load()
+        configuration = rcsb_pdb_query_microservice.Configuration(
+            host=settings.rcsb_pdb.microservice
+        )
+        client = rcsb_pdb_query_microservice.ApiClient(configuration=configuration)
+        return rcsb_pdb_query_microservice.DefaultApi(client)
 
 
     @staticmethod

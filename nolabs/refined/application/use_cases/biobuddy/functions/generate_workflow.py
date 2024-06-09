@@ -22,11 +22,8 @@ class GenerateWorkflowFunction(BiobuddyFunction):
 
     def execute(self, experiment_id: ExperimentId, arguments: Dict[str, Any]) -> FunctionCall:
         return_json_string = arguments[self.parameters[0].name]
-        print(f"Executing {self.name} with arguments {arguments}")
 
         workflow = json.loads(return_json_string)
-
-        print("WORKFLOW:", workflow)
 
         return FunctionCall(function_name="create_workflow", parameters=[],
                             data=FunctionCallReturnData(files=workflow))

@@ -1,21 +1,13 @@
 from typing import Dict, Any
 
-from nolabs.domain.experiment import ExperimentId
-from nolabs.api_models.biobuddy import FunctionCall, FunctionParam, FileData, FunctionCallReturnData, RcsbPdbData, \
+from nolabs.refined.application.use_cases.biobuddy.api_models import FunctionCall, FunctionParam, FunctionCallReturnData, RcsbPdbData, \
     RcsbPdbMetaData
-from nolabs.modules.biobuddy.functions.base_function import BiobuddyFunction, FunctionParameterDefinition
-from nolabs.modules.drug_discovery.services.target_file_management import TargetsFileManagement
-from nolabs.infrastructure.settings import Settings
-
+from nolabs.refined.application.use_cases.biobuddy.functions.base_function import BiobuddyFunction, FunctionParameterDefinition
 import rcsb_pdb_query_microservice
-from rcsb_pdb_query_microservice import DefaultApi as rcsbApiDefaultApi
-from rcsb_pdb_query_microservice import ApiClient as rcsbApiClient
-from rcsb_pdb_query_microservice import Configuration as rcsbApiConfiguration
 
 
 class QueryRcsbPdbByNamesFunction(BiobuddyFunction):
-    def __init__(self, settings: Settings,
-                 targets_file_management: TargetsFileManagement):
+    def __init__(self, rcsb_pdb_query_microservice: rcsb_pdb_query_microservice.DefaultApi):
         parameters = [
             FunctionParameterDefinition(name="protein_names",
                                         type="array",
@@ -36,39 +28,35 @@ class QueryRcsbPdbByNamesFunction(BiobuddyFunction):
                                                     "targets/proteins, then set this parameter to 10 by default.")
         ]
         super().__init__("query_rcsb_pdb_by_protein_names", "Query RCSB PDB by protein names.", parameters)
-        self._settings = settings
-        self._targets_file_management = targets_file_management
+        self._rcsb_pdb_query_microservice = rcsb_pdb_query_microservice
 
-    def execute(self, experiment_id: ExperimentId, arguments: Dict[str, Any]) -> FunctionCall:
+    def execute(self, arguments: Dict[str, Any]) -> FunctionCall:
         protein_names = arguments["protein_names"]
 
         max_results = None
         if "max_results" in arguments:
             max_results = arguments["max_results"]
-        configuration = rcsbApiConfiguration(
-            host=self._settings.rcsb_pdb_query_host,
-        )
-        results = []
-        with rcsbApiClient(configuration=configuration) as client:
-            api_instance = rcsbApiDefaultApi(client)
-            for protein_name in protein_names:
-                request = rcsb_pdb_query_microservice.GetFastaFilesBySearchQueryRequest(search_query=protein_name,
-                                                                                        max_results=max_results)
-                response = api_instance.fetch_fetch_fastas_by_search_query_post(
-                    get_fasta_files_by_search_query_request=request)
 
-            data = []
-            for result in response.fasta_contents:
-                fasta_contents = result.fasta_contents
+        response = None
 
-                data.append(RcsbPdbData(
-                    content=fasta_contents,
-                    metadata=RcsbPdbMetaData(
-                        link=result.link
-                    )
-                ))
+        for protein_name in protein_names:
+            request = rcsb_pdb_query_microservice.GetFastaFilesBySearchQueryRequest(search_query=protein_name,
+                                                                                    max_results=max_results)
+            response = self._rcsb_pdb_query_microservice.fetch_fetch_fastas_by_search_query_post(
+                get_fasta_files_by_search_query_request=request)
 
-            return FunctionCall(function_name="query_rcsb_pdb_by_protein_names", parameters=[FunctionParam(
-                name="protein_names",
-                value=protein_names)],
-                data=FunctionCallReturnData(files=data))
+        data = []
+        for result in response.fasta_contents:
+            fasta_contents = result.fasta_contents
+
+            data.append(RcsbPdbData(
+                content=fasta_contents,
+                metadata=RcsbPdbMetaData(
+                    link=result.link
+                )
+            ))
+
+        return FunctionCall(function_name="query_rcsb_pdb_by_protein_names", arguments=[FunctionParam(
+            name="protein_names",
+            value=protein_names)],
+            data=FunctionCallReturnData(files=data))
