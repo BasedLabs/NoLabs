@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Optional
 from uuid import UUID
 
 from mongoengine import Document, UUIDField, BinaryField, ReferenceField, CASCADE, DictField, StringField, IntField, \
-    ListField
+    ListField, EmbeddedDocument, EmbeddedDocumentListField
 
 from nolabs.refined.domain.models.common import Experiment, Job
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel
@@ -34,11 +34,37 @@ class WorkflowSchemaDbModel(Document):
         self.value = pickle.dumps(value)
 
 
+class JobErrorDbModel(EmbeddedDocument):
+    job_id: UUID = UUIDField()
+    msg: str = StringField()
+
+    @classmethod
+    def create(cls, job_id: UUID, msg: str) -> 'JobErrorDbModel':
+        return JobErrorDbModel(
+            job_id=job_id,
+            msg=msg
+        )
+
+
+class InputPropertyErrorDbModel(EmbeddedDocument):
+    loc: List[str] = ListField(StringField())
+    msg: str = StringField()
+
+    @classmethod
+    def create(cls, loc: List[str], msg: str) -> 'InputPropertyErrorDbModel':
+        return InputPropertyErrorDbModel(
+            loc=loc,
+            msg=msg
+        )
+
+
 class ComponentDbModel(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
     workflow: WorkflowSchemaDbModel = ReferenceField(WorkflowSchemaDbModel, reverse_delete_rule=CASCADE)
 
-    last_exception: Optional[str] = StringField(required=False)
+    last_exceptions: List[str] = ListField(StringField(required=False))
+    jobs_errors: List[JobErrorDbModel] = EmbeddedDocumentListField(JobErrorDbModel)
+    input_property_errors: List[InputPropertyErrorDbModel] = EmbeddedDocumentListField(InputPropertyErrorDbModel)
 
     input_parameter_dict: Dict[str, Any] = DictField(default=dict)
     output_parameter_dict: Dict[str, Any] = DictField(default=dict)
@@ -46,14 +72,22 @@ class ComponentDbModel(Document):
     jobs: List[Job] = ListField(ReferenceField(Job), default=[])
 
     @classmethod
-    def create(cls, id: uuid.UUID, workflow: WorkflowSchemaDbModel,
-               last_exception: Optional[str], input_parameter_dict: Dict[str, Any],
-                 output_parameter_dict: Dict[str, Any], jobs: List[Job]):
+    def create(cls,
+               id: uuid.UUID,
+               workflow: WorkflowSchemaDbModel,
+               input_parameter_dict: Dict[str, Any],
+               output_parameter_dict: Dict[str, Any],
+               jobs: List[Job],
+               jobs_errors: List[JobErrorDbModel],
+               input_property_errors: List[InputPropertyErrorDbModel],
+               last_exceptions: List[str]):
         return ComponentDbModel(
             id=id,
-            last_exception=last_exception,
             workflow=workflow,
             input_parameter_dict=input_parameter_dict,
             output_parameter_dict=output_parameter_dict,
-            jobs=jobs
+            input_property_errors=input_property_errors,
+            jobs=jobs,
+            jobs_errors=jobs_errors,
+            last_exceptions=last_exceptions
         )

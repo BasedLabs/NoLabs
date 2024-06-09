@@ -64,8 +64,6 @@ class Component(Generic[TInput, TOutput]):
         else:
             self.jobs = jobs
 
-        print("INPUT PARAM:", input_parameter_dict)
-
         if not input_parameter_dict:
             self.input_parameter_dict = {}
         else:
@@ -80,6 +78,9 @@ class Component(Generic[TInput, TOutput]):
         self._output_schema = ParameterSchema.get_instance(cls=self._output_parameter_type)
 
         self._previous = []
+
+    async def executing(self) -> bool:
+        return False
 
     async def terminate(self, timeout: int = 10):
         await asyncio.wait_for(self.stop(), timeout=timeout)
@@ -141,7 +142,7 @@ class Component(Generic[TInput, TOutput]):
         )
 
     def try_set_default(self, path_to: List[str], value: Any) -> Optional[PropertyValidationError]:
-        return self._input_schema.try_set_default(path_to=path_to, value=value)
+        return self._input_schema.try_set_default(path_to=path_to, value=value, input_type=self._input_parameter_type)
 
     def set_input_from_previous(self) -> bool:
         """

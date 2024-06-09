@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import List
 
+from nolabs.exceptions import NoLabsException
 from nolabs.workflow.component import Component
-from nolabs.workflow.models import ComponentDbModel, WorkflowSchemaDbModel
-from nolabs.workflow.workflow_schema import WorkflowSchemaModel, JobValidationError
+from nolabs.workflow.models import ComponentDbModel, WorkflowSchemaDbModel, JobErrorDbModel, InputPropertyErrorDbModel
+from nolabs.workflow.workflow_schema import WorkflowSchemaModel
 
 
 @dataclass
@@ -41,36 +42,43 @@ class Workflow:
                 validation_errors = component.validate_input()
 
                 if validation_errors:
-                    workflow_schema.get_wf_component(component.id).error = ', '.join(
-                        [ve.msg for ve in validation_errors])
-                    workflow_db_model.set_workflow_value(workflow_schema)
-                    workflow_db_model.save()
+                    component_db_model.input_property_errors = [
+                        InputPropertyErrorDbModel.create(
+                            loc=e.loc,
+                            msg=e.msg
+                        ) for e in validation_errors
+                    ]
+                    component_db_model.save()
                     return
 
                 await component.setup_jobs()
                 component_db_model.jobs = component.jobs
-                workflow_component = workflow_schema.get_wf_component(component_db_model.id)
-                workflow_component.job_ids = [j.id for j in component.jobs]
                 component_db_model.save()
-                workflow_db_model.set_workflow_value(workflow_schema)
-                workflow_db_model.save()
 
                 jobs_validation_errors = await component.prevalidate_jobs()
 
                 if jobs_validation_errors:
-                    workflow_schema.get_wf_component(component.id).error = [JobValidationError(
+                    component_db_model.jobs_errors = [JobErrorDbModel(
                         job_id=ve.job_id,
                         msg=ve.msg
                     ) for ve in jobs_validation_errors]
                 else:
-                    workflow_schema.get_wf_component(component.id).jobs_errors = []
-                    workflow_db_model.set_workflow_value(workflow_schema)
-                    workflow_db_model.save()
+                    component_db_model.jobs_errors = []
+
+                component_db_model.save()
 
             if component.validate_output():
-                await component.execute()
-                component_db_model.output_parameter_dict = component.output_parameter_dict
-                component_db_model.save()
+                try:
+                    await component.execute()
+                    component_db_model.output_parameter_dict = component.output_parameter_dict
+                    component_db_model.save()
+                except Exception as e:
+                    if isinstance(e, NoLabsException):
+                        component_db_model.last_exceptions = e.messages
+                    else:
+                        component_db_model.last_exceptions = [str(e)]
+
+                    component_db_model.save()
 
         for component in components:
             await execute(component=component)

@@ -83,3 +83,34 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
     @property
     def _output_parameter_type(self) -> Type[FoldingComponentOutput]:
         return FoldingComponentOutput
+
+    async def executing(self) -> bool:
+        job: FoldingJob
+
+        esmfold_api = InfrastructureDependencies.esmfold_microservice()
+        esmfold_light_api = InfrastructureDependencies.esmfold_light_microservice()
+        rosettafold_api = InfrastructureDependencies.rosettafold_microservice()
+
+        for job in self.jobs:
+            if job.backend == FoldingBackendEnum.esmfold_light:
+                status = esmfold_light_api.is_job_running_job_job_id_is_running_get(
+                    job_id=job.id
+                )
+                if status.is_running:
+                    return True
+
+            if job.backend == FoldingBackendEnum.esmfold_light:
+                status = esmfold_api.is_job_running_job_job_id_is_running_get(
+                    job_id=job.id
+                )
+                if not not status:
+                    return True
+
+            if job.backend == FoldingBackendEnum.esmfold_light:
+                status = rosettafold_api.is_job_running_job_job_id_is_running_get(
+                    job_id=job.id
+                )
+                if status.is_running:
+                    return True
+
+        return False

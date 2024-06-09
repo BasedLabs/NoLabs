@@ -54,18 +54,12 @@ class DefaultWorkflowComponentModelValue(BaseModel):
     error: Optional[str] = None
 
 
-class JobValidationError(BaseModel):
-    job_id: uuid.UUID
-    msg: str
-
-
 class WorkflowComponentModel(BaseModel):
     name: str
     component_id: uuid.UUID
     mappings: List[MappingModel] = Field(default_factory=list)
     error: Optional[str] = None
     defaults: List[DefaultWorkflowComponentModelValue] = Field(default_factory=list)
-    jobs_errors: List[JobValidationError]
     x: float = 0.0
     y: float = 0.0
 
