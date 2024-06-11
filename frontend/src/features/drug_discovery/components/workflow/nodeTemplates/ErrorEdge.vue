@@ -1,6 +1,7 @@
 <script setup>
-import { BaseEdge, getBezierPath } from '@vue-flow/core'
+import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
 import { computed } from 'vue'
+import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage'
 
 const props = defineProps({
   id: {
@@ -46,6 +47,12 @@ const props = defineProps({
 })
 
 const path = computed(() => getBezierPath(props))
+
+const workflowStore = useWorkflowStore()
+
+const removeEdge = (id) => {
+  workflowStore.onEdgeRemove(id)
+}
 </script>
 
 <script>
@@ -57,7 +64,7 @@ export default {
 <template>
   <BaseEdge
     :id="id"
-    :style="style"
+    :style="{...style, strokeWidth: '4px'}"
     :path="path[0]"
     :marker-end="markerEnd"
     :label="data.text"
@@ -69,4 +76,27 @@ export default {
     :label-bg-padding="[2, 4]"
     :label-bg-border-radius="2"
   />
+  <EdgeLabelRenderer>
+    <div
+      :style="{
+        pointerEvents: 'all',
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${path[1]}px,${path[2]}px)`,
+      }"
+      class="nodrag nopan"
+    >
+      <q-btn color="info" class="edgebutton" @click="removeEdge(id)">×</q-btn>
+    </div>
+  </EdgeLabelRenderer>
 </template>
+
+<style scoped>
+.edgebutton {
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+</style>

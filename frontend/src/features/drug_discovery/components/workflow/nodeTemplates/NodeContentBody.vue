@@ -1,7 +1,6 @@
 <template>
   <q-card-section class="job-section q-pa-sm">
     <div class="text-white q-pa-sm">Jobs queue</div>
-    <q-btn class="q-pa-sm" @click="addJob" label="+ Add Job" color="black" />
     <draggable class="q-pa-sm" v-model="jobs" handle=".drag-handle" @end="updateJobOrder" item-key="job_id">
       <template #item="{ element }">
         <q-item class="bg-grey-3 text-black q-pa-sm q-mb-sm q-border-radius-md">
@@ -112,7 +111,7 @@ export default defineComponent({
   methods: {
     async updateJobs() {
       this.loading = true;
-      const jobsWithStatus = await Promise.all(this.nodeData?.data.jobIds.map(async (jobId) => {
+      const jobsWithStatus = await Promise.all(this.nodeData?.data.jobIds.map(async (jobId: string) => {
         let job;
         let executionStatus;
 
@@ -138,9 +137,6 @@ export default defineComponent({
       this.results = jobsWithStatus.filter(job => job && job.executionStatus && job.result && job.result.length > 0) as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>;
 
       this.loading = false;
-    },
-    addJob() {
-      // Logic to add a new job
     },
     openJob(job: GetJobMetadataResponse) {
       this.selectedJobId = job.job_id;

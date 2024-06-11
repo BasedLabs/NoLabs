@@ -18,13 +18,16 @@
     </div>
 
     <div class="map-container">
-      <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes" @nodeDragStop="onNodeDragStopHandler"
-        :edges="elements.edges" @connect="onConnect" fit-view-on-init>
+      <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes" 
+        @nodeDragStop="onNodeDragStopHandler"
+        :removeEdge="onEdgeUpdate"
+        @connect="onConnect"
+        :edges="elements.edges" fit-view-on-init>
         <template #node-Proteins="{ id }">
           <ProteinListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings"
             :onOpenDialog="openNodeDialog" />
         </template>
-        <template #node-ligand-list="{ id }">
+        <template #node-Ligands="{ id }">
           <LigandListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings"
             :onOpenDialog="openNodeDialog" />
         </template>
@@ -69,10 +72,9 @@
           :experiment-id="experiment.experimentId" />
         <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'"
           :experiment-id="experiment.experimentId" />
-        <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'" 
-          :node-id="selectedNode?.id"
-          :experiment-id="experiment.experimentId" :name="selectedNode?.name" :description="selectedNode?.description"
-          :jobIds="selectedNode?.data.jobIds" />
+        <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
+          :node-id="selectedNode?.id" :experiment-id="experiment.experimentId" :name="selectedNode?.name"
+          :description="selectedNode?.description" :jobIds="selectedNode?.data.jobIds" />
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -83,17 +85,17 @@ import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 
 import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
-import ProteinListNode from "./components/workflow/nodeTemplates/dataSourceNodes/ProteinListNode.vue";
-import ProteinListNodeContent from "./components/workflow/nodeTemplates/dataSourceNodes/ProteinListNodeContent.vue";
-import LigandListNode from "./components/workflow/LigandListNode.vue";
-import LigandListNodeContent from "./components/workflow/LigandListNodeContent.vue";
+import ProteinListNode from "./components/workflow/nodeTemplates/dataSourceNodes/proteins/ProteinListNode.vue";
+import ProteinListNodeContent from "./components/workflow/nodeTemplates/dataSourceNodes/proteins/ProteinListNodeContent.vue";
+import LigandListNode from "./components/workflow/nodeTemplates/dataSourceNodes/ligands/LigandListNode.vue";
+import LigandListNodeContent from "./components/workflow/nodeTemplates/dataSourceNodes/ligands/LigandListNodeContent.vue";
 import ErrorEdge from "./components/workflow/nodeTemplates/ErrorEdge.vue"
 import { useDrugDiscoveryStore } from "./storage";
 import { defineComponent } from "vue";
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
-import JobNode from "./components/workflow/JobNode.vue";
-import JobNodeContent from "./components/workflow/JobNodeContent.vue";
+import JobNode from "./components/workflow/nodeTemplates/JobNode.vue";
+import JobNodeContent from "./components/workflow/nodeTemplates/JobNodeContent.vue";
 import { startWorkflowforExperiment, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow } from 'src/features/drug_discovery/refinedApi';
 import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
 
@@ -214,6 +216,10 @@ export default defineComponent({
     },
     startWorkflow() {
       startWorkflowforExperiment(this.experiment.experimentId as string);
+    },
+    onEdgeUpdate(params: { edge: Edge }) {
+      const workflowStore = useWorkflowStore();
+      workflowStore.onEdgeRemove(params.edge.id);
     },
     onNodeDragStopHandler(event: { node: Node }) {
       const workflowStore = useWorkflowStore();

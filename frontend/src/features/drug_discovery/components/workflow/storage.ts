@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { LigandResponse, ProteinResponse } from 'src/refinedApi/client';
-import { deleteProtein, getAllProteins, uploadProtein, updateProteinName } from 'src/features/drug_discovery/refinedApi';
+import { deleteProtein, getAllProteins, uploadProtein, updateProteinName, uploadLigand, deleteLigand, getAllLigands } from 'src/features/drug_discovery/refinedApi';
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { v4 as uuidv4 } from 'uuid';
 import { Notify } from 'quasar';
@@ -92,6 +92,31 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 console.error('Error deleting protein:', error);
             }
         },
+        async getAllLigands(experimentId: string) {
+            const response = await getAllLigands(experimentId);
+            this.ligands = response;
+        },
+        async uploadLigandToExperiment(experimentId: string, name?: string, smiles?: Blob, sdf?: Blob, metaData?: Record<string, string>) {
+            try {
+                const uploadedProtein = await uploadLigand(
+                    experimentId,
+                    name,
+                    smiles,
+                    sdf
+                );
+                this.ligands.push(uploadedProtein);
+            } catch (error) {
+                console.error('Error uploading protein:', error);
+            }
+        },
+        async deleteLigandFromExperiment(ligandId: string) {
+            try {
+                await deleteLigand(ligandId);
+                this.ligands = this.ligands.filter(ligand => ligand.id !== ligandId);
+            } catch (error) {
+                console.error('Error deleting ligand:', error);
+            }
+        },
         async fetchWorkflow(workflowId: string) {
             this.workflowId = workflowId;
             try {
@@ -127,8 +152,15 @@ export const useWorkflowStore = defineStore('workflowStore', {
                             outputs,
                             jobIds: component.job_ids,
                             draggable: false,
-                            defaults: component.name === "Proteins" ?
-                                [{ target_path: inputs, value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue] : [],
+                            defaults: (() => {
+                                if (component.name === "Proteins") {
+                                    return [{ target_path: inputs, value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
+                                } else if (component.name === "Ligands") {
+                                    return [{ target_path: inputs, value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
+                                } else {
+                                    return [];
+                                }
+                            })(),
                             error: component.error
                         },
                         position: { x: component.x !== undefined ? component.x : 100, y: component.y !== undefined ? component.y : 100 }
@@ -144,7 +176,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                             target: component.component_id,
                             sourceHandle: `${mapping.source_component_id}-output-${mapping.source_path[0]}`,
                             targetHandle: `${component.component_id}-input-${mapping.target_path[0]}`,
-                            type: mapping.error !== null ? "custom" : "default",
+                            type: "custom",
                             data: { text: mapping.error }
                         });
                     });
@@ -227,8 +259,15 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     outputs: Object.keys(option.outputs || {}),
                     jobIds: [],
                     draggable: false,
-                    defaults: option.name === "Proteins" ?
-                        [{ target_path: Object.keys(option.inputs || {}) as string[], value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue] : [],
+                    defaults: (() => {
+                        if (option.name === "Proteins") {
+                            return [{ target_path: Object.keys(option.inputs || {}), value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
+                        } else if (option.name === "Ligands") {
+                            return [{ target_path: Object.keys(option.inputs || {}), value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
+                        } else {
+                            return [];
+                        }
+                    })(),
                     error: null
                 },
                 position: { x: 100, y: 100 }, // Default position
@@ -288,12 +327,21 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 target: targetNodeId,
                 sourceHandle: params.sourceHandle,
                 targetHandle: params.targetHandle,
+                type: "custom"
             };
 
             this.elements.edges.push(newEdge);
 
             // Send the workflow update
             this.sendWorkflowUpdate();
+        },
+        onEdgeRemove(edgeId: string) {
+            const index = this.elements.edges.findIndex(edge => edge.id === edgeId);
+            if (index !== -1) {
+                this.elements.edges.splice(index, 1);
+
+                this.sendWorkflowUpdate();
+            }
         },
         onDeleteNode(nodeId: string) {
             const index = this.elements.nodes.findIndex(node => node.id === nodeId);

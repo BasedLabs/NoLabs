@@ -6,9 +6,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import LigandsList from '../ligands/LigandsList.vue';
-import { useDrugDiscoveryStore } from '../../storage';
-import { useRoute } from 'vue-router';
+import LigandsList from './LigandsList.vue';
+import { useDrugDiscoveryStore } from 'src/features/drug_discovery/storage';
 import { Notify, QSpinnerOrbit } from 'quasar';
 
 export default defineComponent({
@@ -30,7 +29,7 @@ export default defineComponent({
       message: `Fetching ligands for experiment`,
     });
     try {
-      await store.fetchLigandsForExperiment(this.experimentId);
+      await store.fetchLigandsForExperiment(this.experimentId as string);
     } catch (e) {
       Notify.create({
         type: 'negative',

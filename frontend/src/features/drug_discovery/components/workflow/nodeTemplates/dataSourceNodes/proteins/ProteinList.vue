@@ -7,19 +7,21 @@
                 <q-tooltip>Add proteins to the experiment</q-tooltip>
             </q-btn>
         </q-item>
-        <q-expansion-item popup expand-separator :content-inset-level="1" v-for="protein in proteins"
-            :key="protein.id" :label="protein.name">
+        <q-expansion-item popup expand-separator :content-inset-level="1" v-for="protein in proteins" :key="protein.id"
+            :label="protein.name">
             <q-btn color="negative" @click="deleteProtein(protein)" icon="delete" flat>
                 Delete protein
             </q-btn>
-            <ProteinDetail v-if="protein.fasta_content" :experiment-id="experimentId" :original-protein="protein"></ProteinDetail>
+            <ProteinDetail v-if="protein.fasta_content" :experiment-id="experimentId" :original-protein="protein">
+            </ProteinDetail>
         </q-expansion-item>
     </q-list>
     <q-dialog v-model="uploadProteinDialog">
         <q-card>
             <q-card-section>
                 <div class="text-h6">Upload Protein Files</div>
-                <q-file v-model="proteinFileModel" ref="proteinFileInput" accept=".fasta" multiple label="Choose files" />
+                <q-file v-model="proteinFileModel" ref="proteinFileInput" accept=".fasta" multiple
+                    label="Choose files" />
             </q-card-section>
 
             <q-card-actions align="right">
@@ -36,6 +38,8 @@ import { defineComponent } from "vue";
 import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
 import { ProteinResponse } from "src/refinedApi/client";
 import ProteinDetail from "./ProteinDetail.vue"
+import { FunctionCallReturnData, RcsbPdbData } from "src/refinedApi/client";
+import { useBioBuddyStore } from "src/features/biobuddy/storage";
 
 export default defineComponent({
     name: "ProteinList",
@@ -53,6 +57,7 @@ export default defineComponent({
             uploadProteinDialog: false,
             proteinFileModel: [],
             selectedProtein: null,
+            rscbQueryCallBack: null as ((data: FunctionCallReturnData) => void) | null,
             proteins: [] as ProteinResponse[]
         };
     },
@@ -60,6 +65,26 @@ export default defineComponent({
         const workflowStore = useWorkflowStore();
         await workflowStore.getAllProteins(this.experimentId);
         this.proteins = workflowStore.proteins;
+
+
+        const bioBuddyStore = useBioBuddyStore();
+        this.rscbQueryCallBack = async (data: { files: RcsbPdbData[] }) => {
+            const files: File[] = [];
+            const metaDatasArray: Record<string, string>[] = [];
+
+            for (let rcsbObject of data.files) {
+                const structureId = this.extractStructureId(rcsbObject.metadata.link);
+                const file = new File([new Blob([rcsbObject.content!])], structureId + ".fasta");
+                files.push(file);
+                const metadataAsString: Record<string, string> = {};
+                Object.entries(rcsbObject.metadata).forEach(([key, value]) => {
+                    metadataAsString[key] = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                });
+                metaDatasArray.push(metadataAsString);
+            }
+            await this.handleProteinUpload(files, metaDatasArray);
+        };
+        bioBuddyStore.addQueryRcsbPdbEventHandler(this.rscbQueryCallBack);
     },
     methods: {
         uploadProteinFiles() {
@@ -110,6 +135,11 @@ export default defineComponent({
             finally {
                 this.$q.loading.hide();
             }
+        },
+        extractStructureId(url: string): string | null {
+            const regex = /\/structure\/(\w+)$/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
         },
     }
 }

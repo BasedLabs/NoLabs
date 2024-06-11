@@ -1,5 +1,5 @@
 <template>
-    <q-card style="width: 400px">
+    <q-card class="q-pa-md" style="width: 400px">
       <div class="row no-wrap items-center">
         <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
         <q-space />
@@ -8,9 +8,9 @@
 
       <ProteinListNodeContent v-if="experimentId" :experiment-id="experimentId" />
       <q-btn class="full-width" icon="open_in_new" label="Open in a new tab"> </q-btn>
+      <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
     </q-card>
 
-    <NodeHandles :nodeId="nodeId" :inputs="useNodesData?.data.inputs" :outputs="useNodesData?.data.outputs" />
 </template>
 
 <script lang="ts">
@@ -20,7 +20,7 @@ import {useRoute} from "vue-router";
 import {Notify, QSpinnerOrbit} from "quasar";
 import {Position, useNodesData} from "@vue-flow/core";
 import ProteinListNodeContent from "./ProteinListNodeContent.vue";
-import NodeHandles from '../NodeHandles.vue'
+import NodeHandles from '../../NodeHandles.vue'
 import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
 
 export default defineComponent({
@@ -60,11 +60,7 @@ export default defineComponent({
     onOpenDialog: {
       type: Function,
       required: true
-    },
-    results: {
-      type: Array,
-      default: () => []
-    },
+    }
   },
   data() {
     return {

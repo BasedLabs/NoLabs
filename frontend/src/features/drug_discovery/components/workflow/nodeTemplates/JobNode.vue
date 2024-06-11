@@ -7,19 +7,21 @@
         <q-icon left name="warning" />
         <div>{{ nodeData?.data.error }}</div>
       </q-btn>
-      <q-btn icon="settings" @click="openSettings"> </q-btn>
+      <q-btn v-if="false" icon="settings" @click="openSettings"> </q-btn>
     </div>
 
     <JobNodeContent :nodeId="nodeId" :name="nodeData?.name" :description="nodeData?.description"/>
-    <q-btn @click="openDialogue" class="full-width" icon="open_in_new" label="Extended view"> </q-btn>
 
     <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
+
+    
+    <q-btn @click="openDialogue" class="full-width q-pa-md" icon="open_in_new" label="Extended view"> </q-btn>
   </q-card>
 </template>
 
 <script>
 import JobNodeContent from './JobNodeContent.vue';
-import NodeHandles from './nodeTemplates/NodeHandles.vue';
+import NodeHandles from './NodeHandles.vue';
 import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
 
 export default {

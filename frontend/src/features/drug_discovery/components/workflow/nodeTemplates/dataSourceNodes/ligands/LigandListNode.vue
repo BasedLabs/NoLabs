@@ -3,38 +3,64 @@
     <div class="row no-wrap items-center">
       <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
       <q-space />
-      <q-btn icon="settings" @click="openSettings"> </q-btn>
+      <q-btn v-if="false" icon="settings" @click="openSettings"> </q-btn>
     </div>
 
-    <LigandsListNodeContent v-if="experimentId" :experiment-id="this.experimentId" />
+    <LigandsListNodeContent v-if="experimentId" :experiment-id="experimentId" />
     <q-btn class="full-width" icon="open_in_new" label="Open in a new tab"> </q-btn>
   </q-card>
-  <Handle type="source" :position="Position.Right"/>
+
+  <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
-import {useDrugDiscoveryStore} from "../../storage";
-import {useRoute} from "vue-router";
-import {Notify, QSpinnerOrbit} from "quasar";
-import { Handle, Position } from '@vue-flow/core'
+import { defineComponent } from "vue";
+import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
+import { useRoute } from "vue-router";
+import { Notify, QSpinnerOrbit } from "quasar";
+import { Position } from '@vue-flow/core'
+import NodeHandles from '../../NodeHandles.vue'
 import LigandsListNodeContent from "./LigandListNodeContent.vue";
+import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
 
 export default defineComponent({
   name: "LigandsListNode",
   computed: {
     Position() {
       return Position
+    },
+    useNodesData() {
+      const workflowStore = useWorkflowStore();
+      const nodeData = workflowStore.getNodeById(this.nodeId as string);
+      return nodeData;
     }
   },
   components: {
     LigandsListNodeContent,
-    Handle
+    NodeHandles
   },
   props: {
     nodeId: String,
-    onDeleteNode: Function,
-    onOpenSettings: Function,
+    inputs: {
+      type: Array,
+      default: () => []
+    },
+    outputs: {
+      type: Array,
+      default: () => []
+    },
+    onDeleteNode: {
+      type: Function,
+      required: true
+    },
+    onOpenSettings: {
+      type: Function,
+      required: true
+    },
+    onOpenDialog: {
+      type: Function,
+      required: true
+    },
   },
   data() {
     return {
@@ -86,11 +112,13 @@ export default defineComponent({
 }
 
 .special-node.input {
-  border-color: #00bcd4; /* Change border color for input nodes */
+  border-color: #00bcd4;
+  /* Change border color for input nodes */
 }
 
 .special-node.output {
-  border-color: #4caf50; /* Change border color for output nodes */
+  border-color: #4caf50;
+  /* Change border color for output nodes */
 }
 
 .content {

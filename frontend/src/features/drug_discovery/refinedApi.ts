@@ -17,7 +17,12 @@ import {
   ProteinSearchQuery,
   Body_upload_protein_api_v1_objects_proteins_post,
   Body_update_protein_api_v1_objects_proteins_patch,
-  CheckBioBuddyEnabledResponse
+  CheckBioBuddyEnabledResponse,
+  LigandResponse,
+  LigandSearchQuery,
+  LigandsService,
+  Body_upload_ligand_api_v1_objects_ligands_post,
+  Body_update_ligand_api_v1_objects_ligands_patch
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 
@@ -110,6 +115,30 @@ export function updateProteinName(proteinId: string, newName: string): Cancelabl
     name: newName
   } as Body_update_protein_api_v1_objects_proteins_patch;
   return ProteinsService.updateProteinApiV1ObjectsProteinsPatch(newRequest);
+}
+
+export function getAllLigands(experimentId: string): CancelablePromise<Array<LigandResponse>> {
+  const searchQuery = {name: '', experiment_id: experimentId} as LigandSearchQuery;
+  return LigandsService.searchLigandsApiV1ObjectsLigandsSearchPost(searchQuery);
+}
+
+export function uploadLigand(
+  experimentId: string,
+  name?: string,
+  smiles?: Blob,
+  sdf?: Blob,
+): CancelablePromise<LigandResponse> {
+  const uploadLigand = {
+    experiment_id: experimentId,
+    name: name,
+    smiles: smiles,
+    sdf: sdf
+  } as Body_upload_ligand_api_v1_objects_ligands_post;
+  return LigandsService.uploadLigandApiV1ObjectsLigandsPost(uploadLigand);
+}
+
+export function deleteLigand(ligandId: string): CancelablePromise<any> {
+  return LigandsService.deleteLigandApiV1ObjectsLigandsLigandIdDelete(ligandId);
 }
 
 export async function checkBiobuddyEnabled(): Promise<boolean> {
