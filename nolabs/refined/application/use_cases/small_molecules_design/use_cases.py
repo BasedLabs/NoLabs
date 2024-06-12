@@ -144,25 +144,30 @@ class SetupJobFeature:
         job_id = JobId(request.job_id if request.job_id else generate_uuid())
         job_name = JobName(request.job_name if request.job_name else 'New small molecules design job')
 
-        experiment = Experiment.objects.with_id(request.experiment_id)
+        jobs: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects(
+            Q(id=job_id.value) | Q(name=job_name.value))
 
-        if not experiment:
-            raise NoLabsException(ErrorCodes.experiment_not_found)
+        if not jobs:
+            if not request.experiment_id:
+                raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
-        protein = Protein.objects(id=request.protein_id, experiment=experiment).first()
+            experiment = Experiment.objects.with_id(request.experiment_id)
 
-        if not protein:
-            raise NoLabsException(ErrorCodes.protein_not_found)
+            if not experiment:
+                raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects(
-            Q(id=job_id.value) | Q(name=job_name.value)).first()
-
-        if not job:
             job = SmallMoleculesDesignJob(
                 id=JobId(request.job_id),
                 name=job_name,
                 experiment=experiment
             )
+        else:
+            job = jobs[0]
+
+        protein = Protein.objects.wiht_id(request.protein_id)
+
+        if not protein:
+            raise NoLabsException(ErrorCodes.protein_not_found)
 
         job.set_inputs(
             protein=protein,

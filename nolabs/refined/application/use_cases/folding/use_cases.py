@@ -78,7 +78,7 @@ class SetupJobFeature:
 
         proteins: List[Protein] = []
         for protein_id in request.proteins:
-            protein = Protein.objects(id=protein_id, experiment=experiment).first()
+            protein = Protein.objects.with_id(protein_id)
 
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)

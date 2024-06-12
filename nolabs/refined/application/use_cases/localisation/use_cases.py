@@ -109,23 +109,25 @@ class SetupJobFeature:
         job_id = JobId(request.job_id if request.job_id else generate_uuid())
         job_name = JobName(request.job_name if request.job_name else 'New localisation job')
 
-        experiment = Experiment.objects.with_id(request.experiment_id)
+        jobs: LocalisationJob = LocalisationJob.objects(Q(id=job_id.value) | Q(name=job_name.value))
 
-        if not experiment:
-            raise NoLabsException(ErrorCodes.experiment_not_found)
+        if not jobs:
+            experiment = Experiment.objects.with_id(request.experiment_id)
 
-        job: LocalisationJob = LocalisationJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
+            if not experiment:
+                raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        if not job:
             job = LocalisationJob(
                 id=job_id,
                 name=job_name,
                 experiment=experiment
             )
+        else:
+            job = jobs[0]
 
         proteins: List[Protein] = []
         for protein_id in request.proteins:
-            protein = Protein.objects(id=protein_id, experiment=experiment).first()
+            protein = Protein.objects.with_id(protein_id)
 
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)

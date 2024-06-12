@@ -161,23 +161,28 @@ class SetupJobFeature:
         job_id = JobId(request.job_id or generate_uuid())
         job_name = JobName(request.job_name or 'New gene ontology job')
 
-        experiment = Experiment.objects.with_id(request.experiment_id)
+        jobs: GeneOntologyJob = GeneOntologyJob.objects(Q(id=job_id.value) | Q(name=job_name.value))
 
-        if not experiment:
-            raise NoLabsException(ErrorCodes.experiment_not_found)
+        if not jobs:
+            if not request.experiment_id:
+                raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
-        job: GeneOntologyJob = GeneOntologyJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
+            experiment = Experiment.objects.with_id(request.experiment_id)
 
-        if not job:
+            if not experiment:
+                raise NoLabsException(ErrorCodes.experiment_not_found)
+
             job = GeneOntologyJob(
                 id=job_id,
                 name=job_name,
                 experiment=experiment
             )
+        else:
+            job = jobs[0]
 
         proteins: List[Protein] = []
         for protein_id in request.proteins:
-            protein = Protein.objects(id=protein_id, experiment=experiment).first()
+            protein = Protein.objects.with_id(protein_id)
 
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)

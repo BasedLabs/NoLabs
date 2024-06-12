@@ -25,10 +25,10 @@ class JobResponse:
 
 @dataclass
 class SetupJobRequest:
-    experiment_id: UUID
     proteins: List[UUID]
     job_id: Optional[UUID] = None
     job_name: Optional[str] = None
+    experiment_id: Optional[UUID] = None
 
 
 @dataclass

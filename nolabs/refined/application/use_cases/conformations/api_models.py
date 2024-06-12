@@ -40,7 +40,6 @@ class JobResponse:
 
 @dataclass
 class SetupJobRequest:
-    experiment_id: UUID
     protein_id: UUID
 
     job_id: Optional[UUID] = None
@@ -56,6 +55,8 @@ class SetupJobRequest:
     friction_coeff: float = 1.0
     ignore_missing_atoms: bool = False
     integrator: IntegratorsRequest = IntegratorsRequest.langevin
+
+    experiment_id: Optional[UUID] = None
 
 
 @dataclass
