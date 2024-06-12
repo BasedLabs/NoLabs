@@ -1,11 +1,11 @@
 <template>
-  <div v-if="experimentLoaded">
+  <div v-if="jobLoaded">
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
-      <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
+      <JobHeader :job-name="job!.name!" :on-job-name-change-submit="onJobNameChange">
         <q-btn color="info" size="md" outline label="Simulation parameters"
                @click="showInferenceForm = !showInferenceForm"/>
-      </ExperimentHeader>
+      </JobHeader>
       <q-page-container>
         <div class="row">
           <div :class="tiles.one.current"
@@ -13,8 +13,8 @@
             <div class="q-ma-sm">
               <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('one');"/>
-              <PdbViewer v-if="experimentHasInputData" :pdb-file="experiment?.properties.pdbFile"
-                         :key="experiment?.pdbContent?.name"/>
+              <PdbViewer v-if="jobHasInputData" :pdb-file="job?.properties.pdbFile"
+                         :key="job?.pdbContent?.name"/>
             </div>
           </div>
           <div :class="tiles.two.current"
@@ -22,7 +22,7 @@
             <div class="q-pl-sm q-ma-sm">
               <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('two');"/>
-              <TimelineView :timeline="experiment?.timeline"/>
+              <TimelineView :timeline="job!.timeline!"/>
             </div>
           </div>
           <div :class="tiles.three.current" style="transition: all .1s linear;">
@@ -33,9 +33,9 @@
                 <q-icon name="warning" color="warning" size="4rem"/>
                 Simulations error. Fix errors (check them in table) and restart simulation.
               </h6>
-              <PdbViewer v-if="!simulationCriticalError && experimentHasGeneratedData"
-                         :key="experiment?.pdbContent?.name"
-                         :pdb-file="experiment?.pdbContent" :simulation="true"
+              <PdbViewer v-if="!simulationCriticalError && jobHasGeneratedData"
+                         :key="job?.pdbContent?.name"
+                         :pdb-file="job?.pdbContent" :simulation="true"
                          file-name-prefix="Simulation"/>
             </div>
           </div>
@@ -50,7 +50,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <InferenceFormView :on-submit="onSubmit" :properties="experiment?.properties"/>
+          <InferenceFormView :on-submit="onSubmit" :properties="job!.properties!"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -58,23 +58,29 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue'
+import {defineComponent, PropType} from 'vue'
 import {QVueGlobals, QSpinnerOrbit} from 'quasar';
 import PdbViewer from "src/components/PdbViewer.vue";
 import InferenceFormView from "src/features/conformations/InferenceFormView.vue";
 import useConformationsStore from "src/features/conformations/storage";
-import {Experiment, ExperimentProperties} from "src/features/conformations/types";
+import {Job, JobProperties} from "src/features/conformations/types";
 import TimelineView from "src/components/Timeline.vue";
-import ExperimentHeader from "src/components/ExperimentHeader.vue";
+import JobHeader from "src/components/JobHeader.vue";
 
 
 export default defineComponent({
-  name: 'ConformationExperimentView',
+  name: 'ConformationJobView',
+  props: {
+    experimentId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     const store = useConformationsStore();
 
     return {
-      experiment: null as Experiment,
+      job: null as Job,
       showInferenceForm: false,
       store,
       tiles: {
@@ -100,17 +106,17 @@ export default defineComponent({
     }
   },
   computed: {
-    experimentLoaded(): boolean {
-      return this.experiment !== null;
+    jobLoaded(): boolean {
+      return this.job !== null;
     },
-    experimentHasInputData(): boolean {
-      return this.experimentLoaded && this.experiment!.properties.pdbFile != null;
+    jobHasInputData(): boolean {
+      return this.jobLoaded && this.job!.properties.pdbFile != null;
     },
-    experimentHasGeneratedData(): boolean {
-      return this.experimentLoaded && this.experiment!.pdbContent != null && this.experiment!.pdbContent!.size > 4;
+    jobHasGeneratedData(): boolean {
+      return this.jobLoaded && this.job!.pdbContent != null && this.job!.pdbContent!.size > 4;
     },
     simulationCriticalError(): boolean {
-      return this.experimentLoaded && this.experiment?.timeline.length > 0 && (this.experiment?.pdbContent == null || this.experiment?.pdbContent.size <= 4);
+      return this.jobLoaded && this.job!.timeline.length > 0 && (this.job?.pdbContent == null || this.job?.pdbContent.size <= 4);
     }
   },
   methods: {
@@ -130,15 +136,16 @@ export default defineComponent({
         }
       }
     },
-    async onSubmit(properties: ExperimentProperties) {
+    async onSubmit(properties: JobProperties) {
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: 'Running computations'
       });
 
       const response = await this.store.inference({
-        experimentId: this.experiment!.id,
-        experimentName: this.experiment!.name,
+        experimentId: this.experimentId,
+        jobId: this.job!.id,
+        jobName: this.job!.name,
         pdbFile: properties.pdbFile!,
         totalFrames: properties.totalFrames!,
         temperatureK: properties.temperatureK!,
@@ -152,45 +159,44 @@ export default defineComponent({
         integrator: properties.integrator!,
       });
 
-      if (response.experiment !== null) {
-        this.experiment = response.experiment;
+      if (response.job !== null) {
+        this.job = response.job;
       }
 
       this.showInferenceForm = false;
 
       this.$q.loading.hide();
     },
-    async onExperimentNameChange(newExperimentName: string) {
-      await this.store.changeExperimentName(this.experiment?.id as string, newExperimentName);
-      this.experiment!.name = newExperimentName;
+    async onJobNameChange(newJobName: string) {
+      await this.store.changeJobName(this.job?.id as string, newJobName);
+      this.job!.name = newJobName;
     }
   },
   async mounted() {
-    const experimentId = this.$route.params.experimentId as string;
+    const jobId = this.$route.params.jobId as string;
 
     this.$q.loading.show({
       spinner: QSpinnerOrbit,
-      message: `Experiment ${experimentId}`
+      message: `Job ${jobId}`
     });
 
-    const response = await this.store.getExperiment(experimentId);
+    const response = await this.store.getJob(jobId);
 
-    if (response.experiment !== null) {
-      this.experiment = response.experiment;
+    if (response.job !== null) {
+      this.job = response.job;
     }
 
     this.$q.loading.hide();
 
-    if (!this.experimentHasInputData) {
+    if (!this.jobHasInputData) {
       this.showInferenceForm = true;
     }
   },
   components: {
-    ExperimentHeader,
+    JobHeader,
     TimelineView,
     PdbViewer,
     InferenceFormView
   }
 })
 </script>
-  

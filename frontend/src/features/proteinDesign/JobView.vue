@@ -1,16 +1,16 @@
 <template>
-  <div v-if="experimentLoaded">
+  <div v-if="jobLoaded">
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
-      <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
+      <JobHeader :job-name="job!.name" :on-job-name-change-submit="onJobNameChange">
         <q-btn color="info" size="md" outline label="Binder parameters"
                @click="showInferenceForm = !showInferenceForm"/>
-      </ExperimentHeader>
+      </JobHeader>
       <q-page-container>
-        <div class="row" v-if="experimentHasGeneratedData">
+        <div class="row" v-if="jobHasGeneratedData">
           <div class="col-5">
             <div class="q-ma-sm">
-              <PdbViewer :pdb-file="experiment?.properties.inputPdbFile"/>
+              <PdbViewer :pdb-file="job?.properties.inputPdbFile"/>
             </div>
           </div>
           <div class="col-2">
@@ -27,7 +27,7 @@
           </div>
           <div class="col-5">
             <div class="q-mt-sm q-mb-sm q-mr-sm">
-              <PdbViewer :pdb-file="experiment!.generatedPdbs[selectedGeneratedPdbIndex]"
+              <PdbViewer :pdb-file="job!.generatedPdbs[selectedGeneratedPdbIndex]"
                          :key="generatedPdbsReload"/>
             </div>
           </div>
@@ -42,7 +42,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <InferenceFormView :on-submit="onSubmit" :properties="experiment?.properties"/>
+          <InferenceFormView :on-submit="onSubmit" :properties="job!.properties"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -54,18 +54,24 @@ import {defineComponent, ref} from 'vue'
 import useProteinDesignStore from 'src/features/proteinDesign/storage';
 import {QVueGlobals, QSpinnerOrbit} from 'quasar';
 import InferenceFormView from "src/features/proteinDesign/InferenceFormView.vue";
-import {Experiment, ExperimentProperties} from "src/features/proteinDesign/types";
+import {Job, JobProperties} from "src/features/proteinDesign/types";
 import PdbViewer from "src/components/PdbViewer.vue";
-import ExperimentHeader from "src/components/ExperimentHeader.vue";
+import JobHeader from "src/components/JobHeader.vue";
 
 
 export default defineComponent({
-  name: 'ProteinDesignExperimentView',
+  name: 'ProteinDesignJobView',
+  props: {
+    experimentId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     const store = useProteinDesignStore();
 
     return {
-      experiment: null as Experiment,
+      job: null as Job,
       showInferenceForm: false,
       store,
       selectedGeneratedPdbIndex: 0,
@@ -94,33 +100,34 @@ export default defineComponent({
       ]
     },
     generatedPdbsTableRows(): { id: number, name: string }[] {
-      return this.experiment ? this.experiment.generatedPdbs.map((file, i) => {
+      return this.job ? this.job.generatedPdbs.map((file, i) => {
         return {
           id: i, name: file.name
         }
       }) : [];
     },
-    experimentLoaded(): boolean {
-      return this.experiment !== null;
+    jobLoaded(): boolean {
+      return this.job !== null;
     },
-    experimentHasGeneratedData(): boolean {
-      return this.experimentLoaded && this.experiment!.generatedPdbs.length > 0;
+    jobHasGeneratedData(): boolean {
+      return this.jobLoaded && this.job!.generatedPdbs.length > 0;
     }
   },
   methods: {
-    async onExperimentNameChange(newExperimentName: string) {
-      await this.store.changeExperimentName(this.experiment?.id as string, newExperimentName);
-      this.experiment!.name = newExperimentName;
+    async onJobNameChange(newJobName: string) {
+      await this.store.changeJobName(this.job?.id as string, newJobName);
+      this.job!.name = newJobName;
     },
-    async onSubmit(properties: ExperimentProperties) {
+    async onSubmit(properties: JobProperties) {
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: 'Running AI models. This can take a couple of minutes'
       });
 
       const response = await this.store.inference({
-        experimentId: this.experiment?.id,
-        experimentName: this.experiment?.name as string,
+        experimentId: this.experimentId,
+        jobId: this.job?.id,
+        jobName: this.job?.name as string,
         pdbFile: properties.inputPdbFile!,
         contig: properties.contig,
         numberOfDesigns: properties.numberOfDesigns,
@@ -128,21 +135,21 @@ export default defineComponent({
         hotspots: properties.hotspots
       });
 
-      if (response.experiment !== null) {
-        this.experiment = response.experiment;
+      if (response.job !== null) {
+        this.job = response.job;
       }
 
       this.showInferenceForm = false;
 
       this.$q.loading.hide();
     },
-    changeExperimentName() {
+    changeJobName() {
       this.$q.dialog({
         color: 'info',
         title: 'Prompt',
-        message: 'Enter new experiment name',
+        message: 'Enter new job name',
         prompt: {
-          model: this.experiment!.name,
+          model: this.job!.name,
           required: true,
           type: 'text' // optional
         },
@@ -153,39 +160,38 @@ export default defineComponent({
           return;
         this.$q.loading.show({
           spinner: QSpinnerOrbit,
-          message: 'Changing experiment name'
+          message: 'Changing job name'
         });
-        await this.store.changeExperimentName(this.experiment?.id as string, data);
-        this.experiment!.name = data;
+        await this.store.changeJobName(this.job?.id as string, data);
+        this.job!.name = data;
         this.$q.loading.hide();
       });
     }
   },
   async mounted() {
-    const experimentId = this.$route.params.experimentId as string;
+    const jobId = this.$route.params.jobId as string;
 
     this.$q.loading.show({
       spinner: QSpinnerOrbit,
-      message: `Experiment ${experimentId}`
+      message: `Job ${jobId}`
     });
 
-    const response = await this.store.getExperiment(experimentId);
+    const response = await this.store.getJob(jobId);
 
-    if (response.experiment !== null) {
-      this.experiment = response.experiment;
+    if (response.job !== null) {
+      this.job = response.job;
     }
 
     this.$q.loading.hide();
 
-    if (!this.experimentHasGeneratedData) {
+    if (!this.jobHasGeneratedData) {
       this.showInferenceForm = true;
     }
   },
   components: {
-    ExperimentHeader,
+    JobHeader,
     PdbViewer,
     InferenceFormView
   }
 })
 </script>
-  

@@ -21,6 +21,8 @@ class ProteinResponse:
     experiment_id: UUID
 
     binding_pockets: List[int]
+    fasta_name: str
+    pdb_name: str
     localisation: Optional[ProteinLocalisationResponse] = None
     gene_ontology: Optional[Dict[str, Any]] = None
     soluble_probability: Optional[float] = None
@@ -34,6 +36,7 @@ class ProteinResponse:
 class ProteinSearchQuery:
     name: Optional[str] = None
     experiment_id: Optional[UUID] = None
+    ids: Optional[List[UUID]] = None
 
 
 @dataclass

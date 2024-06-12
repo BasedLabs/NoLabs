@@ -26,7 +26,8 @@ def map_job_to_response(job: ProteinDesignJob) -> JobResponse:
         binder_ids=[p.iid.value for p in job.binders],
         number_of_designs=job.number_of_designs,
         timesteps=job.timesteps,
-        hotspots=job.hotspots
+        hotspots=job.hotspots,
+        contig=job.contig
     )
 
 
@@ -68,7 +69,7 @@ class SetupJobFeature:
                 experiment=experiment
             )
 
-        protein = Protein.objects(id=request.protein_id, experiment=experiment).first()
+        protein = Protein.objects.with_id(request.protein_id)
 
         if not protein:
             raise NoLabsException(ErrorCodes.protein_not_found)

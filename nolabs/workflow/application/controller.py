@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 
 from .api_models import AllWorkflowSchemasResponse, GetComponentStateRequest
 from .di import WorkflowDependencies
-from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, SetWorkflowSchemaFeature, \
+from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, UpdateWorkflowSchemaFeature, \
     StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature
 from ..workflow_schema import WorkflowSchemaModel
 
@@ -52,9 +52,9 @@ async def get_schema(
 
 
 @router.put('/', summary='Update workflow schema')
-async def setup_workflow_schema(
+async def update_workflow_schema(
         feature: Annotated[
-            SetWorkflowSchemaFeature, Depends(WorkflowDependencies.update_workflow_schema)],
+            UpdateWorkflowSchemaFeature, Depends(WorkflowDependencies.update_workflow_schema)],
         workflow_schema: WorkflowSchemaModel
 ) -> WorkflowSchemaModel:
     return await feature.handle(workflow_schema=workflow_schema)

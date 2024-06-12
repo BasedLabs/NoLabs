@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -90,12 +90,12 @@ export class WorkflowService {
         });
     }
     /**
-     * Set workflow schema
+     * Update workflow schema
      * @param requestBody
      * @returns WorkflowSchemaModel_Output Successful Response
      * @throws ApiError
      */
-    public static setWorkflowSchemaApiV1WorkflowPut(
+    public static updateWorkflowSchemaApiV1WorkflowPut(
         requestBody: WorkflowSchemaModel_Input,
     ): CancelablePromise<WorkflowSchemaModel_Output> {
         return __request(OpenAPI, {
@@ -110,18 +110,38 @@ export class WorkflowService {
     }
     /**
      * Start workflow schema
-     * @param experimentId
+     * @param workflowId
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static startWorkflowApiV1WorkflowExperimentIdStartPost(
-        experimentId: string,
+    public static startWorkflowApiV1WorkflowWorkflowIdStartPost(
+        workflowId: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/workflow/{experiment_id}/start',
+            url: '/api/v1/workflow/{workflow_id}/start',
             path: {
-                'experiment_id': experimentId,
+                'workflow_id': workflowId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get state
+     * @param componentId
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static getComponentStateApiV1WorkflowComponentComponentIdStateGet(
+        componentId: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workflow/component/{component_id}/state',
+            path: {
+                'component_id': componentId,
             },
             errors: {
                 422: `Validation Error`,

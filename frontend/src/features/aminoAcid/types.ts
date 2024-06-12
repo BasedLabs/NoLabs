@@ -1,20 +1,16 @@
-import {AminoAcid} from "src/features/aminoAcid/localisation/types";
-
-export type AminoAcidExperimentProperties = {
-    aminoAcidSequence: string | null | undefined,
+export type AminoAcidJobProperties = {
     fastas: Array<File>
 };
 
-export type Experiment<TAminoAcid> = {
+export type Job<TAminoAcid> = {
     id: string;
     name: string;
     aminoAcids: Array<TAminoAcid>,
-    properties: AminoAcidExperimentProperties
+    properties: AminoAcidJobProperties
 } | null;
 
 export type InferenceRequest = {
-    experimentName: string;
-    experimentId?: string;
-    aminoAcidSequence: string | undefined,
+    jobName: string;
+    jobId?: string;
     fastas: Array<File>
 }

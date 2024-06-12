@@ -1,4 +1,4 @@
-export type ExperimentProperties = {
+export type JobProperties = {
   inputPdbFile: File | null;
   contig: string;
   numberOfDesigns: number;
@@ -6,11 +6,11 @@ export type ExperimentProperties = {
   hotspots: string;
 };
 
-export type Experiment = {
+export type Job = {
   id: string;
   name: string;
   generatedPdbs: File[];
-  properties: ExperimentProperties
+  properties: JobProperties
 } | null;
 
 export type InferenceRequest = {
@@ -19,7 +19,7 @@ export type InferenceRequest = {
   numberOfDesigns: number;
   timesteps: number;
   hotspots: string;
-  experimentName: string;
-  experimentId?: string;
+  jobName: string;
+  jobId?: string;
 }
 

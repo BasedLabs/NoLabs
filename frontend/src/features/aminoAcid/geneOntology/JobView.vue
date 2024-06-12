@@ -1,19 +1,19 @@
 <template>
-  <div v-if="experimentLoaded">
+  <div v-if="jobLoaded">
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
-      <ExperimentHeader :experiment-name="experiment?.name" :on-experiment-name-change-submit="onExperimentNameChange">
+      <JobHeader :job-name="job!.name" :on-job-name-change-submit="onJobNameChange">
         <q-btn color="info" size="md" outline label="Gene ontology parameters"
                @click="showInferenceForm = !showInferenceForm"/>
-      </ExperimentHeader>
+      </JobHeader>
       <q-page-container>
-        <div class="row" v-if="experimentHasGeneratedData">
+        <div class="row" v-if="jobHasGeneratedData">
           <div :class="tiles.one.current"
                style="transition: all .1s linear;">
             <div class="q-ma-sm">
               <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('one');"/>
-              <AminoAcidTable :on-amino-acid-open="setActiveAminoAcid" :rows="experiment?.aminoAcids"/>
+              <AminoAcidTable :on-amino-acid-open="setActiveAminoAcid" :rows="job!.aminoAcids"/>
             </div>
           </div>
           <div :class="tiles.two.current"
@@ -21,7 +21,7 @@
             <div class="q-ma-sm">
               <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('two');"/>
-              <GeneOntologyTree :obo-graph="activeAminoAcid?.go" :key="activeAminoAcid?.name"/>
+              <GeneOntologyTree :obo-graph="activeAminoAcid!.go" :key="activeAminoAcid?.name"/>
             </div>
           </div>
         </div>
@@ -35,7 +35,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <AminoAcidInferenceForm :on-submit="onSubmit" :properties="experiment?.properties"/>
+          <AminoAcidInferenceForm :on-submit="onSubmit" :properties="job!.properties"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -45,8 +45,8 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import {QSpinnerOrbit, QVueGlobals} from 'quasar';
-import ExperimentHeader from "src/components/ExperimentHeader.vue";
-import {Experiment} from "src/features/aminoAcid/types";
+import JobHeader from "src/components/JobHeader.vue";
+import {Job} from "src/features/aminoAcid/types";
 import AminoAcidInferenceForm from "src/features/aminoAcid/AminoAcidInferenceForm.vue";
 import GeneOntologyTree from "src/features/aminoAcid/geneOntology/GeneOntologyTree.vue";
 import {AminoAcid} from "src/features/aminoAcid/geneOntology/types";
@@ -55,7 +55,13 @@ import AminoAcidTable from "src/features/aminoAcid/AminoAcidTable.vue";
 
 
 export default defineComponent({
-  name: 'LocalisationExperimentView',
+  name: 'LocalisationJobView',
+  props: {
+    experimentId: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     const store = useGeneOntologyStore();
 
@@ -74,21 +80,21 @@ export default defineComponent({
           otherHover: 'col-md-6'
         }
       } as { [index: string]: { current: String, hover: String, leave: String, otherHover: String } },
-      experiment: null as Experiment<AminoAcid>,
+      job: null as Job<AminoAcid>,
       showInferenceForm: false,
       store,
       activeAminoAcid: null as AminoAcid | null | undefined
     }
   },
   computed: {
-    experimentLoaded(): boolean {
-      return this.experiment !== null;
+    jobLoaded(): boolean {
+      return this.job !== null;
     },
-    experimentHasGeneratedData(): boolean {
-      return this.experimentLoaded && this.experiment!.aminoAcids.length > 0;
+    jobHasGeneratedData(): boolean {
+      return this.jobLoaded && this.job!.aminoAcids.length > 0;
     },
     aminoAcidRows() {
-      return this.experiment?.aminoAcids;
+      return this.job?.aminoAcids;
     },
   },
   methods: {
@@ -109,35 +115,35 @@ export default defineComponent({
       }
     },
     setActiveAminoAcid(aminoAcidName: string): void {
-      this.activeAminoAcid = this.experiment?.aminoAcids.find(x => x.name === aminoAcidName);
+      this.activeAminoAcid = this.job?.aminoAcids.find(x => x.name === aminoAcidName);
     },
-    setExperiment(experiment: Experiment<AminoAcid> | null) {
-      if (experiment !== null) {
-        this.experiment = experiment;
+    setJob(job: Job<AminoAcid> | null) {
+      if (job !== null) {
+        this.job = job;
 
-        if (experiment.aminoAcids.length > 0) {
-          this.setActiveAminoAcid(experiment.aminoAcids[0]!.name);
+        if (job.aminoAcids.length > 0) {
+          this.setActiveAminoAcid(job.aminoAcids[0]!.name);
         }
       }
     },
-    async onExperimentNameChange(newExperimentName: string) {
-      await this.store.changeExperimentName(this.experiment?.id as string, newExperimentName);
-      this.experiment!.name = newExperimentName;
+    async onJobNameChange(newJobName: string) {
+      await this.store.changeJobName(this.job?.id as string, newJobName);
+      this.job!.name = newJobName;
     },
-    async onSubmit(data: { aminoAcidSequence: string, fastas: Array<File> }) {
+    async onSubmit(data: { fastas: Array<File> }) {
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
         message: 'Running AI models. This can take a couple of minutes'
       });
 
       const response = await this.store.inference({
-        experimentId: this.experiment!.id,
-        experimentName: this.experiment!.name,
-        aminoAcidSequence: data.aminoAcidSequence,
-        fastas: data.fastas
+        jobId: this.job!.id,
+        jobName: this.job!.name,
+        fastas: data.fastas,
+        experimentId: this.experimentId
       });
 
-      this.setExperiment(response.experiment);
+      this.setJob(response.job);
 
       this.showInferenceForm = false;
 
@@ -145,27 +151,27 @@ export default defineComponent({
     },
   },
   async mounted() {
-    const experimentId = this.$route.params.experimentId as string;
+    const jobId = this.$route.params.jobId as string;
 
     this.$q.loading.show({
       spinner: QSpinnerOrbit,
-      message: `Experiment ${experimentId}`
+      message: `Job ${jobId}`
     });
 
-    const response = await this.store.getExperiment(experimentId);
+    const response = await this.store.getJob(jobId);
 
-    this.setExperiment(response.experiment);
+    this.setJob(response.job);
 
     this.$q.loading.hide();
 
-    if (!this.experimentHasGeneratedData) {
+    if (!this.jobHasGeneratedData) {
       this.showInferenceForm = true;
     }
   },
   components: {
     AminoAcidTable,
     GeneOntologyTree,
-    ExperimentHeader,
+    JobHeader,
     AminoAcidInferenceForm
   }
 })

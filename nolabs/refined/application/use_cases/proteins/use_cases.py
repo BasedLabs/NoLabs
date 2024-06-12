@@ -36,13 +36,20 @@ def map_protein_to_response(protein: Protein) -> ProteinResponse:
         gene_ontology=protein.gene_ontology,
         soluble_probability=protein.soluble_probability,
         msa=protein.get_msa(),
-        md_pdb_content=protein.get_md()
+        md_pdb_content=protein.get_md(),
+        fasta_name=protein.name.fasta_name,
+        pdb_name=protein.name.pdb_name
     )
 
 
 class SearchProteinsFeature:
     async def handle(self, query: ProteinSearchQuery) -> List[ProteinResponse]:
         db_query = Q()
+
+        if query.ids:
+            proteins = Protein.objects(id__in=query.ids)
+
+            return [map_protein_to_response(p) for p in proteins]
 
         if query.name:
             db_query = db_query & Q(name__icontains=query.name)

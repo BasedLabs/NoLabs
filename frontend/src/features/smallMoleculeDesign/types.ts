@@ -22,15 +22,15 @@ interface Properties {
   batchSize: number;
   minscore: number;
   epochs: number;
+  samplingSize: number;
 }
 
-interface Experiment {
+interface Job {
   id: string;
   name: string;
   running: boolean;
   samplingAllowed: boolean;
   properties: Properties;
-  createdAt: Date;
 }
 
 interface Logs {

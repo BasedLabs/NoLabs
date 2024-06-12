@@ -1,11 +1,11 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
 import {IntegratorsRequest} from "src/api/client";
-import {ExperimentProperties} from "src/features/conformations/types";
+import {JobProperties} from "src/features/conformations/types";
 
 
 interface OnSubmitType {
-  (inputs: ExperimentProperties): Promise<void>;
+  (inputs: JobProperties): Promise<void>;
 }
 
 
@@ -17,7 +17,7 @@ export default defineComponent({
       required: true,
     },
     properties: {
-      type: Object as PropType<ExperimentProperties>,
+      type: Object as PropType<JobProperties>,
       required: true
     }
   },
@@ -29,7 +29,7 @@ export default defineComponent({
       return this.pdbFile !== null;
     }
   },
-  data(): ExperimentProperties {
+  data(): JobProperties {
     return {
       pdbFile: this.properties!.pdbFile,
       totalFrames: this.properties!.totalFrames,

@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -30,7 +30,6 @@ export type { HTTPValidationError } from './models/HTTPValidationError';
 export { IntegratorsRequest } from './models/IntegratorsRequest';
 export type { ItemsModel_Input } from './models/ItemsModel_Input';
 export type { ItemsModel_Output } from './models/ItemsModel_Output';
-export type { JobValidationError } from './models/JobValidationError';
 export type { LigandResponse } from './models/LigandResponse';
 export type { LigandSearchQuery } from './models/LigandSearchQuery';
 export type { LoadConversationResponse } from './models/LoadConversationResponse';

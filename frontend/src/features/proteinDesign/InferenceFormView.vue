@@ -1,10 +1,10 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
-import { ExperimentProperties } from "src/features/proteinDesign/types";
+import { JobProperties } from "src/features/proteinDesign/types";
 import {Notify} from "quasar";
 
 interface OnSubmitType {
-  (data: ExperimentProperties): Promise<void>;
+  (data: JobProperties): Promise<void>;
 }
 
 export default defineComponent({
@@ -15,7 +15,7 @@ export default defineComponent({
       required: true,
     },
     properties: {
-      type: Object as PropType<ExperimentProperties>,
+      type: Object as PropType<JobProperties>,
       required: true,
     },
   },
@@ -24,7 +24,7 @@ export default defineComponent({
       return this.inputPdbFile !== null;
     },
   },
-  data(): ExperimentProperties {
+  data(): JobProperties {
     return {
       contig: this.properties!.contig,
       hotspots: this.properties!.hotspots,

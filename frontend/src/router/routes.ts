@@ -41,7 +41,7 @@ const proteinDesignRoutes = [
   },
   {
     path: 'protein-design/experiment/:experimentId',
-    component: () => import('src/features/proteinDesign/ExperimentView.vue'),
+    component: () => import('../features/proteinDesign/JobView.vue'),
     name: 'Protein design',
     props: true
   },
@@ -55,7 +55,7 @@ const foldingRoutes = [
   },
   {
     path: 'folding/experiment/:experimentId',
-    component: () => import('src/features/aminoAcid/folding/ExperimentView.vue'),
+    component: () => import('src/features/aminoAcid/folding/JobView.vue'),
     name: 'Folding',
     props: true
   },
@@ -69,7 +69,7 @@ const localisationRoutes = [
   },
   {
     path: 'localisation/experiment/:experimentId',
-    component: () => import('src/features/aminoAcid/localisation/ExperimentView.vue'),
+    component: () => import('src/features/aminoAcid/localisation/JobView.vue'),
     name: 'Localisation',
     props: true
   },
@@ -83,7 +83,7 @@ const geneOntologyRoutes = [
   },
   {
     path: 'gene-ontology/experiment/:experimentId',
-    component: () => import('src/features/aminoAcid/geneOntology/ExperimentView.vue'),
+    component: () => import('src/features/aminoAcid/geneOntology/JobView.vue'),
     name: 'Gene ontology',
     props: true
   },
@@ -97,7 +97,7 @@ const solubilityRoutes = [
   },
   {
     path: 'solubility/experiment/:experimentId',
-    component: () => import('src/features/aminoAcid/solubility/ExperimentView.vue'),
+    component: () => import('../features/aminoAcid/solubility/JobView.vue'),
     name: 'Solubility',
     props: true
   },
@@ -111,7 +111,7 @@ const conformationsRoutes = [
   },
   {
     path: 'conformations/experiment/:experimentId',
-    component: () => import('src/features/conformations/ExperimentView.vue'),
+    component: () => import('../features/conformations/JobView.vue'),
     name: 'Conformations',
     props: true
   }
@@ -125,7 +125,7 @@ const smallMoleculeDesignRoutes = [
   },
   {
     path: 'small-molecules/experiment/:experimentId',
-    component: () => import('src/features/smallMoleculeDesign/ExperimentView.vue'),
+    component: () => import('../features/smallMoleculeDesign/JobView.vue'),
     name: 'Small molecules design',
     props: true
   }

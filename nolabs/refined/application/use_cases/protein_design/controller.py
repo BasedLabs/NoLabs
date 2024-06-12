@@ -35,6 +35,6 @@ async def get_job(job_id: UUID, feature: Annotated[
 
 @router.post('/jobs',
             summary='Setup job')
-async def get_job_status(request: SetupJobRequest, feature: Annotated[
+async def setup_job(request: SetupJobRequest, feature: Annotated[
     SetupJobFeature, Depends(ProteinDesignDependencies.setup_job)]) -> JobResponse:
     return await feature.handle(request=request)

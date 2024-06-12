@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -8,6 +8,8 @@ export type ProteinResponse = {
     name: string;
     experiment_id: string;
     binding_pockets: Array<number>;
+    fasta_name: string;
+    pdb_name: string;
     localisation?: (ProteinLocalisationResponse | null);
     gene_ontology?: (Record<string, any> | null);
     soluble_probability?: (number | null);

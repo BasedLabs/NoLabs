@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -54,7 +54,7 @@ export class ProteinDesignService {
      * @returns nolabs__refined__application__use_cases__protein_design__api_models__JobResponse Successful Response
      * @throws ApiError
      */
-    public static getJobStatusApiV1ProteinDesignJobsPost(
+    public static setupJobApiV1ProteinDesignJobsPost(
         requestBody: nolabs__refined__application__use_cases__protein_design__api_models__SetupJobRequest,
     ): CancelablePromise<nolabs__refined__application__use_cases__protein_design__api_models__JobResponse> {
         return __request(OpenAPI, {
