@@ -22,7 +22,10 @@ import {
   LigandSearchQuery,
   LigandsService,
   Body_upload_ligand_api_v1_objects_ligands_post,
-  Body_update_ligand_api_v1_objects_ligands_patch
+  Body_update_ligand_api_v1_objects_ligands_patch,
+  BindingPocketsService,
+  nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse,
+  nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 
@@ -33,6 +36,10 @@ export function getExperimentsApi(): CancelablePromise<Array<ExperimentMetadataR
 
 export function createExperimentApi(): CancelablePromise<ExperimentMetadataResponse> {
   return ExperimentsService.createExperimentApiV1ExperimentsExperimentsPost();
+}
+
+export function getProtein(proteinId: string): CancelablePromise<(ProteinResponse | null)> {
+  return ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(proteinId);
 }
 
 // Delete an experiment
@@ -48,12 +55,16 @@ export function getFoldingJobApi(jobId: string): CancelablePromise<nolabs__refin
   return FoldingService.getJobApiV1FoldingJobsJobIdGet(jobId);
 }
 
-export function getProtein(proteinId: string): CancelablePromise<(ProteinResponse | null)> {
-  return ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(proteinId);
+export function getBindingPocketJobApi(jobId: string): CancelablePromise<nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse> {
+  return BindingPocketsService.getJobApiV1BindingPocketsJobsJobIdGet(jobId);
 }
 
 export function getFoldingJobStatus(jobId: string): CancelablePromise<nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse> {
   return FoldingService.getJobStatusApiV1FoldingJobsJobIdStatusGet(jobId);
+}
+
+export function getBindingPocketJobStatus(jobId: string): CancelablePromise<nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse> {
+  return BindingPocketsService.getJobStatusApiV1BindingPocketsJobsJobIdStatusGet(jobId);
 }
 
 export function setupFoldingJob(job: nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest): CancelablePromise<nolabs__refined__application__use_cases__folding__api_models__JobResponse> {

@@ -5,6 +5,7 @@ __all__ = [
     'UploadLigandFeature'
 ]
 
+import base64
 import pathlib
 from typing import List, Optional
 from uuid import UUID
@@ -24,6 +25,8 @@ def map_ligand_to_response(ligand: Ligand) -> LigandResponse:
         name=str(ligand.name),
         smiles_content=ligand.get_smiles(),
         sdf_content=ligand.get_sdf(),
+        link=ligand.link,
+        image=base64.b64encode(ligand.image).decode("utf-8"),
         drug_likeness=ligand.drug_likeness,
         designed_ligand_score=ligand.designed_ligand_score
     )

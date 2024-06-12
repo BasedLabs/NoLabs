@@ -56,6 +56,7 @@
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
       <esm-fold-job v-if="name === 'Folding'" :job-id="selectedJobId" />
+      <P2RankJob v-if="name === 'Protein binding pockets prediction'" :job-id="selectedJobId" />
       <!-- Add other job components based on job type -->
       <q-card-actions>
         <q-btn flat label="Close" v-close-popup />
@@ -67,15 +68,20 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useWorkflowStore, Node } from 'src/features/drug_discovery/components/workflow/storage';
-import { getFoldingJobApi, getFoldingJobStatus } from 'src/features/drug_discovery/refinedApi';
+import { getFoldingJobApi,
+         getFoldingJobStatus, 
+         getBindingPocketJobApi,
+         getBindingPocketJobStatus } from 'src/features/drug_discovery/refinedApi';
 import { GetJobMetadataResponse, nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse } from 'src/refinedApi/client';
 import EsmFoldJob from '../jobs/EsmFoldJob.vue';
+import P2RankJob from '../jobs/P2RankJob.vue';
 import draggable from 'vuedraggable';
 
 export default defineComponent({
   name: 'NodeContentBody',
   components: {
     EsmFoldJob,
+    P2RankJob,
     draggable,
   },
   props: {
@@ -119,6 +125,10 @@ export default defineComponent({
           case 'Folding':
             job = await getFoldingJobApi(jobId);
             executionStatus = await getFoldingJobStatus(jobId);
+            break;
+          case 'Protein binding pockets prediction':
+            job = await getBindingPocketJobApi(jobId);
+            executionStatus = await getBindingPocketJobStatus(jobId);
             break;
           // Add cases for other job types and their respective API calls
           // case 'anotherJobType':

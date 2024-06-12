@@ -90,7 +90,6 @@ import ProteinListNodeContent from "./components/workflow/nodeTemplates/dataSour
 import LigandListNode from "./components/workflow/nodeTemplates/dataSourceNodes/ligands/LigandListNode.vue";
 import LigandListNodeContent from "./components/workflow/nodeTemplates/dataSourceNodes/ligands/LigandListNodeContent.vue";
 import ErrorEdge from "./components/workflow/nodeTemplates/ErrorEdge.vue"
-import { useDrugDiscoveryStore } from "./storage";
 import { defineComponent } from "vue";
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
@@ -153,9 +152,7 @@ export default defineComponent({
     }
   },
   async mounted() {
-    const store = useDrugDiscoveryStore();
     this.experiment.experimentId = this.$route.params.experimentId as string;
-    this.experiment.metadata = await store.getExperimentMetaData(this.experiment.experimentId);
 
     try {
       this.bioBuddyEnabled = await checkBiobuddyEnabled();
@@ -224,10 +221,6 @@ export default defineComponent({
     onNodeDragStopHandler(event: { node: Node }) {
       const workflowStore = useWorkflowStore();
       workflowStore.onNodeDragStopHandler(event);
-    },
-    async onExperimentNameChange(newExperimentName: string) {
-      const store = useDrugDiscoveryStore();
-      await store.changeExperimentName(this.experiment.experimentId as string, newExperimentName);
     },
     openNodeDialog(nodeId: string) {
       const workflowStore = useWorkflowStore();

@@ -7,8 +7,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import LigandsList from './LigandsList.vue';
-import { useDrugDiscoveryStore } from 'src/features/drug_discovery/storage';
-import { Notify, QSpinnerOrbit } from 'quasar';
 
 export default defineComponent({
   name: 'LigandsNodeContent',
@@ -21,28 +19,5 @@ export default defineComponent({
       loading: true,
     };
   },
-  async mounted() {
-    const store = useDrugDiscoveryStore();
-
-    this.$q.loading.show({
-      spinner: QSpinnerOrbit,
-      message: `Fetching ligands for experiment`,
-    });
-    try {
-      await store.fetchLigandsForExperiment(this.experimentId as string);
-    } catch (e) {
-      Notify.create({
-        type: 'negative',
-        closeBtn: 'Close',
-        message: 'Error fetching ligands: ' + e,
-      });
-    } finally {
-      this.loading = false;
-      this.$q.loading.hide();
-    }
-  },
 });
 </script>
-
-<style scoped>
-</style>

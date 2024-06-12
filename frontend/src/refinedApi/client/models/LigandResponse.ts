@@ -8,6 +8,8 @@ export type LigandResponse = {
     experiment_id: string;
     smiles_content?: (string | null);
     sdf_content?: (string | null);
+    link?: (string | null);
+    image?: (string | null);
     drug_likeness?: (number | null);
     designed_ligand_score?: (number | null);
 };

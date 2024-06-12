@@ -14,10 +14,12 @@ class GenerateWorkflowFunction(BiobuddyFunction):
             FunctionParameterDefinition(name="workflow",
                                         type="string",
                                         required=True,
-                                        description=f"Generate a JSON which would be used to construct a workflow graph. Components: {', '.join(component.name for component in components)}",
+                                        description=f"Generate a JSON which would be used to construct a workflow "
+                                                    f"graph. Components: {', '.join(component.name for component in components)}",
                                         items_type="string")
         ]
-        super().__init__("create_workflow", "Generate a workflow function. Creates a JSON from which a workflow is constructed", parameters)
+        super().__init__("create_workflow", "Generate a workflow function. Creates a JSON from which a workflow is "
+                                            "constructed", parameters)
         self._settings = settings
         self._components = components
 

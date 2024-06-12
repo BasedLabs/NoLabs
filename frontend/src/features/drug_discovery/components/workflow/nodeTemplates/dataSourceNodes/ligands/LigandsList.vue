@@ -12,10 +12,15 @@
             @click="showLigandDetailDialog(ligand)">
             <q-card class="q-pa-md full-width flex-row justify-between" bordered>
                 <div class="row">
+                    <div class="col-4">
+                        <img v-if="ligand.image" class="rounded-borders" :width="100" :height="100"
+                            :src="'data:image/png;base64,' + ligand.image" alt="Ligand Structure" />
+                    </div>
                     <div class="col-8">
                         <q-card-section>
                             <div>{{ ligand.name }}</div>
-                            <q-item-label v-if="ligand.smiles_content" caption>SMILES: {{ ligand.smiles_content }}</q-item-label>
+                            <q-item-label v-if="ligand.smiles_content" caption>SMILES: {{ ligand.smiles_content
+                                }}</q-item-label>
                         </q-card-section>
                         <q-card-section class="flex-row">
                             <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative">
@@ -129,7 +134,7 @@ export default defineComponent({
         },
         async handleLigandFileUpload(files: File[], additionalMetaDataArray?: Record<string, string>[]) {
             const workflowStore = useWorkflowStore();
-            
+
             for (let index = 0; index < files.length; index++) {
                 const file = files[index];
                 const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;

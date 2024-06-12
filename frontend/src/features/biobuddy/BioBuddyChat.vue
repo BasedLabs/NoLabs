@@ -3,7 +3,7 @@
                 :width="drawerWidth"
                     >
     <q-list>
-      <q-item-label header>BioBuddy Chat</q-item-label>
+      <q-item-label class="text-bold text-white" header>BioBuddy Chat</q-item-label>
       <q-separator />
       <q-item v-for="(message, index) in messages" :key="index">
         <q-item-section>

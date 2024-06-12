@@ -4,6 +4,7 @@ __all__ = [
     'UploadLigandRequest'
 ]
 
+from dataclasses import field
 from typing import Dict, Any, Optional
 from uuid import UUID
 
@@ -18,6 +19,8 @@ class LigandResponse:
     experiment_id: UUID
     smiles_content: Optional[str] = None
     sdf_content: Optional[str] = None
+    link: Optional[str] = None
+    image: Optional[str] = field(default=None, repr=False)
     drug_likeness: Optional[float] = None
     designed_ligand_score: Optional[float] = None
 
@@ -34,6 +37,7 @@ class UploadLigandRequest:
     name: Optional[str] = None
     smiles: Optional[UploadFile] = None
     sdf: Optional[UploadFile] = None
+    link: Optional[str] = None
 
 
 @dataclass
@@ -42,3 +46,4 @@ class UpdateLigandRequest:
     name: Optional[str] = None
     smiles: Optional[UploadFile] = None
     sdf: Optional[UploadFile] = None
+    link: Optional[str] = None

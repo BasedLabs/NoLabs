@@ -14,17 +14,19 @@ import datetime
 import uuid
 from functools import lru_cache
 from pathlib import Path
-from typing import Union, Dict, Any, List, Optional
+from typing import Union, Dict, Any, List
 from uuid import UUID
 from Bio import SeqIO
 import io
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
     FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
-    Q
+    Q, StringField
 from pydantic import model_validator
 from pydantic.dataclasses import dataclass
+from rdkit import Chem
 from typing_extensions import Self
+from nolabs.utils.generate_2d_drug import generate_png_from_smiles
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.event_dispatcher import EventDispatcher
@@ -456,14 +458,15 @@ class DesignedLigandScore(ValueObjectFloat):
 
 
 class Ligand(Document, Entity):
-    id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
-    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
-    name: LigandName | None = ValueObjectStringField(required=False, factory=LigandName)
-    smiles_content: bytes | None = BinaryField(required=False)
-    sdf_content: bytes | None = BinaryField(required=False)
-
-    drug_likeness: DrugLikenessScore | None = ValueObjectFloatField(factory=DrugLikenessScore, required=False)
-    designed_ligand_score: DesignedLigandScore | None = FloatField(factory=DesignedLigandScore, required=False)
+    id = UUIDField(db_field='_id', primary_key=True, required=True)
+    experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
+    name = ValueObjectStringField(required=False, factory=LigandName)
+    smiles_content = BinaryField(required=False)
+    sdf_content = BinaryField(required=False)
+    drug_likeness = FloatField(required=False)
+    designed_ligand_score = FloatField(required=False)
+    link = StringField(required=False)  # New field for link
+    image = BinaryField(required=False)  # New field for image
 
     def __hash__(self):
         return self.iid.__hash__()
@@ -471,7 +474,6 @@ class Ligand(Document, Entity):
     def __eq__(self, other):
         if isinstance(other, Ligand):
             return self.iid == other.iid
-
         return False
 
     @property
@@ -489,35 +491,49 @@ class Ligand(Document, Entity):
             smiles_content = smiles_content.encode('utf-8')
 
         self.smiles_content = smiles_content
+        self.image = self._generate_image(smiles_content)  # Generate image
+
+    def _generate_image(self, smiles_content: bytes) -> bytes:
+        image = generate_png_from_smiles(smiles_content.decode('utf-8'))
+        from io import BytesIO
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        return buffer.getvalue()
+
 
     def get_sdf(self) -> str | None:
         if self.sdf_content:
             return self.sdf_content.decode('utf-8')
-
         return None
 
     def get_smiles(self) -> str | None:
         if self.smiles_content:
             return self.smiles_content.decode('utf-8')
-
         return None
 
-    def set_sdf(self, sdf: str | bytes):
+    def set_sdf(self, sdf: Union[str, bytes]):
         if isinstance(sdf, str):
             sdf = sdf.encode('utf-8')
-
         self.sdf_content = sdf
+        self.set_smiles_from_sdf(sdf)  # Set smiles from sdf
+
+    def set_smiles_from_sdf(self, sdf: Union[str, bytes]):
+        if isinstance(sdf, bytes):
+            sdf = sdf.decode('utf-8')
+        mol = Chem.MolFromMolBlock(sdf)
+        if mol is None:
+            raise NoLabsException(ErrorCodes.sdf_file_is_invalid, 'Invalid SDF content')
+        smiles = Chem.MolToSmiles(mol)
+        self.set_smiles(smiles)
 
     def set_drug_likeness_score(self, score: DrugLikenessScore):
         if not score:
             raise NoLabsException(ErrorCodes.invalid_drug_likeness_score)
-
         self.drug_likeness = score
 
     def set_designed_ligand_score(self, score: DesignedLigandScore):
         if not score:
             raise NoLabsException(ErrorCodes.invalid_designed_ligand_score)
-
         self.designed_ligand_score = score
 
     @classmethod
@@ -525,8 +541,9 @@ class Ligand(Document, Entity):
                name: LigandName | None = None,
                smiles_content: Union[bytes, str, None] = None,
                sdf_content: Union[bytes, str, None] = None,
+               link: str | None = None,
                *args,
-               **kwargs) -> 'Ligand':
+               **kwargs) -> 'Ligand':  # Added link parameter
         if not name:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
         if not experiment:
@@ -553,6 +570,7 @@ class Ligand(Document, Entity):
                 ligand.set_sdf(sdf_content)
 
             ligand.set_name(name)
+            ligand.link = link
             return ligand
 
         if 'id' not in kwargs:
@@ -562,15 +580,23 @@ class Ligand(Document, Entity):
             if isinstance(id, LigandId):
                 id = id.value
 
-        return Ligand(
+        ligand = Ligand(
             id=id,
             experiment=experiment,
             name=name,
             smiles_content=smiles_content,
             sdf_content=sdf_content,
+            link=link,  # Set link
             *args,
             **kwargs
         )
+
+        if smiles_content:
+            ligand.image = generate_png_from_smiles(smiles_content.decode('utf-8'))  # Generate image
+        elif sdf_content:
+            ligand.set_smiles_from_sdf(sdf_content.decode('utf-8'))  # Set smiles and image from sdf content
+
+        return ligand
 
     def add_binding(self,
                     protein: 'Protein',
@@ -579,7 +605,7 @@ class Ligand(Document, Entity):
                     scored_affinity: float | None = None,
                     confidence: float | None = None,
                     plddt_array: List[int] | None = None,
-                    pdb_content: bytes | str | None = None) -> Protein:
+                    pdb_content: Union[bytes, str, None] = None) -> 'Protein':
         if not plddt_array:
             plddt_array = []
 

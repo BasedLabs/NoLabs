@@ -19,7 +19,9 @@
               <q-item-section>
                 <q-item-label>Job Name</q-item-label>
               </q-item-section>
-              <q-item-section>{{ job?.job_name }}</q-item-section>
+              <q-item-section>
+                <q-input v-model="editableJobName" @blur="updateJobName" />
+              </q-item-section>
             </q-item>
             <q-item>
               <q-item-section>
@@ -34,12 +36,6 @@
                   {{ jobStatusText }}
                 </template>
               </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Folding Backend</q-item-label>
-              </q-item-section>
-              <q-item-section>{{ job?.backend }}</q-item-section>
             </q-item>
           </q-list>
         </q-card-section>
@@ -71,7 +67,7 @@
         </q-card-section>
         <q-card-section>
           <div class="q-pl-sm q-ma-sm" v-if="jobHasGeneratedData">
-            <PdbViewer :pdb-file="protein?.pdb_content" :key="protein?.name"/>
+            <PdbViewer :pdb-file="pdbFile" :pocket-ids="job?.binding_pockets" :key="protein?.name" />
           </div>
         </q-card-section>
       </div>
@@ -79,15 +75,16 @@
   </q-card>
 </template>
 
+
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QSpinnerOrbit, QSpinner } from 'quasar';
+import { QSpinnerOrbit, QSpinner, QInput } from 'quasar';
 import PdbViewer from 'src/components/PdbViewer.vue';
 import {
-  nolabs__refined__application__use_cases__folding__api_models__JobResponse, ProteinResponse,
-  nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse
+  nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse, ProteinResponse,
+  nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse,
 } from "../../../../../refinedApi/client";
-import { getFoldingJobApi, getProtein, getFoldingJobStatus } from "../../../refinedApi";
+import { getBindingPocketJobApi, getProtein, getFoldingJobStatus, setupFoldingJob, changeJobName } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'P2RankJob',
@@ -96,14 +93,16 @@ export default defineComponent({
   },
   data() {
     return {
-      job: null as nolabs__refined__application__use_cases__folding__api_models__JobResponse | null,
+      experimentId: null as string | null,
+      job: null as nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse | null,
       protein: null as ProteinResponse | null,
-      jobStatus: null as nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null,
+      jobStatus: null as nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse | null,
+      editableJobName: '' as string,
     };
   },
   computed: {
-    jobHasGeneratedData(): boolean {
-      return this.job && this.job.result.length > 0;
+    jobHasGeneratedData(): boolean | null {
+      return this.job && this.job.binding_pockets.length > 0;
     },
     jobStatusText(): string {
       if (this.jobStatus === null) {
@@ -111,6 +110,12 @@ export default defineComponent({
       }
       return this.jobStatus.running ? 'Running...' : 'Not running';
     },
+    pdbFile(): File {
+      if (this.jobHasGeneratedData && this.protein?.pdb_content) {
+        return new File([new Blob([this.protein?.pdb_content])], this.protein?.name + ".pdb");
+      }
+      return new File([], "empty.pdb");
+    }
   },
   async mounted() {
     this.$q.loading.show({
@@ -118,20 +123,41 @@ export default defineComponent({
       message: `Loading Experiment ${this.jobId}`,
     });
 
-    this.job = await getFoldingJobApi(this.jobId as string);
-    if (this.job && this.job.proteins.length > 0) {
-      this.protein = await getProtein(this.job.proteins[0]);
+    this.experimentId = this.$route.params.experimentId as string;
+
+    this.job = await getBindingPocketJobApi(this.jobId as string);
+    if (this.job) {
+      this.editableJobName = this.job.job_name || '';
     }
+
+    this.protein = await getProtein(this.job.protein_id);
 
     this.jobStatus = await getFoldingJobStatus(this.jobId as string);
 
     this.$q.loading.hide();
+  },
+  methods: {
+    async updateJobName() {
+      if (this.job) {
+        try {
+          await changeJobName(this.job.job_id, this.editableJobName);
+        }
+        catch (error) {
+          this.editableJobName = this.job.job_name;
+          this.$q.notify({
+            type: 'negative',
+            message: 'Failed to update job name.'
+          });
+        }
+      }
+    },
   },
   components: {
     PdbViewer
   },
 });
 </script>
+
 
 
 <style scoped>
@@ -145,5 +171,4 @@ export default defineComponent({
   word-wrap: break-word;
   word-break: break-all;
 }
-
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 400px">
+  <q-card class="q-pa-md" style="width: 400px">
     <div class="row no-wrap items-center">
       <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
       <q-space />
@@ -8,16 +8,15 @@
 
     <LigandsListNodeContent v-if="experimentId" :experiment-id="experimentId" />
     <q-btn class="full-width" icon="open_in_new" label="Open in a new tab"> </q-btn>
+
+    <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
   </q-card>
 
-  <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { useDrugDiscoveryStore } from "src/features/drug_discovery/storage";
 import { useRoute } from "vue-router";
-import { Notify, QSpinnerOrbit } from "quasar";
 import { Position } from '@vue-flow/core'
 import NodeHandles from '../../NodeHandles.vue'
 import LigandsListNodeContent from "./LigandListNodeContent.vue";
@@ -69,26 +68,9 @@ export default defineComponent({
     };
   },
   async mounted() {
-    const store = useDrugDiscoveryStore();
     const route = useRoute();
 
     this.experimentId = route.params.experimentId as string;
-    this.$q.loading.show({
-      spinner: QSpinnerOrbit,
-      message: `Fetching ligands for experiment`
-    });
-    try {
-      await store.fetchLigandsForExperiment(this.experimentId);
-    } catch (e) {
-      Notify.create({
-        type: "negative",
-        closeBtn: 'Close',
-        message: 'Error fetching targets or ligands: ' + e
-      });
-    } finally {
-      this.loading = false;
-      this.$q.loading.hide();
-    }
   },
   methods: {
     deleteNode() {
