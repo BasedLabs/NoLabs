@@ -17,7 +17,6 @@ import {
   ProteinSearchQuery,
   Body_upload_protein_api_v1_objects_proteins_post,
   Body_update_protein_api_v1_objects_proteins_patch,
-  CheckBioBuddyEnabledResponse,
   LigandResponse,
   LigandSearchQuery,
   LigandsService,
@@ -29,7 +28,8 @@ import {
   DiffdockService,
   nolabs__refined__application__use_cases__diffdock__api_models__JobResponse,
   nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse,
-  nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest, OpenAPI
+  nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest, OpenAPI,
+  GetComponentStateResponse
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../api/constants";
@@ -111,7 +111,7 @@ export function sendWorkflowUpdate(workflow: WorkflowSchemaModel_Input): Cancela
   return WorkflowService.updateWorkflowSchemaApiV1WorkflowPut(workflow)
 }
 
-export function startWorkflowforExperiment(experimentId: string): CancelablePromise<any> {
+export function startWorkflow(experimentId: string): CancelablePromise<any> {
   return WorkflowService.startWorkflowApiV1WorkflowWorkflowIdStartPost(experimentId)
 }
 
