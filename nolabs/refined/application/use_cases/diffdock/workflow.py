@@ -12,7 +12,7 @@ from nolabs.workflow.component import Component, JobValidationError
 
 
 class DiffDockComponentInput(BaseModel):
-    proteins: List[uuid.UUID]
+    proteins_with_pdb: List[uuid.UUID]
     ligands: List[uuid.UUID]
 
 
@@ -49,7 +49,7 @@ class DiffDockComponent(Component[DiffDockComponentInput, DiffDockComponentOutpu
 
         self.jobs = []
 
-        for protein_id in self.input.proteins:
+        for protein_id in self.input.proteins_with_pdb:
             for ligand_id in self.input.ligands:
                 protein: Protein = Protein.objects.with_id(protein_id)
                 ligand: Ligand = Ligand.objects.with_id(ligand_id)
