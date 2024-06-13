@@ -137,18 +137,18 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     componentIOMap[component.name] = { inputs, outputs, type: component.name, description };
                 });
 
-                workflow.workflow_components.forEach(component => {
+                workflow.workflow_components.forEach(async component => {
                     const { inputs, outputs, type, description } = componentIOMap[component.name] || { inputs: [], outputs: [], type: '', description: '' };
                     const nodeType = this.allowedTypes.includes(type) ? type : "custom";
 
-                    const componentState = getComponentState(component.component_id);
+                    const componentState = await getComponentState(component.component_id);
 
                     const nodeData: Node = {
                         id: component.component_id,
                         name: component.name,
                         description: '',
                         type: nodeType,
-                        jobIds: componentState.job_ids;
+                        jobIds: componentState.job_ids,
                         data: {
                             description: description,
                             inputs,
@@ -257,6 +257,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     description: option.description,
                     inputs: Object.keys(option.inputs || {}),
                     outputs: Object.keys(option.outputs || {}),
+                    jobIds: [],
                     draggable: false,
                     defaults: (() => {
                         if (option.name === "Proteins") {
@@ -376,11 +377,11 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 }
 
                 // Update the parts of the workflow that have changed
-                workflow.workflow_components.forEach(component => {
+                workflow.workflow_components.forEach(async component => {
                     const existingNode = this.getNodeById(component.component_id);
                     if (existingNode) {
-                        const componentState = getComponentState(component.component_id);
-                        existingNode.data.job_ids = componentState.job_ids;
+                        const componentState = await getComponentState(component.component_id);
+                        existingNode.data.jobIds = componentState.job_ids;
                         existingNode.data.error = component.error;
                     }
                 });

@@ -115,7 +115,7 @@ export function startWorkflowforExperiment(experimentId: string): CancelableProm
   return WorkflowService.startWorkflowApiV1WorkflowWorkflowIdStartPost(experimentId)
 }
 
-export function getComponentState(componentId: string): CancelablePromise<any> {
+export function getComponentState(componentId: string): CancelablePromise<GetComponentStateResponse> {
   return WorkflowService.getComponentStateApiV1WorkflowComponentComponentIdStateGet(componentId);
 }
 
