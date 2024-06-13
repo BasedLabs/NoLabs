@@ -620,7 +620,8 @@ class Ligand(Document, Entity):
         if complexes:
             complex = complexes[0]
         else:
-            protein_name = ProteinName(f'{str(protein.name)}-{str(self.name)}-complex' + f'-{name}' if name else '')
+            print(name)
+            protein_name = ProteinName(f'{str(protein.name)}-{str(self.name)}-complex' + (f'-{name}' if name else ''))
 
             complex = Protein.create(
                 experiment=self.experiment,

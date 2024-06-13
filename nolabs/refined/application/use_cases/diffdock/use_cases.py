@@ -160,7 +160,8 @@ class RunJobFeature:
                 minimized_affinity=item.minimized_affinity,
                 scored_affinity=item.scored_affinity,
                 confidence=item.confidence,
-                plddt_array=[]
+                plddt_array=[],
+                name=item.sdf_file_name
             )
             result.append(
                 DiffDockJobResult(
