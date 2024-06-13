@@ -459,10 +459,10 @@ class GetComponentStateFeature:
 
 class ResetWorkflowFeature:
     async def handle(self, request: ResetWorkflowRequest):
-        workflow = WorkflowSchemaDbModel.objects.with_id(request.workflow_id)
+        workflow: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(request.workflow_id)
 
-        for component in workflow.components:
-            db_model: ComponentDbModel = ComponentDbModel.objects.with_id(component.id)
+        for component in workflow.get_workflow_value().workflow_components:
+            db_model: ComponentDbModel = ComponentDbModel.objects.with_id(component.component_id)
 
             db_model.input_parameter_dict = {}
             db_model.output_parameter_dict = {}

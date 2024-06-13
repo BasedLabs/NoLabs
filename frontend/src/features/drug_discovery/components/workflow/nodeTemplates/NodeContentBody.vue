@@ -201,6 +201,7 @@ export default defineComponent({
       for(const item of this.$options.jobsFactory){
         if(item.name == this.name && item.tab){
 
+
           return;
         }
       }
