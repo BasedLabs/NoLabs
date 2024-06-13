@@ -169,7 +169,7 @@ export default defineComponent({
         let executionStatus;
 
         switch (this.name) {
-          case 'Folding':
+          case 'Esmfold light component' || 'Esmfold component' || 'Rosettafold component':
             job = await getFoldingJobApi(jobId);
             executionStatus = await getFoldingJobStatus(jobId);
             break;
