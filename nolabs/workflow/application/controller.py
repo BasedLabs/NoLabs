@@ -85,9 +85,9 @@ async def start_component(
 
 
 @router.post('/{workflow_id}/reset', summary='Reset workflow schema')
-async def start_workflow(
+async def reset_workflow(
         feature: Annotated[
-            ResetWorkflowFeature, Depends(WorkflowDependencies.reset_workflow())],
+            ResetWorkflowFeature, Depends(WorkflowDependencies.reset_workflow)],
         request: ResetWorkflowRequest
 ):
     return await feature.handle(request=request)

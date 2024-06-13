@@ -175,12 +175,12 @@ class Component(Generic[TInput, TOutput]):
             for prop in self._input_schema.mapped_properties:
                 if prop.source_component_id == component.id:
 
-                    path = prop.path_from
 
                     current_level = component.output_parameter_dict
 
                     # Find output parameter from output of previous component
 
+                    path = prop.path_from
                     for key in path[:-1]:
                         if key not in current_level:
                             current_level[key] = {}
