@@ -8,7 +8,7 @@ import {
   OpenAPI,
   SolubilityService,
   ProteinsService,
-  JobsACommonControllerForJobsManagementService, ProteinResponse
+  JobsACommonControllerForJobsManagementService, ProteinResponse, GeneOntologyService
 } from "../../../refinedApi/client";
 import apiConstants from "../../../api/constants";
 
@@ -16,11 +16,33 @@ OpenAPI.BASE = apiConstants.hostname;
 
 const useSolubilityStore = defineStore("solubility", {
   actions: {
+    async setupJob(experimentId: string, request: InferenceRequest){
+      let proteins: ProteinResponse[] = [];
+      for(const fasta of request.fastas){
+        const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
+          experiment_id: experimentId,
+          name: fasta.name,
+          fasta: fasta
+        });
+        proteins.push(protein);
+      }
+
+      await SolubilityService.setupJobApiV1SolubilityJobsPost(
+        {
+          experiment_id: experimentId,
+          job_id: request.jobId,
+          job_name: request.jobName,
+          protein_ids: proteins.map(p => p.id)
+        }
+      );
+    },
     async inference(request: InferenceRequest): Promise<{
       job: Job<AminoAcid> | null,
       errors: string[]
     }> {
       const job = await SolubilityService.getJobApiV1SolubilityJobsJobIdGet(request.jobId!);
+
+      await this.setupJob(job.experiment_id, request);
 
       const errorResponse = obtainErrorResponse(job);
       if (errorResponse) {
@@ -35,7 +57,7 @@ const useSolubilityStore = defineStore("solubility", {
       }
 
       const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
-        ids: job.proteins
+        ids: job.protein_ids
       });
 
       return {
@@ -85,7 +107,7 @@ const useSolubilityStore = defineStore("solubility", {
       }
 
       const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
-        ids: response.proteins
+        ids: response.protein_ids
       });
 
       return {

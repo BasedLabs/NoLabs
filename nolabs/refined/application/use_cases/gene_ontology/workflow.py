@@ -34,7 +34,7 @@ class GeneOntologyComponent(Component[GeneOntologyComponentInput, GeneOntologyCo
         for job in self.jobs:
             get_result = await get_job_feature.handle(job_id=job.id)
 
-            for protein_id in get_result.proteins:
+            for protein_id in get_result.protein_ids:
                 items.append(protein_id)
 
         self.output = GeneOntologyComponentOutput(

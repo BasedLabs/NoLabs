@@ -196,10 +196,11 @@ class Component(Generic[TInput, TOutput]):
                         if key not in current_level:
                             current_level[key] = {}
                         current_level = current_level[key]
-                    current_level[path[-1]] = input_parameter
 
-                    if current_level[path[-1]] != input_parameter:
+                    if path[-1] not in current_level or current_level[path[-1]] != input_parameter:
                         changed = True
+
+                    current_level[path[-1]] = input_parameter
 
                     continue
 

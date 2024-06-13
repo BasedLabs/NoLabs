@@ -5,7 +5,8 @@ from uuid import UUID
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Experiment
 from nolabs.workflow.application.api_models import GetComponentStateResponse, GetComponentStateRequest, \
-    AllWorkflowSchemasResponse, JobErrorResponse, InputPropertyErrorResponse
+    AllWorkflowSchemasResponse, JobErrorResponse, InputPropertyErrorResponse, ResetWorkflowRequest, \
+    StartWorkflowComponentRequest
 from nolabs.workflow.component import Component
 from nolabs.workflow.models import WorkflowSchemaDbModel, ComponentDbModel
 from nolabs.workflow.properties import Property, ParameterSchema, Items
@@ -284,7 +285,7 @@ class StartWorkflowFeature:
         self.available_components = available_components
 
     async def handle(self, workflow_id: UUID):
-        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects().with_id(workflow_id)
+        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_id)
         experiment = db_model.experiment
 
         workflow_schema = db_model.get_workflow_value()
@@ -345,7 +346,79 @@ class StartWorkflowFeature:
                 component.try_set_default(default.target_path, value=default.value)
 
         workflow = Workflow()
-        await workflow.execute(workflow_schema=workflow_schema, components=components)
+        await workflow.execute(components=components)
+
+
+class StartWorkflowComponentFeature:
+    available_components: Dict[str, Type[Component]]
+
+    def __init__(self, available_components: Dict[str, Type[Component]]):
+        self.available_components = available_components
+
+    async def handle(self, request: StartWorkflowComponentRequest):
+        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(request.workflow_id)
+        experiment = db_model.experiment
+
+        workflow_schema = db_model.get_workflow_value()
+
+        if not workflow_schema.valid:
+            raise NoLabsException(ErrorCodes.invalid_workflow_schema,
+                                  f'Run {UpdateWorkflowSchemaFeature.__name__} to get schema errors')
+
+        components: List[Component] = []
+
+        component: Component
+        for workflow_component in workflow_schema.workflow_components:
+            component_db_model: ComponentDbModel = ComponentDbModel.objects.with_id(
+                workflow_component.component_id)
+            if component_db_model:
+                component: Component = self.available_components[workflow_component.name](
+                    id=workflow_component.component_id,
+                    jobs=component_db_model.jobs,
+                    input_parameter_dict=component_db_model.input_parameter_dict,
+                    output_parameter_dict=component_db_model.output_parameter_dict,
+                    experiment=experiment)
+            else:
+                id = workflow_component.component_id
+                component: Component = self.available_components[workflow_component.name](id=id,
+                                                                                          experiment=experiment)
+                component_db_model = ComponentDbModel.create(
+                    id=id,
+                    workflow=db_model,
+                    input_parameter_dict={},
+                    output_parameter_dict={},
+                    jobs=[],
+                    jobs_errors=[],
+                    input_property_errors=[],
+                    last_exceptions=[]
+                )
+                component_db_model.save()
+
+            components.append(component)
+
+        for workflow_component in workflow_schema.workflow_components:
+            component: Component = [c for c in components if c.id == workflow_component.component_id][0]
+
+            if not component:
+                raise NoLabsException(ErrorCodes.component_not_found)
+
+            # Check that component mappings exist
+            for mapping in workflow_component.mappings:
+                source_component: Component = [c for c in components if c.id == mapping.source_component_id][0]
+
+                if not source_component in component.previous:
+                    component.add_previous(component=source_component)
+
+                component.try_map_property(component=source_component,
+                                           path_from=mapping.source_path,
+                                           path_to=mapping.target_path)
+
+            for default in workflow_component.defaults:
+                component.try_set_default(default.target_path, value=default.value)
+
+        workflow = Workflow()
+        component = [c for c in components if c.id == request.component_id][0]
+        await workflow.execute_single(component=component)
 
 
 class GetComponentStateFeature:
@@ -382,3 +455,17 @@ class GetComponentStateFeature:
             ],
             last_exceptions=component.last_exceptions
         )
+
+
+class ResetWorkflowFeature:
+    async def handle(self, request: ResetWorkflowRequest):
+        workflow = WorkflowSchemaDbModel.objects.with_id(request.workflow_id)
+
+        for component in workflow.components:
+            db_model: ComponentDbModel = ComponentDbModel.objects.with_id(component.id)
+
+            db_model.input_parameter_dict = {}
+            db_model.output_parameter_dict = {}
+            db_model.input_property_errors = []
+
+            db_model.save()

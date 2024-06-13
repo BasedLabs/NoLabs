@@ -26,7 +26,7 @@ def map_job_to_response(job: GeneOntologyJob) -> JobResponse:
     return JobResponse(
         job_id=job.iid.value,
         job_name=job.name.value,
-        proteins=[p.iid.value for p in job.proteins],
+        protein_ids=[p.iid.value for p in job.proteins],
         result=[
             JobResult(
                 protein_id=item.protein_id,
@@ -34,7 +34,8 @@ def map_job_to_response(job: GeneOntologyJob) -> JobResponse:
                                                          edges=obo['edges']) for key, obo in item.gene_ontology.items()}
             )
             for item in job.gene_ontologies
-        ]
+        ],
+        experiment_id=job.experiment.id
     )
 
 

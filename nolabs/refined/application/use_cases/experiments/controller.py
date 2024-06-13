@@ -18,7 +18,7 @@ router = APIRouter(
 )
 
 
-@router.get('/experiments/all',
+@router.get('/all',
             summary='Get all experiments'
             )
 async def experiments(
@@ -27,7 +27,7 @@ async def experiments(
     return feature.handle()
 
 
-@router.delete('/experiments/{experiment_id}',
+@router.delete('/{experiment_id}',
                summary='Delete experiment')
 async def delete_experiment(experiment_id: UUID,
                             feature: Annotated[
@@ -35,7 +35,7 @@ async def delete_experiment(experiment_id: UUID,
     return feature.handle(experiment_id)
 
 
-@router.patch('/experiments',
+@router.patch('/',
               summary='Update experiment'
               )
 async def update_experiment(request: UpdateExperimentRequest,
@@ -44,7 +44,7 @@ async def update_experiment(request: UpdateExperimentRequest,
     return feature.handle(request)
 
 
-@router.post('/experiments',
+@router.post('/',
              summary='Create experiment')
 async def create_experiment(feature: Annotated[
     CreateExperimentFeature, Depends(ExperimentsDependencies.create_experiment)]) -> ExperimentMetadataResponse:

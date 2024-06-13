@@ -34,7 +34,7 @@ class LocalisationComponent(Component[LocalisationComponentInput, LocalisationCo
         for job in self.jobs:
             get_result = await get_job_feature.handle(job_id=job.id)
 
-            for protein_id in get_result.proteins:
+            for protein_id in get_result.protein_ids:
                 items.append(protein_id)
 
         self.output = LocalisationComponentOutput(
@@ -51,7 +51,7 @@ class LocalisationComponent(Component[LocalisationComponentInput, LocalisationCo
 
             result = await setup_job_feature.handle(request=SetupJobRequest(
                 experiment_id=self.experiment.id,
-                proteins=[protein.id],
+                protein_ids=[protein.id],
                 job_id=None,
                 job_name=f'Localisation {protein.name.fasta_name}'
             ))

@@ -27,7 +27,7 @@ interface Data {
 }
 
 export default defineComponent({
-  name: "JobView",
+  name: "SmallMoleculesDesignJobView",
   components: {JobHeader, JobControlButtons, LogsModal, PdbViewer},
   store: useSmallMoleculesDesignStore(),
   jobId: null as unknown as string,

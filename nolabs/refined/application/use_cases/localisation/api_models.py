@@ -19,13 +19,14 @@ class JobResult:
 class JobResponse:
     job_id: UUID
     job_name: str
-    proteins: List[UUID]
+    protein_ids: List[UUID]
     result: List[JobResult]
+    experiment_id: UUID
 
 
 @dataclass
 class SetupJobRequest:
-    proteins: List[UUID]
+    protein_ids: List[UUID]
     job_id: Optional[UUID] = None
     job_name: Optional[str] = None
     experiment_id: Optional[UUID] = None

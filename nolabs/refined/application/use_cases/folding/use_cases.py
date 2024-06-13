@@ -26,14 +26,15 @@ def map_job_to_response(job: FoldingJob) -> JobResponse:
         job_id=job.iid.value,
         job_name=job.name.value,
         backend=FoldingBackendEnum(job.backend),
-        proteins=[p.iid.value for p in job.proteins],
+        protein_ids=[p.iid.value for p in job.proteins],
         result=[
             JobResult(
                 protein_id=item.protein_id,
                 pdb=item.pdb_content.decode('utf-8')
             )
             for item in job.foldings
-        ]
+        ],
+        experiment_id=job.experiment.id
     )
 
 
@@ -77,7 +78,7 @@ class SetupJobFeature:
             )
 
         proteins: List[Protein] = []
-        for protein_id in request.proteins:
+        for protein_id in request.protein_ids:
             protein = Protein.objects.with_id(protein_id)
 
             if not protein:

@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type nolabs__refined__application__use_cases__small_molecules_design__api_models__SetupJobRequest = {
-    experiment_id: string;
     protein_id: string;
     center_x: number;
     center_y: number;
@@ -17,5 +16,6 @@ export type nolabs__refined__application__use_cases__small_molecules_design__api
     job_id?: (string | null);
     job_name?: (string | null);
     sampling_size?: number;
+    experiment_id?: (string | null);
 };
 

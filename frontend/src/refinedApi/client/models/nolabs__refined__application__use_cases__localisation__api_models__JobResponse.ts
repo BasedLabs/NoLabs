@@ -6,7 +6,8 @@ import type { nolabs__refined__application__use_cases__localisation__api_models_
 export type nolabs__refined__application__use_cases__localisation__api_models__JobResponse = {
     job_id: string;
     job_name: string;
-    proteins: Array<string>;
+    protein_ids: Array<string>;
     result: Array<nolabs__refined__application__use_cases__localisation__api_models__JobResult>;
+    experiment_id: string;
 };
 

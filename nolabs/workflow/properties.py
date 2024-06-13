@@ -1,11 +1,42 @@
 from dataclasses import field
-from typing import Optional, Union, Dict, List, Any, Tuple, Type, TypeVar, Generic
+from typing import Optional, Union, Dict, List, Any, Tuple, Type, TypeVar, Generic, get_origin, get_args
 from uuid import UUID
 
-from pydantic import Field, BaseModel, ValidationError
+from pydantic import Field, BaseModel, ValidationError, parse_obj_as
 from pydantic.dataclasses import dataclass
 
 from nolabs.exceptions import NoLabsException
+
+
+def is_assignable_to_generic(value, generic_type):
+    origin_type = get_origin(generic_type)
+
+    if not origin_type:
+        return isinstance(value, generic_type)
+
+    if not isinstance(value, origin_type):
+        return False
+
+    generic_args = get_args(generic_type)
+    if not generic_args:
+        return True  # No arguments to check, so it's a match
+
+    if isinstance(value, dict):
+        key_type, value_type = generic_args
+        return all(isinstance(k, key_type) and isinstance(v, value_type) for k, v in value.items())
+    elif isinstance(value, (list, tuple, set, frozenset)):
+        item_type = generic_args[0]
+
+        for item in value:
+            if not isinstance(item, item_type):
+                try:
+                    parse_obj_as(item_type, item)
+                except ValidationError:
+                    return False
+
+        return True
+    else:
+        return False
 
 
 @dataclass
@@ -174,7 +205,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
             if hasattr(current_type, '__annotations__'):
                 annotations = current_type.__annotations__
 
-        if not isinstance(value, current_type):
+        if not is_assignable_to_generic(value, current_type):
             return PropertyValidationError(
                 msg=f'Property has incompatible type',
                 loc=path_to

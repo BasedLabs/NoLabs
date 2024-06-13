@@ -47,11 +47,10 @@ import {AminoAcid} from "src/features/aminoAcid/solubility/types";
 import useSolubilityStore from "src/features/aminoAcid/solubility/storage";
 import AminoAcidInferenceForm from "src/features/aminoAcid/AminoAcidInferenceForm.vue";
 import AminoAcidTable from "src/features/aminoAcid/AminoAcidTable.vue";
-import {ExperimentProperties} from "../../proteinDesign/types";
 
 
 export default defineComponent({
-  name: 'LocalisationJobView',
+  name: 'SolubilityJobView',
   data() {
     const store = useSolubilityStore();
 

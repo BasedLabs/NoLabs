@@ -7,8 +7,8 @@ import {
   ConformationsService,
   IntegratorsRequest,
   JobsACommonControllerForJobsManagementService,
-  OpenAPI,
-  ProteinsService
+  OpenAPI, ProteinResponse,
+  ProteinsService, SolubilityService
 } from "src/refinedApi/client";
 import apiConstants from "src/api/constants";
 
@@ -17,14 +17,45 @@ OpenAPI.BASE = apiConstants.hostname;
 
 const useConformationsStore = defineStore("conformations", {
   actions: {
+    async setupJob(experimentId: string, request: InferenceRequest) {
+      const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
+        experiment_id: experimentId,
+        name: request.pdbFile.name,
+        pdb: request.pdbFile
+      });
+
+      await ConformationsService.setupJobApiV1ConformationsJobsPost(
+        {
+          protein_id: protein.id,
+          job_id: request.jobId,
+          job_name: request.jobName,
+          total_frames: request.totalFrames,
+          temperature_k: request.temperatureK,
+          take_frame_every: request.takeFrameEvery,
+          step_size: request.stepSize,
+          replace_non_standard_residues: request.replaceNonStandardResidues,
+          add_missing_atoms: request.addMissingAtoms,
+          add_missing_hydrogens: request.addMissingHydrogens,
+          friction_coeff: request.frictionCoeff,
+          ignore_missing_atoms: request.ignoreMissingAtoms,
+          integrator: request.integrator,
+          experiment_id: request.experimentId
+        }
+      );
+    },
     async inference(request: InferenceRequest): Promise<{
       job: Job | null,
       errors: string[]
     }> {
-      const response = await ConformationsService.runJobApiV1ConformationsJobsRunJobIdPost(
+      let job = await ConformationsService.getJobApiV1ConformationsJobsJobIdGet(request.jobId);
+
+      await this.setupJob(job.experiment_id, request);
+
+      job = await ConformationsService.runJobApiV1ConformationsJobsRunJobIdPost(
         request.jobId
       )
-      const errorResponse = obtainErrorResponse(response);
+
+      const errorResponse = obtainErrorResponse(job);
       if (errorResponse) {
         for (const error of errorResponse.errors) {
           Notify.create({
@@ -36,14 +67,14 @@ const useConformationsStore = defineStore("conformations", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const protein = await ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(response.protein_id);
+      const protein = await ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(job.protein_id);
 
       return {
         job: {
-          id: response.job_id,
-          name: response.job_name,
+          id: job.job_id,
+          name: job.job_name,
           pdbContent: new File([new Blob([protein!.pdb_content!])], protein!.pdb_name),
-          timeline: response.timeline.map(x => {
+          timeline: job.timeline.map(x => {
             return {
               message: x.message,
               error: x.error,

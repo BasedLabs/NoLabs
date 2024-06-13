@@ -13,10 +13,10 @@ export class ExperimentsService {
      * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static experimentsApiV1ExperimentsExperimentsAllGet(): CancelablePromise<Array<ExperimentMetadataResponse>> {
+    public static experimentsApiV1ExperimentsAllGet(): CancelablePromise<Array<ExperimentMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/experiments/experiments/all',
+            url: '/api/v1/experiments/all',
         });
     }
     /**
@@ -25,12 +25,12 @@ export class ExperimentsService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static deleteExperimentApiV1ExperimentsExperimentsExperimentIdDelete(
+    public static deleteExperimentApiV1ExperimentsExperimentIdDelete(
         experimentId: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/experiments/experiments/{experiment_id}',
+            url: '/api/v1/experiments/{experiment_id}',
             path: {
                 'experiment_id': experimentId,
             },
@@ -44,10 +44,10 @@ export class ExperimentsService {
      * @returns ExperimentMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static createExperimentApiV1ExperimentsExperimentsPost(): CancelablePromise<ExperimentMetadataResponse> {
+    public static createExperimentApiV1ExperimentsPost(): CancelablePromise<ExperimentMetadataResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/experiments/experiments',
+            url: '/api/v1/experiments/',
         });
     }
     /**
@@ -56,12 +56,12 @@ export class ExperimentsService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateExperimentApiV1ExperimentsExperimentsPatch(
+    public static updateExperimentApiV1ExperimentsPatch(
         requestBody: UpdateExperimentRequest,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/v1/experiments/experiments',
+            url: '/api/v1/experiments/',
             body: requestBody,
             mediaType: 'application/json',
             errors: {

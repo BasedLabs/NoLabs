@@ -8,7 +8,8 @@ export type nolabs__refined__application__use_cases__folding__api_models__JobRes
     job_id: string;
     job_name: string;
     backend: FoldingBackendEnum;
-    proteins: Array<string>;
+    protein_ids: Array<string>;
     result: Array<nolabs__refined__application__use_cases__folding__api_models__JobResult>;
+    experiment_id: string;
 };
 

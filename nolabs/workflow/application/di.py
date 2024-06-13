@@ -22,7 +22,7 @@ from nolabs.refined.application.use_cases.small_molecules_design.workflow import
 from nolabs.refined.application.use_cases.solubility.workflow import SolubilityComponent
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
     UpdateWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, \
-    GetComponentStateFeature
+    GetComponentStateFeature, ResetWorkflowFeature, StartWorkflowComponentFeature
 from nolabs.workflow.component import Component
 
 
@@ -72,6 +72,17 @@ class WorkflowDependencies:
         return StartWorkflowFeature(
             available_components=components
         )
+
+    @staticmethod
+    def start_workflow_component(components: Annotated[
+        Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)]) -> StartWorkflowComponentFeature:
+        return StartWorkflowComponentFeature(
+            available_components=components
+        )
+
+    @staticmethod
+    def reset_workflow():
+        return ResetWorkflowFeature()
 
     @staticmethod
     def all_workflow_schemas():

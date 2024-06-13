@@ -68,12 +68,6 @@
 
   export default defineComponent({
     name: 'LocalisationJobView',
-    props: {
-      experimentId: {
-        type: String,
-        required: true,
-      },
-    },
     data() {
       const store = useLocalisationStore();
 
@@ -173,8 +167,7 @@
         const response = await this.store.inference({
           jobId: this.job!.id,
           jobName: this.job!.name,
-          fastas: data.fastas,
-          experimentId: this.experimentId
+          fastas: data.fastas
         });
 
         this.setJob(response.job);

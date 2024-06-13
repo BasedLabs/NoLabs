@@ -4,7 +4,7 @@ import {
   SmallMoleculesDesignService,
   ProteinsService,
   LigandsService,
-  JobsACommonControllerForJobsManagementService
+  JobsACommonControllerForJobsManagementService, ProteinDesignService
 } from "../../refinedApi/client";
 import apiConstants from "../../api/constants";
 import {obtainErrorResponse} from "../../api/errorWrapper";
@@ -108,20 +108,22 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
     async stopJob(jobId: string) {
       await SmallMoleculesDesignService.stopJobApiV1SmallMoleculesDesignJobsJobIdStopPost(jobId);
     },
-    async saveProperties(experimentId: string, jobId: string, properties: Properties): Promise<void> {
+    async saveProperties(jobId: string, properties: Properties): Promise<void> {
       if (!properties.pdbFile) {
         throw new Error('Pdb file is not specified');
       }
 
+      const job = await ProteinDesignService.getJobApiV1ProteinDesignJobsJobIdGet(jobId);
+
       const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
-        experiment_id: experimentId,
+        experiment_id: job.experiment_id,
         name: properties.pdbFile.name,
         pdb: properties.pdbFile
       });
 
       await SmallMoleculesDesignService.setupJobApiV1SmallMoleculesDesignJobsPost(
         {
-          experiment_id: experimentId,
+          experiment_id: job.experiment_id,
           protein_id: protein.id,
           center_x: properties.centerX,
           center_y: properties.centerY,

@@ -1,8 +1,8 @@
 <template>
   <q-card>
-    <node-content-header :name="name" :description="description" :inputs="['FASTA']" :outputs="['PDB']"
+    <NodeContentHeader :name="name" :description="description" :inputs="['FASTA']" :outputs="['PDB']"
       imageSrc="/folding_pic.png" />
-    <node-content-body :nodeId="nodeId" :name="name" />
+    <NodeContentBody :nodeId="nodeId" :name="name" />
   </q-card>
 </template>
 

@@ -22,8 +22,9 @@ class JobResult:
 class JobResponse:
     job_id: UUID
     job_name: str
-    proteins: List[UUID]
+    protein_ids: List[UUID]
     result: List[JobResult]
+    experiment_id: UUID
 
 
 @dataclass

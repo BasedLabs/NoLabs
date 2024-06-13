@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type nolabs__refined__application__use_cases__gene_ontology__api_models__SetupJobRequest = {
-    experiment_id: string;
     proteins: Array<string>;
     job_id?: (string | null);
     job_name?: (string | null);
+    experiment_id?: (string | null);
 };
 

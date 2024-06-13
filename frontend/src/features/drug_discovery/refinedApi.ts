@@ -32,14 +32,17 @@ import {
   nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
+import apiConstants from "../../api/constants";
+
+OpenAPI.BASE = apiConstants.hostname;
 
 
 export function getExperimentsApi(): CancelablePromise<Array<ExperimentMetadataResponse>> {
-  return ExperimentsService.experimentsApiV1ExperimentsExperimentsAllGet();
+  return ExperimentsService.experimentsApiV1ExperimentsAllGet();
 }
 
 export function createExperimentApi(): CancelablePromise<ExperimentMetadataResponse> {
-  return ExperimentsService.createExperimentApiV1ExperimentsExperimentsPost();
+  return ExperimentsService.createExperimentApiV1ExperimentsPost();
 }
 
 export function getProtein(proteinId: string): CancelablePromise<(ProteinResponse | null)> {
@@ -48,7 +51,7 @@ export function getProtein(proteinId: string): CancelablePromise<(ProteinRespons
 
 // Delete an experiment
 export function deleteExperimentApi(experimentId: string): CancelablePromise<any> {
-  return ExperimentsService.deleteExperimentApiV1ExperimentsExperimentsExperimentIdDelete(experimentId);
+  return ExperimentsService.deleteExperimentApiV1ExperimentsExperimentIdDelete(experimentId);
 }
 
 export function getFoldingJobsApi(experimentId: string): CancelablePromise<Array<GetJobMetadataResponse>> {
@@ -82,7 +85,7 @@ export function getDiffDockJobStatus(jobId: string): CancelablePromise<nolabs__r
 export function setupDiffDockJob(job: nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest): CancelablePromise<any> {
   return DiffdockService.setupJobApiV1DiffdockJobsPost(job)
 }
- 
+
 export function setupFoldingJob(job: nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest): CancelablePromise<nolabs__refined__application__use_cases__folding__api_models__JobResponse> {
   return FoldingService.setupJobApiV1FoldingJobsPost(job);
 }
@@ -105,11 +108,11 @@ export function getExistingWorkflows(experimentId: string): CancelablePromise<Al
 }
 
 export function sendWorkflowUpdate(workflow: WorkflowSchemaModel_Input): CancelablePromise<any> {
-  return WorkflowService.setWorkflowSchemaApiV1WorkflowPut(workflow)
+  return WorkflowService.updateWorkflowSchemaApiV1WorkflowPut(workflow)
 }
 
-export function startWorkflowforExperiment(experimentId: string): CancelablePromise<any> {
-  return WorkflowService.startWorkflowApiV1WorkflowExperimentIdStartPost(experimentId)
+export function startWorkflow(workflowId: string): CancelablePromise<any> {
+  return WorkflowService.startWorkflowApiV1WorkflowWorkflowIdStartPost(workflowId)
 }
 
 export function getAllProteins(experimentId: string): CancelablePromise<Array<ProteinResponse>> {

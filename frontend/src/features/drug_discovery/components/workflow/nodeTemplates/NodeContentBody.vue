@@ -55,9 +55,12 @@
 
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
-      <esm-fold-job v-if="name === 'Folding'" :job-id="selectedJobId" />
+      <div v-for="item in $options.jobsFactory.filter(x => !x.tab)" :key="item.name">
+        <component :is="item.component" :job-id="selectedJobId"/>
+      </div>
+      <!-- <EsmFoldJob v-if="name === 'Folding'" :job-id="selectedJobId" />
       <P2RankJob v-if="name === 'Protein binding pockets prediction'" :job-id="selectedJobId" />
-      <!-- Add other job components based on job type -->
+      Add other job components based on job type -->
       <q-card-actions>
         <q-btn flat label="Close" v-close-popup />
       </q-card-actions>
@@ -69,7 +72,7 @@
 import { defineComponent } from 'vue';
 import { useWorkflowStore, Node } from 'src/features/drug_discovery/components/workflow/storage';
 import { getFoldingJobApi,
-         getFoldingJobStatus, 
+         getFoldingJobStatus,
          getBindingPocketJobApi,
          getBindingPocketJobStatus } from 'src/features/drug_discovery/refinedApi';
 import { GetJobMetadataResponse, nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse } from 'src/refinedApi/client';
@@ -84,6 +87,50 @@ export default defineComponent({
     P2RankJob,
     draggable,
   },
+
+  jobsFactory: [
+    {
+      name: "Folding",
+      tab: true,
+      routeName: "Folding"
+    },
+    {
+      name: "Protein binding pockets prediction",
+      tab: false,
+      component: P2RankJob
+    },
+    {
+      name: "Localisation",
+      tab: true,
+      routeName: "Localisation"
+    },
+    {
+      name: "Solubility",
+      tab: true,
+      routeName: "Solubility"
+    },
+    {
+      name: "Gene ontology",
+      tab: true,
+      routeName: "Gene ontology"
+    },
+    {
+      name: "Conformations",
+      tab: true,
+      routeName: "Conformations"
+    },
+    {
+      name: "Protein design",
+      tab: true,
+      routeName: "Protein design"
+    },
+    {
+      name: "Small molecules design",
+      tab: true,
+      routeName: "Small molecules design"
+    }
+  ],
+
   props: {
     nodeId: { type: String, required: true },
     name: {
@@ -150,6 +197,14 @@ export default defineComponent({
     },
     openJob(job: GetJobMetadataResponse) {
       this.selectedJobId = job.job_id;
+
+      for(const item of this.$options.jobsFactory){
+        if(item.name == this.name && item.tab){
+
+          return;
+        }
+      }
+
       this.showJobModal = true;
     },
     updateJobOrder() {

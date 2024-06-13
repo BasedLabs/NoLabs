@@ -70,12 +70,6 @@ import JobHeader from "src/components/JobHeader.vue";
 
 export default defineComponent({
   name: 'ConformationJobView',
-  props: {
-    experimentId: {
-      type: String,
-      required: true,
-    },
-  },
   data() {
     const store = useConformationsStore();
 

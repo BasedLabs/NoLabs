@@ -4,7 +4,6 @@
 /* eslint-disable */
 import type { IntegratorsRequest } from './IntegratorsRequest';
 export type nolabs__refined__application__use_cases__conformations__api_models__SetupJobRequest = {
-    experiment_id: string;
     protein_id: string;
     job_id?: (string | null);
     job_name?: (string | null);
@@ -18,5 +17,6 @@ export type nolabs__refined__application__use_cases__conformations__api_models__
     friction_coeff?: number;
     ignore_missing_atoms?: boolean;
     integrator?: IntegratorsRequest;
+    experiment_id?: (string | null);
 };
 

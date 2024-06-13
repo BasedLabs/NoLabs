@@ -4,6 +4,7 @@ import {Notify} from "quasar";
 import {ErrorCodes} from "src/api/errorTypes";
 import {obtainErrorResponse} from "src/api/errorWrapper";
 import {
+  ConformationsService,
   JobsACommonControllerForJobsManagementService,
   OpenAPI,
   ProteinDesignService,
@@ -15,11 +16,35 @@ OpenAPI.BASE = apiConstants.hostname;
 
 const useProteinDesignStore = defineStore("proteinDesign", {
   actions: {
+    async setupJob(experimentId: string, request: InferenceRequest) {
+      const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
+        experiment_id: experimentId,
+        name: request.pdbFile.name,
+        pdb: request.pdbFile
+      });
+
+      await ProteinDesignService.setupJobApiV1ProteinDesignJobsPost(
+        {
+          experiment_id: experimentId,
+          protein_id: protein.id,
+          contig: request.contig,
+          number_of_designs: request.numberOfDesigns,
+          timesteps: request.timesteps,
+          hotspots: request.hotspots,
+          job_id: request.jobId,
+          job_name: request.jobName
+        }
+      );
+    },
     async inference(request: InferenceRequest): Promise<{
       job: Job | null,
       errors: string[]
     }> {
-      const job = await ProteinDesignService.runJobApiV1ProteinDesignJobsRunJobIdPost(
+      let job = await ProteinDesignService.getJobApiV1ProteinDesignJobsJobIdGet(request.jobId!);
+
+      await this.setupJob(job.experiment_id, request);
+
+      job = await ProteinDesignService.runJobApiV1ProteinDesignJobsRunJobIdPost(
         request.jobId!
       );
       const errorResponse = obtainErrorResponse(job);

@@ -2,19 +2,21 @@ import {defineStore} from "pinia";
 import {Notify} from "quasar";
 import {ErrorCodes} from "src/api/errorTypes";
 import {obtainErrorResponse} from "src/api/errorWrapper";
-import {Job, InferenceRequest} from "src/features/aminoAcid/types";
-import {AminoAcid} from "src/features/aminoAcid/localisation/types";
 import {
   OpenAPI,
-  LocalisationService,
+  FoldingService,
+  ProteinResponse,
   ProteinsService,
-  JobsACommonControllerForJobsManagementService, ProteinResponse, GeneOntologyService
-} from "../../../refinedApi/client";
-import apiConstants from "../../../api/constants";
+  FoldingBackendEnum
+} from "src/refinedApi/client";
+import apiConstants from "src/api/constants";
+import {InferenceRequest, Job} from "src/features/aminoAcid/types";
+import {AminoAcid} from "src/features/aminoAcid/folding/types";
+import {JobsACommonControllerForJobsManagementService} from "../../../refinedApi/client";
 
 OpenAPI.BASE = apiConstants.hostname;
 
-const useLocalisationStore = defineStore("localisation", {
+const useFoldingStore = defineStore("folding", {
   actions: {
     async setupJob(experimentId: string, request: InferenceRequest){
       let proteins: ProteinResponse[] = [];
@@ -27,12 +29,13 @@ const useLocalisationStore = defineStore("localisation", {
         proteins.push(protein);
       }
 
-      await LocalisationService.setupJobApiV1LocalisationJobsPost(
+      await FoldingService.setupJobApiV1FoldingJobsPost(
         {
           experiment_id: experimentId,
           job_id: request.jobId,
           job_name: request.jobName,
-          protein_ids: proteins.map(p => p.id)
+          protein_ids: proteins.map(p => p.id),
+          backend: FoldingBackendEnum.ESMFOLD_LIGHT
         }
       );
     },
@@ -40,10 +43,14 @@ const useLocalisationStore = defineStore("localisation", {
       job: Job<AminoAcid> | null,
       errors: string[]
     }> {
-      const job = await LocalisationService.getJobApiV1LocalisationJobsJobIdGet(request.jobId!);
+      let job = await FoldingService.getJobApiV1FoldingJobsJobIdGet(request.jobId!);
 
-      await this.setupJob(job.experiment_id, request);
+      await this.setupJob(
+        job.experiment_id,
+        request
+      )
 
+      job = await FoldingService.startJobApiV1FoldingJobsRunJobIdPost(job.job_id);
       const errorResponse = obtainErrorResponse(job);
       if (errorResponse) {
         for (const error of errorResponse.errors) {
@@ -64,15 +71,11 @@ const useLocalisationStore = defineStore("localisation", {
         job: {
           id: job.job_id,
           name: job.job_name,
-          aminoAcids: proteins.map(p => {
+          aminoAcids: proteins.map(aa => {
             return {
-              name: p.name,
-              sequence: p.fasta_content!,
-              cytosolicProteins: p.localisation!.cytosolic,
-              mitochondialProteins: p.localisation!.mitochondrial,
-              nuclearProteins: p.localisation!.nuclear,
-              otherProteins: p.localisation!.other,
-              extracellularSecretedProteins: p.localisation!.extracellular
+              name: aa.name!,
+              sequence: aa.fasta_content!,
+              pdbFile: new File([new Blob([aa.pdb_content!])], aa.pdb_name)
             };
           }),
           properties: {
@@ -86,8 +89,8 @@ const useLocalisationStore = defineStore("localisation", {
       job: Job<AminoAcid> | null,
       errors: string[]
     }> {
-      const response = await LocalisationService.getJobApiV1LocalisationJobsJobIdGet(jobId);
-      const errorResponse = obtainErrorResponse(response);
+      const job = await FoldingService.getJobApiV1FoldingJobsJobIdGet(jobId);
+      const errorResponse = obtainErrorResponse(job);
       if (errorResponse) {
         if (errorResponse.error_code === ErrorCodes.job_not_found) {
           return {
@@ -111,41 +114,34 @@ const useLocalisationStore = defineStore("localisation", {
       }
 
       const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
-        ids: response.protein_ids
-      });
+        ids: job.protein_ids
+      })
 
       return {
         job: {
-          id: response.job_id,
-          name: response.job_name,
-          aminoAcids: proteins.map(p => {
+          id: job.job_id,
+          name: job.job_name,
+          aminoAcids: proteins.map(aa => {
             return {
-              name: p.name,
-              sequence: p.fasta_content!,
-              cytosolicProteins: p.localisation!.cytosolic,
-              mitochondialProteins: p.localisation!.mitochondrial,
-              nuclearProteins: p.localisation!.nuclear,
-              otherProteins: p.localisation!.other,
-              extracellularSecretedProteins: p.localisation!.extracellular
+              name: aa.name!,
+              sequence: aa.fasta_content!,
+              pdbFile: new File([new Blob([aa.pdb_content!])], aa.pdb_name)
             };
           }),
           properties: {
-            fastas: proteins.map(p =>
-              new File([new Blob([p.fasta_content!])], p.fasta_name)
+            fastas: proteins.map(f =>
+              new File([new Blob([f.fasta_content!])], f.fasta_name)
             )
           }
         }, errors: []
       };
     },
     async changeJobName(jobId: string, newName: string) {
-      await JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(
-        jobId,
-        {
-          job_name: newName
-        }
-      );
-    },
+      await JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(jobId, {
+        job_name: newName
+      });
+    }
   }
 });
 
-export default useLocalisationStore;
+export default useFoldingStore;

@@ -2,26 +2,20 @@
   <div v-if="jobLoaded">
     <q-separator></q-separator>
     <q-layout container style="height: 100vh">
-      <JobHeader :job-name="job!.name" :on-job-name-change-submit="onJobNameChange">
-        <q-btn color="info" size="md" outline label="Gene ontology parameters"
+      <JobHeader :job-name="job?.name" :on-job-name-change-submit="onJobNameChange">
+        <q-btn color="info" size="md" outline label="Folding parameters"
                @click="showInferenceForm = !showInferenceForm"/>
       </JobHeader>
       <q-page-container>
         <div class="row" v-if="jobHasGeneratedData">
-          <div :class="tiles.one.current"
-               style="transition: all .1s linear;">
+          <div class="col-6">
             <div class="q-ma-sm">
-              <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
-                     @click="expandTile('one');"/>
-              <AminoAcidTable :on-amino-acid-open="setActiveAminoAcid" :rows="job!.aminoAcids"/>
+              <AminoAcidTable :on-amino-acid-open="setActiveAminoAcid" :rows="job?.aminoAcids"/>
             </div>
           </div>
-          <div :class="tiles.two.current"
-               style="transition: all .1s linear;">
-            <div class="q-ma-sm">
-              <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
-                     @click="expandTile('two');"/>
-              <GeneOntologyTree :obo-graph="activeAminoAcid!.go" :key="activeAminoAcid?.name"/>
+          <div class="col-6">
+            <div class="q-pl-sm q-ma-sm">
+              <PdbViewer :pdb-file="activeAminoAcid?.pdbFile" :key="activeAminoAcid?.name"/>
             </div>
           </div>
         </div>
@@ -30,12 +24,12 @@
     <q-dialog v-model="showInferenceForm" position="right" :maximized="true">
       <q-card>
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">Gene ontology parameters</div>
+          <div class="text-h6">Folding parameters</div>
           <q-space/>
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <AminoAcidInferenceForm :on-submit="onSubmit" :properties="job!.properties"/>
+          <AminoAcidInferenceForm :on-submit="onSubmit" :properties="job?.properties"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -44,42 +38,22 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {QSpinnerOrbit, QVueGlobals} from 'quasar';
+import {QSpinnerOrbit} from 'quasar';
 import JobHeader from "src/components/JobHeader.vue";
-import {Job} from "src/features/aminoAcid/types";
+import {AminoAcid} from "src/features/aminoAcid/folding/types";
 import AminoAcidInferenceForm from "src/features/aminoAcid/AminoAcidInferenceForm.vue";
-import GeneOntologyTree from "src/features/aminoAcid/geneOntology/GeneOntologyTree.vue";
-import {AminoAcid} from "src/features/aminoAcid/geneOntology/types";
-import useGeneOntologyStore from "src/features/aminoAcid/geneOntology/storage";
 import AminoAcidTable from "src/features/aminoAcid/AminoAcidTable.vue";
+import useFoldingStore from "src/features/aminoAcid/folding/storage";
+import PdbViewer from "src/components/PdbViewer.vue";
+import {Job} from "src/features/aminoAcid/types";
 
 
 export default defineComponent({
   name: 'LocalisationJobView',
-  props: {
-    experimentId: {
-      type: String,
-      required: true,
-    },
-  },
   data() {
-    const store = useGeneOntologyStore();
+    const store = useFoldingStore();
 
     return {
-      tiles: {
-        one: {
-          current: 'col-md-3',
-          hover: 'col-md-6',
-          leave: 'col-md-3',
-          otherHover: 'col-md-1'
-        },
-        two: {
-          current: 'col-md-9',
-          hover: 'col-md-11',
-          leave: 'col-md-9',
-          otherHover: 'col-md-6'
-        }
-      } as { [index: string]: { current: String, hover: String, leave: String, otherHover: String } },
       job: null as Job<AminoAcid>,
       showInferenceForm: false,
       store,
@@ -98,22 +72,6 @@ export default defineComponent({
     },
   },
   methods: {
-    expandTile(index: string) {
-      if (this.tiles[index].current === this.tiles[index].hover) {
-        for (const key in this.tiles) {
-          this.tiles[key].current = this.tiles[key].leave;
-        }
-        return;
-      }
-
-      for (const key in this.tiles) {
-        if (key == index) {
-          this.tiles[key].current = this.tiles[key].hover;
-        } else {
-          this.tiles[key].current = this.tiles[key].otherHover;
-        }
-      }
-    },
     setActiveAminoAcid(aminoAcidName: string): void {
       this.activeAminoAcid = this.job?.aminoAcids.find(x => x.name === aminoAcidName);
     },
@@ -139,8 +97,7 @@ export default defineComponent({
       const response = await this.store.inference({
         jobId: this.job!.id,
         jobName: this.job!.name,
-        fastas: data.fastas,
-        experimentId: this.experimentId
+        fastas: data.fastas
       });
 
       this.setJob(response.job);
@@ -169,8 +126,8 @@ export default defineComponent({
     }
   },
   components: {
+    PdbViewer,
     AminoAcidTable,
-    GeneOntologyTree,
     JobHeader,
     AminoAcidInferenceForm
   }

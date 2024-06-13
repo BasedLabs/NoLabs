@@ -18,7 +18,7 @@
     </div>
 
     <div class="map-container">
-      <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes" 
+      <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes"
         @nodeDragStop="onNodeDragStopHandler"
         :removeEdge="onEdgeUpdate"
         @connect="onConnect"
@@ -95,7 +95,7 @@ import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import JobNode from "./components/workflow/nodeTemplates/JobNode.vue";
 import JobNodeContent from "./components/workflow/nodeTemplates/JobNodeContent.vue";
-import { startWorkflowforExperiment, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow } from 'src/features/drug_discovery/refinedApi';
+import { startWorkflow, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow } from 'src/features/drug_discovery/refinedApi';
 import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
 
 // Define custom Node type
@@ -169,9 +169,9 @@ export default defineComponent({
     await workflowStore.fetchWorkflow(this.workflowId);
     this.elements = workflowStore.elements;
 
-    //setInterval(() => {
-    //  workflowStore.pollWorkflow();
-    //}, 2000); // Poll every 2 seconds
+    setInterval(() => {
+      workflowStore.pollWorkflow();
+    }, 2000); // Poll every 2 seconds
   },
   methods: {
     async checkAndCreateWorkflow() {
@@ -212,7 +212,7 @@ export default defineComponent({
       this.modalOpen = false;
     },
     startWorkflow() {
-      startWorkflowforExperiment(this.experiment.experimentId as string);
+      startWorkflow(this.workflowId);
     },
     onEdgeUpdate(params: { edge: Edge }) {
       const workflowStore = useWorkflowStore();

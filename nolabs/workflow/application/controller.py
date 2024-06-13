@@ -3,10 +3,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from .api_models import AllWorkflowSchemasResponse, GetComponentStateRequest
+from .api_models import AllWorkflowSchemasResponse, GetComponentStateRequest, ResetWorkflowRequest, \
+    StartWorkflowComponentRequest
 from .di import WorkflowDependencies
 from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, UpdateWorkflowSchemaFeature, \
-    StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature
+    StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature, \
+    ResetWorkflowFeature, StartWorkflowComponentFeature
 from ..workflow_schema import WorkflowSchemaModel
 
 router = APIRouter(
@@ -60,13 +62,36 @@ async def update_workflow_schema(
     return await feature.handle(workflow_schema=workflow_schema)
 
 
-@router.post('/{workflow_id}/start', summary='Start workflow schema')
+@router.post('/{workflow_id}/start', summary='Start workflow')
 async def start_workflow(
         feature: Annotated[
             StartWorkflowFeature, Depends(WorkflowDependencies.start_workflow)],
         workflow_id: UUID
 ):
     return await feature.handle(workflow_id=workflow_id)
+
+
+@router.post('/{workflow_id}/start/{component_id}', summary='Start workflow component')
+async def start_component(
+        feature: Annotated[
+            StartWorkflowComponentFeature, Depends(WorkflowDependencies.start_workflow_component)],
+        workflow_id: UUID,
+        component_id: UUID
+):
+    return await feature.handle(request=StartWorkflowComponentRequest(
+        workflow_id=workflow_id,
+        component_id=component_id
+    ))
+
+
+@router.post('/{workflow_id}/reset', summary='Reset workflow schema')
+async def start_workflow(
+        feature: Annotated[
+            ResetWorkflowFeature, Depends(WorkflowDependencies.reset_workflow())],
+        request: ResetWorkflowRequest
+):
+    return await feature.handle(request=request)
+
 
 @router.get('/component/{component_id}/state', summary='Get state')
 async def get_component_state(

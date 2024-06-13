@@ -121,12 +121,10 @@ class ProteinName(ValueObjectString):
         return self
 
     @property
-    @lru_cache
     def fasta_name(self):
         return self.value + '.fasta'
 
     @property
-    @lru_cache
     def pdb_name(self):
         return self.value + '.pdb'
 
@@ -336,10 +334,10 @@ class Protein(Document, Entity):
         if proteins:
             protein: Protein = proteins[0]
 
-            if fasta_content:
+            if fasta_content and not protein.fasta_content:
                 protein.set_fasta(fasta_content)
 
-            if pdb_content:
+            if pdb_content and not protein.pdb_content:
                 protein.set_pdb(pdb_content)
 
             protein.set_name(name)

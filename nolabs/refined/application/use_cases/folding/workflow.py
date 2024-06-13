@@ -24,8 +24,11 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
     name = 'Folding'
 
     async def execute(self):
+        print('ONE')
         run_job_feature = RunJobFeature(
-            esmfold=InfrastructureDependencies.esmfold_microservice()
+            esmfold=InfrastructureDependencies.esmfold_microservice(),
+            esmfold_light=InfrastructureDependencies.esmfold_light_microservice(),
+            rosettafold=InfrastructureDependencies.rosettafold_microservice()
         )
         get_job_feature = GetJobFeature()
 
@@ -37,7 +40,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
         for job in self.jobs:
             get_result = await get_job_feature.handle(job_id=job.id)
 
-            for protein_id in get_result.proteins:
+            for protein_id in get_result.protein_ids:
                 items.append(protein_id)
 
         self.output = FoldingComponentOutput(
@@ -55,7 +58,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
             result = await setup_job_feature.handle(request=SetupJobRequest(
                 experiment_id=self.experiment.id,
                 backend=self.input.backend,
-                proteins=[protein.id],
+                protein_ids=[protein.id],
                 job_name=f'Folding {protein.name.fasta_name}'
             ))
 

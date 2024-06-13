@@ -22,6 +22,15 @@ class InputPropertyErrorResponse:
 
 
 @dataclass
+class ResetWorkflowRequest:
+    workflow_id: UUID
+
+@dataclass
+class StartWorkflowComponentRequest:
+    workflow_id: UUID
+    component_id: UUID
+
+@dataclass
 class GetComponentStateResponse:
     input_dict: Dict[str, Any]
     output_dict: Dict[str, Any]

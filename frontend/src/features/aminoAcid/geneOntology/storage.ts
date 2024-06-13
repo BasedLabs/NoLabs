@@ -16,11 +16,33 @@ OpenAPI.BASE = apiConstants.hostname;
 
 const useGeneOntologyStore = defineStore("geneOntology", {
   actions: {
+    async setupJob(experimentId: string, request: InferenceRequest){
+      let proteins: ProteinResponse[] = [];
+      for(const fasta of request.fastas){
+        const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
+          experiment_id: experimentId,
+          name: fasta.name,
+          fasta: fasta
+        });
+        proteins.push(protein);
+      }
+
+      await GeneOntologyService.setupJobApiV1GeneOntologyJobsPost(
+        {
+          experiment_id: experimentId,
+          job_id: request.jobId,
+          job_name: request.jobName,
+          proteins: proteins.map(p => p.id)
+        }
+      );
+    },
     async inference(request: InferenceRequest): Promise<{
       job: Job<AminoAcid> | null,
       errors: string[]
     }> {
       const job = await GeneOntologyService.getJobApiV1GeneOntologyJobsJobIdGet(request.jobId!);
+
+      await this.setupJob(job.experiment_id, request);
 
       const errorResponse = obtainErrorResponse(job);
       if (errorResponse) {
@@ -35,7 +57,7 @@ const useGeneOntologyStore = defineStore("geneOntology", {
       }
 
       const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
-        ids: job.proteins
+        ids: job.protein_ids
       });
 
       return {
@@ -85,7 +107,7 @@ const useGeneOntologyStore = defineStore("geneOntology", {
       }
 
       const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
-        ids: response.proteins
+        ids: response.protein_ids
       });
 
       return {
