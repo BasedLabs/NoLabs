@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type CheckBioBuddyEnabledResponse = {
-    enabled: boolean;
+export type ResetWorkflowRequest = {
+    workflow_id: string;
 };
 

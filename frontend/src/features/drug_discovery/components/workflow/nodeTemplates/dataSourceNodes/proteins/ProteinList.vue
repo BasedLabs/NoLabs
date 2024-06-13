@@ -112,6 +112,7 @@ export default defineComponent({
                     const file = files[index];
                     const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
                     await workflowStore.uploadProteinToExperiment(this.experimentId, '', file, undefined, metaData);
+                    workflowStore.updateDefaults()
                 }
             } catch (error) {
                 console.error('Error uploading protein files:', error);

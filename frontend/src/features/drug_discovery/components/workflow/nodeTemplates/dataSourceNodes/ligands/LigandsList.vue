@@ -141,6 +141,7 @@ export default defineComponent({
                 const newLigand = await workflowStore.uploadLigandToExperiment(this.experimentId, file.name, undefined, file, metaData);
                 this.ligands.push(newLigand!);
             }
+            workflowStore.updateDefaults();
             this.uploadLigandDialog = false;
         },
         async deleteLigand(ligandToDelete: LigandResponse) {

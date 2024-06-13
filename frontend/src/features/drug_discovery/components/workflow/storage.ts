@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import { LigandResponse, ProteinResponse } from 'src/refinedApi/client';
-import { deleteProtein, getAllProteins, uploadProtein, updateProteinName, uploadLigand, deleteLigand, getAllLigands } from 'src/features/drug_discovery/refinedApi';
+import { InputPropertyErrorResponse, JobErrorResponse, LigandResponse, ProteinResponse } from 'src/refinedApi/client';
+import { deleteProtein, getAllProteins, uploadProtein, updateProteinName, uploadLigand, deleteLigand, getAllLigands, getComponentState } from 'src/features/drug_discovery/refinedApi';
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { v4 as uuidv4 } from 'uuid';
 import { Notify } from 'quasar';
@@ -28,8 +28,11 @@ export interface Node extends FlowNode {
     type: string;
     inputs: string[];
     outputs: string[];
-    jobIds: string[];
     description: string;
+    jobIds: string[];
+    jobs_errors: JobErrorResponse[];
+    input_property_errors: InputPropertyErrorResponse[];
+    last_exceptions: string[];
     error: string;
     defaults: Array<DefaultWorkflowComponentModelValue>;
 }
@@ -80,6 +83,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             } catch (error) {
                 console.error('Error deleting protein:', error);
             }
+            this.updateDefaults();
         },
         async changeProteinName(proteinId: string, newName: string) {
             try {
@@ -116,8 +120,10 @@ export const useWorkflowStore = defineStore('workflowStore', {
             } catch (error) {
                 console.error('Error deleting ligand:', error);
             }
+            this.updateDefaults();
         },
         async fetchWorkflow(workflowId: string) {
+            debugger;
             this.workflowId = workflowId;
             try {
                 const workflow = await getWorkflow(workflowId);
@@ -137,20 +143,25 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     componentIOMap[component.name] = { inputs, outputs, type: component.name, description };
                 });
 
-                workflow.workflow_components.forEach(component => {
+                for (const component of workflow.workflow_components) {
                     const { inputs, outputs, type, description } = componentIOMap[component.name] || { inputs: [], outputs: [], type: '', description: '' };
                     const nodeType = this.allowedTypes.includes(type) ? type : "custom";
+
+                    const componentState = await getComponentState(component.component_id);
 
                     const nodeData: Node = {
                         id: component.component_id,
                         name: component.name,
                         description: '',
                         type: nodeType,
+                        jobIds: componentState.job_ids,
+                        jobs_errors: componentState.jobs_errors,
+                        input_property_errors: componentState.input_property_errors,
+                        last_exceptions: componentState.last_exceptions,
                         data: {
                             description: description,
                             inputs,
                             outputs,
-                            jobIds: component.job_ids,
                             draggable: false,
                             defaults: (() => {
                                 if (component.name === "Proteins") {
@@ -166,7 +177,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                         position: { x: component.x !== undefined ? component.x : 100, y: component.y !== undefined ? component.y : 100 }
                     };
                     nodes.push(nodeData);
-                });
+                }
 
                 workflow.workflow_components.forEach(component => {
                     component.mappings?.forEach(mapping => {
@@ -219,7 +230,6 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     name: node.name,
                     component_id: node.id,
                     error: node.data.error,
-                    job_ids: node.data.jobIds,
                     x: node.position.x,
                     y: node.position.y,
                     mappings: this.elements.edges
@@ -231,7 +241,6 @@ export const useWorkflowStore = defineStore('workflowStore', {
                             error: edge.data?.text
                         }) as MappingModel),
                     defaults: node.data.defaults,
-                    jobs_errors: []
                 }) as WorkflowComponentModel),
                 error: null,
                 valid: true
@@ -258,6 +267,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     inputs: Object.keys(option.inputs || {}),
                     outputs: Object.keys(option.outputs || {}),
                     jobIds: [],
+                    jobs_errors: [],
+                    input_property_errors: [],
+                    last_exceptions: [],
                     draggable: false,
                     defaults: (() => {
                         if (option.name === "Proteins") {
@@ -335,6 +347,21 @@ export const useWorkflowStore = defineStore('workflowStore', {
             // Send the workflow update
             this.sendWorkflowUpdate();
         },
+        updateDefaults(){
+            for (const node of this.elements.nodes) {
+                const existingNode = this.getNodeById(node.id);
+                existingNode!!.data.defaults = (() => {
+                if (existingNode?.name === "Proteins") {
+                    return [{ target_path: existingNode.inputs, value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
+                } else if (option.name === "Ligands") {
+                    return [{ target_path: existingNode.inputs, value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
+                } else {
+                    return [];
+                }
+            })
+            }
+            this.sendWorkflowUpdate();
+        },
         onEdgeRemove(edgeId: string) {
             const index = this.elements.edges.findIndex(edge => edge.id === edgeId);
             if (index !== -1) {
@@ -376,14 +403,17 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     return;
                 }
 
-                // Update the parts of the workflow that have changed
-                workflow.workflow_components.forEach(component => {
-                    const existingNode = this.getNodeById(component.component_id);
+                for (const workflow_component of workflow.workflow_components) {
+                    const existingNode = this.getNodeById(workflow_component.component_id);
                     if (existingNode) {
-                        existingNode.data.error = component.error;
-                        existingNode.data.jobIds = component.job_ids;
+                        const componentState = await getComponentState(workflow_component.component_id);
+                        existingNode.data.jobIds = componentState.job_ids;
+                        existingNode.data.jobs_errors = componentState.jobs_errors,
+                        existingNode.data.input_property_errors = componentState.input_property_errors,
+                        existingNode.data.last_exceptions = componentState.last_exceptions,
+                        existingNode.data.error = workflow_component.error;
                     }
-                });
+                }
 
                 const updatedEdges: Edge[] = [];
                 workflow.workflow_components.forEach(component => {
