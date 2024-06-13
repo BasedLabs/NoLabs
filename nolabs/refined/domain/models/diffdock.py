@@ -19,8 +19,8 @@ class DiffDockJobResult(EmbeddedDocument):
     scored_affinity: float = FloatField(required=False)
     confidence: float = FloatField(required=False)
 
-    def create(self,
-               complex_id: UUID,
+    @staticmethod
+    def create(complex_id: UUID,
                sdf_content: bytes | str,
                minimized_affinity: float,
                scored_affinity: float,
