@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { LigandResponse, ProteinResponse } from 'src/refinedApi/client';
-import { deleteProtein, getAllProteins, uploadProtein, updateProteinName, uploadLigand, deleteLigand, getAllLigands } from 'src/features/drug_discovery/refinedApi';
+import { deleteProtein, getAllProteins, uploadProtein, updateProteinName, uploadLigand, deleteLigand, getAllLigands, getComponentState } from 'src/features/drug_discovery/refinedApi';
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { v4 as uuidv4 } from 'uuid';
 import { Notify } from 'quasar';
@@ -28,8 +28,8 @@ export interface Node extends FlowNode {
     type: string;
     inputs: string[];
     outputs: string[];
-    jobIds: string[];
     description: string;
+    jobIds: string[];
     error: string;
     defaults: Array<DefaultWorkflowComponentModelValue>;
 }
@@ -141,16 +141,18 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     const { inputs, outputs, type, description } = componentIOMap[component.name] || { inputs: [], outputs: [], type: '', description: '' };
                     const nodeType = this.allowedTypes.includes(type) ? type : "custom";
 
+                    const componentState = getComponentState(component.component_id);
+
                     const nodeData: Node = {
                         id: component.component_id,
                         name: component.name,
                         description: '',
                         type: nodeType,
+                        jobIds: componentState.job_ids;
                         data: {
                             description: description,
                             inputs,
                             outputs,
-                            jobIds: component.job_ids,
                             draggable: false,
                             defaults: (() => {
                                 if (component.name === "Proteins") {
@@ -219,7 +221,6 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     name: node.name,
                     component_id: node.id,
                     error: node.data.error,
-                    job_ids: node.data.jobIds,
                     x: node.position.x,
                     y: node.position.y,
                     mappings: this.elements.edges
@@ -231,7 +232,6 @@ export const useWorkflowStore = defineStore('workflowStore', {
                             error: edge.data?.text
                         }) as MappingModel),
                     defaults: node.data.defaults,
-                    jobs_errors: []
                 }) as WorkflowComponentModel),
                 error: null,
                 valid: true
@@ -257,7 +257,6 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     description: option.description,
                     inputs: Object.keys(option.inputs || {}),
                     outputs: Object.keys(option.outputs || {}),
-                    jobIds: [],
                     draggable: false,
                     defaults: (() => {
                         if (option.name === "Proteins") {
@@ -380,8 +379,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 workflow.workflow_components.forEach(component => {
                     const existingNode = this.getNodeById(component.component_id);
                     if (existingNode) {
+                        const componentState = getComponentState(component.component_id);
+                        existingNode.data.job_ids = componentState.job_ids;
                         existingNode.data.error = component.error;
-                        existingNode.data.jobIds = component.job_ids;
                     }
                 });
 
