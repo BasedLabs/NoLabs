@@ -164,7 +164,7 @@ class RunJobFeature:
                 name=item.sdf_file_name
             )
             result.append(
-                DiffDockJobResult(
+                DiffDockJobResult.create(
                     complex_id=complex.iid.value,
                     sdf_content=item.sdf_content,
                     minimized_affinity=item.minimized_affinity,
