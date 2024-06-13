@@ -19,24 +19,23 @@ class DiffDockJobResult(EmbeddedDocument):
     scored_affinity: float = FloatField(required=False)
     confidence: float = FloatField(required=False)
 
-    def __init__(self,
-                 complex_id: UUID,
-                 sdf_content: bytes | str,
-                 minimized_affinity: float,
-                 scored_affinity: float,
-                 confidence: float,
-                 *args, **kwargs):
+    def create(self,
+               complex_id: UUID,
+               sdf_content: bytes | str,
+               minimized_affinity: float,
+               scored_affinity: float,
+               confidence: float
+               ):
         if isinstance(sdf_content, str):
             sdf_content = sdf_content.encode('utf-8')
 
-        super().__init__(
+        return DiffDockJobResult(
             complex_id=complex_id,
             sdf_content=sdf_content,
             minimized_affinity=minimized_affinity,
             scored_affinity=scored_affinity,
-            confidence=confidence,
-            *args, **kwargs)
-
+            confidence=confidence
+        )
 
 class DiffDockBindingJob(Job):
     # region Inputs
