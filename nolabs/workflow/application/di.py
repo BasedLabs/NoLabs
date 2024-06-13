@@ -11,7 +11,8 @@ from fastapi import Depends
 from nolabs.refined.application.use_cases.binding_pockets.workflow import BindingPocketPredictionComponent
 from nolabs.refined.application.use_cases.conformations.workflow import ConformationComponent
 from nolabs.refined.application.use_cases.diffdock.workflow import DiffDockComponent
-from nolabs.refined.application.use_cases.folding.workflow import FoldingComponent
+from nolabs.refined.application.use_cases.folding.workflow import FoldingComponent, EsmfoldComponent, \
+    EsmfoldLightComponent, RosettafoldComponent
 from nolabs.refined.application.use_cases.gene_ontology.workflow import GeneOntologyComponent
 from nolabs.refined.application.use_cases.ligands.workflow import LigandsComponent
 from nolabs.refined.application.use_cases.localisation.workflow import LocalisationComponent
@@ -30,7 +31,9 @@ class WorkflowDependencies:
     @staticmethod
     def available_components() -> Dict[str, Type[Component]]:
         return {
-            FoldingComponent.name: FoldingComponent,
+            EsmfoldComponent.name: EsmfoldComponent,
+            EsmfoldLightComponent.name: EsmfoldLightComponent,
+            RosettafoldComponent.name: RosettafoldComponent,
             ProteinsComponent.name: ProteinsComponent,
             SolubilityComponent.name: SolubilityComponent,
             SmallMoleculesDesignLearningComponent.name: SmallMoleculesDesignLearningComponent,

@@ -1,4 +1,5 @@
 import uuid
+from abc import abstractmethod
 from typing import List, Type
 
 from pydantic import BaseModel
@@ -13,7 +14,6 @@ from nolabs.workflow.component import Component, JobValidationError
 
 class FoldingComponentInput(BaseModel):
     proteins_with_fasta: List[uuid.UUID]
-    backend: FoldingBackendEnum = FoldingBackendEnum.esmfold_light
 
 
 class FoldingComponentOutput(BaseModel):
@@ -23,8 +23,12 @@ class FoldingComponentOutput(BaseModel):
 class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput]):
     name = 'Folding'
 
+    @property
+    @abstractmethod
+    def backend(self) -> FoldingBackendEnum:
+        ...
+
     async def execute(self):
-        print('ONE')
         run_job_feature = RunJobFeature(
             esmfold=InfrastructureDependencies.esmfold_microservice(),
             esmfold_light=InfrastructureDependencies.esmfold_light_microservice(),
@@ -57,7 +61,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
             result = await setup_job_feature.handle(request=SetupJobRequest(
                 experiment_id=self.experiment.id,
-                backend=self.input.backend,
+                backend=self.backend,
                 protein_ids=[protein.id],
                 job_name=f'Folding {protein.name.fasta_name}'
             ))
@@ -95,21 +99,21 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
         rosettafold_api = InfrastructureDependencies.rosettafold_microservice()
 
         for job in self.jobs:
-            if job.backend == FoldingBackendEnum.esmfold_light:
+            if self.backend == FoldingBackendEnum.esmfold_light:
                 status = esmfold_light_api.is_job_running_job_job_id_is_running_get(
                     job_id=job.id
                 )
                 if status.is_running:
                     return True
 
-            if job.backend == FoldingBackendEnum.esmfold_light:
+            if self.backend == FoldingBackendEnum.esmfold:
                 status = esmfold_api.is_job_running_job_job_id_is_running_get(
                     job_id=job.id
                 )
                 if not not status:
                     return True
 
-            if job.backend == FoldingBackendEnum.esmfold_light:
+            if self.backend == FoldingBackendEnum.rosettafold:
                 status = rosettafold_api.is_job_running_job_job_id_is_running_get(
                     job_id=job.id
                 )
@@ -117,3 +121,27 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
                     return True
 
         return False
+
+
+class EsmfoldComponent(FoldingComponent):
+    name = 'Esmfold component'
+
+    @property
+    def backend(self) -> FoldingBackendEnum:
+        return FoldingBackendEnum.esmfold
+
+
+class EsmfoldLightComponent(FoldingComponent):
+    name = 'Esmfold light component'
+
+    @property
+    def backend(self) -> FoldingBackendEnum:
+        return FoldingBackendEnum.esmfold_light
+
+
+class RosettafoldComponent(FoldingComponent):
+    name = 'Rosettafold component'
+
+    @property
+    def backend(self) -> FoldingBackendEnum:
+        return FoldingBackendEnum.rosettafold

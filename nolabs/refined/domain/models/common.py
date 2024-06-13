@@ -315,7 +315,6 @@ class Protein(Document, Entity):
                **kwargs):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_protein_id)
-
         if not name:
             raise NoLabsException(ErrorCodes.invalid_protein_name)
         if not experiment:
@@ -498,7 +497,6 @@ class Ligand(Document, Entity):
         image.save(buffer, format="PNG")
         return buffer.getvalue()
 
-
     def get_sdf(self) -> str | None:
         if self.sdf_content:
             return self.sdf_content.decode('utf-8')
@@ -603,6 +601,7 @@ class Ligand(Document, Entity):
                     scored_affinity: float | None = None,
                     confidence: float | None = None,
                     plddt_array: List[int] | None = None,
+                    name: str | None = None,
                     pdb_content: Union[bytes, str, None] = None) -> 'Protein':
         if not plddt_array:
             plddt_array = []
@@ -616,14 +615,16 @@ class Ligand(Document, Entity):
         if isinstance(pdb_content, str):
             pdb_content = pdb_content.encode()
 
-        complexes = Protein.objects(ligand=self, protein=protein)
+        complexes = Protein.objects(binding_ligand=self, source_binding_protein=protein)
 
         if complexes:
             complex = complexes[0]
         else:
+            protein_name = ProteinName(f'{str(protein.name)}-{str(self.name)}-complex' + f'-{name}' if name else '')
+
             complex = Protein.create(
                 experiment=self.experiment,
-                name=ProteinName(f'{str(protein.name)}-{str(self.name)}-complex'),
+                name=protein_name,
                 pdb_content=pdb_content,
                 fasta_content=protein.fasta_content
             )

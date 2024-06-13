@@ -18,7 +18,6 @@ class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutpu
     name = 'Proteins'
 
     async def execute(self):
-        print('TWO')
         self.output = ProteinsComponentOutput(
             proteins=self.input.proteins
         )
