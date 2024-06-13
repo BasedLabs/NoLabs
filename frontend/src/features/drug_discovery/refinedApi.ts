@@ -29,7 +29,7 @@ import {
   DiffdockService,
   nolabs__refined__application__use_cases__diffdock__api_models__JobResponse,
   nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse,
-  nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest
+  nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest, OpenAPI
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../api/constants";
