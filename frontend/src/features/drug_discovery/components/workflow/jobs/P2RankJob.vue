@@ -84,7 +84,7 @@ import {
   nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse, ProteinResponse,
   nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse,
 } from "../../../../../refinedApi/client";
-import { getBindingPocketJobApi, getProtein, getFoldingJobStatus, setupFoldingJob, changeJobName } from "../../../refinedApi";
+import { getBindingPocketJobApi, getProtein, changeJobName, getBindingPocketJobStatus } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'P2RankJob',
@@ -132,7 +132,7 @@ export default defineComponent({
 
     this.protein = await getProtein(this.job.protein_id);
 
-    this.jobStatus = await getFoldingJobStatus(this.jobId as string);
+    this.jobStatus = await getBindingPocketJobStatus(this.jobId as string);
 
     this.$q.loading.hide();
   },
