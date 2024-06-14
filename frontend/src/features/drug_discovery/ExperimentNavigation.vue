@@ -91,13 +91,14 @@
           <q-btn flat round dense icon="close" v-close-popup @click="closeModal" />
         </q-card-actions>
         <q-card-section>
-          <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'protein-list'"
+          <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'Proteins'"
             :experiment-id="experiment.experimentId" />
-          <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'"
+          <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'Ligands'"
             :experiment-id="experiment.experimentId" />
-          <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
-            :node-id="selectedNode?.id" :experiment-id="experiment.experimentId" :name="selectedNode?.name"
-            :description="selectedNode?.description" :jobIds="selectedNode?.data.jobIds" />
+          <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'custom'" 
+            :nodeId="selectedNode?.id" 
+            :name="selectedNode?.name"
+            :description="selectedNode?.description"  />
         </q-card-section>
       </q-card>
     </q-dialog>

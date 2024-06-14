@@ -7,9 +7,8 @@
     </div>
 
     <LigandsListNodeContent v-if="experimentId" :experiment-id="experimentId" />
-    <q-btn class="full-width" icon="open_in_new" label="Open in a new tab"> </q-btn>
-
     <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
+    <q-btn @click="openDialogue" class="full-width q-pa-md" icon="open_in_new" label="Extended view"> </q-btn>
   </q-card>
 
 </template>
@@ -79,6 +78,9 @@ export default defineComponent({
     openSettings() {
       this.onOpenSettings(this.nodeId);
     },
+    openDialogue() {
+      this.onOpenDialog(this.nodeId);
+    }
   }
 })
 </script>

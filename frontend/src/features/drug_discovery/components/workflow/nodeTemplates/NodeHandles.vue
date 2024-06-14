@@ -83,11 +83,11 @@ export default defineComponent({
 
 <style scoped>
 .text-h6 {
-  font-size: 1.5rem; /* Adjust font size as needed */
+  font-size: 1.5rem; 
 }
 
 .text-h5 {
-  font-size: 1.75rem; /* Adjust font size as needed */
+  font-size: 1.75rem; 
 }
 
 .large-handle {
