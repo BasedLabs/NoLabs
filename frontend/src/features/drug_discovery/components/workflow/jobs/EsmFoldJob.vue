@@ -125,10 +125,6 @@ export default defineComponent({
     }
   },
   async mounted() {
-    this.$q.loading.show({
-      spinner: QSpinnerOrbit,
-      message: `Loading Experiment ${this.jobId}`,
-    });
 
     this.experimentId = this.$route.params.experimentId as string;
 
@@ -141,8 +137,6 @@ export default defineComponent({
     }
 
     this.jobStatus = await getFoldingJobStatus(this.jobId as string);
-
-    this.$q.loading.hide();
   },
   methods: {
     async updateJobName() {

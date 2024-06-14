@@ -41,10 +41,7 @@
               <q-item-section>
                 <q-item-label>Samples per complex</q-item-label>
               </q-item-section>
-              <q-item-section> 
-                <q-input filled type="number" v-model="job?.samples_per_complex" label="Samples per Complex"
-                       @change="() => updateJobParams()"/>
-              </q-item-section>
+              <q-item-section>{{ job?.samples_per_complex }}</q-item-section>
             </q-item>
           </q-list>
         </q-card-section>
@@ -75,31 +72,24 @@
           <div class="text-h6">Result</div>
         </q-card-section>
         <q-card-section>
-          <div class="q-pl-sm q-ma-sm" v-if="jobHasGeneratedData">
-            <PdbViewer :pdb-file="pdbFile" :key="protein?.name"/>
-          </div>
+          <DiffDockResult v-if="jobHasGeneratedData" :job="job" :protein="protein" />
         </q-card-section>
       </div>
     </div>
   </q-card>
 </template>
 
-
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { QSpinnerOrbit, QSpinner, QInput } from 'quasar';
-import PdbViewer from 'src/components/PdbViewer.vue';
+import DiffDockResult from './DiffDockResult.vue';
 import {
   nolabs__refined__application__use_cases__diffdock__api_models__JobResponse,
   ProteinResponse,
   nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse,
   nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest,
-LigandResponse
 } from "../../../../../refinedApi/client";
-import { getDiffDockJobApi, 
-         getProtein,
-        getDiffDockJobStatus,
-        setupDiffDockJob, changeJobName } from "../../../refinedApi";
+import { getDiffDockJobApi, getProtein, getDiffDockJobStatus, setupDiffDockJob, changeJobName } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'DiffDockJob',
@@ -111,7 +101,6 @@ export default defineComponent({
       experimentId: null as string | null,
       job: null as nolabs__refined__application__use_cases__diffdock__api_models__JobResponse | null,
       protein: null as ProteinResponse | null,
-      ligand: null as LigandResponse | null,
       jobStatus: null as nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse | null,
       editableJobName: '' as string,
     };
@@ -126,19 +115,8 @@ export default defineComponent({
       }
       return this.jobStatus.running ? 'Running...' : 'Not running';
     },
-    pdbFile(): File {
-      if (this.jobHasGeneratedData && this.job?.result[0].pdb) {
-        return new File([new Blob([this.job?.result[0].pdb])], this.protein?.name + ".pdb");
-      }
-      return new File([], "empty.pdb");
-    }
   },
   async mounted() {
-    this.$q.loading.show({
-      spinner: QSpinnerOrbit,
-      message: `Loading Experiment ${this.jobId}`,
-    });
-
     this.experimentId = this.$route.params.experimentId as string;
 
     this.job = await getDiffDockJobApi(this.jobId as string);
@@ -147,58 +125,29 @@ export default defineComponent({
     }
 
     this.protein = await getProtein(this.job.protein_id);
-    
-    this.jobStatus = await getDiffDockJobStatus(this.jobId as string);
 
-    this.$q.loading.hide();
+    this.jobStatus = await getDiffDockJobStatus(this.jobId as string);
   },
   methods: {
     async updateJobName() {
       if (this.job) {
         try {
-          await changeJobName(this.job.job_id, this.editableJobName);        }
-        catch (error) {
+          await changeJobName(this.job.job_id, this.editableJobName);
+        } catch (error) {
           this.editableJobName = this.job.job_name;
           this.$q.notify({
             type: 'negative',
-            message: 'Failed to update job name.'
+            message: 'Failed to update job name.',
           });
         }
       }
     },
-    async updateJobParams() {
-      if (this.job) {
-        const setupJobRequest: nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest = {
-          experiment_id: this.experimentId as string,
-          protein_id: this.job.protein_id,
-          ligand_id: this.job.ligand_id,
-          samples_per_complex: this.job.samples_per_complex;
-          job_id: this.job.job_id,
-          job_name: this.editableJobName,
-        };
-
-        try {
-          this.job = await setupDiffDockJob(setupJobRequest);
-          this.$q.notify({
-            type: 'positive',
-            message: 'Job name updated successfully!'
-          });
-        } catch (error) {
-          this.$q.notify({
-            type: 'negative',
-            message: 'Failed to update job name.'
-          });
-        }
-      }
-    }
   },
   components: {
-    PdbViewer
+    DiffDockResult,
   },
 });
 </script>
-
-
 
 <style scoped>
 .fasta-content-container {
@@ -211,5 +160,4 @@ export default defineComponent({
   word-wrap: break-word;
   word-break: break-all;
 }
-
 </style>

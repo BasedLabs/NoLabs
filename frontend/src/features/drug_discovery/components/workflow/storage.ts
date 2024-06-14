@@ -163,15 +163,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                             inputs,
                             outputs,
                             draggable: false,
-                            defaults: (() => {
-                                if (component.name === "Proteins") {
-                                    return [{ target_path: inputs, value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
-                                } else if (component.name === "Ligands") {
-                                    return [{ target_path: inputs, value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
-                                } else {
-                                    return [];
-                                }
-                            })(),
+                            defaults: component.defaults,
                             error: component.error
                         },
                         position: { x: component.x !== undefined ? component.x : 100, y: component.y !== undefined ? component.y : 100 }
@@ -271,15 +263,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     input_property_errors: [],
                     last_exceptions: [],
                     draggable: false,
-                    defaults: (() => {
-                        if (option.name === "Proteins") {
-                            return [{ target_path: Object.keys(option.inputs || {}), value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
-                        } else if (option.name === "Ligands") {
-                            return [{ target_path: Object.keys(option.inputs || {}), value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
-                        } else {
-                            return [];
-                        }
-                    })(),
+                    defaults: [],
                     error: null
                 },
                 position: { x: 100, y: 100 }, // Default position

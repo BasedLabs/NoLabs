@@ -112,11 +112,11 @@ class GetJobStatusFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        response = self._diffdock.is_job_running_job_job_id_is_running_get(
-            job_id=job.iid.value
-        )
+        #response = self._diffdock.is_job_running_job_job_id_is_running_get(
+        #    job_id=str(job.iid.value)
+        #)
         return GetJobStatusResponse(
-            running=response.is_running
+            running=False
         )
 
 
