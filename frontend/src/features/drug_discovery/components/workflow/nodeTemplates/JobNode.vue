@@ -43,9 +43,10 @@ export default {
       nodeData: null
     };
   },
-  created() {
+  mounted() {
     const workflowStore = useWorkflowStore();
     this.nodeData = workflowStore.getNodeById(this.nodeId);
+    debugger;
   },
   methods: {
     deleteNode() {

@@ -134,10 +134,10 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 const nodes: Node[] = [];
                 const edges: Edge[] = [];
 
-                const componentIOMap: { [key: string]: { inputs: string[], outputs: string[], type: string, description: string } } = {};
+                const componentIOMap: { [key: string]: { inputs: Record<string, PropertyModel_Output>, outputs: Record<string, PropertyModel_Output>, type: string, description: string } } = {};
                 workflow.components.forEach(component => {
-                    const inputs = Object.keys(component.input || {});
-                    const outputs = Object.keys(component.output || {});
+                    const inputs = component.input;
+                    const outputs = component.output;
                     const description = this.getDescriptionString(component);
                     componentIOMap[component.name] = { inputs, outputs, type: component.name, description };
                 });
@@ -208,14 +208,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 workflow_id: this.workflowId,
                 components: this.componentOptions.map(option => ({
                     name: option.name,
-                    input: Object.keys(option.inputs).reduce((acc, key) => {
-                        acc[key] = option.inputs[key];
-                        return acc;
-                    }, {} as Record<string, PropertyModel_Output>),
-                    output: Object.keys(option.outputs).reduce((acc, key) => {
-                        acc[key] = option.outputs[key];
-                        return acc;
-                    }, {} as Record<string, PropertyModel_Output>)
+                    input: option.inputs,
+                    output: option.outputs
                 }) as ComponentModel_Input),
                 workflow_components: this.elements.nodes.map(node => ({
                     name: node.name,
@@ -255,8 +249,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 type: nodeType,
                 data: {
                     description: option.description,
-                    inputs: Object.values(option.inputs || {}),
-                    outputs: Object.values(option.outputs || {}),
+                    inputs: option.inputs,
+                    outputs: option.outputs,
                     jobIds: [],
                     jobs_errors: [],
                     input_property_errors: [],
@@ -335,9 +329,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 const existingNode = this.getNodeById(node.id);
                 existingNode!!.data.defaults = (() => {
                 if (existingNode?.name === "Proteins") {
-                    return [{ target_path: existingNode.inputs, value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
+                    return [{ target_path: Object.keys(existingNode.inputs || {}), value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
                 } else if (option.name === "Ligands") {
-                    return [{ target_path: existingNode.inputs, value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
+                    return [{ target_path: Object.keys(existingNode.inputs || {}), value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
                 } else {
                     return [];
                 }

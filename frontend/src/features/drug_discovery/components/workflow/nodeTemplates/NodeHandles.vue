@@ -1,32 +1,32 @@
 <template>
   <div class="q-mt-md">
-    <q-item-label v-if="inputs.length > 0" class="text-bold q-mt-md q-mb-md text-h6">Inputs:</q-item-label>
+    <q-item-label v-if="inputEntries.length > 0" class="text-bold q-mt-md q-mb-md text-h6">Inputs:</q-item-label>
     <div
-      v-for="(input, index) in inputs"
+      v-for="([key, input], index) in inputEntries"
       :key="'input-' + index"
       class="row no-wrap items-center q-pa-sm q-mb-sm q-border rounded-border q-shadow-2 bg-grey-7 input-output-tab"
     >
       <Handle
         type="target"
         :position="Position.Left"
-        :id="`${nodeId}-input-${input}`"
-        :class="{'large-handle': true, 'handle-connected': isHandleConnected(`${nodeId}-input-${input}`)}"
+        :id="`${nodeId}-input-${key}`"
+        :class="{'large-handle': true, 'handle-connected': isHandleConnected(`${nodeId}-input-${key}`)}"
       />
-      <q-item-label class="q-mx-auto text-h6 text-white">{{ input }}</q-item-label>
+      <q-item-label class="q-mx-auto text-h6 text-white">{{ input.title }}</q-item-label>
     </div>
 
-    <q-item-label v-if="outputs.length > 0" class="text-bold q-mt-md text-h6">Outputs:</q-item-label>
+    <q-item-label v-if="outputEntries.length > 0" class="text-bold q-mt-md text-h6">Outputs:</q-item-label>
     <div
-      v-for="(output, index) in outputs"
+      v-for="([key, output], index) in outputEntries"
       :key="'output-' + index"
       class="row no-wrap items-center q-pa-sm q-mt-md q-border bg-grey-7 rounded-border q-shadow-2 input-output-tab"
     >
-      <q-item-label class="q-mx-auto text-h6 text-white">{{ output }}</q-item-label>
+      <q-item-label class="q-mx-auto text-h6 text-white">{{ output.title }}</q-item-label>
       <Handle
         type="source"
         :position="Position.Right"
-        :id="`${nodeId}-output-${output}`"
-        :class="{'large-handle': true, 'handle-connected': isHandleConnected(`${nodeId}-output-${output}`)}"
+        :id="`${nodeId}-output-${key}`"
+        :class="{'large-handle': true, 'handle-connected': isHandleConnected(`${nodeId}-output-${key}`)}"
       />
     </div>
   </div>
@@ -48,13 +48,13 @@ export default defineComponent({
       required: true
     },
     inputs: {
-      type: Array,
-      default: () => [],
+      type: Object,
+      default: () => ({}),
       required: false
     },
     outputs: {
-      type: Array,
-      default: () => [],
+      type: Object,
+      default: () => ({}),
       required: false
     }
   },
@@ -65,6 +65,12 @@ export default defineComponent({
     edges() {
       const workflowStore = useWorkflowStore();
       return workflowStore.elements.edges;
+    },
+    inputEntries() {
+      return Object.entries(this.inputs);
+    },
+    outputEntries() {
+      return Object.entries(this.outputs);
     }
   },
   methods: {
