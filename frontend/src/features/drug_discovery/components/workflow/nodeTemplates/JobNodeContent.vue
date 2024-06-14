@@ -1,13 +1,13 @@
 <template>
   <q-card>
     <NodeContentHeader :name="name" :description="description" :inputs="['FASTA']" :outputs="['PDB']"
-      imageSrc="/folding_pic.png" />
+      :imageSrc="imageSrc" />
     <NodeContentBody :nodeId="nodeId" :name="name" />
   </q-card>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, computed } from 'vue';
 import NodeContentHeader from 'src/features/drug_discovery/components/workflow/nodeTemplates/NodeContentHeader.vue';
 import NodeContentBody from 'src/features/drug_discovery/components/workflow/nodeTemplates/NodeContentBody.vue';
 
@@ -29,6 +29,32 @@ export default defineComponent({
     description: {
       type: String,
       required: true
+    }
+  },
+  computed: {
+    imageSrc(): string {
+      switch (this.name) {
+        case 'Esmfold light component' || 'Esmfold content' || 'Rosettafold content':
+          return '/folding_pic.png';
+        case 'DiffDock':
+          return '/docking_pic.png';
+        case 'Small moleculesdesign':
+          return '/small_molecule.png';
+        case 'Protein binder design':
+          return '/rf_diffusion_pic.png';
+        case 'Localisation':
+          return '/localisation_pic.png';
+        case 'GeneOntology':
+          return '/gene_ontology_pic.png';
+        case 'Conformations':
+          return '/conformations_pic.png';
+        case 'Protein binding pockets prediction':
+          return '/pocket_prediction_pic.png';
+        case 'Msa generation':
+          return '/msa_pic.png';
+        default:
+          return '/protein_folding.png';
+      }
     }
   },
   mounted() {
