@@ -194,11 +194,12 @@ export default defineComponent({
       this.loading = true;
       const diffDockJob = await getDiffDockJobApi("27102be2-6ce7-4fa6-8dd8-c41438cd7012");
       const executionStatus = await getDiffDockJobStatus("27102be2-6ce7-4fa6-8dd8-c41438cd7012");
-      let jobsWithStatus;
+      let jobsWithStatus = [];
       if (this.name == 'DiffDock') {
         jobsWithStatus = [{ ...diffDockJob, executionStatus }]
       } else {
-        jobsWithStatus = await Promise.all(this.nodeData?.data.jobIds.map(async (jobId: string) => {
+        if (this.nodeData?.data.jobIds){
+          jobsWithStatus = await Promise.all(this.nodeData?.data?.jobIds?.map(async (jobId: string) => {
           let job;
           let executionStatus;
 
@@ -223,6 +224,7 @@ export default defineComponent({
 
           return { ...job, executionStatus };
         }));
+        }
       }
       this.jobs = jobsWithStatus.filter(job => job && job.executionStatus && (job.executionStatus.running || !job.result || job.result.length === 0)) as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>;
       this.results = jobsWithStatus.filter(job => job && job.executionStatus && job.result && job.result.length > 0) as Array<GetJobMetadataResponse & { executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null }>;

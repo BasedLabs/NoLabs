@@ -123,7 +123,6 @@ export const useWorkflowStore = defineStore('workflowStore', {
             this.updateDefaults();
         },
         async fetchWorkflow(workflowId: string) {
-            debugger;
             this.workflowId = workflowId;
             try {
                 const workflow = await getWorkflow(workflowId);
@@ -256,8 +255,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 type: nodeType,
                 data: {
                     description: option.description,
-                    inputs: Object.keys(option.inputs || {}),
-                    outputs: Object.keys(option.outputs || {}),
+                    inputs: Object.values(option.inputs || {}),
+                    outputs: Object.values(option.outputs || {}),
                     jobIds: [],
                     jobs_errors: [],
                     input_property_errors: [],
@@ -403,7 +402,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                 workflow.workflow_components.forEach(component => {
                     component.mappings?.forEach(mapping => {
                         const existingEdge = this.elements.edges.find(edge => edge.source === mapping.source_component_id && edge.target === component.component_id);
-                        if (existingEdge) {
+                        if (existingEdge && existingEdge.data) {
                             existingEdge.data.text = mapping.error;
                         } else {
                             // Create new edge if it doesn't exist

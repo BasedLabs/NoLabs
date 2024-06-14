@@ -115,8 +115,16 @@ export function startWorkflow(experimentId: string): CancelablePromise<any> {
   return WorkflowService.startWorkflowApiV1WorkflowWorkflowIdStartPost(experimentId)
 }
 
+export function resetWorkflow(workflowId: string): CancelablePromise<any> {
+  return WorkflowService.resetWorkflowApiV1WorkflowWorkflowIdResetPost({workflow_id: workflowId});
+}
+
 export function getComponentState(componentId: string): CancelablePromise<GetComponentStateResponse> {
   return WorkflowService.getComponentStateApiV1WorkflowComponentComponentIdStateGet(componentId);
+}
+
+export function deleteWorkflow(workflowId: string): CancelablePromise<any> {
+  return WorkflowService.createSchemaApiV1WorkflowWorkflowIdDelete(workflowId);
 }
 
 export function getAllProteins(experimentId: string): CancelablePromise<Array<ProteinResponse>> {

@@ -15,6 +15,8 @@
       </q-btn-dropdown>
       <q-space />
       <q-btn class="q-ma-sm" color="green" icon="not_started" @click="startWorkflow">Start workflow</q-btn>
+      <q-btn class="q-ma-sm" color="red" icon="delete" @click="confirmDeleteWorkflow">Delete workflow</q-btn>
+      <q-btn class="q-ma-sm" color="orange" icon="refresh" @click="confirmResetWorkflow">Reset workflow</q-btn>
     </div>
 
     <div class="map-container">
@@ -43,41 +45,63 @@
         </template>
       </VueFlow>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <q-dialog v-model="showDeleteDialog" persistent>
+      <q-card>
+        <q-card-section class="text-h6">Are you sure you want to delete the workflow?</q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn flat label="Delete" color="negative" @click="deleteWorkflowConfirmed" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Reset Confirmation Dialog -->
+    <q-dialog v-model="showResetDialog" persistent>
+      <q-card>
+        <q-card-section class="text-h6">Are you sure you want to reset the workflow? All jobs will be deleted</q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" v-close-popup />
+          <q-btn flat label="Reset" color="orange" @click="resetWorkflowConfirmed" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;" side="right">
+      <!-- Close button -->
+      <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close" />
+
+      <!-- Side menu content -->
+      <q-card>
+        <q-card-section>
+          <q-item>
+            <q-item-section>
+              <q-item-label v-if="selectedNode">{{ selectedNode.label }}</q-item-label>
+              <q-item-label v-if="selectedNode" caption>{{ selectedNode.description }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-card-section>
+      </q-card>
+    </q-drawer>
+
+    <q-dialog v-model="modalOpen" persistent>
+      <q-card style="min-width: 70vw; min-height: 70vh;">
+        <q-card-actions align="right">
+          <q-btn flat round dense icon="close" v-close-popup @click="closeModal" />
+        </q-card-actions>
+        <q-card-section>
+          <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'protein-list'"
+            :experiment-id="experiment.experimentId" />
+          <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'"
+            :experiment-id="experiment.experimentId" />
+          <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
+            :node-id="selectedNode?.id" :experiment-id="experiment.experimentId" :name="selectedNode?.name"
+            :description="selectedNode?.description" :jobIds="selectedNode?.data.jobIds" />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
-
-  <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;" side="right">
-    <!-- Close button -->
-    <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close" />
-
-    <!-- Side menu content -->
-    <q-card>
-      <q-card-section>
-        <q-item>
-          <q-item-section>
-            <q-item-label v-if="selectedNode">{{ selectedNode.label }}</q-item-label>
-            <q-item-label v-if="selectedNode" caption>{{ selectedNode.description }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-card-section>
-    </q-card>
-  </q-drawer>
-
-  <q-dialog v-model="modalOpen" persistent>
-    <q-card style="min-width: 70vw; min-height: 70vh;">
-      <q-card-actions align="right">
-        <q-btn flat round dense icon="close" v-close-popup @click="closeModal" />
-      </q-card-actions>
-      <q-card-section>
-        <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'protein-list'"
-          :experiment-id="experiment.experimentId" />
-        <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'ligand-list'"
-          :experiment-id="experiment.experimentId" />
-        <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'esmfold'"
-          :node-id="selectedNode?.id" :experiment-id="experiment.experimentId" :name="selectedNode?.name"
-          :description="selectedNode?.description" :jobIds="selectedNode?.data.jobIds" />
-      </q-card-section>
-    </q-card>
-  </q-dialog>
 </template>
 
 <script lang="ts">
@@ -95,7 +119,7 @@ import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import JobNode from "./components/workflow/nodeTemplates/JobNode.vue";
 import JobNodeContent from "./components/workflow/nodeTemplates/JobNodeContent.vue";
-import { startWorkflow, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow } from 'src/features/drug_discovery/refinedApi';
+import { startWorkflow, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow, deleteWorkflow, resetWorkflow } from 'src/features/drug_discovery/refinedApi';
 import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
 
 // Define custom Node type
@@ -142,7 +166,9 @@ export default defineComponent({
       specialNodeProps: [],
       splitterModel: 20,
       bioBuddyEnabled: false,
-      workflowId: "" // Set initially to empty
+      workflowId: "", // Set initially to empty
+      showDeleteDialog: false, // State for delete confirmation dialog
+      showResetDialog: false   // State for reset confirmation dialog
     };
   },
   computed: {
@@ -229,11 +255,35 @@ export default defineComponent({
         this.selectedNode = node;
         this.modalOpen = true;
       }
+    },
+    confirmDeleteWorkflow() {
+      this.showDeleteDialog = true;
+    },
+    confirmResetWorkflow() {
+      this.showResetDialog = true;
+    },
+    async deleteWorkflowConfirmed() {
+      await deleteWorkflow(this.workflowId);
+      this.workflowId = ""; // Reset workflowId
+      this.elements.nodes = [];
+      this.elements.edges = [];
+      this.$q.notify({
+        type: 'positive',
+        message: 'Workflow deleted successfully'
+      });
+    },
+    async resetWorkflowConfirmed() {
+      await resetWorkflow(this.workflowId);
+      this.elements.nodes = [];
+      this.elements.edges = [];
+      this.$q.notify({
+        type: 'positive',
+        message: 'Workflow reset successfully'
+      });
     }
   }
-})
+});
 </script>
-
 
 <style scoped>
 body {
