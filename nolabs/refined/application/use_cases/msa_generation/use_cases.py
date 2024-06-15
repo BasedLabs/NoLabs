@@ -109,10 +109,12 @@ class RunJobFeature:
             if not job:
                 raise NoLabsException(ErrorCodes.job_not_found)
 
+            fasta_content = job.protein.get_fasta()
+
             request = msa_light_microservice.RunMsaPredictionRequest(
                 api_url=self._settings.msa_server_url,
-                fasta_contents=job.protein.get_fasta())
-            msa_contents = self._api.predict_msa_predict_msa_post(predict_msa_predict_msa_post=request).msa_contents
+                fasta_contents=fasta_content)
+            msa_contents = self._api.predict_msa_predict_msa_post(run_msa_prediction_request=request).msa_contents
 
             job.set_result(protein=job.protein, msa=msa_contents)
             job.save(cascade=True)

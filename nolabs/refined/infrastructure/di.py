@@ -145,7 +145,7 @@ class InfrastructureDependencies:
     def msa_light_microservice() -> msa_light_microservice.DefaultApi:
         settings = Settings.load()
         configuration = msa_light_microservice.Configuration(
-            host=settings.msa_light_microservice.microservice
+            host=settings.msa_light.microservice
         )
         client = msa_light_microservice.ApiClient(configuration=configuration)
         return msa_light_microservice.DefaultApi(client)

@@ -16,7 +16,7 @@ class MsaGenerationJob(Job):
     # region Inputs
 
     protein: Protein | None = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
-    msa: bytes | None = BinaryField(required=True)
+    msa: bytes | None = BinaryField(required=False)
 
     # endregion
 
