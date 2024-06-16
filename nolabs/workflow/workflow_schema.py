@@ -39,6 +39,7 @@ class ComponentModel(BaseModel):
     name: str
     input: Dict[str, PropertyModel]
     output: Dict[str, PropertyModel]
+    description: Optional[str] = None
 
 
 class MappingModel(BaseModel):

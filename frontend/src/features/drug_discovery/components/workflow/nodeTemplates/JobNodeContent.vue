@@ -48,7 +48,7 @@ export default defineComponent({
           return '/gene_ontology_pic.png';
         case 'Conformations':
           return '/conformations_pic.png';
-        case 'Protein binding pockets prediction':
+        case 'Binding pockets':
           return '/pocket_prediction_pic.png';
         case 'Msa generation':
           return '/msa_pic.png';

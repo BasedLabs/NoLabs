@@ -16,6 +16,7 @@ class LigandsComponentOutput(BaseModel):
 
 class LigandsComponent(Component[LigandsComponentInput, LigandsComponentOutput]):
     name = 'Ligands'
+    description = 'Ligands datasource'
 
     async def execute(self):
         self.output = LigandsComponentOutput(

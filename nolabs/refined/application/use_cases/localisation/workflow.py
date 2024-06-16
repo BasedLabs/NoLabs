@@ -21,6 +21,7 @@ class LocalisationComponentOutput(BaseModel):
 
 class LocalisationComponent(Component[LocalisationComponentInput, LocalisationComponentOutput]):
     name = 'Localisation'
+    description = 'Protein localisation prediction'
 
     async def execute(self):
         run_job_feature = RunJobFeature(api=InfrastructureDependencies.localisation_microservice())

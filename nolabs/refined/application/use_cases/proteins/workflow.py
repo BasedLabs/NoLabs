@@ -16,6 +16,7 @@ class ProteinsComponentOutput(BaseModel):
 
 class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutput]):
     name = 'Proteins'
+    description = 'Proteins datasource'
 
     async def execute(self):
         self.output = ProteinsComponentOutput(

@@ -20,7 +20,8 @@ class BindingPocketPredictionOutput(BaseModel):
 
 
 class BindingPocketPredictionComponent(Component[BindingPocketPredictionInput, BindingPocketPredictionOutput]):
-    name = 'Protein binding pockets prediction'
+    name = 'Binding pockets'
+    description = 'Protein binding pockets prediction'
 
     async def execute(self):
         if not self.prevalidate_jobs():

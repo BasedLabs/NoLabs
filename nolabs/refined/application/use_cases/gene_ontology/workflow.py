@@ -20,7 +20,8 @@ class GeneOntologyComponentOutput(BaseModel):
 
 
 class GeneOntologyComponent(Component[GeneOntologyComponentInput, GeneOntologyComponentOutput]):
-    name = 'GeneOntology'
+    name = 'Gene ontology'
+    description = 'Protein gene ontology prediction'
 
     async def execute(self):
         run_job_feature = RunJobFeature(api=InfrastructureDependencies.gene_ontology_microservice())

@@ -21,6 +21,7 @@ class ConformationOutput(BaseModel):
 
 class ConformationComponent(Component[ConformationInput, ConformationOutput]):
     name = 'Conformations'
+    description = 'Protein molecular dynamics'
 
     async def execute(self):
         if not self.prevalidate_jobs():

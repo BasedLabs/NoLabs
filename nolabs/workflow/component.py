@@ -32,6 +32,7 @@ def is_pydantic_type(t: Any) -> bool:
 class Component(Generic[TInput, TOutput]):
     id: uuid.UUID
     name: str
+    description: str
     execution_timeout: int
     experiment: Experiment
 

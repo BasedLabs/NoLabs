@@ -22,6 +22,7 @@ class DiffDockComponentOutput(BaseModel):
 
 class DiffDockComponent(Component[DiffDockComponentInput, DiffDockComponentOutput]):
     name = 'DiffDock'
+    description = 'Prediction of protein-ligand complexes'
 
     async def execute(self):
         run_job_feature = RunJobFeature(diffdock=InfrastructureDependencies.diffdock_microservice())

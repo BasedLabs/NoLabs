@@ -116,7 +116,7 @@ export default defineComponent({
           component: EsmFoldJob
         },
         {
-          name: "Protein binding pockets prediction",
+          name: "Binding pockets",
           tab: false,
           component: P2RankJob
         },
@@ -204,11 +204,11 @@ export default defineComponent({
           let executionStatus;
 
           switch (this.name) {
-            case 'Esmfold light component' || 'Esmfold component' || 'Rosettafold component':
+            case 'Esmfold light' || 'Esmfold' || 'Rosettafold':
               job = await getFoldingJobApi(jobId);
               executionStatus = await getFoldingJobStatus(jobId);
               break;
-            case 'Protein binding pockets prediction':
+            case 'Binding pockets':
               job = await getBindingPocketJobApi(jobId);
               executionStatus = await getBindingPocketJobStatus(jobId);
               break;

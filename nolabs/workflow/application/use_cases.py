@@ -147,7 +147,8 @@ class CreateWorkflowSchemaFeature:
             components_models.append(ComponentModel(
                 name=component_name,
                 input=input_parameters,
-                output=output_parameters
+                output=output_parameters,
+                description=component.description
             ))
 
         id = uuid.uuid4()
@@ -187,8 +188,6 @@ class UpdateWorkflowSchemaFeature:
 
     async def handle(self, workflow_schema: WorkflowSchemaModel) -> WorkflowSchemaModel:
         db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_schema.workflow_id)
-
-        print("WORKFLOW SCHEMA:", workflow_schema)
 
         # Validate components names
         for component in workflow_schema.workflow_components:

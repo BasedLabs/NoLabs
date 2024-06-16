@@ -21,6 +21,7 @@ class SolubilityComponentOutput(BaseModel):
 
 class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponentOutput]):
     name = 'Solubility'
+    description = 'Protein solubility prediction'
 
     async def execute(self):
         run_job_feature = RunJobFeature(api=InfrastructureDependencies.solubility_microservice())

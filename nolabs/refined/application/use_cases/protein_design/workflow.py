@@ -21,6 +21,7 @@ class ProteinDesignOutput(BaseModel):
 
 class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput]):
     name = 'Protein binder design'
+    description = 'Protein binder prediction using Rfdiffusion'
 
     async def execute(self):
         if not self.prevalidate_jobs():

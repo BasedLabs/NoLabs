@@ -141,7 +141,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
                         path_from: List[str],
                         path_to: List[str]) -> Optional[PropertyValidationError]:
         if not path_from or not path_to:
-            raise ValueError('Path from or path two are empty')
+            raise ValueError('Path from or path to are empty')
 
         source_property = self._find_property(schema=source_schema, path_to=path_from)
         if not source_property:

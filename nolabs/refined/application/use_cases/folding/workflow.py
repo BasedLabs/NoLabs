@@ -124,7 +124,8 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
 
 class EsmfoldComponent(FoldingComponent):
-    name = 'Esmfold component'
+    name = 'Esmfold'
+    description = 'Protein folding using Esmfold'
 
     @property
     def backend(self) -> FoldingBackendEnum:
@@ -132,7 +133,8 @@ class EsmfoldComponent(FoldingComponent):
 
 
 class EsmfoldLightComponent(FoldingComponent):
-    name = 'Esmfold light component'
+    name = 'Esmfold light'
+    description = 'Protein folding using Esmfold light'
 
     @property
     def backend(self) -> FoldingBackendEnum:
@@ -141,6 +143,7 @@ class EsmfoldLightComponent(FoldingComponent):
 
 class RosettafoldComponent(FoldingComponent):
     name = 'Rosettafold component'
+    description = 'Protein folding using Rosettafold'
 
     @property
     def backend(self) -> FoldingBackendEnum:

@@ -272,7 +272,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     type: component.name,
                     inputs: component.input,
                     outputs: component.output,
-                    description: this.getDescriptionString(component)
+                    description: component.description
                 }));
             } catch (error) {
                 console.error("Error fetching workflow:", error);
