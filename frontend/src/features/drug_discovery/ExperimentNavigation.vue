@@ -21,10 +21,8 @@
 
     <div class="map-container">
       <VueFlow class="workflow" scale="0.5" v-if="elements" :nodes="elements.nodes"
-        @nodeDragStop="onNodeDragStopHandler"
-        :removeEdge="onEdgeUpdate"
-        @connect="onConnect"
-        :edges="elements.edges" fit-view-on-init>
+        @nodeDragStop="onNodeDragStopHandler" :removeEdge="onEdgeUpdate" @connect="onConnect" :edges="elements.edges"
+        fit-view-on-init>
         <template #node-Proteins="{ id }">
           <ProteinListNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings"
             :onOpenDialog="openNodeDialog" />
@@ -34,7 +32,7 @@
             :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-custom="{ id }">
-          <JobNode :key="id" :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings"
+          <JobNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings"
             :onOpenDialog="openNodeDialog" />
         </template>
         <template #edge-custom="customEdgeProps">
@@ -60,7 +58,8 @@
     <!-- Reset Confirmation Dialog -->
     <q-dialog v-model="showResetDialog" persistent>
       <q-card>
-        <q-card-section class="text-h6">Are you sure you want to reset the workflow? All jobs will be deleted</q-card-section>
+        <q-card-section class="text-h6">Are you sure you want to reset the workflow? All jobs will be
+          deleted</q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Cancel" v-close-popup />
           <q-btn flat label="Reset" color="orange" @click="resetWorkflowConfirmed" v-close-popup />
@@ -68,7 +67,8 @@
       </q-card>
     </q-dialog>
 
-    <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;" side="right">
+    <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;"
+      side="right">
       <!-- Close button -->
       <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close" />
 
@@ -92,13 +92,11 @@
         </q-card-actions>
         <q-card-section>
           <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'Proteins'"
-            :experiment-id="experiment.experimentId" :nodeId="selectedNode.id"/>
+            :experiment-id="experiment.experimentId" :nodeId="selectedNode.id" />
           <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'Ligands'"
             :experiment-id="experiment.experimentId" :nodeId="selectedNode.id" />
           <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'custom'"
-            :nodeId="selectedNode?.id"
-            :name="selectedNode?.name"
-            :description="selectedNode?.description ?? ''"  />
+            :nodeId="selectedNode?.id" :name="selectedNode?.name" :description="selectedNode?.description ?? ''" />
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -272,6 +270,11 @@ export default defineComponent({
         type: 'positive',
         message: 'Workflow deleted successfully'
       });
+      await this.checkAndCreateWorkflow();
+      const workflowStore = useWorkflowStore();
+      await workflowStore.getAllProteins(this.experiment.experimentId as string);
+      await workflowStore.fetchWorkflow(this.workflowId);
+      this.elements = workflowStore.elements;
     },
     async resetWorkflowConfirmed() {
       await resetWorkflow(this.workflowId);

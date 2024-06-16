@@ -434,27 +434,6 @@ export const useWorkflowStore = defineStore('workflowStore', {
       // Send the workflow update
       this.sendWorkflowUpdate();
     },
-    updateDefaults() {
-      for (const node of this.elements.nodes) {
-        const existingNode = this.getNodeById(node.id);
-        existingNode!!.data.defaults = (() => {
-          if (existingNode?.name === "Proteins") {
-            return [{
-              target_path: Object.keys(existingNode.inputs || {}),
-              value: this.proteins.map(protein => protein.id)
-            } as DefaultWorkflowComponentModelValue];
-          } else if (option.name === "Ligands") {
-            return [{
-              target_path: Object.keys(existingNode.inputs || {}),
-              value: this.ligands.map(ligand => ligand.id)
-            } as DefaultWorkflowComponentModelValue];
-          } else {
-            return [];
-          }
-        })
-      }
-      this.sendWorkflowUpdate();
-    },
     onEdgeRemove(edgeId: string) {
       const index = this.elements.edges.findIndex(edge => edge.id === edgeId);
       if (index !== -1) {

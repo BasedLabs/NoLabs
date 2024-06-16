@@ -38,7 +38,7 @@ class SetupJobRequest:
     experiment_id: UUID
     protein_id: UUID
     ligand_id: UUID
-    samples_per_complex: Optional[int] = 40
+    samples_per_complex: Optional[int] = 2
     job_id: Optional[UUID] = None
     job_name: Optional[str] = None
 

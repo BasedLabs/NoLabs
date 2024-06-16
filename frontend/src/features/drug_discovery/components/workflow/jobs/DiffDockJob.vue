@@ -37,12 +37,6 @@
                 </template>
               </q-item-section>
             </q-item>
-            <q-item>
-              <q-item-section>
-                <q-item-label>Samples per complex</q-item-label>
-              </q-item-section>
-              <q-item-section>{{ job?.samples_per_complex }}</q-item-section>
-            </q-item>
           </q-list>
         </q-card-section>
       </div>
@@ -60,6 +54,14 @@
               </q-item-section>
               <q-item-section class="fasta-content-container">
                 <div class="fasta-content">{{ protein?.fasta_content }}</div>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Number of samples</q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-input v-model.number="samplesPerComplex" type="number" @blur="updateNumberOfSamples" />
               </q-item-section>
             </q-item>
           </q-list>
@@ -81,14 +83,15 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QSpinnerOrbit, QSpinner, QInput } from 'quasar';
+import { QSpinner, QInput } from 'quasar';
 import DiffDockResult from './DiffDockResult.vue';
 import {
   nolabs__refined__application__use_cases__diffdock__api_models__JobResponse,
   ProteinResponse,
-  nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse
+  nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse,
+  nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest
 } from "../../../../../refinedApi/client";
-import { getDiffDockJobApi, getProtein, getDiffDockJobStatus, changeJobName } from "../../../refinedApi";
+import { getDiffDockJobApi, getProtein, getDiffDockJobStatus, changeJobName, setupDiffDockJob } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'DiffDockJob',
@@ -102,6 +105,7 @@ export default defineComponent({
       protein: null as ProteinResponse | null,
       jobStatus: null as nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse | null,
       editableJobName: '' as string,
+      samplesPerComplex: null as number | null
     };
   },
   computed: {
@@ -121,6 +125,7 @@ export default defineComponent({
     this.job = await getDiffDockJobApi(this.jobId as string);
     if (this.job) {
       this.editableJobName = this.job.job_name || '';
+      this.samplesPerComplex = this.job.samples_per_complex || null;
     }
 
     this.protein = await getProtein(this.job.protein_id);
@@ -141,6 +146,26 @@ export default defineComponent({
         }
       }
     },
+    async updateNumberOfSamples() {
+      if (this.job && this.samplesPerComplex !== null) {
+        const request: nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest = {
+          experiment_id: this.experimentId as string,
+          protein_id: this.job.protein_id,
+          ligand_id: this.job.ligand_id,
+          samples_per_complex: this.samplesPerComplex,
+          job_id: this.job.job_id,
+          job_name: this.job.job_name,
+        };
+        try {
+          await setupDiffDockJob(request);
+        } catch (error) {
+          this.$q.notify({
+            type: 'negative',
+            message: 'Failed to update number of samples.',
+          });
+        }
+      }
+    }
   },
   components: {
     DiffDockResult,

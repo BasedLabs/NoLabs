@@ -13,7 +13,7 @@
           <q-item-section>
             <div v-if="element.executionStatus === null">No execution status</div>
             <div v-else>
-              <q-spinner v-if="element.executionStatus.running" color="primary" size="20px"/>
+              <q-spinner v-if="element.executionStatus.running" color="primary" size="20px" />
               {{ element.executionStatus.running ? 'Running...' : 'Not running' }}
             </div>
           </q-item-section>
@@ -21,7 +21,7 @@
             <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
           </q-item-section>
           <q-item-section>
-            <q-btn @click="openJob(element)" label="View" dense/>
+            <q-btn @click="openJob(element)" label="View" dense />
           </q-item-section>
         </q-item>
       </template>
@@ -43,7 +43,7 @@
             <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
           </q-item-section>
           <q-item-section>
-            <q-btn @click="openJob(element)" label="View" dense/>
+            <q-btn @click="openJob(element)" label="View" dense />
           </q-item-section>
         </q-item>
       </template>
@@ -52,19 +52,22 @@
 
   <q-card-section class="exception-section q-pa-sm" v-if="lastExceptions.length">
     <div class="text-white q-pa-sm">Last Exceptions</div>
-    <q-item class="bg-grey-3 text-black q-pa-sm q-mb-sm q-border-radius-md" v-for="(exception, index) in lastExceptions"
-            :key="index">
+    <q-item class="text-black q-pa-sm q-mb-sm q-border-radius-md" v-for="(exception, index) in lastExceptions"
+      :key="index">
       <q-item-section>
-        <q-item-label class="text-red">{{ exception }}</q-item-label>
+        <q-btn v-if="exception" color="red" class="q-pm-md">
+          <q-icon left name="warning" />
+          <div>{{ exception }}</div>
+        </q-btn>
       </q-item-section>
     </q-item>
   </q-card-section>
 
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
-      <component :is="selectedJobComponent" :job-id="selectedJobId"/>
+      <component :is="selectedJobComponent" :job-id="selectedJobId" />
       <q-card-actions>
-        <q-btn flat label="Close" v-close-popup/>
+        <q-btn flat label="Close" v-close-popup />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -72,8 +75,8 @@
 
 
 <script lang="ts">
-import {defineComponent} from 'vue';
-import {useWorkflowStore, Node} from 'src/features/drug_discovery/components/workflow/storage';
+import { defineComponent } from 'vue';
+import { useWorkflowStore, Node } from 'src/features/drug_discovery/components/workflow/storage';
 import {
   getFoldingJobApi,
   getFoldingJobStatus,
@@ -90,7 +93,7 @@ import EsmFoldJob from '../jobs/EsmFoldJob.vue';
 import P2RankJob from '../jobs/P2RankJob.vue';
 import DiffDockJob from '../jobs/DiffDockJob.vue';
 import draggable from 'vuedraggable';
-import {Notify} from "quasar";
+import { Notify } from "quasar";
 import componentApi from "./componentApi";
 
 export default defineComponent({
@@ -102,7 +105,7 @@ export default defineComponent({
     DiffDockJob
   },
   props: {
-    nodeId: {type: String, required: true},
+    nodeId: { type: String, required: true },
     name: {
       type: String,
       required: true
@@ -194,22 +197,25 @@ export default defineComponent({
       selectedJobComponent: null as any,
     };
   },
-  async created() {
+  async mounted() {
     const workflowStore = useWorkflowStore();
     this.nodeData = workflowStore.getNodeById(this.nodeId);
-    this.lastExceptions = this.nodeData?.data.last_exceptions || [];
-    this.jobErrors = this.nodeData?.data.jobs_errors.reduce((acc: Record<string, string>, error: {
-      msg: string;
-      job_id: string
-    }) => {
-      acc[error.job_id] = error.msg;
-      return acc;
-    }, {}) || {};
     await this.updateJobs();
+    this.updateErrorsAndExceptions();
   },
   watch: {
     'nodeData.data.jobIds': {
       handler: 'updateJobs',
+      immediate: true,
+      deep: true
+    },
+    'nodeData.data.last_exceptions': {
+      handler: 'updateErrorsAndExceptions',
+      immediate: true,
+      deep: true
+    },
+    'nodeData.data.jobs_errors': {
+      handler: 'updateErrorsAndExceptions',
       immediate: true,
       deep: true
     }
@@ -225,11 +231,11 @@ export default defineComponent({
     },
     async updateJobs() {
       this.loading = true;
-      const diffDockJob = await getDiffDockJobApi("27102be2-6ce7-4fa6-8dd8-c41438cd7012");
-      const executionStatus = await getDiffDockJobStatus("27102be2-6ce7-4fa6-8dd8-c41438cd7012");
+      //const diffDockJob = await getDiffDockJobApi("27102be2-6ce7-4fa6-8dd8-c41438cd7012");
+      //const executionStatus = await getDiffDockJobStatus("27102be2-6ce7-4fa6-8dd8-c41438cd7012");
       let jobsWithStatus = [];
-      if (this.name == 'DiffDock') {
-        jobsWithStatus = [{...diffDockJob, executionStatus}]
+      if (this.name == 'DiffDock new') {
+        //jobsWithStatus = [{...diffDockJob, executionStatus}]
       } else {
         if (this.nodeData?.data.jobIds) {
           jobsWithStatus = await Promise.all(this.nodeData?.data?.jobIds?.map(async (jobId: string) => {
@@ -241,7 +247,7 @@ export default defineComponent({
             job = await jobDefinition.api.getJob(jobId);
             executionStatus = await jobDefinition.api.executionStatus(jobId);
 
-            return {...job, executionStatus};
+            return { ...job, executionStatus };
           }));
         }
       }
@@ -254,6 +260,18 @@ export default defineComponent({
 
       this.loading = false;
     },
+    updateErrorsAndExceptions() {
+      this.lastExceptions = this.nodeData?.data.last_exceptions || [];
+      if (this.nodeData?.data.jobs_errors) {
+        this.jobErrors = this.nodeData?.data.jobs_errors.reduce((acc: Record<string, string>, error: {
+          msg: string;
+          job_id: string
+        }) => {
+          acc[error.job_id] = error.msg;
+          return acc;
+        }, {}) || {};
+      }
+    },
     openJob(job: GetJobMetadataResponse) {
       const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
 
@@ -264,7 +282,7 @@ export default defineComponent({
           this.showJobModal = true;
         } else {
           this.$router.push({
-            name: jobDefinition.routeName, params: {jobId: job.job_id}
+            name: jobDefinition.routeName, params: { jobId: job.job_id }
           });
         }
       }

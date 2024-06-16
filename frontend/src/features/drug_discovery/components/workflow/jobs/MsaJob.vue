@@ -85,13 +85,12 @@
   <script lang="ts">
   import { defineComponent } from 'vue';
   import { QSpinner, QInput } from 'quasar';
-  import PdbViewer from 'src/components/PdbViewer.vue';
   import {
-    nolabs__refined__application__use_cases__folding__api_models__JobResponse, ProteinResponse,
-    nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse,
-    nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest
+    nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse, ProteinResponse,
+    nolabs__refined__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
+    nolabs__refined__application__use_cases__msa_generation__api_models__SetupJobRequest
   } from "../../../../../refinedApi/client";
-  import { getFoldingJobApi, getProtein, getFoldingJobStatus, setupFoldingJob, changeJobName } from "../../../refinedApi";
+  import { getMsaJobApi, getProtein, getMsajobStatus, changeJobName } from "../../../refinedApi";
   
   export default defineComponent({
     name: 'MsaJob',
@@ -101,9 +100,9 @@
     data() {
       return {
         experimentId: null as string | null,
-        job: null as nolabs__refined__application__use_cases__folding__api_models__JobResponse | null,
+        job: null as nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse | null,
         protein: null as ProteinResponse | null,
-        jobStatus: null as nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null,
+        jobStatus: null as nolabs__refined__application__use_cases__msa_generation__api_models__GetJobStatusResponse | null,
         editableJobName: '' as string,
       };
     },
@@ -128,7 +127,7 @@
   
       this.experimentId = this.$route.params.experimentId as string;
   
-      this.job = await getFoldingJobApi(this.jobId as string);
+      this.job = await getMsaJobApi(this.jobId as string);
       if (this.job) {
         this.editableJobName = this.job.job_name || '';
       }
@@ -136,7 +135,7 @@
         this.protein = await getProtein(this.job.proteins[0]);
       }
   
-      this.jobStatus = await getFoldingJobStatus(this.jobId as string);
+      this.jobStatus = await getMsajobStatus(this.jobId as string);
     },
     methods: {
       async updateJobName() {
@@ -154,10 +153,9 @@
       },
       async updateJobParams() {
         if (this.job) {
-          const setupJobRequest: nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest = {
+          const setupJobRequest: nolabs__refined__application__use_cases__msa_generation__api_models__SetupJobRequest = {
             experiment_id: this.experimentId as string,
-            backend: this.job.backend,
-            proteins: this.job.proteins,
+            protein_id: this.protein.protein_id,
             job_id: this.job.job_id,
             job_name: this.editableJobName,
           };
@@ -176,9 +174,6 @@
           }
         }
       }
-    },
-    components: {
-      PdbViewer
     },
   });
   </script>

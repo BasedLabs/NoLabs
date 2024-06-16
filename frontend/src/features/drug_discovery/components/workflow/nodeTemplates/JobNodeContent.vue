@@ -34,7 +34,7 @@ export default defineComponent({
   computed: {
     imageSrc(): string {
       switch (this.name) {
-        case 'Esmfold light component' || 'Esmfold content' || 'Rosettafold content':
+        case 'Esmfold light' || 'Esmfold' || 'Rosettafold':
           return '/folding_pic.png';
         case 'DiffDock':
           return '/docking_pic.png';

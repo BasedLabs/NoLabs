@@ -42,7 +42,7 @@ class DiffDockBindingJob(Job):
 
     protein: Protein = ReferenceField(Protein, reverse_delete_rule=CASCADE, required=True)
     ligand: Ligand = ReferenceField(Ligand, reverse_delete_rule=CASCADE, required=True)
-    samples_per_complex: int = IntField(default=40, required=False)
+    samples_per_complex: int = IntField(default=2, required=False)
 
     # endregion
 
