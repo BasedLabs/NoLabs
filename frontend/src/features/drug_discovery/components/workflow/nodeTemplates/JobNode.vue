@@ -1,20 +1,31 @@
 <template>
-  <q-card class="q-pa-md" style="width: 400px">
-    <div class="row no-wrap items-center">
-      <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
-      <q-space />
-      <q-btn v-if="nodeData?.data.error" color="red" class="q-pm-md">
-        <q-icon left name="warning" />
-        <div>{{ nodeData?.data.error }}</div>
-      </q-btn>
-      <q-btn v-if="false" icon="settings" @click="openSettings"> </q-btn>
-    </div>
-
-    <JobNodeContent :nodeId="nodeId" :name="nodeData?.name" :description="nodeData?.description"/>
-
-    <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
-
-    <q-btn @click="openDialogue" class="full-width q-pa-md" icon="open_in_new" label="Extended view"> </q-btn>
+  <q-card dark bordered v-if="!nodeData">
+    <q-spinner
+      color="primary"
+      size="3em"
+    />
+  </q-card>
+  <q-card dark bordered v-if="nodeData">
+    <q-card-section v-if="nodeData?.data.error">
+      <div class="row no-wrap items-center">
+        <q-space />
+        <q-btn v-if="nodeData?.data.error" color="red" class="q-pm-md">
+          <q-icon left name="warning" />
+          <div>{{ nodeData?.data.error }}</div>
+        </q-btn>
+      </div>
+    </q-card-section>
+    <q-card-section>
+      <JobNodeContent :nodeId="nodeId" :name="nodeData?.name" :description="nodeData?.description"/>
+    </q-card-section>
+    <q-card-section>
+      <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
+    </q-card-section>
+    <q-card-actions align="around">
+      <q-btn @click="openDialogue" color="positive" icon="play_arrow" label="Start"/>
+      <q-btn @click="openDialogue" label="Extended view"/>
+      <q-btn @click="deleteNode" color="negative" icon="delete" label="Delete" />
+    </q-card-actions>
   </q-card>
 </template>
 
@@ -46,7 +57,7 @@ export default {
   mounted() {
     const workflowStore = useWorkflowStore();
     this.nodeData = workflowStore.getNodeById(this.nodeId);
-    debugger;
+    console.log(this.nodeData.name);
   },
   methods: {
     deleteNode() {
@@ -67,10 +78,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.job-section {
-  border: 1px dashed #ccc;
-  padding: 10px;
-}
-</style>

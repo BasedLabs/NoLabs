@@ -32,7 +32,7 @@ def is_pydantic_type(t: Any) -> bool:
 class Component(Generic[TInput, TOutput]):
     id: uuid.UUID
     name: str
-    description: str
+
     execution_timeout: int
     experiment: Experiment
 
@@ -45,6 +45,8 @@ class Component(Generic[TInput, TOutput]):
     _previous: List['Component']
 
     jobs: List[Job] = []
+
+    description: Optional[str] = None
 
     def __init__(self, id: uuid.UUID,
                  experiment: Experiment,
@@ -64,8 +66,6 @@ class Component(Generic[TInput, TOutput]):
             self.jobs = []
         else:
             self.jobs = jobs
-
-        print("INPUT PARAM:", input_parameter_dict)
 
         if not input_parameter_dict:
             self.input_parameter_dict = {}
@@ -129,10 +129,10 @@ class Component(Generic[TInput, TOutput]):
 
         self.previous.append(component)
 
-    def try_map_property(self, component: 'Component', path_from: List[str], path_to: List[str]) -> Optional[
+    def try_map_property(self, component: 'Component', path_from: List[str], target_path: List[str]) -> Optional[
         PropertyValidationError]:
         if component not in self.previous:
-            raise ValueError(f'Cannot map parameter {path_to} for unmapped component {component.id}')
+            raise ValueError(f'Cannot map parameter {target_path} for unmapped component {component.id}')
 
         if not isinstance(component, Component):
             raise ValueError(f'Component is not a {Component}')  # TODO change later
@@ -141,11 +141,11 @@ class Component(Generic[TInput, TOutput]):
             source_schema=component._output_schema,
             component_id=component.id,
             path_from=path_from,
-            path_to=path_to
+            target_path=target_path
         )
 
-    def try_set_default(self, path_to: List[str], value: Any) -> Optional[PropertyValidationError]:
-        return self._input_schema.try_set_default(path_to=path_to, value=value, input_type=self._input_parameter_type)
+    def try_set_default(self, target_path: List[str], value: Any) -> Optional[PropertyValidationError]:
+        return self._input_schema.try_set_default(target_path=target_path, value=value, input_type=self._input_parameter_type)
 
     def set_input_from_previous(self) -> bool:
         """
@@ -156,9 +156,9 @@ class Component(Generic[TInput, TOutput]):
 
         for prop in self._input_schema.mapped_properties:
             if prop.default:
-                path = prop.path_to
+                path = prop.target_path
 
-                if not prop.path_to:
+                if not prop.target_path:
                     continue
 
                 current_level = self.input_parameter_dict
@@ -192,7 +192,7 @@ class Component(Generic[TInput, TOutput]):
 
                     # Find and set input parameter for self function
 
-                    path = prop.path_to
+                    path = prop.target_path
 
                     current_level = self.input_parameter_dict
                     for key in path[:-1]:

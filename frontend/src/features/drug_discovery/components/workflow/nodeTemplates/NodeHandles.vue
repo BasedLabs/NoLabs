@@ -1,6 +1,5 @@
 <template>
   <div class="q-mt-md">
-    <q-item-label v-if="inputEntries.length > 0" class="text-bold q-mt-md q-mb-md text-h6">Inputs:</q-item-label>
     <div
       v-for="([key, input], index) in inputEntries"
       :key="'input-' + index"
@@ -12,16 +11,14 @@
         :id="`${nodeId}-input-${key}`"
         :class="{'large-handle': true, 'handle-connected': isHandleConnected(`${nodeId}-input-${key}`)}"
       />
-      <q-item-label class="q-mx-auto text-h6 text-white">{{ input.title }}</q-item-label>
+      <q-item-label class="q-mx-auto text-caption text-white">{{ input.title }}</q-item-label>
     </div>
-
-    <q-item-label v-if="outputEntries.length > 0" class="text-bold q-mt-md text-h6">Outputs:</q-item-label>
     <div
       v-for="([key, output], index) in outputEntries"
       :key="'output-' + index"
       class="row no-wrap items-center q-pa-sm q-mt-md q-border bg-grey-7 rounded-border q-shadow-2 input-output-tab"
     >
-      <q-item-label class="q-mx-auto text-h6 text-white">{{ output.title }}</q-item-label>
+      <q-item-label class="q-mx-auto text-caption text-white">{{ output.title }}</q-item-label>
       <Handle
         type="source"
         :position="Position.Right"
@@ -83,11 +80,11 @@ export default defineComponent({
 
 <style scoped>
 .text-h6 {
-  font-size: 1.5rem; 
+  font-size: 1.5rem;
 }
 
 .text-h5 {
-  font-size: 1.75rem; 
+  font-size: 1.75rem;
 }
 
 .large-handle {

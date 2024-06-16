@@ -1,6 +1,7 @@
 from typing import List, Optional, Any, Dict
 from uuid import UUID
 
+from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 
@@ -35,9 +36,9 @@ class GetComponentStateResponse:
     input_dict: Dict[str, Any]
     output_dict: Dict[str, Any]
     job_ids: List[UUID]
-    jobs_errors: List[JobErrorResponse]
     input_property_errors: List[InputPropertyErrorResponse]
     last_exceptions: List[str]
+    jobs_errors: List[JobErrorResponse] = Field(default_factory=list)
 
 
 

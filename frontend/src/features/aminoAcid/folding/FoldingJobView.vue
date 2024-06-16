@@ -49,7 +49,7 @@ import {Job} from "src/features/aminoAcid/types";
 
 
 export default defineComponent({
-  name: 'LocalisationJobView',
+  name: 'FoldingJobView',
   data() {
     const store = useFoldingStore();
 

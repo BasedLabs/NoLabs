@@ -3,7 +3,6 @@
     <div class="row no-wrap items-center">
       <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
       <q-space />
-      <q-btn v-if="false" icon="settings" @click="openSettings"> </q-btn>
     </div>
 
     <LigandsListNodeContent v-if="experimentId" :experiment-id="experimentId" :nodeId="nodeId" />

@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.nolabs_logging import logger
 
+
 def add_domain_exception_middleware(app: FastAPI):
     @app.middleware("http")
     async def add_process_time_header(request: Request, call_next):

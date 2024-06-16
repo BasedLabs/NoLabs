@@ -70,27 +70,27 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
     example: Optional[Any] = None
 
     @classmethod
-    def _find_property(cls, schema: 'ParameterSchema', path_to: List[str]) -> Optional['Property']:
-        if not path_to:
+    def _find_property(cls, schema: 'ParameterSchema', target_path: List[str]) -> Optional['Property']:
+        if not target_path:
             return None
 
         if not schema.properties:
             return None
 
-        path = path_to[0]
-        path_to = path_to[1:]
+        path = target_path[0]
+        target_path = target_path[1:]
 
         for name, property in schema.properties.items():
             # We found property in path
             if path == name:
                 # Path to is not empty and we must go deeper
-                if path_to:
+                if target_path:
                     if property.ref:
                         ref_type_name = cls.get_ref_type_name(property.ref)
                         if not schema.defs:
                             return None
                         ref_schema = schema.defs[ref_type_name]
-                        return cls._find_property(schema=ref_schema, path_to=path_to)
+                        return cls._find_property(schema=ref_schema, target_path=target_path)
                     # Property anyOf is not None and can find property type definition
                     if property.anyOf:
                         for any_of_type in property.anyOf:
@@ -99,7 +99,7 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
                             if not schema.defs:
                                 return None
                             ref_schema = schema.defs[ref_type_name]
-                            return cls._find_property(schema=ref_schema, path_to=path_to)
+                            return cls._find_property(schema=ref_schema, target_path=target_path)
                 else:
                     return property
 
@@ -134,27 +134,27 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
         return ref.split('/')[-1]
 
     def find_property(self, path: List[str]) -> Optional['Property']:
-        return self._find_property(schema=self, path_to=path)
+        return self._find_property(schema=self, target_path=path)
 
     def try_set_mapping(self, source_schema: 'ParameterSchema',
                         component_id: UUID,
                         path_from: List[str],
-                        path_to: List[str]) -> Optional[PropertyValidationError]:
-        if not path_from or not path_to:
+                        target_path: List[str]) -> Optional[PropertyValidationError]:
+        if not path_from or not target_path:
             raise ValueError('Path from or path to are empty')
 
-        source_property = self._find_property(schema=source_schema, path_to=path_from)
+        source_property = self._find_property(schema=source_schema, target_path=path_from)
         if not source_property:
             return PropertyValidationError(
                 msg=f'Property does not exist in source schema',
                 loc=path_from
             )
 
-        target_property = self._find_property(schema=self, path_to=path_to)
+        target_property = self._find_property(schema=self, target_path=target_path)
         if not target_property:
             return PropertyValidationError(
                 msg=f'Property does not exist in target schema',
-                loc=path_to
+                loc=target_path
             )
 
         validation_passed = False
@@ -168,36 +168,36 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
 
         if not validation_passed:
             return PropertyValidationError(
-                msg=f'Properties "{path_from[-1]}" and "{path_to[-1]}" has incompatible types or formats',
-                loc=path_to
+                msg=f'Properties "{path_from[-1]}" and "{target_path[-1]}" has incompatible types or formats',
+                loc=target_path
             )
 
         target_property.map(
             source_component_id=component_id,
             path_from=path_from,
-            path_to=path_to
+            target_path=target_path
         )
 
         return None
 
     def try_set_default(self,
                         input_type: Type[BaseModel],
-                        path_to: List[str],
+                        target_path: List[str],
                         value: Optional[Any] = None) -> Optional[PropertyValidationError]:
-        if not path_to:
+        if not target_path:
             raise ValueError('Path from or path two are empty')
 
-        target_property = self._find_property(schema=self, path_to=path_to)
+        target_property = self._find_property(schema=self, target_path=target_path)
         if not target_property:
             return PropertyValidationError(
                 msg=f'Property does not exist in target schema',
-                loc=path_to
+                loc=target_path
             )
 
         annotations = input_type.__annotations__
         current_type = Type
 
-        for path in path_to:
+        for path in target_path:
             if path not in annotations:
                 raise ValueError('Path is missing from the annotations')
 
@@ -208,15 +208,14 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
         if not is_assignable_to_generic(value, current_type):
             return PropertyValidationError(
                 msg=f'Property has incompatible type',
-                loc=path_to
+                loc=target_path
             )
 
         target_property.default = value
-        target_property.path_to = path_to
+        target_property.target_path = target_path
 
     @staticmethod
     def get_instance(cls: Type) -> 'ParameterSchema':
-        print("CLASS:", cls)
         if not issubclass(cls, BaseModel):
             raise ValueError(
                 f'Schema must be a subclass of {BaseModel}'
@@ -250,14 +249,14 @@ class ParameterSchema(BaseModel, Generic[TParameter]):
 
         return result
 
-    def unmap(self, property: Optional['Property'] = None, path_to: Optional[List[str]] = None):
-        if not property and not path_to:
+    def unmap(self, property: Optional['Property'] = None, target_path: Optional[List[str]] = None):
+        if not property and not target_path:
             raise ValueError(
-                'You must provide either property or path_to'
+                'You must provide either property or target_path'
             )
 
-        if path_to:
-            property = self._find_property(schema=self, path_to=path_to)
+        if target_path:
+            property = self._find_property(schema=self, target_path=target_path)
             if property:
                 property.unmap()
                 return
@@ -292,7 +291,7 @@ class Property(BaseModel):
     default: Optional[Any] = None
     example: Optional[Any] = None
     title: Optional[str] = None
-    path_to: List[str] = Field(default_factory=list)
+    target_path: List[str] = Field(default_factory=list)
     anyOf: List[Union['Property', dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(alias='$ref', default=None)
 
@@ -303,10 +302,10 @@ class Property(BaseModel):
         self.source_component_id = None
         self.path_from = []
 
-    def map(self, source_component_id: UUID, path_from: List[str], path_to: List[str]):
+    def map(self, source_component_id: UUID, path_from: List[str], target_path: List[str]):
         self.source_component_id = source_component_id
         self.path_from = path_from
-        self.path_to = path_to
+        self.target_path = target_path
 
 
 class Items(BaseModel):

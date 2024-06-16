@@ -7,8 +7,8 @@
           <q-item v-for="option in componentOptions" :key="option.name" clickable v-close-popup
             @click="addComponent(option)">
             <q-item-section>
-              <q-item-label>{{ option.name }}</q-item-label>
-              <q-item-label caption>{{ option.description }}</q-item-label>
+              <q-item-label caption>{{ option.name }}</q-item-label>
+              <q-item-label>{{ option.description }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -20,7 +20,7 @@
     </div>
 
     <div class="map-container">
-      <VueFlow class="workflow" v-if="elements" :nodes="elements.nodes"
+      <VueFlow class="workflow" scale="0.5" v-if="elements" :nodes="elements.nodes"
         @nodeDragStop="onNodeDragStopHandler"
         :removeEdge="onEdgeUpdate"
         @connect="onConnect"
@@ -34,7 +34,7 @@
             :onOpenDialog="openNodeDialog" />
         </template>
         <template #node-custom="{ id }">
-          <JobNode :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings"
+          <JobNode :key="id" :nodeId="id" :onDeleteNode="onDeleteNode" :onOpenSettings="openSettings"
             :onOpenDialog="openNodeDialog" />
         </template>
         <template #edge-custom="customEdgeProps">
@@ -95,10 +95,10 @@
             :experiment-id="experiment.experimentId" />
           <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'Ligands'"
             :experiment-id="experiment.experimentId" />
-          <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'custom'" 
-            :nodeId="selectedNode?.id" 
+          <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'custom'"
+            :nodeId="selectedNode?.id"
             :name="selectedNode?.name"
-            :description="selectedNode?.description"  />
+            :description="selectedNode?.description ?? ''"  />
         </q-card-section>
       </q-card>
     </q-dialog>

@@ -38,7 +38,7 @@ export default defineComponent({
           return '/folding_pic.png';
         case 'DiffDock':
           return '/docking_pic.png';
-        case 'Small moleculesdesign':
+        case 'Small molecules design':
           return '/small_molecule.png';
         case 'Protein binder design':
           return '/rf_diffusion_pic.png';

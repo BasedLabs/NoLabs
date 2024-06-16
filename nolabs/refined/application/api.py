@@ -1,7 +1,9 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
+from nolabs.refined.application.middlewares.domain_exception_middleware import add_domain_exception_middleware
 from nolabs.refined.application.use_cases.localisation.controller import router as localisation_router
 from nolabs.refined.application.use_cases.experiments.controller import router as experiment_router
 from nolabs.refined.application.use_cases.jobs.controller import router as job_router
@@ -20,6 +22,7 @@ from nolabs.refined.application.event_handlers.di import EventHandlersDependenci
 from nolabs.refined.application.use_cases.diffdock.controller import router as diffdock_router
 from nolabs.refined.application.use_cases.proteins.controller import router as proteins_router
 from nolabs.refined.application.use_cases.ligands.controller import router as ligand_router
+from nolabs.refined.infrastructure.logging import setup_logger
 from nolabs.workflow.application.controller import router as workflow_router
 from nolabs.refined.infrastructure.mongo_connector import mongo_connect
 from nolabs.refined.infrastructure.settings import Settings
@@ -59,6 +62,9 @@ app.include_router(ligand_router)
 app.include_router(workflow_router)
 app.include_router(biobuddy_controller)
 add_domain_exception_middleware(app)
+
+logger = setup_logger()
+
 
 app.add_middleware(
     CORSMiddleware,

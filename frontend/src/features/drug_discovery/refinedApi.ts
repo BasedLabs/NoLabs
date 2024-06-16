@@ -56,10 +56,6 @@ export function deleteExperimentApi(experimentId: string): CancelablePromise<any
   return ExperimentsService.deleteExperimentApiV1ExperimentsExperimentIdDelete(experimentId);
 }
 
-export function getFoldingJobsApi(experimentId: string): CancelablePromise<Array<GetJobMetadataResponse>> {
-  return JobsACommonControllerForJobsManagementService.jobsMetadataApiV1JobsJobsMetadataGet(experimentId);
-}
-
 export function getFoldingJobApi(jobId: string): CancelablePromise<nolabs__refined__application__use_cases__folding__api_models__JobResponse> {
   return FoldingService.getJobApiV1FoldingJobsJobIdGet(jobId);
 }
