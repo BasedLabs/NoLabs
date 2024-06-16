@@ -92,9 +92,9 @@
         </q-card-actions>
         <q-card-section>
           <ProteinListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'Proteins'"
-            :experiment-id="experiment.experimentId" />
+            :experiment-id="experiment.experimentId" :nodeId="selectedNode.id"/>
           <LigandListNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'Ligands'"
-            :experiment-id="experiment.experimentId" />
+            :experiment-id="experiment.experimentId" :nodeId="selectedNode.id" />
           <JobNodeContent v-if="experiment.experimentId && selectedNode && selectedNode.type === 'custom'"
             :nodeId="selectedNode?.id"
             :name="selectedNode?.name"
