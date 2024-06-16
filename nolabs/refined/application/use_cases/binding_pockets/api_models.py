@@ -10,7 +10,7 @@ class JobResponse:
     job_id: UUID
     job_name: str
     protein_id: UUID
-    binding_pockets: List[int]
+    result: List[int]
 
 
 @dataclass

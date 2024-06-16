@@ -67,7 +67,7 @@
         </q-card-section>
         <q-card-section>
           <div class="q-pl-sm q-ma-sm" v-if="jobHasGeneratedData">
-            <PdbViewer :pdb-file="pdbFile" :pocket-ids="job?.binding_pockets" :key="protein?.name" />
+            <PdbViewer :pdb-file="pdbFile" :pocket-ids="job?.result" :key="protein?.name" />
           </div>
         </q-card-section>
       </div>
@@ -102,7 +102,7 @@ export default defineComponent({
   },
   computed: {
     jobHasGeneratedData(): boolean | null {
-      return this.job && this.job.binding_pockets.length > 0;
+      return this.job && this.job.result.length > 0;
     },
     jobStatusText(): string {
       if (this.jobStatus === null) {

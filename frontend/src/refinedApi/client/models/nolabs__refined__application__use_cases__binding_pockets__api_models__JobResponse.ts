@@ -6,6 +6,6 @@ export type nolabs__refined__application__use_cases__binding_pockets__api_models
     job_id: string;
     job_name: string;
     protein_id: string;
-    binding_pockets: Array<number>;
+    result: Array<number>;
 };
 

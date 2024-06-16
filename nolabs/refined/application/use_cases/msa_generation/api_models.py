@@ -17,7 +17,7 @@ class JobResponse:
     job_name: str
     experiment_id: UUID
     protein_id: UUID
-    msa: str | None
+    result: str | None
 
 
 @dataclass

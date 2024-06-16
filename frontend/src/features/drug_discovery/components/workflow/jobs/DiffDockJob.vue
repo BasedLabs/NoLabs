@@ -86,10 +86,9 @@ import DiffDockResult from './DiffDockResult.vue';
 import {
   nolabs__refined__application__use_cases__diffdock__api_models__JobResponse,
   ProteinResponse,
-  nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse,
-  nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest,
+  nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse
 } from "../../../../../refinedApi/client";
-import { getDiffDockJobApi, getProtein, getDiffDockJobStatus, setupDiffDockJob, changeJobName } from "../../../refinedApi";
+import { getDiffDockJobApi, getProtein, getDiffDockJobStatus, changeJobName } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'DiffDockJob',

@@ -83,6 +83,10 @@ export default defineComponent({
             type: String,
             required: true,
         },
+        nodeId: {
+            type: String,
+            required: true,
+        }
     },
     data() {
         return {
@@ -138,10 +142,9 @@ export default defineComponent({
             for (let index = 0; index < files.length; index++) {
                 const file = files[index];
                 const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
-                const newLigand = await workflowStore.uploadLigandToExperiment(this.experimentId, file.name, undefined, file, metaData);
-                this.ligands.push(newLigand!);
+                const newLigand = await workflowStore.uploadLigandToExperiment(this.experimentId, this.nodeId, file.name, undefined, file, metaData);
+                this.ligands = workflowStore.ligands;
             }
-            workflowStore.updateDefaults();
             this.uploadLigandDialog = false;
         },
         async deleteLigand(ligandToDelete: LigandResponse) {
@@ -151,7 +154,7 @@ export default defineComponent({
             });
             const workflowStore = useWorkflowStore();
             try {
-                await workflowStore.deleteLigandFromExperiment(ligandToDelete.id);
+                await workflowStore.deleteLigandFromExperiment(this.nodeId, ligandToDelete.id);
                 this.ligands = workflowStore.ligands;
             } catch (error) {
                 console.error('Error deleting ligand:', error);

@@ -51,6 +51,10 @@ export default defineComponent({
             type: String,
             required: true,
         },
+        nodeId: {
+            type: String,
+            required: true,
+        }
     },
     data() {
         return {
@@ -111,8 +115,7 @@ export default defineComponent({
                 for (let index = 0; index < files.length; index++) {
                     const file = files[index];
                     const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
-                    await workflowStore.uploadProteinToExperiment(this.experimentId, '', file, undefined, metaData);
-                    workflowStore.updateDefaults()
+                    await workflowStore.uploadProteinToExperiment(this.experimentId, this.nodeId, '', file, undefined, metaData);
                 }
             } catch (error) {
                 console.error('Error uploading protein files:', error);
@@ -128,7 +131,7 @@ export default defineComponent({
                 message: `Deleting protein`
             });
             try {
-                await workflowStore.deleteProteinFromExperiment(proteinToDelete.id);
+                await workflowStore.deleteProteinFromExperiment(this.nodeId, proteinToDelete.id);
                 this.proteins = workflowStore.proteins;
             } catch (error) {
                 console.error('Error deleting protein:', error);

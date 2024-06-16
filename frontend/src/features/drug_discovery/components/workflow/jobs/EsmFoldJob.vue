@@ -132,8 +132,8 @@ export default defineComponent({
     if (this.job) {
       this.editableJobName = this.job.job_name || '';
     }
-    if (this.job && this.job.proteins.length > 0) {
-      this.protein = await getProtein(this.job.proteins[0]);
+    if (this.job && this.job.protein_ids.length > 0) {
+      this.protein = await getProtein(this.job.protein_ids[0]);
     }
 
     this.jobStatus = await getFoldingJobStatus(this.jobId as string);
@@ -157,7 +157,7 @@ export default defineComponent({
         const setupJobRequest: nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest = {
           experiment_id: this.experimentId as string,
           backend: this.job.backend,
-          proteins: this.job.proteins,
+          protein_ids: this.job.protein_ids,
           job_id: this.job.job_id,
           job_name: this.editableJobName,
         };

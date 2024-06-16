@@ -76,9 +76,9 @@
     methods: {
       async loadLigandSDF(complexId: string) {
         const ligand = this.predictedLigands.find(ligand => ligand.complex_id === complexId);
-        if (ligand) {
+        if (ligand && this.protein) {
           this.predictedSDF = new File([new Blob([ligand.sdf_content])], complexId + ".sdf");
-          this.predictedPdb = new File([new Blob([this.protein.pdb_content])], this.protein.name + ".pdb");
+          this.predictedPdb = new File([new Blob([this.protein.pdb_content!!])], this.protein.name + ".pdb");
           this.selectedLigandFileName = complexId;
         }
       },

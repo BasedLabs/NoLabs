@@ -6,7 +6,7 @@
       <q-btn v-if="false" icon="settings" @click="openSettings"> </q-btn>
     </div>
 
-    <LigandsListNodeContent v-if="experimentId" :experiment-id="experimentId" />
+    <LigandsListNodeContent v-if="experimentId" :experiment-id="experimentId" :nodeId="nodeId" />
     <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
     <q-btn @click="openDialogue" class="full-width q-pa-md" icon="open_in_new" label="Extended view"> </q-btn>
   </q-card>
@@ -38,7 +38,10 @@ export default defineComponent({
     NodeHandles
   },
   props: {
-    nodeId: String,
+    nodeId: {
+      type: String,
+      required: true,
+    },
     inputs: {
       type: Array,
       default: () => []

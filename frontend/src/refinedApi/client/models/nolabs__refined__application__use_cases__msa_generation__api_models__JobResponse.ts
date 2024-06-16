@@ -7,6 +7,6 @@ export type nolabs__refined__application__use_cases__msa_generation__api_models_
     job_name: string;
     experiment_id: string;
     protein_id: string;
-    msa: (string | null);
+    result: (string | null);
 };
 

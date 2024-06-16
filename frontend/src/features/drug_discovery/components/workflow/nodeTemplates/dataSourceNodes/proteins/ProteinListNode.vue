@@ -1,25 +1,25 @@
 <template>
-    <q-card class="q-pa-md" style="width: 400px">
-      <div class="row no-wrap items-center">
-        <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
-        <q-space />
-        <q-btn icon="settings" @click="openSettings"> </q-btn>
-      </div>
+  <q-card class="q-pa-md" style="width: 400px">
+    <div class="row no-wrap items-center">
+      <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
+      <q-space />
+      <q-btn icon="settings" @click="openSettings"> </q-btn>
+    </div>
 
-      <ProteinListNodeContent v-if="experimentId" :experiment-id="experimentId" />
-      <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
+    <ProteinListNodeContent v-if="experimentId" :experiment-id="experimentId" :nodeId="nodeId" />
+    <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
 
-      <q-btn @click="openDialogue" class="full-width q-pa-md" icon="open_in_new" label="Extended view"> </q-btn>
-    </q-card>
+    <q-btn @click="openDialogue" class="full-width q-pa-md" icon="open_in_new" label="Extended view"> </q-btn>
+  </q-card>
 
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import { defineComponent } from "vue";
 
-import {useRoute} from "vue-router";
-import {Notify, QSpinnerOrbit} from "quasar";
-import {Position, useNodesData} from "@vue-flow/core";
+import { useRoute } from "vue-router";
+import { Notify, QSpinnerOrbit } from "quasar";
+import { Position, useNodesData } from "@vue-flow/core";
 import ProteinListNodeContent from "./ProteinListNodeContent.vue";
 import NodeHandles from '../../NodeHandles.vue'
 import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
@@ -41,7 +41,10 @@ export default defineComponent({
     NodeHandles
   },
   props: {
-    nodeId: String,
+    nodeId: {
+      type: String,
+      required: true,
+    },
     inputs: {
       type: Array,
       default: () => []
@@ -115,11 +118,13 @@ export default defineComponent({
 }
 
 .special-node.input {
-  border-color: #00bcd4; /* Change border color for input nodes */
+  border-color: #00bcd4;
+  /* Change border color for input nodes */
 }
 
 .special-node.output {
-  border-color: #4caf50; /* Change border color for output nodes */
+  border-color: #4caf50;
+  /* Change border color for output nodes */
 }
 
 .content {

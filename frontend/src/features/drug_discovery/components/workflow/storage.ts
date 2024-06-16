@@ -63,7 +63,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             const response = await getAllProteins(experimentId);
             this.proteins = response;
         },
-        async uploadProteinToExperiment(experimentId: string, name?: string, fastaFile?: Blob, pdbFile?: Blob, metaData?: Record<string, string>) {
+        async uploadProteinToExperiment(experimentId: string, nodeId: string, name?: string, fastaFile?: Blob, pdbFile?: Blob, metaData?: Record<string, string>) {
             try {
                 const uploadedProtein = await uploadProtein(
                     experimentId,
@@ -72,18 +72,59 @@ export const useWorkflowStore = defineStore('workflowStore', {
                     pdbFile
                 );
                 this.proteins.push(uploadedProtein);
+                const existingNode = this.getNodeById(nodeId);
+
+                if (existingNode) {
+                    if (!existingNode.data.defaults || !Array.isArray(existingNode.data.defaults) || existingNode.data.defaults.length < 1) {
+                        // Initialize defaults if it doesn't exist or is not an array
+                        existingNode.data.defaults = [{
+                            target_path: Object.keys(existingNode.data.inputs || {}), value: [uploadedProtein.id]
+                        }] as DefaultWorkflowComponentModelValue[];
+                    } else {
+                        // Find the default entry, if it exists
+                        const defaultEntry = existingNode.data.defaults.find(entry =>
+                            Array.isArray(entry.target_path) &&
+                            entry.target_path.every((path, index) => path === Object.keys(existingNode.data.inputs || {})[index])
+                        );
+
+                        if (defaultEntry) {
+                            // Push the new id to the existing value array
+                            defaultEntry.value.push(uploadedProtein.id);
+                        } else {
+                            // If no matching default entry exists, create a new one
+                            existingNode.data.defaults.push({
+                                target_path: Object.keys(existingNode.data.inputs || {}),
+                                value: [uploadedProtein.id]
+                            });
+                        }
+                    }
+                    this.sendWorkflowUpdate()
+                }
             } catch (error) {
                 console.error('Error uploading protein:', error);
             }
         },
-        async deleteProteinFromExperiment(proteinId: string) {
+        async deleteProteinFromExperiment(nodeId: string, proteinId: string) {
             try {
                 await deleteProtein(proteinId);
                 this.proteins = this.proteins.filter(protein => protein.id !== proteinId);
+
+                const existingNode = this.getNodeById(nodeId);
+
+                if (existingNode && existingNode.data.defaults && Array.isArray(existingNode.data.defaults)) {
+                    const defaultEntry = existingNode.data.defaults.find(entry =>
+                        Array.isArray(entry.target_path) &&
+                        entry.target_path.every((path, index) => path === Object.keys(existingNode.data.inputs || {})[index])
+                    );
+
+                    if (defaultEntry) {
+                        defaultEntry.value = defaultEntry.value.filter(id => id !== proteinId);
+                    }
+                }
+                this.sendWorkflowUpdate();
             } catch (error) {
                 console.error('Error deleting protein:', error);
             }
-            this.updateDefaults();
         },
         async changeProteinName(proteinId: string, newName: string) {
             try {
@@ -100,27 +141,66 @@ export const useWorkflowStore = defineStore('workflowStore', {
             const response = await getAllLigands(experimentId);
             this.ligands = response;
         },
-        async uploadLigandToExperiment(experimentId: string, name?: string, smiles?: Blob, sdf?: Blob, metaData?: Record<string, string>) {
+        async uploadLigandToExperiment(experimentId: string, nodeId: string, name?: string, smiles?: Blob, sdf?: Blob, metaData?: Record<string, string>) {
             try {
-                const uploadedProtein = await uploadLigand(
+                const uploadedLigand = await uploadLigand(
                     experimentId,
                     name,
                     smiles,
                     sdf
                 );
-                this.ligands.push(uploadedProtein);
+                this.ligands.push(uploadedLigand);
+
+                const existingNode = this.getNodeById(nodeId);
+
+                if (existingNode) {
+                    if (!existingNode.data.defaults) {
+                        existingNode.data.defaults = [];
+                    }
+
+                    let defaultEntry = existingNode.data.defaults.find(entry =>
+                        Array.isArray(entry.target_path) &&
+                        entry.target_path.every((path, index) => path === Object.keys(existingNode.data.inputs || {})[index])
+                    );
+
+                    if (!defaultEntry) {
+                        defaultEntry = {
+                            target_path: Object.keys(existingNode.data.inputs || {}),
+                            value: []
+                        } as DefaultWorkflowComponentModelValue;
+                        existingNode.data.defaults.push(defaultEntry);
+                    }
+
+                    if (!defaultEntry.value.includes(uploadedLigand.id)) {
+                        defaultEntry.value.push(uploadedLigand.id);
+                    }
+                }
+                this.sendWorkflowUpdate()
             } catch (error) {
-                console.error('Error uploading protein:', error);
+                console.error('Error uploading ligand:', error);
             }
         },
-        async deleteLigandFromExperiment(ligandId: string) {
+        async deleteLigandFromExperiment(nodeId: string, ligandId: string) {
             try {
                 await deleteLigand(ligandId);
                 this.ligands = this.ligands.filter(ligand => ligand.id !== ligandId);
+
+                const existingNode = this.getNodeById(nodeId);
+
+                if (existingNode && existingNode.data.defaults && Array.isArray(existingNode.data.defaults)) {
+                    const defaultEntry = existingNode.data.defaults.find(entry =>
+                        Array.isArray(entry.target_path) &&
+                        entry.target_path.every((path, index) => path === Object.keys(existingNode.data.inputs || {})[index])
+                    );
+
+                    if (defaultEntry) {
+                        defaultEntry.value = defaultEntry.value.filter(id => id !== ligandId);
+                    }
+                }
+                this.sendWorkflowUpdate();
             } catch (error) {
                 console.error('Error deleting ligand:', error);
             }
-            this.updateDefaults();
         },
         async fetchWorkflow(workflowId: string) {
             this.workflowId = workflowId;
@@ -324,18 +404,18 @@ export const useWorkflowStore = defineStore('workflowStore', {
             // Send the workflow update
             this.sendWorkflowUpdate();
         },
-        updateDefaults(){
+        updateDefaults() {
             for (const node of this.elements.nodes) {
                 const existingNode = this.getNodeById(node.id);
                 existingNode!!.data.defaults = (() => {
-                if (existingNode?.name === "Proteins") {
-                    return [{ target_path: Object.keys(existingNode.inputs || {}), value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
-                } else if (option.name === "Ligands") {
-                    return [{ target_path: Object.keys(existingNode.inputs || {}), value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
-                } else {
-                    return [];
-                }
-            })
+                    if (existingNode?.name === "Proteins") {
+                        return [{ target_path: Object.keys(existingNode.inputs || {}), value: this.proteins.map(protein => protein.id) } as DefaultWorkflowComponentModelValue];
+                    } else if (option.name === "Ligands") {
+                        return [{ target_path: Object.keys(existingNode.inputs || {}), value: this.ligands.map(ligand => ligand.id) } as DefaultWorkflowComponentModelValue];
+                    } else {
+                        return [];
+                    }
+                })
             }
             this.sendWorkflowUpdate();
         },
@@ -386,9 +466,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
                         const componentState = await getComponentState(workflow_component.component_id);
                         existingNode.data.jobIds = componentState.job_ids;
                         existingNode.data.jobs_errors = componentState.jobs_errors,
-                        existingNode.data.input_property_errors = componentState.input_property_errors,
-                        existingNode.data.last_exceptions = componentState.last_exceptions,
-                        existingNode.data.error = workflow_component.error;
+                            existingNode.data.input_property_errors = componentState.input_property_errors,
+                            existingNode.data.last_exceptions = componentState.last_exceptions,
+                            existingNode.data.error = workflow_component.error;
                     }
                 }
 

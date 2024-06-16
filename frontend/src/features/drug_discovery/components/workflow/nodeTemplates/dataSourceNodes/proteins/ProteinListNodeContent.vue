@@ -1,6 +1,6 @@
 <template>
     <q-card>
-      <ProteinList v-if="experimentId" :experiment-id="experimentId" />
+      <ProteinList v-if="experimentId" :experiment-id="experimentId" :nodeId="nodeId" />
     </q-card>
   </template>
   
@@ -13,7 +13,14 @@
     name: 'ProteinListNodeContent',
     components: { ProteinList },
     props: {
-      experimentId: String,
+      experimentId: {
+            type: String,
+            required: true,
+        },
+        nodeId: {
+            type: String,
+            required: true,
+        }
     },
     data() {
       return {

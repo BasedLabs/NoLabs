@@ -1,6 +1,6 @@
 <template>
   <q-card>
-    <LigandsList v-if="experimentId" :experiment-id="experimentId" />
+    <LigandsList v-if="experimentId" :experiment-id="experimentId" :nodeId="nodeId" />
   </q-card>
 </template>
 
@@ -12,7 +12,14 @@ export default defineComponent({
   name: 'LigandsNodeContent',
   components: { LigandsList },
   props: {
-    experimentId: String,
+    experimentId: {
+      type: String,
+      required: true,
+    },
+    nodeId: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
