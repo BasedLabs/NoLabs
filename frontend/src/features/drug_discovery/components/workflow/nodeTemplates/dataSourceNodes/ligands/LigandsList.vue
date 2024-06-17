@@ -1,5 +1,4 @@
 <template>
-
     <q-list bordered style="width: 100%;" class="bg-black rounded-borders">
         <q-item-label header class="text-white">Ligands</q-item-label>
         <q-item>
@@ -8,7 +7,7 @@
                 <q-tooltip>Add ligands to the experiment</q-tooltip>
             </q-btn>
         </q-item>
-        <q-item v-for="ligand in ligands" :key="ligand.id" clickable v-ripple class="q-mb-sm"
+        <q-item v-for="ligand in filteredLigands" :key="ligand.id" clickable v-ripple class="q-mb-sm"
             @click="showLigandDetailDialog(ligand)">
             <q-card class="q-pa-md full-width flex-row justify-between" bordered>
                 <div class="row">
@@ -68,7 +67,7 @@
 import LigandDetail from "./LigandDetail.vue";
 import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
 import { QSpinnerOrbit } from "quasar";
-import { defineComponent } from "vue";
+import { defineComponent, computed } from "vue";
 import { LigandResponse } from "src/refinedApi/client";
 import { useBioBuddyStore } from "src/features/biobuddy/storage";
 import { ChemBLData } from "src/refinedApi/client";
@@ -103,7 +102,6 @@ export default defineComponent({
         await workflowStore.getAllLigands(this.experimentId);
         this.ligands = workflowStore.ligands;
 
-
         const bioBuddyStore = useBioBuddyStore();
         this.chemblQueryCallback = async (data: { files: ChemBLData[] }) => {
             const files: File[] = [];
@@ -117,6 +115,14 @@ export default defineComponent({
             await this.handleLigandFileUpload(files, metaDatasArray);
         };
         bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
+    },
+    computed: {
+        filteredLigands() {
+            const workflowStore = useWorkflowStore();
+            const nodeData = workflowStore.getNodeById(this.nodeId);
+            const ligandIds = nodeData?.data.defaults[0]?.value || [];
+            return this.ligands.filter(ligand => ligandIds.includes(ligand.id));
+        }
     },
     methods: {
         showLigandDetailDialog(ligand: LigandResponse) {
@@ -188,6 +194,5 @@ export default defineComponent({
             bioBuddyStore.queryChemblEventHandlers.splice(index, 1);
         }
     }
-}
-)
+});
 </script>

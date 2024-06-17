@@ -7,7 +7,7 @@
                 <q-tooltip>Add proteins to the experiment</q-tooltip>
             </q-btn>
         </q-item>
-        <q-expansion-item popup expand-separator :content-inset-level="1" v-for="protein in proteins" :key="protein.id"
+        <q-expansion-item popup expand-separator :content-inset-level="1" v-for="protein in filteredProteins" :key="protein.id"
             :label="protein.name">
             <q-btn color="negative" @click="deleteProtein(protein)" icon="delete" flat>
                 Delete protein
@@ -34,7 +34,7 @@
 
 <script lang="ts">
 import { QSpinnerOrbit } from "quasar";
-import { defineComponent } from "vue";
+import { defineComponent, computed } from "vue";
 import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
 import { ProteinResponse } from "src/refinedApi/client";
 import ProteinDetail from "./ProteinDetail.vue"
@@ -70,7 +70,6 @@ export default defineComponent({
         await workflowStore.getAllProteins(this.experimentId);
         this.proteins = workflowStore.proteins;
 
-
         const bioBuddyStore = useBioBuddyStore();
         this.rscbQueryCallBack = async (data: { files: RcsbPdbData[] }) => {
             const files: File[] = [];
@@ -89,6 +88,14 @@ export default defineComponent({
             await this.handleProteinUpload(files, metaDatasArray);
         };
         bioBuddyStore.addQueryRcsbPdbEventHandler(this.rscbQueryCallBack);
+    },
+    computed: {
+        filteredProteins() {
+            const workflowStore = useWorkflowStore();
+            const nodeData = workflowStore.getNodeById(this.nodeId);
+            const proteinIds = nodeData?.data.defaults[0]?.value || [];
+            return this.proteins.filter(protein => proteinIds.includes(protein.id));
+        }
     },
     methods: {
         uploadProteinFiles() {
@@ -117,6 +124,7 @@ export default defineComponent({
                     const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
                     await workflowStore.uploadProteinToExperiment(this.experimentId, this.nodeId, '', file, undefined, metaData);
                 }
+                this.proteins = workflowStore.proteins; // Re-fetch proteins after upload
             } catch (error) {
                 console.error('Error uploading protein files:', error);
             } finally {
@@ -132,7 +140,7 @@ export default defineComponent({
             });
             try {
                 await workflowStore.deleteProteinFromExperiment(this.nodeId, proteinToDelete.id);
-                this.proteins = workflowStore.proteins;
+                this.proteins = workflowStore.proteins; // Re-fetch proteins after deletion
             } catch (error) {
                 console.error('Error deleting protein:', error);
             }
@@ -146,6 +154,5 @@ export default defineComponent({
             return match ? match[1] : null;
         },
     }
-}
-)
+});
 </script>
