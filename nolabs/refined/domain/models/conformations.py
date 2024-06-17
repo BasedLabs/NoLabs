@@ -26,20 +26,23 @@ class ConformationsTimeline(EmbeddedDocument):
     error: str | None = StringField(required=False)
     created_at: datetime = DateTimeField(default=datetime.utcnow)
 
+
 class ConformationsJob(Job):
     # region Inputs
     protein: Protein | None = ReferenceField(Protein, reverse_delete_rule=CASCADE, required=True)
 
-    integrator: Integrator = EnumField(Integrator, default=Integrator.langevin, required=True)
-    total_frames: int = IntField(default=10000, required=True)
-    temperature_k: float = FloatField(default=309.75, required=True)
-    take_frame_every: int = IntField(default=1000, required=True)
-    step_size: float = FloatField(default=0.002, required=True)
-    replace_non_standard_residues: bool = BooleanField(default=False, required=True)
-    add_missing_atoms: bool = BooleanField(default=False, required=True)
-    add_missing_hydrogens: bool = BooleanField(default=False, required=True)
-    friction_coeff: float = FloatField(default=1.0, required=True)
-    ignore_missing_atoms: bool = BooleanField(default=False, required=True)
+    integrator: Integrator = EnumField(Integrator, default=Integrator.langevin)
+    total_frames: int = IntField(default=10000)
+    temperature_k: float = FloatField(default=309.75)
+    take_frame_every: int = IntField(default=1000)
+    step_size: float = FloatField(default=0.002)
+    replace_non_standard_residues: bool = BooleanField(default=False)
+    add_missing_atoms: bool = BooleanField(default=False)
+    add_missing_hydrogens: bool = BooleanField(default=False)
+    friction_coeff: float = FloatField(default=1.0)
+    ignore_missing_atoms: bool = BooleanField(default=False)
+
+    inputs_set: bool = BooleanField(default=False)
 
     # endregion
 
@@ -101,6 +104,7 @@ class ConformationsJob(Job):
         self.add_missing_hydrogens = add_missing_hydrogens
         self.friction_coeff = friction_coeff
         self.ignore_missing_atoms = ignore_missing_atoms
+        self.inputs_set = True
 
     def clear_result(self):
         self.md_content = None
@@ -113,7 +117,7 @@ class ConformationsJob(Job):
         self.timeline.append(timeline)
 
     def input_valid(self) -> bool:
-        return not not self.protein
+        return self.inputs_set
 
     def set_result(self,
                    protein: Protein,

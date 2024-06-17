@@ -6,7 +6,7 @@ __all__ = [
 
 
 import datetime
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 import conformations_microservice
@@ -49,7 +49,7 @@ def map_job_to_response(job: ConformationsJob) -> JobResponse:
         friction_coeff=job.friction_coeff,
         ignore_missing_atoms=job.ignore_missing_atoms,
         integrator=IntegratorsRequest(job.integrator.value),
-        md_pdb=job.md_content.decode('utf-8') if job.md_content else None
+        md_content=job.md_content
     )
 
 
@@ -186,8 +186,7 @@ class RunJobFeature:
                             job.save()
 
                         if gromacs_simulations_result.pdb_content:
-                            job.set_result(protein=protein,
-                                           md_content=gromacs_simulations_result.pdb_content)
+                            job.set_result(protein=protein, md_content=gromacs_simulations_result.pdb_content)
                             protein.set_md(gromacs_simulations_result.pdb_content)
                             job.save(cascade=True)
                             protein.save(cascade=True)

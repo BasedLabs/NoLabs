@@ -34,7 +34,7 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
       );
       const status = await SmallMoleculesDesignService.getJobStatusApiV1SmallMoleculesDesignJobsJobIdStatusGet(jobId);
 
-      const protein = await ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(job!.protein_id);
+      const protein = await ProteinsService.getProteinApiV1ProteinsProteinIdGet(job!.protein_id);
 
       ensureNotError(job);
       ensureNotError(status);
@@ -115,7 +115,7 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
 
       const job = await ProteinDesignService.getJobApiV1ProteinDesignJobsJobIdGet(jobId);
 
-      const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
+      const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
         experiment_id: job.experiment_id,
         name: properties.pdbFile.name,
         pdb: properties.pdbFile

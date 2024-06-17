@@ -9,9 +9,9 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { AllWorkflowSchemasResponse } from './models/AllWorkflowSchemasResponse';
 export type { Body_update_ligand_api_v1_objects_ligands_patch } from './models/Body_update_ligand_api_v1_objects_ligands_patch';
-export type { Body_update_protein_api_v1_objects_proteins_patch } from './models/Body_update_protein_api_v1_objects_proteins_patch';
+export type { Body_update_protein_api_v1_proteins_patch } from './models/Body_update_protein_api_v1_proteins_patch';
 export type { Body_upload_ligand_api_v1_objects_ligands_post } from './models/Body_upload_ligand_api_v1_objects_ligands_post';
-export type { Body_upload_protein_api_v1_objects_proteins_post } from './models/Body_upload_protein_api_v1_objects_proteins_post';
+export type { Body_upload_protein_api_v1_proteins_post } from './models/Body_upload_protein_api_v1_proteins_post';
 export type { CheckBioBuddyEnabledResponse } from './models/CheckBioBuddyEnabledResponse';
 export type { ChemBLData } from './models/ChemBLData';
 export type { ChemBLMetaData } from './models/ChemBLMetaData';

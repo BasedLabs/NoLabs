@@ -23,7 +23,7 @@ def map_job_to_response(job: PocketPredictionJob) -> JobResponse:
         job_id=job.iid.value,
         job_name=job.name.value,
         protein_id=job.protein.iid.value,
-        binding_pockets=job.pocket_ids
+        result=job.pocket_ids
     )
 
 

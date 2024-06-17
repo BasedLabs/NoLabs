@@ -69,6 +69,7 @@ import {ExperimentListItem} from "src/components/types";
 import {obtainErrorResponse} from "../../api/errorWrapper";
 import {Notify} from "quasar";
 import {ExtendedLigandMetaData, ExtendedTargetMetaData} from "./components/targets/types";
+import {GenerateMsaService} from "../../refinedApi/client";
 
 export const useDrugDiscoveryStore = defineStore('drugDiscovery', {
 

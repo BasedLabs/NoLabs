@@ -13,8 +13,8 @@
             <div class="q-ma-sm">
               <q-btn size="xs" flat color="info" style="width: 100%" class="q-mb-xs" label="EXPAND"
                      @click="expandTile('one');"/>
-              <PdbViewer v-if="jobHasInputData" :pdb-file="job?.properties.pdbFile"
-                         :key="job?.pdbContent?.name"/>
+              <PdbViewer v-if="jobHasInputData" :pdb-file="job!.properties!.pdbFile"
+                         :key="job!.properties.pdbFile!.name"/>
             </div>
           </div>
           <div :class="tiles.two.current"
@@ -50,7 +50,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <InferenceFormView :on-submit="onSubmit" :properties="job!.properties!"/>
+          <InferenceFormView :on-submit="onSubmit" :properties="job!.properties!" :save-parameters="saveParameters"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -130,6 +130,32 @@ export default defineComponent({
         }
       }
     },
+    async saveParameters(properties: JobProperties){
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: 'Saving parameters'
+      });
+
+      await this.store.saveParameters({
+        jobId: this.job!.id,
+        jobName: this.job!.name,
+        pdbFile: properties.pdbFile!,
+        totalFrames: properties.totalFrames!,
+        temperatureK: properties.temperatureK!,
+        takeFrameEvery: properties.takeFrameEvery!,
+        stepSize: properties.stepSize!,
+        replaceNonStandardResidues: properties.replaceNonStandardResidues!,
+        addMissingAtoms: properties.addMissingAtoms!,
+        addMissingHydrogens: properties.addMissingHydrogens!,
+        frictionCoeff: properties.frictionCoeff!,
+        ignoreMissingAtoms: properties.ignoreMissingAtoms!,
+        integrator: properties.integrator!,
+      });
+
+      this.showInferenceForm = false;
+
+      this.$q.loading.hide();
+    },
     async onSubmit(properties: JobProperties) {
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
@@ -137,7 +163,6 @@ export default defineComponent({
       });
 
       const response = await this.store.inference({
-        experimentId: this.experimentId,
         jobId: this.job!.id,
         jobName: this.job!.name,
         pdbFile: properties.pdbFile!,

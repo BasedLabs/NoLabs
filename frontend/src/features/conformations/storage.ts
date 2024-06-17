@@ -7,8 +7,7 @@ import {
   ConformationsService,
   IntegratorsRequest,
   JobsACommonControllerForJobsManagementService,
-  OpenAPI, ProteinResponse,
-  ProteinsService, SolubilityService
+  OpenAPI, ProteinsService
 } from "src/refinedApi/client";
 import apiConstants from "src/api/constants";
 
@@ -17,8 +16,36 @@ OpenAPI.BASE = apiConstants.hostname;
 
 const useConformationsStore = defineStore("conformations", {
   actions: {
+    async saveParameters(request: InferenceRequest){
+      let job = await ConformationsService.getJobApiV1ConformationsJobsJobIdGet(request.jobId);
+
+      const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
+        experiment_id: job.experiment_id,
+        name: request.pdbFile.name,
+        pdb: request.pdbFile
+      });
+
+      await ConformationsService.setupJobApiV1ConformationsJobsPost(
+        {
+          protein_id: protein.id,
+          job_id: request.jobId,
+          job_name: request.jobName,
+          total_frames: request.totalFrames,
+          temperature_k: request.temperatureK,
+          take_frame_every: request.takeFrameEvery,
+          step_size: request.stepSize,
+          replace_non_standard_residues: request.replaceNonStandardResidues,
+          add_missing_atoms: request.addMissingAtoms,
+          add_missing_hydrogens: request.addMissingHydrogens,
+          friction_coeff: request.frictionCoeff,
+          ignore_missing_atoms: request.ignoreMissingAtoms,
+          integrator: request.integrator,
+          experiment_id: job.experiment_id
+        }
+      );
+    },
     async setupJob(experimentId: string, request: InferenceRequest) {
-      const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
+      const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
         experiment_id: experimentId,
         name: request.pdbFile.name,
         pdb: request.pdbFile
@@ -39,7 +66,7 @@ const useConformationsStore = defineStore("conformations", {
           friction_coeff: request.frictionCoeff,
           ignore_missing_atoms: request.ignoreMissingAtoms,
           integrator: request.integrator,
-          experiment_id: request.experimentId
+          experiment_id: experimentId
         }
       );
     },
@@ -67,13 +94,17 @@ const useConformationsStore = defineStore("conformations", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const protein = await ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(job.protein_id);
+      let protein = null;
+
+      if(job.protein_id){
+        protein = await ProteinsService.getProteinApiV1ProteinsProteinIdGet(job.protein_id);
+      }
 
       return {
         job: {
           id: job.job_id,
           name: job.job_name,
-          pdbContent: new File([new Blob([protein!.pdb_content!])], protein!.pdb_name),
+          pdbContent: job.md_content ? new File([new Blob([job.md_content!])], protein!.pdb_name) : null,
           timeline: job.timeline.map(x => {
             return {
               message: x.message,
@@ -137,15 +168,19 @@ const useConformationsStore = defineStore("conformations", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const protein = await ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(
-        response.protein_id
-      )
+      let sourceProtein = null;
+
+      if (response.protein_id) {
+        sourceProtein = await ProteinsService.getProteinApiV1ProteinsProteinIdGet(
+          response.protein_id
+        );
+      }
 
       return {
         job: {
           id: response.job_id,
           name: response.job_name,
-          pdbContent: new File([new Blob([protein?.pdb_content!])], protein!.pdb_name),
+          pdbContent: response.md_content ? new File([new Blob([response?.md_content!])], sourceProtein!.pdb_name) : null,
           timeline: response.timeline.map(x => {
             return {
               message: x!.message,
@@ -154,7 +189,7 @@ const useConformationsStore = defineStore("conformations", {
             };
           }),
           properties: {
-            pdbFile: new File([new Blob([protein?.pdb_content!])], protein!.pdb_name),
+            pdbFile: sourceProtein ? new File([new Blob([sourceProtein?.pdb_content!])], sourceProtein!.pdb_name) : null,
             totalFrames: response.total_frames,
             temperatureK: response.temperature_k,
             takeFrameEvery: response.take_frame_every,

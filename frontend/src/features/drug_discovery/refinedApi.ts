@@ -48,7 +48,7 @@ export function createExperimentApi(): CancelablePromise<ExperimentMetadataRespo
 }
 
 export function getProtein(proteinId: string): CancelablePromise<(ProteinResponse | null)> {
-  return ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(proteinId);
+  return ProteinsService.getProteinApiV1ProteinsProteinIdGet(proteinId);
 }
 
 // Delete an experiment
@@ -135,7 +135,7 @@ export function deleteWorkflow(workflowId: string): CancelablePromise<any> {
 
 export function getAllProteins(experimentId: string): CancelablePromise<Array<ProteinResponse>> {
   const searchQuery = {name: '', experiment_id: experimentId} as ProteinSearchQuery;
-  return ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost(searchQuery);
+  return ProteinsService.searchProteinsApiV1ProteinsSearchPost(searchQuery);
 }
 
 export function uploadProtein(
@@ -150,11 +150,11 @@ export function uploadProtein(
     fasta: fasta,
     pdb: pdb
   } as Body_upload_protein_api_v1_objects_proteins_post;
-  return ProteinsService.uploadProteinApiV1ObjectsProteinsPost(uploadProtein);
+  return ProteinsService.uploadProteinApiV1ProteinsPost(uploadProtein);
 }
 
 export function deleteProtein(proteinId: string): CancelablePromise<any> {
-  return ProteinsService.deleteProteinApiV1ObjectsProteinsProteinIdDelete(proteinId);
+  return ProteinsService.deleteProteinApiV1ProteinsProteinIdDelete(proteinId);
 }
 
 export function updateProteinName(proteinId: string, newName: string): CancelablePromise<ProteinResponse> {
@@ -162,7 +162,7 @@ export function updateProteinName(proteinId: string, newName: string): Cancelabl
     protein_id: proteinId,
     name: newName
   } as Body_update_protein_api_v1_objects_proteins_patch;
-  return ProteinsService.updateProteinApiV1ObjectsProteinsPatch(newRequest);
+  return ProteinsService.updateProteinApiV1ProteinsPatch(newRequest);
 }
 
 export function getAllLigands(experimentId: string): CancelablePromise<Array<LigandResponse>> {

@@ -12,7 +12,7 @@ from nolabs.workflow.component import Component, JobValidationError
 
 
 class ProteinDesignInput(BaseModel):
-    proteins: List[uuid.UUID]
+    proteins_with_pdb: List[uuid.UUID]
 
 
 class ProteinDesignOutput(BaseModel):
@@ -24,7 +24,7 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
     description = 'Protein binder prediction using Rfdiffusion'
 
     async def execute(self):
-        if not self.prevalidate_jobs():
+        if await self.prevalidate_jobs():
             raise NoLabsException(ErrorCodes.invalid_job_input, 'Jobs are not valid')
 
         run_job_feature = RunJobFeature(api=InfrastructureDependencies.protein_design_microservice())
@@ -41,7 +41,7 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
     async def setup_jobs(self):
         self.jobs = []
 
-        for protein_id in self.input.proteins:
+        for protein_id in self.input.proteins_with_pdb:
             protein = Protein.objects.with_id(protein_id)
 
             job_id = JobId(uuid.uuid4())
@@ -50,7 +50,8 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
             job = ProteinDesignJob(
                 id=job_id,
                 name=job_name,
-                experiment=self.experiment
+                experiment=self.experiment,
+                protein=protein
             )
 
             job.save()

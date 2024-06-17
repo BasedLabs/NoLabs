@@ -3,15 +3,18 @@ import sys
 
 from pythonjsonlogger import jsonlogger
 
+_logger: logging.Logger = None
 
-def setup_logger(uvicorn_loglevel = logging.ERROR, mongoengine_loglevel = logging.ERROR):
-    logger = logging.getLogger("uvicorn")
+
+def setup_logger(uvicorn_loglevel=logging.ERROR, mongoengine_loglevel=logging.ERROR):
+    global _logger
+    _logger = logging.getLogger("uvicorn")
     handler = logging.StreamHandler(sys.stdout)
     formatter = jsonlogger.JsonFormatter()
 
     handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(uvicorn_loglevel)
+    _logger.addHandler(handler)
+    _logger.setLevel(uvicorn_loglevel)
 
     # Override default handlers for FastAPI
     uvicorn_access_logger = logging.getLogger("uvicorn.access")
@@ -34,4 +37,6 @@ def setup_logger(uvicorn_loglevel = logging.ERROR, mongoengine_loglevel = loggin
     mongoengine_logger.addHandler(handler)
     mongoengine_logger.setLevel(mongoengine_loglevel)
 
-    return logger
+
+def get_logger() -> logging.Logger:
+    return _logger

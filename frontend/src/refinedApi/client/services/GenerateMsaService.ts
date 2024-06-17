@@ -75,7 +75,7 @@ export class GenerateMsaService {
      * @returns nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse Successful Response
      * @throws ApiError
      */
-    public static getJobStatusApiV1MsaGenerationJobsPost(
+    public static setupJobApiV1MsaGenerationJobsPost(
         requestBody: nolabs__refined__application__use_cases__msa_generation__api_models__SetupJobRequest,
     ): CancelablePromise<nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse> {
         return __request(OpenAPI, {

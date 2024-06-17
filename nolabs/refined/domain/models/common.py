@@ -301,9 +301,6 @@ class Protein(Document, Entity):
         self.soluble_probability = soluble_probability
 
     def set_binding_pockets(self, binding_pockets: List[int]):
-        if not binding_pockets:
-            raise NoLabsException(ErrorCodes.empty_binding_pockets)
-
         self.binding_pockets = binding_pockets
 
     @classmethod

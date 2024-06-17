@@ -35,7 +35,7 @@ class JobResponse:
     ignore_missing_atoms: bool
     integrator: IntegratorsRequest
 
-    md_pdb: Optional[str] = None
+    md_content: Optional[bytes] = None
 
 
 @dataclass

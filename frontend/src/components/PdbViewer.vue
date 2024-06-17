@@ -159,6 +159,8 @@ export default defineComponent({
         <div class="col">
           <div class="text-h6">{{ FileName }}</div>
         </div>
+      </div>
+      <div class="row items-center">
         <div class="col" v-if="pdbFile != null">
           <q-btn color="info" size="md" outline label="Save pdb" @click="savePdb"/>
         </div>

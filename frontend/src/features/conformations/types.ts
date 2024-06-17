@@ -25,7 +25,6 @@ export type Job = {
 
 export type InferenceRequest = {
   pdbFile: File,
-  experimentId: string,
   jobName: string,
   jobId: string,
   totalFrames: number,

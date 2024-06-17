@@ -63,7 +63,7 @@ app.include_router(workflow_router)
 app.include_router(biobuddy_controller)
 add_domain_exception_middleware(app)
 
-logger = setup_logger()
+setup_logger()
 
 
 app.add_middleware(

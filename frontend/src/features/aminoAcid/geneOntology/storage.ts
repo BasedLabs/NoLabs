@@ -19,7 +19,7 @@ const useGeneOntologyStore = defineStore("geneOntology", {
     async setupJob(experimentId: string, request: InferenceRequest){
       let proteins: ProteinResponse[] = [];
       for(const fasta of request.fastas){
-        const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
+        const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
           experiment_id: experimentId,
           name: fasta.name,
           fasta: fasta
@@ -56,7 +56,7 @@ const useGeneOntologyStore = defineStore("geneOntology", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
         ids: job.protein_ids
       });
 
@@ -106,7 +106,7 @@ const useGeneOntologyStore = defineStore("geneOntology", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
         ids: response.protein_ids
       });
 

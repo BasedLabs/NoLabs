@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Body_update_protein_api_v1_objects_proteins_patch } from '../models/Body_update_protein_api_v1_objects_proteins_patch';
-import type { Body_upload_protein_api_v1_objects_proteins_post } from '../models/Body_upload_protein_api_v1_objects_proteins_post';
+import type { Body_update_protein_api_v1_proteins_patch } from '../models/Body_update_protein_api_v1_proteins_patch';
+import type { Body_upload_protein_api_v1_proteins_post } from '../models/Body_upload_protein_api_v1_proteins_post';
 import type { ProteinResponse } from '../models/ProteinResponse';
 import type { ProteinSearchQuery } from '../models/ProteinSearchQuery';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -16,12 +16,12 @@ export class ProteinsService {
      * @returns ProteinResponse Successful Response
      * @throws ApiError
      */
-    public static searchProteinsApiV1ObjectsProteinsSearchPost(
+    public static searchProteinsApiV1ProteinsSearchPost(
         requestBody: ProteinSearchQuery,
     ): CancelablePromise<Array<ProteinResponse>> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/objects/proteins/search',
+            url: '/api/v1/proteins/search',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -35,12 +35,12 @@ export class ProteinsService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static getProteinApiV1ObjectsProteinsProteinIdGet(
+    public static getProteinApiV1ProteinsProteinIdGet(
         proteinId: string,
     ): CancelablePromise<(ProteinResponse | null)> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/objects/proteins/{protein_id}',
+            url: '/api/v1/proteins/{protein_id}',
             path: {
                 'protein_id': proteinId,
             },
@@ -55,12 +55,12 @@ export class ProteinsService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static deleteProteinApiV1ObjectsProteinsProteinIdDelete(
+    public static deleteProteinApiV1ProteinsProteinIdDelete(
         proteinId: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/objects/proteins/{protein_id}',
+            url: '/api/v1/proteins/{protein_id}',
             path: {
                 'protein_id': proteinId,
             },
@@ -75,12 +75,12 @@ export class ProteinsService {
      * @returns ProteinResponse Successful Response
      * @throws ApiError
      */
-    public static uploadProteinApiV1ObjectsProteinsPost(
-        formData: Body_upload_protein_api_v1_objects_proteins_post,
+    public static uploadProteinApiV1ProteinsPost(
+        formData: Body_upload_protein_api_v1_proteins_post,
     ): CancelablePromise<ProteinResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/objects/proteins',
+            url: '/api/v1/proteins',
             formData: formData,
             mediaType: 'multipart/form-data',
             errors: {
@@ -94,12 +94,12 @@ export class ProteinsService {
      * @returns ProteinResponse Successful Response
      * @throws ApiError
      */
-    public static updateProteinApiV1ObjectsProteinsPatch(
-        formData: Body_update_protein_api_v1_objects_proteins_patch,
+    public static updateProteinApiV1ProteinsPatch(
+        formData: Body_update_protein_api_v1_proteins_patch,
     ): CancelablePromise<ProteinResponse> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/v1/objects/proteins',
+            url: '/api/v1/proteins',
             formData: formData,
             mediaType: 'multipart/form-data',
             errors: {

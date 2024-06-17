@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Optional
 from uuid import UUID
 
 from mongoengine import Document, UUIDField, BinaryField, ReferenceField, CASCADE, DictField, StringField, IntField, \
-    ListField, EmbeddedDocument, EmbeddedDocumentListField
+    ListField, EmbeddedDocument, EmbeddedDocumentListField, PULL
 
 from nolabs.refined.domain.models.common import Experiment, Job
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel
@@ -69,7 +69,7 @@ class ComponentDbModel(Document):
     input_parameter_dict: Dict[str, Any] = DictField(default=dict)
     output_parameter_dict: Dict[str, Any] = DictField(default=dict)
 
-    jobs: List[Job] = ListField(ReferenceField(Job), default=[])
+    jobs: List[Job] = ListField(ReferenceField(Job, reverse_delete_rule=PULL), default=[])
 
     @classmethod
     def create(cls,

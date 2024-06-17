@@ -23,6 +23,9 @@
           <q-item-section>
             <q-btn @click="openJob(element)" label="View" dense />
           </q-item-section>
+          <q-item-section>
+            <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense/>
+          </q-item-section>
         </q-item>
       </template>
     </draggable>
@@ -44,6 +47,9 @@
           </q-item-section>
           <q-item-section>
             <q-btn @click="openJob(element)" label="View" dense />
+          </q-item-section>
+          <q-item-section>
+            <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense/>
           </q-item-section>
         </q-item>
       </template>
@@ -78,10 +84,6 @@
 import { defineComponent } from 'vue';
 import { useWorkflowStore, Node } from 'src/features/drug_discovery/components/workflow/storage';
 import {
-  getFoldingJobApi,
-  getFoldingJobStatus,
-  getBindingPocketJobApi,
-  getBindingPocketJobStatus,
   getDiffDockJobApi,
   getDiffDockJobStatus
 } from 'src/features/drug_discovery/refinedApi';
@@ -114,20 +116,20 @@ export default defineComponent({
   jobsDefinitions: [
     {
       name: "Esmfold light",
-      tab: false,
-      component: EsmFoldJob,
+      tab: true,
+      routeName: "Folding",
       api: componentApi.esmfoldLight
     },
     {
       name: "Esmfold",
-      tab: false,
-      component: EsmFoldJob,
+      tab: true,
+      routeName: "Folding",
       api: componentApi.esmfold
     },
     {
       name: "Rosettafold",
-      tab: false,
-      component: EsmFoldJob,
+      tab: true,
+      routeName: "Folding",
       api: componentApi.rosettafold
     },
     {
@@ -259,6 +261,10 @@ export default defineComponent({
       }>;
 
       this.loading = false;
+    },
+    async deleteJob(job: GetJobMetadataResponse) {
+      const workflowStore = useWorkflowStore();
+      await workflowStore.deleteJob(job.job_id);
     },
     updateErrorsAndExceptions() {
       this.lastExceptions = this.nodeData?.data.last_exceptions || [];

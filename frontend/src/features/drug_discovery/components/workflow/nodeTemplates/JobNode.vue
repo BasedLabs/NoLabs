@@ -5,7 +5,7 @@
       size="3em"
     />
   </q-card>
-  <q-card dark bordered v-if="nodeData">
+  <q-card dark bordered v-if="nodeData" style="max-width: 400px">
     <q-card-section v-if="nodeData?.data.error">
       <div class="row no-wrap items-center">
         <q-space />

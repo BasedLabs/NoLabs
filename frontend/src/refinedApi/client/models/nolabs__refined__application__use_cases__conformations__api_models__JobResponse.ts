@@ -20,6 +20,6 @@ export type nolabs__refined__application__use_cases__conformations__api_models__
     friction_coeff: number;
     ignore_missing_atoms: boolean;
     integrator: IntegratorsRequest;
-    md_pdb?: (string | null);
+    md_content?: (Blob | null);
 };
 

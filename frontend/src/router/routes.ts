@@ -44,7 +44,7 @@ const proteinDesignRoutes = [
 
 const foldingRoutes = [
   {
-    path: 'folding/experiment/:experimentId',
+    path: 'folding/job/:jobId',
     component: () => import('src/features/aminoAcid/folding/FoldingJobView.vue'),
     name: 'Folding',
     props: true

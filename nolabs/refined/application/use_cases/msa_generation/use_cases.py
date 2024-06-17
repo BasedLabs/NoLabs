@@ -23,8 +23,7 @@ def map_job_to_response(job: MsaGenerationJob) -> JobResponse:
         job_id=job.iid.value,
         job_name=job.name.value,
         experiment_id=job.experiment.iid.value,
-        protein_id=job.protein.iid.value,
-        msa=job.msa.decode('utf-8') if job.msa else None
+        protein_id=job.protein.iid.value
     )
 
 

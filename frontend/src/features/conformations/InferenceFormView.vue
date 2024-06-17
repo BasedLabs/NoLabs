@@ -9,11 +9,20 @@ interface OnSubmitType {
 }
 
 
+interface SavePropertiesType {
+  (inputs: JobProperties): Promise<void>;
+}
+
+
 export default defineComponent({
   name: "InferenceFormView",
   props: {
     onSubmit: {
       type: Function as PropType<OnSubmitType>,
+      required: true,
+    },
+    saveParameters: {
+      type: Function as PropType<SavePropertiesType>,
       required: true,
     },
     properties: {
@@ -49,6 +58,9 @@ export default defineComponent({
       await this.onSubmit!(
           this.$data
       );
+    },
+    async _saveParameters() {
+      await this.saveParameters!(this.$data);
     }
   }
 })
@@ -103,6 +115,7 @@ export default defineComponent({
     </q-file>
     <div>
       <q-btn label="Run computation" size="large" type="submit" color="info"/>
+      <q-btn label="Save parameters" size="large" class="q-ml-xs" @click="_saveParameters" color="info"/>
     </div>
   </q-form>
 </template>

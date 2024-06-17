@@ -17,7 +17,7 @@ OpenAPI.BASE = apiConstants.hostname;
 const useProteinDesignStore = defineStore("proteinDesign", {
   actions: {
     async setupJob(experimentId: string, request: InferenceRequest) {
-      const protein = await ProteinsService.uploadProteinApiV1ObjectsProteinsPost({
+      const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
         experiment_id: experimentId,
         name: request.pdbFile.name,
         pdb: request.pdbFile
@@ -58,7 +58,7 @@ const useProteinDesignStore = defineStore("proteinDesign", {
         }
         return {job: null, errors: errorResponse.errors};
       }
-      const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
         ids: job.binder_ids
       })
       return {
@@ -109,11 +109,11 @@ const useProteinDesignStore = defineStore("proteinDesign", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ObjectsProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
         ids: response.binder_ids
       });
 
-      const protein = await ProteinsService.getProteinApiV1ObjectsProteinsProteinIdGet(
+      const protein = await ProteinsService.getProteinApiV1ProteinsProteinIdGet(
         response.protein_id
       )
 

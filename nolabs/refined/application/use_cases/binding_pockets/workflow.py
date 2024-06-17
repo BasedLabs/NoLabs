@@ -4,7 +4,8 @@ from typing import List, Type
 from pydantic import BaseModel
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.application.use_cases.binding_pockets.use_cases import RunJobFeature
+from nolabs.refined.application.use_cases.binding_pockets.api_models import SetupJobRequest
+from nolabs.refined.application.use_cases.binding_pockets.use_cases import RunJobFeature, SetupJobFeature
 from nolabs.refined.domain.models.pocket_prediction import PocketPredictionJob
 from nolabs.refined.domain.models.common import Protein, JobId, JobName
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
@@ -40,19 +41,18 @@ class BindingPocketPredictionComponent(Component[BindingPocketPredictionInput, B
     async def setup_jobs(self):
         self.jobs = []
 
+        feature = SetupJobFeature()
+
         for protein_id in self.input.proteins_with_pdb:
             protein = Protein.objects.with_id(protein_id)
 
-            job_id = JobId(uuid.uuid4())
-            job_name = JobName(f'Binding pocket prediction for protein {protein.name}')
+            job = await feature.handle(request=SetupJobRequest(
+                experiment_id=self.experiment.id,
+                protein_id=protein_id,
+                job_name=f'Binding pocket prediction for protein {protein.name}'
+            ))
 
-            job = PocketPredictionJob(
-                id=job_id,
-                name=job_name,
-                experiment=self.experiment
-            )
-
-            job.save()
+            job = PocketPredictionJob.objects.with_id(job.job_id)
 
             self.jobs.append(job)
 

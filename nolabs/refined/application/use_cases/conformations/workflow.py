@@ -4,7 +4,8 @@ from typing import List, Type
 from pydantic import BaseModel
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.application.use_cases.conformations.use_cases import RunJobFeature
+from nolabs.refined.application.use_cases.conformations.api_models import SetupJobRequest
+from nolabs.refined.application.use_cases.conformations.use_cases import RunJobFeature, SetupJobFeature
 from nolabs.refined.domain.models.common import Protein, JobId, JobName
 from nolabs.refined.domain.models.conformations import ConformationsJob
 from nolabs.refined.infrastructure.di import InfrastructureDependencies
@@ -12,7 +13,7 @@ from nolabs.workflow.component import Component, JobValidationError
 
 
 class ConformationInput(BaseModel):
-    proteins: List[uuid.UUID]
+    proteins_with_pdb: List[uuid.UUID]
 
 
 class ConformationOutput(BaseModel):
@@ -40,7 +41,7 @@ class ConformationComponent(Component[ConformationInput, ConformationOutput]):
     async def setup_jobs(self):
         self.jobs = []
 
-        for protein_id in self.input.proteins:
+        for protein_id in self.input.proteins_with_pdb:
             protein = Protein.objects.with_id(protein_id)
 
             job_id = JobId(uuid.uuid4())
@@ -49,7 +50,8 @@ class ConformationComponent(Component[ConformationInput, ConformationOutput]):
             job = ConformationsJob(
                 id=job_id,
                 name=job_name,
-                experiment=self.experiment
+                experiment=self.experiment,
+                protein=protein
             )
 
             job.save()
@@ -65,7 +67,7 @@ class ConformationComponent(Component[ConformationInput, ConformationOutput]):
                 validation_errors.append(
                     JobValidationError(
                         job_id=job.id,
-                        msg=f'Job input is invalid'
+                        msg=f'Job input is invalid. Setup job inputs manually'
                     )
                 )
 

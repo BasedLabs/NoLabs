@@ -1,5 +1,11 @@
 import {defineStore} from 'pinia';
-import {InputPropertyErrorResponse, JobErrorResponse, LigandResponse, ProteinResponse} from 'src/refinedApi/client';
+import {
+  InputPropertyErrorResponse,
+  JobErrorResponse,
+  JobsACommonControllerForJobsManagementService,
+  LigandResponse,
+  ProteinResponse
+} from 'src/refinedApi/client';
 import {
   deleteProtein,
   getAllProteins,
@@ -77,6 +83,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
     async getAllProteins(experimentId: string) {
       const response = await getAllProteins(experimentId);
       this.proteins = response;
+    },
+    async deleteJob(jobId: string){
+      await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJobsJodIdDelete(jobId);
     },
     async uploadProteinToExperiment(experimentId: string, nodeId: string, name?: string, fastaFile?: Blob, pdbFile?: Blob, metaData?: Record<string, string>) {
       try {

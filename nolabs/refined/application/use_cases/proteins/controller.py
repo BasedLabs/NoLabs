@@ -17,9 +17,8 @@ from nolabs.refined.application.use_cases.proteins.use_cases import SearchProtei
     UploadProteinFeature, DeleteProteinFeature, UpdateProteinFeature
 
 router = APIRouter(
-    prefix='/api/v1/objects/proteins',
-    tags=['Proteins'],
-
+    prefix='/api/v1/proteins',
+    tags=['Proteins']
 )
 
 
