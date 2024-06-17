@@ -119,19 +119,22 @@ class GetJobStatusFeature:
         if folding_backend == FoldingBackendEnum.esmfold:
             response = self._esmfold.is_job_running_job_job_id_is_running_get(job_id=str(job.iid.value))
             return GetJobStatusResponse(
-                running=response['is_running']
+                running=response['is_running'],
+                result_valid=job.result_valid()
             )
 
         if folding_backend == FoldingBackendEnum.esmfold_light:
             response = self._esmfold_light.is_job_running_job_job_id_is_running_get(job_id=str(job.iid.value))
             return GetJobStatusResponse(
-                running=response.is_running
+                running=response.is_running,
+                result_valid=job.result_valid()
             )
 
         if folding_backend == FoldingBackendEnum.rosettafold:
             response = self._rosettafold.is_job_running_job_job_id_is_running_get(job_id=str(job.iid.value))
             return GetJobStatusResponse(
-                running=response.is_running
+                running=response.is_running,
+                result_valid=job.result_valid()
             )
 
         raise NoLabsException(ErrorCodes.invalid_folding_backend)

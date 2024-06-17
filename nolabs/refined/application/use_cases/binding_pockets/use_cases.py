@@ -133,5 +133,6 @@ class GetJobStatusFeature:
         result = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
 
         return GetJobStatusResponse(
-            running=result.is_running
+            running=result.is_running,
+            result_valid=job.result_valid()
         )

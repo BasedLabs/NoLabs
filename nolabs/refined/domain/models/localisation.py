@@ -44,6 +44,9 @@ class LocalisationJob(Job):
 
         self.proteins = proteins
 
+    def result_valid(self) -> bool:
+        return not not self.probabilities
+
     def set_result(self, result: List[Tuple[Protein, LocalisationProbability]]):
         if not self.proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)

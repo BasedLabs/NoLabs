@@ -70,7 +70,7 @@ class SetupJobFeature:
         if not experiment:
             raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        job: DiffDockBindingJob = DiffDockBindingJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
+        job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id()
 
         if not job:
             job = DiffDockBindingJob(
@@ -112,11 +112,12 @@ class GetJobStatusFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        #response = self._diffdock.is_job_running_job_job_id_is_running_get(
-        #    job_id=str(job.iid.value)
-        #)
+        response = self._diffdock.is_job_running_job_job_id_is_running_get(
+            job_id=str(job.iid.value)
+        )
         return GetJobStatusResponse(
-            running=False
+            running=response.is_running,
+            result_valid=job.result_valid()
         )
 
 

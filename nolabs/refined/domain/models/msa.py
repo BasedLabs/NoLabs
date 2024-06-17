@@ -36,6 +36,9 @@ class MsaGenerationJob(Job):
     def input_valid(self) -> bool:
         return not not self.protein
 
+    def result_valid(self) -> bool:
+        return not not self.msa
+
     def set_result(self,
                    protein: Protein,
                    msa: bytes | str):

@@ -35,6 +35,9 @@ class GeneOntologyJob(Job):
     def clear_result(self):
         self.gene_ontologies = []
 
+    def result_valid(self) -> bool:
+        return not not self.gene_ontologies
+
     def set_result(self, result: List[Tuple[Protein, Dict[str, Any]]]):
         if not self.proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input, 'Cannot set a result on a job without inputs')

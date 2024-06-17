@@ -19,6 +19,10 @@ export default defineComponent({
     startSampling: {
       type: Function as PropType<() => Promise<void>>,
       required: true
+    },
+    saveParameters: {
+      type: Function as PropType<() => Promise<void>>,
+      required: true
     }
   },
   computed: {
@@ -51,5 +55,8 @@ export default defineComponent({
     <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
       Generate more molecules on trained AI
     </q-tooltip>
+  </q-btn>
+  <q-btn align="between" outline size="md" class="q-mx-md" color="positive" square dense
+         @click="saveParameters">Save parameters
   </q-btn>
 </template>

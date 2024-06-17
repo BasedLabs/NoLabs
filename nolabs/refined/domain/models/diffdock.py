@@ -74,6 +74,9 @@ class DiffDockBindingJob(Job):
         self.ligand = ligand
         self.samples_per_complex = samples_per_complex
 
+    def result_valid(self) -> bool:
+        return not not self.result
+
     def input_valid(self) -> bool:
         return bool(self.protein and self.ligand)
 

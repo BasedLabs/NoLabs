@@ -29,7 +29,6 @@ class FoldingJobResult(EmbeddedDocument):
     pdb_content: bytes = BinaryField(required=True)
 
 
-
 class FoldingJob(Job):
     # region Inputs
 
@@ -54,6 +53,9 @@ class FoldingJob(Job):
 
         self.backend = backend
         self.proteins = proteins
+
+    def result_valid(self) -> bool:
+        return not not self.foldings
 
     def set_result(self, result: List[Tuple[Protein, str | bytes]]):
         if not self.proteins:

@@ -38,6 +38,9 @@ class SolubilityJob(Job):
 
         self.proteins = proteins
 
+    def result_valid(self) -> bool:
+        return not not self.results
+
     def set_result(self, result: List[Tuple[Protein, float]]):
         if not self.proteins:
             raise NoLabsException(ErrorCodes.invalid_job_input)

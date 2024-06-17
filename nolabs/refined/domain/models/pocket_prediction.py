@@ -37,6 +37,9 @@ class PocketPredictionJob(Job):
     def input_valid(self) -> bool:
         return not not self.protein
 
+    def result_valid(self) -> bool:
+        return not not self.pocket_ids
+
     def set_result(self,
                    protein: Protein,
                    pocket_ids: List[int]):

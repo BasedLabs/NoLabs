@@ -291,6 +291,23 @@ export default defineComponent({
         });
       });
     },
+    async saveParameters(){
+      if (!this.validateProperties()) {
+        return;
+      }
+
+      this.$q.dialog({
+        title: 'Confirm',
+        message: "Are you sure that you want to save parameters? This will overwrite all existing data",
+        cancel: true,
+        persistent: true,
+
+      }).onOk(async () => {
+        await this.loader('Saving properties', async () => {
+          await this.$options.store.saveProperties(this.$options.jobId, this.job?.properties);
+        });
+      });
+    },
     async startSampling() {
       this.$q.dialog({
         title: 'Sampling',
@@ -358,7 +375,7 @@ export default defineComponent({
       logs
     </q-btn>
     <JobControlButtons :start-sampling="startSampling" :stop-job="stopJob"
-                              :start-job="startJob" :job="job"/>
+                              :start-job="startJob" :save-parameters="saveParameters" :job="job"/>
   </div>
   <q-separator></q-separator>
   <div class="row q-col-gutter-md q-ma-sm">

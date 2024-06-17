@@ -61,6 +61,9 @@ class ProteinDesignJob(Job):
 
         return True
 
+    def result_valid(self) -> bool:
+        return not not self.binders
+
     def set_result(self,
                    protein: Protein,
                    binders: List[Protein]):

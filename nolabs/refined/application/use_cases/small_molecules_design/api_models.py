@@ -76,3 +76,4 @@ class RunJobRequest:
 class GetJobStatusResponse:
     running: bool
     sampling_allowed: bool
+    result_valid: bool

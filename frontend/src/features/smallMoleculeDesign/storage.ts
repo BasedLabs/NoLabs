@@ -113,17 +113,17 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
         throw new Error('Pdb file is not specified');
       }
 
-      const job = await ProteinDesignService.getJobApiV1ProteinDesignJobsJobIdGet(jobId);
+      const job = await SmallMoleculesDesignService.getJobApiV1SmallMoleculesDesignJobsJobIdGet(jobId);
 
       const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
-        experiment_id: job.experiment_id,
+        experiment_id: job!.experiment_id,
         name: properties.pdbFile.name,
         pdb: properties.pdbFile
       });
 
       await SmallMoleculesDesignService.setupJobApiV1SmallMoleculesDesignJobsPost(
         {
-          experiment_id: job.experiment_id,
+          experiment_id: job!.experiment_id,
           protein_id: protein.id,
           center_x: properties.centerX,
           center_y: properties.centerY,

@@ -45,3 +45,4 @@ class RunJobRequest:
 @dataclass
 class GetJobStatusResponse:
     running: bool
+    result_valid: bool

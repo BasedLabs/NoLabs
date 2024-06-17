@@ -53,6 +53,9 @@ class ConformationsJob(Job):
 
     # endregion
 
+    def result_valid(self) -> bool:
+        return not not self.md_content
+
     def set_input(self,
                   protein: Protein,
                   integrator: Integrator = Integrator.langevin,

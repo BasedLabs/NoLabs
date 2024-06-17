@@ -23,9 +23,9 @@ class SmallMoleculesDesignJob(Job):
     center_x: float = FloatField(default=0.0)
     center_y: float = FloatField(default=0.0)
     center_z: float = FloatField(default=0.0)
-    size_x: float = FloatField(default=0.0)
-    size_y: float = FloatField(default=0.0)
-    size_z: float = FloatField(default=0.0)
+    size_x: float = FloatField(default=5.0)
+    size_y: float = FloatField(default=5.0)
+    size_z: float = FloatField(default=5.0)
     batch_size: int = IntField(default=128)
     minscore: float = FloatField(default=0.4)
     epochs: int = IntField(default=50)
@@ -40,8 +40,11 @@ class SmallMoleculesDesignJob(Job):
 
         self.sampling_size = sampling_size
 
+    def result_valid(self) -> bool:
+        return not not self.ligands
+
     def input_valid(self):
-        return any([a for a in [self.center_x, self.center_y, self.center_z, self.size_x, self.size_y, self.size_z] if a])
+        return any([a for a in [self.center_x, self.center_y, self.center_z] if a])
 
     def set_inputs(self,
                    protein: Protein,

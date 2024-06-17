@@ -14,7 +14,7 @@ from nolabs.workflow.component import Component, JobValidationError
 
 
 class SmallMoleculesDesignLearningInput(BaseModel):
-    proteins: List[uuid.UUID]
+    proteins_with_pdb: List[uuid.UUID]
 
 
 class SmallMoleculesDesignLearningOutputItem(BaseModel):
@@ -73,7 +73,7 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
     async def setup_jobs(self):
         self.jobs = []
 
-        for protein_id in self.input.proteins:
+        for protein_id in self.input.proteins_with_pdb:
             protein = Protein.objects.with_id(protein_id)
 
             job_id = JobId(uuid.uuid4())
@@ -82,7 +82,8 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
             job = SmallMoleculesDesignJob(
                 id=job_id,
                 name=job_name,
-                experiment=self.experiment
+                experiment=self.experiment,
+                protein=protein
             )
 
             job.save()
@@ -98,7 +99,7 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
                 validation_errors.append(
                     JobValidationError(
                         job_id=job.id,
-                        msg=f'Job input is invalid'
+                        msg=f'Job input is invalid. Setup job inputs manually'
                     )
                 )
 

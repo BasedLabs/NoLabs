@@ -61,17 +61,25 @@ class GetJobStatus:
         self._api = api
 
     async def handle(self, job_id: UUID) -> GetJobStatusResponse:
-        if not Job.objects(id=job_id):
-            return GetJobStatusResponse(running=False, sampling_allowed=False)
+        if not SmallMoleculesDesignJob.objects(id=job_id):
+            return GetJobStatusResponse(running=False,
+                                        sampling_allowed=False,
+                                        result_valid=False)
+
+        job = SmallMoleculesDesignJob.objects.with_id(job_id)
 
         config_result = self._api.get_config_api_reinvent_reinvent_config_id_get(config_id=str(job_id))
 
         if not config_result:
-            return GetJobStatusResponse(running=False, sampling_allowed=False)
+            return GetJobStatusResponse(running=False,
+                                        sampling_allowed=False,
+                                        result_valid=job.result_valid())
 
         config = config_result.actual_instance
 
-        return GetJobStatusResponse(running=config.running, sampling_allowed=config.sampling_allowed)
+        return GetJobStatusResponse(running=config.running,
+                                    sampling_allowed=config.sampling_allowed,
+                                    result_valid=job.result_valid())
 
 
 class GetJobFeature:
@@ -164,7 +172,7 @@ class SetupJobFeature:
         else:
             job = jobs[0]
 
-        protein = Protein.objects.wiht_id(request.protein_id)
+        protein = Protein.objects.with_id(request.protein_id)
 
         if not protein:
             raise NoLabsException(ErrorCodes.protein_not_found)

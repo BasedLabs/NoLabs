@@ -12,6 +12,7 @@ __all__ = ['Protein',
 
 import datetime
 import uuid
+from abc import abstractmethod
 from functools import lru_cache
 from pathlib import Path
 from typing import Union, Dict, Any, List
@@ -617,7 +618,6 @@ class Ligand(Document, Entity):
         if complexes:
             complex = complexes[0]
         else:
-            print(name)
             protein_name = ProteinName(f'{str(protein.name)}-{str(self.name)}-complex' + (f'-{name}' if name else ''))
 
             complex = Protein.create(
@@ -698,6 +698,10 @@ class Job(Document, Entity):
     @property
     def iid(self) -> JobId:
         return JobId(self.id)
+
+    @abstractmethod
+    def result_valid(self) -> bool:
+        ...
 
 
 class ProteinBinder(Document):

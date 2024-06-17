@@ -49,6 +49,9 @@ class UmolBindingJob(Job):
         self.ligand = ligand
         self.pocket_ids = pocket_ids
 
+    def result_valid(self) -> bool:
+        return not not (self.predicted_pdb or self.predicted_sdf or self.plddt_array)
+
     def set_result(self,
                    protein: Protein,
                    ligand: Ligand,

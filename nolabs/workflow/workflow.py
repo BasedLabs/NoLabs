@@ -60,18 +60,17 @@ class Workflow:
 
             component_db_model.save()
 
-        if component.validate_output():
-            try:
-                await component.execute()
-                component_db_model.output_parameter_dict = component.output_parameter_dict
-                component_db_model.save()
-            except Exception as e:
-                if isinstance(e, NoLabsException):
-                    component_db_model.last_exceptions = e.messages
-                else:
-                    component_db_model.last_exceptions = [str(e)]
+        try:
+            await component.execute()
+            component_db_model.output_parameter_dict = component.output_parameter_dict
+            component_db_model.save()
+        except Exception as e:
+            if isinstance(e, NoLabsException):
+                component_db_model.last_exceptions = e.messages
+            else:
+                component_db_model.last_exceptions = [str(e)]
 
-                component_db_model.save()
+            component_db_model.save()
 
     async def execute(self, components: List[Component]):
         async def execute(component: Component):

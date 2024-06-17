@@ -63,7 +63,7 @@ class MsaGenerationComponent(Component[MsaGenerationInput, MsaGenerationOutput])
                 validation_errors.append(
                     JobValidationError(
                         job_id=job.id,
-                        msg=f'Job input is invalid'
+                        msg=f'Job input is invalid. Setup job inputs manually'
                     )
                 )
 
