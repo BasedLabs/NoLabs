@@ -9,5 +9,4 @@ from nolabs.seedwork.domain.event_handlers import DomainEventHandler
 
 class LigandCreatedEventHandler(DomainEventHandler[LigandCreatedEvent]):
     def handle(self, event: LigandCreatedEvent):
-        if Ligand.objects(name=event.ligand.name.value):
-            raise NoLabsException(error_code=ErrorCodes.duplicate_ligand)
+        pass

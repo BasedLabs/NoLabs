@@ -9,5 +9,4 @@ from nolabs.seedwork.domain.event_handlers import DomainEventHandler
 
 class ProteinCreatedEventHandler(DomainEventHandler[ProteinCreatedEvent]):
     def handle(self, event: ProteinCreatedEvent):
-        if Protein.objects(name=event.protein.name.value):
-            raise NoLabsException(error_code=ErrorCodes.duplicate_protein)
+        pass
