@@ -4,7 +4,7 @@
         <div class="text-caption">Smiles String</div>
       </q-card-section>
       <q-separator />
-  
+
       <q-card-section>
         <q-skeleton />
       </q-card-section>
@@ -23,14 +23,14 @@
       </q-card-section>
     </q-card>
   </template>
-  
+
   <script lang="ts">
   import { QCard, QCardSection } from "quasar";
-  
+
   import PdbViewer from 'src/components/PdbViewer.vue'
   import {defineComponent, PropType} from "vue";
   import { LigandResponse } from "src/refinedApi/client";
-  
+
   export default defineComponent({
     name: "LigandDetail",
     components: {
@@ -59,4 +59,3 @@
     },
   })
   </script>
-  

@@ -1,15 +1,16 @@
 <template>
-  <q-card class="q-pa-md" style="width: 400px">
-    <div class="row no-wrap items-center">
-      <q-btn @click="deleteNode" class="q-absolute-top-right" flat icon="delete" color="negative" />
-      <q-space />
-    </div>
-
-    <LigandsListNodeContent v-if="experimentId" :experiment-id="experimentId" :nodeId="nodeId" />
-    <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
-    <q-btn @click="openDialogue" class="full-width q-pa-md" icon="open_in_new" label="Extended view"> </q-btn>
+  <q-card dark bordered>
+    <q-card-section>
+      <LigandsListNodeContent v-if="experimentId" :experiment-id="experimentId" :nodeId="nodeId" />
+    </q-card-section>
+    <q-card-section>
+      <NodeHandles :nodeId="nodeId" :outputs="useNodesData?.data.outputs" />
+    </q-card-section>
+    <q-card-actions align="around">
+      <q-btn @click="openDialogue" label="Extended view"/>
+      <q-btn @click="deleteNode" color="negative" icon="delete" label="Delete" />
+    </q-card-actions>
   </q-card>
-
 </template>
 
 <script lang="ts">
@@ -19,6 +20,7 @@ import { Position } from '@vue-flow/core'
 import NodeHandles from '../../NodeHandles.vue'
 import LigandsListNodeContent from "./LigandListNodeContent.vue";
 import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
+import ProteinListNodeContent from "../proteins/ProteinListNodeContent.vue";
 
 export default defineComponent({
   name: "LigandsListNode",

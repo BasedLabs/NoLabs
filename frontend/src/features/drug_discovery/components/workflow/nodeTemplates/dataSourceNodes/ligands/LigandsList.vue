@@ -1,6 +1,6 @@
 <template>
     <q-list bordered style="width: 100%;" class="bg-black rounded-borders">
-        <q-item-label header class="text-white">Ligands</q-item-label>
+      <q-item-label header class="text-white text-h6">Ligands List</q-item-label>
         <q-item>
             <q-btn size="md" class="full-width q-pm-sm" push color="info" @click="uploadLigandDialog = true">
                 + upload ligands
