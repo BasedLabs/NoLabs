@@ -1,9 +1,6 @@
 <template>
   <q-card dark bordered v-if="!nodeData">
-    <q-spinner
-      color="primary"
-      size="3em"
-    />
+    <q-spinner color="primary" size="3em" />
   </q-card>
   <q-card dark bordered v-if="nodeData" style="max-width: 400px">
     <q-card-section v-if="nodeData?.data.error">
@@ -22,8 +19,12 @@
       <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
     </q-card-section>
     <q-card-actions align="around">
-      <q-btn @click="openDialogue" color="positive" icon="play_arrow" label="Start"/>
-      <q-btn @click="openDialogue" label="Extended view"/>
+      <q-btn v-if="!isRunning" @click="openDialogue" color="positive" icon="play_arrow" label="Start" />
+      <q-btn v-else>
+        <q-spinner color="primary" size="20px" />
+        Running...
+      </q-btn>
+      <q-btn @click="openDialogue" label="Extended view" />
       <q-btn @click="deleteNode" color="negative" icon="delete" label="Delete" />
     </q-card-actions>
   </q-card>
@@ -54,6 +55,19 @@ export default {
       nodeData: null
     };
   },
+  computed: {
+    isRunning() {
+      const workflowStore = useWorkflowStore();
+      return workflowStore.runningComponentIds.includes(this.nodeId);
+    }
+  },
+  watch: {
+    'useWorkflowStore().runningComponentIds': function(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.updateRunningStatus();
+      }
+    }
+  },
   mounted() {
     const workflowStore = useWorkflowStore();
     this.nodeData = workflowStore.getNodeById(this.nodeId);
@@ -74,6 +88,10 @@ export default {
       if (this.onOpenDialog) {
         this.onOpenDialog(this.nodeId);
       }
+    },
+    updateRunningStatus() {
+      const workflowStore = useWorkflowStore();
+      this.isRunning = workflowStore.runningComponentIds.includes(this.nodeId);
     }
   }
 };

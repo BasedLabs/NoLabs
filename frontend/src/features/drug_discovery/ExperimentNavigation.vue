@@ -14,7 +14,12 @@
         </q-list>
       </q-btn-dropdown>
       <q-space />
-      <q-btn class="q-ma-sm" color="green" icon="not_started" @click="startWorkflow">Start workflow</q-btn>
+      <q-btn v-if="!isWorkflowRunning" class="q-ma-sm" color="green" icon="not_started" @click="startWorkflow">Start
+        workflow</q-btn>
+      <q-btn v-else class="q-ma-sm" color="green" icon="running">
+        <q-spinner color="white" size="20px" />
+        Running...
+      </q-btn>
       <q-btn class="q-ma-sm" color="red" icon="delete" @click="confirmDeleteWorkflow">Delete workflow</q-btn>
       <q-btn class="q-ma-sm" color="orange" icon="refresh" @click="confirmResetWorkflow">Reset workflow</q-btn>
     </div>
@@ -175,6 +180,10 @@ export default defineComponent({
     componentOptions() {
       const workflowStore = useWorkflowStore();
       return workflowStore.componentOptions;
+    },
+    isWorkflowRunning() {
+      const workflowStore = useWorkflowStore();
+      return workflowStore.workflowIsRunning;
     }
   },
   async mounted() {

@@ -68,8 +68,14 @@ export const useWorkflowStore = defineStore('workflowStore', {
       inputs: Record<string, PropertyModel_Output>,
       outputs: Record<string, PropertyModel_Output>,
       description: string
-    }>
+    }>,
+    runningComponentIds: [] as string[]
   }),
+  getters: {
+    workflowIsRunning(state) {
+      return state.runningComponentIds.length > 0;
+    }
+  },
   actions: {
     async createExperiment() {
       return await createExperimentApi();
@@ -83,6 +89,19 @@ export const useWorkflowStore = defineStore('workflowStore', {
     async getAllProteins(experimentId: string) {
       const response = await getAllProteins(experimentId);
       this.proteins = response;
+    },
+    addRunningComponentId(componentId: string) {
+      if (!this.runningComponentIds.includes(componentId)) {
+        this.runningComponentIds.push(componentId);
+      }
+    },
+    // Remove a component ID from the array if it no longer has running jobs
+    removeRunningComponentId(componentId: string) {
+      this.runningComponentIds = this.runningComponentIds.filter(id => id !== componentId);
+    },
+    // Clear all running component IDs (e.g., when the workflow is reset)
+    clearRunningComponentIds() {
+      this.runningComponentIds = [];
     },
     async deleteJob(jobId: string){
       await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJobsJodIdDelete(jobId);

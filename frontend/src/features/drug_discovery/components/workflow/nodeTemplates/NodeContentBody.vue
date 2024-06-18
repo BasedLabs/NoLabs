@@ -24,7 +24,7 @@
             <q-btn @click="openJob(element)" label="View" dense />
           </q-item-section>
           <q-item-section>
-            <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense/>
+            <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
           </q-item-section>
         </q-item>
       </template>
@@ -49,7 +49,7 @@
             <q-btn @click="openJob(element)" label="View" dense />
           </q-item-section>
           <q-item-section>
-            <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense/>
+            <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
           </q-item-section>
         </q-item>
       </template>
@@ -233,38 +233,42 @@ export default defineComponent({
     },
     async updateJobs() {
       this.loading = true;
-      //const diffDockJob = await getDiffDockJobApi("27102be2-6ce7-4fa6-8dd8-c41438cd7012");
-      //const executionStatus = await getDiffDockJobStatus("27102be2-6ce7-4fa6-8dd8-c41438cd7012");
+      const workflowStore = useWorkflowStore();
       let jobsWithStatus = [];
-      if (this.name == 'DiffDock new') {
-        //jobsWithStatus = [{...diffDockJob, executionStatus}]
-      } else {
-        if (this.nodeData?.data.jobIds) {
-          jobsWithStatus = await Promise.all(this.nodeData?.data?.jobIds?.map(async (jobId: string) => {
-            let job;
-            let executionStatus;
+      if (this.nodeData?.data.jobIds) {
+        jobsWithStatus = await Promise.all(this.nodeData?.data?.jobIds?.map(async (jobId: string) => {
+          let job;
+          let executionStatus;
 
-            const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
+          const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
 
-            job = await jobDefinition.api.getJob(jobId);
-            executionStatus = await jobDefinition.api.executionStatus(jobId);
+          job = await jobDefinition.api.getJob(jobId);
+          executionStatus = await jobDefinition.api.executionStatus(jobId);
 
-            return { ...job, executionStatus };
-          }));
-        }
+          return { ...job, executionStatus };
+        }));
       }
-      this.jobs = jobsWithStatus.filter(job => job && job.executionStatus && (job.executionStatus.running || !job.result || job.result.length === 0)) as Array<GetJobMetadataResponse & {
+      this.jobs = jobsWithStatus.filter(job => job && !job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
         executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null
       }>;
-      this.results = jobsWithStatus.filter(job => job && job.executionStatus && job.result && job.result.length > 0) as Array<GetJobMetadataResponse & {
+      this.results = jobsWithStatus.filter(job => job && job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
         executionStatus: nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse | null
       }>;
 
       this.loading = false;
+
+      // Update workflow store with running jobs status
+      const anyJobRunning = this.jobs.some(job => job.executionStatus?.running);
+      if (anyJobRunning) {
+        workflowStore.addRunningComponentId(this.nodeId);
+      } else {
+        workflowStore.removeRunningComponentId(this.nodeId);
+      }
     },
     async deleteJob(job: GetJobMetadataResponse) {
       const workflowStore = useWorkflowStore();
       await workflowStore.deleteJob(job.job_id);
+      this.updateJobs();
     },
     updateErrorsAndExceptions() {
       this.lastExceptions = this.nodeData?.data.last_exceptions || [];
