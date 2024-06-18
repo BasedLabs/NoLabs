@@ -668,6 +668,11 @@ class JobName(ValueObjectString):
         return self
 
 
+@dataclass
+class JobInputError:
+    message: str
+
+
 class Job(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
@@ -702,6 +707,10 @@ class Job(Document, Entity):
 
     @abstractmethod
     def result_valid(self) -> bool:
+        ...
+
+    @abstractmethod
+    def input_errors(self) -> List[JobInputError]:
         ...
 
     def save(self, **kwargs):

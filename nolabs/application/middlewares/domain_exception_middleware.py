@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.infrastructure.nolabs_logging import logger
+from nolabs.infrastructure.logging import get_logger
 
 
 def add_domain_exception_middleware(app: FastAPI):
@@ -17,7 +17,7 @@ def add_domain_exception_middleware(app: FastAPI):
                 'error_code': e.error_code
             }, headers={'Content-Type': 'application/problem+json'}, status_code=200)
         except Exception as e:
-            logger.exception('Exception occured in application')
+            get_logger().exception('Exception occured in application')
             return JSONResponse(content={
                 'errors': ['Unknown server error'],
                 'error_code': ErrorCodes.unknown_exception.value.code,
