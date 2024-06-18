@@ -1,196 +1,178 @@
 <template>
-    <q-separator></q-separator>
-    <q-card>
-      <div class="row q-gutter-md">
-        <div class="col-12">
-          <q-separator></q-separator>
-          <q-card-section>
-            <div class="text-h6">Job Details</div>
-          </q-card-section>
-          <q-card-section>
-            <q-list>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Job ID</q-item-label>
-                </q-item-section>
-                <q-item-section>{{ jobId }}</q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Job Name</q-item-label>
-                </q-item-section>
-                <q-item-section>
-                  <q-input v-model="editableJobName" @blur="updateJobName" />
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Job Status</q-item-label>
-                </q-item-section>
-                <q-item-section>
-                  <template v-if="jobStatus === null">
-                    Loading...
-                  </template>
-                  <template v-else>
-                    <q-spinner v-if="jobStatus.running" color="primary" size="20px" />
-                    {{ jobStatusText }}
-                  </template>
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Folding Backend</q-item-label>
-                </q-item-section>
-                <q-item-section>{{ job?.backend }}</q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
-        </div>
+  <q-separator></q-separator>
+  <q-card>
+    <div class="row q-gutter-md">
+      <div class="col-12">
         <q-separator></q-separator>
-        <div class="col-12">
-          <q-separator></q-separator>
-          <q-card-section>
-            <div class="text-h6">Job Inputs</div>
-          </q-card-section>
-          <q-card-section>
-            <q-list>
-              <q-item>
-                <q-item-section>
-                  <q-item-label>Protein FASTA Content</q-item-label>
-                </q-item-section>
-                <q-item-section class="fasta-content-container">
-                  <div class="fasta-content">{{ protein?.fasta_content }}</div>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
-        </div>
-        <q-separator></q-separator>
-        <div class="col-12">
-          <q-separator></q-separator>
-          <q-card-section>
-            <div class="text-h6">Result</div>
-          </q-card-section>
-          <q-card-section>
-            <div class="q-pl-sm q-ma-sm" v-if="jobHasGeneratedData">
-              <PdbViewer :pdb-file="pdbFile" :key="protein?.name"/>
-            </div>
-          </q-card-section>
-        </div>
+        <q-card-section>
+          <div class="text-h6">Job Details</div>
+        </q-card-section>
+        <q-card-section>
+          <q-list>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Job ID</q-item-label>
+              </q-item-section>
+              <q-item-section>{{ jobId }}</q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Job Name</q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <q-input v-model="editableJobName" @blur="updateJobName" />
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Job Status</q-item-label>
+              </q-item-section>
+              <q-item-section>
+                <template v-if="jobStatus === null">
+                  Loading...
+                </template>
+                <template v-else>
+                  <q-spinner v-if="jobStatus.running" color="primary" size="20px" />
+                  {{ jobStatusText }}
+                  <q-btn v-if="!jobStatus.running" @click="startJob" color="primary" label="Start Job" />
+                </template>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
       </div>
-    </q-card>
-  </template>
-  
-  
-  <script lang="ts">
-  import { defineComponent } from 'vue';
-  import { QSpinner, QInput } from 'quasar';
-  import {
-    nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse, ProteinResponse,
-    nolabs__refined__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
-    nolabs__refined__application__use_cases__msa_generation__api_models__SetupJobRequest
-  } from "../../../../../refinedApi/client";
-  import { getMsaJobApi, getProtein, getMsajobStatus, changeJobName } from "../../../refinedApi";
-  
-  export default defineComponent({
-    name: 'MsaJob',
-    props: {
-      jobId: String,
+      <q-separator></q-separator>
+      <div class="col-12">
+        <q-separator></q-separator>
+        <q-card-section>
+          <div class="text-h6">Job Inputs</div>
+        </q-card-section>
+        <q-card-section>
+          <q-list>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Protein FASTA Content</q-item-label>
+              </q-item-section>
+              <q-item-section class="fasta-content-container">
+                <div class="fasta-content">{{ protein?.fasta_content }}</div>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+      </div>
+      <q-separator></q-separator>
+      <div class="col-12">
+        <q-separator></q-separator>
+        <q-card-section>
+          <div class="text-h6">Result</div>
+        </q-card-section>
+        <q-card-section>
+          <div class="q-pl-sm q-ma-sm" v-if="jobHasGeneratedData">
+            <q-btn @click="downloadA3MFile" color="primary" label="Download .a3m File" />
+          </div>
+          <div v-else>
+            No data available.
+          </div>
+        </q-card-section>
+      </div>
+    </div>
+  </q-card>
+</template>
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { QSpinner, QInput, QBtn } from 'quasar';
+import {
+  nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse,
+  ProteinResponse,
+  nolabs__refined__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
+  nolabs__refined__application__use_cases__msa_generation__api_models__SetupJobRequest
+} from "../../../../../refinedApi/client";
+import { getMsaJobApi, getProtein, getMsajobStatus, changeJobName, startMsaJob } from "../../../refinedApi";
+
+export default defineComponent({
+  name: 'MsaJob',
+  props: {
+    jobId: String,
+  },
+  data() {
+    return {
+      experimentId: null as string | null,
+      job: null as nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse | null,
+      protein: null as ProteinResponse | null,
+      jobStatus: null as nolabs__refined__application__use_cases__msa_generation__api_models__GetJobStatusResponse | null,
+      editableJobName: '' as string,
+    };
+  },
+  computed: {
+    jobHasGeneratedData(): boolean | null {
+      return this.job && this.job.result !== null;
     },
-    data() {
-      return {
-        experimentId: null as string | null,
-        job: null as nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse | null,
-        protein: null as ProteinResponse | null,
-        jobStatus: null as nolabs__refined__application__use_cases__msa_generation__api_models__GetJobStatusResponse | null,
-        editableJobName: '' as string,
-      };
-    },
-    computed: {
-      jobHasGeneratedData(): boolean | null {
-        return this.job && this.job.result.length > 0;
-      },
-      jobStatusText(): string {
-        if (this.jobStatus === null) {
-          return '';
-        }
-        return this.jobStatus.running ? 'Running...' : 'Not running';
-      },
-      pdbFile(): File {
-        if (this.jobHasGeneratedData && this.job?.result[0].pdb) {
-          return new File([new Blob([this.job?.result[0].pdb])], this.protein?.name + ".pdb");
-        }
-        return new File([], "empty.pdb");
+    jobStatusText(): string {
+      if (this.jobStatus === null) {
+        return '';
       }
+      return this.jobStatus.running ? 'Running...' : 'Not running';
     },
-    async mounted() {
-  
-      this.experimentId = this.$route.params.experimentId as string;
-  
-      this.job = await getMsaJobApi(this.jobId as string);
+  },
+  async mounted() {
+    this.experimentId = this.$route.params.experimentId as string;
+    this.job = await getMsaJobApi(this.jobId as string);
+    if (this.job) {
+      this.editableJobName = this.job.job_name || '';
+      this.protein = await getProtein(this.job.protein_id);
+    }
+    this.jobStatus = await getMsajobStatus(this.jobId as string);
+  },
+  methods: {
+    async updateJobName() {
       if (this.job) {
-        this.editableJobName = this.job.job_name || '';
-      }
-      if (this.job && this.job.proteins.length > 0) {
-        this.protein = await getProtein(this.job.proteins[0]);
-      }
-  
-      this.jobStatus = await getMsajobStatus(this.jobId as string);
-    },
-    methods: {
-      async updateJobName() {
-        if (this.job) {
-          try {
-            await changeJobName(this.job.job_id, this.editableJobName);        }
-          catch (error) {
-            this.editableJobName = this.job.job_name;
-            this.$q.notify({
-              type: 'negative',
-              message: 'Failed to update job name.'
-            });
-          }
-        }
-      },
-      async updateJobParams() {
-        if (this.job) {
-          const setupJobRequest: nolabs__refined__application__use_cases__msa_generation__api_models__SetupJobRequest = {
-            experiment_id: this.experimentId as string,
-            protein_id: this.protein.protein_id,
-            job_id: this.job.job_id,
-            job_name: this.editableJobName,
-          };
-  
-          try {
-            this.job = await setupFoldingJob(setupJobRequest);
-            this.$q.notify({
-              type: 'positive',
-              message: 'Job name updated successfully!'
-            });
-          } catch (error) {
-            this.$q.notify({
-              type: 'negative',
-              message: 'Failed to update job name.'
-            });
-          }
+        try {
+          await changeJobName(this.job.job_id, this.editableJobName);
+        } catch (error) {
+          this.editableJobName = this.job.job_name;
+          this.$q.notify({
+            type: 'negative',
+            message: 'Failed to update job name.'
+          });
         }
       }
     },
-  });
-  </script>
-  
-  
-  
-  <style scoped>
-  .fasta-content-container {
-    width: 100%;
-    overflow: hidden;
-  }
-  
-  .fasta-content {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    word-break: break-all;
-  }
-  
-  </style>
-  
+    async startJob() {
+      try {
+        await startMsaJob(this.jobId as string);
+        // Optionally update job status here if required
+      } catch (error) {
+        this.$q.notify({
+          type: 'negative',
+          message: 'Failed to start the job.'
+        });
+      }
+    },
+    downloadA3MFile() {
+      const blob = new Blob([this.job?.result as string], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.protein?.name}.a3m`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },
+  },
+});
+</script>
+
+<style scoped>
+.fasta-content-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.fasta-content {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+</style>

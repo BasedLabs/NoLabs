@@ -113,7 +113,7 @@ import ProteinListNodeContent from "./components/workflow/nodeTemplates/dataSour
 import LigandListNode from "./components/workflow/nodeTemplates/dataSourceNodes/ligands/LigandListNode.vue";
 import LigandListNodeContent from "./components/workflow/nodeTemplates/dataSourceNodes/ligands/LigandListNodeContent.vue";
 import ErrorEdge from "./components/workflow/nodeTemplates/ErrorEdge.vue"
-import { defineComponent } from "vue";
+import { defineComponent, onBeforeUnmount } from "vue";
 import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import JobNode from "./components/workflow/nodeTemplates/JobNode.vue";
@@ -167,7 +167,8 @@ export default defineComponent({
       bioBuddyEnabled: false,
       workflowId: "", // Set initially to empty
       showDeleteDialog: false, // State for delete confirmation dialog
-      showResetDialog: false   // State for reset confirmation dialog
+      showResetDialog: false,  // State for reset confirmation dialog
+      pollIntervalId: null as number | null // Interval ID for polling
     };
   },
   computed: {
@@ -194,7 +195,7 @@ export default defineComponent({
     await workflowStore.fetchWorkflow(this.workflowId);
     this.elements = workflowStore.elements;
 
-    setInterval(() => {
+    this.pollIntervalId = window.setInterval(() => {
       workflowStore.pollWorkflow();
     }, 2000); // Poll every 2 seconds
   },
@@ -284,6 +285,11 @@ export default defineComponent({
         type: 'positive',
         message: 'Workflow reset successfully'
       });
+    }
+  },
+  beforeUnmount() {
+    if (this.pollIntervalId !== null) {
+      clearInterval(this.pollIntervalId);
     }
   }
 });

@@ -34,6 +34,7 @@
                 <template v-else>
                   <q-spinner v-if="jobStatus.running" color="primary" size="20px" />
                   {{ jobStatusText }}
+                  <q-btn v-if="!jobStatus.running" @click="startJob" color="primary" label="Start" />
                 </template>
               </q-item-section>
             </q-item>
@@ -83,7 +84,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QSpinner, QInput } from 'quasar';
+import { QSpinner, QInput, QBtn } from 'quasar';
 import DiffDockResult from './DiffDockResult.vue';
 import {
   nolabs__refined__application__use_cases__diffdock__api_models__JobResponse,
@@ -91,7 +92,7 @@ import {
   nolabs__refined__application__use_cases__diffdock__api_models__GetJobStatusResponse,
   nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest
 } from "../../../../../refinedApi/client";
-import { getDiffDockJobApi, getProtein, getDiffDockJobStatus, changeJobName, setupDiffDockJob } from "../../../refinedApi";
+import { getDiffDockJobApi, getProtein, getDiffDockJobStatus, changeJobName, setupDiffDockJob, startDiffDockJob } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'DiffDockJob',
@@ -165,10 +166,22 @@ export default defineComponent({
           });
         }
       }
+    },
+    async startJob() {
+      try {
+        await startDiffDockJob(this.jobId as string);
+        // Optionally update job status here if required
+      } catch (error) {
+        this.$q.notify({
+          type: 'negative',
+          message: 'Failed to start the job.',
+        });
+      }
     }
   },
   components: {
     DiffDockResult,
+    QBtn, // Ensure QBtn component is registered
   },
 });
 </script>

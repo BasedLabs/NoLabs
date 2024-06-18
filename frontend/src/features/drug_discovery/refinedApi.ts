@@ -16,8 +16,6 @@ import {
   AllWorkflowSchemasResponse,
   WorkflowSchemaModel_Input,
   ProteinSearchQuery,
-  Body_upload_protein_api_v1_objects_proteins_post,
-  Body_update_protein_api_v1_objects_proteins_patch,
   LigandResponse,
   LigandSearchQuery,
   LigandsService,
@@ -31,7 +29,9 @@ import {
   nolabs__refined__application__use_cases__diffdock__api_models__SetupJobRequest, OpenAPI,
   GetComponentStateResponse,
   nolabs__refined__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
-  nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse
+  nolabs__refined__application__use_cases__msa_generation__api_models__JobResponse,
+  Body_upload_protein_api_v1_proteins_post,
+  Body_update_protein_api_v1_proteins_patch
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../api/constants";
@@ -96,6 +96,14 @@ export function setupFoldingJob(job: nolabs__refined__application__use_cases__fo
   return FoldingService.setupJobApiV1FoldingJobsPost(job);
 }
 
+export function startDiffDockJob(jobId: string): CancelablePromise<nolabs__refined__application__use_cases__diffdock__api_models__JobResponse> {
+  return DiffdockService.startJobApiV1DiffdockJobsRunJobIdPost(jobId);
+}
+
+export function startMsaJob(jobId: string): CancelablePromise<any> {
+  return GenerateMsaService.runJobApiV1MsaGenerationJobsRunJobIdPost(jobId);
+}
+
 export function changeJobName(jobId: string, newName: string): CancelablePromise<any> {
   const jobRequest = { job_name: newName } as UpdateJobRequest;
   return JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(jobId, jobRequest);
@@ -149,7 +157,7 @@ export function uploadProtein(
     name: name,
     fasta: fasta,
     pdb: pdb
-  } as Body_upload_protein_api_v1_objects_proteins_post;
+  } as Body_upload_protein_api_v1_proteins_post;
   return ProteinsService.uploadProteinApiV1ProteinsPost(uploadProtein);
 }
 
@@ -161,7 +169,7 @@ export function updateProteinName(proteinId: string, newName: string): Cancelabl
   const newRequest = {
     protein_id: proteinId,
     name: newName
-  } as Body_update_protein_api_v1_objects_proteins_patch;
+  } as Body_update_protein_api_v1_proteins_patch;
   return ProteinsService.updateProteinApiV1ProteinsPatch(newRequest);
 }
 
