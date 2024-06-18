@@ -1,16 +1,18 @@
+import logging
 import uuid
 from typing import Optional, List, Dict, Type, Union
 from uuid import UUID
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.refined.domain.models.common import Experiment
+from nolabs.refined.infrastructure.logging import get_logger
 from nolabs.workflow.application.api_models import GetComponentStateResponse, GetComponentStateRequest, \
     AllWorkflowSchemasResponse, JobErrorResponse, InputPropertyErrorResponse, ResetWorkflowRequest, \
     StartWorkflowComponentRequest
 from nolabs.workflow.component import Component
 from nolabs.workflow.models import WorkflowSchemaDbModel, ComponentDbModel
 from nolabs.workflow.properties import Property, ParameterSchema, Items
-from nolabs.workflow.workflow import Workflow
+from nolabs.workflow.workflow import WorkflowExecutor
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel, ItemsModel
 
 
@@ -183,7 +185,8 @@ class GetWorkflowSchemaFeature:
 class UpdateWorkflowSchemaFeature:
     available_components: Dict[str, Type[Component]]
 
-    def __init__(self, available_components: Dict[str, Type[Component]]):
+    def __init__(self,
+                 available_components: Dict[str, Type[Component]]):
         self.available_components = available_components
 
     async def handle(self, workflow_schema: WorkflowSchemaModel) -> WorkflowSchemaModel:
@@ -279,9 +282,12 @@ class UpdateWorkflowSchemaFeature:
 
 class StartWorkflowFeature:
     available_components: Dict[str, Type[Component]]
+    logger: logging.Logger
 
-    def __init__(self, available_components: Dict[str, Type[Component]]):
+    def __init__(self, available_components: Dict[str, Type[Component]],
+                 logger: logging.Logger = logging.getLogger('nolabs')):
         self.available_components = available_components
+        self.logger = logger
 
     async def handle(self, workflow_id: UUID):
         db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_id)
@@ -344,15 +350,18 @@ class StartWorkflowFeature:
             for default in workflow_component.defaults:
                 component.try_set_default(default.target_path, value=default.value)
 
-        workflow = Workflow()
-        await workflow.execute(components=components)
+        executor = WorkflowExecutor(self.logger)
+        await executor.execute(components=components)
 
 
 class StartWorkflowComponentFeature:
     available_components: Dict[str, Type[Component]]
+    logger: logging.Logger
 
-    def __init__(self, available_components: Dict[str, Type[Component]]):
+    def __init__(self, available_components: Dict[str, Type[Component]],
+                 logger: logging.Logger = logging.getLogger('nolabs')):
         self.available_components = available_components
+        self.logger = logger
 
     async def handle(self, request: StartWorkflowComponentRequest):
         db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(request.workflow_id)
@@ -415,9 +424,9 @@ class StartWorkflowComponentFeature:
             for default in workflow_component.defaults:
                 component.try_set_default(default.target_path, value=default.value)
 
-        workflow = Workflow()
+        executor = WorkflowExecutor(logger=self.logger)
         component = [c for c in components if c.id == request.component_id][0]
-        await workflow.execute_single(component=component)
+        await executor.execute_single(component=component)
 
 
 class GetComponentStateFeature:

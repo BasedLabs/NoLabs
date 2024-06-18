@@ -112,7 +112,7 @@ class Component(Generic[TInput, TOutput]):
     def output_dict(self) -> Dict[str, Any]:
         return self.output_parameter_dict
 
-    def validate_input(self):
+    def input_errors(self):
         return self._input_schema.validate_dictionary(t=self._input_parameter_type,
                                                       dictionary=self.input_parameter_dict)
 
@@ -231,7 +231,7 @@ class Component(Generic[TInput, TOutput]):
             ))
         return result
 
-    def validate_output(self) -> List[PropertyValidationError]:
+    def output_errors(self) -> List[PropertyValidationError]:
         return self._output_schema.validate_dictionary(t=self._output_parameter_type,
                                                        dictionary=self.output_parameter_dict)
 

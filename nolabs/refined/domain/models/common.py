@@ -672,7 +672,8 @@ class Job(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     name: JobName = ValueObjectStringField(required=True, factory=JobName)
-    created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
+    created_at: datetime.datetime = DateTimeField()
+    updated_at: datetime.datetime = DateTimeField()
 
     meta = {
         'allow_inheritance': True
@@ -702,6 +703,13 @@ class Job(Document, Entity):
     @abstractmethod
     def result_valid(self) -> bool:
         ...
+
+    def save(self, **kwargs):
+        if not self.created_at:
+            self.created_at = datetime.datetime.utcnow()
+        else:
+            self.updated_at = datetime.datetime.utcnow()
+        super().save(**kwargs)
 
 
 class ProteinBinder(Document):

@@ -4,6 +4,7 @@ __all__ = [
     'WorkflowDependencies'
 ]
 
+import logging
 from typing import Annotated, Type, Dict
 
 from fastapi import Depends
@@ -21,6 +22,7 @@ from nolabs.refined.application.use_cases.protein_design.workflow import Protein
 from nolabs.refined.application.use_cases.proteins.workflow import ProteinsComponent
 from nolabs.refined.application.use_cases.small_molecules_design.workflow import SmallMoleculesDesignLearningComponent
 from nolabs.refined.application.use_cases.solubility.workflow import SolubilityComponent
+from nolabs.refined.infrastructure.di import InfrastructureDependencies
 from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
     UpdateWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, \
     GetComponentStateFeature, ResetWorkflowFeature, StartWorkflowComponentFeature
@@ -66,21 +68,25 @@ class WorkflowDependencies:
     def update_workflow_schema(components: Annotated[
         Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)]) -> UpdateWorkflowSchemaFeature:
         return UpdateWorkflowSchemaFeature(
-            available_components=components
+            available_components=components,
         )
 
     @staticmethod
     def start_workflow(components: Annotated[
-        Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)]) -> StartWorkflowFeature:
+        Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)],
+                       logger: Annotated[logging.Logger, Depends(InfrastructureDependencies.logger)]) -> StartWorkflowFeature:
         return StartWorkflowFeature(
-            available_components=components
+            available_components=components,
+            logger=logger
         )
 
     @staticmethod
     def start_workflow_component(components: Annotated[
-        Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)]) -> StartWorkflowComponentFeature:
+        Dict[str, Type[Component]], Depends(WorkflowDependencies.available_components)],
+                                 logger: Annotated[logging.Logger, Depends(InfrastructureDependencies.logger)]) -> StartWorkflowComponentFeature:
         return StartWorkflowComponentFeature(
-            available_components=components
+            available_components=components,
+            logger=logger
         )
 
     @staticmethod

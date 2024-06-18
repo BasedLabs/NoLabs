@@ -1,3 +1,5 @@
+import logging
+
 import biobuddy_microservice
 import chembl_query_microservice
 import localisation_microservice
@@ -15,6 +17,7 @@ import msa_light_microservice
 import diffdock_microservice
 import umol_microservice
 
+from nolabs.refined.infrastructure.logging import get_logger
 from nolabs.refined.infrastructure.settings import Settings, MsaLightMicroserviceSettings
 
 
@@ -22,6 +25,10 @@ class InfrastructureDependencies:
     @staticmethod
     def settings() -> Settings:
         return Settings.load()
+
+    @staticmethod
+    def logger() -> logging.Logger:
+        return get_logger()
 
     @staticmethod
     def biobuddy_microservice() -> biobuddy_microservice.DefaultApi:

@@ -1,10 +1,11 @@
 import pickle
 import uuid
+from datetime import datetime
 from typing import Dict, Any, List, Optional
 from uuid import UUID
 
 from mongoengine import Document, UUIDField, BinaryField, ReferenceField, CASCADE, DictField, StringField, IntField, \
-    ListField, EmbeddedDocument, EmbeddedDocumentListField, PULL
+    ListField, EmbeddedDocument, EmbeddedDocumentListField, PULL, DateTimeField
 
 from nolabs.refined.domain.models.common import Experiment, Job
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel
@@ -70,6 +71,9 @@ class ComponentDbModel(Document):
     output_parameter_dict: Dict[str, Any] = DictField(default=dict)
 
     jobs: List[Job] = ListField(ReferenceField(Job, reverse_delete_rule=PULL), default=[])
+    last_jobs_count: int = IntField()
+
+    last_execute_try_at: datetime = DateTimeField()
 
     @classmethod
     def create(cls,
