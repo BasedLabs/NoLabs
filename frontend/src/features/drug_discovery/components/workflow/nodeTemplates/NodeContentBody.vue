@@ -97,12 +97,14 @@ import DiffDockJob from '../jobs/DiffDockJob.vue';
 import draggable from 'vuedraggable';
 import { Notify } from "quasar";
 import componentApi from "./componentApi";
+import MsaJob from '../jobs/MsaJob.vue';
 
 export default defineComponent({
   name: 'NodeContentBody',
   components: {
     EsmFoldJob,
     P2RankJob,
+    MsaJob,
     draggable,
     DiffDockJob
   },
@@ -143,6 +145,12 @@ export default defineComponent({
       tab: false,
       component: DiffDockJob,
       api: componentApi.diffdock
+    },    
+    {
+      name: "Msa generation",
+      tab: false,
+      component: MsaJob,
+      api: componentApi.msaGeneration
     },
     {
       name: "Localisation",

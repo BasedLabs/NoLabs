@@ -141,10 +141,11 @@ class GetJobStatusFeature:
             if not job:
                 raise NoLabsException(ErrorCodes.job_not_found)
 
-            response = self._api.is_job_running_job_job_id_is_running_get(job_id=job_id)
+            response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
 
             return GetJobStatusResponse(
-                running=response.is_running
+                running=response.is_running,
+                result_valid=job.result_valid()
             )
         except Exception as e:
             print(e)

@@ -2,6 +2,7 @@ import {
   BindingPocketsService, ConformationsService,
   DiffdockService,
   FoldingService, GeneOntologyService,
+  GenerateMsaService,
   LocalisationService,
   OpenAPI, ProteinDesignService, SmallMoleculesDesignService, SolubilityService
 } from "src/refinedApi/client";
@@ -32,6 +33,10 @@ const componentApi = {
   bindingPockets: {
     getJob: BindingPocketsService.getJobApiV1BindingPocketsJobsJobIdGet,
     executionStatus: BindingPocketsService.getJobStatusApiV1BindingPocketsJobsJobIdStatusGet
+  },
+  msaGeneration: {
+    getJob: GenerateMsaService.getJobApiV1MsaGenerationJobsJobIdGet,
+    executionStatus: GenerateMsaService.getJobStatusApiV1MsaGenerationJobsJobIdStatusGet
   },
   diffdock: {
     getJob: DiffdockService.getJobApiV1DiffdockJobsJobIdGet,
