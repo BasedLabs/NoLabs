@@ -247,7 +247,7 @@ class Component(Generic[TInput, TOutput]):
         ...
 
     @abstractmethod
-    async def prevalidate_jobs(self) -> List[JobValidationError]:
+    async def jobs_setup_errors(self) -> List[JobValidationError]:
         ...
 
     # region Function

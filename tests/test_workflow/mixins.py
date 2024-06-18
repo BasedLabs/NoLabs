@@ -14,7 +14,7 @@ class WorkflowTestsMixin:
             async def setup_jobs(self):
                 pass
 
-            async def prevalidate_jobs(self) -> List[JobValidationError]:
+            async def jobs_setup_errors(self) -> List[JobValidationError]:
                 return []
 
             @property

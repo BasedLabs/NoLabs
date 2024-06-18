@@ -59,7 +59,7 @@ class LocalisationComponent(Component[LocalisationComponentInput, LocalisationCo
 
             self.jobs.append(LocalisationJob.objects.with_id(result.job_id))
 
-    async def prevalidate_jobs(self) -> List[JobValidationError]:
+    async def jobs_setup_errors(self) -> List[JobValidationError]:
         validation_errors = []
 
         job: LocalisationJob

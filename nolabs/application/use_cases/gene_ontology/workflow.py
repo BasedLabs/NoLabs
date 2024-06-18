@@ -58,7 +58,7 @@ class GeneOntologyComponent(Component[GeneOntologyComponentInput, GeneOntologyCo
 
             self.jobs.append(GeneOntologyJob.objects.with_id(result.job_id))
 
-    async def prevalidate_jobs(self) -> List[JobValidationError]:
+    async def jobs_setup_errors(self) -> List[JobValidationError]:
         validation_errors = []
 
         job: GeneOntologyJob

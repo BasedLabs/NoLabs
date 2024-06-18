@@ -38,7 +38,7 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
             async def setup_jobs(self):
                 pass
 
-            async def prevalidate_jobs(self) -> List[JobValidationError]:
+            async def jobs_setup_errors(self) -> List[JobValidationError]:
                 return []
 
             @property
@@ -132,7 +132,7 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
             async def setup_jobs(self):
                 pass
 
-            async def prevalidate_jobs(self) -> List[JobValidationError]:
+            async def jobs_setup_errors(self) -> List[JobValidationError]:
                 return []
 
             @property
@@ -154,7 +154,7 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
             async def setup_jobs(self):
                 pass
 
-            async def prevalidate_jobs(self) -> List[JobValidationError]:
+            async def jobs_setup_errors(self) -> List[JobValidationError]:
                 return []
 
             @property
@@ -277,7 +277,7 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
             async def setup_jobs(self):
                 pass
 
-            async def prevalidate_jobs(self) -> List[JobValidationError]:
+            async def jobs_setup_errors(self) -> List[JobValidationError]:
                 return [
                     JobValidationError(job_id=uuid.uuid4(), msg='Issue 1'),
                     JobValidationError(job_id=uuid.uuid4(), msg='Issue 2')
@@ -360,7 +360,7 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
             async def setup_jobs(self):
                 pass
 
-            async def prevalidate_jobs(self) -> List[JobValidationError]:
+            async def jobs_setup_errors(self) -> List[JobValidationError]:
                 return []
 
             @property

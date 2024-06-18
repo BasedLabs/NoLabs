@@ -24,7 +24,7 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
     description = 'Protein binder prediction using Rfdiffusion'
 
     async def execute(self):
-        if await self.prevalidate_jobs():
+        if await self.jobs_setup_errors():
             raise NoLabsException(ErrorCodes.invalid_job_input, 'Jobs are not valid')
 
         run_job_feature = RunJobFeature(api=InfrastructureDependencies.protein_design_microservice())
@@ -58,7 +58,7 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
 
             self.jobs.append(job)
 
-    async def prevalidate_jobs(self) -> List[JobValidationError]:
+    async def jobs_setup_errors(self) -> List[JobValidationError]:
         validation_errors = []
 
         job: ProteinDesignJob

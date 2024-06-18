@@ -65,7 +65,7 @@ class DiffDockComponent(Component[DiffDockComponentInput, DiffDockComponentOutpu
 
                 self.jobs.append(DiffDockBindingJob.objects.with_id(result.job_id))
 
-    async def prevalidate_jobs(self) -> List[JobValidationError]:
+    async def jobs_setup_errors(self) -> List[JobValidationError]:
         validation_errors = []
 
         job: DiffDockBindingJob

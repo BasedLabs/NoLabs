@@ -25,7 +25,7 @@ class BindingPocketPredictionComponent(Component[BindingPocketPredictionInput, B
     description = 'Protein binding pockets prediction'
 
     async def execute(self):
-        if not self.prevalidate_jobs():
+        if await self.jobs_setup_errors():
             raise NoLabsException(ErrorCodes.invalid_job_input, 'Jobs are not valid')
 
         run_job_feature = RunJobFeature(api=InfrastructureDependencies.p2rank_microservice())
@@ -56,7 +56,7 @@ class BindingPocketPredictionComponent(Component[BindingPocketPredictionInput, B
 
             self.jobs.append(job)
 
-    async def prevalidate_jobs(self) -> List[JobValidationError]:
+    async def jobs_setup_errors(self) -> List[JobValidationError]:
         validation_errors = []
 
         job: PocketPredictionJob

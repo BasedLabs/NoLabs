@@ -69,7 +69,7 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
             self.jobs.append(FoldingJob.objects.with_id(result.job_id))
 
-    async def prevalidate_jobs(self) -> List[JobValidationError]:
+    async def jobs_setup_errors(self) -> List[JobValidationError]:
         validation_errors = []
 
         job: FoldingJob

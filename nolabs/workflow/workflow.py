@@ -46,7 +46,7 @@ class WorkflowExecutor:
                         component_db_model.last_exceptions = [str(e)]
                     component_db_model.save()
 
-                jobs_validation_errors = await component.prevalidate_jobs()
+                jobs_validation_errors = await component.jobs_setup_errors()
 
                 if jobs_validation_errors:
                     component_db_model.jobs_errors = [JobErrorDbModel(
@@ -126,7 +126,7 @@ class WorkflowExecutor:
                             component_db_model.last_exceptions = [str(e)]
                         component_db_model.save()
 
-                    jobs_validation_errors = await component.prevalidate_jobs()
+                    jobs_validation_errors = await component.jobs_setup_errors()
 
                     if jobs_validation_errors:
                         component_db_model.jobs_errors = [JobErrorDbModel(
