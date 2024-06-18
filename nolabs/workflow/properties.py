@@ -1,11 +1,9 @@
 from dataclasses import field
-from typing import Optional, Union, Dict, List, Any, Tuple, Type, TypeVar, Generic, get_origin, get_args
+from typing import Optional, Union, Dict, List, Any, Type, TypeVar, Generic, get_origin, get_args
 from uuid import UUID
 
 from pydantic import Field, BaseModel, ValidationError, parse_obj_as
 from pydantic.dataclasses import dataclass
-
-from nolabs.exceptions import NoLabsException
 
 
 def is_assignable_to_generic(value, generic_type):

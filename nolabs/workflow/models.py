@@ -1,13 +1,13 @@
 import pickle
 import uuid
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from uuid import UUID
 
 from mongoengine import Document, UUIDField, BinaryField, ReferenceField, CASCADE, DictField, StringField, IntField, \
     ListField, EmbeddedDocument, EmbeddedDocumentListField, PULL, DateTimeField
 
-from nolabs.refined.domain.models.common import Experiment, Job
+from nolabs.domain.models.common import Experiment, Job
 from nolabs.workflow.workflow_schema import WorkflowSchemaModel
 
 

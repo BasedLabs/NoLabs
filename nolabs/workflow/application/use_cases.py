@@ -4,8 +4,7 @@ from typing import Optional, List, Dict, Type, Union
 from uuid import UUID
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.refined.domain.models.common import Experiment
-from nolabs.refined.infrastructure.logging import get_logger
+from nolabs.domain.models.common import Experiment
 from nolabs.workflow.application.api_models import GetComponentStateResponse, GetComponentStateRequest, \
     AllWorkflowSchemasResponse, JobErrorResponse, InputPropertyErrorResponse, ResetWorkflowRequest, \
     StartWorkflowComponentRequest

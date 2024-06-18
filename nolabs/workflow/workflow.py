@@ -1,10 +1,8 @@
 import datetime
 import logging
-from dataclasses import dataclass
 from typing import List
 
 from nolabs.exceptions import NoLabsException
-from nolabs.refined.infrastructure.logging import get_logger
 from nolabs.workflow.component import Component
 from nolabs.workflow.models import ComponentDbModel, JobErrorDbModel, InputPropertyErrorDbModel
 

@@ -11,8 +11,8 @@ from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic, Tup
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
-from nolabs.refined.domain.models.common import Job, Experiment
-from nolabs.workflow.properties import ParameterSchema, Property, PropertyValidationError
+from nolabs.domain.models.common import Job, Experiment
+from nolabs.workflow.properties import ParameterSchema, PropertyValidationError
 
 
 @dataclass
