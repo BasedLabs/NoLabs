@@ -1,59 +1,65 @@
 <template>
   <q-card-section class="job-section q-pa-sm">
     <div class="text-white q-pa-sm text-caption">Jobs queue</div>
-    <draggable class="q-pa-sm" v-model="jobs" handle=".drag-handle" @end="updateJobOrder" item-key="job_id">
-      <template #item="{ element }">
-        <q-item class="bg-grey-3 text-black">
-          <q-item-section>
-            <q-btn @click="copyContent(element.job_id)" icon="content_copy" label="ID"></q-btn>
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>{{ element.job_name }}</q-item-label>
-          </q-item-section>
-          <q-item-section>
-            <div v-if="element.executionStatus === null">No execution status</div>
-            <div v-else>
-              <q-spinner v-if="element.executionStatus.running" color="primary" size="20px" />
-              {{ element.executionStatus.running ? 'Running...' : 'Not running' }}
-            </div>
-          </q-item-section>
-          <q-item-section v-if="jobErrors[element.job_id]">
-            <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
-          </q-item-section>
-          <q-item-section>
-            <q-btn @click="openJob(element)" label="View" dense />
-          </q-item-section>
-          <q-item-section>
-            <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
-          </q-item-section>
-        </q-item>
-      </template>
-    </draggable>
+    <q-scroll-area v-if="jobs.length > 0" style="height: 30vh">
+      <draggable class="q-pa-sm" v-model="jobs" handle=".drag-handle" @end="updateJobOrder" item-key="job_id">
+        <template #item="{ element }">
+          <q-item class="bg-grey-3 text-black">
+            <q-item-section>
+              <q-btn @click="copyContent(element.job_id)" icon="content_copy" label="ID"></q-btn>
+            </q-item-section>
+            <q-item-section class="col">
+              <q-item-label class="text-truncate">{{ element.job_name }}</q-item-label>
+              <q-tooltip>{{ element.job_name }}</q-tooltip>
+            </q-item-section>
+            <q-item-section>
+              <div v-if="element.executionStatus === null">No execution status</div>
+              <div v-else>
+                <q-spinner v-if="element.executionStatus.running" color="primary" size="20px" />
+                {{ element.executionStatus.running ? 'Running...' : 'Not running' }}
+              </div>
+            </q-item-section>
+            <q-item-section v-if="jobErrors[element.job_id]">
+              <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
+            </q-item-section>
+            <q-item-section>
+              <q-btn @click="openJob(element)" label="View" dense />
+            </q-item-section>
+            <q-item-section>
+              <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
+            </q-item-section>
+          </q-item>
+        </template>
+      </draggable>
+    </q-scroll-area>
   </q-card-section>
 
   <q-card-section class="result-section q-pa-sm">
     <div class="text-white q-pa-sm text-caption">Completed jobs</div>
-    <draggable class="q-pa-sm" v-model="results" handle=".drag-handle" item-key="job_id">
-      <template #item="{ element }">
-        <q-item class="bg-grey-3 text-black">
-          <q-item-section>
-            <q-btn @click="copyContent(element.job_id)" icon="content_copy" label="ID"></q-btn>
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>{{ element.job_name }}</q-item-label>
-          </q-item-section>
-          <q-item-section v-if="jobErrors[element.job_id]">
-            <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
-          </q-item-section>
-          <q-item-section>
-            <q-btn @click="openJob(element)" label="View" dense />
-          </q-item-section>
-          <q-item-section>
-            <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
-          </q-item-section>
-        </q-item>
-      </template>
-    </draggable>
+    <q-scroll-area v-if="results.length > 0" style="height: 30vh">
+      <draggable class="q-pa-sm" v-model="results" handle=".drag-handle" item-key="job_id">
+        <template #item="{ element }">
+          <q-item class="bg-grey-3 text-black">
+            <q-item-section>
+              <q-btn @click="copyContent(element.job_id)" icon="content_copy" label="ID"></q-btn>
+            </q-item-section>
+            <q-item-section class="col">
+              <q-item-label class="text-truncate">{{ element.job_name }}</q-item-label>
+              <q-tooltip>{{ element.job_name }}</q-tooltip>
+            </q-item-section>
+            <q-item-section v-if="jobErrors[element.job_id]">
+              <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
+            </q-item-section>
+            <q-item-section>
+              <q-btn @click="openJob(element)" label="View" dense />
+            </q-item-section>
+            <q-item-section>
+              <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
+            </q-item-section>
+          </q-item>
+        </template>
+      </draggable>
+    </q-scroll-area>
   </q-card-section>
 
   <q-card-section class="exception-section q-pa-sm" v-if="lastExceptions.length">
@@ -78,7 +84,6 @@
     </q-card>
   </q-dialog>
 </template>
-
 
 <script lang="ts">
 import { defineComponent } from 'vue';
@@ -322,5 +327,11 @@ export default defineComponent({
 .exception-section {
   border: 1px dashed #ccc;
   padding: 10px;
+}
+
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

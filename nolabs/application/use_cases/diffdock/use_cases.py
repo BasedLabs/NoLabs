@@ -70,7 +70,7 @@ class SetupJobFeature:
         if not experiment:
             raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id()
+        job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id.value)
 
         if not job:
             job = DiffDockBindingJob(

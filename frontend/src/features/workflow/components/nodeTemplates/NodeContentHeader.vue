@@ -6,14 +6,6 @@
     <div class="col-8 flex column justify-center text-center q-mb-md">
       <h5 class="q-mb-sm">{{ name }}</h5>
       <div class="q-pa-sm">{{ description }}</div>
-      <div class="justify-center text-center text-white">
-        Inputs
-        <q-chip outline color="green" class="q-mr-sm" v-for="input in inputs" :key="input">{{ input }}</q-chip>
-      </div>
-      <div class="justify-center text-white">
-        Outputs
-        <q-chip outline color="red" class="q-mr-sm" v-for="output in outputs" :key="output">{{ output }}</q-chip>
-      </div>
     </div>
   </q-card-section>
 </template>

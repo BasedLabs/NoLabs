@@ -11,14 +11,14 @@
         :id="`${nodeId}-input-${key}`"
         :class="{'large-handle': true, 'handle-connected': isHandleConnected(`${nodeId}-input-${key}`)}"
       />
-      <q-item-label class="q-mx-auto text-caption text-white">{{ input.title }}</q-item-label>
+      <q-item-label class="q-mx-auto text-h6 text-white">{{ input.title }}</q-item-label>
     </div>
     <div
       v-for="([key, output], index) in outputEntries"
       :key="'output-' + index"
       class="row no-wrap items-center q-pa-sm q-mt-md q-border bg-grey-7 rounded-border q-shadow-2 input-output-tab"
     >
-      <q-item-label class="q-mx-auto text-caption text-white">{{ output.title }}</q-item-label>
+      <q-item-label class="q-mx-auto text-h6 text-white">{{ output.title }}</q-item-label>
       <Handle
         type="source"
         :position="Position.Right"
