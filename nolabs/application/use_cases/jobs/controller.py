@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from nolabs.application.use_cases.jobs.api_models import GetJobMetadataResponse, UpdateJobRequest
 from nolabs.application.use_cases.jobs.di import JobDependencies
 from nolabs.application.use_cases.jobs.use_cases import GetJobsMetadataFeature, DeleteJobFeature, \
-    UpdateJobFeature
+    UpdateJobFeature, GetJobMetadataFeature
 
 router = APIRouter(
     prefix='/api/v1/jobs',
@@ -23,10 +23,18 @@ router = APIRouter(
             summary='Get all jobs metadata by experiment')
 async def jobs_metadata(experiment_id: UUID,
                         feature: Annotated[
-                            GetJobsMetadataFeature, Depends(JobDependencies.job_metadata)]) -> \
+                            GetJobsMetadataFeature, Depends(JobDependencies.jobs_metadata)]) -> \
         List[
             GetJobMetadataResponse]:
     return await feature.handle(experiment_id=experiment_id)
+
+
+@router.get('/jobs/{job_id}/metadata',
+            summary='Get job metadata by experiment')
+async def job_metadata(job_id: UUID,
+                        feature: Annotated[
+                            GetJobMetadataFeature, Depends(JobDependencies.job_metadata)]) -> GetJobMetadataResponse:
+    return await feature.handle(job_id=job_id)
 
 
 @router.delete('/jobs/{jod_id}',
