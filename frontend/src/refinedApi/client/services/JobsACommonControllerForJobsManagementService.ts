@@ -29,6 +29,26 @@ export class JobsACommonControllerForJobsManagementService {
         });
     }
     /**
+     * Get job metadata by experiment
+     * @param jobId
+     * @returns GetJobMetadataResponse Successful Response
+     * @throws ApiError
+     */
+    public static jobMetadataApiV1JobsJobsJobIdMetadataGet(
+        jobId: string,
+    ): CancelablePromise<GetJobMetadataResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/jobs/jobs/{job_id}/metadata',
+            path: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Delete job
      * @param jobId
      * @returns any Successful Response

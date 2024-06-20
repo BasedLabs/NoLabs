@@ -2,9 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse } from '../models/nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse';
-import type { nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse } from '../models/nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse';
-import type { nolabs__refined__application__use_cases__binding_pockets__api_models__SetupJobRequest } from '../models/nolabs__refined__application__use_cases__binding_pockets__api_models__SetupJobRequest';
+import type { nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse } from '../models/nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse';
+import type { nolabs__application__use_cases__binding_pockets__api_models__JobResponse } from '../models/nolabs__application__use_cases__binding_pockets__api_models__JobResponse';
+import type { nolabs__application__use_cases__binding_pockets__api_models__SetupJobRequest } from '../models/nolabs__application__use_cases__binding_pockets__api_models__SetupJobRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -12,12 +12,12 @@ export class BindingPocketsService {
     /**
      * Start binding pockets prediction job
      * @param jobId
-     * @returns nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse Successful Response
+     * @returns nolabs__application__use_cases__binding_pockets__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static runJobApiV1BindingPocketsJobsRunJobIdPost(
         jobId: string,
-    ): CancelablePromise<nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse> {
+    ): CancelablePromise<nolabs__application__use_cases__binding_pockets__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/binding-pockets/jobs/run/{job_id}',
@@ -32,12 +32,12 @@ export class BindingPocketsService {
     /**
      * Get job
      * @param jobId
-     * @returns nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse Successful Response
+     * @returns nolabs__application__use_cases__binding_pockets__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static getJobApiV1BindingPocketsJobsJobIdGet(
         jobId: string,
-    ): CancelablePromise<nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse> {
+    ): CancelablePromise<nolabs__application__use_cases__binding_pockets__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/binding-pockets/jobs/{job_id}',
@@ -52,12 +52,12 @@ export class BindingPocketsService {
     /**
      * Setup job
      * @param requestBody
-     * @returns nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse Successful Response
+     * @returns nolabs__application__use_cases__binding_pockets__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static setupJobApiV1BindingPocketsJobsPost(
-        requestBody: nolabs__refined__application__use_cases__binding_pockets__api_models__SetupJobRequest,
-    ): CancelablePromise<nolabs__refined__application__use_cases__binding_pockets__api_models__JobResponse> {
+        requestBody: nolabs__application__use_cases__binding_pockets__api_models__SetupJobRequest,
+    ): CancelablePromise<nolabs__application__use_cases__binding_pockets__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/binding-pockets/jobs',
@@ -71,12 +71,12 @@ export class BindingPocketsService {
     /**
      * Job status
      * @param jobId
-     * @returns nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse Successful Response
+     * @returns nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse Successful Response
      * @throws ApiError
      */
     public static getJobStatusApiV1BindingPocketsJobsJobIdStatusGet(
         jobId: string,
-    ): CancelablePromise<nolabs__refined__application__use_cases__binding_pockets__api_models__GetJobStatusResponse> {
+    ): CancelablePromise<nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/binding-pockets/jobs/{job_id}/status',

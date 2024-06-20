@@ -15,10 +15,10 @@
 import unittest
 import datetime
 
-from nolabs_microservice.models.delete_lone_ligand_response import DeleteLoneLigandResponse
+from nolabs_microservice.models.delete_lone_ligand_response import DeleteLoneLigandContentResponse
 
-class TestDeleteLoneLigandResponse(unittest.TestCase):
-    """DeleteLoneLigandResponse unit test stubs"""
+class TestDeleteLoneLigandContentResponse(unittest.TestCase):
+    """DeleteLoneLigandContentResponse unit test stubs"""
 
     def setUp(self):
         pass
@@ -26,26 +26,26 @@ class TestDeleteLoneLigandResponse(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> DeleteLoneLigandResponse:
-        """Test DeleteLoneLigandResponse
+    def make_instance(self, include_optional) -> DeleteLoneLigandContentResponse:
+        """Test DeleteLoneLigandContentResponse
             include_option is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `DeleteLoneLigandResponse`
+        # uncomment below to create an instance of `DeleteLoneLigandContentResponse`
         """
-        model = DeleteLoneLigandResponse()
+        model = DeleteLoneLigandContentResponse()
         if include_optional:
-            return DeleteLoneLigandResponse(
+            return DeleteLoneLigandContentResponse(
                 ligand_id = None
             )
         else:
-            return DeleteLoneLigandResponse(
+            return DeleteLoneLigandContentResponse(
                 ligand_id = None,
         )
         """
 
-    def testDeleteLoneLigandResponse(self):
-        """Test DeleteLoneLigandResponse"""
+    def testDeleteLoneLigandContentResponse(self):
+        """Test DeleteLoneLigandContentResponse"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

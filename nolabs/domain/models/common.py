@@ -13,7 +13,6 @@ __all__ = ['Protein',
 import datetime
 import uuid
 from abc import abstractmethod
-from functools import lru_cache
 from pathlib import Path
 from typing import Union, Dict, Any, List
 from uuid import UUID
@@ -154,6 +153,12 @@ class SolubleProbability(ValueObjectFloat):
         return self
 
 
+class ProteinLink(ValueObjectString):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        return self
+
+
 class LocalisationProbability(EmbeddedDocument, ValueObject):
     cytosolic: float = FloatField(required=True)
     mitochondrial: float = FloatField(required=True)
@@ -209,6 +214,8 @@ class Protein(Document, Entity):
     confidence: float | None = FloatField(required=False)
     plddt_array: List[int] = ListField(IntField, required=False)
 
+    link: ProteinLink = ValueObjectStringField(required=False, factory=ProteinLink)
+
     '''
     Conformations content
     '''
@@ -243,6 +250,9 @@ class Protein(Document, Entity):
             fasta_content = fasta_content.encode('utf-8')
 
         self.fasta_content = fasta_content
+
+    def set_protein_link(self, link: ProteinLink):
+        self.link = link
 
     def get_fasta(self) -> str | None:
         if self.fasta_content:
@@ -452,6 +462,12 @@ class DesignedLigandScore(ValueObjectFloat):
         return self
 
 
+class LigandLink(ValueObjectString):
+    @model_validator(mode='after')
+    def post_root(self) -> Self:
+        return self
+
+
 class Ligand(Document, Entity):
     id = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
@@ -460,7 +476,7 @@ class Ligand(Document, Entity):
     sdf_content = BinaryField(required=False)
     drug_likeness = FloatField(required=False)
     designed_ligand_score = FloatField(required=False)
-    link = StringField(required=False)  # New field for link
+    link: LigandLink | None = StringField(required=False)  # New field for link
     image = BinaryField(required=False)  # New field for image
 
     def __hash__(self):
@@ -535,7 +551,7 @@ class Ligand(Document, Entity):
                name: LigandName | None = None,
                smiles_content: Union[bytes, str, None] = None,
                sdf_content: Union[bytes, str, None] = None,
-               link: str | None = None,
+               link: LigandLink | None = None,
                *args,
                **kwargs) -> 'Ligand':  # Added link parameter
         if not name:
@@ -671,6 +687,7 @@ class JobName(ValueObjectString):
 @dataclass
 class JobInputError:
     message: str
+    error_code: ErrorCodes
 
 
 class Job(Document, Entity):
@@ -710,8 +727,17 @@ class Job(Document, Entity):
         ...
 
     @abstractmethod
-    def input_errors(self) -> List[JobInputError]:
+    def _input_errors(self) -> List[JobInputError]:
         ...
+
+    def input_errors(self, throw: bool = False) -> List[JobInputError]:
+        errors = self._input_errors()
+
+        if throw:
+            for error in errors:
+                raise NoLabsException(messages=error.message, error_code=error.error_code)
+
+        return errors
 
     def save(self, **kwargs):
         if not self.created_at:

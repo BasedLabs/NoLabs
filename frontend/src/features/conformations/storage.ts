@@ -97,7 +97,7 @@ const useConformationsStore = defineStore("conformations", {
       let protein = null;
 
       if(job.protein_id){
-        protein = await ProteinsService.getProteinApiV1ProteinsProteinIdGet(job.protein_id);
+        protein = await ProteinsService.getProteinContentApiV1ProteinsProteinIdContentGet(job.protein_id);
       }
 
       return {
@@ -171,7 +171,7 @@ const useConformationsStore = defineStore("conformations", {
       let sourceProtein = null;
 
       if (response.protein_id) {
-        sourceProtein = await ProteinsService.getProteinApiV1ProteinsProteinIdGet(
+        sourceProtein = await ProteinsService.getProteinContentApiV1ProteinsProteinIdContentGet(
           response.protein_id
         );
       }

@@ -3,13 +3,11 @@ __all__ = [
 ]
 
 from typing import List
-from uuid import UUID
 
-from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
-    UUIDField, CASCADE, StringField, IntField, BinaryField
+from mongoengine import ReferenceField, CASCADE, BinaryField
 
+from nolabs.domain.models.common import Job, Protein, JobInputError
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein, LocalisationProbability
 
 
 class MsaGenerationJob(Job):
@@ -21,20 +19,9 @@ class MsaGenerationJob(Job):
     # endregion
 
     def set_input(self, protein: Protein):
-        if not protein:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        if not protein.fasta_content:
-            raise NoLabsException(ErrorCodes.protein_fasta_is_empty, 'Cannot run msa job on empty fasta')
-
-        self.clear_result()
         self.protein = protein
 
-    def clear_result(self):
-        self.msa = None
-
-    def input_valid(self) -> bool:
-        return not not self.protein
+        self.input_errors(throw=True)
 
     def result_valid(self) -> bool:
         return not not self.msa
@@ -58,3 +45,24 @@ class MsaGenerationJob(Job):
             msa = msa.encode('utf-8')
 
         self.msa = msa
+
+    def _input_errors(self) -> List[JobInputError]:
+        errors = []
+
+        if not self.protein:
+            errors.append([
+                JobInputError(
+                    message='Protein is not defined',
+                    error_code=ErrorCodes.protein_is_undefined
+                )
+            ])
+
+        if self.protein and not self.protein.fasta_content:
+            errors.append([
+                JobInputError(
+                    message='Protein does not have fasta content',
+                    error_code=ErrorCodes.protein_fasta_is_empty
+                )
+            ])
+
+        return errors

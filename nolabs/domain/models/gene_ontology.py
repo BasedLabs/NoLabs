@@ -9,7 +9,7 @@ from mongoengine import ReferenceField, ListField, PULL, DictField, EmbeddedDocu
     EmbeddedDocumentListField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein
+from nolabs.domain.models.common import Job, Protein, JobInputError
 
 
 class GeneOntologyJobResult(EmbeddedDocument):
@@ -26,11 +26,10 @@ class GeneOntologyJob(Job):
     gene_ontologies: List[GeneOntologyJobResult] = EmbeddedDocumentListField(GeneOntologyJobResult)
 
     def set_inputs(self, proteins: List[Protein]):
-        if not proteins:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
         self.gene_ontologies = []
         self.proteins = proteins
+
+        self.input_errors(throw=True)
 
     def clear_result(self):
         self.gene_ontologies = []
@@ -58,3 +57,14 @@ class GeneOntologyJob(Job):
                     gene_ontology=go
                 )
             )
+
+    def _input_errors(self) -> List[JobInputError]:
+        if not self.proteins:
+            return [
+                JobInputError(
+                    message='Proteins are undefined',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            ]
+
+        return []

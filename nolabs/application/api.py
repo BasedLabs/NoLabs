@@ -15,7 +15,6 @@ from nolabs.application.use_cases.protein_design.controller import router as pro
 from nolabs.application.use_cases.binding_pockets.controller import router as binding_pockets_controller
 from nolabs.application.use_cases.biobuddy.controller import router as biobuddy_controller
 from nolabs.application.use_cases.msa_generation.controller import router as msa_generation_controller
-from nolabs.application.use_cases.umol.controller import router as umol_controller
 from nolabs.application.use_cases.small_molecules_design.controller import \
     router as small_molecules_design_router
 from nolabs.application.event_handlers.di import EventHandlersDependencies
@@ -56,7 +55,6 @@ app.include_router(binding_pockets_controller)
 app.include_router(msa_generation_controller)
 app.include_router(small_molecules_design_router)
 app.include_router(diffdock_router)
-app.include_router(umol_controller)
 app.include_router(proteins_router)
 app.include_router(ligand_router)
 app.include_router(workflow_router)

@@ -2,15 +2,12 @@ __all__ = [
     'SmallMoleculesDesignJob'
 ]
 
-from enum import Enum
 from typing import List
-from uuid import UUID
 
-from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
-    UUIDField, BinaryField, StringField, CASCADE, IntField
+from mongoengine import ReferenceField, ListField, PULL, FloatField, CASCADE, IntField
 
+from nolabs.domain.models.common import Job, Protein, Ligand, JobInputError
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein, LocalisationProbability, SolubleProbability, Ligand
 
 
 class SmallMoleculesDesignJob(Job):
@@ -43,9 +40,6 @@ class SmallMoleculesDesignJob(Job):
     def result_valid(self) -> bool:
         return not not self.ligands
 
-    def input_valid(self):
-        return any([a for a in [self.center_x, self.center_y, self.center_z] if a])
-
     def set_inputs(self,
                    protein: Protein,
                    center_x: float,
@@ -57,43 +51,6 @@ class SmallMoleculesDesignJob(Job):
                    batch_size: int,
                    minscore: float,
                    epochs: int):
-        if not protein:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        if not protein.pdb_content:
-            raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
-
-        self.protein = protein
-
-        if center_x is None:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Center x is required'])
-
-        if center_y is None:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Center y is required'])
-
-        if center_z is None:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Center z is required'])
-
-        if size_x is None:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Size x is required'])
-
-        if size_y is None:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Size y is required'])
-
-        if size_z is None:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Size z is required'])
-
-        if batch_size is None or batch_size <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, ['Batch size cannot be empty or negative number or 0'])
-
-        if minscore is None or minscore < 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input,
-                                  ['Minscore cannot be empty or be a negative number or 0'])
-
-        if epochs is None or epochs < 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input,
-                                  ['Number of epochs cannot be empty or be a negative number'])
-
         if self.center_x != center_x or \
                 self.center_y != center_y or \
                 self.center_z != center_z or \
@@ -115,6 +72,8 @@ class SmallMoleculesDesignJob(Job):
             self.minscore = minscore
             self.epochs = epochs
 
+        self.input_errors(throw=True)
+
     def set_result(self, protein: Protein, ligands: List[Ligand]):
         if not ligands:
             raise NoLabsException(ErrorCodes.small_molecules_design_empty_output)
@@ -126,3 +85,97 @@ class SmallMoleculesDesignJob(Job):
             raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
         self.ligands = ligands
+
+    def _input_errors(self) -> List[JobInputError]:
+        errors = []
+
+        if not self.protein:
+            errors.append(
+                JobInputError(
+                    message='Protein is undefined',
+                    error_code=ErrorCodes.protein_is_undefined
+                )
+            )
+
+        if not self.protein.pdb_content:
+            errors.append(
+                JobInputError(
+                    message='Protein pdb content is empty',
+                    error_code=ErrorCodes.protein_is_undefined
+                )
+            )
+
+        if not self.center_x:
+            errors.append(
+                JobInputError(
+                    message='Center x of binding box is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.center_y:
+            errors.append(
+                JobInputError(
+                    message='Center н of binding box is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.center_z:
+            errors.append(
+                JobInputError(
+                    message='Center z of binding box is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.size_x:
+            errors.append(
+                JobInputError(
+                    message='Size x of binding box is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.size_y:
+            errors.append(
+                JobInputError(
+                    message='Size y of binding box is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.size_y:
+            errors.append(
+                JobInputError(
+                    message='Size y of binding box is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.batch_size:
+            errors.append(
+                JobInputError(
+                    message='Batch size is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.minscore:
+            errors.append(
+                JobInputError(
+                    message='Min molecule acceptance score is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.epochs or self.epochs < 0:
+            errors.append(
+                JobInputError(
+                    message='Number of epochs are less or equal to 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        return errors
+

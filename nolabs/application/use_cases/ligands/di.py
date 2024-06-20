@@ -1,11 +1,19 @@
-from nolabs.application.use_cases.ligands.use_cases import SearchLigandsFeature, GetLigandFeature, \
-    DeleteLigandFeature, UploadLigandFeature, UpdateLigandFeature
+from nolabs.application.use_cases.ligands.use_cases import (SearchLigandsContentFeature,
+                                                            SearchLigandsMetadataFeature,
+                                                            GetLigandFeature,
+                                                            DeleteLigandFeature,
+                                                            UploadLigandFeature,
+                                                            UpdateLigandFeature)
 
 
 class LigandsControllerDependencies:
     @staticmethod
-    def search_ligands() -> SearchLigandsFeature:
-        return SearchLigandsFeature()
+    def search_ligands_content() -> SearchLigandsContentFeature:
+        return SearchLigandsContentFeature()
+
+    @staticmethod
+    def search_ligands_metadata() -> SearchLigandsMetadataFeature:
+        return SearchLigandsMetadataFeature()
 
     @staticmethod
     def get_ligand() -> GetLigandFeature:

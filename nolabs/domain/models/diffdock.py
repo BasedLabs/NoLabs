@@ -9,7 +9,7 @@ from mongoengine import ReferenceField, EmbeddedDocument, FloatField, EmbeddedDo
     UUIDField, CASCADE, IntField, BinaryField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein, Ligand
+from nolabs.domain.models.common import Job, Protein, Ligand, JobInputError
 
 
 class DiffDockJobResult(EmbeddedDocument):
@@ -53,26 +53,13 @@ class DiffDockBindingJob(Job):
                   ligand: Ligand,
                   samples_per_complex: int = 1
                   ):
-        if not protein:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Target protein must be set for a diffdock job')
-
-        if not protein.pdb_content:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Cannot run binding job on empty pdb')
-
-        if not ligand:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Empty ligand input')
-
-        if not ligand.sdf_content:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Cannot run a diffdock job on a ligand with empty sdf content')
-
-        if samples_per_complex <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Samples per complex must be greater than 0')
-
         self.result = []
 
         self.protein = protein
         self.ligand = ligand
         self.samples_per_complex = samples_per_complex
+
+        self.input_errors(throw=True)
 
     def result_valid(self) -> bool:
         return not not self.result
@@ -103,3 +90,48 @@ class DiffDockBindingJob(Job):
             raise NoLabsException(ErrorCodes.invalid_job_result, 'Result is empty')
 
         self.result = result
+
+    def _input_errors(self) -> List[JobInputError]:
+        errors = []
+
+        if not self.protein:
+            errors.append(
+                JobInputError(
+                    message='Protein is undefined',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if self.protein and not self.protein.pdb_content:
+            errors.append(
+                JobInputError(
+                    message='Protein pdb content is undefined',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.ligand:
+            errors.append(
+                JobInputError(
+                    message='Ligand is undefined',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if self.ligand and not self.ligand.sdf_content:
+            errors.append(
+                JobInputError(
+                    message='Ligand sdf content is undefined',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if self.samples_per_complex <= 0:
+            errors.append(
+                JobInputError(
+                    message='Samples per complex is undefined or <= 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        return errors

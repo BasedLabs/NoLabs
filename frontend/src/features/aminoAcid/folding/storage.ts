@@ -5,7 +5,7 @@ import {obtainErrorResponse} from "src/api/errorWrapper";
 import {
   OpenAPI,
   FoldingService,
-  ProteinResponse,
+  ProteinContentResponse,
   ProteinsService,
   FoldingBackendEnum
 } from "src/refinedApi/client";
@@ -19,7 +19,7 @@ OpenAPI.BASE = apiConstants.hostname;
 const useFoldingStore = defineStore("folding", {
   actions: {
     async setupJob(experimentId: string, request: InferenceRequest){
-      let proteins: ProteinResponse[] = [];
+      let proteins: ProteinContentResponse[] = [];
       for(const fasta of request.fastas){
         const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
           experiment_id: experimentId,
@@ -63,7 +63,7 @@ const useFoldingStore = defineStore("folding", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
         ids: job.protein_ids
       });
 
@@ -113,7 +113,7 @@ const useFoldingStore = defineStore("folding", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
         ids: job.protein_ids
       })
 

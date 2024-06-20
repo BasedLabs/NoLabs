@@ -10,7 +10,7 @@ from mongoengine import ReferenceField, EmbeddedDocument, FloatField, EmbeddedDo
     CASCADE, StringField, IntField, EnumField, BooleanField, BinaryField, DateTimeField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein
+from nolabs.domain.models.common import Job, Protein, JobInputError
 
 
 class Integrator(str, Enum):
@@ -56,6 +56,75 @@ class ConformationsJob(Job):
     def result_valid(self) -> bool:
         return not not self.md_content
 
+    def _input_errors(self) -> List[JobInputError]:
+        errors = []
+
+        if not self.protein:
+            errors.append([
+                JobInputError(
+                    message='Protein is undefined',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            ])
+
+        if not self.protein.pdb_content:
+            errors.append([
+                JobInputError(
+                    message='Protein pdb content is empty',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            ])
+
+        if not self.total_frames or self.total_frames <= 0:
+            errors.append(
+                JobInputError(
+                    message='Total frames are undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.temperature_k or self.temperature_k <= 0:
+            errors.append(
+                JobInputError(
+                    message='Temperature is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.take_frame_every or self.take_frame_every <= 0:
+            errors.append(
+                JobInputError(
+                    message='Take frame parameter is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.step_size or self.step_size <= 0:
+            errors.append(
+                JobInputError(
+                    message='Step size is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.friction_coeff or self.friction_coeff < 0:
+            errors.append(
+                JobInputError(
+                    message='Friction coefficient is undefined or 0',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        if not self.integrator:
+            errors.append(
+                JobInputError(
+                    message='Integrator is undefined',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            )
+
+        return errors
+
     def set_input(self,
                   protein: Protein,
                   integrator: Integrator = Integrator.langevin,
@@ -69,31 +138,6 @@ class ConformationsJob(Job):
                   friction_coeff: float = 1.0,
                   ignore_missing_atoms: bool = False,
                   ):
-        if not protein:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Protein is not provided')
-
-        if not protein.pdb_content:
-            raise NoLabsException(ErrorCodes.invalid_job_input,
-                                  'Cannot run conformations on protein without pdb specified')
-
-        if not total_frames or total_frames <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Total frames must be greater than 0')
-
-        if not temperature_k or temperature_k <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Temperature K must be greater than 0')
-
-        if not take_frame_every or take_frame_every <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Take frame rate must be greater than 0')
-
-        if not step_size or step_size <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Step size must be greater than 0')
-
-        if friction_coeff < 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Friction coefficient must be greater than 0')
-
-        if not integrator:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'You must specify integrator')
-
         self.timeline = []
         self.md_content = None
 
@@ -108,6 +152,9 @@ class ConformationsJob(Job):
         self.friction_coeff = friction_coeff
         self.ignore_missing_atoms = ignore_missing_atoms
         self.inputs_set = True
+        self.integrator = integrator
+
+        self.input_errors(throw=True)
 
     def clear_result(self):
         self.md_content = None

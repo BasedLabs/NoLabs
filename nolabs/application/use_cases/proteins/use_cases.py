@@ -1,5 +1,5 @@
 __all__ = [
-    'SearchProteinsFeature',
+    'SearchProteinsContentFeature',
     'GetProteinFeature',
     'DeleteProteinFeature',
     'UploadProteinFeature',
@@ -13,13 +13,14 @@ from uuid import UUID
 from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinResponse, \
-    ProteinLocalisationResponse, UploadProteinRequest, UpdateProteinRequest
+from nolabs.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinContentResponse, \
+    ProteinLocalisationResponse, UploadProteinRequest, UpdateProteinRequest, ProteinMetadataResponse, \
+    ProteinSearchMetadataQuery
 from nolabs.domain.models.common import Protein, Experiment, ProteinName
 
 
-def map_protein_to_response(protein: Protein) -> ProteinResponse:
-    return ProteinResponse(
+def map_protein_to_response(protein: Protein) -> ProteinContentResponse:
+    return ProteinContentResponse(
         id=protein.iid.value,
         experiment_id=protein.experiment.iid.value,
         name=str(protein.name),
@@ -38,12 +39,33 @@ def map_protein_to_response(protein: Protein) -> ProteinResponse:
         msa=protein.get_msa(),
         md_pdb_content=protein.get_md(),
         fasta_name=protein.name.fasta_name,
-        pdb_name=protein.name.pdb_name
+        pdb_name=protein.name.pdb_name,
+        link=str(protein.link)
     )
 
 
-class SearchProteinsFeature:
-    async def handle(self, query: ProteinSearchQuery) -> List[ProteinResponse]:
+def map_to_protein_metadata_response(protein: Protein) -> ProteinMetadataResponse:
+    return ProteinMetadataResponse(
+        id=protein.iid.value,
+        experiment_id=protein.experiment.iid.value,
+        name=str(protein.name),
+        binding_pockets=protein.binding_pockets,
+        localisation=ProteinLocalisationResponse(
+            cytosolic=protein.localisation.cytosolic,
+            mitochondrial=protein.localisation.mitochondrial,
+            nuclear=protein.localisation.nuclear,
+            other=protein.localisation.other,
+            extracellular=protein.localisation.extracellular
+        ) if protein.localisation else None,
+        gene_ontology=protein.gene_ontology,
+        soluble_probability=protein.soluble_probability,
+        fasta_name=protein.name.fasta_name,
+        pdb_name=protein.name.pdb_name,
+        link=str(protein.link))
+
+
+class SearchProteinsContentFeature:
+    async def handle(self, query: ProteinSearchQuery) -> List[ProteinContentResponse]:
         db_query = Q()
 
         if query.ids:
@@ -65,24 +87,51 @@ class SearchProteinsFeature:
         return [map_protein_to_response(p) for p in Protein.objects(db_query)]
 
 
+class SearchProteinsMetadataFeature:
+    async def handle(self, query: ProteinSearchMetadataQuery) -> List[ProteinMetadataResponse]:
+        db_query = Q()
+
+        if query.ids:
+            proteins = Protein.objects(id__in=query.ids)
+
+            return [map_to_protein_metadata_response(p) for p in proteins]
+
+        if query.name:
+            db_query = db_query & Q(name__icontains=query.name)
+
+        if query.experiment_id:
+            experiment = Experiment.objects.with_id(query.experiment_id)
+
+            if not experiment:
+                raise NoLabsException(ErrorCodes.experiment_not_found)
+
+            db_query = db_query & Q(experiment=experiment)
+
+        return [map_to_protein_metadata_response(p) for p in Protein.objects(db_query)]
+
+
 class GetProteinFeature:
-    async def handle(self, protein_id: UUID) -> Optional[ProteinResponse]:
-        try:
-            protein = Protein.objects.with_id(protein_id)
+    async def handle(self, protein_id: UUID) -> Optional[ProteinContentResponse]:
+        protein = Protein.objects.with_id(protein_id)
 
-            if not protein:
-                return None
+        if not protein:
+            return None
 
-            return map_protein_to_response(protein)
-        except Exception as e:
-            if isinstance(e, NoLabsException):
-                raise e
+        return map_protein_to_response(protein)
 
-            raise NoLabsException(ErrorCodes.unknown_exception) from e
+
+class GetProteinMetadataFeature:
+    async def handle(self, protein_id: UUID) -> Optional[ProteinMetadataResponse]:
+        protein = Protein.objects.with_id(protein_id)
+
+        if not protein:
+            return None
+
+        return map_to_protein_metadata_response(protein)
 
 
 class UploadProteinFeature:
-    async def handle(self, request: UploadProteinRequest) -> ProteinResponse:
+    async def handle(self, request: UploadProteinRequest) -> ProteinContentResponse:
         experiment = Experiment.objects.with_id(request.experiment_id)
 
         if not experiment:
@@ -118,7 +167,7 @@ class UploadProteinFeature:
 
 
 class UpdateProteinFeature:
-    async def handle(self, request: UpdateProteinRequest) -> ProteinResponse:
+    async def handle(self, request: UpdateProteinRequest) -> ProteinContentResponse:
 
         protein = Protein.objects.with_id(request.protein_id)
 
@@ -152,6 +201,3 @@ class DeleteProteinFeature:
             return
 
         protein.delete()
-
-
-

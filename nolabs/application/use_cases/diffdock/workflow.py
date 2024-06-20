@@ -66,19 +66,18 @@ class DiffDockComponent(Component[DiffDockComponentInput, DiffDockComponentOutpu
                 self.jobs.append(DiffDockBindingJob.objects.with_id(result.job_id))
 
     async def jobs_setup_errors(self) -> List[JobValidationError]:
-        validation_errors = []
+        jobs_errors = []
 
-        job: DiffDockBindingJob
         for job in self.jobs:
-            if not job.input_valid():
-                validation_errors.append(
-                    JobValidationError(
-                        job_id=job.id,
-                        msg=f'Jobs inputs are invalid'
-                    )
+            errors = job.input_errors()
+            jobs_errors.append(
+                JobValidationError(
+                    job_id=job.id,
+                    msg=', '.join([err.message for err in errors])
                 )
+            )
 
-        return validation_errors
+        return jobs_errors
 
     @property
     def _input_parameter_type(self) -> Type[DiffDockComponentInput]:

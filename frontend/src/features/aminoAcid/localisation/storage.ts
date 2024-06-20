@@ -8,7 +8,7 @@ import {
   OpenAPI,
   LocalisationService,
   ProteinsService,
-  JobsACommonControllerForJobsManagementService, ProteinResponse, GeneOntologyService
+  JobsACommonControllerForJobsManagementService, ProteinContentResponse,
 } from "../../../refinedApi/client";
 import apiConstants from "../../../api/constants";
 
@@ -17,7 +17,7 @@ OpenAPI.BASE = apiConstants.hostname;
 const useLocalisationStore = defineStore("localisation", {
   actions: {
     async setupJob(experimentId: string, request: InferenceRequest){
-      let proteins: ProteinResponse[] = [];
+      let proteins: ProteinContentResponse[] = [];
       for(const fasta of request.fastas){
         const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
           experiment_id: experimentId,
@@ -56,7 +56,7 @@ const useLocalisationStore = defineStore("localisation", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
         ids: job.protein_ids
       });
 
@@ -110,7 +110,7 @@ const useLocalisationStore = defineStore("localisation", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
         ids: response.protein_ids
       });
 

@@ -8,7 +8,7 @@ import {
   OpenAPI,
   GeneOntologyService,
   ProteinsService,
-  JobsACommonControllerForJobsManagementService, ProteinResponse
+  JobsACommonControllerForJobsManagementService, ProteinContentResponse
 } from "../../../refinedApi/client";
 import apiConstants from "../../../api/constants";
 
@@ -17,7 +17,7 @@ OpenAPI.BASE = apiConstants.hostname;
 const useGeneOntologyStore = defineStore("geneOntology", {
   actions: {
     async setupJob(experimentId: string, request: InferenceRequest){
-      let proteins: ProteinResponse[] = [];
+      let proteins: ProteinContentResponse[] = [];
       for(const fasta of request.fastas){
         const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
           experiment_id: experimentId,
@@ -56,7 +56,7 @@ const useGeneOntologyStore = defineStore("geneOntology", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
         ids: job.protein_ids
       });
 
@@ -106,7 +106,7 @@ const useGeneOntologyStore = defineStore("geneOntology", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
         ids: response.protein_ids
       });
 

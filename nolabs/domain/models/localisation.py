@@ -9,7 +9,7 @@ from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, Float
     UUIDField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein, LocalisationProbability, ProteinId
+from nolabs.domain.models.common import Job, Protein, LocalisationProbability, ProteinId, JobInputError
 
 
 class LocalisationJobResult(EmbeddedDocument):
@@ -48,12 +48,6 @@ class LocalisationJob(Job):
         return not not self.probabilities
 
     def set_result(self, result: List[Tuple[Protein, LocalisationProbability]]):
-        if not self.proteins:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        if not result:
-            raise NoLabsException(ErrorCodes.invalid_job_result)
-
         self.probabilities = []
 
         for protein, prob in result:
@@ -69,3 +63,23 @@ class LocalisationJob(Job):
                 other=prob.other,
                 extracellular=prob.extracellular
             ))
+
+        self.input_errors(throw=True)
+
+    def _input_errors(self) -> List[JobInputError]:
+        if not self.proteins:
+            return [
+                JobInputError(
+                    message='Proteins are undefined',
+                    error_code=ErrorCodes.invalid_job_input
+                )
+            ]
+
+        for protein in self.proteins:
+            if not protein.fasta_content:
+                return [JobInputError(
+                    message='Protein fasta content is empty',
+                    error_code=ErrorCodes.protein_fasta_is_empty
+                )]
+
+        return []

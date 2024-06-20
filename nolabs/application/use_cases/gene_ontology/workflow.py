@@ -59,19 +59,18 @@ class GeneOntologyComponent(Component[GeneOntologyComponentInput, GeneOntologyCo
             self.jobs.append(GeneOntologyJob.objects.with_id(result.job_id))
 
     async def jobs_setup_errors(self) -> List[JobValidationError]:
-        validation_errors = []
+        jobs_errors = []
 
-        job: GeneOntologyJob
         for job in self.jobs:
-            if not job.proteins:
-                validation_errors.append(
-                    JobValidationError(
-                        job_id=job.id,
-                        msg=f'No proteins'
-                    )
+            errors = job.input_errors()
+            jobs_errors.append(
+                JobValidationError(
+                    job_id=job.id,
+                    msg=', '.join([err.message for err in errors])
                 )
+            )
 
-        return validation_errors
+        return jobs_errors
 
     @property
     def _input_parameter_type(self) -> Type[GeneOntologyComponentInput]:

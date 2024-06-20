@@ -3,15 +3,19 @@ __all__ = [
     'SolubilityJob'
 ]
 
-from enum import Enum
 from typing import List, Tuple
 from uuid import UUID
 
-from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
-    UUIDField, BinaryField, StringField
+from mongoengine import (ReferenceField,
+                         ListField,
+                         PULL,
+                         EmbeddedDocument,
+                         FloatField,
+                         EmbeddedDocumentListField,
+                         UUIDField)
 
+from nolabs.domain.models.common import Job, Protein, JobInputError
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein, LocalisationProbability, SolubleProbability
 
 
 class SolubilityJobResult(EmbeddedDocument):
@@ -28,15 +32,10 @@ class SolubilityJob(Job):
 
     results: List[SolubilityJobResult] = EmbeddedDocumentListField(SolubilityJobResult)
 
-    def set_proteins(self, proteins: List[Protein]):
-        if not proteins:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        for protein in proteins:
-            if not protein.fasta_content:
-                raise NoLabsException(ErrorCodes.protein_fasta_is_empty)
-
+    def set_input(self, proteins: List[Protein]):
         self.proteins = proteins
+
+        self.input_errors(throw=True)
 
     def result_valid(self) -> bool:
         return not not self.results
@@ -62,3 +61,23 @@ class SolubilityJob(Job):
                 protein_id=protein.iid.value,
                 soluble_probability=prob
             ))
+
+    def _input_errors(self) -> List[JobInputError]:
+        if not self.proteins:
+            return [
+                JobInputError(
+                    message='No proteins provided',
+                    error_code=ErrorCodes.protein_is_undefined
+                )
+            ]
+
+        for protein in self.proteins:
+            if not protein.fasta_content:
+                return [
+                    JobInputError(
+                        message='Protein fasta is undefined',
+                        error_code=ErrorCodes.protein_fasta_is_empty
+                    )
+                ]
+
+        return []

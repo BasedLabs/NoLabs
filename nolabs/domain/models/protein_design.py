@@ -3,13 +3,11 @@ __all__ = [
 ]
 
 from typing import List
-from uuid import UUID
 
-from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
-    UUIDField, CASCADE, StringField, IntField
+from mongoengine import ReferenceField, ListField, PULL, CASCADE, StringField, IntField
 
+from nolabs.domain.models.common import Job, Protein, JobInputError
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein, LocalisationProbability
 
 
 class ProteinDesignJob(Job):
@@ -32,21 +30,6 @@ class ProteinDesignJob(Job):
                   hotspots: str,
                   timesteps: int
                   ):
-        if not protein:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        if not protein.pdb_content:
-            raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
-
-        if not contig:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Contig cannot be empty')
-
-        if not number_of_designs or number_of_designs <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Number of designs must be greater than 0')
-
-        if not timesteps or timesteps <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Timesteps must be greater than 0')
-
         self.binders = []
         self.contig = contig
         self.number_of_designs = number_of_designs
@@ -54,12 +37,7 @@ class ProteinDesignJob(Job):
         self.timesteps = timesteps
         self.protein = protein
 
-    def input_valid(self) -> bool:
-        if (not self.protein or not self.contig or not self.protein.pdb_content or not self.number_of_designs or
-                self.number_of_designs <= 0 or not self.timesteps or self.timesteps <= 0):
-            return False
-
-        return True
+        self.input_errors(throw=True)
 
     def result_valid(self) -> bool:
         return not not self.binders
@@ -79,3 +57,34 @@ class ProteinDesignJob(Job):
             raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
 
         self.binders = binders
+
+    def _input_errors(self) -> List[JobInputError]:
+        errors = []
+
+        if not self.protein:
+            errors.append(
+                JobInputError(message='Protein is not defined',
+                              error_code=ErrorCodes.protein_is_undefined)
+            )
+
+        if self.protein and not self.protein.pdb_content:
+            errors.append(
+                JobInputError(
+                    message='Protein does not have pdb content',
+                    error_code=ErrorCodes.protein_pdb_is_empty
+                )
+            )
+
+        if not self.contig:
+            errors.append(JobInputError(message='Contig is undefined',
+                                        error_code=ErrorCodes.invalid_job_input))
+
+        if not self.number_of_designs or self.number_of_designs <= 0:
+            errors.append(JobInputError(message='Number of designs cannot be <= 0',
+                                        error_code=ErrorCodes.invalid_job_input))
+
+        if not self.timesteps or self.timesteps <= 0:
+            errors.append(JobInputError(message='Timesteps cannot be <= 0',
+                                        error_code=ErrorCodes.invalid_job_input))
+
+        return errors

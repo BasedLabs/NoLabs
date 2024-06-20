@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { LogsResponse } from '../models/LogsResponse';
-import type { nolabs__refined__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse } from '../models/nolabs__refined__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse';
-import type { nolabs__refined__application__use_cases__small_molecules_design__api_models__JobResponse } from '../models/nolabs__refined__application__use_cases__small_molecules_design__api_models__JobResponse';
-import type { nolabs__refined__application__use_cases__small_molecules_design__api_models__SetupJobRequest } from '../models/nolabs__refined__application__use_cases__small_molecules_design__api_models__SetupJobRequest';
+import type { nolabs__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse } from '../models/nolabs__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse';
+import type { nolabs__application__use_cases__small_molecules_design__api_models__JobResponse } from '../models/nolabs__application__use_cases__small_molecules_design__api_models__JobResponse';
+import type { nolabs__application__use_cases__small_molecules_design__api_models__SetupJobRequest } from '../models/nolabs__application__use_cases__small_molecules_design__api_models__SetupJobRequest';
 import type { SmilesResponse } from '../models/SmilesResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -14,12 +14,12 @@ export class SmallMoleculesDesignService {
     /**
      * Get Job Status
      * @param jobId
-     * @returns nolabs__refined__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse Successful Response
+     * @returns nolabs__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse Successful Response
      * @throws ApiError
      */
     public static getJobStatusApiV1SmallMoleculesDesignJobsJobIdStatusGet(
         jobId: string,
-    ): CancelablePromise<nolabs__refined__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse> {
+    ): CancelablePromise<nolabs__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/small-molecules-design/jobs/{job_id}/status',
@@ -79,7 +79,7 @@ export class SmallMoleculesDesignService {
      */
     public static getJobApiV1SmallMoleculesDesignJobsJobIdGet(
         jobId: string,
-    ): CancelablePromise<(nolabs__refined__application__use_cases__small_molecules_design__api_models__JobResponse | null)> {
+    ): CancelablePromise<(nolabs__application__use_cases__small_molecules_design__api_models__JobResponse | null)> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/small-molecules-design/jobs/{job_id}',
@@ -114,12 +114,12 @@ export class SmallMoleculesDesignService {
     /**
      * Setup Job
      * @param requestBody
-     * @returns nolabs__refined__application__use_cases__small_molecules_design__api_models__JobResponse Successful Response
+     * @returns nolabs__application__use_cases__small_molecules_design__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static setupJobApiV1SmallMoleculesDesignJobsPost(
-        requestBody: nolabs__refined__application__use_cases__small_molecules_design__api_models__SetupJobRequest,
-    ): CancelablePromise<nolabs__refined__application__use_cases__small_molecules_design__api_models__JobResponse> {
+        requestBody: nolabs__application__use_cases__small_molecules_design__api_models__SetupJobRequest,
+    ): CancelablePromise<nolabs__application__use_cases__small_molecules_design__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/small-molecules-design/jobs',

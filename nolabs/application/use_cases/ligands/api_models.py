@@ -1,6 +1,8 @@
 __all__ = [
-    'LigandSearchQuery',
-    'LigandResponse',
+    'LigandSearchMetadataQuery',
+    'LigandMetadataResponse',
+    'LigandSearchContentQuery',
+    'LigandContentResponse',
     'UploadLigandRequest'
 ]
 
@@ -13,7 +15,7 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class LigandResponse:
+class LigandContentResponse:
     id: UUID
     name: str
     experiment_id: UUID
@@ -26,7 +28,25 @@ class LigandResponse:
 
 
 @dataclass
-class LigandSearchQuery:
+class LigandMetadataResponse:
+    id: UUID
+    name: str
+    experiment_id: UUID
+    smiles_content: Optional[str] = None
+    link: Optional[str] = None
+    image: Optional[str] = field(default=None, repr=False)
+    drug_likeness: Optional[float] = None
+    designed_ligand_score: Optional[float] = None
+
+
+@dataclass
+class LigandSearchContentQuery:
+    name: Optional[str] = None
+    experiment_id: Optional[UUID] = None
+
+
+@dataclass
+class LigandSearchMetadataQuery:
     name: Optional[str] = None
     experiment_id: Optional[UUID] = None
 

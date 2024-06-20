@@ -11,7 +11,7 @@ from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, Embed
     UUIDField, BinaryField, EnumField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein
+from nolabs.domain.models.common import Job, Protein, JobInputError
 
 
 class FoldingBackendEnum(str, Enum):
@@ -76,3 +76,23 @@ class FoldingJob(Job):
                     pdb_content=pdb if isinstance(pdb, bytes) else pdb.encode('utf-8')
                 )
             )
+
+    def _input_errors(self) -> List[JobInputError]:
+        if not self.proteins:
+            return [
+                JobInputError(
+                    message='Protein is undefined',
+                    error_code=ErrorCodes.protein_is_undefined
+                )
+            ]
+
+        for protein in self.proteins:
+            if not protein.fasta_content:
+                return [
+                    JobInputError(
+                        message='Protein fasta content is undefined',
+                        error_code=ErrorCodes.protein_fasta_is_empty
+                    )
+                ]
+
+        return []

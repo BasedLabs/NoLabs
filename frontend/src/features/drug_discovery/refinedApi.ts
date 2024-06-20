@@ -5,7 +5,7 @@ import {
   JobsACommonControllerForJobsManagementService,
   type nolabs__refined__application__use_cases__folding__api_models__GetJobStatusResponse,
   type nolabs__refined__application__use_cases__folding__api_models__JobResponse,
-  type ProteinResponse,
+  type ProteinContentResponse,
   ProteinsService,
   nolabs__refined__application__use_cases__folding__api_models__SetupJobRequest,
   UpdateJobRequest,
@@ -16,8 +16,8 @@ import {
   AllWorkflowSchemasResponse,
   WorkflowSchemaModel_Input,
   ProteinSearchQuery,
-  LigandResponse,
-  LigandSearchQuery,
+  LigandContentResponse,
+  LigandSearchContentQuery,
   LigandsService,
   Body_upload_ligand_api_v1_objects_ligands_post,
   BindingPocketsService,
@@ -47,8 +47,8 @@ export function createExperimentApi(): CancelablePromise<ExperimentMetadataRespo
   return ExperimentsService.createExperimentApiV1ExperimentsPost();
 }
 
-export function getProtein(proteinId: string): CancelablePromise<(ProteinResponse | null)> {
-  return ProteinsService.getProteinApiV1ProteinsProteinIdGet(proteinId);
+export function getProtein(proteinId: string): CancelablePromise<(ProteinContentResponse | null)> {
+  return ProteinsService.getProteinContentApiV1ProteinsProteinIdContentGet(proteinId);
 }
 
 // Delete an experiment
@@ -141,9 +141,9 @@ export function deleteWorkflow(workflowId: string): CancelablePromise<any> {
   return WorkflowService.createSchemaApiV1WorkflowWorkflowIdDelete(workflowId);
 }
 
-export function getAllProteins(experimentId: string): CancelablePromise<Array<ProteinResponse>> {
+export function getAllProteins(experimentId: string): CancelablePromise<Array<ProteinContentResponse>> {
   const searchQuery = {name: '', experiment_id: experimentId} as ProteinSearchQuery;
-  return ProteinsService.searchProteinsApiV1ProteinsSearchPost(searchQuery);
+  return ProteinsService.searchProteinsApiV1ProteinsSearchContentPost(searchQuery);
 }
 
 export function uploadProtein(
@@ -151,7 +151,7 @@ export function uploadProtein(
   name?: string,
   fasta?: Blob,
   pdb?: Blob
-): CancelablePromise<ProteinResponse> {
+): CancelablePromise<ProteinContentResponse> {
   const uploadProtein = {
     experiment_id: experimentId,
     name: name,
@@ -165,7 +165,7 @@ export function deleteProtein(proteinId: string): CancelablePromise<any> {
   return ProteinsService.deleteProteinApiV1ProteinsProteinIdDelete(proteinId);
 }
 
-export function updateProteinName(proteinId: string, newName: string): CancelablePromise<ProteinResponse> {
+export function updateProteinName(proteinId: string, newName: string): CancelablePromise<ProteinContentResponse> {
   const newRequest = {
     protein_id: proteinId,
     name: newName
@@ -173,9 +173,9 @@ export function updateProteinName(proteinId: string, newName: string): Cancelabl
   return ProteinsService.updateProteinApiV1ProteinsPatch(newRequest);
 }
 
-export function getAllLigands(experimentId: string): CancelablePromise<Array<LigandResponse>> {
-  const searchQuery = {name: '', experiment_id: experimentId} as LigandSearchQuery;
-  return LigandsService.searchLigandsApiV1ObjectsLigandsSearchPost(searchQuery);
+export function getAllLigands(experimentId: string): CancelablePromise<Array<LigandContentResponse>> {
+  const searchQuery = {name: '', experiment_id: experimentId} as LigandSearchContentQuery;
+  return LigandsService.searchLigandsApiV1ObjectsLigandsSearchContentPost(searchQuery);
 }
 
 export function uploadLigand(
@@ -183,7 +183,7 @@ export function uploadLigand(
   name?: string,
   smiles?: Blob,
   sdf?: Blob,
-): CancelablePromise<LigandResponse> {
+): CancelablePromise<LigandContentResponse> {
   const uploadLigand = {
     experiment_id: experimentId,
     name: name,

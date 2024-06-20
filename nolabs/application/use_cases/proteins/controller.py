@@ -7,14 +7,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Form, UploadFile, File
 
-from nolabs.application.use_cases.protein_design.api_models import SetupJobRequest, JobResponse
-from nolabs.application.use_cases.protein_design.di import ProteinDesignDependencies
-from nolabs.application.use_cases.protein_design.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
-from nolabs.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinResponse, \
-    UploadProteinRequest, UpdateProteinRequest
+from nolabs.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinContentResponse, \
+    UploadProteinRequest, UpdateProteinRequest, ProteinMetadataResponse, ProteinSearchMetadataQuery
 from nolabs.application.use_cases.proteins.di import ProteinsControllerDependencies
-from nolabs.application.use_cases.proteins.use_cases import SearchProteinsFeature, GetProteinFeature, \
-    UploadProteinFeature, DeleteProteinFeature, UpdateProteinFeature
+from nolabs.application.use_cases.proteins.use_cases import SearchProteinsContentFeature, GetProteinFeature, \
+    UploadProteinFeature, DeleteProteinFeature, UpdateProteinFeature, GetProteinMetadataFeature, \
+    SearchProteinsMetadataFeature
 
 router = APIRouter(
     prefix='/api/v1/proteins',
@@ -22,19 +20,36 @@ router = APIRouter(
 )
 
 
-@router.post('/search',
-             summary='Search proteins')
+@router.post('/search/content',
+             summary='Search proteins content')
 async def search_proteins(
-        feature: Annotated[SearchProteinsFeature, Depends(ProteinsControllerDependencies.search_proteins)],
+        feature: Annotated[SearchProteinsContentFeature, Depends(ProteinsControllerDependencies.search_proteins_content)],
         query: ProteinSearchQuery
-) -> List[ProteinResponse]:
+) -> List[ProteinContentResponse]:
     return await feature.handle(query=query)
 
 
-@router.get('/{protein_id}',
-            summary='Get protein by id')
-async def get_protein(protein_id: UUID, feature: Annotated[
-    GetProteinFeature, Depends(ProteinsControllerDependencies.get_protein)]) -> Optional[ProteinResponse]:
+@router.post('/search/metadata',
+             summary='Search proteins metadata')
+async def search_proteins(
+        feature: Annotated[SearchProteinsMetadataFeature, Depends(ProteinsControllerDependencies.search_proteins_metadata)],
+        query: ProteinSearchMetadataQuery
+) -> List[ProteinMetadataResponse]:
+    return await feature.handle(query=query)
+
+
+@router.get('/{protein_id}/content',
+            summary='Get protein content by id')
+async def get_protein_content(protein_id: UUID, feature: Annotated[
+    GetProteinFeature, Depends(ProteinsControllerDependencies.get_protein)]) -> Optional[ProteinContentResponse]:
+    return await feature.handle(protein_id=protein_id)
+
+
+@router.get('/{protein_id}/metadata',
+            summary='Get protein metadata by id')
+async def get_protein_metadata(protein_id: UUID, feature: Annotated[
+    GetProteinMetadataFeature, Depends(ProteinsControllerDependencies.get_protein_metadata)]) -> Optional[
+    ProteinMetadataResponse]:
     return await feature.handle(protein_id=protein_id)
 
 
@@ -46,7 +61,7 @@ async def upload_protein(
         experiment_id: UUID = Form(),
         name: Optional[str] = Form(None),
         fasta: UploadFile = File(None),
-        pdb: UploadFile = File(None), ) -> ProteinResponse:
+        pdb: UploadFile = File(None), ) -> ProteinContentResponse:
     return await feature.handle(request=UploadProteinRequest(
         experiment_id=experiment_id,
         name=name,
@@ -62,7 +77,7 @@ async def update_protein(
         protein_id: UUID = Form(),
         name: Optional[str] = Form(None),
         fasta: UploadFile = File(None),
-        pdb: UploadFile = File(None)) -> ProteinResponse:
+        pdb: UploadFile = File(None)) -> ProteinContentResponse:
     return await feature.handle(
         request=UpdateProteinRequest(
             protein_id=protein_id,

@@ -91,19 +91,18 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
             self.jobs.append(job)
 
     async def jobs_setup_errors(self) -> List[JobValidationError]:
-        validation_errors = []
+        jobs_errors = []
 
-        job: SmallMoleculesDesignJob
         for job in self.jobs:
-            if not job.input_valid():
-                validation_errors.append(
-                    JobValidationError(
-                        job_id=job.id,
-                        msg=f'Job input is invalid. Setup job inputs manually'
-                    )
+            errors = job.input_errors()
+            jobs_errors.append(
+                JobValidationError(
+                    job_id=job.id,
+                    msg=', '.join([err.message for err in errors])
                 )
+            )
 
-        return validation_errors
+        return jobs_errors
 
     @property
     def _input_parameter_type(self) -> Type[SmallMoleculesDesignLearningInput]:

@@ -3,8 +3,8 @@ import {
   InputPropertyErrorResponse,
   JobErrorResponse,
   JobsACommonControllerForJobsManagementService,
-  LigandResponse,
-  ProteinResponse
+  LigandContentResponse,
+  ProteinContentResponse,
 } from 'src/refinedApi/client';
 import {
   deleteProtein,
@@ -54,8 +54,8 @@ export interface Node extends FlowNode {
 
 export const useWorkflowStore = defineStore('workflowStore', {
   state: () => ({
-    proteins: [] as ProteinResponse[],
-    ligands: [] as LigandResponse[],
+    proteins: [] as ProteinContentResponse[],
+    ligands: [] as LigandContentResponse[],
     elements: {
       nodes: [] as Node[],
       edges: [] as Edge[]

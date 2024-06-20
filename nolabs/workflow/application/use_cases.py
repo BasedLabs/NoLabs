@@ -308,8 +308,8 @@ class StartWorkflowFeature:
                 component: Component = self.available_components[workflow_component.name](
                     id=workflow_component.component_id,
                     jobs=component_db_model.jobs,
-                    input_parameter_dict=component_db_model.input_parameter_dict,
-                    output_parameter_dict=component_db_model.output_parameter_dict,
+                    input_parameter_dict={**component_db_model.input_parameter_dict},
+                    output_parameter_dict={**component_db_model.output_parameter_dict},
                     experiment=experiment)
             else:
                 id = workflow_component.component_id

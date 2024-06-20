@@ -1,5 +1,6 @@
 __all__ = [
-    'SearchLigandsFeature',
+    'SearchLigandsMetadataFeature',
+    'SearchLigandsContentFeature',
     'GetLigandFeature',
     'DeleteLigandFeature',
     'UploadLigandFeature'
@@ -13,13 +14,17 @@ from uuid import UUID
 from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.ligands.api_models import LigandResponse, LigandSearchQuery, \
-    UploadLigandRequest, UpdateLigandRequest
+from nolabs.application.use_cases.ligands.api_models import (LigandContentResponse,
+                                                             LigandSearchContentQuery,
+                                                             LigandSearchMetadataQuery,
+                                                             UploadLigandRequest,
+                                                             UpdateLigandRequest,
+                                                             LigandMetadataResponse)
 from nolabs.domain.models.common import Experiment, Ligand, LigandName
 
 
-def map_ligand_to_response(ligand: Ligand) -> LigandResponse:
-    return LigandResponse(
+def map_ligand_to_response(ligand: Ligand) -> LigandContentResponse:
+    return LigandContentResponse(
         id=ligand.iid.value,
         experiment_id=ligand.experiment.iid.value,
         name=str(ligand.name),
@@ -27,13 +32,26 @@ def map_ligand_to_response(ligand: Ligand) -> LigandResponse:
         sdf_content=ligand.get_sdf(),
         link=ligand.link,
         image=base64.b64encode(ligand.image).decode("utf-8"),
-        drug_likeness=ligand.drug_likeness,
-        designed_ligand_score=ligand.designed_ligand_score
+        drug_likeness=ligand.drug_likeness.value if ligand.drug_likeness else None,
+        designed_ligand_score=ligand.designed_ligand_score if ligand.designed_ligand_score else None
     )
 
 
-class SearchLigandsFeature:
-    async def handle(self, query: LigandSearchQuery) -> List[LigandResponse]:
+def map_to_ligand_metadata_response(ligand: Ligand) -> LigandMetadataResponse:
+    return LigandMetadataResponse(
+        id=ligand.iid.value,
+        experiment_id=ligand.experiment.iid.value,
+        name=str(ligand.name),
+        smiles_content=ligand.get_smiles(),
+        link=ligand.link,
+        image=base64.b64encode(ligand.image).decode("utf-8"),
+        drug_likeness=ligand.drug_likeness.value if ligand.drug_likeness else None,
+        designed_ligand_score=ligand.designed_ligand_score if ligand.designed_ligand_score else None
+    )
+
+
+class SearchLigandsContentFeature:
+    async def handle(self, query: LigandSearchContentQuery) -> List[LigandContentResponse]:
         db_query = Q()
 
         if query.name:
@@ -46,8 +64,22 @@ class SearchLigandsFeature:
         return [map_ligand_to_response(l) for l in Ligand.objects(db_query)]
 
 
+class SearchLigandsMetadataFeature:
+    async def handle(self, query: LigandSearchMetadataQuery) -> List[LigandMetadataResponse]:
+        db_query = Q()
+
+        if query.name:
+            db_query = db_query & Q(name__icontains=query.name)
+
+        if query.experiment_id:
+            experiment = Experiment.objects.with_id(query.experiment_id)
+            db_query = db_query & Q(experiment=experiment)
+
+        return [map_to_ligand_metadata_response(l) for l in Ligand.objects(db_query)]
+
+
 class GetLigandFeature:
-    async def handle(self, ligand_id: UUID) -> Optional[LigandResponse]:
+    async def handle(self, ligand_id: UUID) -> Optional[LigandContentResponse]:
         ligand = Ligand.objects.with_id(ligand_id)
 
         if not ligand:
@@ -56,8 +88,18 @@ class GetLigandFeature:
         return map_ligand_to_response(ligand)
 
 
+class GetLigandMetadataFeature:
+    async def handle(self, ligand_id: UUID) -> Optional[LigandMetadataResponse]:
+        ligand = Ligand.objects.with_id(ligand_id)
+
+        if not ligand:
+            return None
+
+        return map_to_ligand_metadata_response(ligand)
+
+
 class UploadLigandFeature:
-    async def handle(self, request: UploadLigandRequest) -> LigandResponse:
+    async def handle(self, request: UploadLigandRequest) -> LigandContentResponse:
         experiment = Experiment.objects.with_id(request.experiment_id)
 
         if not experiment:
@@ -94,7 +136,7 @@ class UploadLigandFeature:
 
 
 class UpdateLigandFeature:
-    async def handle(self, request: UpdateLigandRequest) -> LigandResponse:
+    async def handle(self, request: UpdateLigandRequest) -> LigandContentResponse:
 
         ligand = Ligand.objects.with_id(request.ligand_id)
 
@@ -130,6 +172,3 @@ class DeleteLigandFeature:
             return
 
         ligand.delete()
-
-
-
