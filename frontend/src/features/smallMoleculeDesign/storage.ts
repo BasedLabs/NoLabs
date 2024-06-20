@@ -3,12 +3,11 @@ import {
   OpenAPI,
   SmallMoleculesDesignService,
   ProteinsService,
-  LigandsService,
-  JobsACommonControllerForJobsManagementService, ProteinDesignService
+  JobsACommonControllerForJobsManagementService
 } from "../../refinedApi/client";
-import apiConstants from "../../api/constants";
-import {obtainErrorResponse} from "../../api/errorWrapper";
 import {Notify} from "quasar";
+import apiConstants from "../../refinedApi/constants";
+import {obtainErrorResponse} from "../../refinedApi/errorWrapper";
 
 OpenAPI.BASE = apiConstants.hostname;
 
@@ -34,7 +33,7 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
       );
       const status = await SmallMoleculesDesignService.getJobStatusApiV1SmallMoleculesDesignJobsJobIdStatusGet(jobId);
 
-      const protein = await ProteinsService.getProteinApiV1ProteinsProteinIdGet(job!.protein_id);
+      const protein = await ProteinsService.getProteinContentApiV1ProteinsProteinIdContentGet(job!.protein_id);
 
       ensureNotError(job);
       ensureNotError(status);

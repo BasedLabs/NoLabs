@@ -67,7 +67,7 @@ import {editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi} from 
 import {FunctionCall, type FunctionParam, Message} from "src/refinedApi/client";
 import MarkdownIt from 'markdown-it';
 import {useBioBuddyStore} from "./storage";
-import {obtainErrorResponse} from "../../api/errorWrapper";
+import {obtainErrorResponse} from "../../refinedApi/errorWrapper";
 
 export interface FunctionMapping {
   name: string;

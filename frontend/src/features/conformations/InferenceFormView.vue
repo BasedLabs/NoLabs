@@ -1,6 +1,6 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {IntegratorsRequest} from "src/api/client";
+import {IntegratorsRequest} from "src/refinedApi/client";
 import {JobProperties} from "src/features/conformations/types";
 
 

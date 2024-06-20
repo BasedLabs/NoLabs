@@ -1,37 +1,18 @@
-const drugDiscoveryRoutes = [
+const experimentsRoutes = [
   {
-    path: 'drug-discovery',
-    name: 'Drug discovery experiments',
-    component: () => import('src/features/drug_discovery/ExperimentsView.vue')
+    path: 'experiments',
+    component: () => import('../features/workflow/ExperimentsView.vue'),
+    name: 'Experiments'
   },
-  {
-    path: 'drug-discovery/experiment/:experimentId',
-    component: () => import('src/features/drug_discovery/ExperimentNavigation.vue'),
-    name: 'Drug discovery',
-    props: true,
-    children: [
-      {
-        path: '/drug-discovery/experiment/:experimentId/upload-targets',
-        component: () => import('../features/drug_discovery/components/UploadTargetsStep.vue'),
-        name: 'Upload targets',
-        props: true
-      },
-      {
-        path: '/drug-discovery/experiment/:experimentId/upload-ligands',
-        component: () => import('../features/drug_discovery/components/UploadLigandsStep.vue'),
-        name: 'Upload ligands',
-        props: true
-      },
-      {
-        path: '/drug-discovery/experiment/:experimentId/run-docking',
-        component: () => import('../features/drug_discovery/components/RunDockingStep.vue'),
-        name: 'Run docking',
-        props: true
-      },
-    ]
-  }
-];
+]
 
+const workflowRoutes = [
+  {
+    path: 'workflow/:experimentId',
+    component: () => import('../features/workflow/WorkflowView.vue'),
+    name: 'Workflow view'
+  },
+]
 
 const proteinDesignRoutes = [
   {
@@ -96,22 +77,14 @@ const smallMoleculeDesignRoutes = [
   }
 ]
 
-const labsRoute = [
-  {
-    path: 'labs',
-    name: 'Labs',
-    component: () => import("src/components/LabsView.vue")
-  },
-];
-
 const routes = [
   {
     path: '/',
     name: 'Main',
     component: () => import('src/layouts/MainLayout.vue'),
     children: [
-      ...labsRoute,
-      ...drugDiscoveryRoutes,
+      ...experimentsRoutes,
+      ...workflowRoutes,
       ...proteinDesignRoutes,
       ...conformationsRoutes,
       ...localisationRoutes,

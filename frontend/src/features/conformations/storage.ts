@@ -1,7 +1,7 @@
 import {defineStore} from "pinia";
 import {Notify} from "quasar";
-import {ErrorCodes} from "src/api/errorTypes";
-import {obtainErrorResponse} from "src/api/errorWrapper";
+import {ErrorCodes} from "src/refinedApi/errorTypes";
+import {obtainErrorResponse} from "src/refinedApi/errorWrapper";
 import {Job, InferenceRequest} from "src/features/conformations/types";
 import {
   ConformationsService,
@@ -9,7 +9,7 @@ import {
   JobsACommonControllerForJobsManagementService,
   OpenAPI, ProteinsService
 } from "src/refinedApi/client";
-import apiConstants from "src/api/constants";
+import apiConstants from "../../refinedApi/constants";
 
 
 OpenAPI.BASE = apiConstants.hostname;

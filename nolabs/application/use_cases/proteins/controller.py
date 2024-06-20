@@ -8,7 +8,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Form, UploadFile, File
 
 from nolabs.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinContentResponse, \
-    UploadProteinRequest, UpdateProteinRequest, ProteinMetadataResponse, ProteinSearchMetadataQuery
+    UploadProteinRequest, UpdateProteinRequest, ProteinMetadataResponse, ProteinSearchMetadataQuery, \
+    UploadProteinResponse
 from nolabs.application.use_cases.proteins.di import ProteinsControllerDependencies
 from nolabs.application.use_cases.proteins.use_cases import SearchProteinsContentFeature, GetProteinFeature, \
     UploadProteinFeature, DeleteProteinFeature, UpdateProteinFeature, GetProteinMetadataFeature, \
@@ -61,7 +62,7 @@ async def upload_protein(
         experiment_id: UUID = Form(),
         name: Optional[str] = Form(None),
         fasta: UploadFile = File(None),
-        pdb: UploadFile = File(None), ) -> ProteinContentResponse:
+        pdb: UploadFile = File(None), ) -> UploadProteinResponse:
     return await feature.handle(request=UploadProteinRequest(
         experiment_id=experiment_id,
         name=name,

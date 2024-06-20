@@ -1,7 +1,7 @@
 import {defineStore} from "pinia";
 import {Notify} from "quasar";
-import {ErrorCodes} from "src/api/errorTypes";
-import {obtainErrorResponse} from "src/api/errorWrapper";
+import {ErrorCodes} from "src/refinedApi/errorTypes";
+import {obtainErrorResponse} from "src/refinedApi/errorWrapper";
 import {
   OpenAPI,
   FoldingService,
@@ -9,10 +9,10 @@ import {
   ProteinsService,
   FoldingBackendEnum
 } from "src/refinedApi/client";
-import apiConstants from "src/api/constants";
 import {InferenceRequest, Job} from "src/features/aminoAcid/types";
 import {AminoAcid} from "src/features/aminoAcid/folding/types";
 import {JobsACommonControllerForJobsManagementService} from "../../../refinedApi/client";
+import apiConstants from "../../../refinedApi/constants";
 
 OpenAPI.BASE = apiConstants.hostname;
 
