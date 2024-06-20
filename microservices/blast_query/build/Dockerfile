@@ -1,4 +1,3 @@
-# Use a PyTorch base image with CUDA support
 FROM python:3.11
 
 # Install Python 3.11 and curl
