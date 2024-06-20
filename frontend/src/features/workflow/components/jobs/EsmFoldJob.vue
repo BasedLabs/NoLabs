@@ -90,8 +90,8 @@ import {
   nolabs__application__use_cases__folding__api_models__JobResponse, ProteinContentResponse,
   nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__folding__api_models__SetupJobRequest
-} from "../../../../../refinedApi/client";
-import { getFoldingJobApi, getProteinContent, getFoldingJobStatus, setupFoldingJob, changeJobName } from "../../../refinedApi";
+} from "src/refinedApi/client";
+import { getFoldingJobApi, getProteinContent, getFoldingJobStatus, setupFoldingJob, changeJobName } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
   name: 'EsmFoldJob',

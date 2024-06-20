@@ -33,7 +33,7 @@
 <script>
 import JobNodeContent from './JobNodeContent.vue';
 import NodeHandles from './NodeHandles.vue';
-import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
+import { useWorkflowStore } from 'src/features/workflow/components/storage';
 
 export default {
   name: 'JobNode',

@@ -34,7 +34,7 @@
   <script lang="ts">
   import { QSpinnerOrbit } from "quasar";
   import { defineComponent } from "vue";
-  import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
+  import { useWorkflowStore } from "src/features/workflow/components/storage";
   import { ProteinMetadataResponse } from "src/refinedApi/client";
   import ProteinDetail from "./ProteinDetail.vue";
   import { FunctionCallReturnData, RcsbPdbData } from "src/refinedApi/client";

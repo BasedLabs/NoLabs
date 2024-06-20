@@ -91,8 +91,8 @@ import {
   ProteinContentResponse,
   nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__diffdock__api_models__SetupJobRequest
-} from "../../../../../refinedApi/client";
-import { getDiffDockJobApi, getProteinContent, getDiffDockJobStatus, changeJobName, setupDiffDockJob, startDiffDockJob } from "../../../refinedApi";
+} from "src/refinedApi/client";
+import { getDiffDockJobApi, getProteinContent, getDiffDockJobStatus, changeJobName, setupDiffDockJob, startDiffDockJob } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
   name: 'DiffDockJob',

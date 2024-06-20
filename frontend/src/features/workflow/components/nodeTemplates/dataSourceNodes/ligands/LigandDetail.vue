@@ -29,8 +29,7 @@ import { QCard, QCardSection } from "quasar";
 import PdbViewer from "src/components/PdbViewer.vue";
 import { LigandContentResponse } from "src/refinedApi/client";
 import { defineComponent, PropType } from "vue";
-import {getLigandContent} from "src/features/drug_discovery/refinedApi"
-import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
+import {getLigandContent} from "src/features/workflow/refinedApi"
 
 export default defineComponent({
   name: "LigandDetail",

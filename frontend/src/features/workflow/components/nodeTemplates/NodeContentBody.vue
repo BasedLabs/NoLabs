@@ -99,10 +99,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useWorkflowStore, Node } from 'src/features/components/workflow/storage';
+import { useWorkflowStore, Node } from 'src/features/workflow/components/storage';
 import {
   getJobMetaData
-} from 'src/features/refinedApi';
+} from 'src/features/workflow/refinedApi';
 import {
   GetJobMetadataResponse,
   nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,

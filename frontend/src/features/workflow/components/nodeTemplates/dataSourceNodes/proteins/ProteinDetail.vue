@@ -43,8 +43,7 @@ import { QBtn, QCard, QCardSection, QSpinnerOrbit, QVueGlobals } from "quasar";
 import PdbViewer from "src/components/PdbViewer.vue";
 import { ProteinContentResponse } from "src/refinedApi/client";
 import { defineComponent } from "vue";
-import { getProteinContent } from "src/features/drug_discovery/refinedApi";
-import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
+import { getProteinContent } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
   name: "ProteinDetail",

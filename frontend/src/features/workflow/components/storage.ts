@@ -15,7 +15,7 @@ import {
   deleteLigand,
   getAllLigandsMetadata,
   getComponentState
-} from 'src/features/refinedApi';
+} from 'src/features/workflow/refinedApi';
 import {Edge, Node as FlowNode} from '@vue-flow/core';
 import {v4 as uuidv4} from 'uuid';
 import {Notify} from 'quasar';
@@ -25,7 +25,7 @@ import {
   getExperimentsApi,
   createExperimentApi,
   deleteExperimentApi
-} from 'src/features/refinedApi';
+} from 'src/features/workflow/refinedApi';
 import {
   ComponentModel_Output,
   WorkflowSchemaModel_Input,
