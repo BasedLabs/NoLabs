@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.get('/jobs/metadata',
+@router.get('/metadata',
             summary='Get all jobs metadata by experiment')
 async def jobs_metadata(experiment_id: UUID,
                         feature: Annotated[
@@ -29,7 +29,7 @@ async def jobs_metadata(experiment_id: UUID,
     return await feature.handle(experiment_id=experiment_id)
 
 
-@router.get('/jobs/{job_id}/metadata',
+@router.get('/{job_id}/metadata',
             summary='Get job metadata by experiment')
 async def job_metadata(job_id: UUID,
                         feature: Annotated[
@@ -37,14 +37,14 @@ async def job_metadata(job_id: UUID,
     return await feature.handle(job_id=job_id)
 
 
-@router.delete('/jobs/{jod_id}',
+@router.delete('/{jod_id}',
                summary='Delete job')
 async def delete_job(job_id: UUID,
                      feature: Annotated[DeleteJobFeature, Depends(JobDependencies.delete_job)]):
     return await feature.handle(job_id=job_id)
 
 
-@router.patch('/jobs/{job_id}',
+@router.patch('/{job_id}',
               summary='Update job')
 async def update(job_id: UUID,
                  request: UpdateJobRequest,

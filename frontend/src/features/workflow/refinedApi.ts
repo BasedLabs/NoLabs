@@ -2,11 +2,8 @@ import {
   ExperimentsService,
   FoldingService,
   JobsACommonControllerForJobsManagementService,
-  type nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
-  type nolabs__application__use_cases__folding__api_models__JobResponse,
   type ProteinContentResponse,
   ProteinsService,
-  nolabs__application__use_cases__folding__api_models__SetupJobRequest,
   UpdateJobRequest,
   WorkflowService,
   BiobuddyService,
@@ -20,8 +17,6 @@ import {
   LigandsService,
   Body_upload_ligand_api_v1_objects_ligands_post,
   BindingPocketsService,
-  nolabs__application__use_cases__binding_pockets__api_models__JobResponse,
-  nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse,
   DiffdockService,
   nolabs__application__use_cases__diffdock__api_models__JobResponse,
   nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse,
@@ -30,7 +25,13 @@ import {
   nolabs__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__msa_generation__api_models__JobResponse,
   Body_upload_protein_api_v1_proteins_post,
-  Body_update_protein_api_v1_proteins_patch
+  Body_update_protein_api_v1_proteins_patch,
+  nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
+  nolabs__application__use_cases__folding__api_models__JobResponse,
+  nolabs__application__use_cases__folding__api_models__SetupJobRequest,
+  nolabs__application__use_cases__binding_pockets__api_models__JobResponse,
+  nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse,
+  GetJobMetadataResponse
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
@@ -50,9 +51,12 @@ export function getProtein(proteinId: string): CancelablePromise<(ProteinContent
   return ProteinsService.getProteinContentApiV1ProteinsProteinIdContentGet(proteinId);
 }
 
-// Delete an experiment
 export function deleteExperimentApi(experimentId: string): CancelablePromise<any> {
   return ExperimentsService.deleteExperimentApiV1ExperimentsExperimentIdDelete(experimentId);
+}
+
+export function getJobMetaData(jobId: string): CancelablePromise<GetJobMetadataResponse> {
+  return JobsACommonControllerForJobsManagementService.jobMetadataApiV1JobsJobsJobIdMetadataGet(jobId);
 }
 
 export function getFoldingJobApi(jobId: string): CancelablePromise<nolabs__application__use_cases__folding__api_models__JobResponse> {
@@ -105,7 +109,7 @@ export function startMsaJob(jobId: string): CancelablePromise<any> {
 
 export function changeJobName(jobId: string, newName: string): CancelablePromise<any> {
   const jobRequest = { job_name: newName } as UpdateJobRequest;
-  return JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(jobId, jobRequest);
+  return JobsACommonControllerForJobsManagementService.updateApiV1JobsJobIdPatch(jobId, jobRequest);
 }
 
 export function createWorkflow(experimentId: string): CancelablePromise<any> {
@@ -127,6 +131,11 @@ export function sendWorkflowUpdate(workflow: WorkflowSchemaModel_Input): Cancela
 export function startWorkflow(experimentId: string): CancelablePromise<any> {
   return WorkflowService.startWorkflowApiV1WorkflowWorkflowIdStartPost(experimentId)
 }
+
+export function startWorkflowComponent(workflowId:string, componentId: string): CancelablePromise<any> {
+  return WorkflowService.startComponentApiV1WorkflowWorkflowIdStartComponentIdPost(workflowId, componentId);
+}
+
 
 export function resetWorkflow(workflowId: string): CancelablePromise<any> {
   return WorkflowService.resetWorkflowApiV1WorkflowWorkflowIdResetPost({workflow_id: workflowId});

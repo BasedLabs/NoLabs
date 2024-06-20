@@ -95,16 +95,14 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.runningComponentIds.push(componentId);
       }
     },
-    // Remove a component ID from the array if it no longer has running jobs
     removeRunningComponentId(componentId: string) {
       this.runningComponentIds = this.runningComponentIds.filter(id => id !== componentId);
     },
-    // Clear all running component IDs (e.g., when the workflow is reset)
     clearRunningComponentIds() {
       this.runningComponentIds = [];
     },
     async deleteJob(jobId: string){
-      await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJobsJodIdDelete(jobId);
+      await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJodIdDelete(jobId);
     },
     async uploadProteinToExperiment(experimentId: string, nodeId: string, name?: string, fastaFile?: Blob, pdbFile?: Blob, metaData?: Record<string, string>) {
       try {

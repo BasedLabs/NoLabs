@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
+/* generated using openapi-typescript-codegen -- do no edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -14,12 +14,12 @@ export class JobsACommonControllerForJobsManagementService {
      * @returns GetJobMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static jobsMetadataApiV1JobsJobsMetadataGet(
+    public static jobsMetadataApiV1JobsMetadataGet(
         experimentId: string,
     ): CancelablePromise<Array<GetJobMetadataResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/jobs/jobs/metadata',
+            url: '/api/v1/jobs/metadata',
             query: {
                 'experiment_id': experimentId,
             },
@@ -34,12 +34,12 @@ export class JobsACommonControllerForJobsManagementService {
      * @returns GetJobMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static jobMetadataApiV1JobsJobsJobIdMetadataGet(
+    public static jobMetadataApiV1JobsJobIdMetadataGet(
         jobId: string,
     ): CancelablePromise<GetJobMetadataResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/jobs/jobs/{job_id}/metadata',
+            url: '/api/v1/jobs/{job_id}/metadata',
             path: {
                 'job_id': jobId,
             },
@@ -54,12 +54,12 @@ export class JobsACommonControllerForJobsManagementService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static deleteJobApiV1JobsJobsJodIdDelete(
+    public static deleteJobApiV1JobsJodIdDelete(
         jobId: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/jobs/jobs/{jod_id}',
+            url: '/api/v1/jobs/{jod_id}',
             query: {
                 'job_id': jobId,
             },
@@ -75,13 +75,13 @@ export class JobsACommonControllerForJobsManagementService {
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static updateApiV1JobsJobsJobIdPatch(
+    public static updateApiV1JobsJobIdPatch(
         jobId: string,
         requestBody: UpdateJobRequest,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/v1/jobs/jobs/{job_id}',
+            url: '/api/v1/jobs/{job_id}',
             path: {
                 'job_id': jobId,
             },

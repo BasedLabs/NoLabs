@@ -1,7 +1,13 @@
 <template>
   <q-card-section class="job-section q-pa-sm">
     <div class="text-white q-pa-sm text-caption">Jobs queue</div>
-    <q-scroll-area v-if="jobs.length > 0" style="height: 30vh">
+    <q-scroll-area
+      v-if="jobs.length > 0"
+      visible
+      :thumbStyle="thumbStyle"
+      :barStyle="barStyle"
+      style="height: 30vh"
+    >
       <draggable class="q-pa-sm" v-model="jobs" handle=".drag-handle" @end="updateJobOrder" item-key="job_id">
         <template #item="{ element }">
           <q-item class="bg-grey-3 text-black">
@@ -36,7 +42,13 @@
 
   <q-card-section class="result-section q-pa-sm">
     <div class="text-white q-pa-sm text-caption">Completed jobs</div>
-    <q-scroll-area v-if="results.length > 0" style="height: 30vh">
+    <q-scroll-area
+      v-if="results.length > 0"
+      visible
+      :thumbStyle="thumbStyle"
+      :barStyle="barStyle"
+      style="height: 30vh"
+    >
       <draggable class="q-pa-sm" v-model="results" handle=".drag-handle" item-key="job_id">
         <template #item="{ element }">
           <q-item class="bg-grey-3 text-black">
@@ -87,10 +99,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useWorkflowStore, Node } from '../storage';
+import { useWorkflowStore, Node } from 'src/features/components/workflow/storage';
+import {
+  getJobMetaData
+} from 'src/features/refinedApi';
 import {
   GetJobMetadataResponse,
-  nolabs__application__use_cases__folding__api_models__GetJobStatusResponse
+  nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
 } from 'src/refinedApi/client';
 import EsmFoldJob from '../jobs/EsmFoldJob.vue';
 import P2RankJob from '../jobs/P2RankJob.vue';
@@ -206,6 +221,20 @@ export default defineComponent({
       jobErrors: {} as Record<string, string>,
       lastExceptions: [] as string[],
       selectedJobComponent: null as any,
+      thumbStyle: {
+        right: '4px',
+        borderRadius: '7px',
+        backgroundColor: '#027be3',
+        width: '4px',
+        opacity: 0.75
+      },
+      barStyle: {
+        right: '2px',
+        borderRadius: '9px',
+        backgroundColor: '#027be3',
+        width: '8px',
+        opacity: 0.2
+      }
     };
   },
   async mounted() {
@@ -251,7 +280,7 @@ export default defineComponent({
 
           const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
 
-          job = await jobDefinition.api.getJob(jobId);
+          job = await getJobMetaData(jobId);
           executionStatus = await jobDefinition.api.executionStatus(jobId);
 
           return { ...job, executionStatus };
@@ -277,7 +306,8 @@ export default defineComponent({
     async deleteJob(job: GetJobMetadataResponse) {
       const workflowStore = useWorkflowStore();
       await workflowStore.deleteJob(job.job_id);
-      this.updateJobs();
+      this.jobs = this.jobs.filter(j => j.job_id !== job.job_id);
+      this.results = this.results.filter(j => j.job_id !== job.job_id);
     },
     updateErrorsAndExceptions() {
       this.lastExceptions = this.nodeData?.data.last_exceptions || [];

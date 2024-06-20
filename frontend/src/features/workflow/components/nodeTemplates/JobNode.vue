@@ -19,7 +19,7 @@
       <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
     </q-card-section>
     <q-card-actions align="around">
-      <q-btn v-if="!isRunning" @click="openDialogue" color="positive" icon="play_arrow" label="Start" />
+      <q-btn v-if="!isRunning" @click="startWorkflow" color="positive" icon="play_arrow" label="Start" />
       <q-btn v-else>
         <q-spinner color="primary" size="20px" />
         Running...
@@ -33,7 +33,7 @@
 <script>
 import JobNodeContent from './JobNodeContent.vue';
 import NodeHandles from './NodeHandles.vue';
-import { useWorkflowStore } from '../storage';
+import { useWorkflowStore } from 'src/features/drug_discovery/components/workflow/storage';
 
 export default {
   name: 'JobNode',
@@ -74,6 +74,17 @@ export default {
     console.log(this.nodeData.name);
   },
   methods: {
+    async startWorkflow() {
+      const workflowStore = useWorkflowStore();
+      const workflowId = workflowStore.workflowId;
+      try {
+        await startWorkflowComponent(workflowId, this.nodeId);
+        this.isRunning = true;
+        console.log(`Started workflow component with workflowId: ${workflowId} and nodeId: ${this.nodeId}`);
+      } catch (error) {
+        console.error('Failed to start workflow component', error);
+      }
+    },
     deleteNode() {
       if (this.onDeleteNode) {
         this.onDeleteNode(this.nodeId);
