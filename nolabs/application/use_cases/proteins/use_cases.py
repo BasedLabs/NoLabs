@@ -15,7 +15,7 @@ from mongoengine import Q
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinContentResponse, \
     ProteinLocalisationResponse, UploadProteinRequest, UpdateProteinRequest, ProteinMetadataResponse, \
-    ProteinSearchMetadataQuery
+    ProteinSearchMetadataQuery, UploadProteinResponse
 from nolabs.domain.models.common import Protein, Experiment, ProteinName
 
 
@@ -46,6 +46,26 @@ def map_protein_to_response(protein: Protein) -> ProteinContentResponse:
 
 def map_to_protein_metadata_response(protein: Protein) -> ProteinMetadataResponse:
     return ProteinMetadataResponse(
+        id=protein.iid.value,
+        experiment_id=protein.experiment.iid.value,
+        name=str(protein.name),
+        binding_pockets=protein.binding_pockets,
+        localisation=ProteinLocalisationResponse(
+            cytosolic=protein.localisation.cytosolic,
+            mitochondrial=protein.localisation.mitochondrial,
+            nuclear=protein.localisation.nuclear,
+            other=protein.localisation.other,
+            extracellular=protein.localisation.extracellular
+        ) if protein.localisation else None,
+        gene_ontology=protein.gene_ontology,
+        soluble_probability=protein.soluble_probability,
+        fasta_name=protein.name.fasta_name,
+        pdb_name=protein.name.pdb_name,
+        link=str(protein.link))
+
+
+def map_to_upload_protein_response(protein: Protein) -> UploadProteinResponse:
+    return UploadProteinResponse(
         id=protein.iid.value,
         experiment_id=protein.experiment.iid.value,
         name=str(protein.name),
@@ -131,7 +151,7 @@ class GetProteinMetadataFeature:
 
 
 class UploadProteinFeature:
-    async def handle(self, request: UploadProteinRequest) -> ProteinContentResponse:
+    async def handle(self, request: UploadProteinRequest) -> UploadProteinResponse:
         experiment = Experiment.objects.with_id(request.experiment_id)
 
         if not experiment:
@@ -163,7 +183,7 @@ class UploadProteinFeature:
         )
         protein.save(cascade=True)
 
-        return map_protein_to_response(protein)
+        return map_to_upload_protein_response(protein)
 
 
 class UpdateProteinFeature:

@@ -19,7 +19,7 @@ from nolabs.application.use_cases.ligands.api_models import (LigandContentRespon
                                                              LigandSearchMetadataQuery,
                                                              UploadLigandRequest,
                                                              UpdateLigandRequest,
-                                                             LigandMetadataResponse)
+                                                             LigandMetadataResponse, UploadLigandResponse)
 from nolabs.domain.models.common import Experiment, Ligand, LigandName
 
 
@@ -39,6 +39,19 @@ def map_ligand_to_response(ligand: Ligand) -> LigandContentResponse:
 
 def map_to_ligand_metadata_response(ligand: Ligand) -> LigandMetadataResponse:
     return LigandMetadataResponse(
+        id=ligand.iid.value,
+        experiment_id=ligand.experiment.iid.value,
+        name=str(ligand.name),
+        smiles_content=ligand.get_smiles(),
+        link=ligand.link,
+        image=base64.b64encode(ligand.image).decode("utf-8"),
+        drug_likeness=ligand.drug_likeness.value if ligand.drug_likeness else None,
+        designed_ligand_score=ligand.designed_ligand_score if ligand.designed_ligand_score else None
+    )
+
+
+def map_to_upload_ligand_response(ligand: Ligand) -> UploadLigandResponse:
+    return UploadLigandResponse(
         id=ligand.iid.value,
         experiment_id=ligand.experiment.iid.value,
         name=str(ligand.name),
@@ -99,7 +112,7 @@ class GetLigandMetadataFeature:
 
 
 class UploadLigandFeature:
-    async def handle(self, request: UploadLigandRequest) -> LigandContentResponse:
+    async def handle(self, request: UploadLigandRequest) -> UploadLigandResponse:
         experiment = Experiment.objects.with_id(request.experiment_id)
 
         if not experiment:
@@ -132,7 +145,7 @@ class UploadLigandFeature:
         )
         ligand.save(cascade=True)
 
-        return map_ligand_to_response(ligand)
+        return map_to_upload_ligand_response(ligand)
 
 
 class UpdateLigandFeature:

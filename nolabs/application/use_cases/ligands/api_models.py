@@ -67,3 +67,15 @@ class UpdateLigandRequest:
     smiles: Optional[UploadFile] = None
     sdf: Optional[UploadFile] = None
     link: Optional[str] = None
+
+
+@dataclass
+class UploadLigandResponse:
+    id: UUID
+    name: str
+    experiment_id: UUID
+    smiles_content: Optional[str] = None
+    link: Optional[str] = None
+    image: Optional[str] = field(default=None, repr=False)
+    drug_likeness: Optional[float] = None
+    designed_ligand_score: Optional[float] = None

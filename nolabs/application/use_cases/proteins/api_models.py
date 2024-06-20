@@ -71,6 +71,21 @@ class UploadProteinRequest:
 
 
 @dataclass
+class UploadProteinResponse:
+    id: UUID
+    name: str
+    experiment_id: UUID
+
+    binding_pockets: List[int]
+    fasta_name: str
+    pdb_name: str
+    localisation: Optional[ProteinLocalisationResponse] = None
+    gene_ontology: Optional[Dict[str, Any]] = None
+    soluble_probability: Optional[float] = None
+    link: Optional[str] = None
+
+
+@dataclass
 class UpdateProteinRequest:
     protein_id: UUID
     name: Optional[str] = None

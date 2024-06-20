@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Form, UploadFile, File
 
 from nolabs.application.use_cases.ligands.api_models import *
-from nolabs.application.use_cases.ligands.api_models import UpdateLigandRequest
+from nolabs.application.use_cases.ligands.api_models import UpdateLigandRequest, UploadLigandResponse
 from nolabs.application.use_cases.ligands.di import LigandsControllerDependencies
 from nolabs.application.use_cases.ligands.use_cases import *
 from nolabs.application.use_cases.ligands.use_cases import UpdateLigandFeature
@@ -60,7 +60,7 @@ async def upload_ligand(
         experiment_id: UUID = Form(),
         name: Optional[str] = Form(None),
         smiles: UploadFile = File(None),
-        sdf: UploadFile = File(None), ) -> LigandContentResponse:
+        sdf: UploadFile = File(None), ) -> UploadLigandResponse:
     return await feature.handle(request=UploadLigandRequest(
         experiment_id=experiment_id,
         name=name,
