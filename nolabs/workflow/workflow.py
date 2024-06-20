@@ -59,9 +59,17 @@ class WorkflowExecutor:
 
                 component_db_model.save()
 
-        if component.output_errors() or jobs_setup_success or any(
-                [j for j in component.jobs if
-                 j.updated_at >= component_db_model.last_executed_at]) or component_db_model.last_jobs_count != last_jobs_count:
+        can_execute = [
+            lambda: component.output_errors(),
+            lambda: jobs_setup_success,
+            lambda: any([j for j in component.jobs if
+                         not j.updated_at or
+                         not component_db_model.last_execute_try_at or
+                         j.updated_at >= component_db_model.last_execute_try_at]),
+            lambda: component_db_model.last_jobs_count != last_jobs_count
+        ]
+
+        if any([cb() for cb in can_execute]):
             try:
                 await component.execute()
                 component_db_model.output_parameter_dict = component.output_parameter_dict
