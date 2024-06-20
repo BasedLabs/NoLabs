@@ -87,18 +87,12 @@ import { defineComponent } from 'vue';
 import { QSpinner, QInput, QBtn } from 'quasar';
 import DiffDockResult from './DiffDockResult.vue';
 import {
-  changeJobName,
-  getDiffDockJobApi,
-  getDiffDockJobStatus,
-  getProtein,
-  setupDiffDockJob,
-  startDiffDockJob
-} from "../../refinedApi";
-import {
-  nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__diffdock__api_models__JobResponse,
-  nolabs__application__use_cases__diffdock__api_models__SetupJobRequest, ProteinContentResponse
-} from "../../../../refinedApi/client";
+  ProteinContentResponse,
+  nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse,
+  nolabs__application__use_cases__diffdock__api_models__SetupJobRequest
+} from "../../../../../refinedApi/client";
+import { getDiffDockJobApi, getProteinContent, getDiffDockJobStatus, changeJobName, setupDiffDockJob, startDiffDockJob } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'DiffDockJob',
@@ -135,7 +129,7 @@ export default defineComponent({
       this.samplesPerComplex = this.job.samples_per_complex || null;
     }
 
-    this.protein = await getProtein(this.job.protein_id);
+    this.protein = await getProteinContent(this.job.protein_id);
 
     this.jobStatus = await getDiffDockJobStatus(this.jobId as string);
   },

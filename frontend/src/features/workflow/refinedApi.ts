@@ -31,7 +31,11 @@ import {
   nolabs__application__use_cases__folding__api_models__SetupJobRequest,
   nolabs__application__use_cases__binding_pockets__api_models__JobResponse,
   nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse,
-  GetJobMetadataResponse
+  GetJobMetadataResponse,
+  ProteinMetadataResponse,
+  LigandMetadataResponse,
+  LigandSearchMetadataQuery,
+  ProteinSearchMetadataQuery
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
@@ -47,7 +51,7 @@ export function createExperimentApi(): CancelablePromise<ExperimentMetadataRespo
   return ExperimentsService.createExperimentApiV1ExperimentsPost();
 }
 
-export function getProtein(proteinId: string): CancelablePromise<(ProteinContentResponse | null)> {
+export function getProteinContent(proteinId: string): CancelablePromise<(ProteinContentResponse | null)> {
   return ProteinsService.getProteinContentApiV1ProteinsProteinIdContentGet(proteinId);
 }
 
@@ -56,7 +60,7 @@ export function deleteExperimentApi(experimentId: string): CancelablePromise<any
 }
 
 export function getJobMetaData(jobId: string): CancelablePromise<GetJobMetadataResponse> {
-  return JobsACommonControllerForJobsManagementService.jobMetadataApiV1JobsJobsJobIdMetadataGet(jobId);
+  return JobsACommonControllerForJobsManagementService.jobMetadataApiV1JobsJobIdMetadataGet(jobId);
 }
 
 export function getFoldingJobApi(jobId: string): CancelablePromise<nolabs__application__use_cases__folding__api_models__JobResponse> {
@@ -149,16 +153,17 @@ export function deleteWorkflow(workflowId: string): CancelablePromise<any> {
   return WorkflowService.createSchemaApiV1WorkflowWorkflowIdDelete(workflowId);
 }
 
-export function getAllProteins(experimentId: string): CancelablePromise<Array<ProteinContentResponse>> {
-  const searchQuery = {name: '', experiment_id: experimentId} as ProteinSearchQuery;
-  return ProteinsService.searchProteinsApiV1ProteinsSearchContentPost(searchQuery);
+export function getAllProteinsMetadata(experimentId: string): CancelablePromise<Array<ProteinMetadataResponse>> {
+  const searchQuery = {name: '', experiment_id: experimentId} as ProteinSearchMetadataQuery;
+  return ProteinsService.searchProteinsApiV1ProteinsSearchMetadataPost(searchQuery);
 }
 
 export function uploadProtein(
   experimentId: string,
   name?: string,
   fasta?: Blob,
-  pdb?: Blob
+  pdb?: Blob,
+  link?: string
 ): CancelablePromise<ProteinContentResponse> {
   const uploadProtein = {
     experiment_id: experimentId,
@@ -181,9 +186,9 @@ export function updateProteinName(proteinId: string, newName: string): Cancelabl
   return ProteinsService.updateProteinApiV1ProteinsPatch(newRequest);
 }
 
-export function getAllLigands(experimentId: string): CancelablePromise<Array<LigandContentResponse>> {
-  const searchQuery = {name: '', experiment_id: experimentId} as LigandSearchContentQuery;
-  return LigandsService.searchLigandsApiV1ObjectsLigandsSearchContentPost(searchQuery);
+export function getAllLigandsMetadata(experimentId: string): CancelablePromise<Array<LigandMetadataResponse>> {
+  const searchQuery = {name: '', experiment_id: experimentId} as LigandSearchMetadataQuery;
+  return LigandsService.searchLigandsApiV1ObjectsLigandsSearchMetadataPost(searchQuery);
 }
 
 export function uploadLigand(
@@ -199,6 +204,11 @@ export function uploadLigand(
     sdf: sdf
   } as Body_upload_ligand_api_v1_objects_ligands_post;
   return LigandsService.uploadLigandApiV1ObjectsLigandsPost(uploadLigand);
+}
+
+
+export function getLigandContent(ligandId: string): CancelablePromise<(LigandContentResponse | null)> {
+  return LigandsService.getLigandContentApiV1ObjectsLigandsLigandIdContentGet(ligandId);
 }
 
 export function deleteLigand(ligandId: string): CancelablePromise<any> {

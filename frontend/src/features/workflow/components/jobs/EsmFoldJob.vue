@@ -84,15 +84,14 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QSpinner, QInput } from 'quasar';
+import { QSpinnerOrbit, QSpinner, QInput } from 'quasar';
 import PdbViewer from 'src/components/PdbViewer.vue';
 import {
+  nolabs__application__use_cases__folding__api_models__JobResponse, ProteinContentResponse,
   nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
-  nolabs__application__use_cases__folding__api_models__JobResponse,
-  nolabs__application__use_cases__folding__api_models__SetupJobRequest,
-  ProteinContentResponse
-} from "../../../../refinedApi/client";
-import {changeJobName, getFoldingJobApi, getFoldingJobStatus, getProtein, setupFoldingJob} from "../../refinedApi";
+  nolabs__application__use_cases__folding__api_models__SetupJobRequest
+} from "../../../../../refinedApi/client";
+import { getFoldingJobApi, getProteinContent, getFoldingJobStatus, setupFoldingJob, changeJobName } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'EsmFoldJob',
@@ -134,7 +133,7 @@ export default defineComponent({
       this.editableJobName = this.job.job_name || '';
     }
     if (this.job && this.job.protein_ids.length > 0) {
-      this.protein = await getProtein(this.job.protein_ids[0]);
+      this.protein = await getProteinContent(this.job.protein_ids[0]);
     }
 
     this.jobStatus = await getFoldingJobStatus(this.jobId as string);

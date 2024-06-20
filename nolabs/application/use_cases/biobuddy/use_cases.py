@@ -73,7 +73,7 @@ class LoadConversationFeature:
 
         chat = Chat.objects(experiment_id=experiment_id).first()
         if not chat:
-            raise NoLabsException(ErrorCodes.invalid_experiment_id, 'Experiment not found')
+            return LoadConversationResponse(messages=[])
 
         messages = chat.messages
         api_messages = []

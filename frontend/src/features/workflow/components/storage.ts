@@ -3,19 +3,19 @@ import {
   InputPropertyErrorResponse,
   JobErrorResponse,
   JobsACommonControllerForJobsManagementService,
-  LigandContentResponse,
-  ProteinContentResponse,
-} from '../../../refinedApi/client';
+  LigandMetadataResponse,
+  ProteinMetadataResponse,
+} from 'src/refinedApi/client';
 import {
   deleteProtein,
-  getAllProteins,
+  getAllProteinsMetadata,
   uploadProtein,
   updateProteinName,
   uploadLigand,
   deleteLigand,
-  getAllLigands,
+  getAllLigandsMetadata,
   getComponentState
-} from '../refinedApi';
+} from 'src/features/refinedApi';
 import {Edge, Node as FlowNode} from '@vue-flow/core';
 import {v4 as uuidv4} from 'uuid';
 import {Notify} from 'quasar';
@@ -25,7 +25,7 @@ import {
   getExperimentsApi,
   createExperimentApi,
   deleteExperimentApi
-} from '../refinedApi';
+} from 'src/features/refinedApi';
 import {
   ComponentModel_Output,
   WorkflowSchemaModel_Input,
@@ -34,7 +34,7 @@ import {
   WorkflowComponentModel,
   MappingModel,
   DefaultWorkflowComponentModelValue
-} from '../../../refinedApi/client';
+} from 'src/refinedApi/client';
 
 // Define custom Node type
 export interface Node extends FlowNode {
@@ -54,8 +54,8 @@ export interface Node extends FlowNode {
 
 export const useWorkflowStore = defineStore('workflowStore', {
   state: () => ({
-    proteins: [] as ProteinContentResponse[],
-    ligands: [] as LigandContentResponse[],
+    proteins: [] as ProteinMetadataResponse[],
+    ligands: [] as LigandMetadataResponse[],
     elements: {
       nodes: [] as Node[],
       edges: [] as Edge[]
@@ -87,7 +87,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       return await getExperimentsApi();
     },
     async getAllProteins(experimentId: string) {
-      const response = await getAllProteins(experimentId);
+      const response = await getAllProteinsMetadata(experimentId);
       this.proteins = response;
     },
     addRunningComponentId(componentId: string) {
@@ -106,12 +106,19 @@ export const useWorkflowStore = defineStore('workflowStore', {
     },
     async uploadProteinToExperiment(experimentId: string, nodeId: string, name?: string, fastaFile?: Blob, pdbFile?: Blob, metaData?: Record<string, string>) {
       try {
+        let link: string | undefined;
+        if (metaData && 'link' in metaData) {
+          link = metaData.link;
+        }
+
         const uploadedProtein = await uploadProtein(
           experimentId,
           name,
           fastaFile,
-          pdbFile
+          pdbFile,
+          link // Pass the link if it exists
         );
+
         this.proteins.push(uploadedProtein);
         const existingNode = this.getNodeById(nodeId);
 
@@ -139,7 +146,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
               });
             }
           }
-          this.sendWorkflowUpdate()
+          this.sendWorkflowUpdate();
         }
       } catch (error) {
         console.error('Error uploading protein:', error);
@@ -179,7 +186,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       }
     },
     async getAllLigands(experimentId: string) {
-      const response = await getAllLigands(experimentId);
+      const response = await getAllLigandsMetadata(experimentId);
       this.ligands = response;
     },
     async uploadLigandToExperiment(experimentId: string, nodeId: string, name?: string, smiles?: Blob, sdf?: Blob, metaData?: Record<string, string>) {

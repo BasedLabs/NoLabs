@@ -1,5 +1,5 @@
 <template>
-  <q-card flat bordered v-if="!protein.data">
+  <q-card flat bordered v-if="!protein.dataLoaded">
     <q-card-section>
       <div class="text-caption">Protein sequence</div>
     </q-card-section>
@@ -14,7 +14,7 @@
     <q-skeleton height="200px" square />
     <q-separator />
   </q-card>
-  <q-card v-if="protein.data">
+  <q-card v-if="protein.dataLoaded">
     <q-card-section>
       <div class="text-h6 q-pa-sm">Protein: {{ protein.metaData.name }}
         <q-btn round @click="changeProteinName" color="info" size="sm" flat icon="edit" />
@@ -30,6 +30,9 @@
           </div>
         </div>
       </q-card-section>
+      <q-card-section v-if="protein.data.link">
+        <q-btn flat color="primary" :href="protein.data.link" target="_blank">View More Info</q-btn>
+      </q-card-section>
       <PdbViewer v-if="hasPdb && pdbFile" :pdb-file="pdbFile" :key="pdbFile.size" />
     </q-card-section>
   </q-card>
@@ -39,8 +42,9 @@
 import { QBtn, QCard, QCardSection, QSpinnerOrbit, QVueGlobals } from "quasar";
 import PdbViewer from "src/components/PdbViewer.vue";
 import { ProteinContentResponse } from "src/refinedApi/client";
-import { defineComponent, PropType } from "vue";
-import {useWorkflowStore} from "src/features/workflow/components/storage";
+import { defineComponent } from "vue";
+import { getProteinContent } from "src/features/drug_discovery/refinedApi";
+import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
 
 export default defineComponent({
   name: "ProteinDetail",
@@ -55,28 +59,52 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    originalProtein: {
-      type: Object as PropType<ProteinContentResponse>,
+    proteinId: {
+      type: String,
       required: true,
-    },
+    }
   },
   data() {
     return {
       loading3DView: true,
       protein: {
         metaData: {
-          id: this.originalProtein.id,
-          name: this.originalProtein.name,
+          id: this.proteinId,
+          name: '',
         },
         data: {
-          sequence: this.originalProtein.fasta_content,
-          pdbContent: this.originalProtein.pdb_content
-        }
+          sequence: '',
+          pdbContent: '',
+          link: ''
+        },
+        dataLoaded: false,
       },
       quasar: null as QVueGlobals | null,
     };
   },
+  mounted() {
+    this.loadProteinData();
+  },
   methods: {
+    async loadProteinData() {
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: 'Loading protein data'
+      });
+
+      try {
+        const proteinContent: ProteinContentResponse = await getProteinContent(this.proteinId) as ProteinContentResponse;
+        this.protein.metaData.name = proteinContent.name;
+        this.protein.data.sequence = proteinContent.fasta_content || '';
+        this.protein.data.pdbContent = proteinContent.pdb_content || '';
+        this.protein.data.link = proteinContent.link || '';
+        this.protein.dataLoaded = true;
+      } catch (error) {
+        console.error('Error loading protein data:', error);
+      } finally {
+        this.$q.loading.hide();
+      }
+    },
     changeProteinName() {
       this.$q.dialog({
         color: 'info',
@@ -100,7 +128,7 @@ export default defineComponent({
           await this.workflowStore.changeProteinName(this.protein.metaData.id, data);
           this.protein.metaData.name = data;
         } catch (error) {
-            console.error('Error changin protein name:', error);
+          console.error('Error changing protein name:', error);
         }
 
         this.$q.loading.hide();

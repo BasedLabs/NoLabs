@@ -78,14 +78,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QSpinner, QInput } from 'quasar';
+import { QSpinnerOrbit, QSpinner, QInput } from 'quasar';
 import PdbViewer from 'src/components/PdbViewer.vue';
 import {
+  nolabs__application__use_cases__binding_pockets__api_models__JobResponse, ProteinContentResponse,
   nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse,
-  nolabs__application__use_cases__binding_pockets__api_models__JobResponse,
-  ProteinContentResponse
-} from "../../../../refinedApi/client";
-import {changeJobName, getBindingPocketJobApi, getBindingPocketJobStatus, getProtein} from "../../refinedApi";
+} from "../../../../../refinedApi/client";
+import { getBindingPocketJobApi, getProteinContent, changeJobName, getBindingPocketJobStatus } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'P2RankJob',
@@ -127,7 +126,7 @@ export default defineComponent({
       this.editableJobName = this.job.job_name || '';
     }
 
-    this.protein = await getProtein(this.job.protein_id);
+    this.protein = await getProteinContent(this.job.protein_id);
 
     this.jobStatus = await getBindingPocketJobStatus(this.jobId as string);
 

@@ -83,11 +83,12 @@
 import { defineComponent } from 'vue';
 import { QSpinner, QInput, QBtn } from 'quasar';
 import {
-  nolabs__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__msa_generation__api_models__JobResponse,
-  ProteinContentResponse
-} from "../../../../refinedApi/client";
-import {changeJobName, getMsaJobApi, getMsajobStatus, getProtein, startMsaJob} from "../../refinedApi";
+  ProteinContentResponse,
+  nolabs__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
+  nolabs__application__use_cases__msa_generation__api_models__SetupJobRequest
+} from "../../../../../refinedApi/client";
+import { getMsaJobApi, getProteinContent, getMsajobStatus, changeJobName, startMsaJob } from "../../../refinedApi";
 
 export default defineComponent({
   name: 'MsaJob',
@@ -119,7 +120,7 @@ export default defineComponent({
     this.job = await getMsaJobApi(this.jobId as string);
     if (this.job) {
       this.editableJobName = this.job.job_name || '';
-      this.protein = await getProtein(this.job.protein_id);
+      this.protein = await getProteinContent(this.job.protein_id);
     }
     this.jobStatus = await getMsajobStatus(this.jobId as string);
   },

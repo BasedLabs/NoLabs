@@ -22,15 +22,12 @@
       </div>
     </div>
   </template>
-
+  
   <script lang="ts">
   import { defineComponent } from 'vue';
   import PdbViewer from 'src/components/PdbViewer.vue';
-  import {
-    nolabs__application__use_cases__diffdock__api_models__JobResult,
-    ProteinContentResponse
-  } from "../../../../refinedApi/client";
-
+  import { nolabs__application__use_cases__diffdock__api_models__JobResult, ProteinContentResponse } from "../../../../../refinedApi/client";
+  
   export default defineComponent({
     name: 'DiffDockResult',
     components: { PdbViewer },
@@ -91,9 +88,10 @@
     },
   });
   </script>
-
+  
   <style scoped>
   .selected-row {
     background-color: #1976d2; /* Adjust the color as needed */
   }
   </style>
+  
