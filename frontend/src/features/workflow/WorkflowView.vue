@@ -14,14 +14,27 @@
         </q-list>
       </q-btn-dropdown>
       <q-space />
-      <q-btn v-if="!isWorkflowRunning" class="q-ma-sm" color="green" icon="not_started" @click="startWorkflow">Start
-        workflow</q-btn>
+      <q-btn v-if="!isWorkflowRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
+        Start workflow
+      </q-btn>
       <q-btn v-else class="q-ma-sm" color="green" icon="running">
         <q-spinner color="white" size="20px" />
         Running...
       </q-btn>
-      <q-btn class="q-ma-sm" color="red" icon="delete" @click="confirmDeleteWorkflow">Delete workflow</q-btn>
-      <q-btn class="q-ma-sm" color="orange" icon="refresh" @click="confirmResetWorkflow">Reset workflow</q-btn>
+      <q-btn-dropdown icon="more_vert" class="q-ma-sm" color="primary" dense>
+        <q-list>
+          <q-item clickable v-close-popup @click="confirmDeleteWorkflow">
+            <q-item-section>
+              <q-btn color="red" icon="delete">Delete workflow</q-btn>
+            </q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="confirmResetWorkflow">
+            <q-item-section>
+              <q-btn color="orange" icon="refresh">Reset workflow</q-btn>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
     </div>
 
     <div class="map-container">
@@ -63,8 +76,7 @@
     <!-- Reset Confirmation Dialog -->
     <q-dialog v-model="showResetDialog" persistent>
       <q-card>
-        <q-card-section class="text-h6">Are you sure you want to reset the workflow? All jobs will be
-          deleted</q-card-section>
+        <q-card-section class="text-h6">Are you sure you want to reset the workflow? All jobs will be deleted</q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Cancel" v-close-popup />
           <q-btn flat label="Reset" color="orange" @click="resetWorkflowConfirmed" v-close-popup />
@@ -72,8 +84,7 @@
       </q-card>
     </q-dialog>
 
-    <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;"
-      side="right">
+    <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;" side="right">
       <!-- Close button -->
       <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close" />
 
@@ -107,6 +118,7 @@
     </q-dialog>
   </q-page>
 </template>
+
 
 <script lang="ts">
 import '@vue-flow/core/dist/style.css';
@@ -246,8 +258,10 @@ export default defineComponent({
     closeModal() {
       this.modalOpen = false;
     },
-    startWorkflow() {
-      startWorkflow(this.workflowId);
+    async startWorkflow() {
+      await startWorkflow(this.workflowId);
+      const workflowStore = useWorkflowStore();
+      this.isWorkflowRunning = true;
     },
     onEdgeUpdate(params: { edge: Edge }) {
       const workflowStore = useWorkflowStore();

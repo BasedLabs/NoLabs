@@ -19,7 +19,7 @@
       <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
     </q-card-section>
     <q-card-actions align="around">
-      <q-btn v-if="!isRunning" @click="startWorkflow" color="positive" icon="play_arrow" label="Start" />
+      <q-btn v-if="!isRunning" @click="startWorkflow" color="info" icon="play_arrow" label="Start" />
       <q-btn v-else>
         <q-spinner color="primary" size="20px" />
         Running...
