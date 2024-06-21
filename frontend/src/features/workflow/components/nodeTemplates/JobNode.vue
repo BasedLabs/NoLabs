@@ -1,8 +1,8 @@
 <template>
-  <q-card dark bordered v-if="!nodeData">
+  <q-card dark bordered :class="{'pulsating-border': isRunning}" v-if="!nodeData">
     <q-spinner color="primary" size="3em" />
   </q-card>
-  <q-card dark bordered v-if="nodeData" style="max-width: 400px">
+  <q-card dark bordered :class="{'pulsating-border': isRunning}" v-if="nodeData" style="max-width: 400px">
     <q-card-section v-if="nodeData?.data.error">
       <div class="row no-wrap items-center">
         <q-space />
@@ -29,6 +29,7 @@
     </q-card-actions>
   </q-card>
 </template>
+
 
 <script>
 import JobNodeContent from './JobNodeContent.vue';
@@ -107,3 +108,22 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.pulsating-border {
+  border: 3px solid #42b983;
+  animation: pulsate 1.5s ease-out infinite;
+}
+
+@keyframes pulsate {
+  0% {
+    box-shadow: 0 0 10px 2px rgba(66, 185, 131, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 10px 5px rgba(66, 185, 131, 1);
+  }
+  100% {
+    box-shadow: 0 0 10px 2px rgba(66, 185, 131, 0.5);
+  }
+}
+</style>

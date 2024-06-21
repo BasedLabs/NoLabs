@@ -17,7 +17,7 @@
       <q-btn v-if="!isWorkflowRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
         Start workflow
       </q-btn>
-      <q-btn v-else class="q-ma-sm" color="green" icon="running">
+      <q-btn v-else class="q-ma-sm" color="info" icon="running">
         <q-spinner color="white" size="20px" />
         Running...
       </q-btn>
@@ -291,7 +291,7 @@ export default defineComponent({
       this.elements.nodes = [];
       this.elements.edges = [];
       this.$q.notify({
-        type: 'positive',
+        type: 'info',
         message: 'Workflow deleted successfully'
       });
       await this.checkAndCreateWorkflow();
@@ -305,7 +305,7 @@ export default defineComponent({
       this.elements.nodes = [];
       this.elements.edges = [];
       this.$q.notify({
-        type: 'positive',
+        type: 'info',
         message: 'Workflow reset successfully'
       });
     }
