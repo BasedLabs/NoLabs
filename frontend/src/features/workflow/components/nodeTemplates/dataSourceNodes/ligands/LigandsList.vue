@@ -1,5 +1,5 @@
 <template>
-  <q-list bordered style="width: 100%;" class="bg-black rounded-borders">
+  <q-list bordered style="{ width: scrollContentWidth + 'px' }" class="bg-black rounded-borders">
     <q-item-label header class="text-white text-h6">Ligands List</q-item-label>
     <q-item>
       <q-btn size="md" class="full-width q-pm-sm" push color="info" @click="uploadLigandDialog = true">
@@ -7,46 +7,52 @@
         <q-tooltip>Add ligands to the experiment</q-tooltip>
       </q-btn>
     </q-item>
-    <q-item v-for="ligand in filteredLigands" :key="ligand.id" clickable v-ripple class="q-mb-sm"
+    <div :style="{ width: scrollContentWidth + 'px' }">
+      <q-scroll-area visible :thumbStyle="thumbStyle" :barStyle="barStyle" style="height: 60vh;">
+        <div ref="scrollContent" class="scroll-content">
+          <q-item v-for="ligand in filteredLigands" :key="ligand.id" clickable v-ripple class="q-mb-sm"
             @click="showLigandDetailDialog(ligand)">
-      <q-card class="q-pa-md full-width flex-row justify-between" bordered>
-        <div class="row">
-          <div class="col-4">
-            <img v-if="ligand.image" class="rounded-borders" :width="100" :height="100"
-                 :src="'data:image/png;base64,' + ligand.image" alt="Ligand Structure"/>
-          </div>
-          <div class="col-8">
-            <q-card-section>
-              <div>{{ ligand.name }}</div>
-              <q-item-label v-if="ligand.smiles_content" caption>SMILES: {{
-                  ligand.smiles_content
-                }}
-              </q-item-label>
-            </q-card-section>
-            <q-card-section class="flex-row">
-              <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative">
-                <q-tooltip>Delete ligand</q-tooltip>
-              </q-btn>
-              <q-btn icon="file_download" flat @click.stop="downloadLigand(ligand)" color="info">
-                <q-tooltip>Download</q-tooltip>
-              </q-btn>
-            </q-card-section>
-          </div>
+            <q-card class="q-pa-md full-width flex-row justify-between" bordered>
+              <div class="row">
+                <div class="col-4">
+                  <img v-if="ligand.image" class="rounded-borders" :width="100" :height="100"
+                    :src="'data:image/png;base64,' + ligand.image" alt="Ligand Structure" />
+                </div>
+                <div class="col-8">
+                  <q-card-section>
+                    <div>{{ ligand.name }}</div>
+                    <q-item-label v-if="ligand.smiles_content" caption>SMILES: {{
+                      ligand.smiles_content
+                    }}
+                    </q-item-label>
+                  </q-card-section>
+                  <q-card-section class="flex-row">
+                    <q-btn icon="delete" flat @click.stop="deleteLigand(ligand)" color="negative">
+                      <q-tooltip>Delete ligand</q-tooltip>
+                    </q-btn>
+                    <q-btn icon="file_download" flat @click.stop="downloadLigand(ligand)" color="info">
+                      <q-tooltip>Download</q-tooltip>
+                    </q-btn>
+                  </q-card-section>
+                </div>
+              </div>
+            </q-card>
+          </q-item>
         </div>
-      </q-card>
-    </q-item>
+      </q-scroll-area>
+    </div>
   </q-list>
 
   <q-dialog v-model="uploadLigandDialog">
     <q-card>
       <q-card-section>
         <div class="text-h6">Upload Ligand Files</div>
-        <q-file v-model="fileModel" accept=".sdf" multiple label="Choose files"/>
+        <q-file v-model="fileModel" accept=".sdf" multiple label="Choose files" />
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false"/>
-        <q-btn flat label="Upload" color="positive" @click="uploadFiles"/>
+        <q-btn flat label="Close" color="negative" @click="uploadLigandDialog = false" />
+        <q-btn flat label="Upload" color="positive" @click="uploadFiles" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -54,25 +60,25 @@
   <q-dialog v-model="ligandDetailDialogVisible">
     <q-card>
       <q-card-section>
-        <LigandDetail :originalLigand="selectedLigand" v-if="selectedLigand && selectedLigand.sdf_content">
+        <LigandDetail :ligandId="selectedLigand.id" v-if="selectedLigand && selectedLigand.sdf_content">
         </LigandDetail>
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="negative" @click="ligandDetailDialogVisible = false"/>
+        <q-btn flat label="Close" color="negative" @click="ligandDetailDialogVisible = false" />
       </q-card-actions>
     </q-card>
   </q-dialog>
-
 </template>
+
 
 <script lang="ts">
 import LigandDetail from "src/features/workflow/components/nodeTemplates/dataSourceNodes/ligands/LigandDetail.vue";
-import {useWorkflowStore} from "src/features/workflow/components/storage";
-import {QSpinnerOrbit} from "quasar";
-import {defineComponent} from "vue";
-import {LigandContentResponse} from "src/refinedApi/client";
-import {useBioBuddyStore} from "src/features/biobuddy/storage";
-import {ChemBLData} from "src/refinedApi/client";
+import { useWorkflowStore } from "src/features/workflow/components/storage";
+import { QSpinnerOrbit } from "quasar";
+import { defineComponent, onMounted, ref } from "vue";
+import { LigandContentResponse } from "src/refinedApi/client";
+import { useBioBuddyStore } from "src/features/biobuddy/storage";
+import { ChemBLData } from "src/refinedApi/client";
 
 export default defineComponent({
   name: "LigandsList",
@@ -96,7 +102,22 @@ export default defineComponent({
       fileModel: [],
       chemblQueryCallback: null as ((data: { files: ChemBLData[] }) => void) | null,
       ligandDetailDialogVisible: false,
-      ligands: [] as LigandContentResponse[]
+      ligands: [] as LigandContentResponse[],
+      thumbStyle: {
+        right: '4px',
+        borderRadius: '7px',
+        backgroundColor: '#027be3',
+        width: '4px',
+        opacity: 0.75
+      },
+      barStyle: {
+        right: '2px',
+        borderRadius: '9px',
+        backgroundColor: '#027be3',
+        width: '8px',
+        opacity: 0.2
+      },
+      scrollContentWidth: 0
     };
   },
   async mounted() {
@@ -117,6 +138,7 @@ export default defineComponent({
       await this.handleLigandFileUpload(files, metaDatasArray);
     };
     bioBuddyStore.addQueryChemblEventHandler(this.chemblQueryCallback);
+    this.updateScrollContentWidth();
   },
   computed: {
     filteredLigands() {
@@ -130,6 +152,7 @@ export default defineComponent({
     showLigandDetailDialog(ligand: LigandContentResponse) {
       this.selectedLigand = ligand;
       this.ligandDetailDialogVisible = true;
+      this.updateScrollContentWidth();
     },
     uploadFiles() {
       if (this.fileModel.length > 0) {
@@ -177,7 +200,7 @@ export default defineComponent({
       }
 
       const sdfContent = ligand.sdf_content;
-      const blob = new Blob([sdfContent], {type: 'chemical/x-mdl-sdfile'});
+      const blob = new Blob([sdfContent], { type: 'chemical/x-mdl-sdfile' });
       const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement('a');
@@ -188,6 +211,12 @@ export default defineComponent({
       window.URL.revokeObjectURL(url);
       a.remove();
     },
+    updateScrollContentWidth() {
+      this.$nextTick(() => {
+        const scrollContent = this.$refs.scrollContent as HTMLElement;
+        this.scrollContentWidth = scrollContent ? scrollContent.scrollWidth : 0;
+      });
+    }
   },
   unmounted() {
     const bioBuddyStore = useBioBuddyStore();
@@ -198,3 +227,16 @@ export default defineComponent({
   }
 });
 </script>
+
+
+<style scoped>
+.scroll-content {
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+}
+
+.q-list {
+  overflow-x: auto;
+}
+</style>

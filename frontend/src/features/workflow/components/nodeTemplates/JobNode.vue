@@ -35,6 +35,7 @@
 import JobNodeContent from './JobNodeContent.vue';
 import NodeHandles from './NodeHandles.vue';
 import { useWorkflowStore } from 'src/features/workflow/components/storage';
+import { startWorkflowComponent } from 'src/features/workflow/refinedApi'
 
 export default {
   name: 'JobNode',

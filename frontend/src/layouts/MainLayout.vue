@@ -24,7 +24,6 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "MainLayout",
   mounted(){
-    debugger;
     if(this.$route.name === 'Main'){
       this.$router.push({name: 'Experiments'});
     }

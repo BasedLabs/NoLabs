@@ -34,7 +34,7 @@
                 <template v-else>
                   <q-spinner v-if="jobStatus.running" color="primary" size="20px" />
                   {{ jobStatusText }}
-                  <q-btn v-if="!jobStatus.running" @click="startJob" color="primary" label="Start" />
+                  <q-btn v-if="!jobStatus.running" @click="startJob" color="info" label="Start" />
                 </template>
               </q-item-section>
             </q-item>
@@ -138,6 +138,10 @@ export default defineComponent({
       if (this.job) {
         try {
           await changeJobName(this.job.job_id, this.editableJobName);
+          this.$q.notify({
+            type: 'positive',
+            message: 'Job name updated successfully.',
+          });
         } catch (error) {
           this.editableJobName = this.job.job_name;
           this.$q.notify({
@@ -159,6 +163,10 @@ export default defineComponent({
         };
         try {
           await setupDiffDockJob(request);
+          this.$q.notify({
+            type: 'positive',
+            message: 'Number of samples updated successfully.',
+          });
         } catch (error) {
           this.$q.notify({
             type: 'negative',
@@ -170,7 +178,11 @@ export default defineComponent({
     async startJob() {
       try {
         await startDiffDockJob(this.jobId as string);
-        // Optionally update job status here if required
+        this.$q.notify({
+          type: 'positive',
+          message: 'Job started successfully.',
+        });
+        this.jobStatus = await getDiffDockJobStatus(this.jobId as string);
       } catch (error) {
         this.$q.notify({
           type: 'negative',
@@ -185,6 +197,7 @@ export default defineComponent({
   },
 });
 </script>
+
 
 <style scoped>
 .fasta-content-container {
