@@ -115,6 +115,11 @@ class SendQueryResponse:
 
 
 @dataclass
+class GetAvailableFunctionCallsResponse:
+    function_calls: List[Dict[str, str | Dict[str, dict[str, str] | Any]]]
+
+
+@dataclass
 class EditMessageRequest:
     experiment_id: UUID
     message_id: UUID

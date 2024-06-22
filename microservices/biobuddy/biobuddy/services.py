@@ -1,4 +1,4 @@
-from typing import Dict, AsyncGenerator
+from typing import Dict, AsyncGenerator, List, Any
 
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain_core.output_parsers import JsonOutputParser
@@ -83,6 +83,7 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
         content=response_content
     )
 
+
 async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens: Dict[str, bool]) -> AsyncGenerator[SendMessageToBioBuddyResponse, None]:
     system_message_content = generate_system_prompt()
     history_messages = [SystemMessage(content=system_message_content)]
@@ -92,10 +93,11 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
         elif msg['role'] == 'assistant':
             history_messages.append(AIMessage(content=msg['content']))
 
-    tools_description = " "
+    tools_description = " ".join([f"{(tool['function']['name'], tool['function']['description'])}, " for tool in request.tools])
     strategy_prompt = generate_strategy_prompt(tools_description, request.message_content)
 
     handler = AsyncIteratorCallbackHandler()
+    response_buffer = ""
 
     # Start the streaming
     async def chat_with_model():
@@ -112,8 +114,35 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
     async for response in handler.aiter():
         if stop_tokens.get(request.experiment_id):
             break
-        yield SendMessageToBioBuddyResponse(reply_type="stream", content=response)
+        response_buffer += response
+        print("RESPONSE BUFFER: ", response_buffer)
+
+        while "<ACTION>" in response_buffer and "<END_ACTION>" in response_buffer:
+            start_idx = response_buffer.index("<ACTION>") + len("<ACTION>")
+            end_idx = response_buffer.index("<END_ACTION>")
+            action_text = response_buffer[start_idx:end_idx].strip()
+            response_buffer = response_buffer[end_idx + len("<END_ACTION>"):]
+            action_response = await invoke_action(action_text, request.tools)
+            yield SendMessageToBioBuddyResponse(reply_type="function", content=action_response)
+
+        # Stream intermediate responses if no complete action is found
+        if not ("<ACTION>" in response_buffer and "<END_ACTION>" in response_buffer):
+            yield SendMessageToBioBuddyResponse(reply_type="stream", content=response)
 
     # Handle the final response separately
     if not stop_tokens.get(request.experiment_id):
+        if response_buffer:
+            yield SendMessageToBioBuddyResponse(reply_type="stream", content=response_buffer)
         yield SendMessageToBioBuddyResponse(reply_type="final", content="<STOP>")
+
+async def invoke_action(action_text: str, tools: List[Dict[str, Any]]) -> str:
+    # Use ainvoke to handle the action
+    action_response = await chat_model.ainvoke(
+        input=[HumanMessage(content=action_text)],
+        stop=["<STOP>"],
+        functions=[tool['function'] for tool in tools]
+    )
+
+    print("ACTION TEXT, ACTION RESPONSE: ", (action_text, action_response))
+
+    return str(action_response.additional_kwargs)

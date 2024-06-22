@@ -25,6 +25,7 @@ export { FoldingBackendEnum } from './models/FoldingBackendEnum';
 export type { FunctionCall } from './models/FunctionCall';
 export type { FunctionCallReturnData } from './models/FunctionCallReturnData';
 export type { FunctionParam } from './models/FunctionParam';
+export type { GetAvailableFunctionCallsResponse } from './models/GetAvailableFunctionCallsResponse';
 export type { GetComponentStateResponse } from './models/GetComponentStateResponse';
 export type { GetJobMetadataResponse } from './models/GetJobMetadataResponse';
 export type { HTTPValidationError } from './models/HTTPValidationError';

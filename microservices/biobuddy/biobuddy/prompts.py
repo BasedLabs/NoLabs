@@ -10,12 +10,12 @@ def generate_system_prompt() -> str:
 
 def generate_strategy_prompt(tools_description: str, query: str) -> str:
     return (f"Given the available tools ({tools_description}), decide whether a direct reply is sufficient "
-        f"or if a specific plan involving these tools is necessary. "
-            f"If a calling function calls are not needed, provide the direct reply (without stating that it's a direct reply, just the text of the reply). "
-        f"If function calls are needed, reply with the list (with a tag <PLAN> before the list) of queries for function calls in the format: \"<PLAN>: ['Call function_1 in order to do X', 'Call function_2 to achieve Y']\". "
-            f"If you are asked to generate a workflow just reply '<WORKFLOW>' tag. I'll process the query separately."
-        f"If you are asked SPECIFICALLY to do the literature research on some topic, write only tag <RESEARCH>. "
-        f"\n\nQuery: \"{query}\"\n\n")
+            f"or if a specific plan involving these tools is necessary. "
+            f"If calling function calls are not needed, provide the direct reply (without stating that it's a direct reply, just the text of the reply). "
+            f"If function calls are needed, reply with a series of actions in the format: "
+            f"\"<ACTION>Call function_1 in order to do X<END_ACTION> <ACTION>Call function_2 to achieve Y<END_ACTION>\". "
+            f"If you are asked SPECIFICALLY to do the literature research on some topic, write only tag <RESEARCH>. "
+            f"\n\nQuery: \"{query}\"\n\n")
 
 workflow_json = '''
 {

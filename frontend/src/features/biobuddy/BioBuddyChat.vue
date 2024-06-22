@@ -60,8 +60,8 @@ import { Notify } from 'quasar';
 import { defineComponent } from 'vue';
 import MarkdownIt from 'markdown-it';
 import { useBioBuddyStore } from './storage';
-import { FunctionCall, type FunctionParam, Message } from 'src/refinedApi/client';
-import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi } from 'src/features/biobuddy/api';
+import { FunctionCall, type FunctionParam, Message, GetAvailableFunctionCallsResponse } from 'src/refinedApi/client';
+import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi, getToolsApi } from 'src/features/biobuddy/api';
 
 export interface FunctionMapping {
   name: string;
@@ -90,6 +90,7 @@ export default defineComponent({
       editMessage: '',
       socket: null as WebSocket | null,
       currentMessageBuffer: '' as string,
+      tools: null as GetAvailableFunctionCallsResponse | null,
       awaitingResponse: false,
     };
   },
@@ -129,6 +130,15 @@ export default defineComponent({
             });
             this.awaitingResponse = true;
           }
+        } else if (message.reply_type === 'function') {
+          const functionCall = this.parseFunctionCall(message.content);
+          this.messages.push({
+            id: new Date().getTime().toString(), // Generate a temporary ID
+            role: 'biobuddy',
+            type: 'function',
+            message: [functionCall] as FunctionCall[],
+          });
+          debugger;
         } else if (message.reply_type === 'final' || message.content.includes('<STOP>')) {
           this.awaitingResponse = false;
           this.saveMessage({
@@ -172,6 +182,7 @@ export default defineComponent({
         id: new Date().getTime().toString(), // Generate a temporary ID
         role: 'user',
         type: 'text',
+        tools: this.tools,
         message: {
           content: this.newMessage,
         },
@@ -184,7 +195,7 @@ export default defineComponent({
         experiment_id: this.experimentId,
         message_content: this.newMessage,
         previous_messages: this.messages.map(msg => ({ role: msg.role, content: msg.message.content })),
-        tools: this.functionMappings,
+        tools: this.tools?.function_calls,
         job_id: null, // Optional job ID
       };
 
@@ -202,9 +213,9 @@ export default defineComponent({
     },
     async saveMessage(message: any) {
       await saveMessageApi(
-       this.experimentId,
-       message.message.content,
-       message.role,
+        this.experimentId,
+        message.message.content,
+        message.role,
       );
     },
     isLastUserMessageWithoutResponse(index: number) {
@@ -254,9 +265,42 @@ export default defineComponent({
       window.removeEventListener('mousemove', this.resizeDrawer);
       window.removeEventListener('mouseup', this.stopResizing);
     },
+    parseFunctionCall(functionCallStr: string) {
+    try {
+      // First, convert the string to a valid JSON string by replacing single quotes with double quotes
+      // and ensuring that the inner JSON (arguments) is also correctly formatted
+      const correctedStr = functionCallStr
+        .replace(/'/g, '"')
+        .replace(/"{/g, '{')
+        .replace(/}"/g, '}');
+
+      // Parse the corrected string to a JavaScript object
+      const functionCall = JSON.parse(correctedStr);
+
+      // Parse the arguments JSON string
+      const argumentsObj = this.parseFunctionCallArguments(functionCall.function_call.arguments);
+
+      return {
+        function_name: functionCall.function_call.name,
+        arguments: argumentsObj,
+      };
+    } catch (error) {
+      console.error('Error parsing function call:', error);
+      return null;
+    }
+  },
+
+  parseFunctionCallArguments(argumentsObj: object) {
+    // Function to parse the arguments from the object
+    return Object.keys(argumentsObj).map(key => ({
+      name: key,
+      value: argumentsObj[key],
+    }));
+  },
   },
   async mounted() {
     await this.loadConversation();
+    this.tools = await getToolsApi();
     this.connectWebSocket();
     const bioBuddyStore = useBioBuddyStore();
     this.functionMappings = [

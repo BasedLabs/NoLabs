@@ -18,7 +18,7 @@ import biobuddy_microservice
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.biobuddy.api_models import CheckBioBuddyEnabledResponse, EditMessageRequest, \
     EditMessageResponse, LoadConversationRequest, LoadConversationResponse, CreateMessageRequest, CreateMessageResponse, \
-    SendQueryRequest, SendQueryResponse
+    SendQueryRequest, SendQueryResponse, GetAvailableFunctionCallsResponse
 from nolabs.application.use_cases.biobuddy.api_models import Message as ApiMessage
 from nolabs.application.use_cases.biobuddy.api_models import RegularMessage as ApiRegularMessage
 from nolabs.application.use_cases.biobuddy.api_models import FunctionCall as ApiFunctionCall
@@ -133,6 +133,53 @@ class CreateMessageFeature:
                                                     content=request.message_content
                                                 ),
                                                 type='text'))
+
+class GetAvailableFunctionCallsFeature:
+    def __init__(self, functions: List):
+        self._functions = {function.name: function for function in functions}
+        self._tools = self.construct_tools_object()
+
+    def handle(self) -> GetAvailableFunctionCallsResponse:
+        return GetAvailableFunctionCallsResponse(function_calls=self._tools)
+
+
+    def construct_tools_object(self):
+        tools = []
+        if not self._functions:
+            return tools
+        for func in self._functions.values():
+            tool = {
+                "type": "function",
+                "function": {
+                    "name": func.name,
+                    "description": func.description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "required": [],
+                    },
+                }
+            }
+            properties = tool["function"]["parameters"]["properties"]
+            required_params = tool["function"]["parameters"]["required"]
+
+            for param in func.parameters:
+                param_info = {
+                    "type": param.type,
+                    "description": param.description
+                }
+                if param.type == "array":
+                    assert param.items_type, (f"items_type must "
+                                              f"be specified for array parameters, missing in {param.name}")
+                    param_info["items"] = {"type": param.items_type}
+
+                properties[param.name] = param_info
+
+                if param.required:
+                    required_params.append(param.name)
+
+            tools.append(tool)
+        return tools
 
 class SendQueryFeature:
     def __init__(self, biobuddy_microservice: biobuddy_microservice.DefaultApi, functions: List):

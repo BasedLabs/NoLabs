@@ -5,6 +5,7 @@ import {
   CreateMessageResponse,
   CheckBioBuddyEnabledResponse,
   SendQueryResponse, EditMessageResponse,
+  GetAvailableFunctionCallsResponse,
 } from 'src/refinedApi/client';
 
 export function checkBioBuddyEnabled(): CancelablePromise<CheckBioBuddyEnabledResponse> {
@@ -26,4 +27,8 @@ export function editMessageApi(experimentId: string, messageId: string, message:
 
 export function sendQueryApi(experimentId: string, query: string): CancelablePromise<SendQueryResponse> {
   return BiobuddyService.sendQueryApiV1BiobuddyQueryPost(experimentId, query);
+}
+
+export function getToolsApi(): CancelablePromise<GetAvailableFunctionCallsResponse> {
+  return BiobuddyService.getToolsApiV1BiobuddyToolsGet();
 }

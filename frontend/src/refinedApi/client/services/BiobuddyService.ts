@@ -5,6 +5,7 @@
 import type { CheckBioBuddyEnabledResponse } from '../models/CheckBioBuddyEnabledResponse';
 import type { CreateMessageResponse } from '../models/CreateMessageResponse';
 import type { EditMessageResponse } from '../models/EditMessageResponse';
+import type { GetAvailableFunctionCallsResponse } from '../models/GetAvailableFunctionCallsResponse';
 import type { LoadConversationResponse } from '../models/LoadConversationResponse';
 import type { SendQueryResponse } from '../models/SendQueryResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -115,6 +116,17 @@ export class BiobuddyService {
             errors: {
                 422: `Validation Error`,
             },
+        });
+    }
+    /**
+     * Get Tools
+     * @returns GetAvailableFunctionCallsResponse Successful Response
+     * @throws ApiError
+     */
+    public static getToolsApiV1BiobuddyToolsGet(): CancelablePromise<GetAvailableFunctionCallsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/biobuddy/tools',
         });
     }
 }
