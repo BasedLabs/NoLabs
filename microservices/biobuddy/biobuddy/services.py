@@ -115,13 +115,15 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
         if stop_tokens.get(request.experiment_id):
             break
         response_buffer += response
-        print("RESPONSE BUFFER: ", response_buffer)
 
-        while "<ACTION>" in response_buffer and "<END_ACTION>" in response_buffer:
+        # Ensure other coroutines get a chance to run
+        await asyncio.sleep(0)
+
+        if "<ACTION>" in response_buffer and "<END_ACTION>" in response_buffer:
             start_idx = response_buffer.index("<ACTION>") + len("<ACTION>")
             end_idx = response_buffer.index("<END_ACTION>")
             action_text = response_buffer[start_idx:end_idx].strip()
-            response_buffer = response_buffer[end_idx + len("<END_ACTION>"):]
+            response_buffer = ""
             action_response = await invoke_action(action_text, request.tools)
             yield SendMessageToBioBuddyResponse(reply_type="function", content=action_response)
 

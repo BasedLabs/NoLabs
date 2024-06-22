@@ -106,15 +106,16 @@ export default defineComponent({
           this.currentMessageBuffer += message.content;
           if (this.awaitingResponse) {
             const lastMessageIndex = this.messages.length - 1;
-            if (this.messages[lastMessageIndex].role === 'biobuddy') {
+            if (this.messages[lastMessageIndex].role === 'biobuddy' && this.messages[lastMessageIndex].type !== 'function') {
               this.messages[lastMessageIndex].message.content = this.currentMessageBuffer;
             } else {
+              this.currentMessageBuffer = '';
               this.messages.push({
                 id: new Date().getTime().toString(), // Generate a temporary ID
                 role: 'biobuddy',
                 type: 'text',
                 message: {
-                  content: this.currentMessageBuffer,
+                  content: '',
                 },
               });
               this.awaitingResponse = true;
@@ -138,7 +139,7 @@ export default defineComponent({
             type: 'function',
             message: [functionCall] as FunctionCall[],
           });
-          debugger;
+          this.awaitingResponse = true;
         } else if (message.reply_type === 'final' || message.content.includes('<STOP>')) {
           this.awaitingResponse = false;
           this.saveMessage({
@@ -269,7 +270,9 @@ export default defineComponent({
     try {
       // First, convert the string to a valid JSON string by replacing single quotes with double quotes
       // and ensuring that the inner JSON (arguments) is also correctly formatted
-      const correctedStr = functionCallStr
+      const cleanedStr = functionCallStr.replace(/\\/g, '');
+
+      const correctedStr = cleanedStr
         .replace(/'/g, '"')
         .replace(/"{/g, '{')
         .replace(/}"/g, '}');
