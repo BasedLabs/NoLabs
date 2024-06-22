@@ -67,6 +67,12 @@ class SearchLigandsContentFeature:
     async def handle(self, query: LigandSearchContentQuery) -> List[LigandContentResponse]:
         db_query = Q()
 
+        if not query.all and not query.name and not query.experiment_id:
+            return []
+
+        if query.all:
+            return Ligand.objects()
+
         if query.name:
             db_query = db_query & Q(name__icontains=query.name)
 
@@ -80,6 +86,12 @@ class SearchLigandsContentFeature:
 class SearchLigandsMetadataFeature:
     async def handle(self, query: LigandSearchMetadataQuery) -> List[LigandMetadataResponse]:
         db_query = Q()
+
+        if not query.all and not query.name and not query.experiment_id:
+            return []
+
+        if query.all:
+            return Ligand.objects()
 
         if query.name:
             db_query = db_query & Q(name__icontains=query.name)

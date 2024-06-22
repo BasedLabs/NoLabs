@@ -7,9 +7,9 @@ from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.binding_pockets.api_models import SetupJobRequest
 from nolabs.application.use_cases.binding_pockets.use_cases import RunJobFeature, SetupJobFeature
 from nolabs.domain.models.pocket_prediction import PocketPredictionJob
-from nolabs.domain.models.common import Protein, JobId, JobName
+from nolabs.domain.models.common import Protein
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class BindingPocketPredictionInput(BaseModel):
@@ -61,12 +61,13 @@ class BindingPocketPredictionComponent(Component[BindingPocketPredictionInput, B
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 

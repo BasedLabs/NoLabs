@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 from nolabs.domain.models.common import Job, Experiment
-from nolabs.workflow.properties import ParameterSchema, PropertyValidationError
+from nolabs.application.workflow.properties import ParameterSchema, PropertyValidationError
 
 
 @dataclass

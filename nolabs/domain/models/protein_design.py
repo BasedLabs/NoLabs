@@ -2,6 +2,7 @@ __all__ = [
     'ProteinDesignJob'
 ]
 
+import datetime
 from typing import List
 
 from mongoengine import ReferenceField, ListField, PULL, CASCADE, StringField, IntField
@@ -38,6 +39,18 @@ class ProteinDesignJob(Job):
         self.protein = protein
 
         self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.datetime.utcnow()
+
+    def set_protein(self, protein: Protein):
+        if not protein:
+            raise NoLabsException(ErrorCodes.protein_is_undefined)
+
+        if not protein.pdb_content:
+            raise NoLabsException
+
+        self.protein = protein
+        self.inputs_updated_at = datetime.datetime.utcnow()
 
     def result_valid(self) -> bool:
         return not not self.binders

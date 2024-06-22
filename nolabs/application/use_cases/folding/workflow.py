@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 from abc import abstractmethod
 from typing import List, Type
@@ -10,7 +9,7 @@ from nolabs.application.use_cases.folding.use_cases import SetupJobFeature, RunJ
 from nolabs.domain.models.common import Protein
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class FoldingComponentInput(BaseModel):
@@ -74,12 +73,13 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 

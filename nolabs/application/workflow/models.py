@@ -8,7 +8,7 @@ from mongoengine import Document, UUIDField, BinaryField, ReferenceField, CASCAD
     ListField, EmbeddedDocument, EmbeddedDocumentListField, PULL, DateTimeField
 
 from nolabs.domain.models.common import Experiment, Job
-from nolabs.workflow.workflow_schema import WorkflowSchemaModel
+from nolabs.application.workflow.workflow_schema import WorkflowSchemaModel
 
 
 class WorkflowSchemaDbModel(Document):
@@ -70,7 +70,7 @@ class ComponentDbModel(Document):
     input_parameter_dict: Dict[str, Any] = DictField(default=dict)
     output_parameter_dict: Dict[str, Any] = DictField(default=dict)
 
-    jobs: List[Job] = ListField(ReferenceField(Job, reverse_delete_rule=PULL), default=[])
+    jobs: List[Job] = ListField(ReferenceField(Job, reverse_delete_rule=CASCADE), default=[])
     last_jobs_count: int = IntField()
 
     last_execute_try_at: datetime = DateTimeField()

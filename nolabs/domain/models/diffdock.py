@@ -2,6 +2,7 @@ __all__ = [
     'DiffDockBindingJob'
 ]
 
+import datetime
 from typing import List
 from uuid import UUID
 
@@ -37,6 +38,7 @@ class DiffDockJobResult(EmbeddedDocument):
             confidence=confidence
         )
 
+
 class DiffDockBindingJob(Job):
     # region Inputs
 
@@ -60,6 +62,8 @@ class DiffDockBindingJob(Job):
         self.samples_per_complex = samples_per_complex
 
         self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.datetime.utcnow()
 
     def result_valid(self) -> bool:
         return not not self.result

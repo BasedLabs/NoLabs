@@ -9,7 +9,7 @@ from .di import WorkflowDependencies
 from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, UpdateWorkflowSchemaFeature, \
     StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature, \
     ResetWorkflowFeature, StartWorkflowComponentFeature
-from ..workflow_schema import WorkflowSchemaModel
+from nolabs.application.workflow.workflow_schema import WorkflowSchemaModel
 
 router = APIRouter(
     prefix='/api/v1/workflow',

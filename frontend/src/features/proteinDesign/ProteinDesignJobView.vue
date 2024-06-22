@@ -7,25 +7,25 @@
                @click="showInferenceForm = !showInferenceForm"/>
       </JobHeader>
       <q-page-container>
-        <div class="row" v-if="jobHasGeneratedData">
-          <div class="col-5">
+        <div class="row">
+          <div class="col-5" v-if="jobLoaded">
             <div class="q-ma-sm">
               <PdbViewer :pdb-file="job?.properties.inputPdbFile"/>
             </div>
           </div>
-          <div class="col-2">
+          <div class="col-2" v-if="jobHasGeneratedData">
             <div class="q-pl-sm q-ma-sm">
               <q-table
-                  title="Generated pdbs"
-                  :rows="generatedPdbsTableRows"
-                  :columns="generatedPdbsTableColumns"
-                  row-key="name"
-                  @row-click="(_, row) => {generatedPdbsReload = !generatedPdbsReload; selectedGeneratedPdbIndex = row.id;}"
-                  :pagination="{rowsPerPage: 5}"
+                title="Generated pdbs"
+                :rows="generatedPdbsTableRows"
+                :columns="generatedPdbsTableColumns"
+                row-key="name"
+                @row-click="(_, row) => {generatedPdbsReload = !generatedPdbsReload; selectedGeneratedPdbIndex = row.id;}"
+                :pagination="{rowsPerPage: 5}"
               />
             </div>
           </div>
-          <div class="col-5">
+          <div class="col-5" v-if="jobHasGeneratedData">
             <div class="q-mt-sm q-mb-sm q-mr-sm">
               <PdbViewer :pdb-file="job!.generatedPdbs[selectedGeneratedPdbIndex]"
                          :key="generatedPdbsReload"/>
@@ -42,7 +42,9 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <InferenceFormView :on-submit="onSubmit" :properties="job!.properties"/>
+          <InferenceFormView :on-submit="onSubmit"
+                             :on-save-parameters="onSaveParameters"
+                             :properties="job!.properties"/>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -112,6 +114,26 @@ export default defineComponent({
       await this.store.changeJobName(this.job?.id as string, newJobName);
       this.job!.name = newJobName;
     },
+    async onSaveParameters(properties: JobProperties) {
+      this.$q.loading.show({
+        spinner: QSpinnerOrbit,
+        message: 'Saving parameters'
+      });
+
+      await this.store.setupJob(this.job!.experimentId, {
+        jobId: this.job?.id,
+        jobName: this.job?.name as string,
+        pdbFile: properties.inputPdbFile!,
+        contig: properties.contig,
+        numberOfDesigns: properties.numberOfDesigns,
+        timesteps: properties.timesteps,
+        hotspots: properties.hotspots
+      });
+
+      this.showInferenceForm = false;
+
+      this.$q.loading.hide();
+    },
     async onSubmit(properties: JobProperties) {
       this.$q.loading.show({
         spinner: QSpinnerOrbit,
@@ -119,7 +141,6 @@ export default defineComponent({
       });
 
       const response = await this.store.inference({
-        experimentId: this.experimentId,
         jobId: this.job?.id,
         jobName: this.job?.name as string,
         pdbFile: properties.inputPdbFile!,

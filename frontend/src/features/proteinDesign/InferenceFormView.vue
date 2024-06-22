@@ -1,9 +1,13 @@
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import { JobProperties } from "src/features/proteinDesign/types";
+import {defineComponent, PropType} from "vue";
+import {JobProperties} from "src/features/proteinDesign/types";
 import {Notify} from "quasar";
 
 interface OnSubmitType {
+  (data: JobProperties): Promise<void>;
+}
+
+interface OnSaveParametersType {
   (data: JobProperties): Promise<void>;
 }
 
@@ -12,6 +16,10 @@ export default defineComponent({
   props: {
     onSubmit: {
       type: Function as PropType<OnSubmitType>,
+      required: true,
+    },
+    onSaveParameters: {
+      type: Function as PropType<OnSaveParametersType>,
       required: true,
     },
     properties: {
@@ -35,7 +43,7 @@ export default defineComponent({
   },
   methods: {
     async _onSubmit() {
-      if(!this.$data.inputPdbFile){
+      if (!this.$data.inputPdbFile) {
         Notify.create({
           type: "negative",
           closeBtn: 'Close',
@@ -46,6 +54,18 @@ export default defineComponent({
 
       await this.onSubmit!(this.$data);
     },
+    async _onParamsSave() {
+      if (!this.$data.inputPdbFile) {
+        Notify.create({
+          type: "negative",
+          closeBtn: 'Close',
+          message: 'Specify pdb file'
+        });
+        return;
+      }
+
+      await this.onSaveParameters!(this.$data);
+    }
   },
 });
 </script>
@@ -109,7 +129,7 @@ export default defineComponent({
       counter
     >
       <template v-slot:prepend>
-        <q-icon name="cloud_upload" @click.stop.prevent />
+        <q-icon name="cloud_upload" @click.stop.prevent/>
       </template>
       <template v-slot:append>
         <q-icon
@@ -119,15 +139,21 @@ export default defineComponent({
         />
       </template>
 
-      <template v-slot:hint> Upload .pdb file with protein structure </template>
+      <template v-slot:hint> Upload .pdb file with protein structure</template>
     </q-file>
-    <div>
-      <q-btn
-        label="Run inference"
-        size="large"
-        type="submit"
-        color="info"
-      />
+    <div class="row q-pa-md ">
+      <div class="row justify-center centers">
+        <q-btn
+          align="between" outline size="large" class="q-mx-md" color="positive"
+          type="submit"
+          icon="biotech"
+        >Run
+        </q-btn>
+        <q-btn
+          align="between" outline size="large" class="q-mx-md" color="positive" @click="_onParamsSave"
+        >Save
+        </q-btn>
+      </div>
     </div>
   </q-form>
 </template>

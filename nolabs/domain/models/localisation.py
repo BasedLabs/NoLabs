@@ -2,6 +2,7 @@ __all__ = [
     'LocalisationJob'
 ]
 
+import datetime
 from typing import List, Tuple
 from uuid import UUID
 
@@ -35,14 +36,11 @@ class LocalisationJob(Job):
     probabilities: List[LocalisationJobResult] = EmbeddedDocumentListField(LocalisationJobResult)
 
     def set_input(self, proteins: List[Protein]):
-        if not proteins:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        for protein in proteins:
-            if not protein.get_fasta():
-                raise NoLabsException(ErrorCodes.protein_fasta_is_empty, f'Protein fasta is empty, {str(protein.name)}')
-
         self.proteins = proteins
+
+        self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.datetime.utcnow()
 
     def result_valid(self) -> bool:
         return not not self.probabilities

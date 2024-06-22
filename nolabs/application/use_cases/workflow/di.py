@@ -12,7 +12,7 @@ from fastapi import Depends
 from nolabs.application.use_cases.binding_pockets.workflow import BindingPocketPredictionComponent
 from nolabs.application.use_cases.conformations.workflow import ConformationComponent
 from nolabs.application.use_cases.diffdock.workflow import DiffDockComponent
-from nolabs.application.use_cases.folding.workflow import FoldingComponent, EsmfoldComponent, \
+from nolabs.application.use_cases.folding.workflow import EsmfoldComponent, \
     EsmfoldLightComponent, RosettafoldComponent
 from nolabs.application.use_cases.gene_ontology.workflow import GeneOntologyComponent
 from nolabs.application.use_cases.ligands.workflow import LigandsComponent
@@ -23,10 +23,10 @@ from nolabs.application.use_cases.proteins.workflow import ProteinsComponent
 from nolabs.application.use_cases.small_molecules_design.workflow import SmallMoleculesDesignLearningComponent
 from nolabs.application.use_cases.solubility.workflow import SolubilityComponent
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.application.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
+from nolabs.application.use_cases.workflow.use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, \
     UpdateWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, \
     GetComponentStateFeature, ResetWorkflowFeature, StartWorkflowComponentFeature
-from nolabs.workflow.component import Component
+from nolabs.application.workflow.component import Component
 
 
 class WorkflowDependencies:

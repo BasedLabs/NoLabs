@@ -1,16 +1,19 @@
+import os
 import uuid
 from typing import List, Type
 
+import asyncio
 from pydantic import BaseModel
 
+from nolabs.application.use_cases.small_molecules_design.api_models import SetupJobRequest
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.small_molecules_design.use_cases import GetJobFeature, \
-    RunLearningStageJobFeature, GetJobSmilesFeature, RunSamplingStageJobFeature
+from nolabs.application.use_cases.small_molecules_design.use_cases import RunLearningStageJobFeature, \
+    GetJobSmilesFeature, RunSamplingStageJobFeature, SetupJobFeature, GetJobStatusFeature
 from nolabs.domain.models.common import Protein, JobId, JobName, Ligand, LigandName, LigandId, \
     DesignedLigandScore, DrugLikenessScore
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class SmallMoleculesDesignLearningInput(BaseModel):
@@ -26,7 +29,8 @@ class SmallMoleculesDesignLearningOutput(BaseModel):
     protein_ligands_pairs: List[SmallMoleculesDesignLearningOutputItem]
 
 
-class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearningInput, SmallMoleculesDesignLearningOutput]):
+class SmallMoleculesDesignLearningComponent(
+    Component[SmallMoleculesDesignLearningInput, SmallMoleculesDesignLearningOutput]):
     name = 'Small molecules design'
 
     async def execute(self):
@@ -35,35 +39,50 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
 
         run_learning_job_feature = RunLearningStageJobFeature(api=InfrastructureDependencies.reinvent_microservice())
         get_smiles_feature = GetJobSmilesFeature(api=InfrastructureDependencies.reinvent_microservice())
+        is_job_running_feature = GetJobStatusFeature(api=InfrastructureDependencies.reinvent_microservice())
 
         result = []
 
         job: SmallMoleculesDesignJob
         for job in self.jobs:
             await run_learning_job_feature.handle(job_id=job.id)
+
+            await asyncio.sleep(0.5)
+
+            running_status = await is_job_running_feature.handle(job_id=job.id)
+
+            while running_status.running:
+                await asyncio.sleep(0.5)
+                running_status = await is_job_running_feature.handle(job_id=job.id)
+
             smiles = await get_smiles_feature.handle(job_id=job.id)
 
             protein = job.protein
-            ligand_ids = []
+
+            def normalize_floats(f: float) -> str:
+                return str(f).replace('.', 'dot')
 
             for smi in smiles:
-                id = uuid.uuid4()
+                name = (str(job.protein.name) + '-binder-drug-likeness-'
+                        + normalize_floats(smi.drug_likeness) +
+                        '-score-' + normalize_floats(smi.score) + '-stage-' + smi.stage)
                 ligand = Ligand.create(
-                    experiment=self.experiment,
-                    name=LigandName(f'Generated {id}'),
-                    id=LigandId(id),
+                    experiment=job.experiment,
+                    name=LigandName(name),
                     smiles_content=smi.smiles
                 )
                 ligand.set_designed_ligand_score(DesignedLigandScore(smi.score))
                 ligand.set_drug_likeness_score(DrugLikenessScore(smi.drug_likeness))
-                ligand.add_binding(protein=protein)
                 ligand.save()
+                ligand.add_binding(protein=protein, confidence=smi.score)
 
-                ligand_ids.append(ligand.id)
+                job.ligands.append(ligand)
+
+                job.save()
 
             result.append(SmallMoleculesDesignLearningOutputItem(
                 protein=job.protein.id,
-                ligands=ligand_ids
+                ligands=[l.id for l in job.ligands]
             ))
 
         self.output = SmallMoleculesDesignLearningOutput(
@@ -71,22 +90,59 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
         )
 
     async def setup_jobs(self):
-        self.jobs = []
+        api = InfrastructureDependencies.reinvent_microservice()
 
         for protein_id in self.input.proteins_with_pdb:
             protein = Protein.objects.with_id(protein_id)
 
             job_id = JobId(uuid.uuid4())
-            job_name = JobName(f'Small molecules design job for protein {protein.name}')
 
             job = SmallMoleculesDesignJob(
                 id=job_id,
-                name=job_name,
-                experiment=self.experiment,
-                protein=protein
+                name=JobName(f'Small molecules design for {protein.name}'),
+                experiment=self.experiment
             )
 
-            job.save()
+            if not protein.pdb_content:
+                raise NoLabsException(ErrorCodes.protein_pdb_is_empty, messages='Protein pdb content is undefined')
+
+            job.set_protein(protein=protein)
+
+            job.set_inputs(
+                protein=protein,
+                center_x=0,
+                center_y=0,
+                center_z=0,
+                size_x=5.0,
+                size_y=5.0,
+                size_z=5.0,
+                batch_size=50,
+                minscore=0.4,
+                epochs=128,
+                throw=False
+            )
+
+            tmp_file_path = 'tmp.pdb'
+            open(tmp_file_path, 'wb').write(job.protein.pdb_content)
+
+            api.save_params_api_reinvent_config_id_params_post(
+                config_id=str(job.iid.value),
+                name=job.name.value,
+                pdb_file=os.path.abspath(tmp_file_path),
+                center_x=job.center_x,
+                center_y=job.center_y,
+                center_z=job.center_z,
+                size_x=job.size_x,
+                size_y=job.size_y,
+                size_z=job.size_z,
+                batch_size=job.batch_size,
+                minscore=job.minscore,
+                epochs=job.epochs
+            )
+
+            job.change_sampling_size(5)
+
+            job.save(cascade=True)
 
             self.jobs.append(job)
 
@@ -95,12 +151,13 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 
@@ -111,93 +168,3 @@ class SmallMoleculesDesignLearningComponent(Component[SmallMoleculesDesignLearni
     @property
     def _output_parameter_type(self) -> Type[SmallMoleculesDesignLearningOutput]:
         return SmallMoleculesDesignLearningOutput
-
-# ---
-
-class SmallMoleculesDesignSamplingInput(BaseModel):
-    small_molecules_design_learning_job_ids: List[uuid.UUID]
-
-
-class SmallMoleculesDesignSamplingOutputItem(BaseModel):
-    protein: uuid.UUID
-    ligands: List[uuid.UUID]
-
-
-class SmallMoleculesDesignSamplingOutput(BaseModel):
-    items: List[SmallMoleculesDesignSamplingOutputItem]
-
-
-class SmallMoleculesDesignSamplingComponent(Component[SmallMoleculesDesignSamplingInput, SmallMoleculesDesignSamplingOutput]):
-    name = 'Small molecules design sampling'
-
-    async def execute(self):
-        if await self.jobs_setup_errors():
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Jobs are not valid')
-
-        run_sampling_job_feature = RunSamplingStageJobFeature(api=InfrastructureDependencies.reinvent_microservice())
-        get_smiles_feature = GetJobSmilesFeature(api=InfrastructureDependencies.reinvent_microservice())
-
-        result = []
-
-        job: SmallMoleculesDesignJob
-        for job_id in self.input.small_molecules_design_learning_job_ids:
-            job = SmallMoleculesDesignJob.objects.with_id(job_id)
-            await run_sampling_job_feature.handle(job_id=job_id)
-            smiles = await get_smiles_feature.handle(job_id=job_id)
-
-            protein = job.protein
-            ligand_ids = []
-
-            for smi in smiles:
-                id = uuid.uuid4()
-                ligand = Ligand.create(
-                    experiment=self.experiment,
-                    name=LigandName(f'Generated {id}'),
-                    id=LigandId(id),
-                    smiles_content=smi.smiles
-                )
-                ligand.set_designed_ligand_score(DesignedLigandScore(smi.score))
-                ligand.set_drug_likeness_score(DrugLikenessScore(smi.drug_likeness))
-                ligand.add_binding(protein=protein)
-                ligand.save()
-
-                ligand_ids.append(ligand.id)
-
-            result.append(SmallMoleculesDesignSamplingOutputItem(
-                protein=job.protein.id,
-                ligands=ligand_ids
-            ))
-
-        self.output = SmallMoleculesDesignSamplingOutput(
-            items=result
-        )
-
-    async def setup_jobs(self):
-        pass
-
-    async def jobs_setup_errors(self) -> List[JobValidationError]:
-        job: SmallMoleculesDesignJob
-
-        api = InfrastructureDependencies.reinvent_microservice()
-
-        errors = []
-
-        for job in self.jobs:
-            contig_result = api.get_config_api_reinvent_reinvent_config_id_get(config_id=str(job.id))
-            if not contig_result.actual_instance.sampling_allowed:
-                errors.append(
-                    JobValidationError(
-                        job_id=job.id,
-                        msg='You must run learning stage to run sampling. This job is not ready'
-                    )
-                )
-
-        return errors
-
-    @property
-    def _input_parameter_type(self) -> Type[SmallMoleculesDesignSamplingInput]:
-        return SmallMoleculesDesignSamplingInput
-
-    @property
-    def _output_parameter_type(self) -> Type[SmallMoleculesDesignSamplingOutput]:
-        return SmallMoleculesDesignSamplingOutput

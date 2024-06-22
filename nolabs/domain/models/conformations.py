@@ -56,6 +56,11 @@ class ConformationsJob(Job):
     def result_valid(self) -> bool:
         return not not self.md_content
 
+    def set_protein(self, protein: Protein):
+        self.protein = protein
+
+        self.inputs_updated_at = datetime.utcnow()
+
     def _input_errors(self) -> List[JobInputError]:
         errors = []
 
@@ -155,6 +160,8 @@ class ConformationsJob(Job):
         self.integrator = integrator
 
         self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.utcnow()
 
     def clear_result(self):
         self.md_content = None

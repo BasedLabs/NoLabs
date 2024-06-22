@@ -2,6 +2,7 @@ __all__ = [
     'PocketPredictionJob'
 ]
 
+import datetime
 from typing import List
 
 from mongoengine import ReferenceField, ListField, CASCADE, IntField
@@ -26,6 +27,8 @@ class PocketPredictionJob(Job):
         self.protein = protein
 
         self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.datetime.utcnow()
 
     def result_valid(self) -> bool:
         return not not self.pocket_ids

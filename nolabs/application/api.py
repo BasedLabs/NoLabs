@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -22,7 +20,7 @@ from nolabs.application.use_cases.diffdock.controller import router as diffdock_
 from nolabs.application.use_cases.proteins.controller import router as proteins_router
 from nolabs.application.use_cases.ligands.controller import router as ligand_router
 from nolabs.infrastructure.logging import setup_logger
-from nolabs.workflow.application.controller import router as workflow_router
+from nolabs.application.use_cases.workflow.controller import router as workflow_router
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import Settings
 

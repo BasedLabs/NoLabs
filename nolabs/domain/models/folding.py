@@ -3,6 +3,7 @@ __all__ = [
     'FoldingJob'
 ]
 
+from datetime import datetime
 from enum import Enum
 from typing import List, Tuple
 from uuid import UUID
@@ -53,6 +54,8 @@ class FoldingJob(Job):
 
         self.backend = backend
         self.proteins = proteins
+
+        self.inputs_updated_at = datetime.utcnow()
 
     def result_valid(self) -> bool:
         return not not self.foldings

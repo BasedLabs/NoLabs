@@ -88,6 +88,12 @@ class SearchProteinsContentFeature:
     async def handle(self, query: ProteinSearchQuery) -> List[ProteinContentResponse]:
         db_query = Q()
 
+        if not query.all and not query.name and not query.experiment_id and not query.ids:
+            return []
+
+        if query.all:
+            return [map_protein_to_response(p) for p in Protein.objects()]
+
         if query.ids:
             proteins = Protein.objects(id__in=query.ids)
 
@@ -110,6 +116,12 @@ class SearchProteinsContentFeature:
 class SearchProteinsMetadataFeature:
     async def handle(self, query: ProteinSearchMetadataQuery) -> List[ProteinMetadataResponse]:
         db_query = Q()
+
+        if not query.all and not query.name and not query.experiment_id and not query.ids:
+            return []
+
+        if query.all:
+            return [map_to_protein_metadata_response(p) for p in Protein.objects()]
 
         if query.ids:
             proteins = Protein.objects(id__in=query.ids)

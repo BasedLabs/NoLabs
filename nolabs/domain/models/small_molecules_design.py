@@ -2,6 +2,7 @@ __all__ = [
     'SmallMoleculesDesignJob'
 ]
 
+import datetime
 from typing import List
 
 from mongoengine import ReferenceField, ListField, PULL, FloatField, CASCADE, IntField
@@ -40,6 +41,16 @@ class SmallMoleculesDesignJob(Job):
     def result_valid(self) -> bool:
         return not not self.ligands
 
+    def set_protein(self, protein: Protein):
+        if not protein:
+            raise NoLabsException(ErrorCodes.protein_is_undefined)
+
+        if not protein.pdb_content:
+            raise NoLabsException(ErrorCodes.protein_not_found)
+
+        self.protein = protein
+        self.inputs_updated_at = datetime.datetime.utcnow()
+
     def set_inputs(self,
                    protein: Protein,
                    center_x: float,
@@ -50,7 +61,8 @@ class SmallMoleculesDesignJob(Job):
                    size_z: float,
                    batch_size: int,
                    minscore: float,
-                   epochs: int):
+                   epochs: int,
+                   throw: bool = True):
         if self.center_x != center_x or \
                 self.center_y != center_y or \
                 self.center_z != center_z or \
@@ -72,7 +84,10 @@ class SmallMoleculesDesignJob(Job):
             self.minscore = minscore
             self.epochs = epochs
 
-        self.input_errors(throw=True)
+        if throw:
+            self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.datetime.utcnow()
 
     def set_result(self, protein: Protein, ligands: List[Ligand]):
         if not ligands:

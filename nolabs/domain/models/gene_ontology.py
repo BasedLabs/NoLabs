@@ -2,6 +2,7 @@ __all__ = [
     'GeneOntologyJob'
 ]
 
+from datetime import datetime
 from typing import List, Dict, Any, Tuple
 from uuid import UUID
 
@@ -30,6 +31,8 @@ class GeneOntologyJob(Job):
         self.proteins = proteins
 
         self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.utcnow()
 
     def clear_result(self):
         self.gene_ontologies = []

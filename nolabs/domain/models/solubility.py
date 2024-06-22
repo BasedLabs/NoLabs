@@ -3,6 +3,7 @@ __all__ = [
     'SolubilityJob'
 ]
 
+from datetime import datetime
 from typing import List, Tuple
 from uuid import UUID
 
@@ -36,6 +37,8 @@ class SolubilityJob(Job):
         self.proteins = proteins
 
         self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.utcnow()
 
     def result_valid(self) -> bool:
         return not not self.results

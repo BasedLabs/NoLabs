@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 from reinvent_microservice import ReinventApi
 
-from nolabs.application.use_cases.small_molecules_design.use_cases import DeleteJobFeature, GetJobStatus, \
+from nolabs.application.use_cases.small_molecules_design.use_cases import DeleteJobFeature, GetJobStatusFeature, \
     GetJobFeature, GetJobLogsFeature, GetJobSmilesFeature, SetupJobFeature, RunLearningStageJobFeature, \
     RunSamplingStageJobFeature, StopJobFeature
 from nolabs.infrastructure.di import InfrastructureDependencies
@@ -15,8 +15,8 @@ class SmallMoleculesDesignDependencies:
         return DeleteJobFeature(api=api)
 
     @staticmethod
-    def get_job_status(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> GetJobStatus:
-        return GetJobStatus(api=api)
+    def get_job_status(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> GetJobStatusFeature:
+        return GetJobStatusFeature(api=api)
 
     @staticmethod
     def get_job(api: Annotated[ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)]) -> GetJobFeature:

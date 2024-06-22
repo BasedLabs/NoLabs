@@ -13,7 +13,8 @@ OpenAPI.BASE = apiConstants.hostname;
 const mockExecutionStatusApi = () => {
   // TODO remove this mock
   return {
-    running: false
+    running: false,
+    result_valid: true
   }
 }
 

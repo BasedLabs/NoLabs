@@ -29,7 +29,7 @@
               <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
             </q-item-section>
             <q-item-section>
-              <q-btn @click="openJob(element)" label="View" dense />
+              <q-btn to="" @click="openJob(element)" label="View" dense />
             </q-item-section>
             <q-item-section>
               <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
@@ -193,7 +193,7 @@ export default defineComponent({
       api: componentApi.conformations
     },
     {
-      name: "Protein design",
+      name: "Protein binder design",
       tab: true,
       routeName: "Protein design",
       api: componentApi.proteinDesign
@@ -330,9 +330,10 @@ export default defineComponent({
           this.selectedJobComponent = jobDefinition.component;
           this.showJobModal = true;
         } else {
-          this.$router.push({
+          const routeData = this.$router.resolve({
             name: jobDefinition.routeName, params: { jobId: job.job_id }
           });
+          window.open(routeData.href, '_blank');
         }
       }
     },

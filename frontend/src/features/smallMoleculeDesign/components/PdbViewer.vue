@@ -227,6 +227,11 @@ export default defineComponent({
   <q-card flat bordered class="my-card">
     <q-card-section ref="card">
       <div class="row items-center">
+        <div class="col">
+          <div class="text-h6">{{ FileName }}</div>
+        </div>
+      </div>
+      <div class="row items-center">
         <div class="col-1">
           <q-btn color="info" icon="help" outline round size="sm">
             <q-tooltip :offset="[10, 10]">
@@ -237,9 +242,6 @@ export default defineComponent({
         </div>
         <div class="col-1" v-if="pdbFile != null">
           <q-btn color="info" size="sm" outline icon="file_download" @click="savePdb"/>
-        </div>
-        <div class="col">
-          <div class="text-h6">{{ FileName }}</div>
         </div>
         <div class="col">
           <q-checkbox v-model="blackBackground" label="Black background"/>

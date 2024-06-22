@@ -4,12 +4,11 @@ from typing import List, Type
 from pydantic import BaseModel
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.conformations.api_models import SetupJobRequest
-from nolabs.application.use_cases.conformations.use_cases import RunJobFeature, SetupJobFeature
+from nolabs.application.use_cases.conformations.use_cases import RunJobFeature
 from nolabs.domain.models.common import Protein, JobId, JobName
 from nolabs.domain.models.conformations import ConformationsJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class ConformationInput(BaseModel):
@@ -50,7 +49,10 @@ class ConformationComponent(Component[ConformationInput, ConformationOutput]):
             job = ConformationsJob(
                 id=job_id,
                 name=job_name,
-                experiment=self.experiment,
+                experiment=self.experiment
+            )
+
+            job.set_protein(
                 protein=protein
             )
 
@@ -63,12 +65,13 @@ class ConformationComponent(Component[ConformationInput, ConformationOutput]):
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 

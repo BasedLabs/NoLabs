@@ -8,7 +8,7 @@ from nolabs.application.use_cases.msa_generation.api_models import SetupJobReque
 from nolabs.application.use_cases.msa_generation.use_cases import SetupJobFeature, RunJobFeature
 from nolabs.domain.models.msa import MsaGenerationJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class MsaGenerationInput(BaseModel):
@@ -62,12 +62,13 @@ class MsaGenerationComponent(Component[MsaGenerationInput, MsaGenerationOutput])
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 

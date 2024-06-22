@@ -4,15 +4,15 @@ from typing import Optional, List, Dict, Type, Union
 from uuid import UUID
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Experiment
-from nolabs.workflow.application.api_models import GetComponentStateResponse, GetComponentStateRequest, \
+from nolabs.domain.models.common import Experiment, Job
+from nolabs.application.use_cases.workflow.api_models import GetComponentStateResponse, GetComponentStateRequest, \
     AllWorkflowSchemasResponse, JobErrorResponse, InputPropertyErrorResponse, ResetWorkflowRequest, \
     StartWorkflowComponentRequest
-from nolabs.workflow.component import Component
-from nolabs.workflow.models import WorkflowSchemaDbModel, ComponentDbModel
-from nolabs.workflow.properties import Property, ParameterSchema, Items
-from nolabs.workflow.workflow import WorkflowExecutor
-from nolabs.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel, ItemsModel
+from nolabs.application.workflow.component import Component
+from nolabs.application.workflow.models import WorkflowSchemaDbModel, ComponentDbModel
+from nolabs.application.workflow.properties import Property, ParameterSchema, Items
+from nolabs.application.workflow.workflow import WorkflowExecutor
+from nolabs.application.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel, ItemsModel
 
 
 def map_items(i: Items, schema: ParameterSchema) -> ItemsModel:
@@ -425,7 +425,7 @@ class StartWorkflowComponentFeature:
 
         executor = WorkflowExecutor(logger=self.logger)
         component = [c for c in components if c.id == request.component_id][0]
-        await executor.execute_single(component=component)
+        await executor.execute(components=components, specific=component)
 
 
 class GetComponentStateFeature:
@@ -442,17 +442,21 @@ class GetComponentStateFeature:
                 input_property_errors=[]
             )
 
+        job_errors = []
+
+        job: Job
+        for job in Job.objects(id__in=[j.id for j in component.jobs]):
+            for error in job.input_errors():
+                job_errors.append(JobErrorResponse(
+                    msg=error.message,
+                    job_id=job.id
+                ))
+
         return GetComponentStateResponse(
             input_dict=component.input_parameter_dict,
             output_dict=component.output_parameter_dict,
             job_ids=[j.iid.value for j in component.jobs],
-            jobs_errors=[
-                JobErrorResponse(
-                    msg=e.msg,
-                    job_id=e.job_id
-                )
-                for e in component.jobs_errors
-            ],
+            jobs_errors=job_errors,
             input_property_errors=[
                 InputPropertyErrorResponse(
                     loc=e.loc,

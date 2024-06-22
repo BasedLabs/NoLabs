@@ -8,6 +8,7 @@ export type JobProperties = {
 
 export type Job = {
   id: string;
+  experimentId: string;
   name: string;
   generatedPdbs: File[];
   properties: JobProperties

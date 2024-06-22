@@ -474,8 +474,8 @@ class Ligand(Document, Entity):
     name = ValueObjectStringField(required=False, factory=LigandName)
     smiles_content = BinaryField(required=False)
     sdf_content = BinaryField(required=False)
-    drug_likeness = FloatField(required=False)
-    designed_ligand_score = FloatField(required=False)
+    drug_likeness = ValueObjectFloatField(required=False, factory=DrugLikenessScore)
+    designed_ligand_score = ValueObjectFloatField(required=False, factory=DesignedLigandScore)
     link: LigandLink | None = StringField(required=False)  # New field for link
     image = BinaryField(required=False)  # New field for image
 
@@ -502,14 +502,7 @@ class Ligand(Document, Entity):
             smiles_content = smiles_content.encode('utf-8')
 
         self.smiles_content = smiles_content
-        self.image = self._generate_image(smiles_content)  # Generate image
-
-    def _generate_image(self, smiles_content: bytes) -> bytes:
-        image = generate_png_from_smiles(smiles_content.decode('utf-8'))
-        from io import BytesIO
-        buffer = BytesIO()
-        image.save(buffer, format="PNG")
-        return buffer.getvalue()
+        self.image = generate_png_from_smiles(self.smiles_content)
 
     def get_sdf(self) -> str | None:
         if self.sdf_content:
@@ -525,9 +518,9 @@ class Ligand(Document, Entity):
         if isinstance(sdf, str):
             sdf = sdf.encode('utf-8')
         self.sdf_content = sdf
-        self.set_smiles_from_sdf(sdf)  # Set smiles from sdf
+        self._set_smiles_from_sdf(sdf)  # Set smiles from sdf
 
-    def set_smiles_from_sdf(self, sdf: Union[str, bytes]):
+    def _set_smiles_from_sdf(self, sdf: Union[str, bytes]):
         if isinstance(sdf, bytes):
             sdf = sdf.decode('utf-8')
         mol = Chem.MolFromMolBlock(sdf)
@@ -602,9 +595,9 @@ class Ligand(Document, Entity):
         )
 
         if smiles_content:
-            ligand.image = generate_png_from_smiles(smiles_content.decode('utf-8'))  # Generate image
+            ligand.image = generate_png_from_smiles(smiles_content.decode('utf-8'))
         elif sdf_content:
-            ligand.set_smiles_from_sdf(sdf_content.decode('utf-8'))  # Set smiles and image from sdf content
+            ligand._set_smiles_from_sdf(sdf_content.decode('utf-8'))
 
         return ligand
 
@@ -696,6 +689,7 @@ class Job(Document, Entity):
     name: JobName = ValueObjectStringField(required=True, factory=JobName)
     created_at: datetime.datetime = DateTimeField()
     updated_at: datetime.datetime = DateTimeField()
+    inputs_updated_at: datetime.datetime = DateTimeField()
 
     meta = {
         'allow_inheritance': True

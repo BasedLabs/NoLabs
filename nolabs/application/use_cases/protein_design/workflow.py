@@ -8,7 +8,7 @@ from nolabs.application.use_cases.protein_design.use_cases import RunJobFeature
 from nolabs.domain.models.common import Protein, JobId, JobName
 from nolabs.domain.models.protein_design import ProteinDesignJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class ProteinDesignInput(BaseModel):
@@ -44,15 +44,19 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
         for protein_id in self.input.proteins_with_pdb:
             protein = Protein.objects.with_id(protein_id)
 
+            if not protein.pdb_content:
+                raise NoLabsException(ErrorCodes.protein_pdb_is_empty, 'Protein pdb content is undefined')
+
             job_id = JobId(uuid.uuid4())
             job_name = JobName(f'Protein binder design for protein {protein.name}')
 
             job = ProteinDesignJob(
                 id=job_id,
                 name=job_name,
-                experiment=self.experiment,
-                protein=protein
+                experiment=self.experiment
             )
+
+            job.set_protein(protein=protein)
 
             job.save()
 
@@ -63,12 +67,13 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 

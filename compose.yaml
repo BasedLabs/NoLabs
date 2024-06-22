@@ -178,7 +178,7 @@ services:
       - /media/jt/Local Disk/RoseTTAFold/UniRef30_2020_06:/RoseTTAFold/UniRef30_2020_06
     command: --host=0.0.0.0 --port=5738
   reinvent:
-    image: 'ghcr.io/basedlabs/reinvent:1.0.0'
+    image: 'ghcr.io/basedlabs/reinvent:1.0.1'
     network_mode: host
     build:
       context: microservices/reinvent

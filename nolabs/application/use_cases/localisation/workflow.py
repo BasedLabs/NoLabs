@@ -5,10 +5,10 @@ from pydantic import BaseModel
 
 from nolabs.application.use_cases.localisation.api_models import SetupJobRequest
 from nolabs.application.use_cases.localisation.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
-from nolabs.domain.models.common import Protein, Experiment
+from nolabs.domain.models.common import Protein
 from nolabs.domain.models.localisation import LocalisationJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class LocalisationComponentInput(BaseModel):
@@ -64,12 +64,13 @@ class LocalisationComponent(Component[LocalisationComponentInput, LocalisationCo
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 

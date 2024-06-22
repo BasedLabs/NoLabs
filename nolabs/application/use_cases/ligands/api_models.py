@@ -7,10 +7,11 @@ __all__ = [
 ]
 
 from dataclasses import field
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Self
 from uuid import UUID
 
 from fastapi import UploadFile
+from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 
 
@@ -39,16 +40,30 @@ class LigandMetadataResponse:
     designed_ligand_score: Optional[float] = None
 
 
-@dataclass
-class LigandSearchContentQuery:
+class LigandSearchContentQuery(BaseModel):
     name: Optional[str] = None
     experiment_id: Optional[UUID] = None
+    all: Optional[bool] = False
+
+    @model_validator(mode='after')
+    def check_at_least_one_field_set(self) -> Self:
+        if not self.all and not self.name and not self.experiment_id:
+            raise ValueError('You must specify at least one condition to search')
+
+        return self
 
 
-@dataclass
-class LigandSearchMetadataQuery:
+class LigandSearchMetadataQuery(BaseModel):
     name: Optional[str] = None
     experiment_id: Optional[UUID] = None
+    all: Optional[bool] = False
+
+    @model_validator(mode='after')
+    def check_at_least_one_field_set(self) -> Self:
+        if not self.all and not self.name and not self.experiment_id:
+            raise ValueError('You must specify at least one condition to search')
+
+        return self
 
 
 @dataclass

@@ -4,7 +4,6 @@ import {Notify} from "quasar";
 import {ErrorCodes} from "src/refinedApi/errorTypes";
 import {obtainErrorResponse} from "src/refinedApi/errorWrapper";
 import {
-  ConformationsService,
   JobsACommonControllerForJobsManagementService,
   OpenAPI,
   ProteinDesignService,
@@ -58,12 +57,13 @@ const useProteinDesignStore = defineStore("proteinDesign", {
         }
         return {job: null, errors: errorResponse.errors};
       }
-      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
         ids: job.binder_ids
       })
       return {
         job: {
           id: job.job_id,
+          experimentId: job.experiment_id,
           name: job.job_name,
           generatedPdbs: proteins.map(protein => new File([new Blob([protein.pdb_content!])], protein.pdb_name)),
           properties: {
@@ -88,6 +88,7 @@ const useProteinDesignStore = defineStore("proteinDesign", {
           return {
             job: {
               id: jobId,
+              experimentId: response.experiment_id,
               name: "New job",
               generatedPdbs: [],
               properties: {
@@ -109,19 +110,20 @@ const useProteinDesignStore = defineStore("proteinDesign", {
         return {job: null, errors: errorResponse.errors};
       }
 
-      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchPost({
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
         ids: response.binder_ids
       });
 
-      const protein = await ProteinsService.getProteinApiV1ProteinsProteinIdGet(
+      const protein = await ProteinsService.getProteinContentApiV1ProteinsProteinIdContentGet(
         response.protein_id
       )
 
       return {
         job: {
           id: response.job_id,
+          experimentId: response.experiment_id,
           name: response.job_name,
-          generatedPdbs: proteins.map(protein => new File([new Blob([protein.pdb_content!])], protein.pdb_name)),
+          generatedPdbs: proteins.map(p => new File([new Blob([p.pdb_content!])], p.pdb_name)),
           properties: {
             inputPdbFile: new File([new Blob([protein?.pdb_content!], {
               type: 'text/plain'

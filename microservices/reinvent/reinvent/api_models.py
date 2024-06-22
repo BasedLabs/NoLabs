@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import enum
 from typing import List
 
 import pydantic
@@ -22,7 +23,6 @@ class ParamsRequest:
     minscore: float
     name: str
     epochs: int = 50
-
 
 
 @pydantic.dataclasses.dataclass

@@ -8,7 +8,7 @@ from nolabs.application.use_cases.diffdock.use_cases import SetupJobFeature, Run
 from nolabs.domain.models.common import Protein, Ligand
 from nolabs.domain.models.diffdock import DiffDockBindingJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class DiffDockComponentInput(BaseModel):
@@ -70,12 +70,13 @@ class DiffDockComponent(Component[DiffDockComponentInput, DiffDockComponentOutpu
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 

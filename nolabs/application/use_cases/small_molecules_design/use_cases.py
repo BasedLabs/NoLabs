@@ -1,6 +1,6 @@
 __all__ = [
     'DeleteJobFeature',
-    'GetJobStatus',
+    'GetJobStatusFeature',
     'GetJobFeature',
     'GetJobLogsFeature',
     'GetJobSmilesFeature',
@@ -10,6 +10,7 @@ __all__ = [
     'StopJobFeature'
 ]
 
+import os
 from typing import List
 from uuid import UUID
 
@@ -19,7 +20,8 @@ from mongoengine import Q
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.small_molecules_design.api_models import GetJobStatusResponse, LogsResponse, \
     SmilesResponse, JobResponse, SetupJobRequest
-from nolabs.domain.models.common import JobId, Job, JobName, Experiment, Protein
+from nolabs.domain.models.common import JobId, Job, JobName, Experiment, Protein, Ligand, LigandName, LigandLink, \
+    DesignedLigandScore, DrugLikenessScore
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.utils import generate_uuid
 
@@ -56,7 +58,7 @@ class DeleteJobFeature:
         job.delete()
 
 
-class GetJobStatus:
+class GetJobStatusFeature:
     def __init__(self, api: reinvent_microservice.ReinventApi):
         self._api = api
 
@@ -152,10 +154,9 @@ class SetupJobFeature:
         job_id = JobId(request.job_id if request.job_id else generate_uuid())
         job_name = JobName(request.job_name if request.job_name else 'New small molecules design job')
 
-        jobs: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects(
-            Q(id=job_id.value) | Q(name=job_name.value))
+        job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id.value)
 
-        if not jobs:
+        if not job:
             if not request.experiment_id:
                 raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
@@ -169,13 +170,14 @@ class SetupJobFeature:
                 name=job_name,
                 experiment=experiment
             )
-        else:
-            job = jobs[0]
 
         protein = Protein.objects.with_id(request.protein_id)
 
         if not protein:
             raise NoLabsException(ErrorCodes.protein_not_found)
+
+        if not protein.pdb_content:
+            raise NoLabsException(ErrorCodes.protein_pdb_is_empty, messages='Protein pdb content is undefined')
 
         job.set_inputs(
             protein=protein,
@@ -196,7 +198,7 @@ class SetupJobFeature:
         self._api.save_params_api_reinvent_config_id_params_post(
             config_id=str(job.iid.value),
             name=job.name.value,
-            pdb_file=tmp_file_path,
+            pdb_file=os.path.abspath(tmp_file_path),
             center_x=request.center_x,
             center_y=request.center_y,
             center_z=request.center_z,
@@ -225,11 +227,12 @@ class RunLearningStageJobFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        if job.input_valid():
+        if not job.input_errors():
             self._api.learning_api_reinvent_config_id_start_learning_post(config_id=str(job_id))
             return
 
-        raise NoLabsException(ErrorCodes.invalid_job_input, 'Binding pocket box is undefined for the job')
+        input_error = job.input_errors()[0]
+        raise NoLabsException(error_code=input_error.error_code, messages=input_error.message)
 
 
 class RunSamplingStageJobFeature:

@@ -6,7 +6,7 @@ from fastapi import WebSocket, APIRouter, Depends
 from nolabs.application.use_cases.small_molecules_design.api_models import GetJobStatusResponse, LogsResponse, \
     SmilesResponse, JobResponse, SetupJobRequest
 from nolabs.application.use_cases.small_molecules_design.di import SmallMoleculesDesignDependencies
-from nolabs.application.use_cases.small_molecules_design.use_cases import GetJobStatus, GetJobFeature, StopJobFeature, \
+from nolabs.application.use_cases.small_molecules_design.use_cases import GetJobStatusFeature, GetJobFeature, StopJobFeature, \
     DeleteJobFeature, GetJobLogsFeature, \
     GetJobSmilesFeature, RunLearningStageJobFeature, RunSamplingStageJobFeature, SetupJobFeature
 
@@ -20,7 +20,7 @@ router = APIRouter(
 
 @router.get('/jobs/{job_id}/status')
 async def get_job_status(
-        feature: Annotated[GetJobStatus, Depends(SmallMoleculesDesignDependencies.get_job_status)],
+        feature: Annotated[GetJobStatusFeature, Depends(SmallMoleculesDesignDependencies.get_job_status)],
         job_id: UUID
 ) -> GetJobStatusResponse:
     return await feature.handle(job_id=job_id)

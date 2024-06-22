@@ -1,7 +1,8 @@
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Self
 from uuid import UUID
 
 from fastapi import UploadFile
+from pydantic import BaseModel, root_validator, model_validator
 from pydantic.dataclasses import dataclass
 
 
@@ -47,19 +48,19 @@ class ProteinContentResponse:
     pdb_content: Optional[str] = None
     link: Optional[str] = None
 
-@dataclass
-class ProteinSearchQuery:
+
+class ProteinSearchQuery(BaseModel):
+    all: Optional[bool] = False
     name: Optional[str] = None
     experiment_id: Optional[UUID] = None
     ids: Optional[List[UUID]] = None
 
 
-@dataclass
-class ProteinSearchMetadataQuery:
+class ProteinSearchMetadataQuery(BaseModel):
+    all: Optional[bool] = False
     name: Optional[str] = None
     experiment_id: Optional[UUID] = None
     ids: Optional[List[UUID]] = None
-
 
 
 @dataclass

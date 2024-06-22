@@ -5,10 +5,10 @@ from pydantic import BaseModel
 
 from nolabs.application.use_cases.gene_ontology.api_models import SetupJobRequest
 from nolabs.application.use_cases.gene_ontology.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
-from nolabs.domain.models.common import Protein, Experiment
+from nolabs.domain.models.common import Protein
 from nolabs.domain.models.gene_ontology import GeneOntologyJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class GeneOntologyComponentInput(BaseModel):
@@ -63,12 +63,13 @@ class GeneOntologyComponent(Component[GeneOntologyComponentInput, GeneOntologyCo
 
         for job in self.jobs:
             errors = job.input_errors()
-            jobs_errors.append(
-                JobValidationError(
-                    job_id=job.id,
-                    msg=', '.join([err.message for err in errors])
+            if errors:
+                jobs_errors.append(
+                    JobValidationError(
+                        job_id=job.id,
+                        msg=', '.join([err.message for err in errors])
+                    )
                 )
-            )
 
         return jobs_errors
 

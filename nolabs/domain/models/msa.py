@@ -2,6 +2,7 @@ __all__ = [
     'MsaGenerationJob'
 ]
 
+import datetime
 from typing import List
 
 from mongoengine import ReferenceField, CASCADE, BinaryField
@@ -22,6 +23,8 @@ class MsaGenerationJob(Job):
         self.protein = protein
 
         self.input_errors(throw=True)
+
+        self.inputs_updated_at = datetime.datetime.utcnow()
 
     def result_valid(self) -> bool:
         return not not self.msa
