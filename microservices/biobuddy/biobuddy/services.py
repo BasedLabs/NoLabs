@@ -1,3 +1,6 @@
+from typing import Dict, AsyncGenerator
+
+from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
@@ -12,6 +15,7 @@ import asyncio
 chat_model = ChatOpenAI()
 chat_model.model_name = "gpt-4-turbo"
 chat_model.temperature = 0.1
+chat_model.streaming = True
 
 
 def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddyResponse:
@@ -79,4 +83,37 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
         content=response_content
     )
 
+async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens: Dict[str, bool]) -> AsyncGenerator[SendMessageToBioBuddyResponse, None]:
+    system_message_content = generate_system_prompt()
+    history_messages = [SystemMessage(content=system_message_content)]
+    for msg in request.previous_messages:
+        if msg['role'] == 'user':
+            history_messages.append(HumanMessage(content=msg['content']))
+        elif msg['role'] == 'assistant':
+            history_messages.append(AIMessage(content=msg['content']))
 
+    tools_description = " "
+    strategy_prompt = generate_strategy_prompt(tools_description, request.message_content)
+
+    handler = AsyncIteratorCallbackHandler()
+
+    # Start the streaming
+    async def chat_with_model():
+        await chat_model.agenerate(
+            messages=[[SystemMessage(content=system_message_content), HumanMessage(content=strategy_prompt)]],
+            callbacks=[handler]
+        )
+
+    # Launch the chat model invocation
+    asyncio.create_task(chat_with_model())
+
+    # Yield responses as they come in
+    async for response in handler.aiter():
+        if stop_tokens.get(request.experiment_id):
+            break
+        yield SendMessageToBioBuddyResponse(reply_type="stream", content=response)
+
+    # Handle the final response separately
+    if not stop_tokens.get(request.experiment_id):
+        async for final_response in handler.aiter():
+            yield SendMessageToBioBuddyResponse(reply_type="final", content=final_response)

@@ -20,7 +20,9 @@
                 <q-item-label>Job Name</q-item-label>
               </q-item-section>
               <q-item-section>
-                <q-input v-model="editableJobName" @blur="updateJobName" />
+                <q-input v-model="editableJobName" @keyup.enter="updateJobName" dense clearable />
+                <q-btn v-if="editableJobName !== (job?.job_name || '')" icon="check" color="info" flat
+                  @click="updateJobName" />
               </q-item-section>
             </q-item>
             <q-item>
@@ -62,7 +64,10 @@
                 <q-item-label>Number of samples</q-item-label>
               </q-item-section>
               <q-item-section>
-                <q-input v-model.number="samplesPerComplex" type="number" @blur="updateNumberOfSamples" />
+                <q-input v-model.number="samplesPerComplex" type="number" @keyup.enter="updateNumberOfSamples" dense
+                  clearable />
+                <q-btn v-if="samplesPerComplex !== (job?.samples_per_complex || null)" icon="check" color="info" flat
+                  @click="updateNumberOfSamples" />
               </q-item-section>
             </q-item>
           </q-list>
@@ -129,13 +134,13 @@ export default defineComponent({
       this.samplesPerComplex = this.job.samples_per_complex || null;
     }
 
-    this.protein = await getProteinContent(this.job.protein_id);
+    this.protein = await getProteinContent(this.job?.protein_id);
 
     this.jobStatus = await getDiffDockJobStatus(this.jobId as string);
   },
   methods: {
     async updateJobName() {
-      if (this.job) {
+      if (this.job && this.editableJobName !== this.job.job_name) {
         try {
           await changeJobName(this.job.job_id, this.editableJobName);
           this.$q.notify({
@@ -152,7 +157,7 @@ export default defineComponent({
       }
     },
     async updateNumberOfSamples() {
-      if (this.job && this.samplesPerComplex !== null) {
+      if (this.job && this.samplesPerComplex !== this.job.samples_per_complex) {
         const request: nolabs__application__use_cases__diffdock__api_models__SetupJobRequest = {
           experiment_id: this.experimentId as string,
           protein_id: this.job.protein_id,
@@ -197,7 +202,6 @@ export default defineComponent({
   },
 });
 </script>
-
 
 <style scoped>
 .fasta-content-container {

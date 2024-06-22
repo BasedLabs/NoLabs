@@ -1,8 +1,8 @@
 <template>
-  <q-card dark bordered :class="{'pulsating-border': isRunning}" v-if="!nodeData">
+  <q-card dark bordered :class="{'pulsating-border': isRunning || isLocallyRunning}" v-if="!nodeData">
     <q-spinner color="primary" size="3em" />
   </q-card>
-  <q-card dark bordered :class="{'pulsating-border': isRunning}" v-if="nodeData" style="max-width: 400px">
+  <q-card dark bordered :class="{'pulsating-border': isRunning || isLocallyRunning}" v-if="nodeData" style="max-width: 400px">
     <q-card-section v-if="nodeData?.data.error">
       <div class="row no-wrap items-center">
         <q-space />
@@ -19,7 +19,7 @@
       <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
     </q-card-section>
     <q-card-actions align="around">
-      <q-btn v-if="!isRunning" @click="startWorkflow" color="info" icon="play_arrow" label="Start" />
+      <q-btn v-if="!isRunning && !isLocallyRunning" @click="startWorkflow" color="info" icon="play_arrow" label="Start" />
       <q-btn v-else>
         <q-spinner color="primary" size="20px" />
         Running...
@@ -29,7 +29,6 @@
     </q-card-actions>
   </q-card>
 </template>
-
 
 <script>
 import JobNodeContent from './JobNodeContent.vue';
@@ -54,7 +53,8 @@ export default {
   },
   data() {
     return {
-      nodeData: null
+      nodeData: null,
+      isLocallyRunning: false
     };
   },
   computed: {
@@ -64,9 +64,9 @@ export default {
     }
   },
   watch: {
-    'useWorkflowStore().runningComponentIds': function(newVal, oldVal) {
+    isRunning(newVal, oldVal) {
       if (newVal !== oldVal) {
-        this.updateRunningStatus();
+        this.isLocallyRunning = newVal;
       }
     }
   },
@@ -80,10 +80,11 @@ export default {
       const workflowStore = useWorkflowStore();
       const workflowId = workflowStore.workflowId;
       try {
+        this.isLocallyRunning = true;
         await startWorkflowComponent(workflowId, this.nodeId);
-        this.isRunning = true;
         console.log(`Started workflow component with workflowId: ${workflowId} and nodeId: ${this.nodeId}`);
       } catch (error) {
+        this.isLocallyRunning = false;
         console.error('Failed to start workflow component', error);
       }
     },
@@ -101,10 +102,6 @@ export default {
       if (this.onOpenDialog) {
         this.onOpenDialog(this.nodeId);
       }
-    },
-    updateRunningStatus() {
-      const workflowStore = useWorkflowStore();
-      this.isRunning = workflowStore.runningComponentIds.includes(this.nodeId);
     }
   }
 };

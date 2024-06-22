@@ -1,7 +1,5 @@
 <template>
-  <q-drawer show-if-above
-                :width="drawerWidth"
-                    >
+  <q-drawer show-if-above :width="drawerWidth">
     <q-list>
       <q-item-label class="text-bold text-white" header>BioBuddy Chat</q-item-label>
       <q-separator />
@@ -9,21 +7,21 @@
         <q-item-section>
           <div v-if="message.type === 'function'" class="function-message">
             <q-item-label class="text-h7 q-mb-sm">
-              <div class="q-pb-sm q-pt-sm text-bold">
-                {{ displayName(message.role) }}</div>
+              <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
               <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
-              <p> <q-icon name="check_circle" color="purple"></q-icon>
-                <span class="text-h7 text-purple q-ml-sm"> {{ functionCall.function_name }} </span>
-              </p>
-              <ul>
-                Params:
-                <li v-for="(param, pIndex) in functionCall.arguments" :key="`param-${fcIndex}-${pIndex}`">
-                  {{ param.name }}: {{ param.value }}
-                </li>
-              </ul>
+                <p>
+                  <q-icon name="check_circle" color="purple"></q-icon>
+                  <span class="text-h7 text-purple q-ml-sm">{{ functionCall.function_name }}</span>
+                </p>
+                <ul>
+                  Params:
+                  <li v-for="(param, pIndex) in functionCall.arguments" :key="`param-${fcIndex}-${pIndex}`">
+                    {{ param.name }}: {{ param.value }}
+                  </li>
+                </ul>
               </div>
             </q-item-label>
-            </div>
+          </div>
           <div v-else>
             <q-item-label class="text-h7 q-mb-sm">
               <div v-if="editIndex !== index">
@@ -43,8 +41,9 @@
       </q-item>
     </q-list>
     <div class="q-pa-md">
-      <q-input v-model="newMessage"  label="Type a message..." dense filled @keyup.enter="sendMessage">
+      <q-input v-model="newMessage" label="Type a message..." dense filled @keyup.enter="sendMessage">
         <template v-slot:append>
+          <q-btn icon="stop" flat @click="stopGeneration" :disable="!awaitingResponse || sending">Stop</q-btn>
           <q-btn icon="send" flat @click="sendMessage" :disable="sending">
             <q-spinner size="20px" v-if="sending"></q-spinner>
           </q-btn>
@@ -52,22 +51,17 @@
       </q-input>
     </div>
 
-
-    <div
-      class="drawer-resize-handle"
-      @mousedown="startResizing"
-    ></div>
+    <div class="drawer-resize-handle" @mousedown="startResizing"></div>
   </q-drawer>
 </template>
 
 <script lang="ts">
-import {Notify} from 'quasar';
+import { Notify } from 'quasar';
 import { defineComponent } from 'vue';
-import {editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi} from 'src/features/biobuddy/api';
-import {FunctionCall, type FunctionParam, Message} from "src/refinedApi/client";
 import MarkdownIt from 'markdown-it';
-import {useBioBuddyStore} from "./storage";
-import {obtainErrorResponse} from "../../refinedApi/errorWrapper";
+import { useBioBuddyStore } from './storage';
+import { FunctionCall, type FunctionParam, Message } from 'src/refinedApi/client';
+import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi } from 'src/features/biobuddy/api';
 
 export interface FunctionMapping {
   name: string;
@@ -80,7 +74,7 @@ export default defineComponent({
     experimentId: {
       type: String,
       required: true,
-    }
+    },
   },
   data() {
     return {
@@ -94,9 +88,59 @@ export default defineComponent({
       initialMouseX: 0,
       editIndex: -1,
       editMessage: '',
+      socket: null as WebSocket | null,
+      currentMessageBuffer: '' as string,
+      awaitingResponse: false,
     };
   },
   methods: {
+    connectWebSocket() {
+      this.socket = new WebSocket('ws://127.0.0.1:5738/ws');
+      this.socket.onopen = () => {
+        console.log('Connected to WebSocket server');
+      };
+      this.socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.reply_type === 'stream') {
+          this.currentMessageBuffer += message.content;
+          if (this.awaitingResponse) {
+            const lastMessageIndex = this.messages.length - 1;
+            if (this.messages[lastMessageIndex].role === 'biobuddy') {
+              this.messages[lastMessageIndex].message.content = this.currentMessageBuffer;
+            } else {
+              this.messages.push({
+                id: new Date().getTime().toString(), // Generate a temporary ID
+                role: 'biobuddy',
+                type: 'text',
+                message: {
+                  content: this.currentMessageBuffer,
+                },
+              });
+              this.awaitingResponse = true;
+            }
+          } else {
+            this.messages.push({
+              id: new Date().getTime().toString(), // Generate a temporary ID
+              role: 'biobuddy',
+              type: 'text',
+              message: {
+                content: this.currentMessageBuffer,
+              },
+            });
+            this.awaitingResponse = true;
+          }
+        } else if (message.reply_type === 'final') {
+          this.currentMessageBuffer = '';
+          this.awaitingResponse = false;
+        }
+      };
+      this.socket.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
+      this.socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    },
     async loadConversation() {
       if (!this.experimentId) return;
       const response = await loadConversationApi(this.experimentId);
@@ -116,17 +160,36 @@ export default defineComponent({
     async sendMessage() {
       if (!this.experimentId || !this.newMessage.trim()) return;
 
-      try {
-        const response = await saveMessageApi(this.experimentId, this.newMessage);
-        const savedMessage = response.saved_message as Message;
+      const userMessage = {
+        id: new Date().getTime().toString(), // Generate a temporary ID
+        role: 'user',
+        type: 'text',
+        message: {
+          content: this.newMessage,
+        },
+      };
 
-        this.messages.push(savedMessage);
-        const queryContent = this.newMessage;
-        this.newMessage = '';
-        await this.sendQuery(queryContent);
-      } catch (error) {
-        console.error("Failed to send or process message:", error);
-      }
+      this.messages.push(userMessage);
+
+      const messagePayload = {
+        experiment_id: this.experimentId,
+        message_content: this.newMessage,
+        previous_messages: this.messages.map(msg => ({ role: msg.role, content: msg.message.content })),
+        tools: this.functionMappings,
+        job_id: null, // Optional job ID
+      };
+
+      this.socket?.send(JSON.stringify(messagePayload));
+      this.newMessage = '';
+      this.awaitingResponse = true;
+      this.currentMessageBuffer = ''; // Reset the buffer for new messages
+    },
+    async stopGeneration() {
+      const stopPayload = {
+        action: 'stop',
+        experiment_id: this.experimentId,
+      };
+      this.socket?.send(JSON.stringify(stopPayload));
     },
     isLastUserMessageWithoutResponse(index: number) {
       return index === this.messages.length - 1 && this.messages[index].role === 'user';
@@ -142,48 +205,18 @@ export default defineComponent({
     async saveEdit(index: number) {
       if (!this.experimentId || !this.editMessage.trim()) return;
       const messageId = this.messages[index].id; // Assuming each message has a unique ID
-      try {
-        await editMessageApi(this.experimentId, messageId, this.editMessage);
-        this.messages[index].message.content = this.editMessage;
-        this.messages = this.messages.slice(0, index + 1); // Remove messages after the edited one
-        await this.sendQuery(this.editMessage);
-      } catch (error) {
-        console.error("Failed to edit message:", error);
-      }
+
+      const editMessage = {
+        experiment_id: this.experimentId,
+        message_id: messageId,
+        message_content: this.editMessage,
+      };
+
+      this.socket?.send(JSON.stringify(editMessage));
+      this.messages[index].message.content = this.editMessage;
+      this.messages = this.messages.slice(0, index + 1); // Remove messages after the edited one
       this.editIndex = -1;
       this.editMessage = '';
-    },
-    async sendQuery(message: string) {
-      this.sending = true;
-      const queryResponse = await sendQueryApi(this.experimentId, message);
-      const errorResponse = obtainErrorResponse(queryResponse);
-      if (errorResponse) {
-        this.sending = false;
-        for (const error of errorResponse.errors) {
-          Notify.create({
-            type: "negative",
-            closeBtn: 'Close',
-            message: error
-          });
-        }
-        return;
-      }
-      const newMessageResponse = queryResponse.biobuddy_response as Message;
-      this.messages.push(newMessageResponse);
-      if (newMessageResponse.type === 'function') {
-        const functionCall = newMessageResponse.message as FunctionCall[];
-        await this.invokeFunctions(functionCall);
-      }
-
-      this.sending = false;
-    },
-    async invokeFunctions(functionCalls: FunctionCall[]) {
-      for (const functionCall of functionCalls) {
-        const mapping = this.functionMappings?.find(m => m.name === functionCall.function_name);
-        if (mapping && typeof mapping.function === 'function') {
-          await mapping.function(functionCall.data);
-        }
-      }
     },
     displayName(role: string) {
       return role === 'user' ? 'You' : 'Biobuddy';
@@ -205,26 +238,20 @@ export default defineComponent({
       window.removeEventListener('mousemove', this.resizeDrawer);
       window.removeEventListener('mouseup', this.stopResizing);
     },
-    getParameters(message: Message): Array<Array<FunctionParam>> {
-      if (message.type === 'function') {
-        return (message.message as FunctionCall[]).map(fc => fc.arguments ? fc.arguments : []);
-      }
-      return [];
-    }
   },
   async mounted() {
     await this.loadConversation();
+    this.connectWebSocket();
     const bioBuddyStore = useBioBuddyStore();
     this.functionMappings = [
       { name: 'query_rcsb_pdb_by_id', function: bioBuddyStore.invokeQueryRcsbPdbEventHandlers },
       { name: 'query_rcsb_pdb_by_protein_names', function: bioBuddyStore.invokeQueryRcsbPdbEventHandlers },
       { name: 'query_chembl', function: bioBuddyStore.invokeQueryChemblEventHandlers },
-      { name: 'query_chembl_by_condition', function: bioBuddyStore.invokeQueryChemblEventHandlers }
+      { name: 'query_chembl_by_condition', function: bioBuddyStore.invokeQueryChemblEventHandlers },
     ];
   },
 });
 </script>
-
 
 <style scoped>
 .drawer-resize-handle {

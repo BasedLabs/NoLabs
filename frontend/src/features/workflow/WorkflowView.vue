@@ -14,7 +14,7 @@
         </q-list>
       </q-btn-dropdown>
       <q-space />
-      <q-btn v-if="!isWorkflowRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
+      <q-btn v-if="!isWorkflowRunning && !isLocallyRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
         Start workflow
       </q-btn>
       <q-btn v-else class="q-ma-sm" color="info" icon="running">
@@ -185,7 +185,8 @@ export default defineComponent({
       workflowId: "", // Set initially to empty
       showDeleteDialog: false, // State for delete confirmation dialog
       showResetDialog: false,  // State for reset confirmation dialog
-      pollIntervalId: null as number | null // Interval ID for polling
+      pollIntervalId: null as number | null, // Interval ID for polling
+      isLocallyRunning: false // Local running state
     };
   },
   computed: {
@@ -196,6 +197,13 @@ export default defineComponent({
     isWorkflowRunning() {
       const workflowStore = useWorkflowStore();
       return workflowStore.workflowIsRunning;
+    }
+  },
+  watch: {
+    isWorkflowRunning(newVal) {
+      if (newVal !== this.isLocallyRunning) {
+        this.isLocallyRunning = newVal;
+      }
     }
   },
   async mounted() {
@@ -259,9 +267,8 @@ export default defineComponent({
       this.modalOpen = false;
     },
     async startWorkflow() {
+      this.isLocallyRunning = true;
       await startWorkflow(this.workflowId);
-      const workflowStore = useWorkflowStore();
-      this.isWorkflowRunning = true;
     },
     onEdgeUpdate(params: { edge: Edge }) {
       const workflowStore = useWorkflowStore();

@@ -11,6 +11,7 @@ from biobuddy.mixins import BaseModelMixin
 
 @pcdataclass.dataclass
 class SendMessageToBioBuddyRequest(BaseModelMixin):
+    experiment_id: str
     message_content: str
     # TODO: send only the last N tokens based on model's context window
     previous_messages: List[Dict[str, str]]
@@ -22,6 +23,13 @@ class SendMessageToBioBuddyRequest(BaseModelMixin):
 class SendMessageToBioBuddyResponse(BaseModelMixin):
     reply_type: str
     content: str
+
+    def to_dict(self):
+        return {
+            "reply_type": self.reply_type,
+            "content": self.content,
+        }
+
 
 @pcdataclass.dataclass
 class IsJobRunningResponse:
