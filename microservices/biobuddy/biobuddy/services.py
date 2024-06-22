@@ -101,6 +101,7 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
     async def chat_with_model():
         await chat_model.agenerate(
             messages=[[SystemMessage(content=system_message_content), HumanMessage(content=strategy_prompt)]],
+            stop=["<STOP>"],
             callbacks=[handler]
         )
 
@@ -115,5 +116,4 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
 
     # Handle the final response separately
     if not stop_tokens.get(request.experiment_id):
-        async for final_response in handler.aiter():
-            yield SendMessageToBioBuddyResponse(reply_type="final", content=final_response)
+        yield SendMessageToBioBuddyResponse(reply_type="final", content="<STOP>")

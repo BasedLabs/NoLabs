@@ -120,17 +120,19 @@ class CreateMessageFeature:
         if not chat:
             chat = Chat(experiment_id=experiment_id, messages=[])
 
-        chat.add_text_message(message_id, UserRoleEnum.user, request.message_content)
+        if request.role == 'user':
+            chat.add_text_message(message_id, UserRoleEnum.user, request.message_content)
+        else:
+            chat.add_text_message(message_id, UserRoleEnum.biobuddy, request.message_content)
+
         chat.save()
 
         return CreateMessageResponse(ApiMessage(id=message_id,
-                                                role='user',
+                                                role=request.role,
                                                 message=ApiRegularMessage(
                                                     content=request.message_content
                                                 ),
-                                                type='text')
-                                     )
-
+                                                type='text'))
 
 class SendQueryFeature:
     def __init__(self, biobuddy_microservice: biobuddy_microservice.DefaultApi, functions: List):

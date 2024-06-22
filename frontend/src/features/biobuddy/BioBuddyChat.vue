@@ -129,9 +129,17 @@ export default defineComponent({
             });
             this.awaitingResponse = true;
           }
-        } else if (message.reply_type === 'final') {
-          this.currentMessageBuffer = '';
+        } else if (message.reply_type === 'final' || message.content.includes('<STOP>')) {
           this.awaitingResponse = false;
+          this.saveMessage({
+            id: new Date().getTime().toString(), // Generate a temporary ID
+            role: 'assistant',
+            type: 'text',
+            message: {
+              content: this.currentMessageBuffer,
+            },
+          });
+          this.currentMessageBuffer = '';
         }
       };
       this.socket.onclose = () => {
@@ -170,6 +178,7 @@ export default defineComponent({
       };
 
       this.messages.push(userMessage);
+      await this.saveMessage(userMessage);
 
       const messagePayload = {
         experiment_id: this.experimentId,
@@ -190,6 +199,13 @@ export default defineComponent({
         experiment_id: this.experimentId,
       };
       this.socket?.send(JSON.stringify(stopPayload));
+    },
+    async saveMessage(message: any) {
+      await saveMessageApi(
+       this.experimentId,
+       message.message.content,
+       message.role,
+      );
     },
     isLastUserMessageWithoutResponse(index: number) {
       return index === this.messages.length - 1 && this.messages[index].role === 'user';

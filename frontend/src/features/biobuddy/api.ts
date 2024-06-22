@@ -15,8 +15,8 @@ export function loadConversationApi(experimentId: string): CancelablePromise<Loa
   return BiobuddyService.loadConversationApiV1BiobuddyLoadConversationGet(experimentId);
 }
 
-export function saveMessageApi(experimentId: string, message: string): CancelablePromise<CreateMessageResponse> {
-  return BiobuddyService.createMessageApiV1BiobuddyMessageCreatePost(experimentId, message);
+export function saveMessageApi(experimentId: string, message: string, role: string): CancelablePromise<CreateMessageResponse> {
+  return BiobuddyService.createMessageApiV1BiobuddyMessageCreatePost(experimentId, message, role);
 }
 
 export function editMessageApi(experimentId: string, messageId: string, message: string): CancelablePromise<EditMessageResponse> {

@@ -8,6 +8,7 @@ import type { ProteinContentResponse } from '../models/ProteinContentResponse';
 import type { ProteinMetadataResponse } from '../models/ProteinMetadataResponse';
 import type { ProteinSearchMetadataQuery } from '../models/ProteinSearchMetadataQuery';
 import type { ProteinSearchQuery } from '../models/ProteinSearchQuery';
+import type { UploadProteinResponse } from '../models/UploadProteinResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -93,12 +94,12 @@ export class ProteinsService {
     /**
      * Upload protein
      * @param formData
-     * @returns ProteinContentResponse Successful Response
+     * @returns UploadProteinResponse Successful Response
      * @throws ApiError
      */
     public static uploadProteinApiV1ProteinsPost(
         formData: Body_upload_protein_api_v1_proteins_post,
-    ): CancelablePromise<ProteinContentResponse> {
+    ): CancelablePromise<UploadProteinResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/proteins',

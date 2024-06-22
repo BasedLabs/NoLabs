@@ -95,6 +95,7 @@ class LoadConversationResponse:
 class CreateMessageRequest:
     experiment_id: UUID
     message_content: str
+    role: str
 
 
 @dataclass

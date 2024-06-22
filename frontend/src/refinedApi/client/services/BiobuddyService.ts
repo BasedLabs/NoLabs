@@ -46,12 +46,14 @@ export class BiobuddyService {
      * Create Message
      * @param experimentId
      * @param messageContent
+     * @param role
      * @returns CreateMessageResponse Successful Response
      * @throws ApiError
      */
     public static createMessageApiV1BiobuddyMessageCreatePost(
         experimentId: string,
         messageContent: string,
+        role: string,
     ): CancelablePromise<CreateMessageResponse> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -59,6 +61,7 @@ export class BiobuddyService {
             query: {
                 'experiment_id': experimentId,
                 'message_content': messageContent,
+                'role': role,
             },
             errors: {
                 422: `Validation Error`,

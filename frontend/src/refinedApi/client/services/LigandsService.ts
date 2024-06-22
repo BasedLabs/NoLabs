@@ -8,6 +8,7 @@ import type { LigandContentResponse } from '../models/LigandContentResponse';
 import type { LigandMetadataResponse } from '../models/LigandMetadataResponse';
 import type { LigandSearchContentQuery } from '../models/LigandSearchContentQuery';
 import type { LigandSearchMetadataQuery } from '../models/LigandSearchMetadataQuery';
+import type { UploadLigandResponse } from '../models/UploadLigandResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -73,12 +74,12 @@ export class LigandsService {
     /**
      * Upload ligand
      * @param formData
-     * @returns LigandContentResponse Successful Response
+     * @returns UploadLigandResponse Successful Response
      * @throws ApiError
      */
     public static uploadLigandApiV1ObjectsLigandsPost(
         formData: Body_upload_ligand_api_v1_objects_ligands_post,
-    ): CancelablePromise<LigandContentResponse> {
+    ): CancelablePromise<UploadLigandResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/objects/ligands',

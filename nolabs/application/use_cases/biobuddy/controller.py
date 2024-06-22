@@ -31,9 +31,10 @@ async def load_conversation(experiment_id: UUID,
 @router.post('/message/create')
 async def create_message(experiment_id: UUID,
                        message_content: str,
+                        role: str,
         feature: Annotated[
     CreateMessageFeature, Depends(BiobuddyDependencies.create_message)]) -> CreateMessageResponse:
-    return feature.handle(CreateMessageRequest(experiment_id, message_content))
+    return feature.handle(CreateMessageRequest(experiment_id, message_content, role))
 
 @router.post('/message/edit')
 async def edit_message(experiment_id: UUID,

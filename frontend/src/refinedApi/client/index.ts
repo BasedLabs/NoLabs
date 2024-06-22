@@ -88,6 +88,8 @@ export type { SmilesResponse } from './models/SmilesResponse';
 export type { TimelineResponse } from './models/TimelineResponse';
 export type { UpdateExperimentRequest } from './models/UpdateExperimentRequest';
 export type { UpdateJobRequest } from './models/UpdateJobRequest';
+export type { UploadLigandResponse } from './models/UploadLigandResponse';
+export type { UploadProteinResponse } from './models/UploadProteinResponse';
 export type { ValidationError } from './models/ValidationError';
 export type { WorkflowComponentModel } from './models/WorkflowComponentModel';
 export type { WorkflowSchemaModel_Input } from './models/WorkflowSchemaModel_Input';
