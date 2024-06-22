@@ -108,6 +108,15 @@ export default defineComponent({
             const lastMessageIndex = this.messages.length - 1;
             if (this.messages[lastMessageIndex].role === 'biobuddy' && this.messages[lastMessageIndex].type !== 'function') {
               this.messages[lastMessageIndex].message.content = this.currentMessageBuffer;
+            } else if (this.messages[lastMessageIndex].role === 'user' ){
+              this.messages.push({
+                id: new Date().getTime().toString(), // Generate a temporary ID
+                role: 'biobuddy',
+                type: 'text',
+                message: {
+                  content: this.currentMessageBuffer,
+                },
+              });
             } else {
               this.currentMessageBuffer = '';
               this.messages.push({

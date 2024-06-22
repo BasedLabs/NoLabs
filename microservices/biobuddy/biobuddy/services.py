@@ -133,8 +133,6 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
 
     # Handle the final response separately
     if not stop_tokens.get(request.experiment_id):
-        if response_buffer:
-            yield SendMessageToBioBuddyResponse(reply_type="stream", content=response_buffer)
         yield SendMessageToBioBuddyResponse(reply_type="final", content="<STOP>")
 
 async def invoke_action(action_text: str, tools: List[Dict[str, Any]]) -> str:
