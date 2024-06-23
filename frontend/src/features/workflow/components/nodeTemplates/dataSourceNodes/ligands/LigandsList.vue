@@ -8,7 +8,7 @@
       </q-btn>
     </q-item>
     <div :style="{ width: scrollContentWidth + 'px' }">
-      <q-scroll-area visible :thumbStyle="thumbStyle" :barStyle="barStyle" style="height: 60vh;">
+      <q-scroll-area v-if="filteredLigands.length > 0" visible :thumbStyle="thumbStyle" :barStyle="barStyle" style="height: 60vh;">
         <div ref="scrollContent" class="scroll-content">
           <q-item v-for="ligand in filteredLigands" :key="ligand.id" clickable v-ripple class="q-mb-sm"
             @click="showLigandDetailDialog(ligand)">
@@ -177,6 +177,7 @@ export default defineComponent({
         this.ligands = workflowStore.ligands;
       }
       this.uploadLigandDialog = false;
+      this.updateScrollContentWidth();
     },
     async deleteLigand(ligandToDelete: LigandContentResponse) {
       this.$q.loading.show({

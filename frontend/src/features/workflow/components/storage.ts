@@ -527,18 +527,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             const existingEdge = this.elements.edges.find(edge => edge.source === mapping.source_component_id && edge.target === component.component_id);
             if (existingEdge && existingEdge.data) {
               existingEdge.data.text = mapping.error;
-            } else {
-              // Create new edge if it doesn't exist
-              updatedEdges.push({
-                id: `e${mapping.source_component_id}-to-${component.component_id}`,
-                source: mapping.source_component_id,
-                target: component.component_id,
-                sourceHandle: `${mapping.source_component_id}-output-${mapping.source_path[0]}`,
-                targetHandle: `${component.component_id}-input-${mapping.target_path[0]}`,
-                type: mapping.error !== null ? "custom" : "default",
-                data: {text: mapping.error}
-              });
-            }
+            } 
           });
         });
 

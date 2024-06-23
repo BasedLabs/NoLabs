@@ -6,8 +6,7 @@
       <q-item v-for="(message, index) in messages" :key="index">
         <q-item-section>
           <div v-if="message.type === 'function'" class="function-message">
-            <q-item-label class="text-h7 q-mb-sm">
-              <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
+            <q-item-label class="text-h7 q-mb-sm q-ml-xl">
               <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
                 <p>
                   <q-icon name="check_circle" color="purple"></q-icon>
@@ -103,7 +102,9 @@ export default defineComponent({
       this.socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
         if (message.reply_type === 'stream') {
+          this.currentMessageBuffer = this.currentMessageBuffer.replace(/<ACTION>/g, '');
           this.currentMessageBuffer += message.content;
+          this.currentMessageBuffer = this.currentMessageBuffer.replace(/<END_ACTION/g, '');
           if (this.awaitingResponse) {
             const lastMessageIndex = this.messages.length - 1;
             if (this.messages[lastMessageIndex].role === 'biobuddy' && this.messages[lastMessageIndex].type !== 'function') {
