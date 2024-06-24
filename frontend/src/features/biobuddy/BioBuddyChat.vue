@@ -68,9 +68,11 @@
 import { Notify } from 'quasar';
 import { defineComponent } from 'vue';
 import MarkdownIt from 'markdown-it';
+import { v4 as uuidv4 } from 'uuid';
 import { useBioBuddyStore } from './storage';
-import { FunctionCall, type FunctionParam, Message, GetAvailableFunctionCallsResponse } from 'src/refinedApi/client';
-import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi, getToolsApi } from 'src/features/biobuddy/api';
+import { type FunctionParam, Message, GetAvailableFunctionCallsResponse } from 'src/refinedApi/client';
+import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi, getToolsApi, saveFunctionCallApi } from 'src/features/biobuddy/api';
+import { MeasurementFlags } from 'ngl/dist/declarations/component/structure-component';
 
 export interface FunctionMapping {
   name: string;
@@ -88,7 +90,7 @@ export default defineComponent({
   data() {
     return {
       drawer: true,
-      messages: [] as { id: string, role: string, messages: { type: string, content: any }[], awaitingActions?: boolean }[],
+      messages: [] as { id: string, role: string, messages: { id: string, type: string, content: any }[], awaitingActions?: boolean }[],
       newMessage: '',
       sending: false,
       functionMappings: [] as FunctionMapping[],
@@ -133,15 +135,17 @@ export default defineComponent({
               this.messages[lastMessageIndex].messages[this.messages[lastMessageIndex].messages.length - 1].content = this.currentMessageBuffer;
             } else if (this.messages[lastMessageIndex].role === 'biobuddy') {
               this.messages[lastMessageIndex].messages.push({
+                id: uuidv4(),
                 type: 'text',
                 content: this.currentMessageBuffer,
               });
             } else if (this.messages[lastMessageIndex].role === 'user') {
               const newBioBuddyMessage = {
-                id: new Date().getTime().toString(), // Generate a temporary ID
+                id: uuidv4(), // Generate a temporary ID
                 role: 'biobuddy',
                 messages: [
                   {
+                    id: uuidv4(),
                     type: 'text',
                     content: this.currentMessageBuffer,
                   },
@@ -150,14 +154,17 @@ export default defineComponent({
               this.messages.push(newBioBuddyMessage);
             }
           } else {
-            this.messages.push({
-              id: new Date().getTime().toString(),
-              role: 'biobuddy',
-              messages: [{
+            const newMessage = {
+                id: uuidv4(),
                 type: 'text',
                 content: this.currentMessageBuffer,
-              }]
+              }
+            this.messages.push({
+              id: uuidv4(),
+              role: 'biobuddy',
+              messages: [newMessage]
             });
+            this.saveMessage(newMessage);
             this.awaitingResponse = true;
           }
         } else if (message.reply_type === 'final' || message.content.includes('<STOP>')) {
@@ -172,18 +179,16 @@ export default defineComponent({
             });
           }
           const lastMessageIndex = this.messages.length - 1;
+          this.saveMessage({
+            id: uuidv4(),
+            type: 'text',
+            role: 'biobuddy',
+            content: this.currentMessageBuffer,
+          });
           if (this.messages[lastMessageIndex].role === 'biobuddy') {
             this.messages[lastMessageIndex].awaitingActions = true;
             await this.processPendingActions(this.messages[lastMessageIndex]);
           }
-          this.saveMessage({
-            id: new Date().getTime().toString(), // Generate a temporary ID
-            role: 'assistant',
-            messages: [{
-              type: 'text',
-              content: this.currentMessageBuffer,
-            }],
-          });
           this.currentMessageBuffer = '';
         }
       };
@@ -198,12 +203,17 @@ export default defineComponent({
       for (const action of this.pendingActions) {
         this.currentAction = action;
         const response = await sendQueryApi(
+          this.experimentId,
           action
         );
-        messageGroup.messages.push({
+        const biobuddyMessage = {
+          id: uuidv4(),
           type: 'function',
+          role: 'biobuddy',
           content: response.biobuddy_response.message,
-        });
+        }
+        messageGroup.messages.push(biobuddyMessage);
+        this.saveMessage(biobuddyMessage)
       }
       messageGroup.awaitingActions = false;
       this.pendingActions = [];
@@ -214,11 +224,11 @@ export default defineComponent({
       const response = await loadConversationApi(this.experimentId);
       const fetchedMessages = response.messages;
 
-      const groupedMessages = [] as { id: string, role: string, messages: { type: string, content: any }[], awaitingActions?: boolean }[];
-      let currentGroup = null as { id: string, role: string, messages: { type: string, content: any }[], awaitingActions?: boolean } | null;
+      const groupedMessages = [] as { id: string, role: string, messages: { id: string, type: string, content: any }[], awaitingActions?: boolean }[];
+      let currentGroup = null as { id: string, role: string, messages: { id: string, type: string, content: any }[], awaitingActions?: boolean } | null;
 
       fetchedMessages.forEach((msg, index) => {
-        if (msg.role === 'biobuddy') {
+        if (msg.role === 'biobuddy' && msg.type === 'text') {
           if (!currentGroup) {
             currentGroup = {
               id: msg.id,
@@ -227,11 +237,27 @@ export default defineComponent({
             };
           }
           currentGroup?.messages.push({
+            id: msg.message.id,
             type: msg.type,
             content: msg.message.content,
           });
-
           // If it's the last message, push the current group
+          if (index === fetchedMessages.length - 1) {
+            groupedMessages.push(currentGroup);
+          }
+        } else if (msg.role === 'biobuddy' && msg.type === 'function') {
+          if (!currentGroup) {
+            currentGroup = {
+              id: msg.id,
+              role: 'biobuddy',
+              messages: []
+            };
+          }
+          currentGroup?.messages.push({
+            id: msg.id,
+            type: msg.type,
+            content: msg.message,
+          });
           if (index === fetchedMessages.length - 1) {
             groupedMessages.push(currentGroup);
           }
@@ -245,6 +271,7 @@ export default defineComponent({
             id: msg.id,
             role: msg.role,
             messages: [{
+              id: msg.message.id,
               type: msg.type,
               content: msg.message.content,
             }]
@@ -269,18 +296,22 @@ export default defineComponent({
       if (!this.experimentId || !this.newMessage.trim()) return;
 
       const userMessage = {
-        id: new Date().getTime().toString(), // Generate a temporary ID
+        id: uuidv4(), // Generate a temporary ID
         role: 'user',
         messages: [
           {
+            id: uuidv4(),
             type: 'text',
+            role: 'user',
             content: this.newMessage,
           },
         ],
       };
 
       this.messages.push(userMessage);
-      await this.saveMessage(userMessage);
+      for (const msg of userMessage.messages) {
+        await this.saveMessage(msg);
+      }
 
       const messagePayload = {
         experiment_id: this.experimentId,
@@ -307,23 +338,24 @@ export default defineComponent({
       };
       this.socket?.send(JSON.stringify(stopPayload));
     },
-    async saveMessage(message: any) {
-      for (const msg of message.messages) {
-        if (msg.type === 'text') {
-          await saveMessageApi(
-            this.experimentId,
-            msg.content,
-            message.role,
-          );
-        } else if (msg.type === 'function') {
-          // Assuming function call messages also need to be saved, adjust as necessary
-          await saveMessageApi(
-            this.experimentId,
-            JSON.stringify(msg.content),
-            message.role,
-          );
-        }
+    async saveMessage(msg: any) {
+      if (msg.type === 'text') {
+        await saveMessageApi(
+          this.experimentId,
+          msg.id,
+          msg.content,
+          msg.role,
+        );
+      } else if (msg.type === 'function') {
+        // Assuming function call messages also need to be saved, adjust as necessary
+        await saveFunctionCallApi(
+          this.experimentId,
+          msg.id,
+          msg.content[0],
+          msg.role
+        );
       }
+
     },
     isLastUserMessageWithoutResponse(index: number) {
       return index === this.messages.length - 1 && this.messages[index].role === 'user';
@@ -346,12 +378,27 @@ export default defineComponent({
         message_content: this.editMessage,
       };
 
-      this.socket?.send(JSON.stringify(editMessage));
       this.messages[index].messages = [{
+        id: messageId,
         type: 'text',
         content: this.editMessage,
       }];
-      this.messages = this.messages.slice(0, index + 1); // Remove messages after the edited one
+      this.messages = this.messages.slice(0, index + 1);
+
+      const messagePayload = {
+        experiment_id: this.experimentId,
+        message_content: this.editMessage,
+        previous_messages: this.messages.flatMap(msg =>
+          msg.messages.map(m => ({
+            role: msg.role,
+            content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
+          }))
+        ),
+        tools: this.tools?.function_calls,
+        job_id: null, // Optional job ID
+      };
+
+      this.socket?.send(JSON.stringify(messagePayload)); // Remove messages after the edited one
       this.editIndex = -1;
       this.editMessage = '';
     },

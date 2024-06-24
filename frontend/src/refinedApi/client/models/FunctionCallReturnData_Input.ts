@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { ChemBLData } from './ChemBLData';
 import type { RcsbPdbData } from './RcsbPdbData';
-export type FunctionCallReturnData = {
+export type FunctionCallReturnData_Input = {
     files: Array<(RcsbPdbData | ChemBLData)>;
 };
 

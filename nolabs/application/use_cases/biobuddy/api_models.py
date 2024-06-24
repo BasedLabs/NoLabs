@@ -94,8 +94,21 @@ class LoadConversationResponse:
 @dataclass
 class CreateMessageRequest:
     experiment_id: UUID
+    message_id: UUID
     message_content: str
     role: str
+
+
+@dataclass
+class CreateFunctionCallMessageRequest:
+    experiment_id: UUID
+    message_id: UUID
+    function_call: FunctionCall
+    role: str
+
+@dataclass
+class CreateFunctionCallMessageResponse:
+    saved_message: Message
 
 
 @dataclass
@@ -105,6 +118,7 @@ class CreateMessageResponse:
 
 @dataclass
 class SendQueryRequest:
+    experiment_id: UUID
     query: str
 
 

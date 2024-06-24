@@ -6,6 +6,7 @@ import {
   CheckBioBuddyEnabledResponse,
   SendQueryResponse, EditMessageResponse,
   GetAvailableFunctionCallsResponse,
+  FunctionCall_Input,
 } from 'src/refinedApi/client';
 
 export function checkBioBuddyEnabled(): CancelablePromise<CheckBioBuddyEnabledResponse> {
@@ -16,16 +17,20 @@ export function loadConversationApi(experimentId: string): CancelablePromise<Loa
   return BiobuddyService.loadConversationApiV1BiobuddyLoadConversationGet(experimentId);
 }
 
-export function saveMessageApi(experimentId: string, message: string, role: string): CancelablePromise<CreateMessageResponse> {
-  return BiobuddyService.createMessageApiV1BiobuddyMessageCreatePost(experimentId, message, role);
+export function saveMessageApi(experimentId: string, messageId: string, message: string, role: string): CancelablePromise<CreateMessageResponse> {
+  return BiobuddyService.createMessageApiV1BiobuddyMessageCreatePost(experimentId, messageId, message, role);
+}
+
+export function saveFunctionCallApi(experimentId: string, messageId: string, message: FunctionCall_Input, role: string): CancelablePromise<any> {
+  return BiobuddyService.createFunctionCallMessageApiV1BiobuddyFunctionCreatePost(experimentId, messageId, role, message)
 }
 
 export function editMessageApi(experimentId: string, messageId: string, message: string): CancelablePromise<EditMessageResponse> {
   return BiobuddyService.editMessageApiV1BiobuddyMessageEditPost(experimentId, messageId, message);
 }
 
-export function sendQueryApi(query: string): CancelablePromise<SendQueryResponse> {
-  return BiobuddyService.sendQueryApiV1BiobuddyQueryPost(query);
+export function sendQueryApi(experiment_id: string, query: string): CancelablePromise<SendQueryResponse> {
+  return BiobuddyService.sendQueryApiV1BiobuddyQueryPost(experiment_id, query);
 }
 
 export function getToolsApi(): CancelablePromise<GetAvailableFunctionCallsResponse> {

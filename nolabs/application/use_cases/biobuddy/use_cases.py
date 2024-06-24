@@ -17,12 +17,13 @@ import biobuddy_microservice
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.biobuddy.api_models import CheckBioBuddyEnabledResponse, EditMessageRequest, \
     EditMessageResponse, LoadConversationRequest, LoadConversationResponse, CreateMessageRequest, CreateMessageResponse, \
-    SendQueryRequest, SendQueryResponse, GetAvailableFunctionCallsResponse
+    SendQueryRequest, SendQueryResponse, GetAvailableFunctionCallsResponse, CreateFunctionCallMessageRequest, \
+    CreateFunctionCallMessageResponse
 from nolabs.application.use_cases.biobuddy.api_models import Message as ApiMessage
 from nolabs.application.use_cases.biobuddy.api_models import RegularMessage as ApiRegularMessage
 from nolabs.application.use_cases.biobuddy.api_models import FunctionCall as ApiFunctionCall
 from nolabs.application.use_cases.biobuddy.api_models import FunctionParam as ApiFunctionParam
-from nolabs.domain.models.biobuddy import Chat, TextMessage, UserRoleEnum, \
+from nolabs.domain.models.biobuddy import Chat, TextMessage, FunctionCall, FunctionParam, UserRoleEnum, \
     FunctionCallMessage
 
 
@@ -133,6 +134,44 @@ class CreateMessageFeature:
                                                 ),
                                                 type='text'))
 
+class CreateFunctionCallMessageFeature:
+    def __init__(self):
+        pass
+
+    def handle(self, request: CreateFunctionCallMessageRequest) -> CreateFunctionCallMessageResponse:
+        assert request
+
+        experiment_id = request.experiment_id
+
+        regular_function_calls = []
+        api_function_calls = []
+
+        function_call = request.function_call
+
+        regular_function_calls.append(FunctionCall(
+            function_name=function_call.function_name,
+            arguments=[FunctionParam(name=param.name,
+                                     value=str(param.value)) for param in
+                       function_call.arguments]))
+
+        api_function_calls.append(ApiFunctionCall(function_name=function_call.function_name,
+                                                  arguments=[ApiFunctionParam(name=param.name,
+                                                                              value=param.value) for param in
+                                                             function_call.arguments],
+                                                  data=function_call.data))
+
+        chat = Chat.objects(experiment_id=experiment_id).first()
+        if not chat:
+            chat = Chat(experiment_id=experiment_id, messages=[])
+
+        chat.add_function_call_message(request.message_id, UserRoleEnum.biobuddy, regular_function_calls)
+        chat.save()
+
+        return CreateFunctionCallMessageResponse(saved_message=ApiMessage(id=request.message_id,
+                                                              role='assistant',
+                                                              message=api_function_calls,
+                                                              type='function'))
+
 class GetAvailableFunctionCallsFeature:
     def __init__(self, functions: List):
         self._functions = {function.name: function for function in functions}
@@ -189,6 +228,8 @@ class SendActionQueryFeature:
     def handle(self, request: SendQueryRequest) -> SendQueryResponse:
         assert request
 
+        experiment_id = request.experiment_id
+
         request = biobuddy_microservice.SendActionCallRequest(action_text=request.query,
                                                               tools=self._tools)
 
@@ -196,20 +237,21 @@ class SendActionQueryFeature:
         assistant_message = self._biobuddy_microservice.invoke_function_invoke_function_post(request)
 
         if assistant_message.reply_type == "function":
-            return self._process_ai_function_calls(assistant_message)
+            return self._process_ai_function_calls(experiment_id, assistant_message)
         else:
             raise NoLabsException(ErrorCodes.biobuddy_error_generating_response)
         # except Exception as e:
         #    raise NoLabsException(ErrorCodes.biobuddy_error_generating_response)
 
 
-    def _process_ai_function_calls(self, assistant_message) -> SendQueryResponse:
+    def _process_ai_function_calls(self, experiment_id: uuid.UUID, assistant_message) -> SendQueryResponse:
 
         print("Assistant message: ", assistant_message)
         function_dict = ast.literal_eval(assistant_message.content)['function_call']
         function_name = function_dict['name']
         arguments = json.loads(function_dict['arguments'])
         api_function_calls = []
+        regular_function_calls = []
         if function_name in self._functions:
             function_call = self._functions[function_name].execute(arguments=arguments)
 

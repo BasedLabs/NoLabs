@@ -16,7 +16,7 @@ from nolabs.application.use_cases.biobuddy.functions.query_rcsb_pdb_by_id import
 from nolabs.application.use_cases.biobuddy.functions.query_rcsb_pdb_by_names import QueryRcsbPdbByNamesFunction
 from nolabs.application.use_cases.biobuddy.use_cases import CheckBioBuddyEnabledFeature, \
     LoadConversationFeature, CreateMessageFeature, EditMessageFeature, SendActionQueryFeature, \
-    GetAvailableFunctionCallsFeature
+    GetAvailableFunctionCallsFeature, CreateFunctionCallMessageFeature
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 
@@ -33,6 +33,10 @@ class BiobuddyDependencies:
     @staticmethod
     def create_message() -> CreateMessageFeature:
         return CreateMessageFeature()
+
+    @staticmethod
+    def create_function_call_message() -> CreateFunctionCallMessageFeature:
+        return CreateFunctionCallMessageFeature()
 
     @staticmethod
     def edit_message() -> EditMessageFeature:

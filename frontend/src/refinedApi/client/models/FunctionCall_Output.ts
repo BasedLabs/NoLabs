@@ -2,11 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { FunctionCallReturnData } from './FunctionCallReturnData';
+import type { FunctionCallReturnData_Output } from './FunctionCallReturnData_Output';
 import type { FunctionParam } from './FunctionParam';
-export type FunctionCall = {
+export type FunctionCall_Output = {
     function_name: string;
     arguments: Array<FunctionParam>;
-    data?: FunctionCallReturnData;
+    data?: FunctionCallReturnData_Output;
 };
 

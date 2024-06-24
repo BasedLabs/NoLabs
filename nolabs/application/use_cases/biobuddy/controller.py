@@ -5,11 +5,12 @@ from fastapi import APIRouter, Depends
 
 from nolabs.application.use_cases.biobuddy.api_models import CheckBioBuddyEnabledResponse, \
     LoadConversationRequest, LoadConversationResponse, CreateMessageResponse, CreateMessageRequest, EditMessageResponse, \
-    EditMessageRequest, SendQueryResponse, SendQueryRequest, GetAvailableFunctionCallsResponse
+    EditMessageRequest, SendQueryResponse, SendQueryRequest, GetAvailableFunctionCallsResponse, \
+    CreateFunctionCallMessageResponse, FunctionCall, CreateFunctionCallMessageRequest
 from nolabs.application.use_cases.biobuddy.di import BiobuddyDependencies
 from nolabs.application.use_cases.biobuddy.use_cases import CheckBioBuddyEnabledFeature, \
     LoadConversationFeature, CreateMessageFeature, EditMessageFeature, SendActionQueryFeature, \
-    GetAvailableFunctionCallsFeature
+    GetAvailableFunctionCallsFeature, CreateFunctionCallMessageFeature
 
 router = APIRouter(
     prefix='/api/v1/biobuddy',
@@ -31,11 +32,22 @@ async def load_conversation(experiment_id: UUID,
 
 @router.post('/message/create')
 async def create_message(experiment_id: UUID,
+                         message_id: UUID,
                        message_content: str,
-                        role: str,
+                       role: str,
         feature: Annotated[
     CreateMessageFeature, Depends(BiobuddyDependencies.create_message)]) -> CreateMessageResponse:
-    return feature.handle(CreateMessageRequest(experiment_id, message_content, role))
+    return feature.handle(CreateMessageRequest(experiment_id, message_id, message_content, role))
+
+@router.post('/function/create')
+async def create_function_call_message(experiment_id: UUID,
+                        message_id: UUID,
+                       function_call: FunctionCall,
+                       role: str,
+        feature: Annotated[
+    CreateFunctionCallMessageFeature, Depends(BiobuddyDependencies.create_function_call_message)]) -> CreateFunctionCallMessageResponse:
+    return feature.handle(CreateFunctionCallMessageRequest(experiment_id, message_id, function_call, role))
+
 
 @router.post('/message/edit')
 async def edit_message(experiment_id: UUID,
@@ -46,10 +58,11 @@ async def edit_message(experiment_id: UUID,
     return feature.handle(EditMessageRequest(experiment_id, message_id, message_content))
 
 @router.post('/query')
-async def send_query(action_text: str,
+async def send_query(experiment_id: UUID,
+        action_text: str,
         feature: Annotated[
     SendActionQueryFeature, Depends(BiobuddyDependencies.send_query)]) -> SendQueryResponse:
-    return feature.handle(SendQueryRequest(action_text))
+    return feature.handle(SendQueryRequest(experiment_id, action_text))
 
 @router.get('/tools')
 async def get_tools(feature: Annotated[

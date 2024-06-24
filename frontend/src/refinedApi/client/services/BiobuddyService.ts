@@ -3,8 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CheckBioBuddyEnabledResponse } from '../models/CheckBioBuddyEnabledResponse';
+import type { CreateFunctionCallMessageResponse } from '../models/CreateFunctionCallMessageResponse';
 import type { CreateMessageResponse } from '../models/CreateMessageResponse';
 import type { EditMessageResponse } from '../models/EditMessageResponse';
+import type { FunctionCall_Input } from '../models/FunctionCall_Input';
 import type { GetAvailableFunctionCallsResponse } from '../models/GetAvailableFunctionCallsResponse';
 import type { LoadConversationResponse } from '../models/LoadConversationResponse';
 import type { SendQueryResponse } from '../models/SendQueryResponse';
@@ -46,6 +48,7 @@ export class BiobuddyService {
     /**
      * Create Message
      * @param experimentId
+     * @param messageId
      * @param messageContent
      * @param role
      * @returns CreateMessageResponse Successful Response
@@ -53,6 +56,7 @@ export class BiobuddyService {
      */
     public static createMessageApiV1BiobuddyMessageCreatePost(
         experimentId: string,
+        messageId: string,
         messageContent: string,
         role: string,
     ): CancelablePromise<CreateMessageResponse> {
@@ -61,9 +65,40 @@ export class BiobuddyService {
             url: '/api/v1/biobuddy/message/create',
             query: {
                 'experiment_id': experimentId,
+                'message_id': messageId,
                 'message_content': messageContent,
                 'role': role,
             },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Create Function Call Message
+     * @param experimentId
+     * @param messageId
+     * @param role
+     * @param requestBody
+     * @returns CreateFunctionCallMessageResponse Successful Response
+     * @throws ApiError
+     */
+    public static createFunctionCallMessageApiV1BiobuddyFunctionCreatePost(
+        experimentId: string,
+        messageId: string,
+        role: string,
+        requestBody: FunctionCall_Input,
+    ): CancelablePromise<CreateFunctionCallMessageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/biobuddy/function/create',
+            query: {
+                'experiment_id': experimentId,
+                'message_id': messageId,
+                'role': role,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: `Validation Error`,
             },
@@ -97,17 +132,20 @@ export class BiobuddyService {
     }
     /**
      * Send Query
+     * @param experimentId
      * @param actionText
      * @returns SendQueryResponse Successful Response
      * @throws ApiError
      */
     public static sendQueryApiV1BiobuddyQueryPost(
+        experimentId: string,
         actionText: string,
     ): CancelablePromise<SendQueryResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/biobuddy/query',
             query: {
+                'experiment_id': experimentId,
                 'action_text': actionText,
             },
             errors: {
