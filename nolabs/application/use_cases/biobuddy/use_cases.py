@@ -114,7 +114,7 @@ class CreateMessageFeature:
 
         experiment_id = request.experiment_id
 
-        message_id = uuid.uuid4()
+        message_id = request.message_id
 
         chat = Chat.objects(experiment_id=experiment_id).first()
         if not chat:

@@ -237,7 +237,7 @@ export default defineComponent({
             };
           }
           currentGroup?.messages.push({
-            id: msg.message.id,
+            id: msg.id,
             type: msg.type,
             content: msg.message.content,
           });
@@ -271,7 +271,7 @@ export default defineComponent({
             id: msg.id,
             role: msg.role,
             messages: [{
-              id: msg.message.id,
+              id: msg.id,
               type: msg.type,
               content: msg.message.content,
             }]
@@ -371,9 +371,9 @@ export default defineComponent({
     },
     async saveEdit(index: number) {
       if (!this.experimentId || !this.editMessage.trim()) return;
-      const messageId = this.messages[index].id; // Assuming each message has a unique ID
+      const messageId = this.messages[index].messages[0].id; // Assuming each message has a unique ID
 
-      const editMessage = {
+      const editedMessage = {
         experiment_id: this.experimentId,
         message_id: messageId,
         message_content: this.editMessage,
@@ -384,6 +384,9 @@ export default defineComponent({
         type: 'text',
         content: this.editMessage,
       }];
+
+      await editMessageApi(this.experimentId, messageId, editedMessage.message_content);
+
       this.messages = this.messages.slice(0, index + 1);
 
       const messagePayload = {
