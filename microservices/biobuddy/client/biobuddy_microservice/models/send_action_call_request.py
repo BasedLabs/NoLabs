@@ -23,16 +23,14 @@ from biobuddy_microservice.models.job_id import JobId
 from typing import Optional, Set
 from typing_extensions import Self
 
-class SendMessageToBioBuddyRequest(BaseModel):
+class SendActionCallRequest(BaseModel):
     """
-    SendMessageToBioBuddyRequest
+    SendActionCallRequest
     """ # noqa: E501
-    experiment_id: StrictStr
-    message_content: StrictStr
-    previous_messages: List[Dict[str, StrictStr]]
+    action_text: StrictStr
     tools: List[Dict[str, Any]]
     job_id: Optional[JobId] = None
-    __properties: ClassVar[List[str]] = ["experiment_id", "message_content", "previous_messages", "tools", "job_id"]
+    __properties: ClassVar[List[str]] = ["action_text", "tools", "job_id"]
 
     model_config = {
         "populate_by_name": True,
@@ -52,7 +50,7 @@ class SendMessageToBioBuddyRequest(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of SendMessageToBioBuddyRequest from a JSON string"""
+        """Create an instance of SendActionCallRequest from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -80,7 +78,7 @@ class SendMessageToBioBuddyRequest(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of SendMessageToBioBuddyRequest from a dict"""
+        """Create an instance of SendActionCallRequest from a dict"""
         if obj is None:
             return None
 
@@ -88,9 +86,7 @@ class SendMessageToBioBuddyRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "experiment_id": obj.get("experiment_id"),
-            "message_content": obj.get("message_content"),
-            "previous_messages": obj.get("previous_messages"),
+            "action_text": obj.get("action_text"),
             "tools": obj.get("tools"),
             "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
         })

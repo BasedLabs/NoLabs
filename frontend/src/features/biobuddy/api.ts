@@ -24,9 +24,8 @@ export function editMessageApi(experimentId: string, messageId: string, message:
   return BiobuddyService.editMessageApiV1BiobuddyMessageEditPost(experimentId, messageId, message);
 }
 
-
-export function sendQueryApi(experimentId: string, query: string): CancelablePromise<SendQueryResponse> {
-  return BiobuddyService.sendQueryApiV1BiobuddyQueryPost(experimentId, query);
+export function sendQueryApi(query: string): CancelablePromise<SendQueryResponse> {
+  return BiobuddyService.sendQueryApiV1BiobuddyQueryPost(query);
 }
 
 export function getToolsApi(): CancelablePromise<GetAvailableFunctionCallsResponse> {

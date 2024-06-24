@@ -38,10 +38,10 @@ dependency-injector = "^4.41.0"
 leaf-basedlabs = "^0.0.9"
 rosettafold-microservice = {path = "microservices/rosettafold/client"}
 reinvent-microservice = {path = "microservices/reinvent/client"}
-biobuddy-microservice = {path = "microservices/biobuddy/client"}
 mongoengine = "^0.28.2"
 pydantic-settings = "^2.2.1"
 biopython = "^1.83"
+biobuddy-microservice = {path = "microservices/biobuddy/client"}
 
 [project]
 dependencies = [

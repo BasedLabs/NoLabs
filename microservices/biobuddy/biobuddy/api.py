@@ -1,8 +1,9 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from biobuddy.connection_manager import ConnectionManager
-from biobuddy.services import send_message, send_message_async
-from biobuddy.api_models import SendMessageToBioBuddyRequest, SendMessageToBioBuddyResponse, IsJobRunningResponse
-from typing import Dict
+from biobuddy.services import send_message, send_message_async, invoke_action
+from biobuddy.api_models import SendMessageToBioBuddyRequest, SendMessageToBioBuddyResponse, IsJobRunningResponse, \
+    SendActionCallRequest
+from typing import Dict, List, Any
 import json
 
 app = FastAPI(
@@ -29,6 +30,14 @@ def is_job_running(job_id: str) -> IsJobRunningResponse:
 @app.get("/jobs/running")
 def get_running_jobs():
     return {"running_jobs": job_state_manager.get_running_jobs()}
+
+
+@app.post("/invoke-function")
+async def invoke_function(
+        request: SendActionCallRequest) -> SendMessageToBioBuddyResponse:
+    action_text = request.action_text
+    tools = request.tools
+    return await invoke_action(action_text, tools)
 
 
 @app.websocket("/ws")

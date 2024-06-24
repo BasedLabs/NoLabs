@@ -8,7 +8,7 @@ from nolabs.application.use_cases.biobuddy.api_models import CheckBioBuddyEnable
     EditMessageRequest, SendQueryResponse, SendQueryRequest, GetAvailableFunctionCallsResponse
 from nolabs.application.use_cases.biobuddy.di import BiobuddyDependencies
 from nolabs.application.use_cases.biobuddy.use_cases import CheckBioBuddyEnabledFeature, \
-    LoadConversationFeature, CreateMessageFeature, EditMessageFeature, SendQueryFeature, \
+    LoadConversationFeature, CreateMessageFeature, EditMessageFeature, SendActionQueryFeature, \
     GetAvailableFunctionCallsFeature
 
 router = APIRouter(
@@ -46,11 +46,10 @@ async def edit_message(experiment_id: UUID,
     return feature.handle(EditMessageRequest(experiment_id, message_id, message_content))
 
 @router.post('/query')
-async def send_query(experiment_id: UUID,
-                       message_content: str,
+async def send_query(action_text: str,
         feature: Annotated[
-    SendQueryFeature, Depends(BiobuddyDependencies.send_query)]) -> SendQueryResponse:
-    return feature.handle(SendQueryRequest(experiment_id, message_content))
+    SendActionQueryFeature, Depends(BiobuddyDependencies.send_query)]) -> SendQueryResponse:
+    return feature.handle(SendQueryRequest(action_text))
 
 @router.get('/tools')
 async def get_tools(feature: Annotated[

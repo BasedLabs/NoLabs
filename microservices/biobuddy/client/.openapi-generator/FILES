@@ -14,6 +14,7 @@ biobuddy_microservice/models/__init__.py
 biobuddy_microservice/models/http_validation_error.py
 biobuddy_microservice/models/is_job_running_response.py
 biobuddy_microservice/models/job_id.py
+biobuddy_microservice/models/send_action_call_request.py
 biobuddy_microservice/models/send_message_to_bio_buddy_request.py
 biobuddy_microservice/models/send_message_to_bio_buddy_response.py
 biobuddy_microservice/models/validation_error.py
@@ -24,6 +25,7 @@ docs/DefaultApi.md
 docs/HTTPValidationError.md
 docs/IsJobRunningResponse.md
 docs/JobId.md
+docs/SendActionCallRequest.md
 docs/SendMessageToBioBuddyRequest.md
 docs/SendMessageToBioBuddyResponse.md
 docs/ValidationError.md
@@ -35,4 +37,5 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
+test/test_send_action_call_request.py
 tox.ini

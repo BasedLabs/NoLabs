@@ -3,39 +3,44 @@
     <q-list>
       <q-item-label class="text-bold text-white" header>BioBuddy Chat</q-item-label>
       <q-separator />
-      <q-item v-for="(message, index) in messages" :key="index">
+      <q-item v-for="(messageGroup, index) in messages" :key="index">
         <q-item-section>
-          <div v-if="message.type === 'function'" class="function-message">
-            <q-item-label class="text-h7 q-mb-sm q-ml-xl">
-              <div v-for="(functionCall, fcIndex) in message.message" :key="`function-${fcIndex}`">
-                <p>
-                  <q-icon name="check_circle" color="purple"></q-icon>
-                  <span class="text-h7 text-purple q-ml-sm">{{ functionCall.function_name }}</span>
-                </p>
-                <ul>
-                  Params:
-                  <li v-for="(param, pIndex) in functionCall.arguments" :key="`param-${fcIndex}-${pIndex}`">
-                    {{ param.name }}: {{ param.value }}
-                  </li>
-                </ul>
-              </div>
-            </q-item-label>
+          <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(messageGroup.role) }}</div>
+          <div v-for="(message, msgIndex) in messageGroup.messages" :key="msgIndex">
+            <div v-if="message.type === 'function'" class="function-message">
+              <q-item-label class="text-h7 q-mb-sm">
+                <div v-for="(functionCall, fcIndex) in message.content" :key="`function-${fcIndex}`">
+                  <p>
+                    <q-icon name="check_circle" color="purple"></q-icon>
+                    <span class="text-h7 text-purple q-ml-sm">{{ functionCall.function_name }}</span>
+                  </p>
+                  <ul>
+                    Params:
+                    <li v-for="(param, pIndex) in functionCall.arguments" :key="`param-${fcIndex}-${pIndex}`">
+                      {{ param.name }}: {{ param.value }}
+                    </li>
+                  </ul>
+                </div>
+              </q-item-label>
+            </div>
+            <div v-else>
+              <q-item-label class="text-h7 q-mb-sm">
+                <div v-if="editIndex !== index">
+                  <div class="markdown-content" v-html="renderMarkdown(message.content)"></div>
+                  <q-btn flat v-if="messageGroup.role === 'user'" size="sm" icon="edit"
+                    @click="startEditing(index)"></q-btn>
+                  <q-btn flat v-if="isLastUserMessageWithoutResponse(index) && !sending" label="Regenerate"
+                    icon-right="autorenew" @click="sendMessage"></q-btn>
+                </div>
+                <div v-else>
+                  <q-input v-model="editMessage" dense filled></q-input>
+                  <q-btn flat label="Save and Submit" @click="saveEdit(index)"></q-btn>
+                  <q-btn flat label="Cancel" @click="cancelEdit"></q-btn>
+                </div>
+              </q-item-label>
+            </div>
           </div>
-          <div v-else>
-            <q-item-label class="text-h7 q-mb-sm">
-              <div v-if="editIndex !== index">
-                <div class="q-pb-sm q-pt-sm text-bold">{{ displayName(message.role) }}</div>
-                <div class="markdown-content" v-html="renderMarkdown(message.message.content)"></div>
-                <q-btn flat v-if="message.role === 'user'" size="sm" icon="edit" @click="startEditing(index)"></q-btn>
-                <q-btn flat v-if="isLastUserMessageWithoutResponse(index) && !sending" label="Regenerate" icon-right="autorenew" @click="sendQuery(message.message.content)"></q-btn>
-              </div>
-              <div v-else>
-                <q-input v-model="editMessage" dense filled></q-input>
-                <q-btn flat label="Save and Submit" @click="saveEdit(index)"></q-btn>
-                <q-btn flat label="Cancel" @click="cancelEdit"></q-btn>
-              </div>
-            </q-item-label>
-          </div>
+          <q-spinner v-if="messageGroup.role === 'biobuddy' && messageGroup.awaitingActions" size="20px" />
         </q-item-section>
       </q-item>
     </q-list>
@@ -53,6 +58,8 @@
     <div class="drawer-resize-handle" @mousedown="startResizing"></div>
   </q-drawer>
 </template>
+
+
 
 <script lang="ts">
 import { Notify } from 'quasar';
@@ -78,7 +85,7 @@ export default defineComponent({
   data() {
     return {
       drawer: true,
-      messages: [] as Message[],
+      messages: [] as { id: string, role: string, messages: { type: string, content: any }[], awaitingActions?: boolean }[],
       newMessage: '',
       sending: false,
       functionMappings: [] as FunctionMapping[],
@@ -91,6 +98,7 @@ export default defineComponent({
       currentMessageBuffer: '' as string,
       tools: null as GetAvailableFunctionCallsResponse | null,
       awaitingResponse: false,
+      pendingActions: [] as string[],
     };
   },
   methods: {
@@ -99,66 +107,78 @@ export default defineComponent({
       this.socket.onopen = () => {
         console.log('Connected to WebSocket server');
       };
-      this.socket.onmessage = (event) => {
+      this.socket.onmessage = async (event) => {
         const message = JSON.parse(event.data);
         if (message.reply_type === 'stream') {
-          this.currentMessageBuffer = this.currentMessageBuffer.replace(/<ACTION>/g, '');
           this.currentMessageBuffer += message.content;
-          this.currentMessageBuffer = this.currentMessageBuffer.replace(/<END_ACTION/g, '');
+          const actionMatches = this.currentMessageBuffer.match(/<ACTION>(.*?)<END_ACTION>/g);
+          if (actionMatches) {
+            actionMatches.forEach((match) => {
+              const actionText = match.replace(/<\/?ACTION>/g, '');
+              this.pendingActions.push(actionText);
+              this.currentMessageBuffer = this.currentMessageBuffer.replace(/<ACTION>/g, '');
+              this.currentMessageBuffer = this.currentMessageBuffer.replace(/<END_ACTION>/g, '');
+            });
+          }
           if (this.awaitingResponse) {
             const lastMessageIndex = this.messages.length - 1;
-            if (this.messages[lastMessageIndex].role === 'biobuddy' && this.messages[lastMessageIndex].type !== 'function') {
-              this.messages[lastMessageIndex].message.content = this.currentMessageBuffer;
-            } else if (this.messages[lastMessageIndex].role === 'user' ){
-              this.messages.push({
+            if (
+              this.messages[lastMessageIndex].role === 'biobuddy' &&
+              this.messages[lastMessageIndex].messages[this.messages[lastMessageIndex].messages.length - 1].type !== 'function'
+            ) {
+              this.messages[lastMessageIndex].messages[this.messages[lastMessageIndex].messages.length - 1].content = this.currentMessageBuffer;
+            } else if (this.messages[lastMessageIndex].role === 'biobuddy') {
+              this.messages[lastMessageIndex].messages.push({
+                type: 'text',
+                content: this.currentMessageBuffer,
+              });
+            } else if (this.messages[lastMessageIndex].role === 'user') {
+              const newBioBuddyMessage = {
                 id: new Date().getTime().toString(), // Generate a temporary ID
                 role: 'biobuddy',
-                type: 'text',
-                message: {
-                  content: this.currentMessageBuffer,
-                },
-              });
-            } else {
-              this.currentMessageBuffer = '';
-              this.messages.push({
-                id: new Date().getTime().toString(), // Generate a temporary ID
-                role: 'biobuddy',
-                type: 'text',
-                message: {
-                  content: '',
-                },
-              });
-              this.awaitingResponse = true;
+                messages: [
+                  {
+                    type: 'text',
+                    content: this.currentMessageBuffer,
+                  },
+                ],
+              };
+              this.messages.push(newBioBuddyMessage);
             }
           } else {
             this.messages.push({
-              id: new Date().getTime().toString(), // Generate a temporary ID
+              id: new Date().getTime().toString(),
               role: 'biobuddy',
-              type: 'text',
-              message: {
+              messages: [{
+                type: 'text',
                 content: this.currentMessageBuffer,
-              },
+              }]
             });
             this.awaitingResponse = true;
           }
-        } else if (message.reply_type === 'function') {
-          const functionCall = this.parseFunctionCall(message.content);
-          this.messages.push({
-            id: new Date().getTime().toString(), // Generate a temporary ID
-            role: 'biobuddy',
-            type: 'function',
-            message: [functionCall] as FunctionCall[],
-          });
-          this.awaitingResponse = true;
         } else if (message.reply_type === 'final' || message.content.includes('<STOP>')) {
           this.awaitingResponse = false;
+          const actionMatches = this.currentMessageBuffer.match(/<ACTION>(.*?)<END_ACTION>/g);
+          if (actionMatches) {
+            actionMatches.forEach((match) => {
+              const actionText = match.replace(/<\/?ACTION>/g, '');
+              this.pendingActions.push(actionText);
+              this.currentMessageBuffer = this.currentMessageBuffer.replace(/<ACTION>/g, '');
+              this.currentMessageBuffer = this.currentMessageBuffer.replace(/<END_ACTION>/g, '');
+            });
+          }
+          const lastMessageIndex = this.messages.length - 1;
+          if (this.messages[lastMessageIndex].role === 'biobuddy') {
+            this.messages[lastMessageIndex].awaitingActions = true;
+            await this.processPendingActions(this.messages[lastMessageIndex]);
+          }
           this.saveMessage({
             id: new Date().getTime().toString(), // Generate a temporary ID
             role: 'assistant',
-            type: 'text',
-            message: {
+            messages: [{
+              type: 'text',
               content: this.currentMessageBuffer,
-            },
+            }],
           });
           this.currentMessageBuffer = '';
         }
@@ -170,10 +190,64 @@ export default defineComponent({
         console.error('WebSocket error:', error);
       };
     },
+    async processPendingActions(messageGroup) {
+      for (const action of this.pendingActions) {
+        const response = await sendQueryApi(
+          action
+        );
+        messageGroup.messages.push({
+          type: 'function',
+          content: response.biobuddy_response.message,
+        });
+      }
+      messageGroup.awaitingActions = false;
+      this.pendingActions = [];
+    },
     async loadConversation() {
       if (!this.experimentId) return;
+
       const response = await loadConversationApi(this.experimentId);
-      this.messages = response.messages;
+      const fetchedMessages = response.messages;
+
+      const groupedMessages = [] as { id: string, role: string, messages: { type: string, content: any }[], awaitingActions?: boolean }[];
+      let currentGroup = null as { id: string, role: string, messages: { type: string, content: any }[], awaitingActions?: boolean } | null;
+
+      fetchedMessages.forEach((msg, index) => {
+        if (msg.role === 'biobuddy') {
+          if (!currentGroup) {
+            currentGroup = {
+              id: msg.id,
+              role: 'biobuddy',
+              messages: []
+            };
+          }
+          currentGroup?.messages.push({
+            type: msg.type,
+            content: msg.message.content,
+          });
+
+          // If it's the last message, push the current group
+          if (index === fetchedMessages.length - 1) {
+            groupedMessages.push(currentGroup);
+          }
+        } else {
+          // Push the current group if it exists
+          if (currentGroup) {
+            groupedMessages.push(currentGroup);
+            currentGroup = null;
+          }
+          groupedMessages.push({
+            id: msg.id,
+            role: msg.role,
+            messages: [{
+              type: msg.type,
+              content: msg.message.content,
+            }]
+          });
+        }
+      });
+
+      this.messages = groupedMessages;
     },
     renderMarkdown(text: string) {
       const md = new MarkdownIt();
@@ -192,11 +266,12 @@ export default defineComponent({
       const userMessage = {
         id: new Date().getTime().toString(), // Generate a temporary ID
         role: 'user',
-        type: 'text',
-        tools: this.tools,
-        message: {
-          content: this.newMessage,
-        },
+        messages: [
+          {
+            type: 'text',
+            content: this.newMessage,
+          },
+        ],
       };
 
       this.messages.push(userMessage);
@@ -205,7 +280,12 @@ export default defineComponent({
       const messagePayload = {
         experiment_id: this.experimentId,
         message_content: this.newMessage,
-        previous_messages: this.messages.map(msg => ({ role: msg.role, content: msg.message.content })),
+        previous_messages: this.messages.flatMap(msg =>
+          msg.messages.map(m => ({
+            role: msg.role,
+            content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
+          }))
+        ),
         tools: this.tools?.function_calls,
         job_id: null, // Optional job ID
       };
@@ -223,18 +303,29 @@ export default defineComponent({
       this.socket?.send(JSON.stringify(stopPayload));
     },
     async saveMessage(message: any) {
-      await saveMessageApi(
-        this.experimentId,
-        message.message.content,
-        message.role,
-      );
+      for (const msg of message.messages) {
+        if (msg.type === 'text') {
+          await saveMessageApi(
+            this.experimentId,
+            msg.content,
+            message.role,
+          );
+        } else if (msg.type === 'function') {
+          // Assuming function call messages also need to be saved, adjust as necessary
+          await saveMessageApi(
+            this.experimentId,
+            JSON.stringify(msg.content),
+            message.role,
+          );
+        }
+      }
     },
     isLastUserMessageWithoutResponse(index: number) {
       return index === this.messages.length - 1 && this.messages[index].role === 'user';
     },
     startEditing(index: number) {
       this.editIndex = index;
-      this.editMessage = this.messages[index].message.content;
+      this.editMessage = this.messages[index].messages.map(m => m.content).join(' ');
     },
     cancelEdit() {
       this.editIndex = -1;
@@ -251,7 +342,10 @@ export default defineComponent({
       };
 
       this.socket?.send(JSON.stringify(editMessage));
-      this.messages[index].message.content = this.editMessage;
+      this.messages[index].messages = [{
+        type: 'text',
+        content: this.editMessage,
+      }];
       this.messages = this.messages.slice(0, index + 1); // Remove messages after the edited one
       this.editIndex = -1;
       this.editMessage = '';
@@ -276,40 +370,6 @@ export default defineComponent({
       window.removeEventListener('mousemove', this.resizeDrawer);
       window.removeEventListener('mouseup', this.stopResizing);
     },
-    parseFunctionCall(functionCallStr: string) {
-    try {
-      // First, convert the string to a valid JSON string by replacing single quotes with double quotes
-      // and ensuring that the inner JSON (arguments) is also correctly formatted
-      const cleanedStr = functionCallStr.replace(/\\/g, '');
-
-      const correctedStr = cleanedStr
-        .replace(/'/g, '"')
-        .replace(/"{/g, '{')
-        .replace(/}"/g, '}');
-
-      // Parse the corrected string to a JavaScript object
-      const functionCall = JSON.parse(correctedStr);
-
-      // Parse the arguments JSON string
-      const argumentsObj = this.parseFunctionCallArguments(functionCall.function_call.arguments);
-
-      return {
-        function_name: functionCall.function_call.name,
-        arguments: argumentsObj,
-      };
-    } catch (error) {
-      console.error('Error parsing function call:', error);
-      return null;
-    }
-  },
-
-  parseFunctionCallArguments(argumentsObj: object) {
-    // Function to parse the arguments from the object
-    return Object.keys(argumentsObj).map(key => ({
-      name: key,
-      value: argumentsObj[key],
-    }));
-  },
   },
   async mounted() {
     await this.loadConversation();
@@ -325,14 +385,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-.drawer-resize-handle {
-  cursor: ew-resize;
-  position: absolute;
-  top: 0;
-  right: 0; /* Adjust based on your layout, ensuring it's reachable for resizing */
-  width: 20px;
-  height: 100%;
-}
-</style>

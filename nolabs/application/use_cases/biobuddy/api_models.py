@@ -1,7 +1,7 @@
 from typing import List, Optional, Any, Dict, Union
 from uuid import UUID
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 
@@ -105,7 +105,6 @@ class CreateMessageResponse:
 
 @dataclass
 class SendQueryRequest:
-    experiment_id: UUID
     query: str
 
 
@@ -117,7 +116,6 @@ class SendQueryResponse:
 @dataclass
 class GetAvailableFunctionCallsResponse:
     function_calls: List[Dict[str, str | Dict[str, dict[str, str] | Any]]]
-
 
 @dataclass
 class EditMessageRequest:

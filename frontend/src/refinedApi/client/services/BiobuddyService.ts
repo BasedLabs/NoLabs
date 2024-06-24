@@ -97,21 +97,18 @@ export class BiobuddyService {
     }
     /**
      * Send Query
-     * @param experimentId
-     * @param messageContent
+     * @param actionText
      * @returns SendQueryResponse Successful Response
      * @throws ApiError
      */
     public static sendQueryApiV1BiobuddyQueryPost(
-        experimentId: string,
-        messageContent: string,
+        actionText: string,
     ): CancelablePromise<SendQueryResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/biobuddy/query',
             query: {
-                'experiment_id': experimentId,
-                'message_content': messageContent,
+                'action_text': actionText,
             },
             errors: {
                 422: `Validation Error`,

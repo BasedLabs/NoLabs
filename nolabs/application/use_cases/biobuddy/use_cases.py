@@ -3,15 +3,14 @@ __all__ = [
     'EditMessageFeature',
     'LoadConversationFeature',
     'CreateMessageFeature',
-    'SendQueryFeature',
+    'SendActionQueryFeature',
 ]
 
 import ast
 import json
 import os
 import uuid
-from typing import List, Dict
-from uuid import UUID
+from typing import List
 
 import biobuddy_microservice
 
@@ -23,7 +22,7 @@ from nolabs.application.use_cases.biobuddy.api_models import Message as ApiMessa
 from nolabs.application.use_cases.biobuddy.api_models import RegularMessage as ApiRegularMessage
 from nolabs.application.use_cases.biobuddy.api_models import FunctionCall as ApiFunctionCall
 from nolabs.application.use_cases.biobuddy.api_models import FunctionParam as ApiFunctionParam
-from nolabs.domain.models.biobuddy import Chat, TextMessage, FunctionCall, UserRoleEnum, FunctionParam, \
+from nolabs.domain.models.biobuddy import Chat, TextMessage, UserRoleEnum, \
     FunctionCallMessage
 
 
@@ -181,7 +180,7 @@ class GetAvailableFunctionCallsFeature:
             tools.append(tool)
         return tools
 
-class SendQueryFeature:
+class SendActionQueryFeature:
     def __init__(self, biobuddy_microservice: biobuddy_microservice.DefaultApi, functions: List):
         self._biobuddy_microservice = biobuddy_microservice
         self._functions = {function.name: function for function in functions}
@@ -190,75 +189,43 @@ class SendQueryFeature:
     def handle(self, request: SendQueryRequest) -> SendQueryResponse:
         assert request
 
-        experiment_id = request.experiment_id
-
-        previous_messages = self.get_previous_messages(experiment_id)
-
-        request = biobuddy_microservice.SendMessageToBioBuddyRequest(message_content=request.query,
-                                                                     previous_messages=previous_messages,
-                                                                     tools=self._tools)
+        request = biobuddy_microservice.SendActionCallRequest(action_text=request.query,
+                                                              tools=self._tools)
 
         # try:
-        assistant_message = self._biobuddy_microservice.predict_send_message_post(request)
+        assistant_message = self._biobuddy_microservice.invoke_function_invoke_function_post(request)
 
         if assistant_message.reply_type == "function":
-            return self._process_ai_function_calls(experiment_id, assistant_message)
+            return self._process_ai_function_calls(assistant_message)
+        else:
+            raise NoLabsException(ErrorCodes.biobuddy_error_generating_response)
         # except Exception as e:
         #    raise NoLabsException(ErrorCodes.biobuddy_error_generating_response)
 
-        return self._process_regular_ai_response(experiment_id, assistant_message)
 
-    def _process_ai_function_calls(self, experiment_id: UUID, assistant_message) -> SendQueryResponse:
-        function_calls = ast.literal_eval(assistant_message.content)
+    def _process_ai_function_calls(self, assistant_message) -> SendQueryResponse:
+
+        print("Assistant message: ", assistant_message)
+        function_dict = ast.literal_eval(assistant_message.content)['function_call']
+        function_name = function_dict['name']
+        arguments = json.loads(function_dict['arguments'])
         api_function_calls = []
-        regular_function_calls = []
-        for function_call in function_calls:
-            function_dict = ast.literal_eval(function_call)['function_call']
-            function_name = function_dict['name']
-            arguments = json.loads(function_dict['arguments'])
-            if function_name in self._functions:
-                function_call = self._functions[function_name].execute(arguments=arguments)
+        if function_name in self._functions:
+            function_call = self._functions[function_name].execute(arguments=arguments)
 
-                regular_function_calls.append(FunctionCall(
-                                                           function_name=function_call.function_name,
-                                                           arguments=[FunctionParam(name=param.name,
-                                                                                      value=str(param.value)) for param in
-                                                                     function_call.arguments]))
 
-                api_function_calls.append(ApiFunctionCall(function_name=function_call.function_name,
-                                                          arguments=[ApiFunctionParam(name=param.name,
-                                                                                      value=param.value) for param in
-                                                                     function_call.arguments],
-                                                          data=function_call.data))
+            api_function_calls.append(ApiFunctionCall(function_name=function_call.function_name,
+                                                      arguments=[ApiFunctionParam(name=param.name,
+                                                                                  value=param.value) for param in
+                                                                 function_call.arguments],
+                                                      data=function_call.data))
 
         message_id = uuid.uuid4()
-        chat = Chat.objects(experiment_id=experiment_id).first()
-        if not chat:
-            chat = Chat(experiment_id=experiment_id, messages=[])
-
-        chat.add_function_call_message(message_id, UserRoleEnum.biobuddy, regular_function_calls)
-        chat.save()
 
         return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
                                                               role='assistant',
                                                               message=api_function_calls,
                                                               type='function'))
-
-    def _process_regular_ai_response(self, experiment_id: UUID, assistant_message) -> SendQueryResponse:
-        message_id = uuid.uuid4()
-        chat = Chat.objects(experiment_id=experiment_id).first()
-        if not chat:
-            chat = Chat(experiment_id=experiment_id, messages=[])
-
-        chat.add_text_message(message_id, UserRoleEnum.biobuddy, str(assistant_message.content))
-        chat.save()
-
-        return SendQueryResponse(biobuddy_response=ApiMessage(id=message_id,
-                                                              role=UserRoleEnum.biobuddy.value,
-                                                              message=ApiRegularMessage(
-                                                                  content=str(assistant_message.content)
-                                                              ),
-                                                              type='text'))
 
     def construct_tools_object(self):
         tools = []
@@ -297,20 +264,3 @@ class SendQueryFeature:
 
             tools.append(tool)
         return tools
-
-    def get_previous_messages(self, experiment_id: UUID) -> List[Dict[str, str]]:
-        chat = Chat.objects(experiment_id=experiment_id).first()
-        if not chat:
-            return []
-
-        previous_messages = []
-        for message in chat.messages:
-            if isinstance(message, TextMessage):
-                previous_messages.append({'role': message.sender.value,
-                                          'content': message.content})
-            elif isinstance(message, FunctionCall):
-                functions = [{"name": message.function_name, "arguments": message.arguments}]
-                previous_messages.append({'role': UserRoleEnum.biobuddy.value,
-                                          'content': f"I called {functions}"})
-
-        return previous_messages

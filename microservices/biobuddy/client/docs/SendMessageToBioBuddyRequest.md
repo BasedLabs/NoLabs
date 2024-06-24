@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**experiment_id** | **str** |  | 
 **message_content** | **str** |  | 
 **previous_messages** | **List[Dict[str, str]]** |  | 
 **tools** | **List[object]** |  | 

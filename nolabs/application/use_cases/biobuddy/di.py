@@ -15,7 +15,7 @@ from nolabs.application.use_cases.biobuddy.functions.query_chembl_by_disease imp
 from nolabs.application.use_cases.biobuddy.functions.query_rcsb_pdb_by_id import QueryRcsbPdbByIdFunction
 from nolabs.application.use_cases.biobuddy.functions.query_rcsb_pdb_by_names import QueryRcsbPdbByNamesFunction
 from nolabs.application.use_cases.biobuddy.use_cases import CheckBioBuddyEnabledFeature, \
-    LoadConversationFeature, CreateMessageFeature, EditMessageFeature, SendQueryFeature, \
+    LoadConversationFeature, CreateMessageFeature, EditMessageFeature, SendActionQueryFeature, \
     GetAvailableFunctionCallsFeature
 from nolabs.infrastructure.di import InfrastructureDependencies
 
@@ -47,8 +47,8 @@ class BiobuddyDependencies:
                 QueryRcsbPdbByIdFunction, Depends(FunctionDependencies.query_rcsb_pdb_by_id)],
             query_rcsb_pdb_by_name: Annotated[
                 QueryRcsbPdbByNamesFunction, Depends(FunctionDependencies.query_rcsb_pdb_by_name)],
-    ) -> SendQueryFeature:
-        return SendQueryFeature(
+    ) -> SendActionQueryFeature:
+        return SendActionQueryFeature(
             biobuddy_microservice=biobuddy,
             functions=[query_chembl, query_chembl_by_disease, query_rcsb_pdb_by_id, query_rcsb_pdb_by_name]
         )

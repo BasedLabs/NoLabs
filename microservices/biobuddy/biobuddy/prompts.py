@@ -12,8 +12,8 @@ def generate_strategy_prompt(tools_description: str, query: str) -> str:
     return (f"Given the available tools ({tools_description}), decide whether a direct reply is sufficient "
             f"or if a specific plan involving these tools is necessary. "
             f"If calling function calls are not needed, provide the direct reply (without stating that it's a direct reply, just the text of the reply). "
-            f"If function calls are needed, reply with a series of actions in the format: "
-            f"\"<ACTION>1. Call function_1 in order to do X<END_ACTION> <ACTION>2. Call function_2 to achieve Y<END_ACTION>\". "
+            f"If function calls are needed, reply with a plan of all actions required based on the query and tools descriptions in the format (have as many actions as needed): "
+            f"\"<ACTION> 1. Call tool_1 in order to do X <END_ACTION> <ACTION> 2. Call tool_2 to achieve Y <END_ACTION> <ACTION> 3. Call tool_3 to do something else <END_ACTION>\". "
             f"Be carefull to actually use all the functions, i.e. if a user asks to pull two molecules and it can't be done with just one action, do it with two actions"
             f"If you are asked SPECIFICALLY to do the literature research on some topic, write only tag <RESEARCH>. "
             f"\n\nQuery: \"{query}\"\n\n")
