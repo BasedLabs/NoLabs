@@ -12,7 +12,7 @@ from biobuddy.gpt_researcher import get_report
 import asyncio
 
 chat_model = ChatOpenAI()
-chat_model.model_name = "gpt-4-turbo"
+chat_model.model_name = "gpt-4o"
 chat_model.temperature = 0.1
 chat_model.streaming = True
 

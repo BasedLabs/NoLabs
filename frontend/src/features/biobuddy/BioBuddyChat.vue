@@ -40,7 +40,10 @@
               </q-item-label>
             </div>
           </div>
-          <q-spinner v-if="messageGroup.role === 'biobuddy' && messageGroup.awaitingActions" size="20px" />
+          <div v-if="messageGroup.role === 'biobuddy' && messageGroup.awaitingActions" class="q-mt-sm q-mb-sm">
+            <q-spinner size="20px" />
+            <span class="text-h7 text-purple q-ml-sm">{{ currentAction }}</span>
+          </div>
         </q-item-section>
       </q-item>
     </q-list>
@@ -99,6 +102,7 @@ export default defineComponent({
       tools: null as GetAvailableFunctionCallsResponse | null,
       awaitingResponse: false,
       pendingActions: [] as string[],
+      currentAction: ''
     };
   },
   methods: {
@@ -114,7 +118,7 @@ export default defineComponent({
           const actionMatches = this.currentMessageBuffer.match(/<ACTION>(.*?)<END_ACTION>/g);
           if (actionMatches) {
             actionMatches.forEach((match) => {
-              const actionText = match.replace(/<\/?ACTION>/g, '');
+              const actionText = match.replace(/<\/?ACTION>/g, '').replace(/<\/?END_ACTION>/g, '');;
               this.pendingActions.push(actionText);
               this.currentMessageBuffer = this.currentMessageBuffer.replace(/<ACTION>/g, '');
               this.currentMessageBuffer = this.currentMessageBuffer.replace(/<END_ACTION>/g, '');
@@ -161,7 +165,7 @@ export default defineComponent({
           const actionMatches = this.currentMessageBuffer.match(/<ACTION>(.*?)<END_ACTION>/g);
           if (actionMatches) {
             actionMatches.forEach((match) => {
-              const actionText = match.replace(/<\/?ACTION>/g, '');
+              const actionText = match.replace(/<\/?ACTION>/g, '').replace(/<\/?END_ACTION>/g, '');
               this.pendingActions.push(actionText);
               this.currentMessageBuffer = this.currentMessageBuffer.replace(/<ACTION>/g, '');
               this.currentMessageBuffer = this.currentMessageBuffer.replace(/<END_ACTION>/g, '');
@@ -192,6 +196,7 @@ export default defineComponent({
     },
     async processPendingActions(messageGroup) {
       for (const action of this.pendingActions) {
+        this.currentAction = action;
         const response = await sendQueryApi(
           action
         );
