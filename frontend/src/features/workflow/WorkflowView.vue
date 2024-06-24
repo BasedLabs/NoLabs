@@ -14,7 +14,7 @@
         </q-list>
       </q-btn-dropdown>
       <q-space />
-      <q-btn v-if="!isWorkflowRunning && !isLocallyRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
+      <q-btn v-if="!isWorkflowRunning || !isLocallyRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
         Start workflow
       </q-btn>
       <q-btn v-else class="q-ma-sm" color="info" icon="running">

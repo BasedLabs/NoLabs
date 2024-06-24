@@ -514,10 +514,10 @@ export const useWorkflowStore = defineStore('workflowStore', {
           if (existingNode) {
             const componentState = await getComponentState(workflow_component.component_id);
             existingNode.data.jobIds = componentState.job_ids;
-            existingNode.data.jobs_errors = componentState.jobs_errors,
-              existingNode.data.input_property_errors = componentState.input_property_errors,
-              existingNode.data.last_exceptions = componentState.last_exceptions,
-              existingNode.data.error = workflow_component.error;
+            existingNode.data.jobs_errors = componentState.jobs_errors;
+            existingNode.data.input_property_errors = componentState.input_property_errors;
+            existingNode.data.last_exceptions = componentState.last_exceptions;
+            existingNode.data.error = workflow_component.error;
           }
         }
 

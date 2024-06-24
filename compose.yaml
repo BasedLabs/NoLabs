@@ -93,20 +93,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-  umol:
-    image: 'ghcr.io/basedlabs/umol:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/umol
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5735
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
   diffdock:
     image: 'ghcr.io/basedlabs/diffdock:1.0.1'
     network_mode: host

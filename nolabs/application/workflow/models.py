@@ -64,7 +64,6 @@ class ComponentDbModel(Document):
     workflow: WorkflowSchemaDbModel = ReferenceField(WorkflowSchemaDbModel, reverse_delete_rule=CASCADE)
 
     last_exceptions: List[str] = ListField(StringField(required=False))
-    jobs_errors: List[JobErrorDbModel] = EmbeddedDocumentListField(JobErrorDbModel)
     input_property_errors: List[InputPropertyErrorDbModel] = EmbeddedDocumentListField(InputPropertyErrorDbModel)
 
     input_parameter_dict: Dict[str, Any] = DictField(default=dict)
@@ -73,7 +72,7 @@ class ComponentDbModel(Document):
     jobs: List[Job] = ListField(ReferenceField(Job, reverse_delete_rule=CASCADE), default=[])
     last_jobs_count: int = IntField()
 
-    last_execute_try_at: datetime = DateTimeField()
+    last_executed_at: datetime = DateTimeField()
 
     @classmethod
     def create(cls,
@@ -82,7 +81,6 @@ class ComponentDbModel(Document):
                input_parameter_dict: Dict[str, Any],
                output_parameter_dict: Dict[str, Any],
                jobs: List[Job],
-               jobs_errors: List[JobErrorDbModel],
                input_property_errors: List[InputPropertyErrorDbModel],
                last_exceptions: List[str]):
         return ComponentDbModel(
@@ -92,6 +90,5 @@ class ComponentDbModel(Document):
             output_parameter_dict=output_parameter_dict,
             input_property_errors=input_property_errors,
             jobs=jobs,
-            jobs_errors=jobs_errors,
             last_exceptions=last_exceptions
         )

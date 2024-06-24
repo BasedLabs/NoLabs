@@ -23,13 +23,13 @@
 
 # About
 
-NoLabs is an open source biolab that lets you run experiments with the latest state-of-the-art models for bio research.
+NoLabs is an open source biolab that lets you run experiments with the latest state-of-the-art models and workflow engine for bio research.
 
 The goal of the project is to accelerate bio research by making inference models easy to use for everyone. We are
-currently supporting protein biolab (predicting useful protein properties such as solubility, localisation, gene
-ontology, folding, etc.), drug discovery biolab (construct ligands and test binding to target proteins) and small molecules design biolab (design small molecules given a protein target and check drug-likeness and binding affinity).
+currently supporting protein workflow components (predicting useful protein properties such as solubility, localisation, gene
+ontology, folding, etc.), drug discovery components (construct ligands and test binding to target proteins) and small molecules design components (design small molecules given a protein target and check drug-likeness and binding affinity).
 
-We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and
+We are working on expanding both and adding a cell and genetic components, and we will appreciate your support and
 contributions.
 
 Let's accelerate bio research!
@@ -74,7 +74,6 @@ You can ignore OPENAI_API_KEY warnings when running other services using docker 
 
 - Drug-target interaction prediction, high throughput virtual screening (HTVS) based on:
     - [DiffDock](https://github.com/gcorso/DiffDock)
-    - [uMol](https://github.com/patrickbryant1/Umol)
 - Automatic pocket prediction via [P2Rank](https://github.com/rdk/p2rank)
 - Automatic MSA generation via [HH-suite3](https://github.com/soedinglab/hh-suite)
 
