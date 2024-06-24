@@ -34,22 +34,26 @@ export default defineComponent({
   computed: {
     imageSrc(): string {
       switch (this.name) {
-        case 'Esmfold light' || 'Esmfold' || 'Rosettafold':
+        case 'Esmfold light':
+        case 'Rosettafold component':
+        case 'Esmfold':
           return '/folding_pic.png';
         case 'DiffDock':
           return '/docking_pic.png';
         case 'Small molecules design':
-          return '/small_molecule.png';
+          return '/small_molecule.jpg';
         case 'Protein binder design':
           return '/rf_diffusion_pic.png';
         case 'Localisation':
           return '/localisation_pic.png';
-        case 'GeneOntology':
+        case 'Gene ontology':
           return '/gene_ontology_pic.png';
         case 'Conformations':
           return '/conformations_pic.png';
         case 'Binding pockets':
           return '/pocket_prediction_pic.png';
+        case 'Solubility':
+          return '/solubility_pic.png';
         case 'Msa generation':
           return '/msa_pic.png';
         default:

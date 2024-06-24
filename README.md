@@ -29,7 +29,7 @@ The goal of the project is to accelerate bio research by making inference models
 currently supporting protein workflow components (predicting useful protein properties such as solubility, localisation, gene
 ontology, folding, etc.), drug discovery components (construct ligands and test binding to target proteins) and small molecules design components (design small molecules given a protein target and check drug-likeness and binding affinity).
 
-We are working on expanding both and adding a cell and genetic components, and we will appreciate your support and
+We are working on expanding both and adding cell and genetic components, and we will appreciate your support and
 contributions.
 
 Let's accelerate bio research!
@@ -37,6 +37,16 @@ Let's accelerate bio research!
 <img src="media/NoLabs_Architecture.png" width="100%">
 
 # Features
+
+**Workflow Engine:**
+
+<br>
+<img src="media/Workflow_UI_demo.png" width="100%">
+
+- Create workflows combining different models and data
+- Schedule jobs and observe results for big data processing
+- Adjust input parameters for particular jobs
+
 
 **Bio Buddy - drug discovery co-pilot:**
 
@@ -69,50 +79,6 @@ $ OPENAI_API_KEY=your_openai_api_key TAVILY_API_KEY=your_tavily_api_key docker c
 Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
 
 You can ignore OPENAI_API_KEY warnings when running other services using docker compose.
-
-**Drug discovery lab:**
-
-- Drug-target interaction prediction, high throughput virtual screening (HTVS) based on:
-    - [DiffDock](https://github.com/gcorso/DiffDock)
-- Automatic pocket prediction via [P2Rank](https://github.com/rdk/p2rank)
-- Automatic MSA generation via [HH-suite3](https://github.com/soedinglab/hh-suite)
-
-<br>
-<img src="media/Docking.gif" width="100%">
-
-**Protein lab:**
-
-- Prediction of subcellular localisation via
-  fine-tuned [ritakurban/ESM_protein_localization](https://huggingface.co/ritakurban/ESM_protein_localization) model (to
-  be updated with a better model)
-- Prediction of folded structure via [facebook/esmfold_v1](https://huggingface.co/facebook/esmfold_v1)
-- Gene ontology prediction for 200 most popular gene ontologies
-- Protein solubility prediction
-
-<br>
-<img src="media/localisation.gif" width="100%">
-
-**Protein design Lab:**
-
-- Protein generation via [RFDiffusion](https://github.com/RosettaCommons/RFdiffusion)
-
-<br>
-<img src="media/protein_design.gif" width="100%">
-
-**Conformations Lab:**
-
-- Conformations via [OpenMM](https://github.com/openmm/openmm) and [GROMACS](https://github.com/gromacs/gromacs)
-
-**Small molecules design lab:**
-
-- Small molecules design using a protein target with drug-likeness scoring component [REINVENT4](https://github.com/MolecularAI/REINVENT4)
-
-Specify the search space (location) where designed molecule would bind relative to protein target. Then run reinforcement learning to generate new molecules in specified binding region.
-
-WARNING: Reinforcement learning process might take a long time (with 128 molecules per 1 epoch and 50 epochs it could take a day)
-
-<br>
-<img src="media/small_molecules_design.png" width="100%">
 
 # Starting
 
@@ -266,7 +232,7 @@ diffdock = http://127.0.0.1:5737 -> http://74.82.28.227:5737
 
 And now you are ready to use this service hosted on a separate machine!
 
-## Supported microservices list
+## Supported components list
 
 ### 1) Protein design docker API
 
@@ -364,16 +330,16 @@ or
 
 ### 8) Protein-ligand structure prediction docker API
 
-Model: [UMol](https://github.com/patrickbryant1/Umol)
+Model: [DiffDock](https://github.com/gcorso/DiffDock)
 
 ```shell
-docker compose up umol
+docker compose up diffdock
 ```
 
-Swagger UI will be available on http://localhost:5735/docs
+Swagger UI will be available on http://localhost:5737/docs
 
 or
-[Install as python package](microservices/umol/client/README.md)
+[Install as python package](microservices/diffdock/client/README.md)
 
 ### 9) RoseTTAFold docker API
 
