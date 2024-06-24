@@ -70,7 +70,7 @@ import { defineComponent } from 'vue';
 import MarkdownIt from 'markdown-it';
 import { v4 as uuidv4 } from 'uuid';
 import { useBioBuddyStore } from './storage';
-import { type FunctionParam, Message, GetAvailableFunctionCallsResponse } from 'src/refinedApi/client';
+import { type FunctionParam, FunctionCall_Output, Message, GetAvailableFunctionCallsResponse } from 'src/refinedApi/client';
 import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi, getToolsApi, saveFunctionCallApi } from 'src/features/biobuddy/api';
 import { MeasurementFlags } from 'ngl/dist/declarations/component/structure-component';
 
@@ -155,10 +155,10 @@ export default defineComponent({
             }
           } else {
             const newMessage = {
-                id: uuidv4(),
-                type: 'text',
-                content: this.currentMessageBuffer,
-              }
+              id: uuidv4(),
+              type: 'text',
+              content: this.currentMessageBuffer,
+            }
             this.messages.push({
               id: uuidv4(),
               role: 'biobuddy',
@@ -354,6 +354,7 @@ export default defineComponent({
           msg.content[0],
           msg.role
         );
+        await this.invokeFunction(msg.content[0]);
       }
 
     },
@@ -421,6 +422,12 @@ export default defineComponent({
       this.isResizing = false;
       window.removeEventListener('mousemove', this.resizeDrawer);
       window.removeEventListener('mouseup', this.stopResizing);
+    },
+    async invokeFunction(functionCall: FunctionCall_Output) {
+      const mapping = this.functionMappings?.find(m => m.name === functionCall.function_name);
+      if (mapping && typeof mapping.function === 'function') {
+        await mapping.function(functionCall.data);
+      }
     },
   },
   async mounted() {
