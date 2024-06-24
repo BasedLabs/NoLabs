@@ -7,8 +7,8 @@
           <q-item v-for="option in componentOptions" :key="option.name" clickable v-close-popup
             @click="addComponent(option)">
             <q-item-section>
-              <q-item-label caption>{{ option.name }}</q-item-label>
-              <q-item-label>{{ option.description }}</q-item-label>
+              <q-item-label>{{ option.name }}</q-item-label>
+              <q-item-label caption>{{ option.description }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
