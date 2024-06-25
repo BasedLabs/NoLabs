@@ -1,0 +1,34 @@
+name: conformations
+run-name: conformations
+
+# Build and push nolabs image using GitHub Cache API
+# Only if relevant files were changed
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'microservices/conformations/**'
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/build-docker.yaml
+    with:
+      microservice_name: conformations
+
+  push:
+    if: github.repository == 'BasedLabs/NoLabs'
+    needs: build
+
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/push-docker.yaml
+    with:
+      microservice_name: conformations

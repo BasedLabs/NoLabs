@@ -7,9 +7,10 @@ from uuid import UUID
 
 import fastapi
 
-from nolabs.application.use_cases.solubility.api_models import JobResponse, SetupJobRequest
+from nolabs.application.use_cases.solubility.api_models import JobResponse, SetupJobRequest, GetJobStatusResponse
 from nolabs.application.use_cases.solubility.di import SolubilityDependencies
-from nolabs.application.use_cases.solubility.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
+from nolabs.application.use_cases.solubility.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature, \
+    GetJobStatusFeature
 
 router = fastapi.APIRouter(
     prefix='/api/v1/solubility',
@@ -40,3 +41,10 @@ async def get_job(job_id: UUID, feature: Annotated[
 async def setup_job(request: SetupJobRequest, feature: Annotated[
     SetupJobFeature, fastapi.Depends(SolubilityDependencies.setup_job)]) -> JobResponse:
     return await feature.handle(request=request)
+
+
+@router.get('/jobs/{job_id}/status',
+            summary='Get job execution status')
+async def get_job_status(job_id: UUID, feature: Annotated[
+    GetJobStatusFeature, fastapi.Depends(SolubilityDependencies.get_job_status)]) -> GetJobStatusResponse:
+    return await feature.handle(job_id=job_id)

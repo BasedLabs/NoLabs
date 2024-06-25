@@ -11,7 +11,7 @@ import protein_design_microservice
 from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.protein_design.api_models import JobResponse, SetupJobRequest
+from nolabs.application.use_cases.protein_design.api_models import JobResponse, SetupJobRequest, GetJobStatusResponse
 from nolabs.domain.models.common import JobId, JobName, Experiment, Protein, ProteinName
 from nolabs.domain.models.protein_design import ProteinDesignJob
 from nolabs.utils import generate_uuid
@@ -104,13 +104,14 @@ class RunJobFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        response = self._api.run_rfdiffusion_endpoint_run_rfdiffusion_post(
+        response = self._api.run_rfdiffusion_endpoint_run_post(
             run_rfdiffusion_request=protein_design_microservice.RunRfdiffusionRequest(
                 pdb_content=job.protein.get_pdb(),
                 hotspots=job.hotspots,
                 contig=job.contig,
                 timesteps=job.timesteps,
-                number_of_designs=job.number_of_designs
+                number_of_designs=job.number_of_designs,
+                job_id=job_id
             )
         )
 
@@ -134,3 +135,23 @@ class RunJobFeature:
         job.save(cascade=True)
 
         return map_job_to_response(job)
+
+
+class GetJobStatusFeature:
+    def __init__(self, api: protein_design_microservice.DefaultApi):
+        self._api = api
+
+    async def handle(self, job_id: UUID) -> GetJobStatusResponse:
+        job_id = JobId(job_id)
+
+        job: ProteinDesignJob = ProteinDesignJob.objects.with_id(job_id.value)
+
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
+
+        response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
+
+        return GetJobStatusResponse(
+            running=response.is_running,
+            result_valid=job.result_valid()
+        )

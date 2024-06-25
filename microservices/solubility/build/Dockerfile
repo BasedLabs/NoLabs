@@ -12,4 +12,4 @@ COPY solubility/settings.py /app/solubility
 RUN python -m solubility.predownload_models
 COPY . /app
 
-ENTRYPOINT ["uvicorn", "solubility.api:app"]
+ENTRYPOINT ["uvicorn", "solubility.api:app", "--workers", "2"]

@@ -1,6 +1,5 @@
 # RunSolubilityPredictionResponse
 
-RunSolubilityPredictionResponse(errors: List[str], soluble_probability: Optional[float])
 
 ## Properties
 

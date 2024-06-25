@@ -1,6 +1,5 @@
 # RunLocalisationPredictionResponse
 
-RunLocalisationPredictionResponse(cytosolic_proteins: float, mitochondrial_proteins: float, nuclear_proteins: float, other_proteins: float, extracellular_secreted_proteins: float, errors: List[str])
 
 ## Properties
 

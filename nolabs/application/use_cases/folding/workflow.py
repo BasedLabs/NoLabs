@@ -2,6 +2,7 @@ import uuid
 from abc import abstractmethod
 from typing import List, Type
 
+import asyncio
 from pydantic import BaseModel
 
 from nolabs.application.use_cases.folding.api_models import FoldingBackendEnum, SetupJobRequest

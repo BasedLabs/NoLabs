@@ -29,9 +29,9 @@ class RunRfdiffusionResponse(BaseModel):
     """
     RunRfdiffusionResponse
     """ # noqa: E501
-    errors: Optional[List[StrictStr]] = None
     pdbs_content: Optional[List[StrictStr]] = None
-    __properties: ClassVar[List[str]] = ["errors", "pdbs_content"]
+    errors: Optional[List[StrictStr]] = None
+    __properties: ClassVar[List[str]] = ["pdbs_content", "errors"]
 
     model_config = {
         "populate_by_name": True,
@@ -82,8 +82,8 @@ class RunRfdiffusionResponse(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "errors": obj.get("errors"),
-            "pdbs_content": obj.get("pdbs_content")
+            "pdbs_content": obj.get("pdbs_content"),
+            "errors": obj.get("errors")
         })
         return _obj
 

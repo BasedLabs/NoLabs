@@ -394,7 +394,6 @@ class StartWorkflowComponentFeature:
                     input_parameter_dict={},
                     output_parameter_dict={},
                     jobs=[],
-                    jobs_errors=[],
                     input_property_errors=[],
                     last_exceptions=[]
                 )

@@ -17,6 +17,7 @@ conformations_microservice/models/gromacs_force_fields.py
 conformations_microservice/models/gromacs_water_force_fields.py
 conformations_microservice/models/http_validation_error.py
 conformations_microservice/models/integrators.py
+conformations_microservice/models/is_job_running_response.py
 conformations_microservice/models/open_mm_force_fields.py
 conformations_microservice/models/open_mm_water_force_fields.py
 conformations_microservice/models/run_gromacs_simulations_request.py
@@ -35,6 +36,7 @@ docs/GromacsForceFields.md
 docs/GromacsWaterForceFields.md
 docs/HTTPValidationError.md
 docs/Integrators.md
+docs/IsJobRunningResponse.md
 docs/OpenMmForceFields.md
 docs/OpenMmWaterForceFields.md
 docs/RunGromacsSimulationsRequest.md
@@ -51,4 +53,5 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
+test/test_is_job_running_response.py
 tox.ini

@@ -3,9 +3,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from nolabs.application.use_cases.conformations.api_models import JobResponse, SetupJobRequest
+from nolabs.application.use_cases.conformations.api_models import JobResponse, SetupJobRequest, GetJobStatusResponse
 from nolabs.application.use_cases.conformations.di import ConformationsDependencies
-from nolabs.application.use_cases.conformations.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
+from nolabs.application.use_cases.conformations.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature, \
+    GetJobStatusFeature
 
 router = APIRouter(
     prefix='/api/v1/conformations',
@@ -31,3 +32,10 @@ async def get_job(job_id: UUID, feature: Annotated[
 async def setup_job(request: SetupJobRequest, feature: Annotated[
     SetupJobFeature, Depends(ConformationsDependencies.setup_job)]) -> JobResponse:
     return await feature.handle(request=request)
+
+
+@router.get('/jobs/{job_id}/status',
+            summary='Get job execution status')
+async def get_job_status(job_id: UUID, feature: Annotated[
+    GetJobStatusFeature, Depends(ConformationsDependencies.get_job_status)]) -> GetJobStatusResponse:
+    return await feature.handle(job_id=job_id)

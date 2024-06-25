@@ -13,7 +13,8 @@ import conformations_microservice
 from mongoengine import Q
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.conformations.api_models import IntegratorsRequest, JobResponse, SetupJobRequest
+from nolabs.application.use_cases.conformations.api_models import IntegratorsRequest, JobResponse, SetupJobRequest, \
+    GetJobStatusResponse
 from nolabs.application.use_cases.experiments.api_models import TimelineResponse
 from nolabs.domain.models.common import JobId, JobName, Experiment, Protein
 from nolabs.domain.models.conformations import ConformationsJob, Integrator, ConformationsTimeline
@@ -152,7 +153,8 @@ class RunJobFeature:
                             ignore_missing_atoms=job.ignore_missing_atoms,
                             force_field=ff,
                             water_force_field=water_ff,
-                            pdb_content=pdb_content
+                            pdb_content=pdb_content,
+                            job_id=job_id
                         ))
 
                     for error in generate_gromacs_files_response.errors:
@@ -249,7 +251,8 @@ class RunJobFeature:
             replace_nonstandard_residues=job.replace_non_standard_residues,
             add_missing_atoms=job.add_missing_atoms,
             add_missing_hydrogens=job.add_missing_hydrogens,
-            pdb_content=pdb_content
+            pdb_content=pdb_content,
+            job_id=job.id
         )
         response = self._api.run_pdb_fixer_endpoint_run_pdb_fixer_post(run_pdb_fixer_request=pdb_fixer_request)
         timelines.append(
@@ -289,7 +292,8 @@ class RunJobFeature:
             take_frame_every=job.take_frame_every,
             total_frames=job.total_frames,
             top=top,
-            gro=gro
+            gro=gro,
+            job_id=job.id
         )
         return self._api.run_gromacs_simulations_endpoint_run_gromacs_simulations_post(
             run_gromacs_simulations_request=run_gromacs_simulations_request)
@@ -308,7 +312,28 @@ class RunJobFeature:
             total_frames=job.total_frames,
             pdb_content=pdb_content,
             force_field=ff,
-            water_force_field=water_ff
+            water_force_field=water_ff,
+            job_id=job.id
         )
         return self._api.run_pdb_simulations_endpoint_run_pdb_simulations_post(
             run_pdb_simulations_request=run_pdb_simulations_request)
+
+
+class GetJobStatusFeature:
+    def __init__(self, api: conformations_microservice.DefaultApi):
+        self._api = api
+
+    async def handle(self, job_id: UUID) -> GetJobStatusResponse:
+        job_id = JobId(job_id)
+
+        job: ConformationsJob = ConformationsJob.objects.with_id(job_id.value)
+
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
+
+        response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
+
+        return GetJobStatusResponse(
+            running=response.is_running,
+            result_valid=job.result_valid()
+        )

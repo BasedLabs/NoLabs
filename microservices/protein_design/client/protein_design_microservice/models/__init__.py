@@ -15,6 +15,7 @@
 
 # import models into model package
 from protein_design_microservice.models.http_validation_error import HTTPValidationError
+from protein_design_microservice.models.is_job_running_response import IsJobRunningResponse
 from protein_design_microservice.models.run_rfdiffusion_request import RunRfdiffusionRequest
 from protein_design_microservice.models.run_rfdiffusion_response import RunRfdiffusionResponse
 from protein_design_microservice.models.validation_error import ValidationError

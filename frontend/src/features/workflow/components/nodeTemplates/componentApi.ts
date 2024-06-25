@@ -45,23 +45,23 @@ const componentApi = {
   },
   localisation: {
     getJob: LocalisationService.getJobApiV1LocalisationJobsJobIdGet,
-    executionStatus: mockExecutionStatusApi
+    executionStatus: LocalisationService.getJobStatusApiV1LocalisationJobsJobIdStatusGet
   },
   solubility: {
     getJob: SolubilityService.getJobApiV1SolubilityJobsJobIdGet,
-    executionStatus: mockExecutionStatusApi
+    executionStatus: SolubilityService.getJobStatusApiV1SolubilityJobsJobIdStatusGet
   },
   geneOntology: {
     getJob: GeneOntologyService.getJobApiV1GeneOntologyJobsJobIdGet,
-    executionStatus: mockExecutionStatusApi
+    executionStatus: GeneOntologyService.getJobStatusApiV1GeneOntologyJobsJobIdStatusGet
   },
   conformations: {
     getJob: ConformationsService.getJobApiV1ConformationsJobsJobIdGet,
-    executionStatus: mockExecutionStatusApi
+    executionStatus: ConformationsService.getJobStatusApiV1ConformationsJobsJobIdStatusGet
   },
   proteinDesign: {
     getJob: ProteinDesignService.getJobApiV1ProteinDesignJobsJobIdGet,
-    executionStatus: mockExecutionStatusApi
+    executionStatus: ProteinDesignService.getJobStatusApiV1ProteinDesignJobsJobIdStatusGet
   },
   smallMoleculesDesign: {
     getJob: SmallMoleculesDesignService.getJobApiV1SmallMoleculesDesignJobsJobIdGet,

@@ -3,7 +3,7 @@ services:
     image: 'mongo:latest'
     network_mode: host
   conformations:
-    image: 'ghcr.io/basedlabs/conformations:1.0.0'
+    image: 'ghcr.io/basedlabs/conformations:1.1.0'
     network_mode: host
     build:
       context: microservices/conformations
@@ -38,7 +38,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5733
   solubility:
-    image: 'ghcr.io/basedlabs/solubility:1.0.0'
+    image: 'ghcr.io/basedlabs/solubility:1.1.0'
     network_mode: host
     build:
       context: microservices/solubility
@@ -52,7 +52,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   protein_design:
-    image: 'ghcr.io/basedlabs/protein-design:1.0.0'
+    image: 'ghcr.io/basedlabs/protein-design:1.1.0'
     network_mode: host
     build:
       context: microservices/protein_design
@@ -66,7 +66,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   localisation:
-    image: 'ghcr.io/basedlabs/localisation:1.0.0'
+    image: 'ghcr.io/basedlabs/localisation:1.1.0'
     network_mode: host
     build:
       context: microservices/localisation
@@ -80,7 +80,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   gene_ontology:
-    image: 'ghcr.io/basedlabs/gene-ontology:1.0.0'
+    image: 'ghcr.io/basedlabs/gene-ontology:1.1.0'
     network_mode: host
     build:
       context: microservices/gene_ontology
@@ -143,7 +143,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5741
   biobuddy:
-    image: 'ghcr.io/basedlabs/biobuddy:1.1.1'
+    image: 'ghcr.io/basedlabs/biobuddy:1.2.1'
     network_mode: host
     build:
       context: microservices/biobuddy

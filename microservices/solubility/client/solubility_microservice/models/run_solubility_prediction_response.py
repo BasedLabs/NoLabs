@@ -27,7 +27,7 @@ except ImportError:
 
 class RunSolubilityPredictionResponse(BaseModel):
     """
-    RunSolubilityPredictionResponse(errors: List[str], soluble_probability: Optional[float])
+    RunSolubilityPredictionResponse
     """ # noqa: E501
     errors: List[StrictStr]
     soluble_probability: Optional[Union[StrictFloat, StrictInt]]

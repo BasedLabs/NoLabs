@@ -16,7 +16,7 @@ from mongoengine import Q
 from nolabs.domain.gene_ontology import OboNode
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.gene_ontology.api_models import RunGeneOntologyResponseDataNode, JobResponse, \
-    JobResult, SetupJobRequest
+    JobResult, SetupJobRequest, GetJobStatusResponse
 from nolabs.domain.models.common import JobId, Experiment, JobName, Protein
 from nolabs.domain.models.gene_ontology import GeneOntologyJob
 from nolabs.utils import generate_uuid
@@ -72,9 +72,10 @@ class RunJobFeature:
         result: List[Tuple[Protein, Dict[str, Any]]] = []
 
         for protein in job.proteins:
-            response = self._api.run_go_prediction_run_go_prediction_post(
+            response = self._api.run_go_prediction_run_post(
                 run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
-                    amino_acid_sequence=protein.get_amino_acid_sequence()
+                    amino_acid_sequence=protein.get_amino_acid_sequence(),
+                    job_id=str(job_id.value)
                 )
             )
 
@@ -96,7 +97,6 @@ class RunJobFeature:
             protein.save()
 
         return map_job_to_response(job)
-
 
     def _read_obo(self, obo: List[Tuple[str, float]]) -> Dict[str, OboNode]:
         ids_dict = {name: prob for name, prob in obo}
@@ -156,6 +156,7 @@ class SetupJobFeature:
     """
     Use case - create new or update existing job.
     """
+
     async def handle(self, request: SetupJobRequest) -> JobResponse:
         assert request
 
@@ -194,3 +195,23 @@ class SetupJobFeature:
         job.save(cascade=True)
 
         return map_job_to_response(job)
+
+
+class GetJobStatusFeature:
+    def __init__(self, api: DefaultApi):
+        self._api = api
+
+    async def handle(self, job_id: UUID) -> GetJobStatusResponse:
+        job_id = JobId(job_id)
+
+        job: GeneOntologyJob = GeneOntologyJob.objects.with_id(job_id.value)
+
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
+
+        response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
+
+        return GetJobStatusResponse(
+            running=response.is_running,
+            result_valid=job.result_valid()
+        )

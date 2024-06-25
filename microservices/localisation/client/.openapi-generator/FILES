@@ -1,11 +1,11 @@
 .github/workflows/python.yml
 .gitignore
 .gitlab-ci.yml
-.openapi-generator-ignore
 .travis.yml
 README.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
+docs/IsJobRunningResponse.md
 docs/RunLocalisationPredictionRequest.md
 docs/RunLocalisationPredictionResponse.md
 docs/ValidationError.md
@@ -20,6 +20,7 @@ localisation_microservice/configuration.py
 localisation_microservice/exceptions.py
 localisation_microservice/models/__init__.py
 localisation_microservice/models/http_validation_error.py
+localisation_microservice/models/is_job_running_response.py
 localisation_microservice/models/run_localisation_prediction_request.py
 localisation_microservice/models/run_localisation_prediction_response.py
 localisation_microservice/models/validation_error.py
@@ -32,10 +33,5 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_default_api.py
-test/test_http_validation_error.py
-test/test_run_localisation_prediction_request.py
-test/test_run_localisation_prediction_response.py
-test/test_validation_error.py
-test/test_validation_error_loc_inner.py
+test/test_is_job_running_response.py
 tox.ini

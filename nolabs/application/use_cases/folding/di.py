@@ -30,13 +30,14 @@ class FoldingDependencies:
     @staticmethod
     def get_job_status(esmfold: Annotated[DefaultApi, Depends(InfrastructureDependencies.esmfold_microservice)],
                    esmfold_light: Annotated[DefaultApi, Depends(InfrastructureDependencies.esmfold_light_microservice)],
-                   rosettafold: Annotated[DefaultApi, Depends(
-                       InfrastructureDependencies.esmfold_light_microservice)]) -> GetJobStatusFeature:
+                       rosettafold: Annotated[DefaultApi, Depends(
+                           InfrastructureDependencies.esmfold_light_microservice)]) -> GetJobStatusFeature:
         return GetJobStatusFeature(
             esmfold=esmfold,
             esmfold_light=esmfold_light,
             rosettafold=rosettafold
         )
+
 
     @staticmethod
     def setup_job() -> SetupJobFeature:

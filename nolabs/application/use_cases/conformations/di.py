@@ -7,7 +7,8 @@ from typing import Annotated
 from fastapi import Depends
 from localisation_microservice import DefaultApi
 
-from nolabs.application.use_cases.conformations.use_cases import SetupJobFeature, GetJobFeature, RunJobFeature
+from nolabs.application.use_cases.conformations.use_cases import SetupJobFeature, GetJobFeature, RunJobFeature, \
+    GetJobStatusFeature
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 
@@ -25,3 +26,12 @@ class ConformationsDependencies:
     @staticmethod
     def setup_job() -> SetupJobFeature:
         return SetupJobFeature()
+
+    @staticmethod
+    def get_job_status(
+            api: Annotated[
+                DefaultApi, Depends(InfrastructureDependencies.conformations_microservice)]
+    ) -> GetJobStatusFeature:
+        return GetJobStatusFeature(
+            api=api
+        )

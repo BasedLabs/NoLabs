@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -8,8 +8,8 @@ export type nolabs__application__use_cases__protein_design__api_models__JobRespo
     experiment_id: string;
     protein_id: string;
     binder_ids: Array<string>;
-    contig: string;
-    number_of_designs?: number;
+    contig?: (string | null);
+    number_of_designs?: (number | null);
     timesteps?: (number | null);
     hotspots?: (string | null);
 };

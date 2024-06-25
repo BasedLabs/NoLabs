@@ -1,7 +1,8 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { nolabs__application__use_cases__protein_design__api_models__GetJobStatusResponse } from '../models/nolabs__application__use_cases__protein_design__api_models__GetJobStatusResponse';
 import type { nolabs__application__use_cases__protein_design__api_models__JobResponse } from '../models/nolabs__application__use_cases__protein_design__api_models__JobResponse';
 import type { nolabs__application__use_cases__protein_design__api_models__SetupJobRequest } from '../models/nolabs__application__use_cases__protein_design__api_models__SetupJobRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -62,6 +63,26 @@ export class ProteinDesignService {
             url: '/api/v1/protein-design/jobs',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get job execution status
+     * @param jobId
+     * @returns nolabs__application__use_cases__protein_design__api_models__GetJobStatusResponse Successful Response
+     * @throws ApiError
+     */
+    public static getJobStatusApiV1ProteinDesignJobsJobIdStatusGet(
+        jobId: string,
+    ): CancelablePromise<nolabs__application__use_cases__protein_design__api_models__GetJobStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/protein-design/jobs/{job_id}/status',
+            path: {
+                'job_id': jobId,
+            },
             errors: {
                 422: `Validation Error`,
             },

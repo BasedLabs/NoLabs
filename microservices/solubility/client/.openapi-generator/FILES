@@ -5,6 +5,7 @@
 README.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
+docs/IsJobRunningResponse.md
 docs/RunSolubilityPredictionRequest.md
 docs/RunSolubilityPredictionResponse.md
 docs/ValidationError.md
@@ -23,6 +24,7 @@ solubility_microservice/configuration.py
 solubility_microservice/exceptions.py
 solubility_microservice/models/__init__.py
 solubility_microservice/models/http_validation_error.py
+solubility_microservice/models/is_job_running_response.py
 solubility_microservice/models/run_solubility_prediction_request.py
 solubility_microservice/models/run_solubility_prediction_response.py
 solubility_microservice/models/validation_error.py
@@ -31,4 +33,5 @@ solubility_microservice/py.typed
 solubility_microservice/rest.py
 test-requirements.txt
 test/__init__.py
+test/test_is_job_running_response.py
 tox.ini

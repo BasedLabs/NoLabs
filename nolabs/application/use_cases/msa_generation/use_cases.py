@@ -133,22 +133,16 @@ class GetJobStatusFeature:
         self._api = api
 
     async def handle(self, job_id: UUID) -> GetJobStatusResponse:
-        try:
-            job_id = JobId(job_id)
+        job_id = JobId(job_id)
 
-            job: MsaGenerationJob = MsaGenerationJob.objects.with_id(job_id.value)
+        job: MsaGenerationJob = MsaGenerationJob.objects.with_id(job_id.value)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
 
-            response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
+        response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
 
-            return GetJobStatusResponse(
-                running=response.is_running,
-                result_valid=job.result_valid()
-            )
-        except Exception as e:
-            print(e)
-            if not isinstance(e, NoLabsException):
-                raise NoLabsException(ErrorCodes.unknown_exception) from e
-            raise e
+        return GetJobStatusResponse(
+            running=response.is_running,
+            result_valid=job.result_valid()
+        )

@@ -1,19 +1,18 @@
-import dataclasses
-from typing import Optional, List
+from typing import List
+from uuid import UUID
 
-import pydantic.dataclasses
+from pydantic.dataclasses import dataclass
 
 from localisation.mixins import BaseModelMixin
 
 
-@dataclasses.dataclass
-@pydantic.dataclasses.dataclass
+@dataclass
 class RunLocalisationPredictionRequest(BaseModelMixin):
+    job_id: UUID
     amino_acid_sequence: str
 
 
-@dataclasses.dataclass
-@pydantic.dataclasses.dataclass
+@dataclass
 class RunLocalisationPredictionResponse(BaseModelMixin):
     cytosolic_proteins: float
     mitochondrial_proteins: float
@@ -21,3 +20,7 @@ class RunLocalisationPredictionResponse(BaseModelMixin):
     other_proteins: float
     extracellular_secreted_proteins: float
     errors: List[str]
+
+@dataclass
+class IsJobRunningResponse:
+    is_running: bool

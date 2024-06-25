@@ -21,6 +21,7 @@ from conformations.api_models import GenGroTopRequest, GenGroTopResponse
 
 __all__ = ['run_pdb_fixer', 'run_pdb_simulation', 'run_gromacs_simulation', 'generate_gromacs_files']
 
+from conformations.shared import memory_manager, JobStatusEnum
 
 
 def run_pdb_fixer(parameters: RunPdbFixerRequest) -> RunPdbFixerResponse:
@@ -28,6 +29,7 @@ def run_pdb_fixer(parameters: RunPdbFixerRequest) -> RunPdbFixerResponse:
     output_pdb = f'{uuid.uuid4()}.pdb'
 
     try:
+        memory_manager.change_status(str(parameters.job_id), JobStatusEnum.running)
         with open(input_pdb, 'w') as f:
             f.write(parameters.pdb_content)
         fixer = pdbfixer.PDBFixer(input_pdb)
@@ -50,6 +52,7 @@ def run_pdb_fixer(parameters: RunPdbFixerRequest) -> RunPdbFixerResponse:
     finally:
         _remove_file_if_exists(output_pdb)
         _remove_file_if_exists(input_pdb)
+        memory_manager.change_status(str(parameters.job_id), JobStatusEnum.idle)
 
 
 def run_gromacs_simulation(parameters: RunGromacsSimulationsRequest) -> RunSimulationsResponse:
@@ -65,6 +68,7 @@ def run_gromacs_simulation(parameters: RunGromacsSimulationsRequest) -> RunSimul
     take_frame_every = parameters.take_frame_every
 
     try:
+        memory_manager.change_status(str(parameters.job_id), JobStatusEnum.running)
         with open(input_gro, 'w') as f:
             f.write(parameters.gro)
 
@@ -92,6 +96,7 @@ def run_gromacs_simulation(parameters: RunGromacsSimulationsRequest) -> RunSimul
         _remove_file_if_exists(output_pdb)
         _remove_file_if_exists(input_gro)
         _remove_file_if_exists(input_top)
+        memory_manager.change_status(str(parameters.job_id), JobStatusEnum.idle)
 
 
 def run_pdb_simulation(parameters: RunPdbSimulationsRequest) -> RunSimulationsResponse:
@@ -106,6 +111,8 @@ def run_pdb_simulation(parameters: RunPdbSimulationsRequest) -> RunSimulationsRe
     take_frame_every = parameters.take_frame_every
 
     try:
+        memory_manager.change_status(str(parameters.job_id), JobStatusEnum.running)
+
         with open(input_pdb, 'w') as f:
             f.write(parameters.pdb_content)
         pdb = PDBFile(input_pdb)
@@ -129,6 +136,7 @@ def run_pdb_simulation(parameters: RunPdbSimulationsRequest) -> RunSimulationsRe
     finally:
         _remove_file_if_exists(output_pdb)
         _remove_file_if_exists(input_pdb)
+        memory_manager.change_status(str(parameters.job_id), JobStatusEnum.idle)
 
 
 def generate_gromacs_files(parameters: GenGroTopRequest) -> GenGroTopResponse:
@@ -137,6 +145,7 @@ def generate_gromacs_files(parameters: GenGroTopRequest) -> GenGroTopResponse:
     output_top = f'{uuid.uuid4()}.top'
 
     try:
+        memory_manager.change_status(str(parameters.job_id), JobStatusEnum.running)
         with open(input_pdb, 'w') as f:
             f.write(parameters.pdb_content)
         program = ['/usr/local/gromacs/bin/gmx', 'pdb2gmx', '-f',
@@ -157,6 +166,7 @@ def generate_gromacs_files(parameters: GenGroTopRequest) -> GenGroTopResponse:
         _remove_file_if_exists(input_pdb)
         _remove_file_if_exists(output_gro)
         _remove_file_if_exists(output_top)
+        memory_manager.change_status(str(parameters.job_id), JobStatusEnum.idle)
 
 
 def _remove_file_if_exists(path: str) -> None:

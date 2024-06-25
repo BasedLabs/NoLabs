@@ -5,8 +5,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**errors** | **List[str]** |  | [optional] 
 **pdbs_content** | **List[str]** |  | [optional] 
+**errors** | **List[str]** |  | [optional] 
 
 ## Example
 

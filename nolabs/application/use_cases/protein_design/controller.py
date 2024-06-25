@@ -7,9 +7,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from nolabs.application.use_cases.protein_design.api_models import SetupJobRequest, JobResponse
+from nolabs.application.use_cases.protein_design.api_models import SetupJobRequest, JobResponse, GetJobStatusResponse
 from nolabs.application.use_cases.protein_design.di import ProteinDesignDependencies
-from nolabs.application.use_cases.protein_design.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature
+from nolabs.application.use_cases.protein_design.use_cases import RunJobFeature, GetJobFeature, SetupJobFeature, \
+    GetJobStatusFeature
 
 router = APIRouter(
     prefix='/api/v1/protein-design',
@@ -38,3 +39,10 @@ async def get_job(job_id: UUID, feature: Annotated[
 async def setup_job(request: SetupJobRequest, feature: Annotated[
     SetupJobFeature, Depends(ProteinDesignDependencies.setup_job)]) -> JobResponse:
     return await feature.handle(request=request)
+
+
+@router.get('/jobs/{job_id}/status',
+            summary='Get job execution status')
+async def get_job_status(job_id: UUID, feature: Annotated[
+    GetJobStatusFeature, Depends(ProteinDesignDependencies.get_job_status)]) -> GetJobStatusResponse:
+    return await feature.handle(job_id=job_id)

@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -48,6 +48,7 @@ export type { Message } from './models/Message';
 export type { nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__binding_pockets__api_models__JobResponse } from './models/nolabs__application__use_cases__binding_pockets__api_models__JobResponse';
 export type { nolabs__application__use_cases__binding_pockets__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__binding_pockets__api_models__SetupJobRequest';
+export type { nolabs__application__use_cases__conformations__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__conformations__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__conformations__api_models__JobResponse } from './models/nolabs__application__use_cases__conformations__api_models__JobResponse';
 export type { nolabs__application__use_cases__conformations__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__conformations__api_models__SetupJobRequest';
 export type { nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse';
@@ -58,20 +59,24 @@ export type { nolabs__application__use_cases__folding__api_models__GetJobStatusR
 export type { nolabs__application__use_cases__folding__api_models__JobResponse } from './models/nolabs__application__use_cases__folding__api_models__JobResponse';
 export type { nolabs__application__use_cases__folding__api_models__JobResult } from './models/nolabs__application__use_cases__folding__api_models__JobResult';
 export type { nolabs__application__use_cases__folding__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__folding__api_models__SetupJobRequest';
+export type { nolabs__application__use_cases__gene_ontology__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__gene_ontology__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__gene_ontology__api_models__JobResponse } from './models/nolabs__application__use_cases__gene_ontology__api_models__JobResponse';
 export type { nolabs__application__use_cases__gene_ontology__api_models__JobResult } from './models/nolabs__application__use_cases__gene_ontology__api_models__JobResult';
 export type { nolabs__application__use_cases__gene_ontology__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__gene_ontology__api_models__SetupJobRequest';
+export type { nolabs__application__use_cases__localisation__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__localisation__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__localisation__api_models__JobResponse } from './models/nolabs__application__use_cases__localisation__api_models__JobResponse';
 export type { nolabs__application__use_cases__localisation__api_models__JobResult } from './models/nolabs__application__use_cases__localisation__api_models__JobResult';
 export type { nolabs__application__use_cases__localisation__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__localisation__api_models__SetupJobRequest';
 export type { nolabs__application__use_cases__msa_generation__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__msa_generation__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__msa_generation__api_models__JobResponse } from './models/nolabs__application__use_cases__msa_generation__api_models__JobResponse';
 export type { nolabs__application__use_cases__msa_generation__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__msa_generation__api_models__SetupJobRequest';
+export type { nolabs__application__use_cases__protein_design__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__protein_design__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__protein_design__api_models__JobResponse } from './models/nolabs__application__use_cases__protein_design__api_models__JobResponse';
 export type { nolabs__application__use_cases__protein_design__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__protein_design__api_models__SetupJobRequest';
 export type { nolabs__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__small_molecules_design__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__small_molecules_design__api_models__JobResponse } from './models/nolabs__application__use_cases__small_molecules_design__api_models__JobResponse';
 export type { nolabs__application__use_cases__small_molecules_design__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__small_molecules_design__api_models__SetupJobRequest';
+export type { nolabs__application__use_cases__solubility__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__solubility__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__solubility__api_models__JobResponse } from './models/nolabs__application__use_cases__solubility__api_models__JobResponse';
 export type { nolabs__application__use_cases__solubility__api_models__JobResult } from './models/nolabs__application__use_cases__solubility__api_models__JobResult';
 export type { nolabs__application__use_cases__solubility__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__solubility__api_models__SetupJobRequest';

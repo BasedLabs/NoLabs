@@ -86,6 +86,7 @@ All URIs are relative to *http://localhost*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *DefaultApi* | [**gen_gro_top_endpoint_gen_gro_top_post**](docs/DefaultApi.md#gen_gro_top_endpoint_gen_gro_top_post) | **POST** /gen-gro-top | Gen Gro Top Endpoint
+*DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
 *DefaultApi* | [**run_gromacs_simulations_endpoint_run_gromacs_simulations_post**](docs/DefaultApi.md#run_gromacs_simulations_endpoint_run_gromacs_simulations_post) | **POST** /run-gromacs-simulations | Run Gromacs Simulations Endpoint
 *DefaultApi* | [**run_pdb_fixer_endpoint_run_pdb_fixer_post**](docs/DefaultApi.md#run_pdb_fixer_endpoint_run_pdb_fixer_post) | **POST** /run-pdb-fixer | Run Pdb Fixer Endpoint
 *DefaultApi* | [**run_pdb_simulations_endpoint_run_pdb_simulations_post**](docs/DefaultApi.md#run_pdb_simulations_endpoint_run_pdb_simulations_post) | **POST** /run-pdb-simulations | Run Pdb Simulations Endpoint
@@ -99,6 +100,7 @@ Class | Method | HTTP request | Description
  - [GromacsWaterForceFields](docs/GromacsWaterForceFields.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [Integrators](docs/Integrators.md)
+ - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [OpenMmForceFields](docs/OpenMmForceFields.md)
  - [OpenMmWaterForceFields](docs/OpenMmWaterForceFields.md)
  - [RunGromacsSimulationsRequest](docs/RunGromacsSimulationsRequest.md)

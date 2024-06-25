@@ -31,11 +31,12 @@ class GenGroTopRequest(BaseModel):
     """
     GenGroTopRequest
     """ # noqa: E501
+    job_id: StrictStr
     force_field: GromacsForceFields
     water_force_field: GromacsWaterForceFields
     pdb_content: StrictStr
     ignore_missing_atoms: Optional[StrictBool] = False
-    __properties: ClassVar[List[str]] = ["force_field", "water_force_field", "pdb_content", "ignore_missing_atoms"]
+    __properties: ClassVar[List[str]] = ["job_id", "force_field", "water_force_field", "pdb_content", "ignore_missing_atoms"]
 
     model_config = {
         "populate_by_name": True,
@@ -86,6 +87,7 @@ class GenGroTopRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "job_id": obj.get("job_id"),
             "force_field": obj.get("force_field"),
             "water_force_field": obj.get("water_force_field"),
             "pdb_content": obj.get("pdb_content"),

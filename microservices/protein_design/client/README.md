@@ -67,15 +67,15 @@ configuration = protein_design_microservice.Configuration(
 with protein_design_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = protein_design_microservice.DefaultApi(api_client)
-    run_rfdiffusion_request = protein_design_microservice.RunRfdiffusionRequest() # RunRfdiffusionRequest | 
+    job_id = 'job_id_example' # str | 
 
     try:
-        # Run Rfdiffusion Endpoint
-        api_response = api_instance.run_rfdiffusion_endpoint_run_rfdiffusion_post(run_rfdiffusion_request)
-        print("The response of DefaultApi->run_rfdiffusion_endpoint_run_rfdiffusion_post:\n")
+        # Is Job Running
+        api_response = api_instance.is_job_running_job_job_id_is_running_get(job_id)
+        print("The response of DefaultApi->is_job_running_job_job_id_is_running_get:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DefaultApi->run_rfdiffusion_endpoint_run_rfdiffusion_post: %s\n" % e)
+        print("Exception when calling DefaultApi->is_job_running_job_job_id_is_running_get: %s\n" % e)
 
 ```
 
@@ -85,12 +85,14 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DefaultApi* | [**run_rfdiffusion_endpoint_run_rfdiffusion_post**](docs/DefaultApi.md#run_rfdiffusion_endpoint_run_rfdiffusion_post) | **POST** /run-rfdiffusion | Run Rfdiffusion Endpoint
+*DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
+*DefaultApi* | [**run_rfdiffusion_endpoint_run_post**](docs/DefaultApi.md#run_rfdiffusion_endpoint_run_post) | **POST** /run | Run Rfdiffusion Endpoint
 
 
 ## Documentation For Models
 
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [RunRfdiffusionRequest](docs/RunRfdiffusionRequest.md)
  - [RunRfdiffusionResponse](docs/RunRfdiffusionResponse.md)
  - [ValidationError](docs/ValidationError.md)

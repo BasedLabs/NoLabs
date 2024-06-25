@@ -20,4 +20,4 @@ ADD requirements.txt /app
 RUN pip install -r requirements.txt
 RUN ls -l
 
-ENTRYPOINT ["uvicorn", "protein_design.api:app"]
+ENTRYPOINT ["uvicorn", "protein_design.api:app", "--workers", "2"]

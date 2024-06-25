@@ -14,6 +14,7 @@ from gene_ontology.api_models import RunGeneOntologyPredictionRequest, RunGeneOn
     GoConfidenceResponse
 from gene_ontology.loggers import logger
 from gene_ontology.settings import Settings
+from gene_ontology.shared import memory_manager, JobStatusEnum
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 models_dir = os.path.join(current_dir, 'models')
@@ -165,6 +166,7 @@ class GeneOntologyPrediction:
 
 def run_gene_ontology_prediction(request: RunGeneOntologyPredictionRequest) -> RunGeneOntologyPredictionResponse:
     try:
+        memory_manager.change_status(str(request.job_id), JobStatusEnum.running)
         model = GeneOntologyPrediction(model_name='gene_ontology',
                                        gpu=torch.cuda.is_available())
         model.load_model()
@@ -185,3 +187,5 @@ def run_gene_ontology_prediction(request: RunGeneOntologyPredictionRequest) -> R
         logger.exception()
         return RunGeneOntologyPredictionResponse(go_confidence=[],
                                                  errors=['Internal error in gene ontology prediction occured'])
+    finally:
+        memory_manager.change_status(str(request.job_id), JobStatusEnum.idle)
