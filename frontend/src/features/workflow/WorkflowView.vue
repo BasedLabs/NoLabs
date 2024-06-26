@@ -14,10 +14,10 @@
         </q-list>
       </q-btn-dropdown>
       <q-space />
-      <q-btn v-if="!isWorkflowRunning || !isLocallyRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
+      <q-btn v-if="!isWorkflowRunning && !isLocallyRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
         Start workflow
       </q-btn>
-      <q-btn v-else class="q-ma-sm" color="info" icon="running">
+      <q-btn v-else :disable="true" class="q-ma-sm" color="info" icon="running">
         <q-spinner color="white" size="20px" />
         Running...
       </q-btn>
@@ -269,6 +269,9 @@ export default defineComponent({
     async startWorkflow() {
       this.isLocallyRunning = true;
       await startWorkflow(this.workflowId);
+      setTimeout(() => {
+          this.isLocallyRunning = false;
+        }, 5000); // Reset isLocallyRunning after 5 seconds
     },
     onEdgeUpdate(params: { edge: Edge }) {
       const workflowStore = useWorkflowStore();

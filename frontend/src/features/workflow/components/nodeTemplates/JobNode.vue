@@ -20,7 +20,7 @@
     </q-card-section>
     <q-card-actions align="around">
       <q-btn v-if="!isRunning && !isLocallyRunning" @click="startWorkflow" color="info" icon="play_arrow" label="Start" />
-      <q-btn v-else>
+      <q-btn :disable="true" v-else>
         <q-spinner color="primary" size="20px" />
         Running...
       </q-btn>
@@ -83,6 +83,9 @@ export default {
         this.isLocallyRunning = true;
         await startWorkflowComponent(workflowId, this.nodeId);
         console.log(`Started workflow component with workflowId: ${workflowId} and nodeId: ${this.nodeId}`);
+        setTimeout(() => {
+          this.isLocallyRunning = false;
+        }, 5000); // Reset isLocallyRunning after 5 seconds
       } catch (error) {
         this.isLocallyRunning = false;
         console.error('Failed to start workflow component', error);

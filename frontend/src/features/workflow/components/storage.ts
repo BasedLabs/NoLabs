@@ -1,4 +1,4 @@
-import {defineStore} from 'pinia';
+import { defineStore } from 'pinia';
 import {
   InputPropertyErrorResponse,
   JobErrorResponse,
@@ -16,9 +16,9 @@ import {
   getAllLigandsMetadata,
   getComponentState
 } from 'src/features/workflow/refinedApi';
-import {Edge, Node as FlowNode} from '@vue-flow/core';
-import {v4 as uuidv4} from 'uuid';
-import {Notify} from 'quasar';
+import { Edge, Node as FlowNode } from '@vue-flow/core';
+import { v4 as uuidv4 } from 'uuid';
+import { Notify } from 'quasar';
 import {
   getWorkflow,
   sendWorkflowUpdate,
@@ -101,10 +101,17 @@ export const useWorkflowStore = defineStore('workflowStore', {
     clearRunningComponentIds() {
       this.runningComponentIds = [];
     },
-    async deleteJob(jobId: string){
+    async deleteJob(jobId: string) {
       await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJodIdDelete(jobId);
     },
-    async uploadProteinToExperiment(experimentId: string, nodeId: string, name?: string, fastaFile?: Blob, pdbFile?: Blob, metaData?: Record<string, string>) {
+    async uploadProteinToExperiment(
+      experimentId: string,
+      nodeId: string,
+      name?: string,
+      fastaFile?: Blob,
+      pdbFile?: Blob,
+      metaData?: Record<string, string>
+    ) {
       try {
         let link: string | undefined;
         if (metaData && 'link' in metaData) {
@@ -119,7 +126,12 @@ export const useWorkflowStore = defineStore('workflowStore', {
           link // Pass the link if it exists
         );
 
-        this.proteins.push(uploadedProtein);
+        // Check if the protein already exists in the proteins array
+        const proteinExists = this.proteins.some(protein => protein.id === uploadedProtein.id);
+        if (!proteinExists) {
+          this.proteins.push(uploadedProtein);
+        }
+
         const existingNode = this.getNodeById(nodeId);
 
         if (existingNode) {
@@ -136,8 +148,11 @@ export const useWorkflowStore = defineStore('workflowStore', {
             );
 
             if (defaultEntry) {
-              // Push the new id to the existing value array
-              defaultEntry.value.push(uploadedProtein.id);
+              // Check if the protein id already exists in the defaultEntry value array
+              if (!defaultEntry.value.includes(uploadedProtein.id)) {
+                // Push the new id to the existing value array
+                defaultEntry.value.push(uploadedProtein.id);
+              }
             } else {
               // If no matching default entry exists, create a new one
               existingNode.data.defaults.push({
@@ -189,7 +204,14 @@ export const useWorkflowStore = defineStore('workflowStore', {
       const response = await getAllLigandsMetadata(experimentId);
       this.ligands = response;
     },
-    async uploadLigandToExperiment(experimentId: string, nodeId: string, name?: string, smiles?: Blob, sdf?: Blob, metaData?: Record<string, string>) {
+    async uploadLigandToExperiment(
+      experimentId: string,
+      nodeId: string,
+      name?: string,
+      smiles?: Blob,
+      sdf?: Blob,
+      metaData?: Record<string, string>
+    ) {
       try {
         const uploadedLigand = await uploadLigand(
           experimentId,
@@ -197,7 +219,12 @@ export const useWorkflowStore = defineStore('workflowStore', {
           smiles,
           sdf
         );
-        this.ligands.push(uploadedLigand);
+
+        // Check if the ligand already exists in the ligands array
+        const ligandExists = this.ligands.some(ligand => ligand.id === uploadedLigand.id);
+        if (!ligandExists) {
+          this.ligands.push(uploadedLigand);
+        }
 
         const existingNode = this.getNodeById(nodeId);
 
@@ -219,11 +246,12 @@ export const useWorkflowStore = defineStore('workflowStore', {
             existingNode.data.defaults.push(defaultEntry);
           }
 
+          // Check if the ligand id already exists in the defaultEntry value array
           if (!defaultEntry.value.includes(uploadedLigand.id)) {
             defaultEntry.value.push(uploadedLigand.id);
           }
         }
-        this.sendWorkflowUpdate()
+        this.sendWorkflowUpdate();
       } catch (error) {
         console.error('Error uploading ligand:', error);
       }
@@ -274,11 +302,11 @@ export const useWorkflowStore = defineStore('workflowStore', {
           const inputs = component.input;
           const outputs = component.output;
           const description = this.getDescriptionString(component);
-          componentIOMap[component.name] = {inputs, outputs, type: component.name, description};
+          componentIOMap[component.name] = { inputs, outputs, type: component.name, description };
         });
 
         for (const component of workflow.workflow_components) {
-          const {inputs, outputs, type, description} = componentIOMap[component.name] || {
+          const { inputs, outputs, type, description } = componentIOMap[component.name] || {
             inputs: [],
             outputs: [],
             type: '',
@@ -322,7 +350,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
               sourceHandle: `${mapping.source_component_id}-output-${mapping.source_path[0]}`,
               targetHandle: `${component.component_id}-input-${mapping.target_path[0]}`,
               type: "custom",
-              data: {text: mapping.error}
+              data: { text: mapping.error }
             });
           });
         });
@@ -402,7 +430,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
           defaults: [],
           error: null
         },
-        position: {x: 100, y: 100}, // Default position
+        position: { x: 100, y: 100 }, // Default position
       };
 
       // Add the new node to the elements
@@ -527,7 +555,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             const existingEdge = this.elements.edges.find(edge => edge.source === mapping.source_component_id && edge.target === component.component_id);
             if (existingEdge && existingEdge.data) {
               existingEdge.data.text = mapping.error;
-            } 
+            }
           });
         });
 

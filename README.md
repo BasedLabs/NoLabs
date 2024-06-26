@@ -216,17 +216,24 @@ If everything is correct, you should see the FastAPI page with diffdock's API su
 
 <img src="media/Diffdock_fastapi.png">
 
-Next, update the nolabs/infrastructure/settings.ini file on your primary machine to include the IP address of the
+Next, update the `nolabs/infrastructure/appsettings.local.json` file on your primary machine to include the IP address of the
 service (replace 127.0.0.1 with your GPU machine's IP):
 
 ```ini
 ...
-p2rank = http://127.0.0.1:5731
-esmfold = http://127.0.0.1:5736
-esmfold_light = http://127.0.0.1:5733
-msa_light = http://127.0.0.1:5734
-umol = http://127.0.0.1:5735
-diffdock = http://127.0.0.1:5737 -> http://74.82.28.227:5737
+  "p2rank": {
+    "microservice": "http://127.0.0.1:5731"
+  },
+  "msa_light": {
+    "microservice": "http://127.0.0.1:5734",
+    "msa_server_url": "http://207.246.89.242:8000/generate-msa"
+  },
+  "umol": {
+    "microservice": "http://127.0.0.1:5735"
+  },
+  "diffdock": {
+    "microservice": "http://127.0.0.1:5737" -> http://74.82.28.227:5737
+  }
 ...
 ```
 
