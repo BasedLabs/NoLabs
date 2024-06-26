@@ -143,7 +143,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5741
   biobuddy:
-    image: 'ghcr.io/basedlabs/biobuddy:1.2.1'
+    image: 'ghcr.io/basedlabs/biobuddy:1.2.0'
     network_mode: host
     build:
       context: microservices/biobuddy
@@ -171,7 +171,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790 --workers=1
   nolabs:
-    image: 'ghcr.io/basedlabs/nolabs:2.3.1'
+    image: 'ghcr.io/basedlabs/nolabs:2.0.0'
     network_mode: host
     build:
       context: .
