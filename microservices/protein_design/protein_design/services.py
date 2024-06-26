@@ -5,9 +5,12 @@ import subprocess
 from protein_design.loggers import logger
 
 from protein_design.api_models import RunRfdiffusionRequest, RunRfdiffusionResponse
+from protein_design.shared import memory_manager, JobStatusEnum
 
 
 def run_rfdiffusion(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
+    memory_manager.change_status(str(request.job_id), JobStatusEnum.running)
+
     current_dir = os.path.dirname(os.path.abspath(__file__))
     rfdiffusion_dir = os.path.join(current_dir, 'RFdiffusion')
     input_pdbs_dir = 'input_pdbs'
@@ -57,3 +60,4 @@ def run_rfdiffusion(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
     finally:
         shutil.rmtree(input_pdbs_dir)
         shutil.rmtree(output_files_dir)
+        memory_manager.change_status(str(request.job_id), JobStatusEnum.idle)

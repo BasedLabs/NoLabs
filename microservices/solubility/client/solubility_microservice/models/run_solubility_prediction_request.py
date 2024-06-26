@@ -27,10 +27,11 @@ except ImportError:
 
 class RunSolubilityPredictionRequest(BaseModel):
     """
-    RunSolubilityPredictionRequest(amino_acid_sequence: str)
+    RunSolubilityPredictionRequest
     """ # noqa: E501
+    job_id: StrictStr
     amino_acid_sequence: StrictStr
-    __properties: ClassVar[List[str]] = ["amino_acid_sequence"]
+    __properties: ClassVar[List[str]] = ["job_id", "amino_acid_sequence"]
 
     model_config = {
         "populate_by_name": True,
@@ -81,6 +82,7 @@ class RunSolubilityPredictionRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "job_id": obj.get("job_id"),
             "amino_acid_sequence": obj.get("amino_acid_sequence")
         })
         return _obj

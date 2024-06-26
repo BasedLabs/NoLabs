@@ -3,6 +3,3 @@ export type AminoAcid = {
   sequence: string;
   pdbFile: File
 };
-
-
-

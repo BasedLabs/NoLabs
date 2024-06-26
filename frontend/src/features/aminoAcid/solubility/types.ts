@@ -3,4 +3,3 @@ export type AminoAcid = {
   sequence: string;
   soluble_probability: number;
 };
-

@@ -4,7 +4,7 @@
       <q-header class="bg-black">
         <q-toolbar>
           <q-toolbar-title>
-            <router-link :to="{ name: 'Labs' }">
+            <router-link :to="{ name: 'Experiments' }">
               <q-img src="/logo.png" fit="scale-down" style="max-width: 100px">
               </q-img>
             </router-link>
@@ -25,7 +25,7 @@ export default defineComponent({
   name: "MainLayout",
   mounted(){
     if(this.$route.name === 'Main'){
-      this.$router.push({name: 'Labs'});
+      this.$router.push({name: 'Experiments'});
     }
   }
 });

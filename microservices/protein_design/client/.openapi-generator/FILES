@@ -5,6 +5,7 @@
 README.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
+docs/IsJobRunningResponse.md
 docs/RunRfdiffusionRequest.md
 docs/RunRfdiffusionResponse.md
 docs/ValidationError.md
@@ -19,6 +20,7 @@ protein_design_microservice/configuration.py
 protein_design_microservice/exceptions.py
 protein_design_microservice/models/__init__.py
 protein_design_microservice/models/http_validation_error.py
+protein_design_microservice/models/is_job_running_response.py
 protein_design_microservice/models/run_rfdiffusion_request.py
 protein_design_microservice/models/run_rfdiffusion_response.py
 protein_design_microservice/models/validation_error.py

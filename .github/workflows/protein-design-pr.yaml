@@ -1,0 +1,22 @@
+name: protein_design
+run-name: protein_design
+
+# Build and push nolabs image using GitHub Cache API
+# Only if relevant files were changed
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'microservices/protein_design/**'
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/build-docker.yaml
+    with:
+      microservice_name: "protein_design"

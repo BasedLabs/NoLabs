@@ -1,14 +1,8 @@
-__all__ = ['is_dev', ]
-
-import os
-
-if 'NOLABS_ENVIRONMENT' not in os.environ:
-    raise Exception('You must specify NOLABS_ENVIRONMENT environment variable. Allowed values are "dev", "prod".')
+from enum import Enum
 
 
-def is_dev() -> bool:
-    return os.environ.get('NOLABS_ENVIRONMENT') == 'dev'
+class Environment(str, Enum):
+    LOCAL = 'local'
+    TEST = 'test'
+    UNITTESTS = 'unit'
 
-
-def is_compose() -> bool:
-    return os.environ.get('COMPOSE') == '1'

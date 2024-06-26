@@ -29,11 +29,12 @@ class RunPdbFixerRequest(BaseModel):
     """
     RunPdbFixerRequest
     """ # noqa: E501
+    job_id: StrictStr
     pdb_content: StrictStr
     replace_nonstandard_residues: Optional[StrictBool] = False
     add_missing_atoms: Optional[StrictBool] = False
     add_missing_hydrogens: Optional[StrictBool] = True
-    __properties: ClassVar[List[str]] = ["pdb_content", "replace_nonstandard_residues", "add_missing_atoms", "add_missing_hydrogens"]
+    __properties: ClassVar[List[str]] = ["job_id", "pdb_content", "replace_nonstandard_residues", "add_missing_atoms", "add_missing_hydrogens"]
 
     model_config = {
         "populate_by_name": True,
@@ -84,6 +85,7 @@ class RunPdbFixerRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "job_id": obj.get("job_id"),
             "pdb_content": obj.get("pdb_content"),
             "replace_nonstandard_residues": obj.get("replace_nonstandard_residues") if obj.get("replace_nonstandard_residues") is not None else False,
             "add_missing_atoms": obj.get("add_missing_atoms") if obj.get("add_missing_atoms") is not None else False,

@@ -11,6 +11,9 @@ from nolabs.controllers.solubility.solubility import router as solubility_router
 from nolabs.controllers.folding.folding import router as folding_router
 from nolabs.controllers.small_molecules_design.small_molecules_design import router as small_molecules_design_router
 from nolabs.middlewares.domain_exception_middleware import add_domain_exception_middleware
+from nolabs.infrastructure.logging import configure_logging
+
+configure_logging()
 
 app = FastAPI(
     title='NoLabs',
@@ -20,6 +23,7 @@ app = FastAPI(
 origins = [
     '*'
 ]
+
 
 app.include_router(biobuddy_router)
 app.include_router(conformations_router)
@@ -39,6 +43,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
 
 print('Go to /api/v1/docs to see Swagger')

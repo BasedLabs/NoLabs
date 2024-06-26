@@ -67,15 +67,15 @@ configuration = localisation_microservice.Configuration(
 with localisation_microservice.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = localisation_microservice.DefaultApi(api_client)
-    run_localisation_prediction_request = localisation_microservice.RunLocalisationPredictionRequest() # RunLocalisationPredictionRequest | 
+    job_id = 'job_id_example' # str | 
 
     try:
-        # Run Localisation Prediction
-        api_response = api_instance.run_localisation_prediction_run_localisation_prediction_post(run_localisation_prediction_request)
-        print("The response of DefaultApi->run_localisation_prediction_run_localisation_prediction_post:\n")
+        # Is Job Running
+        api_response = api_instance.is_job_running_job_job_id_is_running_get(job_id)
+        print("The response of DefaultApi->is_job_running_job_job_id_is_running_get:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling DefaultApi->run_localisation_prediction_run_localisation_prediction_post: %s\n" % e)
+        print("Exception when calling DefaultApi->is_job_running_job_job_id_is_running_get: %s\n" % e)
 
 ```
 
@@ -85,12 +85,14 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*DefaultApi* | [**run_localisation_prediction_run_localisation_prediction_post**](docs/DefaultApi.md#run_localisation_prediction_run_localisation_prediction_post) | **POST** /run-localisation-prediction | Run Localisation Prediction
+*DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
+*DefaultApi* | [**predict_run_post**](docs/DefaultApi.md#predict_run_post) | **POST** /run | Predict
 
 
 ## Documentation For Models
 
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [RunLocalisationPredictionRequest](docs/RunLocalisationPredictionRequest.md)
  - [RunLocalisationPredictionResponse](docs/RunLocalisationPredictionResponse.md)
  - [ValidationError](docs/ValidationError.md)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 from enum import Enum
 from typing import List
+from uuid import UUID
 
 import pydantic
 
@@ -76,6 +77,7 @@ class GenGromacsFilesRequest(BaseModelMixin):
 
 @pydantic.dataclasses.dataclass
 class RunGromacsSimulationsRequest(BaseModelMixin):
+    job_id: UUID
     top: str
     gro: str
     temperature_k: float = 273.15
@@ -88,6 +90,7 @@ class RunGromacsSimulationsRequest(BaseModelMixin):
 
 @pydantic.dataclasses.dataclass
 class RunPdbSimulationsRequest(BaseModelMixin):
+    job_id: UUID
     pdb_content: str
     force_field: OpenMmForceFields
     water_force_field: OpenMmWaterForceFields
@@ -101,6 +104,7 @@ class RunPdbSimulationsRequest(BaseModelMixin):
 
 @pydantic.dataclasses.dataclass
 class RunPdbFixerRequest(BaseModelMixin):
+    job_id: UUID
     pdb_content: str
     replace_nonstandard_residues: bool = False
     add_missing_atoms: bool = False
@@ -121,6 +125,7 @@ class RunSimulationsResponse(BaseModelMixin):
 
 @pydantic.dataclasses.dataclass
 class GenGroTopRequest(BaseModelMixin):
+    job_id: UUID
     force_field: GromacsForceFields
     water_force_field: GromacsWaterForceFields
     pdb_content: str
@@ -132,3 +137,8 @@ class GenGroTopResponse(BaseModelMixin):
     gro: str | None
     top: str | None
     errors: List[str]
+
+
+@pydantic.dataclasses.dataclass
+class IsJobRunningResponse:
+    is_running: bool

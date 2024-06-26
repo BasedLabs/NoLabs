@@ -12,4 +12,4 @@ COPY gene_ontology/settings.py /app/gene_ontology
 RUN python -m gene_ontology.predownload_models
 COPY . /app
 
-ENTRYPOINT ["uvicorn", "gene_ontology.api:app"]
+ENTRYPOINT ["uvicorn", "gene_ontology.api:app", "--workers", "2"]

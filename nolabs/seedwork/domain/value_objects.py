@@ -1,60 +1,77 @@
+__all__ = [
+    'ValueObject',
+    'ValueObjectUUID',
+    'ValueObjectString',
+    'ValueObjectFloat',
+    'ValueObjectBinary'
+]
+
 import uuid
-from pydantic import BaseModel, ConfigDict
-from dataclasses import dataclass
 
-
-class GenericUUID(uuid.UUID):
-    @classmethod
-    def next_id(cls):
-        return cls(int=uuid.uuid4().int)
-    
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, value, validation_info):
-        if isinstance(value, str):
-            return cls(value)
-        if not isinstance(value, uuid.UUID):
-            raise ValueError('Invalid UUID')
-        return cls(value.hex)
+from pydantic.dataclasses import dataclass
 
 
 class ValueObject:
     """
     Base class for value objects
     """
+    ...
 
 
-# @functools.total_ordering  # type: ignore
-@dataclass(frozen=True)
-class Money(ValueObject):
-    amount: int = 0
-    currency: str = "USD"
+@dataclass
+class ValueObjectUUID(ValueObject):
+    value: uuid.UUID
 
-    def _check_currency(self, other):
-        if self.currency != other.currency:
-            raise ValueError("Cannot compare money of different currencies")
+    def __hash__(self):
+        return hash(self.value)
 
     def __eq__(self, other):
-        self._check_currency(other)
-        return self.amount == other.amount
+        if not isinstance(other, ValueObjectUUID):
+            return False
 
-    def __lt__(self, other):
-        self._check_currency(other)
-        return self.amount < other.amount
+        return self.value == other.value
 
-    def __add__(self, other):
-        self._check_currency(other)
-        return Money(self.amount + other.amount, currency=self.currency)
-
-    def __repr__(self) -> str:
-        return f"{self.amount}{self.currency}"
+    def __str__(self):
+        return str(self.value)
 
 
-class Email(str):
-    def __new__(cls, email):
-        if "@" not in email:
-            raise ValueError("Invalid email address")
-        return super().__new__(cls, email)
+@dataclass
+class ValueObjectString(ValueObject):
+    value: str
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __eq__(self, other):
+        if not isinstance(other, ValueObjectString):
+            return False
+
+        return self.value == other.value
+
+    def __str__(self):
+        return str(self.value)
+
+
+@dataclass
+class ValueObjectFloat(ValueObject):
+    value: float
+
+    def __float__(self):
+        return self.value
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __eq__(self, other):
+        if not isinstance(other, ValueObjectFloat):
+            return False
+
+        return self.value == other.value
+
+    def __str__(self):
+        return str(self.value)
+
+
+@dataclass
+class ValueObjectBinary(ValueObject):
+    value: bytes

@@ -15,10 +15,10 @@
 import unittest
 import datetime
 
-from nolabs_microservice.models.get_results_list_for_target_ligand_response import GetResultsListForTargetLigandResponse
+from nolabs_microservice.models.get_results_list_for_target_ligand_response import GetResultsListForTargetLigandContentResponse
 
-class TestGetResultsListForTargetLigandResponse(unittest.TestCase):
-    """GetResultsListForTargetLigandResponse unit test stubs"""
+class TestGetResultsListForTargetLigandContentResponse(unittest.TestCase):
+    """GetResultsListForTargetLigandContentResponse unit test stubs"""
 
     def setUp(self):
         pass
@@ -26,26 +26,26 @@ class TestGetResultsListForTargetLigandResponse(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> GetResultsListForTargetLigandResponse:
-        """Test GetResultsListForTargetLigandResponse
+    def make_instance(self, include_optional) -> GetResultsListForTargetLigandContentResponse:
+        """Test GetResultsListForTargetLigandContentResponse
             include_option is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `GetResultsListForTargetLigandResponse`
+        # uncomment below to create an instance of `GetResultsListForTargetLigandContentResponse`
         """
-        model = GetResultsListForTargetLigandResponse()
+        model = GetResultsListForTargetLigandContentResponse()
         if include_optional:
-            return GetResultsListForTargetLigandResponse(
+            return GetResultsListForTargetLigandContentResponse(
                 results_list = None
             )
         else:
-            return GetResultsListForTargetLigandResponse(
+            return GetResultsListForTargetLigandContentResponse(
                 results_list = None,
         )
         """
 
-    def testGetResultsListForTargetLigandResponse(self):
-        """Test GetResultsListForTargetLigandResponse"""
+    def testGetResultsListForTargetLigandContentResponse(self):
+        """Test GetResultsListForTargetLigandContentResponse"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

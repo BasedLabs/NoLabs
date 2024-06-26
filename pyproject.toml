@@ -11,22 +11,16 @@ uvicorn = "^0.25.0"
 fastapi = "^0.109.0"
 numpy = "^1.26.3"
 requests = "^2.31.0"
-localisation-microservice = {path = "microservices/localisation/client"}
 obonet = "^1.0.0"
 setuptools = "^69.0.3"
-gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
 rdkit = "^2023.9.4"
-protein-design-microservice = {path = "microservices/protein_design/client"}
-conformations-microservice = {path = "microservices/conformations/client"}
 python-json-logger = "^2.0.7"
 python-dateutil = "^2.8.2"
 python-slugify = "^8.0.2"
 python-multipart = "^0.0.6"
 msa-light-microservice = {path = "microservices/msa_light/client"}
 p2rank-microservice = {path = "microservices/p2rank/client"}
-solubility-microservice = {path = "microservices/solubility/client"}
 jupyter = "^1.0.0"
-umol-microservice = {path = "microservices/umol/client"}
 esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 diffdock-microservice = {path = "microservices/diffdock/client"}
@@ -34,9 +28,18 @@ pubmed-query-microservice = {path = "microservices/pubmed_query/client"}
 rcsb-pdb-query-microservice = {path = "microservices/rcsb_pdb_query/client"}
 chembl-query-microservice = {path = "microservices/chembl_query/client"}
 aiohttp = "^3.9.3"
+dependency-injector = "^4.41.0"
+leaf-basedlabs = "^0.0.9"
 rosettafold-microservice = {path = "microservices/rosettafold/client"}
-leaf-basedlabs = "^0.0.7"
 reinvent-microservice = {path = "microservices/reinvent/client"}
+mongoengine = "^0.28.2"
+pydantic-settings = "^2.2.1"
+biopython = "^1.83"
+localisation-microservice = {path = "microservices/localisation/client"}
+solubility-microservice = {path = "microservices/solubility/client"}
+conformations-microservice = {path = "microservices/conformations/client"}
+gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
+protein-design-microservice = {path = "microservices/protein_design/client"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
 
 [project]

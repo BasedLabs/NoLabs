@@ -1,10 +1,9 @@
 from typing import Dict, List
 
-import pydantic
+from pydantic import BaseModel
 
 
-@pydantic.dataclasses.dataclass
-class OboNode:
+class OboNode(BaseModel):
     name: str
     namespace: str
     edges: Dict[str, List[str]]

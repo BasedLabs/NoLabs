@@ -1,32 +1,24 @@
-from dataclasses import dataclass, field
-from typing import Generic, TypeVar
+__all__ = [
+    'Entity'
+]
+
+from typing import List
+
+from pydantic import PrivateAttr
 
 from nolabs.seedwork.domain.events import DomainEvent
-from nolabs.seedwork.domain.mixins import BusinessRuleValidationMixin
-from nolabs.seedwork.domain.value_objects import GenericUUID
-
-EntityId = TypeVar("EntityId", bound=GenericUUID)
 
 
-@dataclass
-class Entity(Generic[EntityId]):
-    id: EntityId = field(hash=True)
-
-    @classmethod
-    def next_id(cls) -> EntityId:
-        return GenericUUID.next_id()
-
-
-@dataclass(kw_only=True)
-class AggregateRoot(BusinessRuleValidationMixin, Entity[EntityId]):
-    """Consists of 1+ entities. Spans transaction boundaries."""
-
-    events: list = field(default_factory=list)
+class Entity:
+    _events: List[DomainEvent] = PrivateAttr(default_factory=list)
 
     def register_event(self, event: DomainEvent):
-        self.events.append(event)
+        self._events.append(event)
 
-    def collect_events(self):
-        events = self.events
-        self.events = []
+    def collect_events(self) -> List[DomainEvent]:
+        events = self._events
+        self._events = []
         return events
+
+    def clear_events(self):
+        self._events = []

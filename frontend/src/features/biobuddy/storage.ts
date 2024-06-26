@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import {ChemBLData, RcsbPdbData} from "src/api/client";
+import {ChemBLData, RcsbPdbData} from "src/refinedApi/client";
 
 interface ChemblFunctionCallback  {
   (data: {files: ChemBLData[]}): void;

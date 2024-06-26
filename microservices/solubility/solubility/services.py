@@ -13,6 +13,7 @@ import requests
 from solubility.api_models import RunSolubilityPredictionRequest, RunSolubilityPredictionResponse
 from solubility.loggers import logger
 from solubility.settings import Settings
+from solubility.shared import memory_manager, JobStatusEnum
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 models_dir = os.path.join(current_dir, 'models')
@@ -159,6 +160,7 @@ class SolubilityPrediction:
 
 
 def run_solubility_predictions(request: RunSolubilityPredictionRequest) -> RunSolubilityPredictionResponse:
+    memory_manager.change_status(str(request.job_id), JobStatusEnum.running)
     try:
         model = SolubilityPrediction(model_name='solubility', gpu=torch.cuda.is_available())
         model.load_model()
@@ -174,3 +176,5 @@ def run_solubility_predictions(request: RunSolubilityPredictionRequest) -> RunSo
         logger.exception()
         return RunSolubilityPredictionResponse(soluble_probability=None,
                                                  errors=['Internal error in solubility prediction occured'])
+    finally:
+        memory_manager.change_status(str(request.job_id), JobStatusEnum.idle)

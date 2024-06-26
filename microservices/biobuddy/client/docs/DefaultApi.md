@@ -5,6 +5,7 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**get_running_jobs_jobs_running_get**](DefaultApi.md#get_running_jobs_jobs_running_get) | **GET** /jobs/running | Get Running Jobs
+[**invoke_function_invoke_function_post**](DefaultApi.md#invoke_function_invoke_function_post) | **POST** /invoke-function | Invoke Function
 [**is_job_running_job_job_id_is_running_get**](DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
 [**predict_send_message_post**](DefaultApi.md#predict_send_message_post) | **POST** /send-message | Predict
 
@@ -67,6 +68,74 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **200** | Successful Response |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **invoke_function_invoke_function_post**
+> SendMessageToBioBuddyResponse invoke_function_invoke_function_post(send_action_call_request)
+
+Invoke Function
+
+### Example
+
+
+```python
+import biobuddy_microservice
+from biobuddy_microservice.models.send_action_call_request import SendActionCallRequest
+from biobuddy_microservice.models.send_message_to_bio_buddy_response import SendMessageToBioBuddyResponse
+from biobuddy_microservice.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost
+# See configuration.py for a list of all supported configuration parameters.
+configuration = biobuddy_microservice.Configuration(
+    host = "http://localhost"
+)
+
+
+# Enter a context with an instance of the API client
+with biobuddy_microservice.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = biobuddy_microservice.DefaultApi(api_client)
+    send_action_call_request = biobuddy_microservice.SendActionCallRequest() # SendActionCallRequest | 
+
+    try:
+        # Invoke Function
+        api_response = api_instance.invoke_function_invoke_function_post(send_action_call_request)
+        print("The response of DefaultApi->invoke_function_invoke_function_post:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->invoke_function_invoke_function_post: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **send_action_call_request** | [**SendActionCallRequest**](SendActionCallRequest.md)|  | 
+
+### Return type
+
+[**SendMessageToBioBuddyResponse**](SendMessageToBioBuddyResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

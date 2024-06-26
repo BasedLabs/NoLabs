@@ -243,7 +243,8 @@ class Reinvent:
             return
 
         config.directory.delete()
-        config.handler.kill()
+        if config.handler:
+            config.handler.kill()
         configurations = [p for p in configurations if p.id != config.id]
 
     async def save_params(self, pdb_file: UploadFile, request: ParamsRequest):
@@ -255,8 +256,10 @@ class Reinvent:
         pdbqt_file = await self._prepare_pdbqt(pdb_file)
 
         config_id = request.config_id
+        old_dir = self.fs.directories.first_or_default(lambda o: o.name == config_id, recursive=True)
+        if old_dir:
+            old_dir.delete()
         directory = self.fs.copy(self.fs.add_directory(config_id))
-        directory.directories.first_or_default(lambda o: o.name == config_id).delete()
         pdbqt = directory.add_file(pdbqt_file.name)
         pdbqt.write_bytes(pdbqt_file.read_bytes())
 

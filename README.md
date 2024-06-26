@@ -23,13 +23,13 @@
 
 # About
 
-NoLabs is an open source biolab that lets you run experiments with the latest state-of-the-art models for bio research.
+NoLabs is an open source biolab that lets you run experiments with the latest state-of-the-art models and workflow engine for bio research.
 
 The goal of the project is to accelerate bio research by making inference models easy to use for everyone. We are
-currently supporting protein biolab (predicting useful protein properties such as solubility, localisation, gene
-ontology, folding, etc.), drug discovery biolab (construct ligands and test binding to target proteins) and small molecules design biolab (design small molecules given a protein target and check drug-likeness and binding affinity).
+currently supporting protein workflow components (predicting useful protein properties such as solubility, localisation, gene
+ontology, folding, etc.), drug discovery components (construct ligands and test binding to target proteins) and small molecules design components (design small molecules given a protein target and check drug-likeness and binding affinity).
 
-We are working on expanding both and adding a cell biolab and genetic biolab, and we will appreciate your support and
+We are working on expanding both and adding cell and genetic components, and we will appreciate your support and
 contributions.
 
 Let's accelerate bio research!
@@ -37,6 +37,16 @@ Let's accelerate bio research!
 <img src="media/NoLabs_Architecture.png" width="100%">
 
 # Features
+
+**Workflow Engine:**
+
+<br>
+<img src="media/Workflow_UI_demo.png" width="100%">
+
+- Create workflows combining different models and data
+- Schedule jobs and observe results for big data processing
+- Adjust input parameters for particular jobs
+
 
 **Bio Buddy - drug discovery co-pilot:**
 
@@ -57,7 +67,8 @@ For example, you can ask
 To enable biobuddy run this command when starting nolabs:
 
 ```shell
-$ ENABLE_BIOBUDDY=true docker compose up nolabs
+$ ENABLE_BIOBUDDY=true docker compose up nolabs mongo
+# mongo is required
 ```
 
 And also start the biobuddy microservice:
@@ -68,51 +79,6 @@ $ OPENAI_API_KEY=your_openai_api_key TAVILY_API_KEY=your_tavily_api_key docker c
 Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
 
 You can ignore OPENAI_API_KEY warnings when running other services using docker compose.
-
-**Drug discovery lab:**
-
-- Drug-target interaction prediction, high throughput virtual screening (HTVS) based on:
-    - [DiffDock](https://github.com/gcorso/DiffDock)
-    - [uMol](https://github.com/patrickbryant1/Umol)
-- Automatic pocket prediction via [P2Rank](https://github.com/rdk/p2rank)
-- Automatic MSA generation via [HH-suite3](https://github.com/soedinglab/hh-suite)
-
-<br>
-<img src="media/Docking.gif" width="100%">
-
-**Protein lab:**
-
-- Prediction of subcellular localisation via
-  fine-tuned [ritakurban/ESM_protein_localization](https://huggingface.co/ritakurban/ESM_protein_localization) model (to
-  be updated with a better model)
-- Prediction of folded structure via [facebook/esmfold_v1](https://huggingface.co/facebook/esmfold_v1)
-- Gene ontology prediction for 200 most popular gene ontologies
-- Protein solubility prediction
-
-<br>
-<img src="media/localisation.gif" width="100%">
-
-**Protein design Lab:**
-
-- Protein generation via [RFDiffusion](https://github.com/RosettaCommons/RFdiffusion)
-
-<br>
-<img src="media/protein_design.gif" width="100%">
-
-**Conformations Lab:**
-
-- Conformations via [OpenMM](https://github.com/openmm/openmm) and [GROMACS](https://github.com/gromacs/gromacs)
-
-**Small molecules design lab:**
-
-- Small molecules design using a protein target with drug-likeness scoring component [REINVENT4](https://github.com/MolecularAI/REINVENT4)
-
-Specify the search space (location) where designed molecule would bind relative to protein target. Then run reinforcement learning to generate new molecules in specified binding region.
-
-WARNING: Reinforcement learning process might take a long time (with 128 molecules per 1 epoch and 50 epochs it could take a day)
-
-<br>
-<img src="media/small_molecules_design.png" width="100%">
 
 # Starting
 
@@ -133,7 +99,8 @@ $ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 If you want to run a single feature **(recommended)**
 
 ```bash
-$ docker compose up nolabs
+$ docker compose up nolabs mongo
+# mongo is required
 $ docker compose up diffdock
 $ docker compose up p2rank
 ...
@@ -165,7 +132,7 @@ Server will be available on http://localhost:9000
      pip install poetry uvicorn
      ```
 
-3. **Install Dependencies Using Poetry**
+3. **Install ControllersDependencies Using Poetry**
      ```bash
      poetry install
      ```
@@ -249,23 +216,30 @@ If everything is correct, you should see the FastAPI page with diffdock's API su
 
 <img src="media/Diffdock_fastapi.png">
 
-Next, update the nolabs/infrastructure/settings.ini file on your primary machine to include the IP address of the
+Next, update the `nolabs/infrastructure/appsettings.local.json` file on your primary machine to include the IP address of the
 service (replace 127.0.0.1 with your GPU machine's IP):
 
 ```ini
 ...
-p2rank = http://127.0.0.1:5731
-esmfold = http://127.0.0.1:5736
-esmfold_light = http://127.0.0.1:5733
-msa_light = http://127.0.0.1:5734
-umol = http://127.0.0.1:5735
-diffdock = http://127.0.0.1:5737 -> http://74.82.28.227:5737
+  "p2rank": {
+    "microservice": "http://127.0.0.1:5731"
+  },
+  "msa_light": {
+    "microservice": "http://127.0.0.1:5734",
+    "msa_server_url": "http://207.246.89.242:8000/generate-msa"
+  },
+  "umol": {
+    "microservice": "http://127.0.0.1:5735"
+  },
+  "diffdock": {
+    "microservice": "http://127.0.0.1:5737" -> http://74.82.28.227:5737
+  }
 ...
 ```
 
 And now you are ready to use this service hosted on a separate machine!
 
-## Supported microservices list
+## Supported components list
 
 ### 1) Protein design docker API
 
@@ -363,16 +337,16 @@ or
 
 ### 8) Protein-ligand structure prediction docker API
 
-Model: [UMol](https://github.com/patrickbryant1/Umol)
+Model: [DiffDock](https://github.com/gcorso/DiffDock)
 
 ```shell
-docker compose up umol
+docker compose up diffdock
 ```
 
-Swagger UI will be available on http://localhost:5735/docs
+Swagger UI will be available on http://localhost:5737/docs
 
 or
-[Install as python package](microservices/umol/client/README.md)
+[Install as python package](microservices/diffdock/client/README.md)
 
 ### 9) RoseTTAFold docker API
 

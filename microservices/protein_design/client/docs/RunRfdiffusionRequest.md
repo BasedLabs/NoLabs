@@ -5,9 +5,10 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**job_id** | **str** |  | 
 **pdb_content** | **str** |  | 
+**contig** | **str** |  | 
 **hotspots** | **str** |  | [optional] 
-**contig** | **str** |  | [optional] 
 **timesteps** | **int** |  | [optional] 
 **number_of_designs** | **int** |  | [optional] 
 

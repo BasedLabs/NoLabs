@@ -1,9 +1,13 @@
 import {defineStore} from "pinia";
-import {OpenAPI, SmallMoleculesDesignService} from "../../api/client";
-import apiConstants from "../../api/constants";
-import {obtainErrorResponse} from "../../api/errorWrapper";
+import {
+  OpenAPI,
+  SmallMoleculesDesignService,
+  ProteinsService,
+  JobsACommonControllerForJobsManagementService
+} from "../../refinedApi/client";
 import {Notify} from "quasar";
-import {ExperimentListItem} from "../../components/types";
+import apiConstants from "../../refinedApi/constants";
+import {obtainErrorResponse} from "../../refinedApi/errorWrapper";
 
 OpenAPI.BASE = apiConstants.hostname;
 
@@ -23,38 +27,42 @@ const ensureNotError = (response: any) => {
 
 const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
   actions: {
-    async getExperiment(experimentId: string): Promise<Experiment> {
-      const response = await SmallMoleculesDesignService.getExperimentApiV1SmallMoleculesDesignExperimentExperimentIdGet(
-        experimentId
+    async getJob(jobId: string): Promise<Job> {
+      const job = await SmallMoleculesDesignService.getJobApiV1SmallMoleculesDesignJobsJobIdGet(
+        jobId
       );
+      const status = await SmallMoleculesDesignService.getJobStatusApiV1SmallMoleculesDesignJobsJobIdStatusGet(jobId);
 
-      ensureNotError(response);
+      const protein = await ProteinsService.getProteinContentApiV1ProteinsProteinIdContentGet(job!.protein_id);
 
-      const pdbFile = response.properties.pdb_file ? new File([new Blob([response.properties.pdb_file])], response.properties.pdb_file_name!) : null;
+      ensureNotError(job);
+      ensureNotError(status);
+
+      const pdbFile = protein ? new File([new Blob([protein!.pdb_content!])], protein.pdb_name!) : null;
 
       return {
-        id: response.experiment_id,
-        name: response.experiment_name,
-        samplingAllowed: response.status.sampling_allowed,
-        running: response.status.running,
-        createdAt: new Date(response.created_at),
+        id: job!.job_id,
+        name: job!.job_name,
+        samplingAllowed: status.sampling_allowed,
+        running: status.running,
         properties: {
-          epochs: response.properties.epochs,
-          minscore: response.properties.minscore,
-          batchSize: response.properties.batch_size,
-          centerX: response.properties.center_x,
-          centerY: response.properties.center_y,
-          centerZ: response.properties.center_z,
-          sizeX: response.properties.size_x,
-          sizeY: response.properties.size_y,
-          sizeZ: response.properties.size_z,
-          pdbFile: pdbFile
+          epochs: job!.epochs,
+          minscore: job!.minscore,
+          batchSize: job!.batch_size,
+          centerX: job!.center_x,
+          centerY: job!.center_y,
+          centerZ: job!.center_z,
+          sizeX: job!.size_x,
+          sizeY: job!.size_y,
+          sizeZ: job!.size_z,
+          pdbFile: pdbFile,
+          samplingSize: job!.sampling_size
         }
       };
     },
-    async smilesData(experimentId: string): Promise<Smiles[]> {
-      const smiles = await SmallMoleculesDesignService.smilesApiV1SmallMoleculesDesignExperimentExperimentIdSmilesGet(
-        experimentId
+    async smilesData(jobId: string): Promise<Smiles[]> {
+      const smiles = await SmallMoleculesDesignService.getJobSmilesApiV1SmallMoleculesDesignJobsJobIdSmilesGet(
+        jobId
       );
 
       ensureNotError(smiles);
@@ -69,8 +77,8 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
         };
       });
     },
-    async status(experimentId: string): Promise<Status>{
-      const status = await SmallMoleculesDesignService.statusApiV1SmallMoleculesDesignExperimentExperimentIdStatusGet(experimentId);
+    async status(jobId: string): Promise<Status>{
+      const status = await SmallMoleculesDesignService.getJobStatusApiV1SmallMoleculesDesignJobsJobIdStatusGet(jobId);
 
       ensureNotError(status);
 
@@ -79,8 +87,8 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
         samplingAllowed: status.sampling_allowed
       }
     },
-    async logs(experimentId: string): Promise<Logs> {
-      const logs = await SmallMoleculesDesignService.logsApiV1SmallMoleculesDesignExperimentExperimentIdLogsGet(experimentId);
+    async logs(jobId: string): Promise<Logs> {
+      const logs = await SmallMoleculesDesignService.getJogLogsApiV1SmallMoleculesDesignJobsJobIdLogsGet(jobId);
 
       ensureNotError(logs);
 
@@ -90,70 +98,50 @@ const useSmallMoleculesDesignStore = defineStore("smallMoleculesDesignStore", {
         errors: logs.errors
       }
     },
-    async startExperiment(experimentId: string) {
-      await SmallMoleculesDesignService.learningApiV1SmallMoleculesDesignExperimentExperimentIdLearningPost(experimentId);
+    async startJob(jobId: string) {
+      await SmallMoleculesDesignService.runLearningStageJobApiV1SmallMoleculesDesignJobsJobIdRunLearningPost(jobId);
     },
-    async startSampling(experimentId: string, numberOfMoleculesToGenerate: number) {
-      await SmallMoleculesDesignService.samplingApiV1SmallMoleculesDesignExperimentExperimentIdSamplingPost(experimentId, {
-        number: numberOfMoleculesToGenerate
-      });
+    async startSampling(jobId: string) {
+      await SmallMoleculesDesignService.runSamplingStageJobApiV1SmallMoleculesDesignJobsJobIdRunSamplingPost(jobId);
     },
-    async stopExperiment(experimentId: string) {
-      await SmallMoleculesDesignService.stopApiV1SmallMoleculesDesignExperimentExperimentIdStopPost(experimentId);
+    async stopJob(jobId: string) {
+      await SmallMoleculesDesignService.stopJobApiV1SmallMoleculesDesignJobsJobIdStopPost(jobId);
     },
-    async deleteExperiment(experimentId: string) {
-      await SmallMoleculesDesignService.deleteApiV1SmallMoleculesDesignExperimentExperimentIdDelete(experimentId);
-    },
-    async saveProperties(experimentId: string, properties: Properties): Promise<void> {
+    async saveProperties(jobId: string, properties: Properties): Promise<void> {
       if (!properties.pdbFile) {
         throw new Error('Pdb file is not specified');
       }
 
-      await SmallMoleculesDesignService.savePropertiesApiV1SmallMoleculesDesignExperimentExperimentIdPropsPost(
-        experimentId,
-        properties.centerX,
-        properties.centerY,
-        properties.centerZ,
-        properties.sizeX,
-        properties.sizeY,
-        properties.sizeZ,
+      const job = await SmallMoleculesDesignService.getJobApiV1SmallMoleculesDesignJobsJobIdGet(jobId);
+
+      const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
+        experiment_id: job!.experiment_id,
+        name: properties.pdbFile.name,
+        pdb: properties.pdbFile
+      });
+
+      await SmallMoleculesDesignService.setupJobApiV1SmallMoleculesDesignJobsPost(
         {
-          pdb_file: properties.pdbFile!
-        },
-        properties.epochs,
-        properties.batchSize,
-        properties.minscore
+          experiment_id: job!.experiment_id,
+          protein_id: protein.id,
+          center_x: properties.centerX,
+          center_y: properties.centerY,
+          center_z: properties.centerZ,
+          size_x: properties.sizeX,
+          size_y: properties.sizeY,
+          size_z: properties.sizeZ,
+          batch_size: properties.batchSize,
+          minscore: properties.minscore,
+          epochs: properties.epochs,
+          job_id: jobId,
+          sampling_size: properties.samplingSize
+        }
       )
     },
-    // Experiments
-    async getExperiments(): Promise<{ experiments: ExperimentListItem[] | null, errors: string[] }> {
-      const response = await SmallMoleculesDesignService.experimentsApiV1SmallMoleculesDesignExperimentsGet();
-      const experiments: ExperimentListItem[] = [];
-      for (let i = 0; i < response.length; i++) {
-        experiments.push({
-          id: response[i].id,
-          name: response[i].name
-        });
-      }
-      return {
-        experiments: experiments,
-        errors: []
-      }
-    },
-    async changeExperimentName(experimentId: string, newName: string) {
-      await SmallMoleculesDesignService.changeExperimentNameApiV1SmallMoleculesDesignExperimentNamePost({
-        id: experimentId,
-        name: newName
+    async changeJobName(jobId: string, newName: string) {
+      await JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(jobId, {
+        job_name: newName
       });
-    },
-    async createExperiment(): Promise<{ experiment: ExperimentListItem | null, errors: string[] }> {
-      const response = await SmallMoleculesDesignService.createExperimentApiV1SmallMoleculesDesignExperimentCreatePost();
-      return {
-        experiment: {
-          id: response.id,
-          name: response.name
-        }, errors: []
-      }
     }
   }
 });
