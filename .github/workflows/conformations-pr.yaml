@@ -8,8 +8,6 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - 'microservices/conformations/**'
 
 jobs:
   build:
@@ -19,4 +17,4 @@ jobs:
 
     uses: ./.github/workflows/build-docker.yaml
     with:
-      microservice_name: conformations
+      microservice_name: "conformations"

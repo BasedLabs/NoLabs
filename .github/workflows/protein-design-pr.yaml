@@ -8,8 +8,6 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - 'microservices/protein_design/**'
 
 jobs:
   build:
