@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+openapi
+git+https://github.com/bowang-lab/scGPT.git@main
+louvain
+faiss-cpu
+gdown
+wandb
+jupyterlab
