@@ -181,6 +181,16 @@ services:
       context: microservices/reinvent
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790 --workers=1
+  sc_gpt:
+    image: 'ghcr.io/basedlabs/sc-gpt:1.0.0'
+    ports: # network_mode: "host" does not work on macos
+      - "5744:5744"
+    build:
+      context: microservices/sc_gpt
+      dockerfile: build/Dockerfile
+    volumes:
+      - .:/sc-gpt/
+    command: --host=0.0.0.0 --port=5744 --reload
   nolabs:
     image: 'ghcr.io/basedlabs/nolabs:1.2.1'
     network_mode: host
