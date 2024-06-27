@@ -400,6 +400,13 @@ Misc: DockStream, QED, AutoDock Vina
 docker compose up reinvent
 ```
 
+### 11) SC GPT
+Able to perform zero-shot cell type classification and getting embeddings of cells based on their genes.
+
+```shell
+docker compose up sc_gpt
+```
+
 Swagger UI will be available on http://localhost:5790/docs
 
 or
