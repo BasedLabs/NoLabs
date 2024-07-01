@@ -1,11 +1,10 @@
 import logging
 
 import biobuddy_microservice
-import chembl_query_microservice
 import localisation_microservice
 import esmfold_microservice
 import esmfold_light_microservice
-import rcsb_pdb_query_microservice
+import external_data_query_microservice
 import rosettafold_microservice
 import gene_ontology_microservice
 import reinvent_microservice
@@ -40,22 +39,13 @@ class InfrastructureDependencies:
         return biobuddy_microservice.DefaultApi(client)
 
     @staticmethod
-    def chembl_query_microservice() -> chembl_query_microservice.DefaultApi:
+    def external_query_microservice() -> external_data_query_microservice.DefaultApi:
         settings = Settings.load()
-        configuration = chembl_query_microservice.Configuration(
-            host=settings.chembl.microservice
+        configuration = external_data_query_microservice.Configuration(
+            host=settings.external_query.microservice
         )
-        client = chembl_query_microservice.ApiClient(configuration=configuration)
-        return chembl_query_microservice.DefaultApi(client)
-
-    @staticmethod
-    def rcsb_pdb_query_microservice() -> rcsb_pdb_query_microservice.DefaultApi:
-        settings = Settings.load()
-        configuration = rcsb_pdb_query_microservice.Configuration(
-            host=settings.rcsb_pdb.microservice
-        )
-        client = rcsb_pdb_query_microservice.ApiClient(configuration=configuration)
-        return rcsb_pdb_query_microservice.DefaultApi(client)
+        client = external_data_query_microservice.ApiClient(configuration=configuration)
+        return external_data_query_microservice.DefaultApi(client)
 
 
     @staticmethod

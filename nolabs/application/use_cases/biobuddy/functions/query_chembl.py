@@ -6,12 +6,12 @@ from nolabs.application.use_cases.biobuddy.api_models import FunctionCall, Funct
     FunctionCallReturnData
 from nolabs.application.use_cases.biobuddy.functions.base_function import BiobuddyFunction, FunctionParameterDefinition
 
-import chembl_query_microservice
+import external_data_query_microservice
 from nolabs.utils.sdf import smiles_to_sdf_string
 
 
 class QueryChemblFunction(BiobuddyFunction):
-    def __init__(self, chembl_microservice: chembl_query_microservice.DefaultApi):
+    def __init__(self, chembl_microservice: external_data_query_microservice.DefaultApi):
         parameters = [
             FunctionParameterDefinition(name="filters",
                                         type="string",
@@ -103,11 +103,11 @@ class QueryChemblFunction(BiobuddyFunction):
         max_results = arguments[self.parameters[2].name]
         request = None
         if order:
-            request = chembl_query_microservice.ChEMBLMoleculeRequest(filters=filters,
+            request = external_data_query_microservice.ChEMBLMoleculeRequest(filters=filters,
                                                                       order_by=order,
                                                                       limit=max_results)
         else:
-            request = chembl_query_microservice.ChEMBLMoleculeRequest(filters=filters,
+            request = external_data_query_microservice.ChEMBLMoleculeRequest(filters=filters,
                                                                       limit=max_results)
 
         print(request)
