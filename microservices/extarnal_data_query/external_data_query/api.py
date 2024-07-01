@@ -8,10 +8,9 @@ from external_data_query.chembl.services import search_chembl_molecules, search_
 from external_data_query.pubmed.api_models import PubMedSearchRequest, PubMedSearchResponse
 from external_data_query.pubmed.services import search_pubmed
 from external_data_query.rcsb_pdb.services import fetch_fasta_files_by_ids, fetch_protein_entries_by_name, \
-    fetch_entries_by_complex_query, fetch_proteins_by_sequence
+    fetch_entries_by_complex_query, fetch_proteins_by_sequence, create_query_node
 from external_data_query.rcsb_pdb.api_models import GetFastaFilesByIdsRequest, GetFastaFilesBySearchQueryRequest, \
-    GetFastaFilesResponse, IsJobRunningResponse, SequenceQueryRequest, ComplexQueryRequest, \
-    create_query_node
+    GetFastaFilesResponse, IsJobRunningResponse, SequenceQueryRequest, ComplexQueryRequest
 
 app = FastAPI(
     title="External Databases Query API"

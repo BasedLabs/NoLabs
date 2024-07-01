@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 import requests
 import json
 
@@ -6,8 +8,17 @@ from external_data_query.rcsb_pdb.api_models import GetFastaFilesByIdsRequest, G
     TerminalNode, LogicalNode
 
 __all__ = ['fetch_fasta_files_by_ids', 'fetch_protein_entries_by_name',
-           'fetch_entries_by_complex_query', 'fetch_proteins_by_sequence']
+           'fetch_entries_by_complex_query', 'fetch_proteins_by_sequence', 'create_query_node']
 
+
+def create_query_node(data: Dict[str, Any]) -> 'QueryNode':
+    if 'attribute' in data:
+        return TerminalNode(**data)
+    elif 'operator' in data and 'children' in data:
+        children = [create_query_node(child) for child in data['children']]
+        return LogicalNode(operator=data['operator'], children=children)
+    else:
+        raise ValueError('Invalid input for QueryNode')
 
 def fetch_fasta_files_by_ids(request: GetFastaFilesByIdsRequest) -> GetFastaFilesResponse:
     base_url = "https://www.rcsb.org/fasta/entry/"
