@@ -8,6 +8,8 @@ on:
   pull_request:
     branches:
       - master
+    paths:
+      - 'microservices/gene_ontology/**'
 
 jobs:
   build:
@@ -17,4 +19,4 @@ jobs:
 
     uses: ./.github/workflows/build-docker.yaml
     with:
-      microservice_name: "gene_ontology"
+      microservice_name: gene_ontology
