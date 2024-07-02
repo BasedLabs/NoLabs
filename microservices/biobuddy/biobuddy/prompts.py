@@ -8,15 +8,24 @@ def generate_system_prompt() -> str:
         "drugs/ligands then use chembl.")
 
 
-def generate_strategy_prompt(tools_description: str, query: str) -> str:
+def generate_strategy_prompt(tools_description: str, query: str, available_components: str, current_workflow: str) -> str:
     return (f"Given the available tools ({tools_description}), decide whether a direct reply is sufficient "
             f"or if a specific plan involving these tools is necessary. "
             f"If calling function calls are not needed, provide the direct reply (without stating that it's a direct reply, just the text of the reply). "
             f"If function calls are needed, reply with a plan of all actions required based on the query and tools descriptions in the format (have as many actions as needed): "
             f"\"<ACTION> 1. Call tool_1 in order to do X <END_ACTION> <ACTION> 2. Call tool_2 to achieve Y <END_ACTION> <ACTION> 3. Call tool_3 to do something else <END_ACTION>\". "
-            f"Be carefull to actually use all the functions, i.e. if a user asks to pull two molecules and it can't be done with just one action, do it with two actions"
+            f"Be careful to actually use all the functions, i.e. if a user asks to pull two molecules and it can't be done with just one action, do it with two actions. "
             f"If you are asked SPECIFICALLY to do the literature research on some topic, write only tag <RESEARCH>. "
-            f"\n\nQuery: \"{query}\"\n\n")
+            f"\n\nAdditionally, if the workflow is empty or needs adjustments based on the query, add or adjust components from the available components. "
+            f"Ensure to connect the components appropriately using the connections format provided. If new components are added, assign them ids like newId_1, newId_2, etc., and encapsulate the entire workflow in <WORKFLOW> and <END_WORKFLOW> tags.\n"
+            f"For instance, if you are asked to fold a protein and there's no workflow component available for folding, you should connect proteins holder to esmfold light by default, if a particular method is not specified."
+            f"\n\nQuery: \"{query}\"\n\n"
+            f"Available Components: {available_components}\n\n"
+            f"Current Workflow: {current_workflow}\n\n"
+            f"Your response should include the plan and the adjusted workflow if necessary. The workflow should be in the JSON format: "
+            f"<WORKFLOW> {{\"workflow_components\": [{{\"id\": \"newId_1\", \"name\": \"component_name\", \"description\": \"component_description\", \"connections\": [{{\"source_output\": [\"source_output_name\"], \"target_input\": [\"input_name\"], \"source_component_id\": \"source_id\"}}]}}]}} <END_WORKFLOW>."
+            f"input_name and output_name come from the list of inputs and outputs specified in the component. For instance, esmfold_light has 'proteins_with_fasta' as input and 'proteins_with_pdb' as output. So source_component_id should be the id of proteins component, the source_output should be 'proteins' since it's an output for proteins component and target_input should be 'proteins_with_fasta' ")
+
 
 workflow_json = '''
 {

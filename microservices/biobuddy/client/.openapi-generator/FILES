@@ -11,6 +11,8 @@ biobuddy_microservice/api_response.py
 biobuddy_microservice/configuration.py
 biobuddy_microservice/exceptions.py
 biobuddy_microservice/models/__init__.py
+biobuddy_microservice/models/component.py
+biobuddy_microservice/models/connection.py
 biobuddy_microservice/models/http_validation_error.py
 biobuddy_microservice/models/is_job_running_response.py
 biobuddy_microservice/models/job_id.py
@@ -19,8 +21,11 @@ biobuddy_microservice/models/send_message_to_bio_buddy_request.py
 biobuddy_microservice/models/send_message_to_bio_buddy_response.py
 biobuddy_microservice/models/validation_error.py
 biobuddy_microservice/models/validation_error_loc_inner.py
+biobuddy_microservice/models/workflow_component.py
 biobuddy_microservice/py.typed
 biobuddy_microservice/rest.py
+docs/Component.md
+docs/Connection.md
 docs/DefaultApi.md
 docs/HTTPValidationError.md
 docs/IsJobRunningResponse.md
@@ -30,6 +35,7 @@ docs/SendMessageToBioBuddyRequest.md
 docs/SendMessageToBioBuddyResponse.md
 docs/ValidationError.md
 docs/ValidationErrorLocInner.md
+docs/WorkflowComponent.md
 git_push.sh
 pyproject.toml
 requirements.txt
@@ -37,5 +43,7 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_send_action_call_request.py
+test/test_component.py
+test/test_connection.py
+test/test_workflow_component.py
 tox.ini

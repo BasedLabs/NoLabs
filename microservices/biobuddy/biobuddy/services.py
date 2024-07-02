@@ -93,7 +93,7 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
             history_messages.append(AIMessage(content=msg['content']))
 
     tools_description = " ".join([f"{(tool['function']['name'], tool['function']['description'])}, " for tool in request.tools])
-    strategy_prompt = generate_strategy_prompt(tools_description, request.message_content)
+    strategy_prompt = generate_strategy_prompt(tools_description, request.message_content, str(request.available_components), str(request.current_workflow))
 
     handler = AsyncIteratorCallbackHandler()
     response_buffer = ""
