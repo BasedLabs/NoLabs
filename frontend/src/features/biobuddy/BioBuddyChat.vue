@@ -71,7 +71,7 @@ import MarkdownIt from 'markdown-it';
 import { v4 as uuidv4 } from 'uuid';
 import { useBioBuddyStore } from './storage';
 import { type FunctionParam, FunctionCall_Output, Message, GetAvailableFunctionCallsResponse } from 'src/refinedApi/client';
-import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi, getToolsApi, saveFunctionCallApi } from 'src/features/biobuddy/api';
+import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi, getToolsApi, saveFunctionCallApi, getWorkflowSchema } from 'src/features/biobuddy/api';
 import { MeasurementFlags } from 'ngl/dist/declarations/component/structure-component';
 
 export interface FunctionMapping {
@@ -117,7 +117,7 @@ export default defineComponent({
         const message = JSON.parse(event.data);
         if (message.reply_type === 'stream') {
           this.currentMessageBuffer += message.content;
-          const actionMatches = this.currentMessageBuffer.match(/<ACTION>(.*?)<END_ACTION>/g);
+          const actionMatches = this.currentMessageBuffer.match(/<ACTION>([\s\S]*?)<END_ACTION>/g);
           if (actionMatches) {
             actionMatches.forEach((match) => {
               const actionText = match.replace(/<\/?ACTION>/g, '').replace(/<\/?END_ACTION>/g, '');;
@@ -169,7 +169,7 @@ export default defineComponent({
           }
         } else if (message.reply_type === 'final' || message.content.includes('<STOP>')) {
           this.awaitingResponse = false;
-          const actionMatches = this.currentMessageBuffer.match(/<ACTION>(.*?)<END_ACTION>/g);
+          const actionMatches = this.currentMessageBuffer.match(/<ACTION>([\s\S]*?)<END_ACTION>/g);
           if (actionMatches) {
             actionMatches.forEach((match) => {
               const actionText = match.replace(/<\/?ACTION>/g, '').replace(/<\/?END_ACTION>/g, '');
@@ -295,6 +295,29 @@ export default defineComponent({
     async sendMessage() {
       if (!this.experimentId || !this.newMessage.trim()) return;
 
+      // Fetch the workflow schema
+      const workflowSchema = await getWorkflowSchema(this.experimentId);
+
+      // Map the schema components to the required structure
+      const availableComponents = workflowSchema?.components.map(component => ({
+        name: component.name,
+        description: component.description,
+        inputs: Object.keys(component.input),
+        outputs: Object.keys(component.output),
+      }));
+
+      // Map the workflow components to the required structure
+      const currentWorkflow = workflowSchema?.workflow_components.map(workflowComponent => ({
+        id: workflowComponent.component_id,
+        name: workflowComponent.name,
+        description: '',
+        connections: workflowComponent.mappings?.map(mapping => ({
+          source_path: mapping.source_path,
+          target_path: mapping.target_path,
+          source_component_id: mapping.source_component_id,
+        })) || null,
+      }));
+
       const userMessage = {
         id: uuidv4(), // Generate a temporary ID
         role: 'user',
@@ -322,7 +345,9 @@ export default defineComponent({
             content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
           }))
         ),
+        available_components: availableComponents,
         tools: this.tools?.function_calls,
+        current_workflow: currentWorkflow,
         job_id: null, // Optional job ID
       };
 

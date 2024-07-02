@@ -7,7 +7,16 @@ import {
   SendQueryResponse, EditMessageResponse,
   GetAvailableFunctionCallsResponse,
   FunctionCall_Input,
+  WorkflowSchemaModel_Output,
 } from 'src/refinedApi/client';
+
+import { getExistingWorkflows, getWorkflow } from 'src/features/workflow/refinedApi';
+
+export async function getWorkflowSchema(experimentId: string): Promise<WorkflowSchemaModel_Output | null> {
+  const workflows = await getExistingWorkflows(experimentId);
+  const workflow = await getWorkflow(workflows.ids[0]);
+  return workflow;
+}
 
 export function checkBioBuddyEnabled(): CancelablePromise<CheckBioBuddyEnabledResponse> {
   return BiobuddyService.checkBiobuddyEnabledApiV1BiobuddyCheckBiobuddyEnabledGet();
