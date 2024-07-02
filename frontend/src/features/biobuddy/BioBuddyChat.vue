@@ -117,6 +117,8 @@ export default defineComponent({
         const message = JSON.parse(event.data);
         if (message.reply_type === 'stream') {
           this.currentMessageBuffer += message.content;
+
+
           const actionMatches = this.currentMessageBuffer.match(/<ACTION>([\s\S]*?)<END_ACTION>/g);
           if (actionMatches) {
             actionMatches.forEach((match) => {
@@ -126,6 +128,17 @@ export default defineComponent({
               this.currentMessageBuffer = this.currentMessageBuffer.replace(/<END_ACTION>/g, '');
             });
           }
+
+          // Process WORKFLOW tags
+          const workflowMatches = this.currentMessageBuffer.match(/<WORKFLOW>([\s\S]*?)<END_WORKFLOW>/g);
+          if (workflowMatches) {
+            workflowMatches.forEach((match) => {
+              const workflowText = match.replace(/<\/?WORKFLOW>/g, '').replace(/<\/?END_WORKFLOW>/g, '');
+              this.processWorkflow(workflowText);
+              this.currentMessageBuffer = this.currentMessageBuffer.replace(match, '');
+            });
+          }
+
           if (this.awaitingResponse) {
             const lastMessageIndex = this.messages.length - 1;
             if (
@@ -198,6 +211,12 @@ export default defineComponent({
       this.socket.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
+    },
+    async processWorkflow(workflowText: string) {
+      const bioBuddyStore = useBioBuddyStore();
+      if (bioBuddyStore) {
+        await bioBuddyStore.invokeWorkflowAdjustment(JSON.parse(workflowText));
+      }
     },
     async processPendingActions(messageGroup) {
       for (const action of this.pendingActions) {

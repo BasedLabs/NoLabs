@@ -278,6 +278,89 @@ export const useWorkflowStore = defineStore('workflowStore', {
         console.error('Error deleting ligand:', error);
       }
     },
+    async adjustWorkflow(data: any) {
+      // Retain existing nodes
+      const existingNodeIds = this.elements.nodes.map(node => node.id);
+    
+      // Store old to new ID mapping
+      const idMapping = new Map<string, string>();
+    
+      // Process new nodes and generate UUIDs
+      const newNodes = data.workflow_components.map(component => {
+        if (existingNodeIds.includes(component.id)) {
+          return component; // Retain existing component
+        } else {
+          const newId = uuidv4();
+          idMapping.set(component.id, newId); // Map old ID to new ID
+          component.id = newId;
+    
+          // Find component options to get inputs and outputs
+          const componentOptions = this.componentOptions.find(opt => opt.name === component.name);
+    
+          const nodeType = this.allowedTypes.includes(componentOptions!!.type) ? componentOptions!!.type : "custom";
+
+          // Create the new node
+          const newNode = {
+            id: newId,
+            name: component.name,
+            description: component.description,
+            type: nodeType,
+            data: {
+              description: componentOptions ? componentOptions.description : '',
+              inputs: componentOptions ? componentOptions.inputs : {},
+              outputs: componentOptions ? componentOptions.outputs : {},
+              jobIds: [],
+              jobs_errors: [],
+              input_property_errors: [],
+              last_exceptions: [],
+              draggable: false,
+              defaults: [],
+              error: null
+            },
+            position: {
+              x: component.x !== undefined ? component.x : 100,
+              y: component.y !== undefined ? component.y : 100
+            }
+          };
+    
+          this.elements.nodes.push(newNode);
+    
+          return component;
+        }
+      });
+    
+      // Adjust connections (edges)
+      const newEdges = data.workflow_components.flatMap(component => 
+        component.connections.map(conn => {
+          // Adjust source_component_id if it matches an old ID
+          const adjustedSourceId = idMapping.has(conn.source_component_id)
+            ? idMapping.get(conn.source_component_id)
+            : conn.source_component_id;
+    
+          return {
+            id: `e${adjustedSourceId}-to-${component.id}`,
+            source: adjustedSourceId,
+            target: component.id,
+            sourceHandle: `${adjustedSourceId}-output-${conn.source_output}`,
+            targetHandle: `${component.id}-input-${conn.target_input}`,
+            type: 'custom'
+          };
+        })
+      );
+    
+      // Remove duplicate edges by using a Set
+      const uniqueEdges = Array.from(new Set(newEdges.map(edge => edge.id)))
+        .map(id => newEdges.find(edge => edge.id === id));
+    
+      // Update the state
+      this.elements.edges = uniqueEdges;
+      this.sendWorkflowUpdate();
+    },
+
+    // Helper function to fetch component options
+    getComponentOptionsByName(name: string) {
+      return this.componentOptions.find(opt => opt.name === name) || {};
+    },
     async fetchWorkflow(workflowId: string) {
       this.workflowId = workflowId;
       try {

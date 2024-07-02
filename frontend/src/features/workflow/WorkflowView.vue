@@ -137,6 +137,7 @@ import JobNode from "./components/nodeTemplates/JobNode.vue";
 import JobNodeContent from "./components/nodeTemplates/JobNodeContent.vue";
 import { startWorkflow, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow, deleteWorkflow, resetWorkflow } from './refinedApi';
 import { useWorkflowStore } from './components/storage';
+import { useBioBuddyStore } from "src/features/biobuddy/storage";
 
 // Define custom Node type
 interface Node extends FlowNode {
@@ -182,6 +183,7 @@ export default defineComponent({
       specialNodeProps: [],
       splitterModel: 20,
       bioBuddyEnabled: false,
+      biobuddyWorkflowCallBack: null as ((data: any) => void) | null,
       workflowId: "", // Set initially to empty
       showDeleteDialog: false, // State for delete confirmation dialog
       showResetDialog: false,  // State for reset confirmation dialog
@@ -223,6 +225,14 @@ export default defineComponent({
     await workflowStore.getAllProteins(this.experiment.experimentId);
     await workflowStore.fetchWorkflow(this.workflowId);
     this.elements = workflowStore.elements;
+
+
+    const bioBuddyStore = useBioBuddyStore();
+
+    this.biobuddyWorkflowCallBack = async (data: any) => {
+      await workflowStore.adjustWorkflow(data);
+    };
+    bioBuddyStore.addWorkflowAdjustmentEventHandler(this.biobuddyWorkflowCallBack);
 
     this.pollIntervalId = window.setInterval(() => {
       workflowStore.pollWorkflow();
