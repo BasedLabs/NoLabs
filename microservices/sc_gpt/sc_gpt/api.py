@@ -5,7 +5,7 @@ from sc_gpt.api_models import ReferenceMappingRequest, ReferenceMappingResponse,
 
 app = FastAPI(title="SC-GPT API")
 
-@app.post("/reference_classify")
+@app.post("/reference-classify")
 def reference_classify(request: ReferenceMappingRequest) -> ReferenceMappingResponse:
     return classify_cells(request)
 
