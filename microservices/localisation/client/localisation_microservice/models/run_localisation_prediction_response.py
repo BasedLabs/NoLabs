@@ -27,7 +27,7 @@ except ImportError:
 
 class RunLocalisationPredictionResponse(BaseModel):
     """
-    RunLocalisationPredictionResponse(cytosolic_proteins: float, mitochondrial_proteins: float, nuclear_proteins: float, other_proteins: float, extracellular_secreted_proteins: float, errors: List[str])
+    RunLocalisationPredictionResponse
     """ # noqa: E501
     cytosolic_proteins: Union[StrictFloat, StrictInt]
     mitochondrial_proteins: Union[StrictFloat, StrictInt]

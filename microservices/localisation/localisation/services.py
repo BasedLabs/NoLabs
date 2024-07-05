@@ -6,6 +6,7 @@ from torch import Tensor
 from localisation.api_models import RunLocalisationPredictionResponse, RunLocalisationPredictionRequest
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, EsmForProteinFolding
 from localisation.settings import Settings
+from localisation.shared import memory_manager, JobStatusEnum
 
 
 class ClassificationModel:
@@ -38,5 +39,10 @@ class ClassificationModel:
 
 
 def run_localisation(request: RunLocalisationPredictionRequest) -> RunLocalisationPredictionResponse:
-    classification_model = ClassificationModel()
-    return classification_model.predict(request)
+    memory_manager.change_status(str(request.job_id), JobStatusEnum.running)
+    try:
+        classification_model = ClassificationModel()
+        return classification_model.predict(request)
+    finally:
+        memory_manager.change_status(str(request.job_id), JobStatusEnum.idle)
+

@@ -1,0 +1,20 @@
+name: gene_ontology
+run-name: gene_ontology
+
+# Build and push nolabs image using GitHub Cache API
+# Only if relevant files were changed
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/build-docker.yaml
+    with:
+      microservice_name: "gene_ontology"

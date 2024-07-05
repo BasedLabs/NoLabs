@@ -26,9 +26,9 @@ try:
 except ImportError:
     from typing_extensions import Self
 
-class UploadTargetLigandResponse(BaseModel):
+class UploadTargetLigandContentResponse(BaseModel):
     """
-    UploadTargetLigandResponse
+    UploadTargetLigandContentResponse
     """ # noqa: E501
     ligand_meta_data: LigandMetaData
     __properties: ClassVar[List[str]] = ["ligand_meta_data"]
@@ -51,7 +51,7 @@ class UploadTargetLigandResponse(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of UploadTargetLigandResponse from a JSON string"""
+        """Create an instance of UploadTargetLigandContentResponse from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -77,7 +77,7 @@ class UploadTargetLigandResponse(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of UploadTargetLigandResponse from a dict"""
+        """Create an instance of UploadTargetLigandContentResponse from a dict"""
         if obj is None:
             return None
 

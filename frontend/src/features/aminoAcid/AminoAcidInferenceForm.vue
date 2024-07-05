@@ -1,9 +1,9 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {AminoAcidExperimentProperties} from "src/features/aminoAcid/types";
+import {AminoAcidJobProperties} from "src/features/aminoAcid/types";
 
 interface OnSubmitType {
-  (data: AminoAcidExperimentProperties): Promise<void>;
+  (data: AminoAcidJobProperties): Promise<void>;
 }
 
 export default defineComponent({
@@ -14,13 +14,12 @@ export default defineComponent({
       required: true
     },
     properties: {
-      type: Object as PropType<AminoAcidExperimentProperties>,
+      type: Object as PropType<AminoAcidJobProperties>,
       required: true
     }
   },
-  data(): AminoAcidExperimentProperties {
+  data(): AminoAcidJobProperties {
     return {
-      aminoAcidSequence: this.properties.aminoAcidSequence,
       fastas: this.properties.fastas
     }
   },
@@ -29,10 +28,6 @@ export default defineComponent({
       await this.onSubmit!(this.$data);
     },
     validateAminoAcid(){
-      if(this.$data.aminoAcidSequence){
-        return true;
-      }
-
       return this.$data.fastas.length > 0;
     }
   },
@@ -41,12 +36,6 @@ export default defineComponent({
 
 <template>
   <q-form @submit="_onSubmit" class="q-gutter-md">
-    <q-input filled v-model="aminoAcidSequence" label="Amino acid sequence"
-    :rules="[validateAminoAcid]">
-      <q-tooltip class="text-body1" :offset="[10, 10]" max-width="500px">
-        Enter amino acid sequence or fasta
-      </q-tooltip>
-    </q-input>
     <q-file filled multiple bottom-slots accept=".fasta" v-model="fastas"
             :rules="[validateAminoAcid]"
             label=".fasta files (multiple)" counter>

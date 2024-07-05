@@ -1,141 +1,143 @@
 import {defineStore} from "pinia";
 import {Notify} from "quasar";
-import {ErrorCodes} from "src/api/errorTypes";
-import {obtainErrorResponse} from "src/api/errorWrapper";
-import {OpenAPI, SolubilityService} from "src/api/client";
-import apiConstants from "src/api/constants";
-import {ExperimentListItem} from "src/components/types";
-import {Experiment, InferenceRequest} from "src/features/aminoAcid/types";
+import {ErrorCodes} from "src/refinedApi/errorTypes";
+import {obtainErrorResponse} from "src/refinedApi/errorWrapper";
+import {Job, InferenceRequest} from "src/features/aminoAcid/types";
 import {AminoAcid} from "src/features/aminoAcid/solubility/types";
+import {
+  OpenAPI,
+  SolubilityService,
+  ProteinsService,
+  JobsACommonControllerForJobsManagementService, ProteinContentResponse
+} from "../../../refinedApi/client";
+import apiConstants from "../../../refinedApi/constants";
 
 OpenAPI.BASE = apiConstants.hostname;
 
 const useSolubilityStore = defineStore("solubility", {
-    actions: {
-        async inference(request: InferenceRequest): Promise<{
-            experiment: Experiment<AminoAcid> | null,
-            errors: string[]
-        }> {
-            const response = await SolubilityService.inferenceApiV1SolubilityInferencePost(
-                {
-                    experiment_id: request.experimentId,
-                    experiment_name: request.experimentName,
-                    amino_acid_sequence: request.aminoAcidSequence,
-                    fastas: request.fastas
-                }
-            );
-            const errorResponse = obtainErrorResponse(response);
-            if (errorResponse) {
-                for (const error of errorResponse.errors) {
-                    Notify.create({
-                        type: "negative",
-                        closeBtn: 'Close',
-                        message: error
-                    });
-                }
-                return {experiment: null, errors: errorResponse.errors};
-            }
-            return {
-                experiment: {
-                    id: response.experiment_id,
-                    name: response.experiment_name,
-                    aminoAcids: response.amino_acids.map(aa => {
-                        return {
-                            name: aa.name,
-                            sequence: aa.sequence,
-                            soluble_probability: aa.soluble_probability
-                        };
-                    }),
-                    properties: {
-                        aminoAcidSequence: request.aminoAcidSequence,
-                        fastas: request.fastas
-                    }
-                },
-                errors: []
-            };
-        },
-        async getExperiment(experimentId: string): Promise<{
-            experiment: Experiment<AminoAcid> | null,
-            errors: string[]
-        }> {
-            const response = await SolubilityService.getExperimentApiV1SolubilityGetExperimentGet(experimentId);
-            const errorResponse = obtainErrorResponse(response);
-            if (errorResponse) {
-                if (errorResponse.error_code === ErrorCodes.experiment_not_found) {
-                    return {
-                        experiment: {
-                            id: experimentId,
-                            name: "New experiment",
-                            aminoAcids: [],
-                            properties: {
-                                aminoAcidSequence: null,
-                                fastas: []
-                            }
-                        }, errors: []
-                    };
-                } else {
-                    Notify.create({
-                        type: "negative",
-                        message: errorResponse.errors[0]
-                    });
-                }
+  actions: {
+    async setupJob(experimentId: string, request: InferenceRequest){
+      let proteins: ProteinContentResponse[] = [];
+      for(const fasta of request.fastas){
+        const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
+          experiment_id: experimentId,
+          name: fasta.name,
+          fasta: fasta
+        });
+        proteins.push(protein);
+      }
 
-                return {experiment: null, errors: errorResponse.errors};
-            }
-
-            return {
-                experiment: {
-                    id: response.experiment_id,
-                    name: response.experiment_name,
-                    aminoAcids: response.amino_acids.map(aa => {
-                        return {
-                            name: aa.name,
-                            sequence: aa.sequence,
-                            soluble_probability: aa.soluble_probability
-                        };
-                    }),
-                    properties: {
-                        aminoAcidSequence: response.properties.amino_acid_sequence as (string | undefined),
-                        fastas: response.properties.fastas.map(f =>
-                            new File([new Blob([f.content])], f.filename)
-                        )
-                    }
-                }, errors: []
-            };
-        },
-        async getExperiments(): Promise<{ experiments: ExperimentListItem[] | null, errors: string[] }> {
-            const response = await SolubilityService.experimentsApiV1SolubilityExperimentsGet();
-            const experiments: ExperimentListItem[] = [];
-            for (let i = 0; i < response.length; i++) {
-                experiments.push({
-                    id: response[i].id,
-                    name: response[i].name
-                });
-            }
-            return {
-                experiments: experiments,
-                errors: []
-            }
-        },
-        async deleteExperiment(experimentId: string) {
-            await SolubilityService.deleteExperimentApiV1SolubilityDeleteExperimentDelete(experimentId);
-        },
-        async changeExperimentName(experimentId: string, newName: string) {
-            await SolubilityService.changeExperimentNameApiV1SolubilityChangeExperimentNamePost({
-                id: experimentId,
-                name: newName
-            });
-        },
-        async createExperiment(): Promise<{ experiment: ExperimentListItem | null, errors: [] }> {
-            const response = await SolubilityService.createExperimentApiV1SolubilityCreateExperimentGet();
-            return {
-                experiment: {
-                    id: response.id,
-                    name: response.name
-                }, errors: []
-            }
+      await SolubilityService.setupJobApiV1SolubilityJobsPost(
+        {
+          experiment_id: experimentId,
+          job_id: request.jobId,
+          job_name: request.jobName,
+          protein_ids: proteins.map(p => p.id)
         }
-    }
+      );
+    },
+    async inference(request: InferenceRequest): Promise<{
+      job: Job<AminoAcid> | null,
+      errors: string[]
+    }> {
+      const job = await SolubilityService.getJobApiV1SolubilityJobsJobIdGet(request.jobId!);
+
+      await this.setupJob(job.experiment_id, request);
+
+      const errorResponse = obtainErrorResponse(job);
+      if (errorResponse) {
+        for (const error of errorResponse.errors) {
+          Notify.create({
+            type: "negative",
+            closeBtn: 'Close',
+            message: error
+          });
+        }
+        return {job: null, errors: errorResponse.errors};
+      }
+
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
+        ids: job.protein_ids
+      });
+
+      return {
+        job: {
+          id: job.job_id,
+          name: job.job_name,
+          aminoAcids: proteins.map(p => {
+            return {
+              name: p.name,
+              sequence: p.fasta_content!,
+              soluble_probability: p.soluble_probability!
+            };
+          }),
+          properties: {
+            fastas: request.fastas
+          }
+        },
+        errors: []
+      };
+    },
+    async getJob(jobId: string): Promise<{
+      job: Job<AminoAcid> | null,
+      errors: string[]
+    }> {
+      const response = await SolubilityService.getJobApiV1SolubilityJobsJobIdGet(jobId);
+      const errorResponse = obtainErrorResponse(response);
+      if (errorResponse) {
+        if (errorResponse.error_code === ErrorCodes.job_not_found) {
+          return {
+            job: {
+              id: jobId,
+              name: "New job",
+              aminoAcids: [],
+              properties: {
+                fastas: []
+              }
+            }, errors: []
+          };
+        } else {
+          Notify.create({
+            type: "negative",
+            message: errorResponse.errors[0]
+          });
+        }
+
+        return {job: null, errors: errorResponse.errors};
+      }
+
+      const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
+        ids: response.protein_ids
+      });
+
+      return {
+        job: {
+          id: response.job_id,
+          name: response.job_name,
+          aminoAcids: proteins.map(p => {
+            return {
+              name: p.name,
+              sequence: p.fasta_content!,
+              soluble_probability: p.soluble_probability!
+            };
+          }),
+          properties: {
+            fastas: proteins.map(p =>
+              new File([new Blob([p.fasta_content!])], p.fasta_name)
+            )
+          }
+        }, errors: []
+      };
+    },
+    async changeJobName(jobId: string, newName: string) {
+      await JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(
+        jobId,
+        {
+          job_name: newName
+        }
+      );
+    },
+  }
 });
 
 export default useSolubilityStore;

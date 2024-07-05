@@ -15,10 +15,10 @@
 import unittest
 import datetime
 
-from nolabs_microservice.models.upload_lone_ligand_response import UploadLoneLigandResponse
+from nolabs_microservice.models.upload_lone_ligand_response import UploadLoneLigandContentResponse
 
-class TestUploadLoneLigandResponse(unittest.TestCase):
-    """UploadLoneLigandResponse unit test stubs"""
+class TestUploadLoneLigandContentResponse(unittest.TestCase):
+    """UploadLoneLigandContentResponse unit test stubs"""
 
     def setUp(self):
         pass
@@ -26,16 +26,16 @@ class TestUploadLoneLigandResponse(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> UploadLoneLigandResponse:
-        """Test UploadLoneLigandResponse
+    def make_instance(self, include_optional) -> UploadLoneLigandContentResponse:
+        """Test UploadLoneLigandContentResponse
             include_option is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `UploadLoneLigandResponse`
+        # uncomment below to create an instance of `UploadLoneLigandContentResponse`
         """
-        model = UploadLoneLigandResponse()
+        model = UploadLoneLigandContentResponse()
         if include_optional:
-            return UploadLoneLigandResponse(
+            return UploadLoneLigandContentResponse(
                 ligand_meta_data = nolabs_microservice.models.ligand_meta_data.LigandMetaData(
                     ligand_id = null, 
                     ligand_name = null, 
@@ -44,7 +44,7 @@ class TestUploadLoneLigandResponse(unittest.TestCase):
                     image = null, )
             )
         else:
-            return UploadLoneLigandResponse(
+            return UploadLoneLigandContentResponse(
                 ligand_meta_data = nolabs_microservice.models.ligand_meta_data.LigandMetaData(
                     ligand_id = null, 
                     ligand_name = null, 
@@ -54,8 +54,8 @@ class TestUploadLoneLigandResponse(unittest.TestCase):
         )
         """
 
-    def testUploadLoneLigandResponse(self):
-        """Test UploadLoneLigandResponse"""
+    def testUploadLoneLigandContentResponse(self):
+        """Test UploadLoneLigandContentResponse"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

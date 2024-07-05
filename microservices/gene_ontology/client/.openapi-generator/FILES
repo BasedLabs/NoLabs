@@ -6,6 +6,7 @@ README.md
 docs/DefaultApi.md
 docs/GoConfidenceResponse.md
 docs/HTTPValidationError.md
+docs/IsJobRunningResponse.md
 docs/RunGeneOntologyPredictionRequest.md
 docs/RunGeneOntologyPredictionResponse.md
 docs/ValidationError.md
@@ -20,6 +21,7 @@ gene_ontology_microservice/exceptions.py
 gene_ontology_microservice/models/__init__.py
 gene_ontology_microservice/models/go_confidence_response.py
 gene_ontology_microservice/models/http_validation_error.py
+gene_ontology_microservice/models/is_job_running_response.py
 gene_ontology_microservice/models/run_gene_ontology_prediction_request.py
 gene_ontology_microservice/models/run_gene_ontology_prediction_response.py
 gene_ontology_microservice/models/validation_error.py
@@ -33,5 +35,5 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_go_confidence_response.py
+test/test_is_job_running_response.py
 tox.ini

@@ -12,4 +12,4 @@ WORKDIR /app
 ENV PYTHONBUFFERED=1
 
 # Append host and port to the end
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "conformations", "uvicorn", "conformations.api:app"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "conformations", "uvicorn", "conformations.api:app", "--workers", "2"]

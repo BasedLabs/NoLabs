@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**job_id** | **str** |  | 
 **top** | **str** |  | 
 **gro** | **str** |  | 
 **temperature_k** | **float** |  | [optional] [default to 273.15]

@@ -34,8 +34,8 @@ from nolabs_microservice.models.check_pocket_data_available_response import Chec
 from nolabs_microservice.models.check_result_data_available_response import CheckResultDataAvailableResponse
 from nolabs_microservice.models.check_service_healthy_response import CheckServiceHealthyResponse
 from nolabs_microservice.models.delete_docking_job_response import DeleteDockingJobResponse
-from nolabs_microservice.models.delete_lone_ligand_response import DeleteLoneLigandResponse
-from nolabs_microservice.models.delete_target_ligand_response import DeleteTargetLigandResponse
+from nolabs_microservice.models.delete_lone_ligand_response import DeleteLoneLigandContentResponse
+from nolabs_microservice.models.delete_target_ligand_response import DeleteTargetLigandContentResponse
 from nolabs_microservice.models.delete_target_response import DeleteTargetResponse
 from nolabs_microservice.models.experiment_metadata_response import ExperimentMetadataResponse
 from nolabs_microservice.models.get_all_jobs_list_response import GetAllJobsListResponse
@@ -46,10 +46,10 @@ from nolabs_microservice.models.get_diff_dock_params_response import GetDiffDock
 from nolabs_microservice.models.get_docking_params_response import GetDockingParamsResponse
 from nolabs_microservice.models.get_folding_response import GetFoldingResponse
 from nolabs_microservice.models.get_job_binding_pocket_data_response import GetJobBindingPocketDataResponse
-from nolabs_microservice.models.get_jobs_list_for_target_ligand_response import GetJobsListForTargetLigandResponse
+from nolabs_microservice.models.get_jobs_list_for_target_ligand_response import GetJobsListForTargetLigandContentResponse
 from nolabs_microservice.models.get_lone_ligand_data_response import GetLoneLigandDataResponse
 from nolabs_microservice.models.get_lone_ligand_meta_data_response import GetLoneLigandMetaDataResponse
-from nolabs_microservice.models.get_results_list_for_target_ligand_response import GetResultsListForTargetLigandResponse
+from nolabs_microservice.models.get_results_list_for_target_ligand_response import GetResultsListForTargetLigandContentResponse
 from nolabs_microservice.models.get_target_binding_pocket_response import GetTargetBindingPocketResponse
 from nolabs_microservice.models.get_target_data_response import GetTargetDataResponse
 from nolabs_microservice.models.get_target_ligand_data_response import GetTargetLigandDataResponse
@@ -63,8 +63,8 @@ from nolabs_microservice.models.predict_msa_response import PredictMsaResponse
 from nolabs_microservice.models.register_docking_job_response import RegisterDockingJobResponse
 from nolabs_microservice.models.run_diff_dock_docking_job_response import RunDiffDockDockingJobResponse
 from nolabs_microservice.models.run_umol_docking_job_response import RunUmolDockingJobResponse
-from nolabs_microservice.models.upload_lone_ligand_response import UploadLoneLigandResponse
-from nolabs_microservice.models.upload_target_ligand_response import UploadTargetLigandResponse
+from nolabs_microservice.models.upload_lone_ligand_response import UploadLoneLigandContentResponse
+from nolabs_microservice.models.upload_target_ligand_response import UploadTargetLigandContentResponse
 from nolabs_microservice.models.upload_target_response import UploadTargetResponse
 
 from nolabs_microservice.api_client import ApiClient
@@ -5622,7 +5622,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> DeleteLoneLigandResponse:
+    ) -> DeleteLoneLigandContentResponse:
         """Delete Ligand From Experiment
 
 
@@ -5662,7 +5662,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DeleteLoneLigandResponse",
+            '200': "DeleteLoneLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -5693,7 +5693,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[DeleteLoneLigandResponse]:
+    ) -> ApiResponse[DeleteLoneLigandContentResponse]:
         """Delete Ligand From Experiment
 
 
@@ -5733,7 +5733,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DeleteLoneLigandResponse",
+            '200': "DeleteLoneLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -5804,7 +5804,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DeleteLoneLigandResponse",
+            '200': "DeleteLoneLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -5899,7 +5899,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> DeleteTargetLigandResponse:
+    ) -> DeleteTargetLigandContentResponse:
         """Delete Ligand From Target
 
 
@@ -5942,7 +5942,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DeleteTargetLigandResponse",
+            '200': "DeleteTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -5974,7 +5974,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[DeleteTargetLigandResponse]:
+    ) -> ApiResponse[DeleteTargetLigandContentResponse]:
         """Delete Ligand From Target
 
 
@@ -6017,7 +6017,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DeleteTargetLigandResponse",
+            '200': "DeleteTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -6092,7 +6092,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DeleteTargetLigandResponse",
+            '200': "DeleteTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -9034,7 +9034,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> GetJobsListForTargetLigandResponse:
+    ) -> GetJobsListForTargetLigandContentResponse:
         """Get Jobs List For Target Ligand
 
 
@@ -9077,7 +9077,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetJobsListForTargetLigandResponse",
+            '200': "GetJobsListForTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -9109,7 +9109,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[GetJobsListForTargetLigandResponse]:
+    ) -> ApiResponse[GetJobsListForTargetLigandContentResponse]:
         """Get Jobs List For Target Ligand
 
 
@@ -9152,7 +9152,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetJobsListForTargetLigandResponse",
+            '200': "GetJobsListForTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -9227,7 +9227,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetJobsListForTargetLigandResponse",
+            '200': "GetJobsListForTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -11000,7 +11000,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> GetResultsListForTargetLigandResponse:
+    ) -> GetResultsListForTargetLigandContentResponse:
         """Get Results List For Target Ligand
 
 
@@ -11043,7 +11043,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetResultsListForTargetLigandResponse",
+            '200': "GetResultsListForTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -11075,7 +11075,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[GetResultsListForTargetLigandResponse]:
+    ) -> ApiResponse[GetResultsListForTargetLigandContentResponse]:
         """Get Results List For Target Ligand
 
 
@@ -11118,7 +11118,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetResultsListForTargetLigandResponse",
+            '200': "GetResultsListForTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -11193,7 +11193,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetResultsListForTargetLigandResponse",
+            '200': "GetResultsListForTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -16507,7 +16507,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> UploadLoneLigandResponse:
+    ) -> UploadLoneLigandContentResponse:
         """Upload Ligand To Experiment
 
 
@@ -16550,7 +16550,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UploadLoneLigandResponse",
+            '200': "UploadLoneLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -16582,7 +16582,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[UploadLoneLigandResponse]:
+    ) -> ApiResponse[UploadLoneLigandContentResponse]:
         """Upload Ligand To Experiment
 
 
@@ -16625,7 +16625,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UploadLoneLigandResponse",
+            '200': "UploadLoneLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -16700,7 +16700,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UploadLoneLigandResponse",
+            '200': "UploadLoneLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -16807,7 +16807,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> UploadTargetLigandResponse:
+    ) -> UploadTargetLigandContentResponse:
         """Upload Ligand To Target
 
 
@@ -16850,7 +16850,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UploadTargetLigandResponse",
+            '200': "UploadTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -16882,7 +16882,7 @@ class DrugDiscoveryApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[UploadTargetLigandResponse]:
+    ) -> ApiResponse[UploadTargetLigandContentResponse]:
         """Upload Ligand To Target
 
 
@@ -16925,7 +16925,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UploadTargetLigandResponse",
+            '200': "UploadTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
@@ -17000,7 +17000,7 @@ class DrugDiscoveryApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "UploadTargetLigandResponse",
+            '200': "UploadTargetLigandContentResponse",
             '422': "HTTPValidationError",
         }
         response_data = self.api_client.call_api(

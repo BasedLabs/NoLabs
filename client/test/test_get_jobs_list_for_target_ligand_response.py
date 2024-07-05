@@ -15,10 +15,10 @@
 import unittest
 import datetime
 
-from nolabs_microservice.models.get_jobs_list_for_target_ligand_response import GetJobsListForTargetLigandResponse
+from nolabs_microservice.models.get_jobs_list_for_target_ligand_response import GetJobsListForTargetLigandContentResponse
 
-class TestGetJobsListForTargetLigandResponse(unittest.TestCase):
-    """GetJobsListForTargetLigandResponse unit test stubs"""
+class TestGetJobsListForTargetLigandContentResponse(unittest.TestCase):
+    """GetJobsListForTargetLigandContentResponse unit test stubs"""
 
     def setUp(self):
         pass
@@ -26,26 +26,26 @@ class TestGetJobsListForTargetLigandResponse(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> GetJobsListForTargetLigandResponse:
-        """Test GetJobsListForTargetLigandResponse
+    def make_instance(self, include_optional) -> GetJobsListForTargetLigandContentResponse:
+        """Test GetJobsListForTargetLigandContentResponse
             include_option is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `GetJobsListForTargetLigandResponse`
+        # uncomment below to create an instance of `GetJobsListForTargetLigandContentResponse`
         """
-        model = GetJobsListForTargetLigandResponse()
+        model = GetJobsListForTargetLigandContentResponse()
         if include_optional:
-            return GetJobsListForTargetLigandResponse(
+            return GetJobsListForTargetLigandContentResponse(
                 jobs_list = None
             )
         else:
-            return GetJobsListForTargetLigandResponse(
+            return GetJobsListForTargetLigandContentResponse(
                 jobs_list = None,
         )
         """
 
-    def testGetJobsListForTargetLigandResponse(self):
-        """Test GetJobsListForTargetLigandResponse"""
+    def testGetJobsListForTargetLigandContentResponse(self):
+        """Test GetJobsListForTargetLigandContentResponse"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

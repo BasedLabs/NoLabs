@@ -1,11 +1,11 @@
 # RunSolubilityPredictionRequest
 
-RunSolubilityPredictionRequest(amino_acid_sequence: str)
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**job_id** | **str** |  | 
 **amino_acid_sequence** | **str** |  | 
 
 ## Example

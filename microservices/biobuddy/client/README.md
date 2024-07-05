@@ -84,6 +84,7 @@ All URIs are relative to *http://localhost*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *DefaultApi* | [**get_running_jobs_jobs_running_get**](docs/DefaultApi.md#get_running_jobs_jobs_running_get) | **GET** /jobs/running | Get Running Jobs
+*DefaultApi* | [**invoke_function_invoke_function_post**](docs/DefaultApi.md#invoke_function_invoke_function_post) | **POST** /invoke-function | Invoke Function
 *DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
 *DefaultApi* | [**predict_send_message_post**](docs/DefaultApi.md#predict_send_message_post) | **POST** /send-message | Predict
 
@@ -93,6 +94,7 @@ Class | Method | HTTP request | Description
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [JobId](docs/JobId.md)
+ - [SendActionCallRequest](docs/SendActionCallRequest.md)
  - [SendMessageToBioBuddyRequest](docs/SendMessageToBioBuddyRequest.md)
  - [SendMessageToBioBuddyResponse](docs/SendMessageToBioBuddyResponse.md)
  - [ValidationError](docs/ValidationError.md)

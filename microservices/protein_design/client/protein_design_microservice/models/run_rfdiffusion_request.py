@@ -29,12 +29,13 @@ class RunRfdiffusionRequest(BaseModel):
     """
     RunRfdiffusionRequest
     """ # noqa: E501
+    job_id: StrictStr
     pdb_content: StrictStr
+    contig: StrictStr
     hotspots: Optional[StrictStr] = None
-    contig: Optional[StrictStr] = None
     timesteps: Optional[StrictInt] = None
     number_of_designs: Optional[StrictInt] = None
-    __properties: ClassVar[List[str]] = ["pdb_content", "hotspots", "contig", "timesteps", "number_of_designs"]
+    __properties: ClassVar[List[str]] = ["job_id", "pdb_content", "contig", "hotspots", "timesteps", "number_of_designs"]
 
     model_config = {
         "populate_by_name": True,
@@ -78,11 +79,6 @@ class RunRfdiffusionRequest(BaseModel):
         if self.hotspots is None and "hotspots" in self.model_fields_set:
             _dict['hotspots'] = None
 
-        # set to None if contig (nullable) is None
-        # and model_fields_set contains the field
-        if self.contig is None and "contig" in self.model_fields_set:
-            _dict['contig'] = None
-
         # set to None if timesteps (nullable) is None
         # and model_fields_set contains the field
         if self.timesteps is None and "timesteps" in self.model_fields_set:
@@ -105,9 +101,10 @@ class RunRfdiffusionRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "job_id": obj.get("job_id"),
             "pdb_content": obj.get("pdb_content"),
-            "hotspots": obj.get("hotspots"),
             "contig": obj.get("contig"),
+            "hotspots": obj.get("hotspots"),
             "timesteps": obj.get("timesteps"),
             "number_of_designs": obj.get("number_of_designs")
         })

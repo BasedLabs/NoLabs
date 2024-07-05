@@ -1,6 +1,9 @@
 services:
+  mongo:
+    image: 'mongo:latest'
+    network_mode: host
   conformations:
-    image: 'ghcr.io/basedlabs/conformations:1.0.0'
+    image: 'ghcr.io/basedlabs/conformations:1.1.0'
     network_mode: host
     build:
       context: microservices/conformations
@@ -35,7 +38,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5733
   solubility:
-    image: 'ghcr.io/basedlabs/solubility:1.0.0'
+    image: 'ghcr.io/basedlabs/solubility:1.1.0'
     network_mode: host
     build:
       context: microservices/solubility
@@ -49,7 +52,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   protein_design:
-    image: 'ghcr.io/basedlabs/protein-design:1.0.0'
+    image: 'ghcr.io/basedlabs/protein-design:1.1.0'
     network_mode: host
     build:
       context: microservices/protein_design
@@ -63,7 +66,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   localisation:
-    image: 'ghcr.io/basedlabs/localisation:1.0.0'
+    image: 'ghcr.io/basedlabs/localisation:1.1.0'
     network_mode: host
     build:
       context: microservices/localisation
@@ -77,7 +80,7 @@ services:
               count: 1
               capabilities: [ gpu ]
   gene_ontology:
-    image: 'ghcr.io/basedlabs/gene-ontology:1.0.0'
+    image: 'ghcr.io/basedlabs/gene-ontology:1.1.0'
     network_mode: host
     build:
       context: microservices/gene_ontology
@@ -90,22 +93,8 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-  umol:
-    image: 'ghcr.io/basedlabs/umol:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/umol
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5735
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
   diffdock:
-    image: 'ghcr.io/basedlabs/diffdock:1.0.0'
+    image: 'ghcr.io/basedlabs/diffdock:1.0.1'
     network_mode: host
     build:
       context: microservices/diffdock
@@ -132,29 +121,15 @@ services:
       context: microservices/msa_light
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5734
-  rcsb_pdb_query:
-    image: 'ghcr.io/basedlabs/rcsb-pdb-query:1.0.0'
+  external_data_query:
+    image: 'ghcr.io/basedlabs/external-data-query:1.0.0'
     network_mode: host
     build:
-      context: microservices/rcsb_pdb_query
+      context: microservices/external_data_query
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5739
-  pubmed_query:
-    image: 'ghcr.io/basedlabs/pubmed-query:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/pubmed_query
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5740
-  chembl_query:
-    image: 'ghcr.io/basedlabs/chembl-query:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/chembl_query
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5741
   biobuddy:
-    image: 'ghcr.io/basedlabs/biobuddy:1.1.1'
+    image: 'ghcr.io/basedlabs/biobuddy:1.2.0'
     network_mode: host
     build:
       context: microservices/biobuddy
@@ -170,29 +145,19 @@ services:
       context: microservices/rosettafold
       dockerfile: build/Dockerfile
     volumes:
-      - .:/RoseTTAFold/bfd
-      - .:/RoseTTAFold/pdb100_2021Mar03
-      - .:/RoseTTAFold/UniRef30_2020_06
+      - /media/jt/Local Disk/RoseTTAFold/bfd:/RoseTTAFold/bfd
+      - /media/jt/Local Disk/RoseTTAFold/pdb100_2021Mar03:/RoseTTAFold/pdb100_2021Mar03
+      - /media/jt/Local Disk/RoseTTAFold/UniRef30_2020_06:/RoseTTAFold/UniRef30_2020_06
     command: --host=0.0.0.0 --port=5738
   reinvent:
-    image: 'ghcr.io/basedlabs/reinvent:1.0.0'
+    image: 'ghcr.io/basedlabs/reinvent:1.0.1'
     network_mode: host
     build:
       context: microservices/reinvent
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790 --workers=1
-  sc_gpt:
-    image: 'ghcr.io/basedlabs/sc-gpt:1.0.0'
-    ports: # network_mode: "host" does not work on macos
-      - "5744:5744"
-    build:
-      context: microservices/sc_gpt
-      dockerfile: build/Dockerfile
-    volumes:
-      - .:/sc-gpt/
-    command: --host=0.0.0.0 --port=5744 --reload
   nolabs:
-    image: 'ghcr.io/basedlabs/nolabs:1.2.1'
+    image: 'ghcr.io/basedlabs/nolabs:2.0.1'
     network_mode: host
     build:
       context: .

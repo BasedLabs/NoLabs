@@ -14,7 +14,7 @@ export default defineComponent({
       type: Boolean,
       required: true
     },
-    experimentId: {
+    jobId: {
       type: String,
       required: true
     }
@@ -49,7 +49,7 @@ export default defineComponent({
           message: 'Loading logs'
         });
         try {
-          this.content = await this.$options.store.logs(this.experimentId);
+          this.content = await this.$options.store.logs(this.jobId);
         }
         finally{
           this.$q.loading.hide();

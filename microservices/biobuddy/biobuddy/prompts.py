@@ -1,3 +1,4 @@
+from biobuddy.workflow import components
 
 
 def generate_system_prompt() -> str:
@@ -9,8 +10,37 @@ def generate_system_prompt() -> str:
 
 def generate_strategy_prompt(tools_description: str, query: str) -> str:
     return (f"Given the available tools ({tools_description}), decide whether a direct reply is sufficient "
-        f"or if a specific plan involving these tools is necessary. "
-            f"If a calling function calls are not needed, provide the direct reply (without stating that it's a direct reply, just the text of the reply). "
-        f"If function calls are needed, reply with the list (with a tag <PLAN> before the list) of queries for function calls in the format: \"<PLAN>: ['Call function_1 in order to do X', 'Call function_2 to achieve Y']\". "
-        f"If you are asked SPECIFICALLY to do the literature research on some topic, write only tag <RESEARCH>. "
-        f"\n\nQuery: \"{query}\"\n\n")
+            f"or if a specific plan involving these tools is necessary. "
+            f"If calling function calls are not needed, provide the direct reply (without stating that it's a direct reply, just the text of the reply). "
+            f"If function calls are needed, reply with a plan of all actions required based on the query and tools descriptions in the format (have as many actions as needed): "
+            f"\"<ACTION> 1. Call tool_1 in order to do X <END_ACTION> <ACTION> 2. Call tool_2 to achieve Y <END_ACTION> <ACTION> 3. Call tool_3 to do something else <END_ACTION>\". "
+            f"Be carefull to actually use all the functions, i.e. if a user asks to pull two molecules and it can't be done with just one action, do it with two actions"
+            f"If you are asked SPECIFICALLY to do the literature research on some topic, write only tag <RESEARCH>. "
+            f"\n\nQuery: \"{query}\"\n\n")
+
+workflow_json = '''
+{
+  "workflow": {
+    "name": "My Biology Workflow",
+    "nodes": [
+      {"id": "1", "name": "DownloadFromRCSB", "type": "component", "inputs": [], "outputs": ["fasta_file"], "description": "Downloads data from RCSB PDB in FASTA format."},
+      {"id": "2", "name": "DownloadFromChembl", "type": "component", "inputs": [], "outputs": ["smiles_string"], "description": "Downloads ligands from ChEMBL in SMILES format."},
+      {"id": "3", "name": "DockingProteinOnLigand", "type": "component", "inputs": ["pdb_file", "smiles_string"], "outputs": ["pdb_file"], "description": "Performs docking of protein on ligand, accepts PDB file and SMILES string, and generates a PDB file."},
+      {"id": "4", "name": "PredictSolubility", "type": "component", "inputs": ["fasta_file"], "outputs": ["solubility_score"], "description": "Predicts solubility of a protein, accepts protein sequence, and returns a float solubility score."},
+      {"id": "5", "name": "RunFolding", "type": "component", "inputs": ["fasta_file"], "outputs": ["pdb_file"], "description": "Runs folding of proteins, accepts protein sequence, and returns a folded PDB file."}
+    ],
+    "edges": [
+      {"from": "1", "to": "3"},
+      {"from": "2", "to": "3"},
+      {"from": "1", "to": "4"},
+      {"from": "1", "to": "5"}
+    ]
+  }
+}
+'''
+def generate_workflow_prompt(query: str) -> str:
+    return (f"Generate a JSON which would be used to construct a workflow graph. Reply just by generating the json, don't add any explanations or comments. "
+            f"Workflow consists of components. A hypothetical example of the output could be:"
+            f"{workflow_json}"
+            f"Available components to choose from are: {', '.join(component.name for component in components)}"
+            f"\n\nUser Query: \"{query}\"\n\n")

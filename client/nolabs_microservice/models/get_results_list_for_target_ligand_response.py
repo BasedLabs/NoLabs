@@ -25,9 +25,9 @@ try:
 except ImportError:
     from typing_extensions import Self
 
-class GetResultsListForTargetLigandResponse(BaseModel):
+class GetResultsListForTargetLigandContentResponse(BaseModel):
     """
-    GetResultsListForTargetLigandResponse
+    GetResultsListForTargetLigandContentResponse
     """ # noqa: E501
     results_list: Optional[Any]
     __properties: ClassVar[List[str]] = ["results_list"]
@@ -50,7 +50,7 @@ class GetResultsListForTargetLigandResponse(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
-        """Create an instance of GetResultsListForTargetLigandResponse from a JSON string"""
+        """Create an instance of GetResultsListForTargetLigandContentResponse from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -78,7 +78,7 @@ class GetResultsListForTargetLigandResponse(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Dict) -> Self:
-        """Create an instance of GetResultsListForTargetLigandResponse from a dict"""
+        """Create an instance of GetResultsListForTargetLigandContentResponse from a dict"""
         if obj is None:
             return None
 

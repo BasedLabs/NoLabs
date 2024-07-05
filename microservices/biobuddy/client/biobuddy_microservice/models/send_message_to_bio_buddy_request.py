@@ -27,11 +27,12 @@ class SendMessageToBioBuddyRequest(BaseModel):
     """
     SendMessageToBioBuddyRequest
     """ # noqa: E501
+    experiment_id: StrictStr
     message_content: StrictStr
     previous_messages: List[Dict[str, StrictStr]]
     tools: List[Dict[str, Any]]
     job_id: Optional[JobId] = None
-    __properties: ClassVar[List[str]] = ["message_content", "previous_messages", "tools", "job_id"]
+    __properties: ClassVar[List[str]] = ["experiment_id", "message_content", "previous_messages", "tools", "job_id"]
 
     model_config = {
         "populate_by_name": True,
@@ -87,6 +88,7 @@ class SendMessageToBioBuddyRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "experiment_id": obj.get("experiment_id"),
             "message_content": obj.get("message_content"),
             "previous_messages": obj.get("previous_messages"),
             "tools": obj.get("tools"),

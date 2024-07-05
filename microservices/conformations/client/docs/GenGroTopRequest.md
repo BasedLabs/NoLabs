@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**job_id** | **str** |  | 
 **force_field** | [**GromacsForceFields**](GromacsForceFields.md) |  | 
 **water_force_field** | [**GromacsWaterForceFields**](GromacsWaterForceFields.md) |  | 
 **pdb_content** | **str** |  | 

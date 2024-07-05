@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 COPY . /app
 RUN python -m localisation.predownload_model
 
-ENTRYPOINT ["uvicorn", "localisation.api:app"]
+ENTRYPOINT ["uvicorn", "localisation.api:app", "--workers", "2"]

@@ -15,10 +15,10 @@
 import unittest
 import datetime
 
-from nolabs_microservice.models.upload_target_ligand_response import UploadTargetLigandResponse
+from nolabs_microservice.models.upload_target_ligand_response import UploadTargetLigandContentResponse
 
-class TestUploadTargetLigandResponse(unittest.TestCase):
-    """UploadTargetLigandResponse unit test stubs"""
+class TestUploadTargetLigandContentResponse(unittest.TestCase):
+    """UploadTargetLigandContentResponse unit test stubs"""
 
     def setUp(self):
         pass
@@ -26,16 +26,16 @@ class TestUploadTargetLigandResponse(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> UploadTargetLigandResponse:
-        """Test UploadTargetLigandResponse
+    def make_instance(self, include_optional) -> UploadTargetLigandContentResponse:
+        """Test UploadTargetLigandContentResponse
             include_option is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `UploadTargetLigandResponse`
+        # uncomment below to create an instance of `UploadTargetLigandContentResponse`
         """
-        model = UploadTargetLigandResponse()
+        model = UploadTargetLigandContentResponse()
         if include_optional:
-            return UploadTargetLigandResponse(
+            return UploadTargetLigandContentResponse(
                 ligand_meta_data = nolabs_microservice.models.ligand_meta_data.LigandMetaData(
                     ligand_id = null, 
                     ligand_name = null, 
@@ -44,7 +44,7 @@ class TestUploadTargetLigandResponse(unittest.TestCase):
                     image = null, )
             )
         else:
-            return UploadTargetLigandResponse(
+            return UploadTargetLigandContentResponse(
                 ligand_meta_data = nolabs_microservice.models.ligand_meta_data.LigandMetaData(
                     ligand_id = null, 
                     ligand_name = null, 
@@ -54,8 +54,8 @@ class TestUploadTargetLigandResponse(unittest.TestCase):
         )
         """
 
-    def testUploadTargetLigandResponse(self):
-        """Test UploadTargetLigandResponse"""
+    def testUploadTargetLigandContentResponse(self):
+        """Test UploadTargetLigandContentResponse"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

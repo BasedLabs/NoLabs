@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-python-json-logger
-openapi
-biopython
-certifi

@@ -30,6 +30,7 @@ class RunGromacsSimulationsRequest(BaseModel):
     """
     RunGromacsSimulationsRequest
     """ # noqa: E501
+    job_id: StrictStr
     top: StrictStr
     gro: StrictStr
     temperature_k: Optional[Union[StrictFloat, StrictInt]] = 273.15
@@ -38,7 +39,7 @@ class RunGromacsSimulationsRequest(BaseModel):
     integrator: Optional[Integrators] = None
     take_frame_every: Optional[StrictInt] = 1000
     total_frames: Optional[StrictInt] = 10000
-    __properties: ClassVar[List[str]] = ["top", "gro", "temperature_k", "friction_coeff", "step_size", "integrator", "take_frame_every", "total_frames"]
+    __properties: ClassVar[List[str]] = ["job_id", "top", "gro", "temperature_k", "friction_coeff", "step_size", "integrator", "take_frame_every", "total_frames"]
 
     model_config = {
         "populate_by_name": True,
@@ -89,6 +90,7 @@ class RunGromacsSimulationsRequest(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "job_id": obj.get("job_id"),
             "top": obj.get("top"),
             "gro": obj.get("gro"),
             "temperature_k": obj.get("temperature_k") if obj.get("temperature_k") is not None else 273.15,

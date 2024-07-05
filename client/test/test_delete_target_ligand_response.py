@@ -15,10 +15,10 @@
 import unittest
 import datetime
 
-from nolabs_microservice.models.delete_target_ligand_response import DeleteTargetLigandResponse
+from nolabs_microservice.models.delete_target_ligand_response import DeleteTargetLigandContentResponse
 
-class TestDeleteTargetLigandResponse(unittest.TestCase):
-    """DeleteTargetLigandResponse unit test stubs"""
+class TestDeleteTargetLigandContentResponse(unittest.TestCase):
+    """DeleteTargetLigandContentResponse unit test stubs"""
 
     def setUp(self):
         pass
@@ -26,26 +26,26 @@ class TestDeleteTargetLigandResponse(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> DeleteTargetLigandResponse:
-        """Test DeleteTargetLigandResponse
+    def make_instance(self, include_optional) -> DeleteTargetLigandContentResponse:
+        """Test DeleteTargetLigandContentResponse
             include_option is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `DeleteTargetLigandResponse`
+        # uncomment below to create an instance of `DeleteTargetLigandContentResponse`
         """
-        model = DeleteTargetLigandResponse()
+        model = DeleteTargetLigandContentResponse()
         if include_optional:
-            return DeleteTargetLigandResponse(
+            return DeleteTargetLigandContentResponse(
                 ligand_id = None
             )
         else:
-            return DeleteTargetLigandResponse(
+            return DeleteTargetLigandContentResponse(
                 ligand_id = None,
         )
         """
 
-    def testDeleteTargetLigandResponse(self):
-        """Test DeleteTargetLigandResponse"""
+    def testDeleteTargetLigandContentResponse(self):
+        """Test DeleteTargetLigandContentResponse"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

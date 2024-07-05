@@ -1,11 +1,16 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {IntegratorsRequest} from "src/api/client";
-import {ExperimentProperties} from "src/features/conformations/types";
+import {IntegratorsRequest} from "src/refinedApi/client";
+import {JobProperties} from "src/features/conformations/types";
 
 
 interface OnSubmitType {
-  (inputs: ExperimentProperties): Promise<void>;
+  (inputs: JobProperties): Promise<void>;
+}
+
+
+interface SavePropertiesType {
+  (inputs: JobProperties): Promise<void>;
 }
 
 
@@ -16,8 +21,12 @@ export default defineComponent({
       type: Function as PropType<OnSubmitType>,
       required: true,
     },
+    saveParameters: {
+      type: Function as PropType<SavePropertiesType>,
+      required: true,
+    },
     properties: {
-      type: Object as PropType<ExperimentProperties>,
+      type: Object as PropType<JobProperties>,
       required: true
     }
   },
@@ -29,7 +38,7 @@ export default defineComponent({
       return this.pdbFile !== null;
     }
   },
-  data(): ExperimentProperties {
+  data(): JobProperties {
     return {
       pdbFile: this.properties!.pdbFile,
       totalFrames: this.properties!.totalFrames,
@@ -49,6 +58,9 @@ export default defineComponent({
       await this.onSubmit!(
           this.$data
       );
+    },
+    async _saveParameters() {
+      await this.saveParameters!(this.$data);
     }
   }
 })
@@ -103,6 +115,7 @@ export default defineComponent({
     </q-file>
     <div>
       <q-btn label="Run computation" size="large" type="submit" color="info"/>
+      <q-btn label="Save parameters" size="large" class="q-ml-xs" @click="_saveParameters" color="info"/>
     </div>
   </q-form>
 </template>

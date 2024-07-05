@@ -1,7 +1,7 @@
-import type {IntegratorsRequest} from "src/api/client";
+import type {IntegratorsRequest} from "src/refinedApi/client";
 import {Timeline} from "src/components/types";
 
-export type ExperimentProperties = {
+export type JobProperties = {
   pdbFile: File | null,
   totalFrames: number,
   temperatureK: number,
@@ -15,20 +15,18 @@ export type ExperimentProperties = {
   integrator: IntegratorsRequest,
 };
 
-
-
-export type Experiment = {
+export type Job = {
   id: string;
   name: string;
   pdbContent: File | null;
   timeline: Timeline[],
-  properties: ExperimentProperties
+  properties: JobProperties
 } | null;
 
 export type InferenceRequest = {
   pdbFile: File,
-  experimentName: string,
-  experimentId: string,
+  jobName: string,
+  jobId: string,
   totalFrames: number,
   temperatureK: number,
   takeFrameEvery: number,

@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**job_id** | **str** |  | 
 **pdb_content** | **str** |  | 
 **force_field** | [**OpenMmForceFields**](OpenMmForceFields.md) |  | 
 **water_force_field** | [**OpenMmWaterForceFields**](OpenMmWaterForceFields.md) |  | 

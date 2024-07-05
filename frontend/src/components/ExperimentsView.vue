@@ -29,7 +29,7 @@
             </q-list>
             <q-card-actions align="right">
               <router-link style="text-decoration: none;"
-                           :to="{ name: this.pathToExperimentPage, params: { experimentId: props.row.id } }">
+                           :to="{ name: 'Workflow view', params: { experimentId: props.row.id } }">
                 <q-btn outline color="info" label="Open"/>
               </router-link>
               <q-btn outline class="q-mx-md" color="negative" label="Remove"
@@ -45,27 +45,11 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue';
 import {ExperimentListItem} from "src/components/types";
-
-
-type Store = {
-  createExperiment: () => Promise<{ experiment: ExperimentListItem | null, errors: [] }>,
-  deleteExperiment: (experimentId: string) => Promise<void>,
-  getExperiments: () => Promise<{ experiments: ExperimentListItem[] | null, errors: string[] }>
-}
+import useExperimentsStore from "./experimentsStorage";
 
 
 export default defineComponent({
   name: 'ExperimentsView',
-  props: {
-    store: {
-      type: Object as PropType<Store>,
-      required: true
-    },
-    pathToExperimentPage: {
-      type: String,
-      required: true
-    }
-  },
   data() {
     return {
       experiments: [] as ExperimentListItem[],
@@ -77,9 +61,10 @@ export default defineComponent({
         descending: false,
         page: 1,
         rowsPerPage: 10
-      },
+      }
     }
   },
+  store: useExperimentsStore(),
   computed: {
     columns() {
       return [
@@ -99,22 +84,22 @@ export default defineComponent({
   },
   methods: {
     async addExperimentClick() {
-      const response = await this.store.createExperiment();
+      const response = await this.$options.store.createExperiment();
       this.experiments.push({
-        id: response.experiment!.id,
-        name: response.experiment!.name
+        id: response!.id,
+        name: response!.name
       })
     },
     async removeExperimentClick(experimentId: string) {
-      await this.store.deleteExperiment(experimentId);
+      await this.$options.store.deleteExperiment(experimentId);
       this.experiments = this.experiments.filter(x => x.id !== experimentId);
     }
   },
   async mounted() {
     this.loading = true;
-    const response = await this.store.getExperiments();
-    if(response.experiments != null){
-      this.experiments = response.experiments;
+    const response = await this.$options.store.getExperiments();
+    if(response.length > 0){
+      this.experiments = response;
     }
     this.loading = false;
   }

@@ -20,7 +20,7 @@ export type ExperimentListItem = {
 } | null;
 
 export type Timeline = {
-    message: string;
-    error: (string | null);
-    createdAt: string;
+    message: string | null | undefined;
+    error: string | null | undefined;
+    createdAt: string | undefined;
 }

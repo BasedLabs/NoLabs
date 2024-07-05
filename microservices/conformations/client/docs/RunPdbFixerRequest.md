@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**job_id** | **str** |  | 
 **pdb_content** | **str** |  | 
 **replace_nonstandard_residues** | **bool** |  | [optional] [default to False]
 **add_missing_atoms** | **bool** |  | [optional] [default to False]
