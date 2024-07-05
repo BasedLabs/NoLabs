@@ -38,7 +38,7 @@ conformations-microservice = {path = "microservices/conformations/client"}
 gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
 protein-design-microservice = {path = "microservices/protein_design/client"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
-external-data-query-microservice = {path = "microservices/extarnal_data_query/client"}
+external-data-query-microservice = {path = "microservices/external_data_query/client"}
 
 [project]
 dependencies = [
