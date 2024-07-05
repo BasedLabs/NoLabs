@@ -180,6 +180,13 @@ export default defineComponent({
         protein.loadDetails = true;
       }
     }
+  },
+  unmounted() {
+    const bioBuddyStore = useBioBuddyStore();
+    const index = bioBuddyStore.queryRcsbPdbEventHandlers.indexOf(this.rscbQueryCallBack!);
+    if (index !== -1) {
+      bioBuddyStore.queryRcsbPdbEventHandlers.splice(index, 1);
+    }
   }
 });
 </script>

@@ -405,8 +405,9 @@ export default defineComponent({
     isLastUserMessageWithoutResponse(index: number) {
       return index === this.messages.length - 1 && this.messages[index].role === 'user';
     },
-    startEditing(index: number) {
+    async startEditing(index: number) {
       this.editIndex = index;
+
       this.editMessage = this.messages[index].messages.map(m => m.content).join(' ');
     },
     cancelEdit() {

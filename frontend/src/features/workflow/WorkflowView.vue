@@ -232,6 +232,7 @@ export default defineComponent({
     this.biobuddyWorkflowCallBack = async (data: any) => {
       await workflowStore.adjustWorkflow(data);
     };
+
     bioBuddyStore.addWorkflowAdjustmentEventHandler(this.biobuddyWorkflowCallBack);
 
     this.pollIntervalId = window.setInterval(() => {
@@ -333,6 +334,13 @@ export default defineComponent({
   beforeUnmount() {
     if (this.pollIntervalId !== null) {
       clearInterval(this.pollIntervalId);
+    }
+  },
+  unmounted() {
+    const bioBuddyStore = useBioBuddyStore();
+    const index = bioBuddyStore.workflowAdjustmentEventHandlers.indexOf(this.biobuddyWorkflowCallBack!);
+    if (index !== -1) {
+      bioBuddyStore.workflowAdjustmentEventHandlers.splice(index, 1);
     }
   }
 });
