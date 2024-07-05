@@ -440,7 +440,7 @@ export default defineComponent({
     const bioBuddyStore = useBioBuddyStore();
     this.functionMappings = [
       { name: 'query_rcsb_pdb_by_id', function: bioBuddyStore.invokeQueryRcsbPdbEventHandlers },
-      { name: 'query_rcsb_pdb_by_protein_names', function: bioBuddyStore.invokeQueryRcsbPdbEventHandlers },
+      { name: 'query_rcsb_pdb', function: bioBuddyStore.invokeQueryRcsbPdbEventHandlers },
       { name: 'query_chembl', function: bioBuddyStore.invokeQueryChemblEventHandlers },
       { name: 'query_chembl_by_condition', function: bioBuddyStore.invokeQueryChemblEventHandlers },
     ];

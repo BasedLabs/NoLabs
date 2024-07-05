@@ -121,27 +121,13 @@ services:
       context: microservices/msa_light
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5734
-  rcsb_pdb_query:
-    image: 'ghcr.io/basedlabs/rcsb-pdb-query:1.0.0'
+  external_data_query:
+    image: 'ghcr.io/basedlabs/external-data-query:1.0.0'
     network_mode: host
     build:
-      context: microservices/rcsb_pdb_query
+      context: microservices/external_data_query
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5739
-  pubmed_query:
-    image: 'ghcr.io/basedlabs/pubmed-query:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/pubmed_query
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5740
-  chembl_query:
-    image: 'ghcr.io/basedlabs/chembl-query:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/chembl_query
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5741
   biobuddy:
     image: 'ghcr.io/basedlabs/biobuddy:1.2.0'
     network_mode: host
@@ -171,7 +157,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790 --workers=1
   nolabs:
-    image: 'ghcr.io/basedlabs/nolabs:2.0.0'
+    image: 'ghcr.io/basedlabs/nolabs:2.0.1'
     network_mode: host
     build:
       context: .
