@@ -15,7 +15,7 @@ RUN pip install --upgrade pip
 RUN pip install --default-timeout=100 -r requirements.txt
 
 # Now copy the rest of the application files into the container
-COPY ./rcsb_pdb_query /app/rcsb_pdb_query
+COPY ./external_data_query /app/external_data_query
 
 # Set the command to run the FastAPI app
-ENTRYPOINT ["uvicorn", "rcsb_pdb_query.api:app"]
+ENTRYPOINT ["uvicorn", "external_data_query.api:app"]
