@@ -379,6 +379,19 @@ Swagger UI will be available on http://localhost:5790/docs
 or
 [Install as python package](microservices/reinvent/client/README.md)
 
+### 11) BLAST API
+
+Service that allows users to perform searches using various BLAST databases. It supports nucleotide and protein BLAST queries through different endpoints.
+
+```shell
+docker compose up blast_query
+```
+
+Swagger UI will be available on http://localhost:5743/docs
+
+or
+[Install as python package](microservices/blast_query/client/README.md)
+
 WARNING: Do not change the number of guvicorn workers (1), this will lead to microservice issues.
 
 # Technologies

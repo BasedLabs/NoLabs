@@ -156,6 +156,16 @@ services:
       context: microservices/reinvent
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790 --workers=1
+  blast_query:
+    image: 'ghcr.io/basedlabs/blast-query:1.0.0'
+    ports: # network_mode: "host" does not work on macos
+      - "5743:5743"
+    build:
+      context: microservices/blast_query
+      dockerfile: build/Dockerfile
+    environment:
+      - EMAIL=${EMAIL}
+    command: --host=0.0.0.0 --port=5743
   nolabs:
     image: 'ghcr.io/basedlabs/nolabs:2.0.1'
     network_mode: host
