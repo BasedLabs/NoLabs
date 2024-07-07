@@ -430,6 +430,29 @@ export default defineComponent({
         content: this.editMessage,
       }];
 
+      // Fetch the workflow schema
+      const workflowSchema = await getWorkflowSchema(this.experimentId);
+
+      // Map the schema components to the required structure
+      const availableComponents = workflowSchema?.components.map(component => ({
+        name: component.name,
+        description: component.description,
+        inputs: Object.keys(component.input),
+        outputs: Object.keys(component.output),
+      }));
+
+      // Map the workflow components to the required structure
+      const currentWorkflow = workflowSchema?.workflow_components.map(workflowComponent => ({
+        id: workflowComponent.component_id,
+        name: workflowComponent.name,
+        description: '',
+        connections: workflowComponent.mappings?.map(mapping => ({
+          source_path: mapping.source_path,
+          target_path: mapping.target_path,
+          source_component_id: mapping.source_component_id,
+        })) || null,
+      }));
+
       await editMessageApi(this.experimentId, messageId, editedMessage.message_content);
 
       this.messages = this.messages.slice(0, index + 1);
@@ -443,7 +466,9 @@ export default defineComponent({
             content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
           }))
         ),
+        available_components: availableComponents,
         tools: this.tools?.function_calls,
+        current_workflow: currentWorkflow,
         job_id: null, // Optional job ID
       };
 
@@ -498,14 +523,18 @@ export default defineComponent({
   cursor: ew-resize;
   position: absolute;
   top: 0;
-  right: 0; /* Adjust based on your layout, ensuring it's reachable for resizing */
+  right: 0;
+  /* Adjust based on your layout, ensuring it's reachable for resizing */
   width: 20px;
   height: 100%;
 }
 
 .custom-icon {
-  width: 15px; /* Example size */
-  height: 15px; /* Example size */
-  vertical-align: top; /* Aligns icon with text if necessary */
+  width: 15px;
+  /* Example size */
+  height: 15px;
+  /* Example size */
+  vertical-align: top;
+  /* Aligns icon with text if necessary */
 }
 </style>
