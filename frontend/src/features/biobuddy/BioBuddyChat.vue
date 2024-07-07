@@ -492,3 +492,20 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.drawer-resize-handle {
+  cursor: ew-resize;
+  position: absolute;
+  top: 0;
+  right: 0; /* Adjust based on your layout, ensuring it's reachable for resizing */
+  width: 20px;
+  height: 100%;
+}
+
+.custom-icon {
+  width: 15px; /* Example size */
+  height: 15px; /* Example size */
+  vertical-align: top; /* Aligns icon with text if necessary */
+}
+</style>
