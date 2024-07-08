@@ -71,7 +71,7 @@ import MarkdownIt from 'markdown-it';
 import { v4 as uuidv4 } from 'uuid';
 import { useBioBuddyStore } from './storage';
 import { type FunctionParam, FunctionCall_Output, Message, GetAvailableFunctionCallsResponse } from 'src/refinedApi/client';
-import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi, getToolsApi, saveFunctionCallApi } from 'src/features/biobuddy/api';
+import { editMessageApi, loadConversationApi, saveMessageApi, sendQueryApi, getToolsApi, saveFunctionCallApi, getWorkflowSchema } from 'src/features/biobuddy/api';
 import { MeasurementFlags } from 'ngl/dist/declarations/component/structure-component';
 
 export interface FunctionMapping {
@@ -117,7 +117,9 @@ export default defineComponent({
         const message = JSON.parse(event.data);
         if (message.reply_type === 'stream') {
           this.currentMessageBuffer += message.content;
-          const actionMatches = this.currentMessageBuffer.match(/<ACTION>(.*?)<END_ACTION>/g);
+
+
+          const actionMatches = this.currentMessageBuffer.match(/<ACTION>([\s\S]*?)<END_ACTION>/g);
           if (actionMatches) {
             actionMatches.forEach((match) => {
               const actionText = match.replace(/<\/?ACTION>/g, '').replace(/<\/?END_ACTION>/g, '');;
@@ -126,6 +128,17 @@ export default defineComponent({
               this.currentMessageBuffer = this.currentMessageBuffer.replace(/<END_ACTION>/g, '');
             });
           }
+
+          // Process WORKFLOW tags
+          const workflowMatches = this.currentMessageBuffer.match(/<WORKFLOW>([\s\S]*?)<END_WORKFLOW>/g);
+          if (workflowMatches) {
+            workflowMatches.forEach((match) => {
+              const workflowText = match.replace(/<\/?WORKFLOW>/g, '').replace(/<\/?END_WORKFLOW>/g, '');
+              this.processWorkflow(workflowText);
+              this.currentMessageBuffer = this.currentMessageBuffer.replace(match, '');
+            });
+          }
+
           if (this.awaitingResponse) {
             const lastMessageIndex = this.messages.length - 1;
             if (
@@ -169,7 +182,7 @@ export default defineComponent({
           }
         } else if (message.reply_type === 'final' || message.content.includes('<STOP>')) {
           this.awaitingResponse = false;
-          const actionMatches = this.currentMessageBuffer.match(/<ACTION>(.*?)<END_ACTION>/g);
+          const actionMatches = this.currentMessageBuffer.match(/<ACTION>([\s\S]*?)<END_ACTION>/g);
           if (actionMatches) {
             actionMatches.forEach((match) => {
               const actionText = match.replace(/<\/?ACTION>/g, '').replace(/<\/?END_ACTION>/g, '');
@@ -198,6 +211,12 @@ export default defineComponent({
       this.socket.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
+    },
+    async processWorkflow(workflowText: string) {
+      const bioBuddyStore = useBioBuddyStore();
+      if (bioBuddyStore) {
+        await bioBuddyStore.invokeWorkflowAdjustment(JSON.parse(workflowText));
+      }
     },
     async processPendingActions(messageGroup) {
       for (const action of this.pendingActions) {
@@ -295,6 +314,29 @@ export default defineComponent({
     async sendMessage() {
       if (!this.experimentId || !this.newMessage.trim()) return;
 
+      // Fetch the workflow schema
+      const workflowSchema = await getWorkflowSchema(this.experimentId);
+
+      // Map the schema components to the required structure
+      const availableComponents = workflowSchema?.components.map(component => ({
+        name: component.name,
+        description: component.description,
+        inputs: Object.keys(component.input),
+        outputs: Object.keys(component.output),
+      }));
+
+      // Map the workflow components to the required structure
+      const currentWorkflow = workflowSchema?.workflow_components.map(workflowComponent => ({
+        id: workflowComponent.component_id,
+        name: workflowComponent.name,
+        description: '',
+        connections: workflowComponent.mappings?.map(mapping => ({
+          source_path: mapping.source_path,
+          target_path: mapping.target_path,
+          source_component_id: mapping.source_component_id,
+        })) || null,
+      }));
+
       const userMessage = {
         id: uuidv4(), // Generate a temporary ID
         role: 'user',
@@ -322,7 +364,9 @@ export default defineComponent({
             content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
           }))
         ),
+        available_components: availableComponents,
         tools: this.tools?.function_calls,
+        current_workflow: currentWorkflow,
         job_id: null, // Optional job ID
       };
 
@@ -361,8 +405,9 @@ export default defineComponent({
     isLastUserMessageWithoutResponse(index: number) {
       return index === this.messages.length - 1 && this.messages[index].role === 'user';
     },
-    startEditing(index: number) {
+    async startEditing(index: number) {
       this.editIndex = index;
+
       this.editMessage = this.messages[index].messages.map(m => m.content).join(' ');
     },
     cancelEdit() {
@@ -385,6 +430,29 @@ export default defineComponent({
         content: this.editMessage,
       }];
 
+      // Fetch the workflow schema
+      const workflowSchema = await getWorkflowSchema(this.experimentId);
+
+      // Map the schema components to the required structure
+      const availableComponents = workflowSchema?.components.map(component => ({
+        name: component.name,
+        description: component.description,
+        inputs: Object.keys(component.input),
+        outputs: Object.keys(component.output),
+      }));
+
+      // Map the workflow components to the required structure
+      const currentWorkflow = workflowSchema?.workflow_components.map(workflowComponent => ({
+        id: workflowComponent.component_id,
+        name: workflowComponent.name,
+        description: '',
+        connections: workflowComponent.mappings?.map(mapping => ({
+          source_path: mapping.source_path,
+          target_path: mapping.target_path,
+          source_component_id: mapping.source_component_id,
+        })) || null,
+      }));
+
       await editMessageApi(this.experimentId, messageId, editedMessage.message_content);
 
       this.messages = this.messages.slice(0, index + 1);
@@ -398,7 +466,9 @@ export default defineComponent({
             content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
           }))
         ),
+        available_components: availableComponents,
         tools: this.tools?.function_calls,
+        current_workflow: currentWorkflow,
         job_id: null, // Optional job ID
       };
 
@@ -447,3 +517,24 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.drawer-resize-handle {
+  cursor: ew-resize;
+  position: absolute;
+  top: 0;
+  right: 0;
+  /* Adjust based on your layout, ensuring it's reachable for resizing */
+  width: 20px;
+  height: 100%;
+}
+
+.custom-icon {
+  width: 15px;
+  /* Example size */
+  height: 15px;
+  /* Example size */
+  vertical-align: top;
+  /* Aligns icon with text if necessary */
+}
+</style>

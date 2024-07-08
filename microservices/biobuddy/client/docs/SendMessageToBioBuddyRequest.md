@@ -8,6 +8,8 @@ Name | Type | Description | Notes
 **experiment_id** | **str** |  | 
 **message_content** | **str** |  | 
 **previous_messages** | **List[Dict[str, str]]** |  | 
+**available_components** | [**List[Component]**](Component.md) |  | 
+**current_workflow** | [**List[WorkflowComponent]**](WorkflowComponent.md) |  | 
 **tools** | **List[object]** |  | 
 **job_id** | [**JobId**](JobId.md) |  | [optional] 
 

@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-black q-pl-md">
+  <q-page class="bg-black">
     <BioBuddyChat v-if="bioBuddyEnabled" :experiment-id="experiment.experimentId as string" />
     <div class="row no-wrap items-center">
       <q-btn-dropdown color="primary" label="Add Node" icon="add" dense persistent>
@@ -84,23 +84,6 @@
       </q-card>
     </q-dialog>
 
-    <q-drawer v-model="sideMenuOpen" v-show="sideMenuOpen" bordered content-style="background-color: white;" side="right">
-      <!-- Close button -->
-      <q-btn @click="closeSideMenu" class="q-ma-md" flat round dense icon="close" />
-
-      <!-- Side menu content -->
-      <q-card>
-        <q-card-section>
-          <q-item>
-            <q-item-section>
-              <q-item-label v-if="selectedNode">{{ selectedNode.label }}</q-item-label>
-              <q-item-label v-if="selectedNode" caption>{{ selectedNode.description }}</q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-card-section>
-      </q-card>
-    </q-drawer>
-
     <q-dialog v-model="modalOpen" persistent>
       <q-card style="min-width: 70vw; min-height: 70vh;">
         <q-card-actions align="right">
@@ -137,6 +120,7 @@ import JobNode from "./components/nodeTemplates/JobNode.vue";
 import JobNodeContent from "./components/nodeTemplates/JobNodeContent.vue";
 import { startWorkflow, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow, deleteWorkflow, resetWorkflow } from './refinedApi';
 import { useWorkflowStore } from './components/storage';
+import { useBioBuddyStore } from "src/features/biobuddy/storage";
 
 // Define custom Node type
 interface Node extends FlowNode {
@@ -182,6 +166,7 @@ export default defineComponent({
       specialNodeProps: [],
       splitterModel: 20,
       bioBuddyEnabled: false,
+      biobuddyWorkflowCallBack: null as ((data: any) => void) | null,
       workflowId: "", // Set initially to empty
       showDeleteDialog: false, // State for delete confirmation dialog
       showResetDialog: false,  // State for reset confirmation dialog
@@ -223,6 +208,15 @@ export default defineComponent({
     await workflowStore.getAllProteins(this.experiment.experimentId);
     await workflowStore.fetchWorkflow(this.workflowId);
     this.elements = workflowStore.elements;
+
+
+    const bioBuddyStore = useBioBuddyStore();
+
+    this.biobuddyWorkflowCallBack = async (data: any) => {
+      await workflowStore.adjustWorkflow(data);
+    };
+
+    bioBuddyStore.addWorkflowAdjustmentEventHandler(this.biobuddyWorkflowCallBack);
 
     this.pollIntervalId = window.setInterval(() => {
       workflowStore.pollWorkflow();
@@ -324,13 +318,20 @@ export default defineComponent({
     if (this.pollIntervalId !== null) {
       clearInterval(this.pollIntervalId);
     }
+  },
+  unmounted() {
+    const bioBuddyStore = useBioBuddyStore();
+    const index = bioBuddyStore.workflowAdjustmentEventHandlers.indexOf(this.biobuddyWorkflowCallBack!);
+    if (index !== -1) {
+      bioBuddyStore.workflowAdjustmentEventHandlers.splice(index, 1);
+    }
   }
 });
 </script>
 
-<style scoped>
+<style >
 body {
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .map-container {

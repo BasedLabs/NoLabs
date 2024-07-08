@@ -91,6 +91,8 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [Component](docs/Component.md)
+ - [Connection](docs/Connection.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [JobId](docs/JobId.md)
@@ -99,6 +101,7 @@ Class | Method | HTTP request | Description
  - [SendMessageToBioBuddyResponse](docs/SendMessageToBioBuddyResponse.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
+ - [WorkflowComponent](docs/WorkflowComponent.md)
 
 
 <a id="documentation-for-authorization"></a>
