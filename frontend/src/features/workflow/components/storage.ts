@@ -365,7 +365,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
       this.elements.nodes = this.elements.nodes.filter(node => newNodeIds.includes(node.id));
     
       // Update the state
-      this.sendWorkflowUpdate();
+      await this.sendWorkflowUpdate();
+
+      await this.fetchWorkflow(this.workflowId);
     },
     // Helper function to fetch component options
     getComponentOptionsByName(name: string) {
