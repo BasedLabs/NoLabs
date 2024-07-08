@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import dataclasses
+from pydantic.dataclasses import dataclass
 from typing import List, Optional, Dict, Union
 
 from external_data_query.mixins import BaseModelMixin
 
 
-@dataclasses.dataclass
+@dataclass
 class Molecule:
     chembl_id: str
     molecule_type: str
@@ -16,7 +16,7 @@ class Molecule:
     pref_name: str = None
 
 
-@dataclasses.dataclass
+@dataclass
 class ChEMBLMoleculeRequest(BaseModelMixin):
     filters: Dict[str, Union[str, bool, int]] = None
     order_by: str = None
@@ -24,17 +24,17 @@ class ChEMBLMoleculeRequest(BaseModelMixin):
     job_id: Optional[str] = None
 
 
-@dataclasses.dataclass
+@dataclass
 class ChEMBLMoleculeResponse(BaseModelMixin):
     molecules: List[Molecule]
 
 
-@dataclasses.dataclass
+@dataclass
 class IsJobRunningResponse:
     is_running: bool
 
 
-@dataclasses.dataclass
+@dataclass
 class DrugIndicationRequest(BaseModelMixin):
     filters: Dict[str, Union[str, bool, int]] = None
     order_by: str = None
@@ -42,7 +42,7 @@ class DrugIndicationRequest(BaseModelMixin):
     job_id: Optional[str] = None
 
 
-@dataclasses.dataclass
+@dataclass
 class DrugIndicationResponse(BaseModelMixin):
     drugs: List[Molecule]  # Assuming Molecule can also represent a drug in this context
     total_count: int

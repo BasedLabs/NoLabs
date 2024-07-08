@@ -37,7 +37,6 @@ class SequenceType(str, Enum):
     DNA = "dna"
     RNA = "rna"
 
-@dataclass
 class SequenceQueryRequest(BaseModel):
     sequence: str
     sequence_type: SequenceType
