@@ -24,6 +24,7 @@ def generate_strategy_prompt(tools_description: str, query: str, available_compo
             f"\n\nQuery: \"{query}\"\n\n"
             f"Available Components: {available_components}\n\n"
             f"Current Workflow: {current_workflow}\n\n"
+            f"Like if the query tells to do something with proteins or ligands, make sure that these data holder components are present."
             f"Your response should include the plan and the adjusted workflow if necessary. Add a short summary of changes before the JSON if you are adjusting the workflow (but don't add 'Adjusted workflow:' before the json. The workflow should be in the JSON format: "
             f"<WORKFLOW> {{\"workflow_components\": [{{\"id\": \"newId_1\", \"name\": \"component_name\", \"description\": \"component_description\", \"connections\": [{{\"source_output\": [\"source_output_name\"], \"target_input\": [\"input_name\"], \"source_component_id\": \"source_id\"}}]}}]}} <END_WORKFLOW>."
             f"input_name and output_name come from the list of inputs and outputs specified in the component. For instance, esmfold_light has 'proteins_with_fasta' as input and 'proteins_with_pdb' as output. So source_component_id should be the id of proteins component,"
