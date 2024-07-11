@@ -70,33 +70,41 @@ class RunJobFeature:
 
         result: List[Tuple[Protein, LocalisationProbability]] = []
 
-        for protein in job.proteins:
-            response = self._api.predict_run_post(
-                run_localisation_prediction_request=RunLocalisationPredictionRequest(
-                    amino_acid_sequence=protein.get_amino_acid_sequence(),
-                    job_id=str(job_id.value)
+        try:
+            job.started()
+            await job.save()
+
+            for protein in job.proteins:
+                response = self._api.predict_run_post(
+                    run_localisation_prediction_request=RunLocalisationPredictionRequest(
+                        amino_acid_sequence=protein.get_amino_acid_sequence(),
+                        job_id=str(job_id.value)
+                    )
                 )
-            )
 
-            if response.errors:
-                raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
 
-            localisation_probability = LocalisationProbability(
-                cytosolic=response.cytosolic_proteins,
-                mitochondrial=response.mitochondrial_proteins,
-                nuclear=response.nuclear_proteins,
-                other=response.other_proteins,
-                extracellular=response.extracellular_secreted_proteins
-            )
+                if response.errors:
+                    raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
 
-            result.append((protein, localisation_probability))
+                localisation_probability = LocalisationProbability(
+                    cytosolic=response.cytosolic_proteins,
+                    mitochondrial=response.mitochondrial_proteins,
+                    nuclear=response.nuclear_proteins,
+                    other=response.other_proteins,
+                    extracellular=response.extracellular_secreted_proteins
+                )
 
-        job.set_result(result)
-        job.save(cascade=True)
+                result.append((protein, localisation_probability))
 
-        for protein, prob in result:
-            protein.set_localisation_probability(prob)
-            protein.save(cascade=True)
+            job.set_result(result)
+            await job.save(cascade=True)
+
+            for protein, prob in result:
+                protein.set_localisation_probability(prob)
+                protein.save(cascade=True)
+        finally:
+            job.finished()
+            await job.save()
 
         return map_job_to_response(job)
 
@@ -138,7 +146,7 @@ class SetupJobFeature:
             proteins.append(protein)
 
         job.set_input(proteins=proteins)
-        job.save(cascade=True)
+        await job.save(cascade=True)
 
         return map_job_to_response(job)
 

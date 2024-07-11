@@ -81,7 +81,7 @@ class SetupJobFeature:
                 raise NoLabsException(ErrorCodes.protein_not_found)
 
             job.set_input(protein=protein)
-            job.save(cascade=True)
+            await job.save(cascade=True)
 
             return map_job_to_response(job)
         except Exception as e:
@@ -104,7 +104,7 @@ class RunJobFeature:
         try:
             assert job_id
 
-            job = MsaGenerationJob.objects.with_id(job_id)
+            job: MsaGenerationJob = MsaGenerationJob.objects.with_id(job_id)
 
             if not job:
                 raise NoLabsException(ErrorCodes.job_not_found)
@@ -114,12 +114,19 @@ class RunJobFeature:
             request = msa_light_microservice.RunMsaPredictionRequest(
                 api_url=self._settings.msa_server_url,
                 fasta_contents=fasta_content)
-            msa_contents = self._api.predict_msa_predict_msa_post(run_msa_prediction_request=request).msa_contents
+            try:
+                job.started()
+                await job.save()
+                msa_contents = self._api.predict_msa_predict_msa_post(run_msa_prediction_request=request).msa_contents
 
-            job.set_result(protein=job.protein, msa=msa_contents)
-            job.save(cascade=True)
-            job.protein.set_msa(msa=msa_contents)
-            job.protein.save()
+                job.set_result(protein=job.protein, msa=msa_contents)
+                await job.save(cascade=True)
+                job.protein.set_msa(msa=msa_contents)
+                job.protein.save()
+
+            finally:
+                job.finished()
+                await job.save()
 
             return map_job_to_response(job)
         except Exception as e:

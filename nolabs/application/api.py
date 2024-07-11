@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 from nolabs.application.middlewares.domain_exception_middleware import add_domain_exception_middleware
@@ -19,6 +19,7 @@ from nolabs.application.event_handlers.di import EventHandlersDependencies
 from nolabs.application.use_cases.diffdock.controller import router as diffdock_router
 from nolabs.application.use_cases.proteins.controller import router as proteins_router
 from nolabs.application.use_cases.ligands.controller import router as ligand_router
+from nolabs.application.websockets.ws import inject_websocket
 from nolabs.infrastructure.logging import setup_logger
 from nolabs.application.use_cases.workflow.controller import router as workflow_router
 from nolabs.infrastructure.mongo_connector import mongo_connect
@@ -39,6 +40,13 @@ async def startup_event():
     settings = Settings.load()
     mongo_connect(settings.connection_string)
     EventHandlersDependencies.inject()
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    inject_websocket(websocket)
+
+    await websocket.accept()
 
 
 app.include_router(localisation_router)

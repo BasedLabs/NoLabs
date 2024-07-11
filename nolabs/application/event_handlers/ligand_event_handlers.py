@@ -2,8 +2,7 @@ __all__ = [
     'LigandCreatedEventHandler'
 ]
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import LigandCreatedEvent, Ligand
+from nolabs.domain.models.common import LigandCreatedEvent
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler
 
 

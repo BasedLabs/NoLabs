@@ -21,7 +21,7 @@ import io
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
     FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
-    Q, StringField
+    Q, StringField, BooleanField
 from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
@@ -683,13 +683,30 @@ class JobInputError:
     error_code: ErrorCodes
 
 
+class JobStartedEvent(DomainEvent):
+    job: Job
+
+    def __init__(self, job: Job):
+        self.job = job
+
+
+class JobFinishedEvent(DomainEvent):
+    job: Job
+
+    def __init__(self, job: Job):
+        self.job = job
+
+
 class Job(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     name: JobName = ValueObjectStringField(required=True, factory=JobName)
     created_at: datetime.datetime = DateTimeField()
     updated_at: datetime.datetime = DateTimeField()
+    running: bool = BooleanField()
     inputs_updated_at: datetime.datetime = DateTimeField()
+
+    domain_events: List[DomainEvent] = []
 
     meta = {
         'allow_inheritance': True
@@ -733,12 +750,29 @@ class Job(Document, Entity):
 
         return errors
 
-    def save(self, **kwargs):
+    def started(self):
+        self.running = True
+
+        self.domain_events.append(JobStartedEvent(self))
+
+    def finished(self):
+        self.running = False
+
+        self.domain_events.append(JobFinishedEvent(self))
+
+    async def save(self, **kwargs):
         if not self.created_at:
             self.created_at = datetime.datetime.utcnow()
         else:
             self.updated_at = datetime.datetime.utcnow()
         super().save(**kwargs)
+
+        domain_events = self.domain_events
+
+        self.domain_events = []
+
+        for e in domain_events:
+            await EventDispatcher.raise_event(e)
 
 
 class ProteinBinder(Document):

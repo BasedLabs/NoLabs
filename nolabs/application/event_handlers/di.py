@@ -1,4 +1,5 @@
 from nolabs.application.event_handlers import ProteinCreatedEventHandler
+from nolabs.application.event_handlers.job_event_handlers import JobStartedEventHandler, JobFinishedEventHandler
 from nolabs.domain.event_dispatcher import EventDispatcher
 
 
@@ -6,7 +7,9 @@ class EventHandlersDependencies:
     @staticmethod
     def inject():
         event_handlers = [
-            ProteinCreatedEventHandler()
+            ProteinCreatedEventHandler(),
+            JobStartedEventHandler(),
+            JobFinishedEventHandler()
         ]
 
         types = [type(eh) for eh in event_handlers]

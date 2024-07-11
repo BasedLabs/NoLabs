@@ -81,7 +81,7 @@ class SetupJobFeature:
             hotspots=request.hotspots,
             timesteps=request.timesteps
         )
-        job.save(cascade=True)
+        await job.save(cascade=True)
 
         return map_job_to_response(job)
 
@@ -104,35 +104,40 @@ class RunJobFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        response = self._api.run_rfdiffusion_endpoint_run_post(
-            run_rfdiffusion_request=protein_design_microservice.RunRfdiffusionRequest(
-                pdb_content=job.protein.get_pdb(),
-                hotspots=job.hotspots,
-                contig=job.contig,
-                timesteps=job.timesteps,
-                number_of_designs=job.number_of_designs,
-                job_id=job_id
+        try:
+            job.started()
+            await job.save()
+            response = self._api.run_rfdiffusion_endpoint_run_post(
+                run_rfdiffusion_request=protein_design_microservice.RunRfdiffusionRequest(
+                    pdb_content=job.protein.get_pdb(),
+                    hotspots=job.hotspots,
+                    contig=job.contig,
+                    timesteps=job.timesteps,
+                    number_of_designs=job.number_of_designs,
+                    job_id=job_id
+                )
             )
-        )
 
-        if response.errors and not response.pdbs_content:
-            raise NoLabsException(ErrorCodes.protein_design_run_error, response.errors)
+            if response.errors and not response.pdbs_content:
+                raise NoLabsException(ErrorCodes.protein_design_run_error, response.errors)
 
-        binders: List[Protein] = []
-        for i, pdb in enumerate(response.pdbs_content):
-            binder = Protein.create(
-                experiment=job.experiment,
-                name=ProteinName(f'{job.protein.name.value}-binder-{str(i)}'),
-                pdb_content=pdb
-            )
-            binders.append(binder)
+            binders: List[Protein] = []
+            for i, pdb in enumerate(response.pdbs_content):
+                binder = Protein.create(
+                    experiment=job.experiment,
+                    name=ProteinName(f'{job.protein.name.value}-binder-{str(i)}'),
+                    pdb_content=pdb
+                )
+                binders.append(binder)
 
-            job.protein.add_protein_binder(binder)
-            job.save(cascade=True)
-            binder.save(cascade=True)
+                job.protein.add_protein_binder(binder)
+                await job.save(cascade=True)
+                binder.save(cascade=True)
 
-        job.set_result(protein=job.protein, binders=binders)
-        job.save(cascade=True)
+            job.set_result(protein=job.protein, binders=binders)
+        finally:
+            job.finished()
+            await job.save()
 
         return map_job_to_response(job)
 

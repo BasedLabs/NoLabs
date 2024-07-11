@@ -73,7 +73,7 @@ class SetupJobFeature:
             raise NoLabsException(ErrorCodes.protein_not_found)
 
         job.set_input(protein=protein)
-        job.save(cascade=True)
+        await job.save(cascade=True)
 
         return map_job_to_response(job)
 
@@ -102,18 +102,26 @@ class RunJobFeature:
 
         protein = job.protein
 
-        response = self._api.predict_run_p2rank_post(
-            run_p2_rank_prediction_request=p2rank_microservice.RunP2RankPredictionRequest(
-                job_id=str(job_id),
-                pdb_contents=protein.get_pdb()
+        try:
+            job.started()
+            await job.save()
+
+            response = self._api.predict_run_p2rank_post(
+                run_p2_rank_prediction_request=p2rank_microservice.RunP2RankPredictionRequest(
+                    job_id=str(job_id),
+                    pdb_contents=protein.get_pdb()
+                )
             )
-        )
 
-        job.set_result(protein=protein, pocket_ids=response.pocket_ids)
-        job.save(cascade=True)
+            job.set_result(protein=protein, pocket_ids=response.pocket_ids)
+            await job.save(cascade=True)
 
-        protein.set_binding_pockets(response.pocket_ids)
-        protein.save()
+            protein.set_binding_pockets(response.pocket_ids)
+            protein.save()
+
+        finally:
+            job.finished()
+            await job.save()
 
         return map_job_to_response(job)
 

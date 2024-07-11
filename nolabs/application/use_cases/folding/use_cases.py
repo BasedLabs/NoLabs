@@ -87,7 +87,7 @@ class SetupJobFeature:
             proteins.append(protein)
 
         job.set_inputs(proteins=proteins, backend=folding_backend)
-        job.save(cascade=True)
+        await job.save(cascade=True)
 
         return map_job_to_response(job)
 
@@ -169,30 +169,37 @@ class RunJobFeature:
             raise NoLabsException(ErrorCodes.job_not_found)
 
         result: List[Tuple[Protein, str]] = []
+        try:
+            job.started()
+            await job.save()
 
-        for protein in job.proteins:
-            sequence = protein.get_amino_acid_sequence()
+            for protein in job.proteins:
+                sequence = protein.get_amino_acid_sequence()
 
-            if not sequence:
-                raise NoLabsException(ErrorCodes.protein_fasta_is_empty, f'Protein sequence is empty for protein {protein.name}')
+                if not sequence:
+                    raise NoLabsException(ErrorCodes.protein_fasta_is_empty, f'Protein sequence is empty for protein {protein.name}')
 
-            pdb_content, errors = self.request_factory(job_id=job.iid, sequence=sequence,
-                                                       folding_backend=FoldingBackendEnum(job.backend))
+                pdb_content, errors = self.request_factory(job_id=job.iid, sequence=sequence,
+                                                           folding_backend=FoldingBackendEnum(job.backend))
 
-            if errors:
-                raise NoLabsException(ErrorCodes.folding_run_error, errors)
+                if errors:
+                    raise NoLabsException(ErrorCodes.folding_run_error, errors)
 
-            result.append((protein, pdb_content))
+                result.append((protein, pdb_content))
 
-        job.set_result(result=[
-            (protein, pdb) for protein, pdb in result
-        ])
+            job.set_result(result=[
+                (protein, pdb) for protein, pdb in result
+            ])
 
-        job.save(cascade=True)
+            await job.save(cascade=True)
 
-        for protein, pdb in result:
-            protein.set_pdb(pdb)
-            protein.save()
+            for protein, pdb in result:
+                protein.set_pdb(pdb)
+                protein.save()
+
+        finally:
+            job.finished()
+            await job.save()
 
         return map_job_to_response(job)
 
