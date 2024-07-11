@@ -21,8 +21,8 @@
                 <div class="col-8">
                   <q-card-section>
                     <div>{{ ligand.name }}</div>
-                    <q-item-label v-if="ligand.smiles_content" caption>SMILES: {{
-                      ligand.smiles_content
+                    <q-item-label v-if="ligand.smiles_content" class="smiles-content" caption>SMILES: {{
+                      formatSmiles(ligand.smiles_content)
                     }}
                     </q-item-label>
                   </q-card-section>
@@ -60,7 +60,7 @@
   <q-dialog v-model="ligandDetailDialogVisible">
     <q-card>
       <q-card-section>
-        <LigandDetail :ligandId="selectedLigand.id" v-if="selectedLigand && selectedLigand.sdf_content">
+        <LigandDetail :ligandId="selectedLigand.id">
         </LigandDetail>
       </q-card-section>
       <q-card-actions align="right">
@@ -217,6 +217,9 @@ export default defineComponent({
         const scrollContent = this.$refs.scrollContent as HTMLElement;
         this.scrollContentWidth = scrollContent ? scrollContent.scrollWidth : 0;
       });
+    },
+    formatSmiles(smiles: string): string {
+      return smiles.replace(/(.{20})/g, "$1\n");
     }
   },
   unmounted() {
@@ -239,5 +242,11 @@ export default defineComponent({
 
 .q-list {
   overflow-x: auto;
+}
+
+.smiles-content {
+  display: inline-block;
+  white-space: pre-wrap; /* Allow breaking within the SMILES string */
+  word-break: break-all; /* Break long words */
 }
 </style>

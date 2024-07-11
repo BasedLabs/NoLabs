@@ -1,5 +1,3 @@
-import json
-
 import requests
 
 from external_data_query.chembl.api_models import ChEMBLMoleculeRequest, ChEMBLMoleculeResponse, Molecule, DrugIndicationRequest, \
@@ -35,9 +33,10 @@ def search_chembl_molecules(request: ChEMBLMoleculeRequest) -> ChEMBLMoleculeRes
     if response.status_code == 200:
         try:
             data = response.json()
-            print(data)
+            print("DATA: ", data)
             for entry in data['molecules']:
                 chembl_id = entry.get('molecule_chembl_id')
+                print("CHEMBL_ID: ", chembl_id)
                 molecule = fetch_molecule_details(chembl_id)
                 if molecule:
                     molecules.append(molecule)
@@ -97,6 +96,8 @@ def fetch_molecule_details(chembl_id: str) -> Molecule | None:
             smiles = data['molecule_structures'].get('canonical_smiles', 'N/A')
 
         molecule_link = f"https://www.ebi.ac.uk/chembl/compound_report_card/{chembl_id}/"
+
+        print(molecule_type, pref_name, synonym_names, smiles, molecule_link)
 
         if smiles != 'N/A':
             return Molecule(chembl_id=chembl_id, molecule_type=molecule_type, pref_name=pref_name,
