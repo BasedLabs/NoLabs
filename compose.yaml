@@ -2,6 +2,9 @@ services:
   mongo:
     image: 'mongo:latest'
     network_mode: host
+  redis:
+    image: 'redis:latest'
+    network_mode: host
   conformations:
     image: 'ghcr.io/basedlabs/conformations:1.1.0'
     network_mode: host
