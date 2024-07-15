@@ -47,10 +47,14 @@ async def startup_event():
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
+    print("Websocket connected")
+    websockets_queue.clear_db()
+
     try:
         while True:
+            item = websockets_queue.read_last()
+            print(item)
             await asyncio.sleep(0.2)
-            item = await websockets_queue.read_last()
             if item:
                 await websocket.send_json(data=item)
     except WebSocketDisconnect:

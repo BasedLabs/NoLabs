@@ -19,6 +19,9 @@ class WebsocketsQueue:
     def write(self, data: Dict[str, Any]):
         self.redis_client.lpush('websockets', json.dumps(data))
 
+    def clear_db(self):
+        self.redis_client.flushdb()
+
 
 _settings = Settings.load()
 websockets_queue = WebsocketsQueue(_settings.redis.host, _settings.redis.port)

@@ -373,10 +373,10 @@ export default defineComponent({
       }
     },
     async deleteJob(job: GetJobMetadataResponse) {
-      const workflowStore = useWorkflowStore();
-      await workflowStore.deleteJob(job.job_id);
       this.jobs = this.jobs.filter(j => j.job_id !== job.job_id);
       this.results = this.results.filter(j => j.job_id !== job.job_id);
+      const workflowStore = useWorkflowStore();
+      await workflowStore.deleteJob(job.job_id);
     },
     updateErrorsAndExceptions() {
       if (this.nodeData?.input_property_errors && this.nodeData.input_property_errors.length > 0) {

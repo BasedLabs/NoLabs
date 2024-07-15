@@ -236,8 +236,8 @@ export default defineComponent({
       };
       this.socket.onmessage = async (event) => {
         const message = JSON.parse(event.data);
-        if (message.message.job_id) {
-          workflowStore.addJobIdToUpdate(message.message.job_id);
+        if (message.job_id) {
+          workflowStore.addJobIdToUpdate(message.job_id);
         }
       }
     },
