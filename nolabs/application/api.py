@@ -36,7 +36,6 @@ origins = [
     '*'
 ]
 
-
 @app.on_event("startup")
 async def startup_event():
     settings = Settings.load()

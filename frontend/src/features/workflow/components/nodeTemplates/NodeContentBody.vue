@@ -1,13 +1,7 @@
 <template>
   <q-card-section class="job-section q-pa-sm">
     <div class="text-white q-pa-sm text-caption">Jobs queue</div>
-    <q-scroll-area
-      v-if="jobs.length > 0"
-      visible
-      :thumbStyle="thumbStyle"
-      :barStyle="barStyle"
-      style="height: 30vh"
-    >
+    <q-scroll-area v-if="jobs.length > 0" visible :thumbStyle="thumbStyle" :barStyle="barStyle" style="height: 30vh">
       <draggable class="q-pa-sm" v-model="jobs" handle=".drag-handle" @end="updateJobOrder" item-key="job_id">
         <template #item="{ element }">
           <q-item class="bg-grey-3 text-black">
@@ -21,7 +15,7 @@
             <q-item-section>
               <div v-if="element.executionStatus === null">No execution status</div>
               <div v-else>
-                <q-spinner v-if="element.executionStatus.running" color="primary" size="20px"/>
+                <q-spinner v-if="element.executionStatus.running" color="primary" size="20px" />
                 {{ element.executionStatus.running ? 'Running...' : 'Not running' }}
               </div>
             </q-item-section>
@@ -29,10 +23,10 @@
               <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
             </q-item-section>
             <q-item-section>
-              <q-btn to="" @click="openJob(element)" label="View" dense/>
+              <q-btn to="" @click="openJob(element)" label="View" dense />
             </q-item-section>
             <q-item-section>
-              <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense/>
+              <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
             </q-item-section>
           </q-item>
         </template>
@@ -42,13 +36,7 @@
 
   <q-card-section class="result-section q-pa-sm">
     <div class="text-white q-pa-sm text-caption">Completed jobs</div>
-    <q-scroll-area
-      v-if="results.length > 0"
-      visible
-      :thumbStyle="thumbStyle"
-      :barStyle="barStyle"
-      style="height: 30vh"
-    >
+    <q-scroll-area v-if="results.length > 0" visible :thumbStyle="thumbStyle" :barStyle="barStyle" style="height: 30vh">
       <draggable class="q-pa-sm" v-model="results" handle=".drag-handle" item-key="job_id">
         <template #item="{ element }">
           <q-item class="bg-grey-3 text-black">
@@ -63,10 +51,10 @@
               <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
             </q-item-section>
             <q-item-section>
-              <q-btn @click="openJob(element)" label="View" dense/>
+              <q-btn @click="openJob(element)" label="View" dense />
             </q-item-section>
             <q-item-section>
-              <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense/>
+              <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
             </q-item-section>
           </q-item>
         </template>
@@ -78,27 +66,28 @@
     <div class="text-white q-pa-sm">Last Exceptions</div>
     <q-item class="text-black q-pa-sm q-mb-sm q-border-radius-md">
       <q-item-section>
-        <q-btn color="red" label="Show last exceptions" class="q-pm-md" @click="showLastExceptionsModal = !showLastExceptionsModal">
-          <q-icon left name="warning"/>
+        <q-btn color="red" label="Show last exceptions" class="q-pm-md"
+          @click="showLastExceptionsModal = !showLastExceptionsModal">
+          <q-icon left name="warning" />
         </q-btn>
       </q-item-section>
-      <ComponentExceptionsModal v-model:visible="showLastExceptionsModal" :exceptions="lastExceptions"/>
+      <ComponentExceptionsModal v-model:visible="showLastExceptionsModal" :exceptions="lastExceptions" />
     </q-item>
   </q-card-section>
 
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
-      <component :is="selectedJobComponent" :job-id="selectedJobId"/>
+      <component :is="selectedJobComponent" :job-id="selectedJobId" />
       <q-card-actions>
-        <q-btn flat label="Close" v-close-popup/>
+        <q-btn flat label="Close" v-close-popup />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
-import {useWorkflowStore, Node} from 'src/features/workflow/components/storage';
+import { defineComponent, watch } from 'vue';
+import { useWorkflowStore, Node } from 'src/features/workflow/components/storage';
 import {
   getJobMetaData
 } from 'src/features/workflow/refinedApi';
@@ -110,7 +99,7 @@ import EsmFoldJob from '../jobs/EsmFoldJob.vue';
 import P2RankJob from '../jobs/P2RankJob.vue';
 import DiffDockJob from '../jobs/DiffDockJob.vue';
 import draggable from 'vuedraggable';
-import {Notify} from "quasar";
+import { Notify } from "quasar";
 import componentApi from "./componentApi";
 import MsaJob from '../jobs/MsaJob.vue';
 import ComponentExceptionsModal from "./ComponentExceptionsModal.vue";
@@ -126,7 +115,7 @@ export default defineComponent({
     DiffDockJob
   },
   props: {
-    nodeId: {type: String, required: true},
+    nodeId: { type: String, required: true },
     name: {
       type: String,
       required: true
@@ -244,6 +233,15 @@ export default defineComponent({
     this.nodeData = workflowStore.getNodeById(this.nodeId);
     await this.updateJobs();
     this.updateErrorsAndExceptions();
+    watch(
+      () => workflowStore.jobIdsToUpdate,
+      async (newJobIds) => {
+        for (const jobId of newJobIds) {
+          await this.updateJobById(jobId);
+        }
+      },
+      { deep: true }
+    );
   },
   watch: {
     'nodeData.data.jobIds': {
@@ -276,29 +274,93 @@ export default defineComponent({
         message: `Copied ${s}`
       });
     },
+    async updateJobById(jobId: string) {
+      const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
+
+      if (!jobDefinition) {
+        console.error(`Job definition not found for job: ${this.name}`);
+        return;
+      }
+
+      // Check if the job is already in the list
+      const existingJobIndex = this.jobs.findIndex(job => job.job_id === jobId);
+      const existingResultIndex = this.results.findIndex(job => job.job_id === jobId);
+      if (existingJobIndex === -1 && existingResultIndex === -1) {
+        console.log(`Job ${jobId} is not in the list of jobs for this component.`);
+        return;
+      }
+
+      try {
+        const job = await getJobMetaData(jobId);
+        const executionStatus = await jobDefinition.api.executionStatus(jobId);
+
+        // Update the job in this.jobs
+        this.jobs[existingJobIndex] = { ...job, executionStatus };
+
+        // Update the results array
+        this.jobs = this.jobs.filter(job => job && !job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
+          executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
+        }>;
+        this.results = this.jobs.filter(job => job && job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
+          executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
+        }>;
+
+        // Update workflow store with running jobs status
+        const workflowStore = useWorkflowStore();
+        const anyJobRunning = this.jobs.some(job => job.executionStatus?.running);
+        if (anyJobRunning) {
+          workflowStore.addRunningComponentId(this.nodeId);
+        } else {
+          workflowStore.removeRunningComponentId(this.nodeId);
+        }
+
+        // Remove jobId from the list after updating
+        workflowStore.removeJobIdToUpdate(jobId);
+
+      } catch (error) {
+        console.error(`Error updating job ${jobId}:`, error);
+      }
+    },
     async updateJobs() {
       this.loading = true;
       const workflowStore = useWorkflowStore();
-      let jobsWithStatus = [];
+      const knownJobIds = new Set(this.jobs.map(job => job.job_id)); // Assuming 'job_id' is the job identifier
+      const knownResultIds = new Set(this.results.map(result => result.job_id));
+
       if (this.nodeData?.data.jobIds) {
-        jobsWithStatus = await Promise.all(this.nodeData?.data?.jobIds?.map(async (jobId: string) => {
-          let job;
-          let executionStatus;
+        // Fetch new jobs and update existing ones if necessary
+        const newJobsWithStatus = await Promise.all(
+          this.nodeData.data.jobIds.map(async (jobId: string) => {
+            if (!knownJobIds.has(jobId) && !knownResultIds.has(jobId)) {
+              const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
+              const job = await getJobMetaData(jobId);
+              const executionStatus = await jobDefinition.api.executionStatus(jobId);
+              return { ...job, executionStatus };
+            } else {
+              return this.jobs.find(job => job.job_id === jobId) || this.results.find(result => result.job_id === jobId);
+            }
+          })
+        );
 
-          const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
+        // Update the jobs and results lists with the new data
+        const newJobs = newJobsWithStatus.filter(job => job && !job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
+          executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
+        }>;
+        const newResults = newJobsWithStatus.filter(job => job && job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
+          executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
+        }>;
 
-          job = await getJobMetaData(jobId);
-          executionStatus = await jobDefinition.api.executionStatus(jobId);
+        // Append new jobs and results to existing ones
+        this.jobs = [
+          ...this.jobs.filter(job => this.nodeData.data.jobIds.includes(job.job_id)),
+          ...newJobs.filter(job => !this.jobs.some(existingJob => existingJob.job_id === job.job_id))
+        ];
 
-          return {...job, executionStatus};
-        }));
+        this.results = [
+          ...this.results.filter(result => this.nodeData.data.jobIds.includes(result.job_id)),
+          ...newResults.filter(result => !this.results.some(existingResult => existingResult.job_id === result.job_id))
+        ];
       }
-      this.jobs = jobsWithStatus.filter(job => job && !job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
-        executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
-      }>;
-      this.results = jobsWithStatus.filter(job => job && job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
-        executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
-      }>;
 
       this.loading = false;
 
@@ -343,7 +405,7 @@ export default defineComponent({
           this.showJobModal = true;
         } else {
           const routeData = this.$router.resolve({
-            name: jobDefinition.routeName, params: {jobId: job.job_id}
+            name: jobDefinition.routeName, params: { jobId: job.job_id }
           });
           window.open(routeData.href, '_blank');
         }

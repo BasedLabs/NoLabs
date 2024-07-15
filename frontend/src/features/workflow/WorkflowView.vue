@@ -14,7 +14,8 @@
         </q-list>
       </q-btn-dropdown>
       <q-space />
-      <q-btn v-if="!isWorkflowRunning && !isLocallyRunning" class="q-ma-sm" color="info" icon="not_started" @click="startWorkflow">
+      <q-btn v-if="!isWorkflowRunning && !isLocallyRunning" class="q-ma-sm" color="info" icon="not_started"
+        @click="startWorkflow">
         Start workflow
       </q-btn>
       <q-btn v-else :disable="true" class="q-ma-sm" color="info" icon="running">
@@ -76,7 +77,8 @@
     <!-- Reset Confirmation Dialog -->
     <q-dialog v-model="showResetDialog" persistent>
       <q-card>
-        <q-card-section class="text-h6">Are you sure you want to reset the workflow? All jobs will be deleted</q-card-section>
+        <q-card-section class="text-h6">Are you sure you want to reset the workflow? All jobs will be
+          deleted</q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Cancel" v-close-popup />
           <q-btn flat label="Reset" color="orange" @click="resetWorkflowConfirmed" v-close-popup />
@@ -163,6 +165,7 @@ export default defineComponent({
       modalOpen: false,
       selectedNode: null as Node | null,
       selectedComponent: null as string | null,
+      socket: null as WebSocket | null,
       specialNodeProps: [],
       splitterModel: 20,
       bioBuddyEnabled: false,
@@ -218,11 +221,26 @@ export default defineComponent({
 
     bioBuddyStore.addWorkflowAdjustmentEventHandler(this.biobuddyWorkflowCallBack);
 
+    this.connectWebSocket();
+
     this.pollIntervalId = window.setInterval(() => {
       workflowStore.pollWorkflow();
     }, 2000); // Poll every 2 seconds
   },
   methods: {
+    connectWebSocket() {
+      const workflowStore = useWorkflowStore();
+      this.socket = new WebSocket('ws://127.0.0.1:8000/ws');
+      this.socket.onopen = () => {
+        console.log('Connected to WebSocket server');
+      };
+      this.socket.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+        if (message.message.job_id) {
+          workflowStore.addJobIdToUpdate(message.message.job_id);
+        }
+      }
+    },
     async checkAndCreateWorkflow() {
       const existingWorkflows = await getExistingWorkflows(this.experiment.experimentId as string);
 
@@ -264,8 +282,8 @@ export default defineComponent({
       this.isLocallyRunning = true;
       await startWorkflow(this.workflowId);
       setTimeout(() => {
-          this.isLocallyRunning = false;
-        }, 5000); // Reset isLocallyRunning after 5 seconds
+        this.isLocallyRunning = false;
+      }, 5000); // Reset isLocallyRunning after 5 seconds
     },
     onEdgeUpdate(params: { edge: Edge }) {
       const workflowStore = useWorkflowStore();
@@ -329,7 +347,7 @@ export default defineComponent({
 });
 </script>
 
-<style >
+<style>
 body {
   overflow: hidden;
 }

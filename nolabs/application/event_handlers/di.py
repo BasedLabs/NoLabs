@@ -1,5 +1,6 @@
 from nolabs.application.event_handlers import ProteinCreatedEventHandler
 from nolabs.application.event_handlers.job_event_handlers import JobStartedEventHandler, JobFinishedEventHandler
+from nolabs.application.websockets.ws import WebSocketManager
 from nolabs.domain.event_dispatcher import EventDispatcher
 
 
