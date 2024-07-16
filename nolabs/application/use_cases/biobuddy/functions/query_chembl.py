@@ -89,7 +89,7 @@ class QueryChemblFunction(BiobuddyFunction):
                                                     "how many, set it to 20.")
         ]
         self._chembl_microservice = chembl_microservice
-        super().__init__("query_chembl", "Query Chembl database by search term to find the molecule",
+        super().__init__("query_chembl", "Query Chembl database to find the molecules of interest. If asked for specific molecule, will return the single molecule like nicotine or aspirin.",
                          parameters)
 
     def execute(self, arguments: Dict[str, Any]) -> FunctionCall:

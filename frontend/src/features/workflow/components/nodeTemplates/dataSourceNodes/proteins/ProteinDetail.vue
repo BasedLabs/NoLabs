@@ -30,9 +30,6 @@
           </div>
         </div>
       </q-card-section>
-      <q-card-section v-if="protein.data.link">
-        <q-btn flat color="primary" :href="protein.data.link" target="_blank">View More Info</q-btn>
-      </q-card-section>
       <PdbViewer v-if="hasPdb && pdbFile" :pdb-file="pdbFile" :key="pdbFile.size" />
     </q-card-section>
   </q-card>
@@ -136,7 +133,7 @@ export default defineComponent({
   },
   computed: {
     hasPdb() {
-      return this.protein.data.pdbContent != null;
+      return this.protein.data.pdbContent != null && this.protein.data.pdbContent != "";
     },
     workflowStore() {
       return useWorkflowStore();

@@ -122,7 +122,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5734
   external_data_query:
-    image: 'ghcr.io/basedlabs/external-data-query:1.0.1'
+    image: 'ghcr.io/basedlabs/external-data-query:1.0.2'
     network_mode: host
     build:
       context: microservices/external_data_query
@@ -157,7 +157,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790 --workers=1
   nolabs:
-    image: 'ghcr.io/basedlabs/nolabs:2.0.1'
+    image: 'ghcr.io/basedlabs/nolabs:2.0.2'
     network_mode: host
     build:
       context: .

@@ -9,10 +9,10 @@ from external_data_query.mixins import BaseModelMixin
 @dataclass
 class Molecule:
     chembl_id: str
-    molecule_type: str
     synonyms: List[str]
     smiles: str
     link: str
+    molecule_type: str | None = None
     pref_name: str = None
 
 
