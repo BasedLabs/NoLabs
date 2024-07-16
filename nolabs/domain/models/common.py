@@ -706,8 +706,6 @@ class Job(Document, Entity):
     running: bool = BooleanField()
     inputs_updated_at: datetime.datetime = DateTimeField()
 
-    domain_events: List[DomainEvent] = []
-
     meta = {
         'allow_inheritance': True
     }
@@ -719,6 +717,8 @@ class Job(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_job_name)
         if not experiment:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
+
+        self.clear_events()
 
         super().__init__(id=id.value if isinstance(id, JobId) else id, name=name, experiment=experiment, *args,
                          **kwargs)
@@ -753,12 +753,12 @@ class Job(Document, Entity):
     def started(self):
         self.running = True
 
-        self.domain_events.append(JobStartedEvent(self))
+        self.register_event(JobStartedEvent(self))
 
     def finished(self):
         self.running = False
 
-        self.domain_events.append(JobFinishedEvent(self))
+        self.register_event(JobFinishedEvent(self))
 
     async def save(self, **kwargs):
         if not self.created_at:
@@ -767,9 +767,7 @@ class Job(Document, Entity):
             self.updated_at = datetime.datetime.utcnow()
         super().save(**kwargs)
 
-        domain_events = self.domain_events
-
-        self.domain_events = []
+        domain_events = self.collect_events()
 
         for e in domain_events:
             await EventDispatcher.raise_event(e)

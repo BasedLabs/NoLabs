@@ -4,13 +4,11 @@ __all__ = [
 
 from typing import List
 
-from pydantic import PrivateAttr
-
 from nolabs.seedwork.domain.events import DomainEvent
 
 
 class Entity:
-    _events: List[DomainEvent] = PrivateAttr(default_factory=list)
+    _events: List[DomainEvent] = []
 
     def register_event(self, event: DomainEvent):
         self._events.append(event)

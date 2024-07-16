@@ -17,7 +17,7 @@ class UpdateJobFeature:
         if job.name != request.job_name:
             job.set_name(JobName(request.job_name))
 
-        job.save()
+        await job.save()
 
 
 class DeleteJobFeature:
