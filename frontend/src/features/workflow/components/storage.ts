@@ -60,6 +60,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       nodes: [] as Node[],
       edges: [] as Edge[]
     },
+    jobIdsToUpdate: [] as string[],
     workflowId: "" as string,
     allowedTypes: ["Proteins", "Ligands", "DNA"],
     componentOptions: [] as Array<{
@@ -623,6 +624,14 @@ export const useWorkflowStore = defineStore('workflowStore', {
     getNodeById(nodeId: string) {
       const node = this.elements.nodes.find(node => node.id === nodeId) || null;
       return node;
+    },
+    addJobIdToUpdate(jobId: string) {
+      if (!this.jobIdsToUpdate.includes(jobId)) {
+        this.jobIdsToUpdate.push(jobId);
+      }
+    },
+    removeJobIdToUpdate(jobId: string) {
+      this.jobIdsToUpdate = this.jobIdsToUpdate.filter(id => id !== jobId);
     },
     async pollWorkflow() {
       try {

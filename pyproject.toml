@@ -39,6 +39,7 @@ gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
 protein-design-microservice = {path = "microservices/protein_design/client"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
 external-data-query-microservice = {path = "microservices/external_data_query/client"}
+redis = "^5.0.7"
 
 [project]
 dependencies = [

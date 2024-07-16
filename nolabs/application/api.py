@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+import asyncio
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.websockets import WebSocketDisconnect
 
 from nolabs.application.middlewares.domain_exception_middleware import add_domain_exception_middleware
 from nolabs.application.use_cases.localisation.controller import router as localisation_router
@@ -23,6 +25,7 @@ from nolabs.infrastructure.logging import setup_logger
 from nolabs.application.use_cases.workflow.controller import router as workflow_router
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import Settings
+from nolabs.infrastructure.websocket_queue import websockets_queue
 
 app = FastAPI(
     title='NoLabs',
@@ -33,12 +36,29 @@ origins = [
     '*'
 ]
 
-
 @app.on_event("startup")
 async def startup_event():
     settings = Settings.load()
     mongo_connect(settings.connection_string)
     EventHandlersDependencies.inject()
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    print("Websocket connected")
+    websockets_queue.clear_db()
+
+    try:
+        while True:
+            item = websockets_queue.read_last()
+            print(item)
+            await asyncio.sleep(0.2)
+            if item:
+                await websocket.send_json(data=item)
+    except WebSocketDisconnect:
+        pass
 
 
 app.include_router(localisation_router)
@@ -60,7 +80,6 @@ app.include_router(biobuddy_controller)
 add_domain_exception_middleware(app)
 
 setup_logger()
-
 
 app.add_middleware(
     CORSMiddleware,

@@ -45,40 +45,46 @@ class SmallMoleculesDesignLearningComponent(
 
         job: SmallMoleculesDesignJob
         for job in self.jobs:
-            await run_learning_job_feature.handle(job_id=job.id)
+            try:
 
-            await asyncio.sleep(0.5)
+                await run_learning_job_feature.handle(job_id=job.id)
 
-            running_status = await is_job_running_feature.handle(job_id=job.id)
-
-            while running_status.running:
                 await asyncio.sleep(0.5)
+
                 running_status = await is_job_running_feature.handle(job_id=job.id)
 
-            smiles = await get_smiles_feature.handle(job_id=job.id)
+                while running_status.running:
+                    await asyncio.sleep(0.5)
+                    running_status = await is_job_running_feature.handle(job_id=job.id)
 
-            protein = job.protein
+                smiles = await get_smiles_feature.handle(job_id=job.id)
 
-            def normalize_floats(f: float) -> str:
-                return str(f).replace('.', 'dot')
+                protein = job.protein
 
-            for smi in smiles:
-                name = (str(job.protein.name) + '-binder-drug-likeness-'
-                        + normalize_floats(smi.drug_likeness) +
-                        '-score-' + normalize_floats(smi.score) + '-stage-' + smi.stage)
-                ligand = Ligand.create(
-                    experiment=job.experiment,
-                    name=LigandName(name),
-                    smiles_content=smi.smiles
-                )
-                ligand.set_designed_ligand_score(DesignedLigandScore(smi.score))
-                ligand.set_drug_likeness_score(DrugLikenessScore(smi.drug_likeness))
-                ligand.save()
-                ligand.add_binding(protein=protein, confidence=smi.score)
+                def normalize_floats(f: float) -> str:
+                    return str(f).replace('.', 'dot')
 
-                job.ligands.append(ligand)
+                for smi in smiles:
+                    name = (str(job.protein.name) + '-binder-drug-likeness-'
+                            + normalize_floats(smi.drug_likeness) +
+                            '-score-' + normalize_floats(smi.score) + '-stage-' + smi.stage)
+                    ligand = Ligand.create(
+                        experiment=job.experiment,
+                        name=LigandName(name),
+                        smiles_content=smi.smiles
+                    )
+                    ligand.set_designed_ligand_score(DesignedLigandScore(smi.score))
+                    ligand.set_drug_likeness_score(DrugLikenessScore(smi.drug_likeness))
+                    ligand.save()
+                    ligand.add_binding(protein=protein, confidence=smi.score)
 
-                job.save()
+                    job.ligands.append(ligand)
+
+                    await job.save()
+
+            finally:
+                job.finished()
+                await job.save()
 
             result.append(SmallMoleculesDesignLearningOutputItem(
                 protein=job.protein.id,

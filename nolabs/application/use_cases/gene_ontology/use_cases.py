@@ -71,30 +71,36 @@ class RunJobFeature:
 
         result: List[Tuple[Protein, Dict[str, Any]]] = []
 
-        for protein in job.proteins:
-            response = self._api.run_go_prediction_run_post(
-                run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
-                    amino_acid_sequence=protein.get_amino_acid_sequence(),
-                    job_id=str(job_id.value)
+        try:
+            job.started()
+            await job.save()
+            for protein in job.proteins:
+                response = self._api.run_go_prediction_run_post(
+                    run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
+                        amino_acid_sequence=protein.get_amino_acid_sequence(),
+                        job_id=str(job_id.value)
+                    )
                 )
-            )
 
-            if response.errors:
-                raise NoLabsException(ErrorCodes.gene_ontology_run_error, response.errors)
+                if response.errors:
+                    raise NoLabsException(ErrorCodes.gene_ontology_run_error, response.errors)
 
-            confidences = [(g.name, g.confidence) for g in response.go_confidence]
+                confidences = [(g.name, g.confidence) for g in response.go_confidence]
 
-            go = {key: {'name': value.name, 'namespace': value.namespace, 'edges': value.edges} for key, value in
-                  self._read_obo(confidences).items()}
+                go = {key: {'name': value.name, 'namespace': value.namespace, 'edges': value.edges} for key, value in
+                      self._read_obo(confidences).items()}
 
-            result.append((protein, go))
+                result.append((protein, go))
 
-        job.set_result(result=result)
-        job.save(cascade=True)
+            job.set_result(result=result)
+            await job.save(cascade=True)
 
-        for protein, go in result:
-            protein.set_gene_ontology(go)
-            protein.save()
+            for protein, go in result:
+                protein.set_gene_ontology(go)
+                protein.save()
+        finally:
+            job.finished()
+            await job.save()
 
         return map_job_to_response(job)
 
@@ -192,7 +198,7 @@ class SetupJobFeature:
             proteins.append(protein)
 
         job.set_inputs(proteins=proteins)
-        job.save(cascade=True)
+        await job.save(cascade=True)
 
         return map_job_to_response(job)
 

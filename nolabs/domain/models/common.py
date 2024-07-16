@@ -21,7 +21,7 @@ import io
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
     FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
-    Q, StringField
+    Q, StringField, BooleanField
 from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
@@ -683,12 +683,27 @@ class JobInputError:
     error_code: ErrorCodes
 
 
+class JobStartedEvent(DomainEvent):
+    job: Job
+
+    def __init__(self, job: Job):
+        self.job = job
+
+
+class JobFinishedEvent(DomainEvent):
+    job: Job
+
+    def __init__(self, job: Job):
+        self.job = job
+
+
 class Job(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     name: JobName = ValueObjectStringField(required=True, factory=JobName)
     created_at: datetime.datetime = DateTimeField()
     updated_at: datetime.datetime = DateTimeField()
+    running: bool = BooleanField()
     inputs_updated_at: datetime.datetime = DateTimeField()
 
     meta = {
@@ -702,6 +717,8 @@ class Job(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_job_name)
         if not experiment:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
+
+        self.clear_events()
 
         super().__init__(id=id.value if isinstance(id, JobId) else id, name=name, experiment=experiment, *args,
                          **kwargs)
@@ -733,12 +750,27 @@ class Job(Document, Entity):
 
         return errors
 
-    def save(self, **kwargs):
+    def started(self):
+        self.running = True
+
+        self.register_event(JobStartedEvent(self))
+
+    def finished(self):
+        self.running = False
+
+        self.register_event(JobFinishedEvent(self))
+
+    async def save(self, **kwargs):
         if not self.created_at:
             self.created_at = datetime.datetime.utcnow()
         else:
             self.updated_at = datetime.datetime.utcnow()
         super().save(**kwargs)
+
+        domain_events = self.collect_events()
+
+        for e in domain_events:
+            await EventDispatcher.raise_event(e)
 
 
 class ProteinBinder(Document):

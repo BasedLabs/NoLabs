@@ -91,7 +91,7 @@ class SetupJobFeature:
         job.set_input(protein=protein,
                       ligand=ligand,
                       samples_per_complex=request.samples_per_complex)
-        job.save(cascade=True)
+        await job.save(cascade=True)
 
         return map_job_to_response(job)
 
@@ -148,35 +148,42 @@ class RunJobFeature:
                                                                      samples_per_complex=job.samples_per_complex,
                                                                      job_id=str(job_id.value),
                                                                      )
-        response = self._diffdock.predict_run_docking_post(
-            run_diff_dock_prediction_request=request, _request_timeout=(1000.0, 1000.0))
 
-        if not response.success:
-            raise NoLabsException(ErrorCodes.diffdock_api_error, response.message)
+        try:
+            job.started()
+            await job.save()
+            response = self._diffdock.predict_run_docking_post(
+                run_diff_dock_prediction_request=request, _request_timeout=(1000.0, 1000.0))
 
-        for item in response.sdf_results:
-            complex = ligand.add_binding(
-                protein=job.protein,
-                sdf_content=item.sdf_content,
-                minimized_affinity=item.minimized_affinity,
-                scored_affinity=item.scored_affinity,
-                confidence=item.confidence,
-                plddt_array=[],
-                name=item.sdf_file_name
-            )
-            result.append(
-                DiffDockJobResult.create(
-                    complex_id=complex.iid.value,
+            if not response.success:
+                raise NoLabsException(ErrorCodes.diffdock_api_error, response.message)
+
+            for item in response.sdf_results:
+                complex = ligand.add_binding(
+                    protein=job.protein,
                     sdf_content=item.sdf_content,
                     minimized_affinity=item.minimized_affinity,
                     scored_affinity=item.scored_affinity,
-                    confidence=item.confidence
+                    confidence=item.confidence,
+                    plddt_array=[],
+                    name=item.sdf_file_name
                 )
-            )
+                result.append(
+                    DiffDockJobResult.create(
+                        complex_id=complex.iid.value,
+                        sdf_content=item.sdf_content,
+                        minimized_affinity=item.minimized_affinity,
+                        scored_affinity=item.scored_affinity,
+                        confidence=item.confidence
+                    )
+                )
 
-        job.set_result(protein=job.protein,
-                       ligand=ligand,
-                       result=result)
-        job.save(cascade=True)
+            job.set_result(protein=job.protein,
+                           ligand=ligand,
+                           result=result)
+
+        finally:
+            job.finished()
+            await job.save()
 
         return map_job_to_response(job)

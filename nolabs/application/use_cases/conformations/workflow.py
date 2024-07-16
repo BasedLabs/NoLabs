@@ -56,7 +56,7 @@ class ConformationComponent(Component[ConformationInput, ConformationOutput]):
                 protein=protein
             )
 
-            job.save()
+            await job.save()
 
             self.jobs.append(job)
 

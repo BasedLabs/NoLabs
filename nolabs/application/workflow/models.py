@@ -69,7 +69,7 @@ class ComponentDbModel(Document):
     input_parameter_dict: Dict[str, Any] = DictField(default=dict)
     output_parameter_dict: Dict[str, Any] = DictField(default=dict)
 
-    jobs: List[Job] = ListField(ReferenceField(Job, reverse_delete_rule=CASCADE), default=[])
+    jobs: List[Job] = ListField(ReferenceField(Job, reverse_delete_rule=PULL), default=[])
     last_jobs_count: int = IntField()
 
     last_executed_at: datetime = DateTimeField()

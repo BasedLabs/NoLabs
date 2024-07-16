@@ -212,7 +212,7 @@ class SetupJobFeature:
 
         job.change_sampling_size(request.sampling_size)
 
-        job.save(cascade=True)
+        await job.save(cascade=True)
 
         return map_job_to_response(job)
 

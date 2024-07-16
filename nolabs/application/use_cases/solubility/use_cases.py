@@ -71,27 +71,34 @@ class RunJobFeature:
 
         result: List[Tuple[Protein, float]] = []
 
-        for protein in job.proteins:
-            response = self._api.run_solubility_run_post(
-                run_solubility_prediction_request=RunSolubilityPredictionRequest(
-                    amino_acid_sequence=protein.get_amino_acid_sequence(),
-                    job_id=str(job_id.value)
+        try:
+            job.started()
+            await job.save()
+            for protein in job.proteins:
+                response = self._api.run_solubility_run_post(
+                    run_solubility_prediction_request=RunSolubilityPredictionRequest(
+                        amino_acid_sequence=protein.get_amino_acid_sequence(),
+                        job_id=str(job_id.value)
+                    )
                 )
-            )
 
-            if response.errors:
-                raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
+                if response.errors:
+                    raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
 
-            soluble_probability = response.soluble_probability
+                soluble_probability = response.soluble_probability
 
-            result.append((protein, soluble_probability))
+                result.append((protein, soluble_probability))
 
-        job.set_result(result)
-        job.save(cascade=True)
+            job.set_result(result)
+            await job.save(cascade=True)
 
-        for protein, prob in result:
-            protein.set_solubility_probability(SolubleProbability(prob))
-            protein.save(cascade=True)
+            for protein, prob in result:
+                protein.set_solubility_probability(SolubleProbability(prob))
+                protein.save(cascade=True)
+
+        finally:
+            job.finished()
+            await job.save()
 
         return map_job_to_response(job)
 

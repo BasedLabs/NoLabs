@@ -18,11 +18,17 @@ class MsaLightMicroserviceSettings(MicroserviceSettings):
     msa_server_url: str = ''
 
 
+class RedisSettings(BaseModel):
+    host: str
+    port: int
+
+
 settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                              f'appsettings.{os.environ["NOLABS_ENVIRONMENT"]}.json')
 
 
 class Settings(BaseSettings):
+    redis: RedisSettings
     localisation: MicroserviceSettings = MicroserviceSettings()
     biobuddy: MicroserviceSettings = MicroserviceSettings()
     external_query: MicroserviceSettings = MicroserviceSettings()
