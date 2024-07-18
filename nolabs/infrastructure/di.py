@@ -14,7 +14,6 @@ import conformations_microservice
 import p2rank_microservice
 import msa_light_microservice
 import diffdock_microservice
-import umol_microservice
 
 from nolabs.infrastructure.logging import get_logger
 from nolabs.infrastructure.settings import Settings, MsaLightMicroserviceSettings
@@ -160,12 +159,3 @@ class InfrastructureDependencies:
         )
         client = diffdock_microservice.ApiClient(configuration=configuration)
         return diffdock_microservice.DefaultApi(api_client=client)
-
-    @staticmethod
-    def umol_microservice() -> umol_microservice.DefaultApi:
-        settings = Settings.load()
-        configuration = umol_microservice.Configuration(
-            host=settings.umol_microservice.microservice
-        )
-        client = umol_microservice.ApiClient(configuration=configuration)
-        return umol_microservice.DefaultApi(api_client=client)

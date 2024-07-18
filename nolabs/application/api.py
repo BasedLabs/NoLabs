@@ -53,7 +53,6 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             item = websockets_queue.read_last()
-            print(item)
             await asyncio.sleep(0.2)
             if item:
                 await websocket.send_json(data=item)
