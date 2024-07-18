@@ -13,7 +13,7 @@ class Molecule:
     smiles: str
     link: str
     molecule_type: str | None = None
-    pref_name: str = None
+    pref_name: str | None = None
 
 
 @dataclass
