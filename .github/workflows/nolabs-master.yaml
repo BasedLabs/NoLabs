@@ -8,6 +8,14 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'build/**'
+      - 'client/**'
+      - 'frontend/**'
+      - 'nolabs/**'
+      - 'build/**'
+      - 'pyproject.toml'
+      - 'poetry.toml'
 
 jobs:
   build:
