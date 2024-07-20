@@ -114,7 +114,7 @@ OR if you want to run everything on one machine:
 ```bash
 $ docker compose up
 ```
-Server will be available on http://localhost:9000
+Server will be available on http://localhost:9000. If the server is not reachable on MacOS, the problem is probably with network_mode: host, which is a known issue. In such case you can use the workaround described in this comment: https://github.com/docker/roadmap/issues/238#issuecomment-2044688144
 
 # APIs
 
