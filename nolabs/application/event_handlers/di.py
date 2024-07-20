@@ -9,7 +9,7 @@ class EventHandlersDependencies:
         event_handlers = [
             ProteinCreatedEventHandler(),
             JobStartedEventHandler(),
-            JobFinishedEventHandler()
+            JobFinishedEventHandler() # asd
         ]
 
         types = [type(eh) for eh in event_handlers]
