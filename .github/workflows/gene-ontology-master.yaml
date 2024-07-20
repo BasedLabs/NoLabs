@@ -4,12 +4,7 @@ run-name: gene_ontology
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
 
-on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'microservices/gene_ontology/**'
+on: workflow_dispatch
 
 jobs:
   build:
