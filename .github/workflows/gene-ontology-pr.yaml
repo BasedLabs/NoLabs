@@ -8,6 +8,8 @@ on:
   pull_request:
     branches:
       - master
+    paths:
+      - 'microservices/gene_ontology/**'
 
 jobs:
   build:

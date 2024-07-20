@@ -4,10 +4,7 @@ run-name: esmfold
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
 
-on:
-  push:
-    branches:
-      - master
+on: workflow_dispatch
 
 jobs:
   build:
