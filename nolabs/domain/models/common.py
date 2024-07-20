@@ -337,19 +337,6 @@ class Protein(Document, Entity):
         if not fasta_content and not pdb_content:
             raise NoLabsException(ErrorCodes.protein_initialization_error)
 
-        proteins = cls.objects(name=name.value, experiment=experiment)
-        if proteins:
-            protein: Protein = proteins[0]
-
-            if fasta_content and not protein.fasta_content:
-                protein.set_fasta(fasta_content)
-
-            if pdb_content and not protein.pdb_content:
-                protein.set_pdb(pdb_content)
-
-            protein.set_name(name)
-            return protein
-
         protein = Protein(
             id=ProteinId(uuid.uuid4()).value,
             experiment=experiment,
@@ -561,20 +548,6 @@ class Ligand(Document, Entity):
 
         if sdf_content and isinstance(sdf_content, str):
             sdf_content = sdf_content.encode()
-
-        ligands = cls.objects(name=name.value, experiment=experiment)
-        if ligands:
-            ligand: Ligand = ligands[0]
-
-            if smiles_content:
-                ligand.set_smiles(smiles_content)
-
-            if sdf_content:
-                ligand.set_sdf(sdf_content)
-
-            ligand.set_name(name)
-            ligand.link = link
-            return ligand
 
         if 'id' not in kwargs:
             id = LigandId(uuid.uuid4()).value
