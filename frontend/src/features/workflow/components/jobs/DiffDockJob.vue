@@ -53,10 +53,34 @@
           <q-list>
             <q-item>
               <q-item-section>
+                <q-item-label>Protein name</q-item-label>
+              </q-item-section>
+              <q-item-section class="fasta-content-container">
+                <div class="fasta-content">{{ protein?.name }}</div>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
                 <q-item-label>Protein FASTA Content</q-item-label>
               </q-item-section>
               <q-item-section class="fasta-content-container">
                 <div class="fasta-content">{{ protein?.fasta_content }}</div>
+              </q-item-section>
+            </q-item>
+            <q-item class="q-pt-md q-pb-md">
+              <q-item-section>
+                <q-item-label>Ligand name</q-item-label>
+              </q-item-section>
+              <q-item-section class="fasta-content-container">
+                <div class="fasta-content">{{ ligand?.name }}</div>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section>
+                <q-item-label>Ligand SMILES</q-item-label>
+              </q-item-section>
+              <q-item-section class="fasta-content-container">
+                <div class="fasta-content">{{ ligand?.smiles_content }}</div>
               </q-item-section>
             </q-item>
             <q-item>
@@ -95,9 +119,10 @@ import {
   nolabs__application__use_cases__diffdock__api_models__JobResponse,
   ProteinContentResponse,
   nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse,
-  nolabs__application__use_cases__diffdock__api_models__SetupJobRequest
+  nolabs__application__use_cases__diffdock__api_models__SetupJobRequest,
+LigandContentResponse
 } from "src/refinedApi/client";
-import { getDiffDockJobApi, getProteinContent, getDiffDockJobStatus, changeJobName, setupDiffDockJob, startDiffDockJob } from "src/features/workflow/refinedApi";
+import { getDiffDockJobApi, getProteinContent, getDiffDockJobStatus, changeJobName, setupDiffDockJob, startDiffDockJob, getLigandContent } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
   name: 'DiffDockJob',
@@ -109,6 +134,7 @@ export default defineComponent({
       experimentId: null as string | null,
       job: null as nolabs__application__use_cases__diffdock__api_models__JobResponse | null,
       protein: null as ProteinContentResponse | null,
+      ligand: null as LigandContentResponse | null,
       jobStatus: null as nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse | null,
       editableJobName: '' as string,
       samplesPerComplex: null as number | null
@@ -135,6 +161,7 @@ export default defineComponent({
     }
 
     this.protein = await getProteinContent(this.job?.protein_id);
+    this.ligand = await getLigandContent(this.job?.ligand_id);
 
     this.jobStatus = await getDiffDockJobStatus(this.jobId as string);
   },
