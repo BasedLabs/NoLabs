@@ -23,6 +23,7 @@ from nolabs.application.use_cases.proteins.controller import router as proteins_
 from nolabs.application.use_cases.ligands.controller import router as ligand_router
 from nolabs.infrastructure.logging import setup_logger
 from nolabs.application.use_cases.workflow.controller import router as workflow_router
+from nolabs.application.use_cases.blast.controller import router as blast_router
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import Settings
 from nolabs.infrastructure.websocket_queue import websockets_queue
@@ -76,6 +77,7 @@ app.include_router(proteins_router)
 app.include_router(ligand_router)
 app.include_router(workflow_router)
 app.include_router(biobuddy_controller)
+app.include_router(blast_router)
 add_domain_exception_middleware(app)
 
 setup_logger()

@@ -15,21 +15,52 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
+class HspModel:
+    num: int
+    bit_score: float
+    score: int
+    evalue: float
+    query_from: int
+    query_to: int
+    hit_from: int
+    hit_to: int
+    query_frame: int
+    hit_frame: int
+    identity: int
+    positive: int
+    gaps: int
+    align_len: int
+    qseq: str
+    hseq: str
+    midline: str
+
+
+@dataclass
+class HitModel:
+    num: int
+    id: str
+    definition: str
+    accession: str
+    length: int
+    hsps: List[HspModel]
+
+
+@dataclass
 class JobResult:
-    complex_id: UUID
-    sdf_content: str
-    minimized_affinity: Optional[float] = None
-    scored_affinity: Optional[float] = None
-    confidence: Optional[float] = None
+    protein_id: UUID
+    program: str
+    database: str
+    query_id: str
+    query_def: str
+    query_len: int
+    hits: List[HitModel]
 
 
 @dataclass
 class JobResponse:
     job_id: UUID
     job_name: str
-    samples_per_complex: int
     protein_id: UUID
-    ligand_id: UUID
     result: List[JobResult]
 
 
@@ -37,7 +68,10 @@ class JobResponse:
 class SetupJobRequest:
     experiment_id: UUID
     protein_id: UUID
-
+    descriptions: int = 10,
+    alignments: int = 10,
+    hitlist_size: int = 10,
+    expect: float = 10.0,
     job_id: Optional[UUID] = None
     job_name: Optional[str] = None
 

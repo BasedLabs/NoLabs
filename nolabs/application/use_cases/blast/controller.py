@@ -7,10 +7,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from nolabs.application.use_cases.diffdock.api_models import (JobResponse, GetJobStatusResponse,
+from nolabs.application.use_cases.blast.api_models import (JobResponse, GetJobStatusResponse,
                                                                      SetupJobRequest)
-from nolabs.application.use_cases.diffdock.di import DiffDockDependencies
-from nolabs.application.use_cases.diffdock.use_cases import RunJobFeature, GetJobFeature, GetJobStatusFeature, \
+from nolabs.application.use_cases.blast.di import BlastDependencies
+from nolabs.application.use_cases.blast.use_cases import RunJobFeature, GetJobFeature, GetJobStatusFeature, \
     SetupJobFeature
 
 router = APIRouter(
@@ -23,7 +23,7 @@ router = APIRouter(
              summary='Start blast job')
 async def start_job(
         feature: Annotated[
-            RunJobFeature, Depends(DiffDockDependencies.run_job)],
+            RunJobFeature, Depends(BlastDependencies.run_job)],
         job_id: UUID
 ) -> JobResponse:
     return await feature.handle(job_id)
@@ -32,19 +32,19 @@ async def start_job(
 @router.get('/jobs/{job_id}',
             summary='Get job')
 async def get_job(job_id: UUID, feature: Annotated[
-    GetJobFeature, Depends(DiffDockDependencies.get_job)]) -> JobResponse:
+    GetJobFeature, Depends(BlastDependencies.get_job)]) -> JobResponse:
     return await feature.handle(job_id=job_id)
 
 
 @router.get('/jobs/{job_id}/status',
             summary='Get job execution status')
 async def get_job_status(job_id: UUID, feature: Annotated[
-    GetJobStatusFeature, Depends(DiffDockDependencies.get_job_status)]) -> GetJobStatusResponse:
+    GetJobStatusFeature, Depends(BlastDependencies.get_job_status)]) -> GetJobStatusResponse:
     return await feature.handle(job_id=job_id)
 
 
 @router.post('/jobs',
             summary='Setup job')
 async def setup_job(request: SetupJobRequest, feature: Annotated[
-    SetupJobFeature, Depends(DiffDockDependencies.setup_job)]) -> JobResponse:
+    SetupJobFeature, Depends(BlastDependencies.setup_job)]) -> JobResponse:
     return await feature.handle(request=request)
