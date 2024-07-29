@@ -20,6 +20,7 @@ from nolabs.application.use_cases.localisation.workflow import LocalisationCompo
 from nolabs.application.use_cases.msa_generation.workflow import MsaGenerationComponent
 from nolabs.application.use_cases.protein_design.workflow import ProteinDesignComponent
 from nolabs.application.use_cases.proteins.workflow import ProteinsComponent
+from nolabs.application.use_cases.blast.workflow import BlastComponent
 from nolabs.application.use_cases.small_molecules_design.workflow import SmallMoleculesDesignLearningComponent
 from nolabs.application.use_cases.solubility.workflow import SolubilityComponent
 from nolabs.infrastructure.di import InfrastructureDependencies
@@ -46,7 +47,8 @@ class WorkflowDependencies:
             GeneOntologyComponent.name: GeneOntologyComponent,
             DiffDockComponent.name: DiffDockComponent,
             ConformationComponent.name: ConformationComponent,
-            BindingPocketPredictionComponent.name: BindingPocketPredictionComponent
+            BindingPocketPredictionComponent.name: BindingPocketPredictionComponent,
+            BlastComponent.name: BlastComponent
         }
 
     @staticmethod
