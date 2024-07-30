@@ -103,7 +103,7 @@
               <div v-for="hit in result.hits" :key="hit.id" class="hit-section">
                 <h6>Hit ID: {{ hit.id }}</h6>
                 <p>Definition: {{ hit.definition }}</p>
-                <p>Accession: <a :href="'https://www.rcsb.org/structure/' + hit.accession" target="_blank">{{ hit.accession }}</a></p>
+                <p>Accession: {{ hit.accession }}</p>
                 <p>Length: {{ hit.length }}</p>
                 <div v-for="hsp in hit.hsps" :key="hsp.num" class="hsp-section">
                   <p>HSP Number: {{ hsp.num }}</p>

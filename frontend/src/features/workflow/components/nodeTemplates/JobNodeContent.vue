@@ -56,6 +56,8 @@ export default defineComponent({
           return '/solubility_pic.png';
         case 'Msa generation':
           return '/msa_pic.png';
+        case 'Blast':
+          return '/blast_icon.png';
         default:
           return '/protein_folding.png';
       }

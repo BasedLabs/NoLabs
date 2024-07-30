@@ -155,8 +155,8 @@ export default defineComponent({
     },
     {
       name: "Blast",
-      tab: false,
-      component: BlastJobVue,
+      tab: true,
+      routeName: "Blast",
       api: componentApi.blast
     },
     {
