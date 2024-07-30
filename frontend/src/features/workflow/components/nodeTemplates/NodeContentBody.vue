@@ -103,6 +103,7 @@ import { Notify } from "quasar";
 import componentApi from "./componentApi";
 import MsaJob from '../jobs/MsaJob.vue';
 import ComponentExceptionsModal from "./ComponentExceptionsModal.vue";
+import BlastJobVue from 'src';
 
 export default defineComponent({
   name: 'NodeContentBody',
@@ -151,6 +152,12 @@ export default defineComponent({
       tab: false,
       component: DiffDockJob,
       api: componentApi.diffdock
+    },
+    {
+      name: "Blast",
+      tab: false,
+      component: BlastJobVue,
+      api: componentApi.blast
     },
     {
       name: "Msa generation",

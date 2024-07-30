@@ -23,6 +23,10 @@ def map_job_to_response(job: BlastJob) -> JobResponse:
         job_id=job.id,
         job_name=job.name.value,
         protein_id=job.protein.id,
+        descriptions=job.descriptions,
+        alignments=job.alignments,
+        hitlist_size=job.hitlist_size,
+        expect=job.expect,
         result=[
             JobResult(
                 protein_id=res.protein_id,
@@ -94,7 +98,7 @@ class SetupJobFeature:
         assert request
 
         job_id = JobId(request.job_id if request.job_id else generate_uuid())
-        job_name = JobName(request.job_name if request.job_name else 'New protein ligand DIFFDOCK binding job')
+        job_name = JobName(request.job_name if request.job_name else 'New BLAST job')
 
         experiment = Experiment.objects.with_id(request.experiment_id)
 

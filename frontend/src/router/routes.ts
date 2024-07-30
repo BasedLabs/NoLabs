@@ -32,6 +32,15 @@ const foldingRoutes = [
   },
 ];
 
+const blastRoutes = [
+  {
+    path: 'blast/job/:jobId',
+    component: () => import('src/features/workflow/components/jobs/BlastJob.vue'),
+    name: 'Blast',
+    props: true
+  },
+];
+
 const localisationRoutes = [
   {
     path: 'localisation/job/:jobId',
@@ -91,6 +100,7 @@ const routes = [
       ...solubilityRoutes,
       ...geneOntologyRoutes,
       ...foldingRoutes,
+      ...blastRoutes,
       ...smallMoleculeDesignRoutes
     ]
   }

@@ -61,6 +61,10 @@ class JobResponse:
     job_id: UUID
     job_name: str
     protein_id: UUID
+    descriptions: int
+    alignments: int
+    hitlist_size: int
+    expect: float
     result: List[JobResult]
 
 
