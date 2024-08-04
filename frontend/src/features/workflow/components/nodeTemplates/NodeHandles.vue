@@ -6,12 +6,14 @@
       class="row no-wrap items-center q-pa-sm q-mb-sm q-border rounded-border q-shadow-2 bg-grey-7 input-output-tab"
     >
       <Handle
+        v-if="!isNumberInput(input)"
         type="target"
         :position="Position.Left"
         :id="`${nodeId}-input-${key}`"
         :class="{'large-handle': true, 'handle-connected': isHandleConnected(`${nodeId}-input-${key}`)}"
       />
-      <q-item-label class="q-mx-auto text-h6 text-white">{{ input.title }}</q-item-label>
+      <q-item-label v-if="!isNumberInput(input)" class="q-mx-auto text-h6 text-white">{{ input.title }}</q-item-label>
+      <q-input v-else v-model.number="currentInputValues[key]" @input="onInputChange(key)" type="number" dense class="text-h6 text-white" :label="input.title" />
     </div>
     <div
       v-for="([key, output], index) in outputEntries"
@@ -55,6 +57,11 @@ export default defineComponent({
       required: false
     }
   },
+  data() {
+    return {
+      currentInputValues: this.initializeInputValues()
+    };
+  },
   computed: {
     Position() {
       return Position;
@@ -73,6 +80,22 @@ export default defineComponent({
   methods: {
     isHandleConnected(handleId) {
       return this.edges.some(edge => edge.sourceHandle === handleId || edge.targetHandle === handleId);
+    },
+    isNumberInput(input) {
+      return input.type === 'integer' || input.type === 'number';
+    },
+    initializeInputValues() {
+      const values = {};
+      Object.entries(this.inputs).forEach(([key, input]) => {
+        if (this.isNumberInput(input)) {
+          values[key] = input.default || 0;
+        }
+      });
+      return values;
+    },
+    onInputChange(key) {
+      const workflowStore = useWorkflowStore();
+      workflowStore.setInputValue(this.nodeId, key, this.currentInputValues[key]);
     }
   }
 });

@@ -22,7 +22,7 @@
               <q-item-section>
                 <q-input v-model="editableJobName" @keyup.enter="updateJobName" dense clearable />
                 <q-btn v-if="editableJobName !== (job?.job_name || '')" icon="check" color="info" flat
-                  @click="updateJobName" />
+                       @click="updateJobName" />
               </q-item-section>
             </q-item>
             <q-item>
@@ -94,13 +94,9 @@
         </q-card-section>
         <q-card-section>
           <div v-if="jobHasGeneratedData">
+            <div id="hit-visualization" class="hit-visualization"></div>
             <div v-for="result in job?.result" :key="result.protein_id">
-              <p>Program: {{ result.program }}</p>
-              <p>Database: {{ result.database }}</p>
-              <p>Query ID: {{ result.query_id }}</p>
-              <p>Query Definition: {{ result.query_def }}</p>
-              <p>Query Length: {{ result.query_len }}</p>
-              <div v-for="hit in result.hits" :key="hit.id" class="hit-section">
+              <div v-for="hit in result.hits" :key="hit.id" class="hit-section" v-show="isVisible(hit.id)">
                 <h6>Hit ID: {{ hit.id }}</h6>
                 <p>Definition: {{ hit.definition }}</p>
                 <p>Accession: {{ hit.accession }}</p>
@@ -139,19 +135,20 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { QSpinner, QInput, QBtn } from 'quasar';
-import { 
-  nolabs__application__use_cases__blast__api_models__JobResponse, 
-  ProteinContentResponse, 
-  nolabs__application__use_cases__blast__api_models__GetJobStatusResponse, 
-  nolabs__application__use_cases__blast__api_models__SetupJobRequest 
+import * as d3 from 'd3';
+import {
+  nolabs__application__use_cases__blast__api_models__JobResponse,
+  ProteinContentResponse,
+  nolabs__application__use_cases__blast__api_models__GetJobStatusResponse,
+  nolabs__application__use_cases__blast__api_models__SetupJobRequest
 } from "src/refinedApi/client";
-import { 
-  getBlastJobApi, 
-  getProteinContent, 
-  getBlastJobStatus, 
-  changeJobName, 
-  setupBlastJob, 
-  startBlastJob 
+import {
+  getBlastJobApi,
+  getProteinContent,
+  getBlastJobStatus,
+  changeJobName,
+  setupBlastJob,
+  startBlastJob
 } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
@@ -166,6 +163,7 @@ export default defineComponent({
       protein: null as ProteinContentResponse | null,
       jobStatus: null as nolabs__application__use_cases__blast__api_models__GetJobStatusResponse | null,
       editableJobName: '' as string,
+      visibleHitId: null as string | null, // Store the currently visible hit ID
     };
   },
   computed: {
@@ -190,6 +188,10 @@ export default defineComponent({
     this.protein = await getProteinContent(this.job?.protein_id);
 
     this.jobStatus = await getBlastJobStatus(this.jobId as string);
+
+    this.$nextTick(() => {
+      this.visualizeResults();
+    });
   },
   methods: {
     async updateJobName() {
@@ -223,6 +225,112 @@ export default defineComponent({
           message: 'Failed to start the job.',
         });
       }
+    },
+    visualizeResults() {
+      if (this.job && this.job.result) {
+        const allHSPs = [];
+        this.job.result.forEach(result => {
+          result.hits.forEach(hit => {
+            hit.hsps.forEach(hsp => {
+              allHSPs.push({ hitId: hit.id, hitDefinition: hit.definition, accession: hit.accession, ...hsp });
+            });
+          });
+        });
+        this.createVisualization('#hit-visualization', allHSPs);
+      }
+    },
+    createVisualization(selector, hsps) {
+      const margin = { top: 10, right: 120, bottom: 30, left: 40 }; // Increased right margin for legend
+      const width = 800 - margin.left - margin.right;
+      const height = 400 - margin.top - margin.bottom;
+
+      const svg = d3.select(selector)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      const x = d3.scaleLinear()
+        .domain([0, d3.max(hsps, d => d.query_to)])
+        .range([0, width]);
+
+      const y = d3.scaleBand()
+        .domain(hsps.map((hsp, index) => `HSP ${index + 1}`))
+        .range([0, height])
+        .padding(0.1);
+
+      const color = d3.scaleSequential(d3.interpolateCool)
+        .domain([d3.min(hsps, d => d.score), d3.max(hsps, d => d.score)]);
+
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x));
+
+      svg.append("g")
+        .call(d3.axisLeft(y));
+
+      const bars = svg.selectAll("rect")
+        .data(hsps)
+        .enter()
+        .append("rect")
+        .attr("x", d => x(d.query_from))
+        .attr("y", (d, i) => y(`HSP ${i + 1}`))
+        .attr("width", d => x(d.query_to) - x(d.query_from))
+        .attr("height", y.bandwidth())
+        .attr("fill", d => color(d.score))
+        .on("click", (event, d) => this.toggleVisibility(d.hitId));
+
+      svg.selectAll(".bar-text")
+        .data(hsps)
+        .enter()
+        .append("text")
+        .attr("class", "bar-text")
+        .attr("x", d => x(d.query_from) + 5)
+        .attr("y", (d, i) => y(`HSP ${i + 1}`) + y.bandwidth() / 2 + 5)
+        .text(d => `${d.accession}`)
+        .style("fill", "#000")
+        .style("font-size", "10px");
+
+      // Add a legend for the color scale
+      const legendHeight = height;
+      const legendWidth = 20;
+      const legend = svg.append("g")
+        .attr("transform", `translate(${width + 40}, 0)`);
+
+      const legendScale = d3.scaleLinear()
+        .domain(color.domain())
+        .range([legendHeight, 0]);
+
+      const legendAxis = d3.axisRight(legendScale)
+        .ticks(6);
+
+      legend.selectAll("rect")
+        .data(d3.range(legendHeight), d => d)
+        .enter().append("rect")
+        .attr("y", d => d)
+        .attr("x", 0)
+        .attr("height", 1)
+        .attr("width", legendWidth)
+        .attr("fill", d => color(legendScale.invert(d)));
+
+      legend.append("g")
+        .attr("transform", `translate(${legendWidth}, 0)`)
+        .call(legendAxis);
+
+      legend.append("text")
+        .attr("x", legendWidth / 2)
+        .attr("y", -10)
+        .attr("text-anchor", "middle")
+        .style("fill", "#fff")
+        .style("font-size", "12px")
+        .text("Score:");
+    },
+    toggleVisibility(hitId) {
+      this.visibleHitId = this.visibleHitId === hitId ? null : hitId;
+    },
+    isVisible(hitId) {
+      return this.visibleHitId === hitId;
     }
   },
   components: {
@@ -260,5 +368,9 @@ export default defineComponent({
   background-color: #000000;
   padding: 2px 4px;
   border-radius: 4px;
+}
+
+.hit-visualization {
+  margin-top: 20px;
 }
 </style>
