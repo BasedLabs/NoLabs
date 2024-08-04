@@ -168,6 +168,29 @@ export const useWorkflowStore = defineStore('workflowStore', {
         console.error('Error uploading protein:', error);
       }
     },
+    setInputValue(nodeId: string, inputName: string, inputValue: any) {
+      const existingNode = this.getNodeById(nodeId);
+      if (existingNode) {
+        if (!existingNode.data.defaults || !Array.isArray(existingNode.data.defaults) || existingNode.data.defaults.length < 1) {
+          // Initialize defaults if it doesn't exist or is not an array
+          existingNode.data.defaults = [{
+            target_path: Object.keys(existingNode.data.inputs || {}),
+            value: Object.keys(existingNode.data.inputs || {}).map(key => (key === inputName ? inputValue : existingNode.data.inputs[key].default || 0))
+          }];
+        } else {
+          // Update the existing defaults
+          const defaults = existingNode.data.defaults[0];
+          const targetIndex = defaults.target_path.indexOf(inputName);
+          if (targetIndex > -1) {
+            defaults.value[targetIndex] = inputValue;
+          } else {
+            defaults.target_path.push(inputName);
+            defaults.value.push(inputValue);
+          }
+        }
+      }
+      this.sendWorkflowUpdate();
+    },
     async deleteProteinFromExperiment(nodeId: string, proteinId: string) {
       try {
         await deleteProtein(proteinId);
@@ -282,10 +305,10 @@ export const useWorkflowStore = defineStore('workflowStore', {
     async adjustWorkflow(data: any) {
       // Retain existing nodes
       const existingNodeIds = this.elements.nodes.map(node => node.id);
-    
+
       // Store old to new ID mapping
       const idMapping = new Map<string, string>();
-    
+
       // Process new nodes and generate UUIDs
       const newNodes = data.workflow_components.map(component => {
         if (existingNodeIds.includes(component.id)) {
@@ -294,12 +317,12 @@ export const useWorkflowStore = defineStore('workflowStore', {
           const newId = uuidv4();
           idMapping.set(component.id, newId); // Map old ID to new ID
           component.id = newId;
-    
+
           // Find component options to get inputs and outputs
           const componentOptions = this.componentOptions.find(opt => opt.name === component.name);
-    
+
           const nodeType = this.allowedTypes.includes(componentOptions?.type || '') ? componentOptions?.type || 'custom' : 'custom';
-    
+
           // Create the new node
           const newNode = {
             id: newId,
@@ -323,19 +346,19 @@ export const useWorkflowStore = defineStore('workflowStore', {
               y: component.y !== undefined ? component.y : 100
             }
           };
-    
+
           this.elements.nodes.push(newNode);
-    
+
           return component;
         }
       });
-    
+
       // Adjust connections (edges)
       const newEdges = data.workflow_components.flatMap(component =>
         component.connections.map(conn => {
           // Adjust source_component_id if it matches an old ID
           const adjustedSourceId = idMapping.get(conn.source_component_id) || conn.source_component_id;
-    
+
           return {
             id: `e${adjustedSourceId}-to-${component.id}`,
             source: adjustedSourceId,
@@ -346,25 +369,25 @@ export const useWorkflowStore = defineStore('workflowStore', {
           };
         })
       );
-    
+
       // Remove duplicate edges by using a Set
       const uniqueEdges = Array.from(new Set(newEdges.map(edge => edge.id)))
         .map(id => newEdges.find(edge => edge.id === id));
-    
+
       // Remove edges that are no longer present
       this.elements.edges = this.elements.edges.filter(edge => uniqueEdges.some(newEdge => newEdge.id === edge.id));
-      
+
       // Add new edges
       uniqueEdges.forEach(edge => {
         if (!this.elements.edges.some(existingEdge => existingEdge.id === edge.id)) {
           this.elements.edges.push(edge);
         }
       });
-    
+
       // Remove nodes that are no longer present
       const newNodeIds = newNodes.map(node => node.id);
       this.elements.nodes = this.elements.nodes.filter(node => newNodeIds.includes(node.id));
-    
+
       // Update the state
       await this.sendWorkflowUpdate();
 

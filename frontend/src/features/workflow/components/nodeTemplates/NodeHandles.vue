@@ -1,19 +1,37 @@
 <template>
   <div class="q-mt-md">
+    <!-- Default job values section -->
+    <div v-if="numberInputEntries.length" class="q-pa-sm q-mb-sm q-border rounded-border q-shadow-2 bg-grey-7">
+      <div class="text-h6 text-white q-pl-sm q-mb-sm">Default job values</div>
+      <div
+        v-for="([key, input], index) in numberInputEntries"
+        :key="'input-' + index"
+        class="row no-wrap items-center q-pa-sm q-mb-sm input-output-tab"
+      >
+        <q-input
+          v-model.number="currentInputValues[key]"
+          @update:model-value="onInputChange(key, $event)"
+          type="number"
+          dense
+          class="text-h6 text-white full-width-number-input"
+          :label="input.title"
+        />
+      </div>
+    </div>
+
+    <!-- Node handles section -->
     <div
-      v-for="([key, input], index) in inputEntries"
+      v-for="([key, input], index) in nonNumberInputEntries"
       :key="'input-' + index"
       class="row no-wrap items-center q-pa-sm q-mb-sm q-border rounded-border q-shadow-2 bg-grey-7 input-output-tab"
     >
       <Handle
-        v-if="!isNumberInput(input)"
         type="target"
         :position="Position.Left"
         :id="`${nodeId}-input-${key}`"
         :class="{'large-handle': true, 'handle-connected': isHandleConnected(`${nodeId}-input-${key}`)}"
       />
-      <q-item-label v-if="!isNumberInput(input)" class="q-mx-auto text-h6 text-white">{{ input.title }}</q-item-label>
-      <q-input v-else v-model.number="currentInputValues[key]" @input="onInputChange(key)" type="number" dense class="text-h6 text-white" :label="input.title" />
+      <q-item-label class="q-mx-auto text-h6 text-white">{{ input.title }}</q-item-label>
     </div>
     <div
       v-for="([key, output], index) in outputEntries"
@@ -32,9 +50,9 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
-import { Handle, Position } from "@vue-flow/core";
-import { useWorkflowStore } from '../storage';
+import {defineComponent} from 'vue';
+import {Handle, Position} from "@vue-flow/core";
+import {useWorkflowStore} from '../storage';
 
 export default defineComponent({
   name: 'NodeHandles',
@@ -75,6 +93,12 @@ export default defineComponent({
     },
     outputEntries() {
       return Object.entries(this.outputs);
+    },
+    numberInputEntries() {
+      return this.inputEntries.filter(([key, input]) => this.isNumberInput(input));
+    },
+    nonNumberInputEntries() {
+      return this.inputEntries.filter(([key, input]) => !this.isNumberInput(input));
     }
   },
   methods: {
@@ -93,9 +117,10 @@ export default defineComponent({
       });
       return values;
     },
-    onInputChange(key) {
+    onInputChange(key, value) {
       const workflowStore = useWorkflowStore();
-      workflowStore.setInputValue(this.nodeId, key, this.currentInputValues[key]);
+      this.currentInputValues[key] = value;
+      workflowStore.setInputValue(this.nodeId, key, value);
     }
   }
 });
@@ -130,5 +155,14 @@ export default defineComponent({
 
 .rounded-border {
   border-radius: 25px; /* Ensure this class has a border-radius as well */
+}
+
+.full-width-number-input .q-input-target {
+  width: 100%;
+  text-align: right;
+}
+
+.full-width-number-input .q-field {
+  width: 100%;
 }
 </style>

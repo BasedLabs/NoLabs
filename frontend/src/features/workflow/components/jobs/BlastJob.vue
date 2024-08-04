@@ -240,9 +240,9 @@ export default defineComponent({
       }
     },
     createVisualization(selector, hsps) {
-      const margin = { top: 10, right: 120, bottom: 30, left: 40 }; // Increased right margin for legend
+      const margin = { top: 25, right: 120, bottom: 30, left: 40 }; // Increased right margin for legend
       const width = 800 - margin.left - margin.right;
-      const height = 400 - margin.top - margin.bottom;
+      const height = 450 - margin.top - margin.bottom;
 
       const svg = d3.select(selector)
         .append("svg")
@@ -323,7 +323,7 @@ export default defineComponent({
         .attr("y", -10)
         .attr("text-anchor", "middle")
         .style("fill", "#fff")
-        .style("font-size", "12px")
+        .style("font-size", "15px")
         .text("Score:");
     },
     toggleVisibility(hitId) {
