@@ -63,25 +63,33 @@
               <q-item-section>
                 <q-item-label>Descriptions</q-item-label>
               </q-item-section>
-              <q-item-section>{{ job?.descriptions }}</q-item-section>
+              <q-item-section>
+                <q-input v-model.number="jobInputs.descriptions" @input="updateJobInputs" dense type="number" />
+              </q-item-section>
             </q-item>
             <q-item>
               <q-item-section>
                 <q-item-label>Alignments</q-item-label>
               </q-item-section>
-              <q-item-section>{{ job?.alignments }}</q-item-section>
+              <q-item-section>
+                <q-input v-model.number="jobInputs.alignments" @input="updateJobInputs" dense type="number" />
+              </q-item-section>
             </q-item>
             <q-item>
               <q-item-section>
                 <q-item-label>Hitlist Size</q-item-label>
               </q-item-section>
-              <q-item-section>{{ job?.hitlist_size }}</q-item-section>
+              <q-item-section>
+                <q-input v-model.number="jobInputs.hitlist_size" @input="updateJobInputs" dense type="number" />
+              </q-item-section>
             </q-item>
             <q-item>
               <q-item-section>
                 <q-item-label>Expect</q-item-label>
               </q-item-section>
-              <q-item-section>{{ job?.expect }}</q-item-section>
+              <q-item-section>
+                <q-input v-model.number="jobInputs.expect" @input="updateJobInputs" dense type="number" />
+              </q-item-section>
             </q-item>
           </q-list>
         </q-card-section>
@@ -94,34 +102,14 @@
         </q-card-section>
         <q-card-section>
           <div v-if="jobHasGeneratedData">
-            <div id="hit-visualization" class="hit-visualization"></div>
-            <div v-for="result in job?.result" :key="result.protein_id">
-              <div v-for="hit in result.hits" :key="hit.id" class="hit-section" v-show="isVisible(hit.id)">
-                <h6>Hit ID: {{ hit.id }}</h6>
-                <p>Definition: {{ hit.definition }}</p>
-                <p>Accession: {{ hit.accession }}</p>
-                <p>Length: {{ hit.length }}</p>
-                <div v-for="hsp in hit.hsps" :key="hsp.num" class="hsp-section">
-                  <p>HSP Number: {{ hsp.num }}</p>
-                  <p>Bit Score: {{ hsp.bit_score }}</p>
-                  <p>Score: {{ hsp.score }}</p>
-                  <p>E-value: {{ hsp.evalue }}</p>
-                  <p>Query From: {{ hsp.query_from }}</p>
-                  <p>Query To: {{ hsp.query_to }}</p>
-                  <p>Hit From: {{ hsp.hit_from }}</p>
-                  <p>Hit To: {{ hsp.hit_to }}</p>
-                  <p>Query Frame: {{ hsp.query_frame }}</p>
-                  <p>Hit Frame: {{ hsp.hit_frame }}</p>
-                  <p>Identity: {{ hsp.identity }}</p>
-                  <p>Positive: {{ hsp.positive }}</p>
-                  <p>Gaps: {{ hsp.gaps }}</p>
-                  <p>Alignment Length: {{ hsp.align_len }}</p>
-                  <p>Query Sequence: <span class="sequence">{{ hsp.qseq }}</span></p>
-                  <p>Hit Sequence: <span class="sequence">{{ hsp.hseq }}</span></p>
-                  <p>Midline: <span class="sequence">{{ hsp.midline }}</span></p>
-                </div>
-              </div>
-            </div>
+            <div id="hit-visualization" class="hit-visualization full-width"></div>
+            <q-btn @click="downloadCSV" color="primary" label="Download Results as CSV" class="q-my-md" />
+            <q-table
+              :rows="visibleHits"
+              :columns="columns"
+              row-key="id"
+              class="q-mt-md"
+            />
           </div>
           <div v-else>
             No results available.
@@ -134,7 +122,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QSpinner, QInput, QBtn } from 'quasar';
+import { QSpinner, QInput, QBtn, QTable } from 'quasar';
 import * as d3 from 'd3';
 import {
   nolabs__application__use_cases__blast__api_models__JobResponse,
@@ -164,6 +152,12 @@ export default defineComponent({
       jobStatus: null as nolabs__application__use_cases__blast__api_models__GetJobStatusResponse | null,
       editableJobName: '' as string,
       visibleHitId: null as string | null, // Store the currently visible hit ID
+      jobInputs: {
+        descriptions: null,
+        alignments: null,
+        hitlist_size: null,
+        expect: null
+      }
     };
   },
   computed: {
@@ -176,6 +170,35 @@ export default defineComponent({
       }
       return this.jobStatus.running ? 'Running...' : 'Not running';
     },
+    columns() {
+      return [
+        { name: 'num', label: 'HSP Number', field: 'num', align: 'left' },
+        { name: 'bit_score', label: 'Bit Score', field: 'bit_score', align: 'left' },
+        { name: 'score', label: 'Score', field: 'score', align: 'left' },
+        { name: 'evalue', label: 'E-value', field: 'evalue', align: 'left' },
+        { name: 'query_from', label: 'Query From', field: 'query_from', align: 'left' },
+        { name: 'query_to', label: 'Query To', field: 'query_to', align: 'left' },
+        { name: 'hit_from', label: 'Hit From', field: 'hit_from', align: 'left' },
+        { name: 'hit_to', label: 'Hit To', field: 'hit_to', align: 'left' },
+        { name: 'query_frame', label: 'Query Frame', field: 'query_frame', align: 'left' },
+        { name: 'hit_frame', label: 'Hit Frame', field: 'hit_frame', align: 'left' },
+        { name: 'identity', label: 'Identity', field: 'identity', align: 'left' },
+        { name: 'positive', label: 'Positive', field: 'positive', align: 'left' },
+        { name: 'gaps', label: 'Gaps', field: 'gaps', align: 'left' },
+        { name: 'align_len', label: 'Alignment Length', field: 'align_len', align: 'left' },
+        { name: 'qseq', label: 'Query Sequence', field: 'qseq', align: 'left' },
+        { name: 'hseq', label: 'Hit Sequence', field: 'hseq', align: 'left' },
+        { name: 'midline', label: 'Midline', field: 'midline', align: 'left' }
+      ];
+    },
+    visibleHits() {
+      if (this.visibleHitId) {
+        return this.job?.result.flatMap(result => result.hits)
+          .filter(hit => hit.id === this.visibleHitId)
+          .flatMap(hit => hit.hsps) || [];
+      }
+      return this.job?.result.flatMap(result => result.hits).flatMap(hit => hit.hsps) || [];
+    }
   },
   async mounted() {
     this.experimentId = this.$route.params.experimentId as string;
@@ -183,6 +206,12 @@ export default defineComponent({
     this.job = await getBlastJobApi(this.jobId as string);
     if (this.job) {
       this.editableJobName = this.job.job_name || '';
+      this.jobInputs = {
+        descriptions: this.job.descriptions,
+        alignments: this.job.alignments,
+        hitlist_size: this.job.hitlist_size,
+        expect: this.job.expect
+      };
     }
 
     this.protein = await getProteinContent(this.job?.protein_id);
@@ -226,6 +255,30 @@ export default defineComponent({
         });
       }
     },
+    async updateJobInputs() {
+      const setupJobRequest = {
+        experiment_id: this.experimentId as string,
+        protein_id: this.job?.protein_id as string,
+        descriptions: this.jobInputs.descriptions,
+        alignments: this.jobInputs.alignments,
+        hitlist_size: this.jobInputs.hitlist_size,
+        expect: this.jobInputs.expect,
+        job_id: this.job?.job_id,
+        job_name: this.job?.job_name
+      };
+      try {
+        await setupBlastJob(setupJobRequest);
+        this.$q.notify({
+          type: 'positive',
+          message: 'Job inputs updated successfully.',
+        });
+      } catch (error) {
+        this.$q.notify({
+          type: 'negative',
+          message: 'Failed to update job inputs.',
+        });
+      }
+    },
     visualizeResults() {
       if (this.job && this.job.result) {
         const allHSPs = [];
@@ -241,8 +294,10 @@ export default defineComponent({
     },
     createVisualization(selector, hsps) {
       const margin = { top: 25, right: 120, bottom: 30, left: 40 }; // Increased right margin for legend
-      const width = 800 - margin.left - margin.right;
+      const width = window.innerWidth - margin.left - margin.right;
       const height = 450 - margin.top - margin.bottom;
+
+      d3.select(selector).selectAll("*").remove(); // Clear the existing graph
 
       const svg = d3.select(selector)
         .append("svg")
@@ -260,8 +315,8 @@ export default defineComponent({
         .range([0, height])
         .padding(0.1);
 
-      const color = d3.scaleSequential(d3.interpolateCool)
-        .domain([d3.min(hsps, d => d.score), d3.max(hsps, d => d.score)]);
+      const color = d3.scaleSequential(d3.interpolateBlues)
+        .domain([d3.max(hsps, d => d.score), d3.min(hsps, d => d.score)]); // Light blue for high score to dark blue for low score
 
       svg.append("g")
         .attr("transform", `translate(0,${height})`)
@@ -279,7 +334,11 @@ export default defineComponent({
         .attr("width", d => x(d.query_to) - x(d.query_from))
         .attr("height", y.bandwidth())
         .attr("fill", d => color(d.score))
-        .on("click", (event, d) => this.toggleVisibility(d.hitId));
+        .attr("stroke", d => d.hitId === this.visibleHitId ? 'green' : 'none')
+        .attr("stroke-width", d => d.hitId === this.visibleHitId ? 2 : 0)
+        .on("click", (event, d) => this.toggleVisibility(d.hitId))
+        .append("title")
+        .text(d => `Length: ${d.query_to - d.query_from}, E-value: ${d.evalue}, Score: ${d.score}`);
 
       svg.selectAll(".bar-text")
         .data(hsps)
@@ -289,7 +348,7 @@ export default defineComponent({
         .attr("x", d => x(d.query_from) + 5)
         .attr("y", (d, i) => y(`HSP ${i + 1}`) + y.bandwidth() / 2 + 5)
         .text(d => `${d.accession}`)
-        .style("fill", "#000")
+        .style("fill", d => d.hitId === this.visibleHitId ? "green" : "#000")
         .style("font-size", "10px");
 
       // Add a legend for the color scale
@@ -328,13 +387,25 @@ export default defineComponent({
     },
     toggleVisibility(hitId) {
       this.visibleHitId = this.visibleHitId === hitId ? null : hitId;
+      this.visualizeResults(); // Re-render the graph to highlight the selected bar
     },
-    isVisible(hitId) {
-      return this.visibleHitId === hitId;
+    async downloadCSV() {
+      const hits = this.job?.result.flatMap(result => result.hits).flatMap(hit => hit.hsps) || [];
+      const csvContent = "data:text/csv;charset=utf-8,"
+        + hits.map(hit => `${hit.num},${hit.bit_score},${hit.score},${hit.evalue},${hit.query_from},${hit.query_to},${hit.hit_from},${hit.hit_to},${hit.query_frame},${hit.hit_frame},${hit.identity},${hit.positive},${hit.gaps},${hit.align_len},${hit.qseq},${hit.hseq},${hit.midline}`).join("\n");
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "blast_results.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   },
   components: {
     QBtn, // Ensure QBtn component is registered
+    QTable
   },
 });
 </script>
@@ -351,18 +422,6 @@ export default defineComponent({
   word-break: break-all;
 }
 
-.hit-section {
-  border: 1px solid #00e1ff;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.hsp-section {
-  border: 1px solid #00e1ff;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
 .sequence {
   font-family: monospace;
   background-color: #000000;
@@ -372,5 +431,9 @@ export default defineComponent({
 
 .hit-visualization {
   margin-top: 20px;
+}
+
+.full-width {
+  width: 100%;
 }
 </style>
