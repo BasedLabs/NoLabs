@@ -13,9 +13,9 @@ from nolabs.application.workflow.component import Component, JobValidationError
 
 class BlastComponentInput(BaseModel):
     proteins_with_fasta: List[uuid.UUID]
-    descriptions: int = 10,
-    alignments: int = 10,
-    hitlist_size: int = 10,
+    descriptions: int = 10
+    alignments: int = 10
+    hitlist_size: int = 10
     expect: float = 10.0
 
 

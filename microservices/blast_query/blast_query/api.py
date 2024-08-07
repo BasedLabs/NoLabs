@@ -45,7 +45,7 @@ def run_blast(program: BlastType, query: str, descriptions: int = 10, alignments
 
 
 @app.post("/blast")
-async def blast(query: SequenceQuery) -> Dict[str, Any]:
+def blast(query: SequenceQuery) -> Dict[str, Any]:
     """
     Perform a BLAST query with the specified type.
 
