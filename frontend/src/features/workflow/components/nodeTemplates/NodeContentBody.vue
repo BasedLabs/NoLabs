@@ -411,8 +411,9 @@ export default defineComponent({
           this.selectedJobComponent = jobDefinition.component;
           this.showJobModal = true;
         } else {
+          const experimentId = this.$route.params.experimentId as string;
           const routeData = this.$router.resolve({
-            name: jobDefinition.routeName, params: { jobId: job.job_id }
+            name: jobDefinition.routeName, params: { experimentId: experimentId, jobId: job.job_id }
           });
           window.open(routeData.href, '_blank');
         }

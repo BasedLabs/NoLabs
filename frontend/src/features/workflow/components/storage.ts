@@ -174,18 +174,20 @@ export const useWorkflowStore = defineStore('workflowStore', {
         if (!existingNode.data.defaults || !Array.isArray(existingNode.data.defaults) || existingNode.data.defaults.length < 1) {
           // Initialize defaults if it doesn't exist or is not an array
           existingNode.data.defaults = [{
-            target_path: Object.keys(existingNode.data.inputs || {}),
-            value: Object.keys(existingNode.data.inputs || {}).map(key => (key === inputName ? inputValue : existingNode.data.inputs[key].default || 0))
+            target_path: [inputName],
+            value: inputValue
           }];
         } else {
-          // Update the existing defaults
-          const defaults = existingNode.data.defaults[0];
-          const targetIndex = defaults.target_path.indexOf(inputName);
-          if (targetIndex > -1) {
-            defaults.value[targetIndex] = inputValue;
+          // Check if the inputName already exists in the defaults array
+          const existingDefault = existingNode.data.defaults.find(def => def.target_path.includes(inputName));
+          if (existingDefault) {
+            existingDefault.value = inputValue;
           } else {
-            defaults.target_path.push(inputName);
-            defaults.value.push(inputValue);
+            // Add a new default entry if it doesn't exist
+            existingNode.data.defaults.push({
+              target_path: [inputName],
+              value: inputValue
+            });
           }
         }
       }

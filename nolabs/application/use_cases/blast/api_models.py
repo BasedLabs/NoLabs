@@ -72,10 +72,10 @@ class JobResponse:
 class SetupJobRequest:
     experiment_id: UUID
     protein_id: UUID
-    descriptions: int = 10,
-    alignments: int = 10,
-    hitlist_size: int = 10,
-    expect: float = 10.0,
+    descriptions: int = 10
+    alignments: int = 10
+    hitlist_size: int = 10
+    expect: int = 10
     job_id: Optional[UUID] = None
     job_name: Optional[str] = None
 

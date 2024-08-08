@@ -50,9 +50,9 @@
 </template>
 
 <script>
-import {defineComponent} from 'vue';
-import {Handle, Position} from "@vue-flow/core";
-import {useWorkflowStore} from '../storage';
+import { defineComponent } from 'vue';
+import { Handle, Position } from "@vue-flow/core";
+import { useWorkflowStore } from '../storage';
 
 export default defineComponent({
   name: 'NodeHandles',
@@ -73,6 +73,10 @@ export default defineComponent({
       type: Object,
       default: () => ({}),
       required: false
+    },
+    defaults: {
+      type: Array,
+      default: () => []
     }
   },
   data() {
@@ -112,7 +116,8 @@ export default defineComponent({
       const values = {};
       Object.entries(this.inputs).forEach(([key, input]) => {
         if (this.isNumberInput(input)) {
-          values[key] = input.default || 0;
+          const defaultValue = this.defaults.find(def => def.target_path.includes(key))?.value || input.default || 0;
+          values[key] = defaultValue;
         }
       });
       return values;

@@ -16,7 +16,7 @@ class BlastComponentInput(BaseModel):
     descriptions: int = 10
     alignments: int = 10
     hitlist_size: int = 10
-    expect: float = 10.0
+    expect: int = 10
 
 
 

@@ -34,7 +34,7 @@ const foldingRoutes = [
 
 const blastRoutes = [
   {
-    path: 'blast/job/:jobId',
+    path: ':experimentId/blast/job/:jobId',
     component: () => import('src/features/workflow/components/jobs/BlastJob.vue'),
     name: 'Blast',
     props: true

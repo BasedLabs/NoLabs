@@ -64,7 +64,7 @@
                 <q-item-label>Descriptions</q-item-label>
               </q-item-section>
               <q-item-section>
-                <q-input v-model.number="jobInputs.descriptions" @input="updateJobInputs" dense type="number" />
+                <q-input v-model.number="jobInputs.descriptions" @change="updateJobInputs" dense type="number" />
               </q-item-section>
             </q-item>
             <q-item>
@@ -72,7 +72,7 @@
                 <q-item-label>Alignments</q-item-label>
               </q-item-section>
               <q-item-section>
-                <q-input v-model.number="jobInputs.alignments" @input="updateJobInputs" dense type="number" />
+                <q-input v-model.number="jobInputs.alignments" @change="updateJobInputs" dense type="number" />
               </q-item-section>
             </q-item>
             <q-item>
@@ -80,7 +80,7 @@
                 <q-item-label>Hitlist Size</q-item-label>
               </q-item-section>
               <q-item-section>
-                <q-input v-model.number="jobInputs.hitlist_size" @input="updateJobInputs" dense type="number" />
+                <q-input v-model.number="jobInputs.hitlist_size" @change="updateJobInputs" dense type="number" />
               </q-item-section>
             </q-item>
             <q-item>
@@ -88,7 +88,7 @@
                 <q-item-label>Expect</q-item-label>
               </q-item-section>
               <q-item-section>
-                <q-input v-model.number="jobInputs.expect" @input="updateJobInputs" dense type="number" />
+                <q-input v-model.number="jobInputs.expect" @change="updateJobInputs" dense type="number" />
               </q-item-section>
             </q-item>
           </q-list>
@@ -267,7 +267,7 @@ export default defineComponent({
         job_name: this.job?.job_name
       };
       try {
-        await setupBlastJob(setupJobRequest);
+        await setupBlastJob(setupJobRequest as nolabs__application__use_cases__blast__api_models__SetupJobRequest);
         this.$q.notify({
           type: 'positive',
           message: 'Job inputs updated successfully.',
