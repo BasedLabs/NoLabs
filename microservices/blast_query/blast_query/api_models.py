@@ -22,3 +22,7 @@ class SequenceQuery(BaseModel):
     alignments: Optional[int] = 10
     hitlist_size: Optional[int] = 10
     expect: Optional[float] = 10.0
+    job_id: Optional[str] = None
+
+class IsJobRunningResponse(BaseModel):
+    is_running: bool

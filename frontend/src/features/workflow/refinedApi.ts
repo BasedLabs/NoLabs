@@ -35,7 +35,11 @@ import {
   ProteinMetadataResponse,
   LigandMetadataResponse,
   LigandSearchMetadataQuery,
-  ProteinSearchMetadataQuery
+  ProteinSearchMetadataQuery,
+  nolabs__application__use_cases__blast__api_models__JobResponse,
+  BlastService,
+  nolabs__application__use_cases__blast__api_models__SetupJobRequest,
+  nolabs__application__use_cases__blast__api_models__GetJobStatusResponse
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
@@ -79,6 +83,10 @@ export function getMsaJobApi(jobId: string): CancelablePromise<nolabs__applicati
   return GenerateMsaService.getJobApiV1MsaGenerationJobsJobIdGet(jobId);
 }
 
+export function getBlastJobApi(jobId: string): CancelablePromise<nolabs__application__use_cases__blast__api_models__JobResponse> {
+  return BlastService.getJobApiV1BlastJobsJobIdGet(jobId);
+}
+
 export function getFoldingJobStatus(jobId: string): CancelablePromise<nolabs__application__use_cases__folding__api_models__GetJobStatusResponse> {
   return FoldingService.getJobStatusApiV1FoldingJobsJobIdStatusGet(jobId);
 }
@@ -95,8 +103,16 @@ export function getMsajobStatus(jobId: string): CancelablePromise<nolabs__applic
   return GenerateMsaService.getJobStatusApiV1MsaGenerationJobsJobIdStatusGet(jobId);
 }
 
+export function getBlastJobStatus(jobId: string): CancelablePromise<nolabs__application__use_cases__blast__api_models__GetJobStatusResponse> {
+  return BlastService.getJobStatusApiV1BlastJobsJobIdStatusGet(jobId);
+}
+
 export function setupDiffDockJob(job: nolabs__application__use_cases__diffdock__api_models__SetupJobRequest): CancelablePromise<any> {
   return DiffdockService.setupJobApiV1DiffdockJobsPost(job)
+}
+
+export function setupBlastJob(job: nolabs__application__use_cases__blast__api_models__SetupJobRequest): CancelablePromise<any> {
+  return BlastService.setupJobApiV1BlastJobsPost(job);
 }
 
 export function setupFoldingJob(job: nolabs__application__use_cases__folding__api_models__SetupJobRequest): CancelablePromise<nolabs__application__use_cases__folding__api_models__JobResponse> {
@@ -109,6 +125,10 @@ export function startDiffDockJob(jobId: string): CancelablePromise<nolabs__appli
 
 export function startMsaJob(jobId: string): CancelablePromise<any> {
   return GenerateMsaService.runJobApiV1MsaGenerationJobsRunJobIdPost(jobId);
+}
+
+export function startBlastJob(jobId: string): CancelablePromise<nolabs__application__use_cases__blast__api_models__JobResponse> {
+  return BlastService.startJobApiV1BlastJobsRunJobIdPost(jobId);
 }
 
 export function changeJobName(jobId: string, newName: string): CancelablePromise<any> {

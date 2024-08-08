@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     msa_light: MsaLightMicroserviceSettings = MsaLightMicroserviceSettings()
     umol: MicroserviceSettings = MicroserviceSettings()
     diffdock: MicroserviceSettings = MicroserviceSettings()
+    blast: MicroserviceSettings = MicroserviceSettings()
     connection_string: str
 
     @classmethod

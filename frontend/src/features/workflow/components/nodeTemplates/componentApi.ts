@@ -1,5 +1,5 @@
 import {
-  BindingPocketsService, ConformationsService,
+  BindingPocketsService, BlastService, ConformationsService,
   DiffdockService,
   FoldingService, GeneOntologyService,
   GenerateMsaService,
@@ -42,6 +42,10 @@ const componentApi = {
   diffdock: {
     getJob: DiffdockService.getJobApiV1DiffdockJobsJobIdGet,
     executionStatus: DiffdockService.getJobStatusApiV1DiffdockJobsJobIdStatusGet
+  },
+  blast: {
+    getJob: BlastService.getJobApiV1BlastJobsJobIdGet,
+    executionStatus: BlastService.getJobStatusApiV1BlastJobsJobIdStatusGet
   },
   localisation: {
     getJob: LocalisationService.getJobApiV1LocalisationJobsJobIdGet,

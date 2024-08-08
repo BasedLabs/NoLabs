@@ -374,6 +374,25 @@ files = [
 numpy = "*"
 
 [[package]]
+name = "blast-query-microservice"
+version = "1.0.0"
+description = "BLAST Query"
+optional = false
+python-versions = "^3.7"
+files = []
+develop = false
+
+[package.dependencies]
+pydantic = ">=2"
+python-dateutil = ">=2.8.2"
+typing-extensions = ">=4.7.1"
+urllib3 = ">= 1.25.3"
+
+[package.source]
+type = "directory"
+url = "microservices/blast_query/client"
+
+[[package]]
 name = "bleach"
 version = "6.1.0"
 description = "An easy safelist-based HTML-sanitizing tool."
@@ -3577,4 +3596,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "0615c6b93352ff90bbf958c4a18b929c399b38524bad6f9577cce003232c7910"
+content-hash = "3b9c2c97e52e9116d8096e0a446417a2e8ecd38cc63a80d05879ffd01d7e248a"

@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **alignments** | **int** |  | [optional] 
 **hitlist_size** | **int** |  | [optional] 
 **expect** | **float** |  | [optional] 
+**job_id** | **str** |  | [optional] 
 
 ## Example
 

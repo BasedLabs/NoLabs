@@ -86,12 +86,15 @@ All URIs are relative to *http://localhost*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *DefaultApi* | [**blast_blast_post**](docs/DefaultApi.md#blast_blast_post) | **POST** /blast | Blast
+*DefaultApi* | [**get_running_jobs_jobs_running_get**](docs/DefaultApi.md#get_running_jobs_jobs_running_get) | **GET** /jobs/running | Get Running Jobs
+*DefaultApi* | [**is_job_running_job_job_id_is_running_get**](docs/DefaultApi.md#is_job_running_job_job_id_is_running_get) | **GET** /job/{job_id}/is-running | Is Job Running
 
 
 ## Documentation For Models
 
  - [BlastType](docs/BlastType.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [IsJobRunningResponse](docs/IsJobRunningResponse.md)
  - [SequenceQuery](docs/SequenceQuery.md)
  - [ValidationError](docs/ValidationError.md)
  - [ValidationErrorLocInner](docs/ValidationErrorLocInner.md)
