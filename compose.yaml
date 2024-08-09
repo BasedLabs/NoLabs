@@ -159,7 +159,7 @@ services:
       context: microservices/reinvent
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790
-  blast:
+  blast_query:
     image: 'ghcr.io/basedlabs/blast_query:1.0.0'
     network_mode: host
     build:
