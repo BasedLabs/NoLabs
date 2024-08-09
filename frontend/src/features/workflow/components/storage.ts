@@ -190,8 +190,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
             });
           }
         }
+        this.sendWorkflowUpdate();
       }
-      this.sendWorkflowUpdate();
     },
     async deleteProteinFromExperiment(nodeId: string, proteinId: string) {
       try {

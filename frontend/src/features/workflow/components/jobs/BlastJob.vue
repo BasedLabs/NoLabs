@@ -101,15 +101,46 @@
           <div class="text-h6">Result</div>
         </q-card-section>
         <q-card-section>
+          <!-- Query Info -->
           <div v-if="jobHasGeneratedData">
+            <div v-for="result in job?.result" :key="result.query_id">
+              <p>Program: {{ result.program }}</p>
+              <p>Database: {{ result.database }}</p>
+              <p>Query ID: {{ result.query_id }}</p>
+              <p>Query Definition: {{ result.query_def }}</p>
+              <p>Query Length: {{ result.query_len }}</p>
+            </div>
+            <!-- Hit Visualization -->
             <div id="hit-visualization" class="hit-visualization full-width"></div>
             <q-btn @click="downloadCSV" color="primary" label="Download Results as CSV" class="q-my-md" />
+            <!-- Table with HSPs including Hit Info -->
             <q-table
               :rows="visibleHits"
               :columns="columns"
               row-key="id"
               class="q-mt-md"
-            />
+            >
+              <template v-slot:body-cell="props">
+                <q-td :props="props" :style="{ maxWidth: '300px', overflowX: 'auto', whiteSpace: 'nowrap' }">
+                  <div v-if="props.col.field === 'definition' || props.col.field === 'qseq' || props.col.field === 'hseq' || props.col.field === 'midline'" class="cell-content">
+                    <div class="scrollable-cell-content">{{ props.row[props.col.field] }}</div>
+                    <q-btn
+                      flat
+                      dense
+                      round
+                      icon="content_copy"
+                      @click="copyToClipboard(props.row[props.col.field])"
+                      v-ripple
+                      class="copy-btn"
+                      size="sm"
+                    />
+                  </div>
+                  <div v-else>
+                    {{ props.row[props.col.field] }}
+                  </div>
+                </q-td>
+              </template>
+            </q-table>
           </div>
           <div v-else>
             No results available.
@@ -122,7 +153,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QSpinner, QInput, QBtn, QTable } from 'quasar';
+import { QSpinner, QInput, QBtn, QTable, QTooltip, QIcon, QTd } from 'quasar';
 import * as d3 from 'd3';
 import {
   nolabs__application__use_cases__blast__api_models__JobResponse,
@@ -172,6 +203,10 @@ export default defineComponent({
     },
     columns() {
       return [
+        { name: 'hit_id', label: 'Hit ID', field: 'hit_id', align: 'left' },
+        { name: 'definition', label: 'Definition', field: 'definition', align: 'left', sortable: true },
+        { name: 'accession', label: 'Accession', field: 'accession', align: 'left' },
+        { name: 'length', label: 'Length', field: 'length', align: 'left' },
         { name: 'num', label: 'HSP Number', field: 'num', align: 'left' },
         { name: 'bit_score', label: 'Bit Score', field: 'bit_score', align: 'left' },
         { name: 'score', label: 'Score', field: 'score', align: 'left' },
@@ -186,18 +221,32 @@ export default defineComponent({
         { name: 'positive', label: 'Positive', field: 'positive', align: 'left' },
         { name: 'gaps', label: 'Gaps', field: 'gaps', align: 'left' },
         { name: 'align_len', label: 'Alignment Length', field: 'align_len', align: 'left' },
-        { name: 'qseq', label: 'Query Sequence', field: 'qseq', align: 'left' },
-        { name: 'hseq', label: 'Hit Sequence', field: 'hseq', align: 'left' },
-        { name: 'midline', label: 'Midline', field: 'midline', align: 'left' }
+        { name: 'qseq', label: 'Query Sequence', field: 'qseq', align: 'left', sortable: true },
+        { name: 'hseq', label: 'Hit Sequence', field: 'hseq', align: 'left', sortable: true },
+        { name: 'midline', label: 'Midline', field: 'midline', align: 'left', sortable: true }
       ];
     },
     visibleHits() {
       if (this.visibleHitId) {
         return this.job?.result.flatMap(result => result.hits)
           .filter(hit => hit.id === this.visibleHitId)
-          .flatMap(hit => hit.hsps) || [];
+          .flatMap(hit => hit.hsps.map(hsp => ({
+            ...hsp,
+            hit_id: hit.id,
+            definition: hit.definition,
+            accession: hit.accession,
+            length: hit.length
+          }))) || [];
       }
-      return this.job?.result.flatMap(result => result.hits).flatMap(hit => hit.hsps) || [];
+      return this.job?.result.flatMap(result => result.hits).flatMap(hit =>
+        hit.hsps.map(hsp => ({
+          ...hsp,
+          hit_id: hit.id,
+          definition: hit.definition,
+          accession: hit.accession,
+          length: hit.length
+        }))
+      ) || [];
     }
   },
   async mounted() {
@@ -401,11 +450,20 @@ export default defineComponent({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    },
+    copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.$q.notify({
+          type: 'positive',
+          message: 'Copied to clipboard!'
+        });
+      });
     }
   },
   components: {
     QBtn, // Ensure QBtn component is registered
-    QTable
+    QTable,
+    QTd
   },
 });
 </script>
@@ -435,5 +493,17 @@ export default defineComponent({
 
 .full-width {
   width: 100%;
+}
+
+.scrollable-cell-content {
+  max-width: 250px;
+  overflow-x: auto;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.copy-btn {
+  margin-left: 8px;
 }
 </style>

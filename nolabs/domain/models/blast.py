@@ -14,41 +14,41 @@ from nolabs.domain.models.common import Job, Protein, JobInputError
 
 
 class Hsp(EmbeddedDocument):
-    num = IntField(required=True)
-    bit_score = FloatField(required=True)
-    score = IntField(required=True)
-    evalue = FloatField(required=True)
-    query_from = IntField(required=True)
-    query_to = IntField(required=True)
-    hit_from = IntField(required=True)
-    hit_to = IntField(required=True)
-    query_frame = IntField(required=True)
-    hit_frame = IntField(required=True)
-    identity = IntField(required=True)
-    positive = IntField(required=True)
-    gaps = IntField(required=True)
-    align_len = IntField(required=True)
-    qseq = StringField(required=True)
-    hseq = StringField(required=True)
-    midline = StringField(required=True)
+    num: int = IntField(required=True)
+    bit_score: float = FloatField(required=True)
+    score: int = IntField(required=True)
+    evalue: float = FloatField(required=True)
+    query_from: int = IntField(required=True)
+    query_to: int = IntField(required=True)
+    hit_from: int = IntField(required=True)
+    hit_to: int = IntField(required=True)
+    query_frame: int = IntField(required=True)
+    hit_frame: int = IntField(required=True)
+    identity: int = IntField(required=True)
+    positive: int = IntField(required=True)
+    gaps: int = IntField(required=True)
+    align_len: int = IntField(required=True)
+    qseq: str = StringField(required=True)
+    hseq: str = StringField(required=True)
+    midline: str = StringField(required=True)
 
 
 class Hit(EmbeddedDocument):
-    num = IntField(required=True)
-    id = StringField(required=True)
-    definition = StringField(required=True)
-    accession = StringField(required=True)
-    length = IntField(required=True)
+    num: int = IntField(required=True)
+    id: str = StringField(required=True)
+    definition: str = StringField(required=True)
+    accession: str = StringField(required=True)
+    length: int = IntField(required=True)
     hsps = EmbeddedDocumentListField(Hsp, required=True)
 
 
 class BlastJobResult(EmbeddedDocument):
-    protein_id = UUIDField(required=True)
-    program = StringField(required=True)
-    database = StringField(required=True)
-    query_id = StringField(required=True)
-    query_def = StringField(required=True)
-    query_len = IntField(required=True)
+    protein_id: UUID = UUIDField(required=True)
+    program: str = StringField(required=True)
+    database: str = StringField(required=True)
+    query_id: str = StringField(required=True)
+    query_def: str = StringField(required=True)
+    query_len: int = IntField(required=True)
     hits = EmbeddedDocumentListField(Hit, required=True)
 
     @staticmethod
@@ -103,7 +103,8 @@ class BlastJob(Job):
         return bool(self.result)
 
     def input_valid(self) -> bool:
-        return bool(self.protein and self.job_type)
+        #TODO: add more blast jobs types when DNA is introduced, move to enums then
+        return bool(self.protein and self.job_type and (self.job_type in ["blastp"]))
 
     def set_result(self, result: List[BlastJobResult]):
         if not self.protein:
