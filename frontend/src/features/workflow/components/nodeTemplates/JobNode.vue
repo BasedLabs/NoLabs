@@ -16,7 +16,7 @@
       <JobNodeContent :nodeId="nodeId" :name="nodeData?.name" :description="nodeData?.description"/>
     </q-card-section>
     <q-card-section>
-      <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" />
+      <NodeHandles :nodeId="nodeId" :inputs="nodeData?.data.inputs" :outputs="nodeData?.data.outputs" :defaults="nodeData?.data.defaults" />
     </q-card-section>
     <q-card-actions align="around">
       <q-btn v-if="!isRunning && !isLocallyRunning" @click="startWorkflow" color="info" icon="play_arrow" label="Start" />

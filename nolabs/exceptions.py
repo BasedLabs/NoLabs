@@ -95,6 +95,7 @@ class ErrorCodes(Enum):
     invalid_workflow_schema = ErrorCode(code=81, description='Invalid workflow schema')
     component_not_found = ErrorCode(code=82, description='Component not found')
     component_input_invalid = ErrorCode(code=83, description='Component input is invalid')
+    blast_api_error = ErrorCode(code=84, description="Blast microservice api error")
 
 
 

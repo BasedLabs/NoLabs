@@ -103,6 +103,7 @@ import { Notify } from "quasar";
 import componentApi from "./componentApi";
 import MsaJob from '../jobs/MsaJob.vue';
 import ComponentExceptionsModal from "./ComponentExceptionsModal.vue";
+import BlastJobVue from 'src';
 
 export default defineComponent({
   name: 'NodeContentBody',
@@ -151,6 +152,12 @@ export default defineComponent({
       tab: false,
       component: DiffDockJob,
       api: componentApi.diffdock
+    },
+    {
+      name: "Blast",
+      tab: true,
+      routeName: "Blast",
+      api: componentApi.blast
     },
     {
       name: "Msa generation",
@@ -404,8 +411,9 @@ export default defineComponent({
           this.selectedJobComponent = jobDefinition.component;
           this.showJobModal = true;
         } else {
+          const experimentId = this.$route.params.experimentId as string;
           const routeData = this.$router.resolve({
-            name: jobDefinition.routeName, params: { jobId: job.job_id }
+            name: jobDefinition.routeName, params: { experimentId: experimentId, jobId: job.job_id }
           });
           window.open(routeData.href, '_blank');
         }

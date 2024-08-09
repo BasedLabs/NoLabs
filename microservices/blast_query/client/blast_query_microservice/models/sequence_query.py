@@ -33,7 +33,8 @@ class SequenceQuery(BaseModel):
     alignments: Optional[StrictInt] = None
     hitlist_size: Optional[StrictInt] = None
     expect: Optional[Union[StrictFloat, StrictInt]] = None
-    __properties: ClassVar[List[str]] = ["sequence", "type", "descriptions", "alignments", "hitlist_size", "expect"]
+    job_id: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["sequence", "type", "descriptions", "alignments", "hitlist_size", "expect", "job_id"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -94,6 +95,11 @@ class SequenceQuery(BaseModel):
         if self.expect is None and "expect" in self.model_fields_set:
             _dict['expect'] = None
 
+        # set to None if job_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.job_id is None and "job_id" in self.model_fields_set:
+            _dict['job_id'] = None
+
         return _dict
 
     @classmethod
@@ -111,7 +117,8 @@ class SequenceQuery(BaseModel):
             "descriptions": obj.get("descriptions"),
             "alignments": obj.get("alignments"),
             "hitlist_size": obj.get("hitlist_size"),
-            "expect": obj.get("expect")
+            "expect": obj.get("expect"),
+            "job_id": obj.get("job_id")
         })
         return _obj
 
