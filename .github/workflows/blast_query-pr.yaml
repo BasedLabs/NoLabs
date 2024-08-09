@@ -1,5 +1,5 @@
-name: blast
-run-name: blast
+name: blast_query
+run-name: blast_query
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
@@ -17,4 +17,4 @@ jobs:
 
     uses: ./.github/workflows/build-docker.yaml
     with:
-      microservice_name: "blast"
+      microservice_name: "blast_query"
