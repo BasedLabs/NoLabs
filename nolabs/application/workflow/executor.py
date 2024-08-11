@@ -7,7 +7,7 @@ from nolabs.application.workflow.component import Component
 from nolabs.application.workflow.models import ComponentDbModel, JobErrorDbModel, InputPropertyErrorDbModel
 
 
-class WorkflowExecutor:
+class Executor:
     def __init__(self, logger: logging.Logger):
         self.logger = logger
 

@@ -1,141 +1,57 @@
 import logging
 import uuid
-from typing import Optional, List, Dict, Type, Union
+from typing import Optional, List, Dict, Type
 from uuid import UUID
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Experiment, Job
-from nolabs.application.use_cases.workflow.api_models import GetComponentStateResponse, GetComponentStateRequest, \
-    AllWorkflowSchemasResponse, JobErrorResponse, InputPropertyErrorResponse, ResetWorkflowRequest, \
-    StartWorkflowComponentRequest
+from nolabs.application.use_cases.workflow.api_models import (GetComponentStateResponse, GetComponentStateRequest,
+                                                              AllWorkflowDefinitionsResponse, JobErrorResponse,
+                                                              InputPropertyErrorResponse, ResetWorkflowRequest,
+                                                              StartWorkflowComponentRequest)
+from nolabs.application.use_cases.workflow.mappings import map_property
 from nolabs.application.workflow.component import Component
-from nolabs.application.workflow.models import WorkflowSchemaDbModel, ComponentDbModel
-from nolabs.application.workflow.properties import Property, ParameterSchema, Items
-from nolabs.application.workflow.workflow import WorkflowExecutor
-from nolabs.application.workflow.workflow_schema import WorkflowSchemaModel, ComponentModel, PropertyModel, ItemsModel
+from nolabs.application.workflow.definition import (WorkflowDefinition, ComponentTemplate)
+from nolabs.application.workflow.models import WorkflowDbModel, ComponentDbModel
+from nolabs.domain.models.common import Experiment, Job
+from nolabs.exceptions import NoLabsException, ErrorCodes
 
 
-def map_items(i: Items, schema: ParameterSchema) -> ItemsModel:
-    ref = None
-
-    if i.ref:
-        ref = i.ref
-
-    if i.items and i.items.ref:
-        ref = i.items.ref
-
-    definition = None
-
-    if ref:
-        definition = schema.defs[schema.get_ref_type_name(ref)]
-
-    items = None
-
-    if i.items:
-        items = map_items(i.items, schema) if not isinstance(i.items, list) else [map_items(item, schema) for item in
-                                                                                  i.items]
-
-    properties = {name: map_property(prop, schema) for name, prop in (definition.properties if
-                                                                      definition.properties else {}).items()} if definition else \
-        {name: map_property(prop, schema) for name, prop in (i.properties if
-                                                             i.properties else {}).items()}
-
-    return ItemsModel(
-        type=i.type,
-        properties=properties if not items else None,
-        required=i.required,
-        description=i.description,
-        enum=i.enum,
-        const=i.const,
-        format=i.format,
-        default=i.default,
-        example=i.example,
-        items=items
-    )
-
-
-def map_property(p: Union[Property, Items], schema: ParameterSchema) -> PropertyModel:
-    ref = None
-
-    if p.ref:
-        ref = p.ref
-
-    if p.items and p.items.ref:
-        ref = p.items.ref
-
-    definition = None
-
-    if ref:
-        definition = schema.defs[schema.get_ref_type_name(ref)]
-
-    items = None
-
-    if p.items:
-        items = map_items(p.items, schema) if not isinstance(p.items, list) else [map_items(item, schema) for item in
-                                                                                  p.items]
-
-    properties = {name: map_property(prop, schema) for name, prop in (definition.properties if
-                                                                      definition.properties else {}).items()} if definition else \
-        {name: map_property(prop, schema) for name, prop in (p.properties if
-                                                             p.properties else {}).items()}
-
-    return PropertyModel(
-        type=p.type,
-        properties=properties if not items else None,
-        required=p.required,
-        description=p.description,
-        enum=p.enum,
-        const=p.const,
-        format=p.format,
-        default=p.default,
-        example=p.example,
-        title=p.title,
-        anyOf=[
-            map_property(prop, schema=schema)
-            for prop in p.anyOf
-        ],
-        ref=ref,
-        items=items
-    )
-
-
-class DeleteWorkflowSchemaFeature:
+class DeleteWorkflowDefinitionFeature:
     async def handle(self, workflow_id: UUID):
-        db_model = WorkflowSchemaDbModel.objects.with_id(workflow_id)
+        db_model = WorkflowDbModel.objects.with_id(workflow_id)
 
         if db_model:
             db_model.delete()
 
 
-class AllWorkflowSchemasFeature:
-    async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
+class AllWorkflowDefinitionsFeature:
+    async def handle(self, experiment_id: UUID) -> AllWorkflowDefinitionsResponse:
         experiment = Experiment.objects.with_id(experiment_id)
 
         if not experiment:
             raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        db_models: List[WorkflowSchemaDbModel] = WorkflowSchemaDbModel.objects(experiment=experiment)
-        return AllWorkflowSchemasResponse(
-            ids=[m.id for m in db_models]
+        ids = WorkflowDbModel.objects(experiment=experiment).only('id')
+        return AllWorkflowDefinitionsResponse(
+            ids=ids
         )
 
 
-class CreateWorkflowSchemaFeature:
+class CreateWorkflowDefinitionFeature:
     available_components: Dict[str, Type[Component]]
 
     def __init__(self, available_components: Dict[str, Type[Component]]):
         self.available_components = available_components
 
-    async def handle(self, experiment_id: UUID) -> WorkflowSchemaModel:
+    async def handle(self, experiment_id: UUID) -> WorkflowDefinition:
         experiment: Experiment = Experiment.objects.with_id(experiment_id)
 
         if not experiment:
             raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        components_models: List[ComponentModel] = []
+        component_templates: List[ComponentTemplate] = []
 
-        for component_name, component_type in self.available_components.items():
-            component = component_type(id=uuid.uuid4(), experiment=experiment)
+        for name, bag in self.available_components.items():
+            component = bag(id=uuid.uuid4(), experiment_id=experiment_id)
 
             output_schema = component.output_schema
             output_parameters = {name: map_property(prop, output_schema) for name, prop in
@@ -145,8 +61,8 @@ class CreateWorkflowSchemaFeature:
             input_parameters = {name: map_property(prop, input_schema) for name, prop in
                                 input_schema.properties.items()}
 
-            components_models.append(ComponentModel(
-                name=component_name,
+            component_templates.append(ComponentTemplate(
+                name=component.name,
                 input=input_parameters,
                 output=output_parameters,
                 description=component.description
@@ -154,31 +70,32 @@ class CreateWorkflowSchemaFeature:
 
         id = uuid.uuid4()
 
-        workflow_schema = WorkflowSchemaModel(
+        definition = WorkflowDefinition(
             workflow_id=id,
             error=None,
-            components=components_models,
-            workflow_components=[]
+            component_templates=component_templates,
+            components=[]
         )
 
-        db_model = WorkflowSchemaDbModel.create(
+        db_model = WorkflowDbModel.create(
             id=id,
             experiment=experiment,
-            value=workflow_schema
+            components=[],
+            definition=definition
         )
         db_model.save(cascade=True)
 
-        return workflow_schema
+        return definition
 
 
-class GetWorkflowSchemaFeature:
-    async def handle(self, workflow_id: UUID) -> Optional[WorkflowSchemaModel]:
-        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_id)
+class GetWorkflowDefinitionFeature:
+    async def handle(self, workflow_id: UUID) -> Optional[WorkflowDefinition]:
+        db_model: WorkflowDbModel = WorkflowDbModel.objects.with_id(workflow_id)
 
         if not db_model:
             return None
 
-        return db_model.get_workflow_value()
+        return db_model.get_workflow_definition()
 
 
 class UpdateWorkflowSchemaFeature:
@@ -188,50 +105,45 @@ class UpdateWorkflowSchemaFeature:
                  available_components: Dict[str, Type[Component]]):
         self.available_components = available_components
 
-    async def handle(self, workflow_schema: WorkflowSchemaModel) -> WorkflowSchemaModel:
-        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_schema.workflow_id)
+    async def handle(self, definition: WorkflowDefinition) -> WorkflowDefinition:
+        workflow = self.fetch_workflow(definition.workflow_id)
 
-        # Validate components names
-        for component in workflow_schema.workflow_components:
-            if component.name not in [c_name for c_name in self.available_components.keys()]:
-                component.error = f'Component with name "{component.name}" not found'
-                workflow_schema.valid = False
-                db_model.set_workflow_value(workflow_schema)
-                db_model.save()
-                return workflow_schema
+        components: List[Component] = []
 
-        components: List[Component] = [
-            self.available_components[wf.name](id=wf.component_id, experiment=db_model.experiment) for wf in
-            workflow_schema.workflow_components
-        ]
+        for wf_component in definition.components:
+            component = self.available_components[wf_component.name](id=wf_component.component_id,
+                                                                     experiment_id=workflow.experiment.id)
+
+            components.append(component)
 
         # Validate graph
         if self.is_cyclic(graph=components):
-            workflow_schema.error = 'Workflow must be acyclic'
-            workflow_schema.valid = False
-            db_model.set_workflow_value(workflow_schema)
-            db_model.save()
-            return workflow_schema
+            definition.error = 'Workflow must be acyclic'
+            definition.valid = False
+            workflow.set_workflow_definition(definition)
+            workflow.save()
+            return definition
 
         schema_valid = True
 
-        for workflow_component in workflow_schema.workflow_components:
+        for workflow_component in definition.components:
             component = [c for c in components if c.id == workflow_component.component_id][0]
 
             # Validate mappings
             for mapping in workflow_component.mappings:
-                source_components = [c for c in workflow_schema.workflow_components if
+                source_components = [c for c in definition.components if
                                      c.component_id == mapping.source_component_id]
                 if not source_components:
                     raise NoLabsException(ErrorCodes.component_not_found)
 
                 source_component = [c for c in components if c.id == mapping.source_component_id][0]
 
-                component.add_previous(component=source_component)
+                component.add_previous(component_id=source_component.id)
 
-                error = component.try_map_property(component=source_component,
-                                                   path_from=mapping.source_path,
-                                                   target_path=mapping.target_path)
+                error = component.try_map_property(
+                    component=source_component,
+                    path_from=mapping.source_path,
+                    target_path=mapping.target_path)
 
                 if error:
                     mapping.error = error.msg
@@ -245,11 +157,14 @@ class UpdateWorkflowSchemaFeature:
                     default.error = error.msg
                     schema_valid = False
 
-        workflow_schema.valid = schema_valid
-        db_model.set_workflow_value(value=workflow_schema)
-        db_model.save(cascade=True)
+        definition.valid = schema_valid
+        workflow.set_workflow_definition(value=definition)
+        workflow.save(cascade=True)
 
-        return workflow_schema
+        return definition
+
+    def fetch_workflow(self, workflow_id) -> WorkflowDbModel:
+        return WorkflowDbModel.objects.with_id(workflow_id)
 
     def is_cyclic(self, graph: List[Component]) -> bool:
         visited: Set[WorkflowGraphNode] = set()  # type: ignore
@@ -264,8 +179,8 @@ class UpdateWorkflowSchemaFeature:
             visited.add(vertex)
             recursion_stack.add(vertex)
 
-            for neighbor in vertex.previous:
-                if dfs(neighbor):  # type: ignore # TODO Change later
+            for neighbor_id in vertex.previous_component_ids:
+                if dfs([n for n in graph if n.id == neighbor_id][0]):
                     return True
 
             recursion_stack.remove(vertex)
@@ -289,46 +204,37 @@ class StartWorkflowFeature:
         self.logger = logger
 
     async def handle(self, workflow_id: UUID):
-        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(workflow_id)
+        db_model: WorkflowDbModel = self.fetch_workflow(workflow_id)
         experiment = db_model.experiment
 
-        workflow_schema = db_model.get_workflow_value()
+        definition = db_model.get_workflow_definition()
 
-        if not workflow_schema.valid:
-            raise NoLabsException(ErrorCodes.invalid_workflow_schema,
+        if not definition.valid:
+            raise NoLabsException(ErrorCodes.invalid_workflow_definition,
                                   f'Run {UpdateWorkflowSchemaFeature.__name__} to get schema errors')
 
         components: List[Component] = []
 
         component: Component
-        for workflow_component in workflow_schema.workflow_components:
-            component_db_model: ComponentDbModel = ComponentDbModel.objects.with_id(
-                workflow_component.component_id)
+        for workflow_component in definition.components:
+            component_db_model: ComponentDbModel = self.fetch_component(workflow_component.component_id)
             if component_db_model:
-                component: Component = self.available_components[workflow_component.name](
-                    id=workflow_component.component_id,
-                    jobs=component_db_model.jobs,
-                    input_parameter_dict={**component_db_model.input_parameter_dict},
-                    output_parameter_dict={**component_db_model.output_parameter_dict},
-                    experiment=experiment)
+                component: Component = component_db_model.get_component()
             else:
                 id = workflow_component.component_id
                 component: Component = self.available_components[workflow_component.name](id=id,
-                                                                                          experiment=experiment)
+                                                                                                        experiment=experiment)
                 component_db_model = ComponentDbModel.create(
                     id=id,
                     workflow=db_model,
-                    input_parameter_dict={},
-                    output_parameter_dict={},
-                    jobs=[],
-                    input_property_errors=[],
-                    last_exceptions=[]
+                    component=component,
+                    jobs=[]
                 )
                 component_db_model.save()
 
             components.append(component)
 
-        for workflow_component in workflow_schema.workflow_components:
+        for workflow_component in definition.components:
             component: Component = [c for c in components if c.id == workflow_component.component_id][0]
 
             if not component:
@@ -338,8 +244,8 @@ class StartWorkflowFeature:
             for mapping in workflow_component.mappings:
                 source_component: Component = [c for c in components if c.id == mapping.source_component_id][0]
 
-                if not source_component in component.previous:
-                    component.add_previous(component=source_component)
+                if source_component.id not in component.previous_component_ids:
+                    component.add_previous(component_id=source_component.id)
 
                 component.try_map_property(component=source_component,
                                            path_from=mapping.source_path,
@@ -348,8 +254,14 @@ class StartWorkflowFeature:
             for default in workflow_component.defaults:
                 component.try_set_default(default.target_path, value=default.value)
 
-        executor = WorkflowExecutor(self.logger)
-        await executor.execute(components=components)
+        # executor = Executor(self.logger)
+        # await executor.execute(components=components)
+
+    def fetch_workflow(self, workflow_id: uuid.UUID) -> WorkflowDbModel:
+        return WorkflowDbModel.objects.with_id(workflow_id)
+
+    def fetch_component(self, component_id: uuid.UUID) -> ComponentDbModel:
+        return ComponentDbModel.objects.with_id(component_id)
 
 
 class StartWorkflowComponentFeature:
@@ -362,28 +274,23 @@ class StartWorkflowComponentFeature:
         self.logger = logger
 
     async def handle(self, request: StartWorkflowComponentRequest):
-        db_model: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(request.workflow_id)
+        db_model: WorkflowDbModel = WorkflowDbModel.objects.with_id(request.workflow_id)
         experiment = db_model.experiment
 
-        workflow_schema = db_model.get_workflow_value()
+        workflow_schema = db_model.get_workflow_definition()
 
         if not workflow_schema.valid:
-            raise NoLabsException(ErrorCodes.invalid_workflow_schema,
+            raise NoLabsException(ErrorCodes.invalid_workflow_definition,
                                   f'Run {UpdateWorkflowSchemaFeature.__name__} to get schema errors')
 
         components: List[Component] = []
 
         component: Component
-        for workflow_component in workflow_schema.workflow_components:
+        for workflow_component in workflow_schema.components:
             component_db_model: ComponentDbModel = ComponentDbModel.objects.with_id(
                 workflow_component.component_id)
             if component_db_model:
-                component: Component = self.available_components[workflow_component.name](
-                    id=workflow_component.component_id,
-                    jobs=component_db_model.jobs,
-                    input_parameter_dict=component_db_model.input_parameter_dict,
-                    output_parameter_dict=component_db_model.output_parameter_dict,
-                    experiment=experiment)
+                component: Component = component_db_model.get_component()
             else:
                 id = workflow_component.component_id
                 component: Component = self.available_components[workflow_component.name](id=id,
@@ -391,17 +298,14 @@ class StartWorkflowComponentFeature:
                 component_db_model = ComponentDbModel.create(
                     id=id,
                     workflow=db_model,
-                    input_parameter_dict={},
-                    output_parameter_dict={},
-                    jobs=[],
-                    input_property_errors=[],
-                    last_exceptions=[]
+                    component=component,
+                    jobs=[]
                 )
                 component_db_model.save()
 
             components.append(component)
 
-        for workflow_component in workflow_schema.workflow_components:
+        for workflow_component in workflow_schema.components:
             component: Component = [c for c in components if c.id == workflow_component.component_id][0]
 
             if not component:
@@ -411,8 +315,8 @@ class StartWorkflowComponentFeature:
             for mapping in workflow_component.mappings:
                 source_component: Component = [c for c in components if c.id == mapping.source_component_id][0]
 
-                if not source_component in component.previous:
-                    component.add_previous(component=source_component)
+                if source_component.id in component.previous_component_ids:
+                    component.add_previous(component_id=source_component.id)
 
                 component.try_map_property(component=source_component,
                                            path_from=mapping.source_path,
@@ -421,9 +325,9 @@ class StartWorkflowComponentFeature:
             for default in workflow_component.defaults:
                 component.try_set_default(default.target_path, value=default.value)
 
-        executor = WorkflowExecutor(logger=self.logger)
-        component = [c for c in components if c.id == request.component_id][0]
-        await executor.execute(components=components, specific=component)
+        # executor = Executor(logger=self.logger)
+        # component = [c for c in components if c.id == request.component_id][0]
+        # await executor.execute(components=components, specific=component)
 
 
 class GetComponentStateFeature:
@@ -450,9 +354,11 @@ class GetComponentStateFeature:
                     job_id=job.id
                 ))
 
+        c = component.get_component()
+
         return GetComponentStateResponse(
-            input_dict=component.input_parameter_dict,
-            output_dict=component.output_parameter_dict,
+            input_dict=c.input_value_dict,
+            output_dict=c.output_value_dict,
             job_ids=[j.iid.value for j in component.jobs],
             jobs_errors=job_errors,
             input_property_errors=[
@@ -462,16 +368,19 @@ class GetComponentStateFeature:
                 )
                 for e in component.input_property_errors
             ],
-            last_exceptions=component.last_exceptions
+            last_exceptions=[]
         )
 
 
 class ResetWorkflowFeature:
+    # todo change
     async def handle(self, request: ResetWorkflowRequest):
-        workflow: WorkflowSchemaDbModel = WorkflowSchemaDbModel.objects.with_id(request.workflow_id)
+        workflow: WorkflowDbModel = WorkflowDbModel.objects.with_id(request.workflow_id)
 
-        for component in workflow.get_workflow_value().workflow_components:
+        for component in workflow.get_workflow_definition().components:
             db_model: ComponentDbModel = ComponentDbModel.objects.with_id(component.component_id)
+
+            db_model.set_component({})
 
             db_model.input_parameter_dict = {}
             db_model.output_parameter_dict = {}

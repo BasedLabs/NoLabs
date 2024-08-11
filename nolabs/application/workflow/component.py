@@ -1,18 +1,20 @@
 __all__ = [
-    'PropertyValidationError',
-    'Component',
+    'PropertyValidationError'
 ]
 
-import asyncio
 import uuid
-from abc import abstractmethod
-from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic, Tuple, get_args
+from abc import abstractmethod, ABC
+from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic
 
+from airflow.models import BaseOperator
+from airflow.utils.context import Context
+from airflow.utils.decorators import apply_defaults
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
-from nolabs.domain.models.common import Job, Experiment
+from nolabs.application.workflow.components_repository import WorkflowRepository
 from nolabs.application.workflow.properties import ParameterSchema, PropertyValidationError
+from nolabs.domain.models.common import JobId
 
 
 @dataclass
@@ -29,139 +31,111 @@ def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
 
 
-class Component(Generic[TInput, TOutput]):
+class Component(ABC, Generic[TInput, TOutput], BaseModel):
     id: uuid.UUID
+    experiment_id: uuid.UUID
+
+    job_ids: List[uuid.UUID]
+
+    # region schemas
+
+    output_schema: ParameterSchema[TOutput]
+    output_value_dict: Dict[str, Any]
+
+    input_schema: ParameterSchema[TInput]
+    input_value_dict: Dict[str, Any]
+
+    previous_component_ids: List[uuid.UUID] = []
+
+    # endregion
+
     name: str
+    description: str
 
-    execution_timeout: int
-    experiment: Experiment
-
-    _input_schema: ParameterSchema[TInput]
-    _output_schema: ParameterSchema[TOutput]
-
-    input_parameter_dict: Dict[str, Any]
-    output_parameter_dict: Dict[str, Any]
-
-    _previous: List['Component']
-
-    jobs: List[Job] = []
-
-    description: Optional[str] = None
-
-    def __init__(self, id: uuid.UUID,
-                 experiment: Experiment,
-                 jobs: Optional[List[Job]] = None,
-                 input_parameter_dict: Optional[Dict[str, Any]] = None,
-                 output_parameter_dict: Optional[Dict[str, Any]] = None,
-                 execution_timeout: int = 3600):
-        self.id = id
-        self.execution_timeout = execution_timeout
-
-        self.experiment = experiment
-
-        self.input_parameter_dict = {}
-        self.output_parameter_dict = {}
-
-        if not jobs:
-            self.jobs = []
-        else:
-            self.jobs = jobs
-
-        if not input_parameter_dict:
-            self.input_parameter_dict = {}
-        else:
-            self.input_parameter_dict = input_parameter_dict
-
-        if not output_parameter_dict:
-            self.output_parameter_dict = {}
-        else:
-            self.output_parameter_dict = output_parameter_dict
-
-        self._input_schema = ParameterSchema.get_instance(cls=self._input_parameter_type)
-        self._output_schema = ParameterSchema.get_instance(cls=self._output_parameter_type)
-
-        self._previous = []
-
-    async def executing(self) -> bool:
-        return False
-
-    async def terminate(self, timeout: int = 10):
-        await asyncio.wait_for(self.stop(), timeout=timeout)
+    def create(self, id: uuid.UUID, experiment_id: uuid.UUID):
+        c = self.__class__(id=id, experiment_id=experiment_id)
+        c.input_schema = ParameterSchema.get_instance(cls=self.input_parameter_type)
+        c.output_schema = ParameterSchema.get_instance(cls=self.output_parameter_type)
 
     @property
-    def output(self) -> TOutput:
-        return self._output_parameter_type(**self.output_parameter_dict)
+    def output_value(self) -> TOutput:
+        return self.output_parameter_type(**self.output_value_dict)
 
-    @output.setter
-    def output(self, output_parameter: Union[TOutput, Dict[str, Any]]):
-        if isinstance(output_parameter, BaseModel):
-            self.output_parameter_dict = output_parameter.dict()
-            return
+    def output_errors(self) -> List[PropertyValidationError]:
+        return self.schema.validate_dictionary(t=self.output_parameter_type, dictionary=self.output_value_dict)
 
-        self.output_parameter_dict = output_parameter
+    @abstractmethod
+    @property
+    def input_parameter_type(self) -> Type[TInput]:
+        ...
+
+    @abstractmethod
+    @property
+    def output_parameter_type(self) -> Type[TOutput]:
+        ...
 
     @property
-    def input(self) -> TInput:
-        return self._input_parameter_type(**self.input_parameter_dict)
-
-    @property
-    def input_dict(self) -> Dict[str, Any]:
-        return self.input_parameter_dict
-
-    @property
-    def output_dict(self) -> Dict[str, Any]:
-        return self.output_parameter_dict
+    def input_value(self) -> TInput:
+        return self.input_parameter_type(**self.input_value_dict)
 
     def input_errors(self):
-        return self._input_schema.validate_dictionary(t=self._input_parameter_type,
-                                                      dictionary=self.input_parameter_dict)
-
-    def add_previous(self, component: Union['Component', List['Component']]):
-        if isinstance(component, list):
-            for c in component:
-                if c not in self.previous:
-                    self.previous.append(c)
-
-            return
-
-        if component in self.previous:
-            return
-
-        self.previous.append(component)
+        return self.input_schema.validate_dictionary(t=self.input_parameter_type, dictionary=self.input_value_dict)
 
     def try_map_property(self, component: 'Component', path_from: List[str], target_path: List[str]) -> Optional[
         PropertyValidationError]:
-        if component not in self.previous:
-            raise ValueError(f'Cannot map parameter {target_path} for unmapped component {component.id}')
-
-        if not isinstance(component, Component):
-            raise ValueError(f'Component is not a {Component}')  # TODO change later
-
-        return self._input_schema.try_set_mapping(
-            source_schema=component._output_schema,
+        return self.input_schema.try_set_mapping(
+            source_schema=component.output_schema,
             component_id=component.id,
             path_from=path_from,
             target_path=target_path
         )
 
     def try_set_default(self, target_path: List[str], value: Any) -> Optional[PropertyValidationError]:
-        return self._input_schema.try_set_default(target_path=target_path, value=value, input_type=self._input_parameter_type)
+        return self.input_schema.try_set_default(target_path=target_path, value=value,
+                                                 input_type=self.input_parameter_type)
 
-    def set_input_from_previous(self) -> bool:
+    def add_previous(self, component_id: Union[uuid.UUID, List[uuid.UUID]]):
+        if isinstance(component_id, list):
+            for c in component_id:
+                if c not in self.previous_component_ids:
+                    self.previous_component_ids.append(c)
+
+            return
+
+        if component_id in self.previous_component_ids:
+            return
+
+        self.previous_component_ids.append(component_id)
+
+    @property
+    def unmapped_properties(self) -> List[PropertyValidationError]:
+        result = []
+        for prop in self.input_schema.unmapped_properties:
+            result.append(PropertyValidationError(
+                msg='Unmapped property',
+                loc=[prop.title]  # type: ignore
+            ))
+        return result
+
+    def set_input_from_previous(self, components: List['Component']) -> bool:
         """
         returns: True if input was changed
         """
 
+        for component in components:
+            if component.id not in self.previous_component_ids:
+                raise ValueError('Component id not found in previous component ids')
+
         changed = False
 
-        for prop in self._input_schema.mapped_properties:
+        for prop in self.input_schema.mapped_properties:
             if prop.default:
                 path = prop.target_path
 
                 if not prop.target_path:
                     continue
 
-                current_level = self.input_parameter_dict
+                current_level = self.input_value_dict
                 for key in path[:-1]:
                     if key not in current_level:
                         current_level[key] = {}
@@ -172,14 +146,10 @@ class Component(Generic[TInput, TOutput]):
 
                 current_level[path[-1]] = prop.default
 
-        for component in self.previous:
-            if not isinstance(component, Component):
-                raise ValueError(f'Component is not a {Component}')  # TODO change later
-            for prop in self._input_schema.mapped_properties:
-                if prop.source_component_id == component.id:
-
-
-                    current_level = component.output_parameter_dict
+        for prev_component in components:
+            for prop in self.schema.mapped_properties:
+                if prop.source_component_id == prev_component.id:
+                    current_level = prev_component.output_value_dict
 
                     # Find output parameter from output of previous component
 
@@ -194,7 +164,7 @@ class Component(Generic[TInput, TOutput]):
 
                     path = prop.target_path
 
-                    current_level = self.input_parameter_dict
+                    current_level = self.input_value_dict
                     for key in path[:-1]:
                         if key not in current_level:
                             current_level[key] = {}
@@ -209,73 +179,95 @@ class Component(Generic[TInput, TOutput]):
 
         return changed
 
-    @property
-    def output_schema(self) -> ParameterSchema:
-        return self._output_schema
-
-    @property
-    def input_schema(self) -> ParameterSchema:
-        return self._input_schema
-
-    @property
-    def previous(self) -> List['Component']:
-        return self._previous
-
-    @property
-    def unmapped_properties(self) -> List[PropertyValidationError]:
-        result = []
-        for prop in self._input_schema.unmapped_properties:
-            result.append(PropertyValidationError(
-                msg='Unmapped property',
-                loc=[prop.title]  # type: ignore
-            ))
-        return result
-
-    def output_errors(self) -> List[PropertyValidationError]:
-        return self._output_schema.validate_dictionary(t=self._output_parameter_type,
-                                                       dictionary=self.output_parameter_dict)
-
-    def _parse_parameter_types(self) -> Tuple[Type[TInput], Type[TOutput]]:
-        args = get_args(self._function.__orig_bases__[0])  # type: ignore
-        if not args:
-            raise ValueError('Instantiate class with generics specified')
-        input_parameter_type, output_parameter_type = args
-        return input_parameter_type, output_parameter_type
-
     @abstractmethod
-    async def setup_jobs(self):
+    @property
+    def jobs_setup_operator_type(self) -> 'JobsSetupOperator':
         ...
 
     @abstractmethod
-    async def jobs_setup_errors(self) -> List[JobValidationError]:
-        ...
-
-    # region Function
-
     @property
-    @abstractmethod
-    def _input_parameter_type(self) -> Type[TInput]:
+    def job_operator_type(self) -> 'JobOperator':
         ...
 
+    @abstractmethod
     @property
-    @abstractmethod
-    def _output_parameter_type(self) -> Type[TOutput]:
+    def output_operator(self) -> 'OutputOperator':
         ...
 
-    async def stop(self):
-        ...
+
+class JobsSetupOperator(ABC, BaseOperator):
+    component_id: uuid.UUID
+    repository: WorkflowRepository
+    input_changed: bool = False
+    '''Whether input was changed after last execution'''
+
+    @apply_defaults
+    def __init__(self, component_id: uuid.UUID, task_id: str, **kwargs):
+        super().__init__(task_id, **kwargs)
+
+        self.component_id = component_id
+        self.repository = WorkflowRepository()
+
+    def pre_execute(self, context: Any):
+        component = self.repository.fetch_component(self.component_id)
+
+        prev_components: List[Component] = []
+
+        for previous_component_id in component.previous_component_ids:
+            previous_component = self.repository.fetch_component(previous_component_id)
+
+            errors = previous_component.output_errors()
+            if errors:
+                raise ValueError(errors[0].msg)
+
+            prev_components.append(previous_component)
+
+        self.input_changed = component.set_input_from_previous(prev_components)
+
+        errors = component.output_errors()
+        if errors:
+            raise ValueError(errors[0].msg)
+
+        self.repository.save_component(component)
 
     @abstractmethod
-    async def execute(self):
-        pass
+    def execute(self, context: Context) -> List[JobId]:
+        """
+        Setups jobs
+        Returns list of job ids
+        """
+        ...
 
-    # endregion
 
-    def __hash__(self):
-        return self.id.__hash__()
+class JobOperator(ABC, BaseOperator):
+    component_id: uuid.UUID
+    job_id: JobId
 
-    def __eq__(self, other):
-        if not isinstance(other, Component):
-            return False
+    @apply_defaults
+    def __init__(self, job_id: JobId, component_id: uuid.UUID, task_id: str, **kwargs):
+        super().__init__(task_id, **kwargs)
 
-        return self.id == other.id
+        self.component_id = component_id
+        self.job_id = job_id
+
+    @abstractmethod
+    def execute(self, context: Context) -> Any:
+        ...
+
+
+class OutputOperator(ABC, BaseOperator):
+    component_id: uuid.UUID
+
+    @apply_defaults
+    def __init__(self, component_id: uuid.UUID, task_id: str, **kwargs):
+        super().__init__(task_id, **kwargs)
+
+        self.component_id = component_id
+
+    @abstractmethod
+    def execute(self, context: Context) -> Any:
+        """
+        Post jobs processing
+        Setup component output data
+        """
+        ...

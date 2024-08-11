@@ -48,5 +48,5 @@ class GetComponentStateRequest:
 
 
 @dataclass
-class AllWorkflowSchemasResponse:
+class AllWorkflowDefinitionsResponse:
     ids: List[UUID]
