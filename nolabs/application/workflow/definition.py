@@ -4,9 +4,9 @@ from typing import Optional, List, Any, Dict, Union
 from pydantic import BaseModel, Field
 
 
-class ItemsModel(BaseModel):
+class ItemsTemplate(BaseModel):
     type: Optional[Union[str, List[str]]] = None
-    properties: Optional[Dict[str, 'PropertyModel']] = Field(default_factory=dict)
+    properties: Optional[Dict[str, 'PropertyTemplate']] = Field(default_factory=dict)
     required: List[str] = Field(default_factory=list)
     description: Optional[str] = None
     enum: List[Any] = Field(default_factory=list)
@@ -15,13 +15,12 @@ class ItemsModel(BaseModel):
     format: Optional[str] = None
     default: Optional[Any] = None
     example: Optional[Any] = None
-    items: Optional[Union['ItemsModel', List['ItemsModel']]] = None
+    items: Optional[Union['ItemsTemplate', List['ItemsTemplate']]] = None
 
 
-
-class PropertyModel(BaseModel):
+class PropertyTemplate(BaseModel):
     type: Optional[Union[str, List[str]]] = None
-    properties: Optional[Dict[str, 'PropertyModel']] = Field(default_factory=dict)
+    properties: Optional[Dict[str, 'PropertyTemplate']] = Field(default_factory=dict)
     required: List[str] = Field(default_factory=list)
     description: Optional[str] = None
     enum: List[Any] = Field(default_factory=list)
@@ -30,47 +29,44 @@ class PropertyModel(BaseModel):
     default: Optional[Any] = None
     example: Optional[Any] = None
     title: Optional[str] = None
-    anyOf: List[Union['PropertyModel', dict]] = Field(default_factory=list)
+    anyOf: List[Union['PropertyTemplate', dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(default=None)
-    items: Optional[Union['ItemsModel', List['ItemsModel']]] = None
+    items: Optional[Union['ItemsTemplate', List['ItemsTemplate']]] = None
 
 
-class ComponentModel(BaseModel):
+class ComponentTemplate(BaseModel):
     name: str
-    input: Dict[str, PropertyModel]
-    output: Dict[str, PropertyModel]
+    input: Dict[str, PropertyTemplate]
+    output: Dict[str, PropertyTemplate]
     description: Optional[str] = None
 
 
-class MappingModel(BaseModel):
+class MappingDefinition(BaseModel):
     source_path: List[str]
     target_path: List[str]
     source_component_id: uuid.UUID
     error: Optional[str] = None
 
 
-class DefaultWorkflowComponentModelValue(BaseModel):
+class DefaultDefinition(BaseModel):
     target_path: List[str]
     value: Optional[Any] = None
     error: Optional[str] = None
 
 
-class WorkflowComponentModel(BaseModel):
+class ComponentDefinition(BaseModel):
     name: str
     component_id: uuid.UUID
-    mappings: List[MappingModel] = Field(default_factory=list)
     error: Optional[str] = None
-    defaults: List[DefaultWorkflowComponentModelValue] = Field(default_factory=list)
+    mappings: List[MappingDefinition] = Field(default_factory=list)
+    defaults: List[DefaultDefinition] = Field(default_factory=list)
     x: float = 0.0
     y: float = 0.0
 
 
-class WorkflowSchemaModel(BaseModel):
+class WorkflowDefinition(BaseModel):
     workflow_id: uuid.UUID
-    components: List[ComponentModel]
-    workflow_components: List[WorkflowComponentModel]
+    component_templates: List[ComponentTemplate]
+    components: List[ComponentDefinition]
     error: Optional[str] = None
     valid: bool = True
-
-    def get_wf_component(self, component_id: uuid.UUID):
-        return [wc for wc in self.workflow_components if wc.component_id == component_id][0]
