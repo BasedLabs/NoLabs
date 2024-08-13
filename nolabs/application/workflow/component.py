@@ -61,6 +61,16 @@ class Component(ABC, Generic[TInput, TOutput], BaseModel):
     def output_value(self) -> TOutput:
         return self.output_parameter_type(**self.output_value_dict)
 
+    @output_value.setter
+    def output_value(self, value: Union[TOutput, Dict[str, Any]]):
+        if value is dict:
+            self.output_value_dict = value
+        else:
+            self.output_value_dict = value.dict()
+
+        if self.output_errors():
+            raise ValueError('There were issues while settings the output')
+
     def output_errors(self) -> List[PropertyValidationError]:
         return self.schema.validate_dictionary(t=self.output_parameter_type, dictionary=self.output_value_dict)
 
@@ -181,21 +191,26 @@ class Component(ABC, Generic[TInput, TOutput], BaseModel):
 
     @abstractmethod
     @property
-    def jobs_setup_operator_type(self) -> 'JobsSetupOperator':
+    def setup_operator_type(self) -> Type['SetupOperator']:
         ...
 
     @abstractmethod
     @property
-    def job_operator_type(self) -> 'JobOperator':
+    def job_operator_type(self) -> Optional[Type['JobOperator']]:
         ...
 
     @abstractmethod
     @property
-    def output_operator(self) -> 'OutputOperator':
+    def output_operator_type(self) -> Type['OutputOperator']:
         ...
 
 
-class JobsSetupOperator(ABC, BaseOperator):
+class SetupOperator(ABC, BaseOperator):
+    """
+    Setups component
+    Setups jobs
+    Emits jobs ids
+    """
     component_id: uuid.UUID
     repository: WorkflowRepository
     input_changed: bool = False
@@ -240,6 +255,9 @@ class JobsSetupOperator(ABC, BaseOperator):
 
 
 class JobOperator(ABC, BaseOperator):
+    """
+    Executes job
+    """
     component_id: uuid.UUID
     job_id: JobId
 
@@ -255,8 +273,12 @@ class JobOperator(ABC, BaseOperator):
         ...
 
 
-class OutputOperator(ABC, BaseOperator):
+class OutputOperator(ABC, BaseOperator, Generic[TOutput]):
+    """
+    Jobs post-processing
+    """
     component_id: uuid.UUID
+    repository: WorkflowRepository
 
     @apply_defaults
     def __init__(self, component_id: uuid.UUID, task_id: str, **kwargs):
