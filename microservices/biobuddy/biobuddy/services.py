@@ -96,7 +96,7 @@ async def send_message_async(request: SendMessageToBioBuddyRequest,
         elif msg['role'] == 'assistant':
             history_messages.append(AIMessage(content=msg['content']))
 
-    await get_report(request.message_content, websocket)
+    # await get_report(request.message_content, websocket)
 
     tools_description = " ".join([f"{(tool['function']['name'], tool['function']['description'])}, " for tool in request.tools])
     strategy_prompt = generate_strategy_prompt(tools_description, request.message_content, str(request.available_components), str(request.current_workflow))
@@ -123,7 +123,11 @@ async def send_message_async(request: SendMessageToBioBuddyRequest,
             break
         response_buffer += response
 
-        # yield SendMessageToBioBuddyResponse(reply_type="stream", content=response)
+        if "<RESEARCH>" in response_buffer:
+            await get_report(request.message_content, websocket)
+            response_buffer = response_buffer.replace("<RESEARCH>", "")
+
+        yield SendMessageToBioBuddyResponse(reply_type="stream", content=response)
 
     # Handle the final response separately
     if not stop_tokens.get(request.experiment_id):

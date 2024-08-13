@@ -9,8 +9,11 @@ def generate_system_prompt() -> str:
 
 
 def generate_strategy_prompt(tools_description: str, query: str, available_components: str, current_workflow: str) -> str:
-    return (f"Given the available tools ({tools_description}), decide whether a direct reply is sufficient "
-            f"or if a specific plan involving these tools is necessary. "
+    return (f"Given the available tools ({tools_description}), decide whether a direct reply or a research is sufficient "
+            f"or if a specific plan involving these tools is necessary."
+            f"If a user asks to do some online literature research directly, such as 'Could you find me some information about latest research on GFP' or 'What are the latest news abuot rhodopsins?' or 'Can you search me some information about vaccines' etc., "
+            f"then reply just with one word-tag '<RESEARCH>'. Do it only if they ask you to search the information, search the Internet or some up-to-date info."
+            f"Otherwise, follow these instructions:"
             f"If calling function calls are not needed, provide the direct reply (without stating that it's a direct reply, just the text of the reply). "
             f"If the query explicitly asks to pull specific data (such as named proteins or ligands), reply with a plan of all actions required based on the query and tools descriptions in the format (have as many actions as needed): "
             f"\"<ACTION> 1. Call tool_1 in order to do X <END_ACTION> <ACTION> 2. Call tool_2 to achieve Y <END_ACTION> <ACTION> 3. Call tool_3 to do something else <END_ACTION>\". "

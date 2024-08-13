@@ -40,6 +40,7 @@ class GPTResearcher:
         print(f"🔎 Running research for '{self.query}'...")
         # Generate Agent
         self.agent, self.role = await choose_agent(self.query, self.cfg)
+        await asyncio.sleep(0)
         await stream_output("logs", self.agent, self.websocket)
 
         # If specified, the researcher will use the given urls as the context for the research.
@@ -51,7 +52,7 @@ class GPTResearcher:
         # Write Research Report
         if self.report_type == "custom_report":
             self.role = self.cfg.agent_role if self.cfg.agent_role else self.role
-        await stream_output("logs", f"✍️ Writing {self.report_type} for research task: {self.query}...", self.websocket)
+        await stream_output("logs", f"✍️ Writing {self.report_type} for research task: {self.query}...\n", self.websocket)
         report = await generate_report(query=self.query, context=self.context,
                                        agent_role_prompt=self.role, report_type=self.report_type,
                                        websocket=self.websocket, cfg=self.cfg)
@@ -64,7 +65,7 @@ class GPTResearcher:
         """
         new_search_urls = await self.get_new_urls(urls)
         await stream_output("logs",
-                            f"🧠 I will conduct my research based on the following urls: {new_search_urls}...",
+                            f"\n 🧠 I will conduct my research based on the following urls: {new_search_urls}... \n",
                             self.websocket)
         scraped_sites = scrape_urls(new_search_urls, self.cfg)
         return await self.get_similar_content_by_query(self.query, scraped_sites)
@@ -79,15 +80,15 @@ class GPTResearcher:
         # Generate Sub-Queries including original query
         sub_queries = await get_sub_queries(query, self.role, self.cfg) + [query]
         await stream_output("logs",
-                            f"🧠 I will conduct my research based on the following queries: {sub_queries}...",
+                            f"\n 🧠 I will conduct my research based on the following queries: {sub_queries}... \n",
                             self.websocket)
 
         # Run Sub-Queries
         for sub_query in sub_queries:
-            await stream_output("logs", f"\n🔎 Running research for '{sub_query}'...", self.websocket)
+            await stream_output("logs", f"\n 🔎 Running research for '{sub_query}'... \n", self.websocket)
             scraped_sites = await self.scrape_sites_by_query(sub_query)
             content = await self.get_similar_content_by_query(sub_query, scraped_sites)
-            await stream_output("logs", f"📃 {content}", self.websocket)
+            await stream_output("logs", f"\n 📃 {content} \n", self.websocket)
             context.append(content)
 
         return context
@@ -101,7 +102,7 @@ class GPTResearcher:
         new_urls = []
         for url in url_set_input:
             if url not in self.visited_urls:
-                await stream_output("logs", f"✅ Adding source url to research: {url}\n", self.websocket)
+                await stream_output("logs", f"\n ✅ Adding source url to research: [{url}]({url}) \n", self.websocket)
 
                 self.visited_urls.add(url)
                 new_urls.append(url)
@@ -129,12 +130,12 @@ class GPTResearcher:
 
         # Scrape Urls
         # await stream_output("logs", f"📝Scraping urls {new_search_urls}...\n", self.websocket)
-        await stream_output("logs", f"🤔Researching for relevant information...\n", self.websocket)
+        await stream_output("logs", f"\n 🤔Researching for relevant information... \n", self.websocket)
         scraped_content_results = scrape_urls(new_search_urls, self.cfg)
         return scraped_content_results
 
     async def get_similar_content_by_query(self, query, pages):
-        await stream_output("logs", f"📃 Getting relevant content based on query: {query}...", self.websocket)
+        await stream_output("logs", f"\n 📃 Getting relevant content based on query: {query}... \n", self.websocket)
         # Summarize Raw Data
         context_compressor = ContextCompressor(documents=pages, embeddings=self.memory.get_embeddings())
         # Run Tasks

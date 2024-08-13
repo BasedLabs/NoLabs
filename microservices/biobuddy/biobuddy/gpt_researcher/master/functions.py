@@ -247,7 +247,7 @@ async def stream_output(type, output, websocket=None, logging=True):
         print("Static output: ", output)
 
     if websocket:
-        print("OUTPUT: ", output)
-        print("Websocket: ", websocket)
+        await asyncio.sleep(0)
         message = SendMessageToBioBuddyResponse(reply_type="stream", content=output)
         await websocket.send_text(json.dumps(message.to_dict()))
+        await asyncio.sleep(0)

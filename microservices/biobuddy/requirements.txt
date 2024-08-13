@@ -5,7 +5,7 @@ openapi
 openai
 biopython
 langchain-openai
-langchain
+langchain==0.1.14
 websockets
 asyncio==3.4.3
 beautifulsoup4==4.12.2
