@@ -1,5 +1,5 @@
-name: external_data_query
-run-name: external_data_query
+name: external_data_query-master
+run-name: external_data_query-master
 
 # Build and push external_data_query image using GitHub Cache API
 # Only if relevant files were changed

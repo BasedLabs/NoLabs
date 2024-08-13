@@ -1,5 +1,5 @@
-name: localisation
-run-name: localisation
+name: localisation-master
+run-name: localisation-master
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed

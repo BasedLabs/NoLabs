@@ -1,5 +1,5 @@
-name: solubility
-run-name: solubility
+name: solubility-master
+run-name: solubility-master
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed

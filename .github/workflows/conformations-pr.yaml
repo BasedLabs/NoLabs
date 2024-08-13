@@ -1,5 +1,5 @@
-name: conformations
-run-name: conformations
+name: conformations-pr
+run-name: conformations-pr
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
