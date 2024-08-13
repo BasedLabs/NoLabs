@@ -1,8 +1,11 @@
 import uuid
 from typing import Optional
 
-from nolabs.application.workflow import Component
-from nolabs.application.workflow.models import ComponentDbModel
+from bson import ObjectId
+
+from nolabs.application.workflow.component import Component
+from nolabs.application.workflow.models import ComponentDbModel, WorkflowDbModel
+from nolabs.domain.models.common import Experiment
 
 
 class WorkflowRepository:
@@ -18,3 +21,10 @@ class WorkflowRepository:
         model: ComponentDbModel = ComponentDbModel.objects.with_id(component.id)
         model.set_component(component=component)
         model.save()
+
+    def fetch_experiment(self, component_id) -> Experiment:
+        component_id = ObjectId(str(component_id))
+
+        workflow: WorkflowDbModel = WorkflowDbModel.objects(components__in=[component_id]).first()
+
+        return workflow.experiment
