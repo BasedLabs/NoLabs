@@ -1,5 +1,5 @@
-name: biobuddy
-run-name: biobuddy
+name: biobuddy-master
+run-name: biobuddy-master
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed

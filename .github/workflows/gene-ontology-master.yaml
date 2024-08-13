@@ -1,5 +1,5 @@
-name: gene_ontology
-run-name: gene_ontology
+name: gene_ontology-master
+run-name: gene_ontology-master
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed

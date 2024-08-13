@@ -1,5 +1,5 @@
-name: external_data_query
-run-name: external_data_query
+name: external_data_query-pr
+run-name: external_data_query-pr
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed

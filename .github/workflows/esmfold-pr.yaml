@@ -1,5 +1,5 @@
-name: esmfold
-run-name: esmfold
+name: esmfold-pr
+run-name: esmfold-pr
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
