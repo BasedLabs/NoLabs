@@ -4,6 +4,8 @@ from ..scraper import Scraper
 from .prompts import *
 import json
 
+from ...api_models import SendMessageToBioBuddyResponse
+
 
 def get_retriever(retriever):
     """
@@ -242,7 +244,10 @@ async def stream_output(type, output, websocket=None, logging=True):
         None
     """
     if not websocket or logging:
-        print(output)
+        print("Static output: ", output)
 
     if websocket:
-        await websocket.send_json({"type": type, "output": output})
+        print("OUTPUT: ", output)
+        print("Websocket: ", websocket)
+        message = SendMessageToBioBuddyResponse(reply_type="stream", content=output)
+        await websocket.send_text(json.dumps(message.to_dict()))
