@@ -2,6 +2,7 @@ from typing import Dict, AsyncGenerator, List, Any
 
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from websocket import WebSocket
 
 from biobuddy.api_models import SendMessageToBioBuddyResponse, SendMessageToBioBuddyRequest
 from biobuddy.prompts import generate_strategy_prompt, generate_system_prompt, generate_workflow_prompt
@@ -83,7 +84,10 @@ def send_message(request: SendMessageToBioBuddyRequest) -> SendMessageToBioBuddy
     )
 
 
-async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens: Dict[str, bool]) -> AsyncGenerator[SendMessageToBioBuddyResponse, None]:
+async def send_message_async(request: SendMessageToBioBuddyRequest,
+                             stop_tokens: Dict[str, bool],
+                             websocket: WebSocket
+                             ) -> AsyncGenerator[SendMessageToBioBuddyResponse, None]:
     system_message_content = generate_system_prompt()
     history_messages = [SystemMessage(content=system_message_content)]
     for msg in request.previous_messages:
@@ -91,6 +95,8 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
             history_messages.append(HumanMessage(content=msg['content']))
         elif msg['role'] == 'assistant':
             history_messages.append(AIMessage(content=msg['content']))
+
+    # await get_report(request.message_content, websocket)
 
     tools_description = " ".join([f"{(tool['function']['name'], tool['function']['description'])}, " for tool in request.tools])
     strategy_prompt = generate_strategy_prompt(tools_description, request.message_content, str(request.available_components), str(request.current_workflow))
@@ -117,7 +123,9 @@ async def send_message_async(request: SendMessageToBioBuddyRequest, stop_tokens:
             break
         response_buffer += response
 
-        print(response_buffer)
+        if "<RESEARCH>" in response_buffer:
+            await get_report(request.message_content, websocket)
+            response_buffer = response_buffer.replace("<RESEARCH>", "")
 
         yield SendMessageToBioBuddyResponse(reply_type="stream", content=response)
 

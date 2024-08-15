@@ -7,6 +7,7 @@ from colorama import Fore, Style
 from typing import Optional
 
 from ..master.prompts import auto_agent_instructions
+from ...api_models import SendMessageToBioBuddyResponse
 
 
 async def create_chat_completion(
@@ -85,7 +86,8 @@ async def stream_response(model, messages, temperature, max_tokens, llm_provider
             paragraph += content
             if "\n" in paragraph:
                 if websocket is not None:
-                    await websocket.send_json({"type": "report", "output": paragraph})
+                    message = SendMessageToBioBuddyResponse(reply_type="stream", content=paragraph)
+                    await websocket.send_text(json.dumps(message.to_dict()))
                 else:
                     print(f"{Fore.GREEN}{paragraph}{Style.RESET_ALL}")
                 paragraph = ""

@@ -129,6 +129,13 @@ export default defineComponent({
             });
           }
 
+          const researchMatches = this.currentMessageBuffer.match(/<RESEARCH/g);
+          if (researchMatches) {
+            researchMatches.forEach((match) => {
+              this.currentMessageBuffer = this.currentMessageBuffer.replace(/<RESEARCH/g, '');
+            });
+          }
+
           // Process WORKFLOW tags
           const workflowMatches = this.currentMessageBuffer.match(/<WORKFLOW>([\s\S]*?)<END_WORKFLOW>/g);
           if (workflowMatches) {

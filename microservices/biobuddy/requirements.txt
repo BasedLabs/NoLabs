@@ -5,12 +5,12 @@ openapi
 openai
 biopython
 langchain-openai
-langchain
+langchain==0.1.14
 websockets
 asyncio==3.4.3
 beautifulsoup4==4.12.2
 colorama==0.4.6
-duckduckgo_search==5.3.0
+duckduckgo_search
 tavily-python==0.3.1
 arxiv==2.0.0
 PyMuPDF==1.23.6

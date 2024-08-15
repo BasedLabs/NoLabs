@@ -3,7 +3,7 @@ from biobuddy.connection_manager import ConnectionManager
 from biobuddy.services import send_message, send_message_async, invoke_action
 from biobuddy.api_models import SendMessageToBioBuddyRequest, SendMessageToBioBuddyResponse, IsJobRunningResponse, \
     SendActionCallRequest
-from typing import Dict, List, Any
+from typing import Dict
 import json
 
 app = FastAPI(
@@ -15,7 +15,6 @@ stop_tokens: Dict[str, bool] = {}
 
 connection_manager = ConnectionManager()
 
-from biobuddy.loggers import Log
 from biobuddy.job_state_manager import job_state_manager
 
 @app.post("/send-message")
@@ -44,6 +43,7 @@ async def invoke_function(
 async def websocket_endpoint(websocket: WebSocket):
     await connection_manager.connect(websocket)
     try:
+        print("Original Websocket: ", websocket)
         while True:
             data = await websocket.receive_text()
             request_data = json.loads(data)
@@ -55,7 +55,7 @@ async def websocket_endpoint(websocket: WebSocket):
             else:
                 request = SendMessageToBioBuddyRequest(**request_data)
                 stop_tokens[request.experiment_id] = False
-                async for message in send_message_async(request, stop_tokens):
+                async for message in send_message_async(request, stop_tokens, websocket):
                     if stop_tokens.get(request.experiment_id):
                         await websocket.send_text(json.dumps({"reply_type": "final", "content": "<STOP>"}))
                         break
