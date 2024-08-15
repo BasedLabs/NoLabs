@@ -1,5 +1,5 @@
-name: blast_query
-run-name: blast_query
+name: blast_query-pr
+run-name: blast_query-pr
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
@@ -8,6 +8,8 @@ on:
   pull_request:
     branches:
       - master
+    paths:
+      - 'microservices/base_query/**'
 
 jobs:
   build:

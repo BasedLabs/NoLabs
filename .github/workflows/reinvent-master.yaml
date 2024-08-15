@@ -1,5 +1,5 @@
-name: reinvent
-run-name: reinvent
+name: reinvent-master
+run-name: reinvent-master
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed

@@ -1,5 +1,5 @@
-name: protein_design
-run-name: protein_design
+name: protein_design-pr
+run-name: protein_design-pr
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
