@@ -1,10 +1,11 @@
 import uuid
-from typing import Type, Optional, List, Any
+from typing import Type, Optional, List, Any, ClassVar
 
 from airflow.utils.context import Context
 from pydantic import BaseModel
 
-from nolabs.application.workflow.component import Component, TOutput, TInput, SetupOperator, JobOperator, OutputOperator
+from nolabs.application.workflow.component import Component, TOutput, TInput
+from nolabs.application.workflow.operators import SetupOperator, JobOperator, OutputOperator
 from nolabs.domain.models.common import Job, JobInputError, JobId, JobName, Experiment
 
 
@@ -31,7 +32,7 @@ class Test1SetupOperator(SetupOperator):
 
     def execute(self, context: Context) -> List[JobId]:
         component: Optional[Test1Component] = self.repository.fetch_component(self.component_id)
-        experiment: Experiment = self.repository.fetch_experiment(self.component_id)
+        experiment: Experiment = Experiment.objects.with_id(component.experiment_id)
 
         job_ids = []
 
@@ -57,15 +58,15 @@ class Test1OutputOperator(OutputOperator):
 
 
 class Test1Component(Component[Test1Input, Test1Output]):
-    name = 'test1'
-    description = 'test1 description'
+    name: ClassVar[str] = 'test1'
+    description: ClassVar[str] = 'test1 desc'
 
-    @property
-    def input_parameter_type(self) -> Type[TInput]:
+    @classmethod
+    def input_parameter_type(cls) -> Type[TInput]:
         return Test1Input
 
-    @property
-    def output_parameter_type(self) -> Type[TOutput]:
+    @classmethod
+    def output_parameter_type(cls) -> Type[TOutput]:
         return Test1Output
 
     @property

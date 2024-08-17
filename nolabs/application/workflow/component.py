@@ -1,20 +1,86 @@
 __all__ = [
-    'PropertyValidationError'
+    'Component'
 ]
 
 import uuid
 from abc import abstractmethod, ABC
-from typing import Optional, List, Any, Type, Dict, Union, TypeVar, Generic
+from datetime import datetime
+from typing import Dict, Any, List, Iterable, Tuple
+from typing import Optional, Type, Union, TypeVar, Generic, ClassVar, Mapping
 
 from airflow.models import BaseOperator
-from airflow.utils.context import Context
-from airflow.utils.decorators import apply_defaults
+from mongoengine import Document, UUIDField, ReferenceField, CASCADE, DictField, StringField, IntField, \
+    ListField, EmbeddedDocumentListField, DateTimeField, EmbeddedDocument
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
-from nolabs.application.workflow.components_repository import WorkflowRepository
+from nolabs.application.workflow.api import WorkflowState
 from nolabs.application.workflow.properties import ParameterSchema, PropertyValidationError
-from nolabs.domain.models.common import JobId
+
+
+class InputPropertyErrorDbModel(EmbeddedDocument):
+    loc: List[str] = ListField(StringField())
+    msg: str = StringField()
+
+    @classmethod
+    def create(cls, loc: List[str], msg: str) -> 'InputPropertyErrorDbModel':
+        return InputPropertyErrorDbModel(
+            loc=loc,
+            msg=msg
+        )
+
+
+class ComponentState(Document):
+    id: uuid.UUID = UUIDField(primary_key=True)
+    experiment_id: uuid.UUID = UUIDField(required=True)
+    workflow: WorkflowState = ReferenceField(WorkflowState, reverse_delete_rule=CASCADE)
+
+    input_property_errors: List[InputPropertyErrorDbModel] = EmbeddedDocumentListField(InputPropertyErrorDbModel)
+
+    job_ids: List[uuid.UUID] = ListField(UUIDField())
+    last_jobs_count: int = IntField()
+
+    last_executed_at: datetime = DateTimeField()
+
+    name: str = StringField()
+
+    # region component fields
+
+    input_schema: Dict[str, Any] = DictField()
+    output_schema: Dict[str, Any] = DictField()
+    input_value_dict: Dict[str, Any] = DictField()
+    output_value_dict: Dict[str, Any] = DictField()
+    previous_component_ids: List[uuid.UUID] = ListField(UUIDField())
+
+    #
+
+    meta = {'collection': 'components'}
+
+    @classmethod
+    def create(cls,
+               id: uuid.UUID,
+               workflow: WorkflowState,
+               component: 'Component',
+               job_ids: List[uuid.UUID]):
+        return ComponentState(
+            id=id,
+            experiment_id=workflow.experiment.id,
+            workflow=workflow,
+            input_schema=component.input_schema.dict(),
+            output_schema=component.output_schema.dict(),
+            input_value_dict=component.input_value_dict,
+            output_value_dict=component.output_value_dict,
+            previous_component_ids=component.previous_component_ids,
+            name=component.name,
+            job_ids=job_ids
+        )
+
+    def set_component(self, component: 'Component'):
+        self.input_schema = component.input_schema.dict()
+        self.output_schema = component.output_schema.dict()
+        self.input_value_dict = component.input_value_dict
+        self.output_value_dict = component.output_value_dict
+        self.previous_component_ids = component.previous_component_ids
 
 
 @dataclass
@@ -31,7 +97,7 @@ def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
 
 
-class Component(ABC, Generic[TInput, TOutput], BaseModel):
+class Component(ABC, Generic[TInput, TOutput]):
     id: uuid.UUID
     experiment_id: uuid.UUID
 
@@ -39,27 +105,51 @@ class Component(ABC, Generic[TInput, TOutput], BaseModel):
 
     # region schemas
 
-    output_schema: ParameterSchema[TOutput]
+    output_schema: ParameterSchema
     output_value_dict: Dict[str, Any]
 
-    input_schema: ParameterSchema[TInput]
+    input_schema: ParameterSchema
     input_value_dict: Dict[str, Any]
 
     previous_component_ids: List[uuid.UUID] = []
 
     # endregion
 
-    name: str
-    description: str
+    name: ClassVar[str]
+    description: ClassVar[str]
 
-    def create(self, id: uuid.UUID, experiment_id: uuid.UUID):
-        c = self.__class__(id=id, experiment_id=experiment_id)
-        c.input_schema = ParameterSchema.get_instance(cls=self.input_parameter_type)
-        c.output_schema = ParameterSchema.get_instance(cls=self.output_parameter_type)
+    _state: ComponentState
+
+    def __init__(self,
+                 id: uuid.UUID,
+                 experiment_id: uuid.UUID,
+                 job_ids: Optional[List[uuid.UUID]] = None,
+                 input_schema: Optional[Union[ParameterSchema, Dict[str, Any]]] = None,
+                 output_schema: Optional[Union[ParameterSchema, Dict[str, Any]]] = None,
+                 input_value_dict: Optional[Dict[str, Any]] = None,
+                 output_value_dict: Optional[Dict[str, Any]] = None,
+                 previous_component_ids: Optional[List[uuid]] = None):
+        self.id = id
+        self.experiment_id = experiment_id
+        self.job_ids = job_ids or []
+
+        if isinstance(input_schema, Mapping):
+            self.input_schema = ParameterSchema(**input_schema)
+        else:
+            self.input_schema = input_schema or ParameterSchema.get_instance(cls=self.input_parameter_type())
+
+        if isinstance(output_schema, Mapping):
+            self.output_schema = ParameterSchema(**output_schema)
+        else:
+            self.output_schema = output_schema or ParameterSchema.get_instance(cls=self.output_parameter_type())
+
+        self.input_value_dict = input_value_dict or {}
+        self.output_value_dict = output_value_dict or {}
+        self.previous_component_ids = previous_component_ids or []
 
     @property
     def output_value(self) -> TOutput:
-        return self.output_parameter_type(**self.output_value_dict)
+        return self.output_parameter_type()(**self.output_value_dict)
 
     @output_value.setter
     def output_value(self, value: Union[TOutput, Dict[str, Any]]):
@@ -72,24 +162,24 @@ class Component(ABC, Generic[TInput, TOutput], BaseModel):
             raise ValueError('There were issues while settings the output')
 
     def output_errors(self) -> List[PropertyValidationError]:
-        return self.schema.validate_dictionary(t=self.output_parameter_type, dictionary=self.output_value_dict)
+        return self.output_schema.validate_dictionary(t=self.output_parameter_type, dictionary=self.output_value_dict)
 
-    @abstractmethod
     @property
+    @abstractmethod
     def input_parameter_type(self) -> Type[TInput]:
         ...
 
-    @abstractmethod
     @property
+    @abstractmethod
     def output_parameter_type(self) -> Type[TOutput]:
         ...
 
     @property
     def input_value(self) -> TInput:
-        return self.input_parameter_type(**self.input_value_dict)
+        return self.input_parameter_type()(**self.input_value_dict)
 
     def input_errors(self):
-        return self.input_schema.validate_dictionary(t=self.input_parameter_type, dictionary=self.input_value_dict)
+        return self.input_schema.validate_dictionary(t=self.input_parameter_type(), dictionary=self.input_value_dict)
 
     def try_map_property(self, component: 'Component', path_from: List[str], target_path: List[str]) -> Optional[
         PropertyValidationError]:
@@ -102,7 +192,7 @@ class Component(ABC, Generic[TInput, TOutput], BaseModel):
 
     def try_set_default(self, target_path: List[str], value: Any) -> Optional[PropertyValidationError]:
         return self.input_schema.try_set_default(target_path=target_path, value=value,
-                                                 input_type=self.input_parameter_type)
+                                                 input_type=self.input_parameter_type())
 
     def add_previous(self, component_id: Union[uuid.UUID, List[uuid.UUID]]):
         if isinstance(component_id, list):
@@ -157,7 +247,7 @@ class Component(ABC, Generic[TInput, TOutput], BaseModel):
                 current_level[path[-1]] = prop.default
 
         for prev_component in components:
-            for prop in self.schema.mapped_properties:
+            for prop in self.input_schema.mapped_properties:
                 if prop.source_component_id == prev_component.id:
                     current_level = prev_component.output_value_dict
 
@@ -189,107 +279,63 @@ class Component(ABC, Generic[TInput, TOutput], BaseModel):
 
         return changed
 
-    @abstractmethod
     @property
-    def setup_operator_type(self) -> Type['SetupOperator']:
+    @abstractmethod
+    def setup_operator_type(self) -> Type[BaseOperator]:
         ...
 
-    @abstractmethod
     @property
-    def job_operator_type(self) -> Optional[Type['JobOperator']]:
+    @abstractmethod
+    def job_operator_type(self) -> Optional[Type[BaseOperator]]:
         ...
 
-    @abstractmethod
     @property
-    def output_operator_type(self) -> Type['OutputOperator']:
-        ...
-
-
-class SetupOperator(ABC, BaseOperator):
-    """
-    Setups component
-    Setups jobs
-    Emits jobs ids
-    """
-    component_id: uuid.UUID
-    repository: WorkflowRepository
-    input_changed: bool = False
-    '''Whether input was changed after last execution'''
-
-    @apply_defaults
-    def __init__(self, component_id: uuid.UUID, task_id: str, **kwargs):
-        super().__init__(task_id, **kwargs)
-
-        self.component_id = component_id
-        self.repository = WorkflowRepository()
-
-    def pre_execute(self, context: Any):
-        component = self.repository.fetch_component(self.component_id)
-
-        prev_components: List[Component] = []
-
-        for previous_component_id in component.previous_component_ids:
-            previous_component = self.repository.fetch_component(previous_component_id)
-
-            errors = previous_component.output_errors()
-            if errors:
-                raise ValueError(errors[0].msg)
-
-            prev_components.append(previous_component)
-
-        self.input_changed = component.set_input_from_previous(prev_components)
-
-        errors = component.output_errors()
-        if errors:
-            raise ValueError(errors[0].msg)
-
-        self.repository.save_component(component)
-
     @abstractmethod
-    def execute(self, context: Context) -> List[JobId]:
-        """
-        Setups jobs
-        Returns list of job ids
-        """
+    def output_operator_type(self) -> Type[BaseOperator]:
         ...
 
+    @classmethod
+    def get(cls, id: uuid.UUID) -> Optional['Component']:
+        state: ComponentState = ComponentState.objects.with_id(id)
+        if state is None:
+            return None
+        state: ComponentState = ComponentState.objects.with_id(id)
 
-class JobOperator(ABC, BaseOperator):
-    """
-    Executes job
-    """
-    component_id: uuid.UUID
-    job_id: JobId
+        if not state:
+            return
 
-    @apply_defaults
-    def __init__(self, job_id: JobId, component_id: uuid.UUID, task_id: str, **kwargs):
-        super().__init__(task_id, **kwargs)
+        return ComponentTypeFactory.get_type(state.name)(
+            id=state.id,
+            experiment_id=state.experiment_id,
+            job_ids=state.job_ids,
+            input_schema=ParameterSchema(**state.input_schema),
+            output_schema=ParameterSchema(**state.output_schema),
+            input_value_dict=state.input_value_dict,
+            output_value_dict=state.output_value_dict,
+            previous_component_ids=state.previous_component_ids
+        )
 
-        self.component_id = component_id
-        self.job_id = job_id
-
-    @abstractmethod
-    def execute(self, context: Context) -> Any:
-        ...
+    def save(self):
+        self._state.save()
 
 
-class OutputOperator(ABC, BaseOperator, Generic[TOutput]):
-    """
-    Jobs post-processing
-    """
-    component_id: uuid.UUID
-    repository: WorkflowRepository
+class ComponentTypeFactory:
+    _types: ClassVar[Dict[str, Type[Component]]] = {}
 
-    @apply_defaults
-    def __init__(self, component_id: uuid.UUID, task_id: str, **kwargs):
-        super().__init__(task_id, **kwargs)
+    @classmethod
+    def enumerate(cls) -> Iterable[Tuple[str, Type[Component]]]:
+        return cls._types.items()
 
-        self.component_id = component_id
+    @classmethod
+    def set_types(cls, types: Dict[str, Type[Component]]):
+        cls._types = types
 
-    @abstractmethod
-    def execute(self, context: Context) -> Any:
-        """
-        Post jobs processing
-        Setup component output data
-        """
-        ...
+    @classmethod
+    def get_type(cls, name: str) -> Type[Component]:
+        if not cls._types:
+            raise ValueError('You must initialize type factory before working with application')
+
+        if name not in cls._types:
+            raise ValueError(f"Cannot find component with name {name}")
+
+        return cls._types[name]
