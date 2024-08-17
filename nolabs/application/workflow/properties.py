@@ -1,5 +1,5 @@
 from dataclasses import field
-from typing import Optional, Union, Dict, List, Any, Type, TypeVar, Generic, get_origin, get_args
+from typing import Optional, Union, Dict, List, Any, Type, get_origin, get_args
 from uuid import UUID
 
 from pydantic import Field, BaseModel, ValidationError, parse_obj_as
@@ -49,10 +49,7 @@ class PropertyValidationError:
         return f'{self.msg}: {self.loc}'
 
 
-TParameter = TypeVar('TParameter', bound=BaseModel)
-
-
-class ParameterSchema(BaseModel, Generic[TParameter]):
+class ParameterSchema(BaseModel):
     defs: Optional[Dict[str, 'ParameterSchema']] = Field(alias='$defs', default_factory=dict)
     description: Optional[str] = None
     properties: Dict[str, 'Property'] = Field(default_factory=dict)

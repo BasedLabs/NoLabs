@@ -10,11 +10,11 @@ class GetComponentJobIdsRequest:
     component_id: UUID
 
 
-
 @dataclass
 class JobErrorResponse:
     msg: str
     job_id: UUID
+
 
 @dataclass
 class InputPropertyErrorResponse:
@@ -26,10 +26,12 @@ class InputPropertyErrorResponse:
 class ResetWorkflowRequest:
     workflow_id: UUID
 
+
 @dataclass
 class StartWorkflowComponentRequest:
     workflow_id: UUID
     component_id: UUID
+
 
 @dataclass
 class GetComponentStateResponse:
@@ -39,7 +41,6 @@ class GetComponentStateResponse:
     input_property_errors: List[InputPropertyErrorResponse]
     last_exceptions: List[str]
     jobs_errors: List[JobErrorResponse] = Field(default_factory=list)
-
 
 
 @dataclass

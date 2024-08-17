@@ -56,4 +56,4 @@ class Settings(BaseSettings):
         if key not in os.environ:
             return Environment.LOCAL
 
-        return Environment[key]
+        return Environment[os.environ[key].upper()]
