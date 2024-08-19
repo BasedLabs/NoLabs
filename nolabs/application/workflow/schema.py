@@ -1,5 +1,6 @@
 import uuid
-from typing import Optional, List, Any, Dict, Union
+from typing import Dict, List, Union, Any
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -41,32 +42,32 @@ class ComponentTemplate(BaseModel):
     description: Optional[str] = None
 
 
-class MappingDefinition(BaseModel):
+class MappingSchema(BaseModel):
     source_path: List[str]
     target_path: List[str]
     source_component_id: uuid.UUID
     error: Optional[str] = None
 
 
-class DefaultDefinition(BaseModel):
+class DefaultSchema(BaseModel):
     target_path: List[str]
     value: Optional[Any] = None
     error: Optional[str] = None
 
 
-class ComponentDefinition(BaseModel):
+class ComponentSchema(BaseModel):
     name: str
     component_id: uuid.UUID
     error: Optional[str] = None
-    mappings: List[MappingDefinition] = Field(default_factory=list)
-    defaults: List[DefaultDefinition] = Field(default_factory=list)
+    mappings: List[MappingSchema] = Field(default_factory=list)
+    defaults: List[DefaultSchema] = Field(default_factory=list)
     x: float = 0.0
     y: float = 0.0
 
 
-class WorkflowDefinition(BaseModel):
+class WorkflowSchema(BaseModel):
     workflow_id: uuid.UUID
     component_templates: List[ComponentTemplate]
-    components: List[ComponentDefinition]
+    components: List[ComponentSchema]
     error: Optional[str] = None
     valid: bool = True

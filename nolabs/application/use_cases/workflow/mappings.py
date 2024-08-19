@@ -1,6 +1,6 @@
 from typing import Union
 
-from nolabs.application.workflow.definition import PropertyTemplate
+from nolabs.application.workflow.workflow_definition import PropertyTemplate
 from nolabs.application.workflow.properties import ParameterSchema, Items, Property
 
 
