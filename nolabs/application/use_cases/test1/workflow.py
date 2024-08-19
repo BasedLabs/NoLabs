@@ -30,42 +30,41 @@ class Test1Job(Job):
 
 class Test1SetupOperator(SetupOperator):
 
-    def execute(self, context: Context) -> List[JobId]:
-        component: Optional[Test1Component] = self.repository.fetch_component(self.component_id)
+    async def execute_async(self, context: Context) -> List[str]:
+        component: Optional[Test1Component] = Component.get(self.component_id)
         experiment: Experiment = Experiment.objects.with_id(component.experiment_id)
 
         job_ids = []
 
         for i in range(component.input_value.x):
             job = Test1Job(id=JobId(uuid.uuid4()), name=JobName('test'), experiment=experiment)
-            job.save()
+            await job.save()
 
             job_ids.append(job.iid)
 
-        return job_ids
+        return self.serialize_job_ids(job_ids)
 
 
 class Test1JobOperator(JobOperator):
 
-    def execute(self, context: Context) -> Any:
+    async def execute_async(self, context: Context) -> Any:
         self.log.info(f'Hello there, job id is {self.job_id}')
 
 
 class Test1OutputOperator(OutputOperator):
-    def execute(self, context: Context) -> Any:
-        component = self.repository.fetch_component(self.component_id)
-        component.output_value = Test1Output(x=15, y=35)
+    async def execute_async(self, context: Context) -> Any:
+        self.setup_output(Test1Output(x=15, y=35))
 
 
 class Test1Component(Component[Test1Input, Test1Output]):
     name: ClassVar[str] = 'test1'
     description: ClassVar[str] = 'test1 desc'
 
-    @classmethod
+    @property
     def input_parameter_type(cls) -> Type[TInput]:
         return Test1Input
 
-    @classmethod
+    @property
     def output_parameter_type(cls) -> Type[TOutput]:
         return Test1Output
 

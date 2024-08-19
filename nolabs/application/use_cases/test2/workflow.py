@@ -4,8 +4,8 @@ from typing import Type, Optional, List, Any, ClassVar
 from airflow.utils.context import Context
 from pydantic import BaseModel
 
-from nolabs.application.workflow.core.component import Component, TOutput, TInput
-from nolabs.application.workflow.core.operators import SetupOperator, JobOperator, OutputOperator
+from nolabs.application.workflow.component import Component, TOutput, TInput
+from nolabs.application.workflow.operators import SetupOperator, JobOperator, OutputOperator
 from nolabs.domain.models.common import Job, JobInputError, JobId, JobName, Experiment
 
 
@@ -30,42 +30,41 @@ class Test2Job(Job):
 
 class Test2SetupOperator(SetupOperator):
 
-    def execute(self, context: Context) -> List[JobId]:
-        component: Optional[Test2Component] = self.repository.fetch_component(self.component_id)
+    async def execute_async(self, context: Context) -> List[str]:
+        component: Optional[Test2Component] = Component.get(self.component_id)
         experiment: Experiment = Experiment.objects.with_id(component.experiment_id)
 
         job_ids = []
 
         for i in range(component.input_value.x):
             job = Test2Job(id=JobId(uuid.uuid4()), name=JobName('test'), experiment=experiment)
-            job.save()
+            await job.save()
 
             job_ids.append(job.iid)
 
-        return job_ids
+        return self.serialize_job_ids(job_ids)
 
 
 class Test2JobOperator(JobOperator):
 
-    def execute(self, context: Context) -> Any:
+    async def execute_async(self, context: Context) -> Any:
         self.log.info(f'Hello there, job id is {self.job_id}')
 
 
 class Test2OutputOperator(OutputOperator):
-    def execute(self, context: Context) -> Any:
-        component = self.repository.fetch_component(self.component_id)
-        component.output_value = Test2Output(x=15, y=35)
+    async def execute_async(self, context: Context) -> Any:
+        self.setup_output(Test2Output(x=15, y=35))
 
 
 class Test2Component(Component[Test2Input, Test2Output]):
     name: ClassVar[str] = 'test2'
     description: ClassVar[str] = 'test2 desc'
 
-    @classmethod
+    @property
     def input_parameter_type(cls) -> Type[TInput]:
         return Test2Input
 
-    @classmethod
+    @property
     def output_parameter_type(cls) -> Type[TOutput]:
         return Test2Output
 

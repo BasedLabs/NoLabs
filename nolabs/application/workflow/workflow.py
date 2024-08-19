@@ -1,46 +1,19 @@
 __all__ = [
-    'Workflow',
-    'Component',
+    'Workflow'
 ]
 
 import uuid
-from typing import Dict, Any, List
+from typing import Dict, List
 from typing import Optional, Type
 
-from mongoengine import Document, UUIDField, ReferenceField, CASCADE, DictField
-
-from nolabs.application.workflow.component import ComponentTypeFactory, Component, ComponentState
-from nolabs.application.workflow.definition import WorkflowDefinition, ComponentTemplate, ComponentDefinition, \
-    DefaultDefinition, MappingDefinition
-from nolabs.application.workflow.executor import DagExecutor
+from nolabs.application.workflow.component import ComponentTypeFactory, Component, ComponentState, ParameterSchema
+from nolabs.application.workflow.dag import DagExecutor
 from nolabs.application.workflow.mappings import map_property
-from nolabs.application.workflow.properties import ParameterSchema
+from nolabs.application.workflow.states import WorkflowState
+from nolabs.application.workflow.schema import WorkflowSchema, ComponentTemplate, ComponentSchema, DefaultSchema, \
+    MappingSchema
 from nolabs.domain.models.common import Experiment
 from nolabs.exceptions import NoLabsException, ErrorCodes
-
-
-class WorkflowState(Document):
-    id: uuid.UUID = UUIDField(primary_key=True)
-    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
-    definition: Dict[str, Any] = DictField()
-
-    meta = {'collection': 'workflows'}
-
-    @staticmethod
-    def create(id: uuid.UUID,
-               experiment: Experiment,
-               definition: WorkflowDefinition) -> 'WorkflowState':
-        return WorkflowState(
-            id=id,
-            experiment=experiment,
-            definition=definition.dict()
-        )
-
-    def set_definition(self, definition: WorkflowDefinition):
-        self.definition = definition.dict()
-
-    def get_definition(self) -> WorkflowDefinition:
-        return WorkflowDefinition(**self.definition)
 
 
 class Workflow:
@@ -64,9 +37,9 @@ class Workflow:
         self._state.delete()
 
     @property
-    def definition(self) -> WorkflowDefinition:
-        definition = WorkflowDefinition(**self._state.definition)
-        return definition
+    def schema(self) -> WorkflowSchema:
+        schema = WorkflowSchema(**self._state.schema)
+        return schema
 
     @classmethod
     def all_workflow_ids(cls, experiment_id: uuid.UUID) -> List[uuid.UUID]:
@@ -82,7 +55,7 @@ class Workflow:
             raise NoLabsException(ErrorCodes.experiment_not_found)
 
         component_templates: List[ComponentTemplate] = []
-        component_definitions: List[ComponentDefinition] = []
+        component_schemas: List[ComponentSchema] = []
 
         asd = uuid.uuid4()
 
@@ -105,16 +78,16 @@ class Workflow:
             ))
 
             if name == 'test1':
-                component_definitions.append(
-                    ComponentDefinition(
+                component_schemas.append(
+                    ComponentSchema(
                         name=name,
                         component_id=asd,
                         defaults=[
-                            DefaultDefinition(
+                            DefaultSchema(
                                 target_path=['x'],
                                 value=5
                             ),
-                            DefaultDefinition(
+                            DefaultSchema(
                                 target_path=['y'],
                                 value=15
                             )
@@ -122,17 +95,17 @@ class Workflow:
                     )
                 )
             else:
-                component_definitions.append(
-                    ComponentDefinition(
+                component_schemas.append(
+                    ComponentSchema(
                         name=name,
                         component_id=uuid.uuid4(),
                         mappings=[
-                            MappingDefinition(
+                            MappingSchema(
                                 source_component_id=asd,
                                 source_path=['x'],
                                 target_path=['y']
                             ),
-                            MappingDefinition(
+                            MappingSchema(
                                 source_component_id=asd,
                                 source_path=['y'],
                                 target_path=['x']
@@ -143,14 +116,14 @@ class Workflow:
 
         id = uuid.uuid4()
 
-        definition = WorkflowDefinition(
+        schema = WorkflowSchema(
             workflow_id=id,
             error=None,
             component_templates=component_templates,
-            components=component_definitions
+            components=component_schemas
         )
 
-        state = WorkflowState.create(id=id, experiment=experiment, definition=definition)
+        state = WorkflowState.create(id=id, experiment=experiment, schema=schema)
         state.save(cascade=True)
 
         return Workflow(id=id, state=state)
@@ -172,12 +145,12 @@ class Workflow:
             previous_component_ids=state.previous_component_ids
         )
 
-    def update(self, definition: WorkflowDefinition):
+    def update(self, schema: WorkflowSchema):
         state = self._state
 
         components: List[Component] = []
 
-        for wf_component in definition.components:
+        for wf_component in schema.components:
             component = ComponentTypeFactory.get_type(wf_component.name)(id=wf_component.component_id,
                                                                          experiment_id=state.experiment.id)
 
@@ -185,20 +158,20 @@ class Workflow:
 
         # Validate graph
         if self._is_cyclic(graph=components):
-            definition.error = 'Workflow must be acyclic'
-            definition.valid = False
-            self._state.set_definition(definition=definition)
+            schema.error = 'Workflow must be acyclic'
+            schema.valid = False
+            self._state.set_schema(schema=schema)
             self._state.save(cascade=True)
-            return definition
+            return schema
 
         schema_valid = True
 
-        for workflow_component in definition.components:
+        for workflow_component in schema.components:
             component = [c for c in components if c.id == workflow_component.component_id][0]
 
             # Validate mappings
             for mapping in workflow_component.mappings:
-                source_components = [c for c in definition.components if
+                source_components = [c for c in schema.components if
                                      c.component_id == mapping.source_component_id]
                 if not source_components:
                     raise NoLabsException(ErrorCodes.component_not_found)
@@ -224,26 +197,27 @@ class Workflow:
                     default.error = error.msg
                     schema_valid = False
 
-        definition.valid = schema_valid
-        self._state.set_definition(definition=definition)
+        schema.valid = schema_valid
+        self._state.set_schema(schema=schema)
         self._state.save()
 
-        return definition
+        return schema
 
     async def start(self):
         experiment = self._state.experiment
-        definition = self._state.get_definition()
+        schema = self._state.get_schema()
 
-        if not definition.valid:
-            raise NoLabsException(ErrorCodes.invalid_workflow_definition)
+        if not schema.valid:
+            raise NoLabsException(ErrorCodes.invalid_workflow_schema)
 
         components: Dict[uuid.UUID, Component] = {}
         component_states: Dict[uuid.UUID, ComponentState] = {}
 
-        for workflow_component in definition.components:
+        for workflow_component in schema.components:
             c: Component = self._get_component(workflow_component.component_id)
             if c:
                 components[workflow_component.component_id] = c
+                state = ComponentState.objects.with_id(c.id)
             else:
                 component: Component = ComponentTypeFactory.get_type(workflow_component.name)(
                     id=workflow_component.component_id,
@@ -251,13 +225,13 @@ class Workflow:
                 state = ComponentState.create(
                     id=component.id,
                     workflow=self._state,
-                    component=component,
-                    job_ids=[]
+                    component=component
                 )
                 components[workflow_component.component_id] = component
-                component_states[workflow_component.component_id] = state
 
-        for workflow_component in definition.components:
+            component_states[workflow_component.component_id] = state
+
+        for workflow_component in schema.components:
             component: Component = components[workflow_component.component_id]
 
             if not component:
@@ -278,6 +252,7 @@ class Workflow:
                 component.try_set_default(default.target_path, value=default.value)
 
         for state in component_states.values():
+            state.set_component(components[state.id])
             state.save()
 
         executor = DagExecutor()

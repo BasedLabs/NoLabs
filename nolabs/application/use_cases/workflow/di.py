@@ -9,31 +9,31 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from nolabs.application.use_cases.workflow.use_cases import CreateWorkflowDefinitionFeature, \
-    GetWorkflowDefinitionFeature, \
-    UpdateWorkflowDefinitionFeature, StartWorkflowFeature, DeleteWorkflowDefinitionFeature, \
-    AllWorkflowDefinitionsFeature, \
+from nolabs.application.use_cases.workflow.use_cases import CreateWorkflowSchemaFeature, \
+    GetWorkflowSchemaFeature, \
+    UpdateWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, \
+    AllWorkflowSchemasFeature, \
     GetComponentStateFeature, ResetWorkflowFeature, StartWorkflowComponentFeature
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 
 class WorkflowDependencies:
     @staticmethod
-    def create_workflow_schema() -> CreateWorkflowDefinitionFeature:
-        return CreateWorkflowDefinitionFeature(
+    def create_workflow_schema() -> CreateWorkflowSchemaFeature:
+        return CreateWorkflowSchemaFeature(
         )
 
     @staticmethod
-    def delete_workflow_schema() -> DeleteWorkflowDefinitionFeature:
-        return DeleteWorkflowDefinitionFeature()
+    def delete_workflow_schema() -> DeleteWorkflowSchemaFeature:
+        return DeleteWorkflowSchemaFeature()
 
     @staticmethod
-    def get_workflow_schema() -> GetWorkflowDefinitionFeature:
-        return GetWorkflowDefinitionFeature()
+    def get_workflow_schema() -> GetWorkflowSchemaFeature:
+        return GetWorkflowSchemaFeature()
 
     @staticmethod
-    def update_workflow_schema() -> UpdateWorkflowDefinitionFeature:
-        return UpdateWorkflowDefinitionFeature(
+    def update_workflow_schema() -> UpdateWorkflowSchemaFeature:
+        return UpdateWorkflowSchemaFeature(
         )
 
     @staticmethod
@@ -52,7 +52,7 @@ class WorkflowDependencies:
 
     @staticmethod
     def all_workflow_schemas():
-        return AllWorkflowDefinitionsFeature()
+        return AllWorkflowSchemasFeature()
 
     @staticmethod
     def get_component_state() -> GetComponentStateFeature:

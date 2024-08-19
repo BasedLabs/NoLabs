@@ -1,11 +1,27 @@
 import uuid
 from typing import List, Type, Optional, Dict, Any
+from uuid import UUID
 
 from airflow import DAG
 from airflow.decorators import task_group
 from airflow.models import MappedOperator
 
-from nolabs.application.workflow.api import Component
+from nolabs.application.workflow.workflow import Component
+from nolabs.infrastructure.environment import Environment
+from nolabs.infrastructure.settings import Settings
+
+
+class DagExecutor:
+    _settings: Settings
+
+    def __init__(self):
+        self._settings = Settings.load()
+
+    async def execute(self, workflow_id: UUID, experiment_id: UUID, components: List[Component]):
+        dag = generate_workflow_dag(workflow_id=workflow_id, experiment_id=experiment_id, components=components)
+
+        if self._settings.get_environment() == Environment.LOCAL:
+            dag.test()
 
 
 def build_task_name(component: Component, cls: Type) -> str:

@@ -3,13 +3,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from .api_models import AllWorkflowDefinitionsResponse, GetComponentStateRequest, ResetWorkflowRequest, \
+from .api_models import AllWorkflowSchemasResponse, GetComponentStateRequest, ResetWorkflowRequest, \
     StartWorkflowComponentRequest, GetComponentStateResponse
 from .di import WorkflowDependencies
-from .use_cases import CreateWorkflowDefinitionFeature, GetWorkflowDefinitionFeature, UpdateWorkflowDefinitionFeature, \
-    StartWorkflowFeature, DeleteWorkflowDefinitionFeature, AllWorkflowDefinitionsFeature, GetComponentStateFeature, \
+from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, UpdateWorkflowSchemaFeature, \
+    StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature, \
     ResetWorkflowFeature, StartWorkflowComponentFeature
-from nolabs.application.workflow.core.definition import WorkflowDefinition
+from nolabs.application.workflow import WorkflowSchema
 
 router = APIRouter(
     prefix='/api/v1/workflow',
@@ -17,19 +17,19 @@ router = APIRouter(
 )
 
 
-@router.post('/{experiment_id}', summary='Create workflow schema')
-async def create_schema(
+@router.post('/{experiment_id}', summary='Create workflow definition')
+async def create_workflow_definition(
         feature: Annotated[
-            CreateWorkflowDefinitionFeature, Depends(WorkflowDependencies.create_workflow_schema)],
+            CreateWorkflowSchemaFeature, Depends(WorkflowDependencies.create_workflow_schema)],
         experiment_id: UUID
-) -> WorkflowDefinition:
+) -> WorkflowSchema:
     return await feature.handle(experiment_id=experiment_id)
 
 
 @router.delete('/{workflow_id}', summary='Delete workflow schema')
 async def create_schema(
         feature: Annotated[
-            DeleteWorkflowDefinitionFeature, Depends(WorkflowDependencies.delete_workflow_schema)],
+            DeleteWorkflowSchemaFeature, Depends(WorkflowDependencies.delete_workflow_schema)],
         workflow_id: UUID
 ):
     return await feature.handle(id=workflow_id)
@@ -38,27 +38,27 @@ async def create_schema(
 @router.get('/{workflow_id}', summary='Get workflow schema')
 async def get_schema(
         feature: Annotated[
-            GetWorkflowDefinitionFeature, Depends(WorkflowDependencies.get_workflow_schema)],
+            GetWorkflowSchemaFeature, Depends(WorkflowDependencies.get_workflow_schema)],
         workflow_id: UUID
-) -> Optional[WorkflowDefinition]:
+) -> Optional[WorkflowSchema]:
     return await feature.handle(id=workflow_id)
 
 
 @router.get('/all/{experiment_id}', summary='All workflow schemas')
 async def get_schema(
         feature: Annotated[
-            AllWorkflowDefinitionsFeature, Depends(WorkflowDependencies.all_workflow_schemas)],
+            AllWorkflowSchemasFeature, Depends(WorkflowDependencies.all_workflow_schemas)],
         experiment_id: UUID
-) -> AllWorkflowDefinitionsResponse:
+) -> AllWorkflowSchemasResponse:
     return await feature.handle(experiment_id=experiment_id)
 
 
 @router.put('/', summary='Update workflow schema')
 async def update_workflow_schema(
         feature: Annotated[
-            UpdateWorkflowDefinitionFeature, Depends(WorkflowDependencies.update_workflow_schema)],
-        definition: WorkflowDefinition
-) -> WorkflowDefinition:
+            UpdateWorkflowSchemaFeature, Depends(WorkflowDependencies.update_workflow_schema)],
+        definition: WorkflowSchema
+) -> WorkflowSchema:
     return await feature.handle(definition=definition)
 
 

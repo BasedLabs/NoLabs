@@ -3,47 +3,47 @@ from typing import Optional
 from uuid import UUID
 
 from nolabs.application.use_cases.workflow.api_models import (GetComponentStateResponse, GetComponentStateRequest,
-                                                              AllWorkflowDefinitionsResponse, ResetWorkflowRequest,
+                                                              AllWorkflowSchemasResponse, ResetWorkflowRequest,
                                                               StartWorkflowComponentRequest)
-from nolabs.application.workflow.api import Workflow, WorkflowDefinition
+from nolabs.application.workflow import Workflow, WorkflowSchema
 from nolabs.exceptions import NoLabsException, ErrorCodes
 
 
-class DeleteWorkflowDefinitionFeature:
+class DeleteWorkflowSchemaFeature:
     async def handle(self, id: UUID):
         workflow = Workflow.get(id)
         workflow.delete()
 
 
-class AllWorkflowDefinitionsFeature:
-    async def handle(self, experiment_id: UUID) -> AllWorkflowDefinitionsResponse:
+class AllWorkflowSchemasFeature:
+    async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
         ids = Workflow.all_workflow_ids(experiment_id=experiment_id)
-        return AllWorkflowDefinitionsResponse(
+        return AllWorkflowSchemasResponse(
             ids=ids
         )
 
 
-class CreateWorkflowDefinitionFeature:
-    async def handle(self, experiment_id: UUID) -> WorkflowDefinition:
+class CreateWorkflowSchemaFeature:
+    async def handle(self, experiment_id: UUID) -> WorkflowSchema:
         workflow = Workflow.create(experiment_id=experiment_id)
-        return workflow.definition
+        return workflow.schema
 
 
-class GetWorkflowDefinitionFeature:
-    async def handle(self, id: UUID) -> Optional[WorkflowDefinition]:
+class GetWorkflowSchemaFeature:
+    async def handle(self, id: UUID) -> Optional[WorkflowSchema]:
         workflow = Workflow.get(id)
 
         if not workflow:
             raise NoLabsException(ErrorCodes.workflow_not_found)
 
-        return workflow.definition
+        return workflow.schema
 
 
-class UpdateWorkflowDefinitionFeature:
-    async def handle(self, definition: WorkflowDefinition) -> WorkflowDefinition:
-        workflow = Workflow.get(definition.workflow_id)
-        workflow.update(definition=definition)
-        return workflow.definition
+class UpdateWorkflowSchemaFeature:
+    async def handle(self, schema: WorkflowSchema) -> WorkflowSchema:
+        workflow = Workflow.get(schema.workflow_id)
+        workflow.update(schema=schema)
+        return workflow.schema
 
 
 class StartWorkflowFeature:
