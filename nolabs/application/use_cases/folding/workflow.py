@@ -1,16 +1,19 @@
 import uuid
-from abc import abstractmethod
-from typing import List, Type
+from abc import ABC, abstractmethod
+from typing import List, Type, Optional, Any
 
-import asyncio
+from airflow.models import BaseOperator
+from airflow.utils.context import Context
 from pydantic import BaseModel
 
-from nolabs.application.use_cases.folding.api_models import FoldingBackendEnum, SetupJobRequest
-from nolabs.application.use_cases.folding.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
-from nolabs.domain.models.common import Protein
+from nolabs.application.use_cases.folding.api_models import FoldingBackendEnum
+from nolabs.application.workflow import SetupOperator, OutputOperator
+from nolabs.application.workflow.component import Component, JobValidationError, TOutput, TInput
+from nolabs.domain.models.common import Protein, JobId, JobName, Experiment
 from nolabs.domain.models.folding import FoldingJob
-from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
+from nolabs.exceptions import NoLabsException, ErrorCodes
+from nolabs.job_services.esmfold_light.api_models import PredictFoldingJobRequest, PredictFoldingJobResponse
+from nolabs.job_services.esmfold_light.container.operator import RunEsmFoldLightOperator
 
 
 class FoldingComponentInput(BaseModel):
@@ -21,53 +24,27 @@ class FoldingComponentOutput(BaseModel):
     proteins_with_pdb: List[uuid.UUID]
 
 
-class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput]):
-    name = 'Folding'
+class FoldingComponent(ABC, Component[FoldingComponentInput, FoldingComponentOutput]):
+    @property
+    def input_parameter_type(self) -> Type[TInput]:
+        return FoldingComponentInput
+
+    @property
+    def output_parameter_type(self) -> Type[TOutput]:
+        return FoldingComponentOutput
+
+    @property
+    def setup_operator_type(self) -> Type[BaseOperator]:
+        return SetupFoldingJobsOperator
+
+    @property
+    def output_operator_type(self) -> Type[BaseOperator]:
+        return GatherJobOutputsOperator
 
     @property
     @abstractmethod
     def backend(self) -> FoldingBackendEnum:
-        ...
-
-    async def execute(self):
-        run_job_feature = RunJobFeature(
-            esmfold=InfrastructureDependencies.esmfold_microservice(),
-            esmfold_light=InfrastructureDependencies.esmfold_light_microservice(),
-            rosettafold=InfrastructureDependencies.rosettafold_microservice()
-        )
-        get_job_feature = GetJobFeature()
-
-        for job in self.jobs:
-            await run_job_feature.handle(job_id=job.id)
-
-        items: List[uuid.UUID] = []
-
-        for job in self.jobs:
-            get_result = await get_job_feature.handle(job_id=job.id)
-
-            for protein_id in get_result.protein_ids:
-                items.append(protein_id)
-
-        self.output = FoldingComponentOutput(
-            proteins_with_pdb=items
-        )
-
-    async def setup_jobs(self):
-        setup_job_feature = SetupJobFeature()
-
-        self.jobs = []
-
-        for protein_id in self.input.proteins_with_fasta:
-            protein = Protein.objects.with_id(protein_id)
-
-            result = await setup_job_feature.handle(request=SetupJobRequest(
-                experiment_id=self.experiment.id,
-                backend=self.backend,
-                protein_ids=[protein.id],
-                job_name=f'Folding {protein.name.fasta_name}'
-            ))
-
-            self.jobs.append(FoldingJob.objects.with_id(result.job_id))
+        return FoldingBackendEnum.esmfold_light
 
     async def jobs_setup_errors(self) -> List[JobValidationError]:
         jobs_errors = []
@@ -84,53 +61,18 @@ class FoldingComponent(Component[FoldingComponentInput, FoldingComponentOutput])
 
         return jobs_errors
 
-    @property
-    def _input_parameter_type(self) -> Type[FoldingComponentInput]:
-        return FoldingComponentInput
 
-    @property
-    def _output_parameter_type(self) -> Type[FoldingComponentOutput]:
-        return FoldingComponentOutput
-
-    async def executing(self) -> bool:
-        job: FoldingJob
-
-        esmfold_api = InfrastructureDependencies.esmfold_microservice()
-        esmfold_light_api = InfrastructureDependencies.esmfold_light_microservice()
-        rosettafold_api = InfrastructureDependencies.rosettafold_microservice()
-
-        for job in self.jobs:
-            if self.backend == FoldingBackendEnum.esmfold_light:
-                status = esmfold_light_api.is_job_running_job_job_id_is_running_get(
-                    job_id=job.id
-                )
-                if status.is_running:
-                    return True
-
-            if self.backend == FoldingBackendEnum.esmfold:
-                status = esmfold_api.is_job_running_job_job_id_is_running_get(
-                    job_id=job.id
-                )
-                if not not status:
-                    return True
-
-            if self.backend == FoldingBackendEnum.rosettafold:
-                status = rosettafold_api.is_job_running_job_job_id_is_running_get(
-                    job_id=job.id
-                )
-                if status.is_running:
-                    return True
-
-        return False
-
-
-class EsmfoldComponent(FoldingComponent):
+class EsmfoldComponent(FoldingComponent[FoldingComponentInput, FoldingComponentOutput]):
     name = 'Esmfold'
     description = 'Protein folding using Esmfold'
 
     @property
     def backend(self) -> FoldingBackendEnum:
         return FoldingBackendEnum.esmfold
+
+    @property
+    def job_operator_type(self) -> Optional[Type[BaseOperator]]:
+        return RunEsmFoldLightOperator
 
 
 class EsmfoldLightComponent(FoldingComponent):
@@ -141,6 +83,10 @@ class EsmfoldLightComponent(FoldingComponent):
     def backend(self) -> FoldingBackendEnum:
         return FoldingBackendEnum.esmfold_light
 
+    @property
+    def job_operator_type(self) -> Optional[Type[BaseOperator]]:
+        return RunEsmFoldLightOperator
+
 
 class RosettafoldComponent(FoldingComponent):
     name = 'Rosettafold component'
@@ -149,3 +95,54 @@ class RosettafoldComponent(FoldingComponent):
     @property
     def backend(self) -> FoldingBackendEnum:
         return FoldingBackendEnum.rosettafold
+
+
+class SetupFoldingJobsOperator(SetupOperator):
+    async def execute_async(self, context: Context) -> List[str]:
+        job_ids = []
+
+        component: FoldingComponent = FoldingComponent.get(id=self.component_id)
+
+        experiment = Experiment.objects.with_id(self.experiment_id)
+
+        for protein_id in component.input_value.proteins_with_fasta:
+            protein = Protein.objects.with_id(protein_id)
+
+            if not protein:
+                raise NoLabsException(ErrorCodes.protein_not_found)
+
+            job_id = JobId(uuid.uuid4())
+            job_name = JobName('New folding job')
+            job = FoldingJob(
+                id=job_id,
+                name=job_name,
+                experiment=experiment
+            )
+
+            job.set_inputs(protein=protein, backend=component.backend)
+            await job.save(cascade=True)
+
+            self.set_job_input(job.id, PredictFoldingJobRequest(protein_sequence=protein.get_amino_acid_sequence()))
+
+        component.job_ids = job_ids
+        component.save()
+
+        return [str(i) for i in job_ids]
+
+
+class GatherJobOutputsOperator(OutputOperator):
+    async def execute_async(self, context: Context) -> Any:
+        component = self.get_component()
+
+        items = []
+
+        for job_id in component.job_ids:
+            job: FoldingJob = FoldingJob.objects.with_id(job_id)
+            job_result = PredictFoldingJobResponse(**self.get_job_output(job.id))
+            job.set_result(job.protein, job_result.pdb_content)
+
+            items.append(job.protein.iid.value)
+
+        self.setup_output(FoldingComponentOutput(
+            proteins_with_pdb=items
+        ))

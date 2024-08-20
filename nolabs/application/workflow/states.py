@@ -6,7 +6,6 @@ from mongoengine import ReferenceField, UUIDField, Document, DictField, CASCADE,
     EmbeddedDocumentListField, IntField, EmbeddedDocument
 
 from nolabs.application.workflow.schema import WorkflowSchema
-from nolabs.domain.models.common import Experiment
 
 if TYPE_CHECKING:
     from nolabs.application.workflow.component import Component
@@ -26,18 +25,15 @@ class InputPropertyErrorDbModel(EmbeddedDocument):
 
 class WorkflowState(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
-    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     schema: Dict[str, Any] = DictField()
 
     meta = {'collection': 'workflows'}
 
     @staticmethod
     def create(id: uuid.UUID,
-               experiment: Experiment,
                schema: WorkflowSchema) -> 'WorkflowState':
         return WorkflowState(
             id=id,
-            experiment=experiment,
             schema=schema.dict()
         )
 
@@ -50,7 +46,6 @@ class WorkflowState(Document):
 
 class ComponentState(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
-    experiment_id: uuid.UUID = UUIDField(required=True)
     workflow: WorkflowState = ReferenceField(WorkflowState, reverse_delete_rule=CASCADE)
 
     input_property_errors: List[InputPropertyErrorDbModel] = EmbeddedDocumentListField(InputPropertyErrorDbModel)
@@ -81,7 +76,6 @@ class ComponentState(Document):
                component: 'Component'):
         return ComponentState(
             id=id,
-            experiment_id=workflow.experiment.id,
             workflow=workflow,
             input_schema=component.input_schema.dict(),
             output_schema=component.output_schema.dict(),

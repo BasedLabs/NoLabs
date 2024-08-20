@@ -1,15 +1,18 @@
 __all__ = [
-    'JobOperator',
+    'ExecuteJobOperator',
     'SetupOperator',
     'OutputOperator'
 ]
 
 import nest_asyncio
+from mongoengine import Document, DictField, UUIDField
+from pydantic import BaseModel
+
 nest_asyncio.apply()
 
 import uuid
 from abc import abstractmethod, ABC
-from typing import Any, List
+from typing import Any, List, Dict, Optional
 from typing import Generic
 
 import asyncio
@@ -18,8 +21,12 @@ from airflow.utils.context import Context
 from airflow.utils.decorators import apply_defaults
 
 from nolabs.application.workflow.component import Component, TOutput
-from nolabs.domain.models.common import JobId
 
+
+class Communicator(Document):
+    job_id: uuid.UUID = UUIDField(primary_key=True, required=True)
+    input: dict = DictField()
+    output: dict = DictField()
 
 
 class SetupOperator(ABC, BaseOperator):
@@ -30,18 +37,17 @@ class SetupOperator(ABC, BaseOperator):
     """
     component_id: uuid.UUID
     workflow_id: uuid.UUID
-    experiment_id: uuid.UUID
+    _communicator_cache: List[Communicator] = []
     input_changed: bool = False
     '''Whether input was changed after last execution'''
 
     @apply_defaults
-    def __init__(self, workflow_id: uuid.UUID, experiment_id: uuid.UUID, component_id: uuid.UUID, task_id: str,
+    def __init__(self, workflow_id: uuid.UUID, component_id: uuid.UUID, task_id: str,
                  **kwargs):
         super().__init__(task_id=task_id, **kwargs)
 
         self.component_id = component_id
         self.workflow_id = workflow_id
-        self.experiment_id = experiment_id
 
     def pre_execute(self, context: Any):
         component = Component.get(self.component_id)
@@ -77,26 +83,39 @@ class SetupOperator(ABC, BaseOperator):
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self.execute_async(context))
 
-    def serialize_job_ids(self, job_ids: List[JobId]) -> List[str]:
-        return [str(i) for i in job_ids]
+    def post_execute(self, context: Any, result: Any = None):
+        for c in self._communicator_cache:
+            c.save()
+
+    def get_component(self) -> Component:
+        return Component.get(self.component_id)
+
+    def set_job_input(self, job_id: uuid.UUID, data: BaseModel):
+        doc = Communicator.objects.with_id(job_id)
+
+        value = data.dict()
+
+        if not doc:
+            doc = Communicator(job_id=job_id, value=value)
+        doc.value = value
+        self._communicator_cache.append(doc)
 
 
-class JobOperator(ABC, BaseOperator):
-    """
-    Executes job
-    """
+class ExecuteJobOperator(ABC, BaseOperator):
     component_id: uuid.UUID
-    job_id: JobId
+    job_id: uuid.UUID
+    _communicator_cache: Optional[Communicator]
 
     @apply_defaults
-    def __init__(self, workflow_id: uuid.UUID, experiment_id: uuid.UUID, job_id: str, component_id: uuid.UUID,
+    def __init__(self, workflow_id: uuid.UUID, job_id: str, component_id: uuid.UUID,
                  task_id: str, **kwargs):
         super().__init__(task_id=task_id, **kwargs)
 
         self.component_id = component_id
         self.workflow_id = workflow_id
-        self.experiment_id = experiment_id
-        self.job_id = JobId(uuid.UUID(job_id))
+        self.job_id = uuid.UUID(job_id)
+
+        self._refresh_communicator()
 
     @abstractmethod
     async def execute_async(self, context: Context) -> Any:
@@ -106,6 +125,25 @@ class JobOperator(ABC, BaseOperator):
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self.execute_async(context))
 
+    def post_execute(self, context: Context, result: Any = None):
+        if self._communicator_cache and (self._communicator_cache.input or self._communicator_cache.output):
+            self._communicator_cache.save()
+
+    def _refresh_communicator(self):
+        if not self._communicator_cache:
+            self._communicator_cache = Communicator(job_id=self.job_id)
+        else:
+            self._communicator_cache = Communicator.objects.with_id(self.job_id)
+
+    def get_component(self) -> Component:
+        return Component.get(self.component_id)
+
+    def get_input(self) -> Optional[Dict[str, Any]]:
+        return self._communicator_cache.input
+
+    def set_output(self, value: BaseModel):
+        self._communicator_cache.output = value.dict()
+
 
 class OutputOperator(ABC, BaseOperator, Generic[TOutput]):
     """
@@ -113,17 +151,15 @@ class OutputOperator(ABC, BaseOperator, Generic[TOutput]):
     """
     component_id: uuid.UUID
     workflow_id: uuid.UUID
-    experiment_id: uuid.UUID
     setup_output_called: bool = False
 
     @apply_defaults
-    def __init__(self, workflow_id: uuid.UUID, experiment_id: uuid.UUID, component_id: uuid.UUID, task_id: str,
+    def __init__(self, workflow_id: uuid.UUID, component_id: uuid.UUID, task_id: str,
                  **kwargs):
         super().__init__(task_id=task_id, **kwargs)
 
         self.component_id = component_id
         self.workflow_id = workflow_id
-        self.experiment_id = experiment_id
 
     @abstractmethod
     async def execute_async(self, context: Context) -> Any:
@@ -147,3 +183,14 @@ class OutputOperator(ABC, BaseOperator, Generic[TOutput]):
         component.output_value = output
         component.save()
         self.setup_output_called = True
+
+    def get_component(self) -> Component:
+        return Component.get(self.component_id)
+
+    def get_job_output(self, job_id: uuid.UUID) -> Optional[Dict[str, Any]]:
+        doc: Communicator = Communicator.objects.with_id(job_id)
+
+        if not doc or not doc.output:
+            return None
+
+        return doc.output

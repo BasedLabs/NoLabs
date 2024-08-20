@@ -1,4 +1,5 @@
 import logging
+import uuid
 from typing import Optional
 from uuid import UUID
 
@@ -6,6 +7,7 @@ from nolabs.application.use_cases.workflow.api_models import (GetComponentStateR
                                                               AllWorkflowSchemasResponse, ResetWorkflowRequest,
                                                               StartWorkflowComponentRequest)
 from nolabs.application.workflow import Workflow, WorkflowSchema
+from nolabs.domain.models.common import Experiment
 from nolabs.exceptions import NoLabsException, ErrorCodes
 
 
@@ -17,15 +19,17 @@ class DeleteWorkflowSchemaFeature:
 
 class AllWorkflowSchemasFeature:
     async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
-        ids = Workflow.all_workflow_ids(experiment_id=experiment_id)
+        experiment: Experiment = Experiment.objects.with_id(experiment_id)
         return AllWorkflowSchemasResponse(
-            ids=ids
+            ids=experiment.workflow_ids
         )
 
 
 class CreateWorkflowSchemaFeature:
     async def handle(self, experiment_id: UUID) -> WorkflowSchema:
-        workflow = Workflow.create(experiment_id=experiment_id)
+        workflow = Workflow.create(uuid.uuid4())
+        experiment = Experiment.objects.with_id(experiment_id)
+        experiment.add_workflow(workflow.id)
         return workflow.schema
 
 

@@ -12,16 +12,15 @@ from nolabs.application.workflow.mappings import map_property
 from nolabs.application.workflow.states import WorkflowState
 from nolabs.application.workflow.schema import WorkflowSchema, ComponentTemplate, ComponentSchema, DefaultSchema, \
     MappingSchema
-from nolabs.domain.models.common import Experiment
 from nolabs.exceptions import NoLabsException, ErrorCodes
 
 
 class Workflow:
-    _id: uuid.UUID
+    id: uuid.UUID
     _state: WorkflowState
 
     def __init__(self, id: uuid.UUID, state: WorkflowState):
-        self._id = id
+        self.id = id
         self._state = state
 
     @classmethod
@@ -42,25 +41,14 @@ class Workflow:
         return schema
 
     @classmethod
-    def all_workflow_ids(cls, experiment_id: uuid.UUID) -> List[uuid.UUID]:
-        experiment = Experiment.objects.with_id(experiment_id)
-        models: List[WorkflowState] = WorkflowState.objects(experiment=experiment).only('id')
-        return [m.id for m in models]
-
-    @classmethod
-    def create(cls, experiment_id: uuid.UUID) -> 'Workflow':
-        experiment: Experiment = Experiment.objects.with_id(experiment_id)
-
-        if not experiment:
-            raise NoLabsException(ErrorCodes.experiment_not_found)
-
+    def create(cls, id: uuid.UUID) -> 'Workflow':
         component_templates: List[ComponentTemplate] = []
         component_schemas: List[ComponentSchema] = []
 
         asd = uuid.uuid4()
 
         for name, bag in ComponentTypeFactory.enumerate():
-            component = bag(id=uuid.uuid4(), experiment_id=experiment_id)
+            component = bag(id=uuid.uuid4())
 
             output_schema = component.output_schema
             output_parameters = {name: map_property(prop, output_schema) for name, prop in
@@ -114,8 +102,6 @@ class Workflow:
                     )
                 )
 
-        id = uuid.uuid4()
-
         schema = WorkflowSchema(
             workflow_id=id,
             error=None,
@@ -123,7 +109,7 @@ class Workflow:
             components=component_schemas
         )
 
-        state = WorkflowState.create(id=id, experiment=experiment, schema=schema)
+        state = WorkflowState.create(id=id, schema=schema)
         state.save(cascade=True)
 
         return Workflow(id=id, state=state)
@@ -136,7 +122,6 @@ class Workflow:
 
         return ComponentTypeFactory.get_type(state.name)(
             id=state.id,
-            experiment_id=self._state.experiment.id,
             job_ids=state.job_ids,
             input_schema=ParameterSchema(**state.input_schema),
             output_schema=ParameterSchema(**state.output_schema),
@@ -151,8 +136,7 @@ class Workflow:
         components: List[Component] = []
 
         for wf_component in schema.components:
-            component = ComponentTypeFactory.get_type(wf_component.name)(id=wf_component.component_id,
-                                                                         experiment_id=state.experiment.id)
+            component = ComponentTypeFactory.get_type(wf_component.name)(id=wf_component.component_id)
 
             components.append(component)
 
@@ -204,7 +188,6 @@ class Workflow:
         return schema
 
     async def start(self):
-        experiment = self._state.experiment
         schema = self._state.get_schema()
 
         if not schema.valid:
@@ -220,8 +203,7 @@ class Workflow:
                 state = ComponentState.objects.with_id(c.id)
             else:
                 component: Component = ComponentTypeFactory.get_type(workflow_component.name)(
-                    id=workflow_component.component_id,
-                    experiment_id=self._state.experiment.id)
+                    id=workflow_component.component_id)
                 state = ComponentState.create(
                     id=component.id,
                     workflow=self._state,
@@ -256,8 +238,7 @@ class Workflow:
             state.save()
 
         executor = DagExecutor()
-        await executor.execute(workflow_id=self._state.id, experiment_id=experiment.id,
-                               components=list(components.values()))
+        await executor.execute(workflow_id=self._state.id, components=list(components.values()))
 
     def _is_cyclic(self, graph: List[Component]) -> bool:
         visited: Set[WorkflowGraphNode] = set()  # type: ignore

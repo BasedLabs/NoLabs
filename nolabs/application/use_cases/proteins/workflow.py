@@ -1,10 +1,13 @@
 import asyncio
 import uuid
-from typing import List, Type
+from typing import List, Type, Any, Optional
 
+from airflow.models import BaseOperator
+from airflow.utils.context import Context
 from pydantic import BaseModel
 
-from nolabs.application.workflow.component import Component, JobValidationError
+from nolabs.application.workflow import SetupOperator, OutputOperator
+from nolabs.application.workflow.component import Component, JobValidationError, TOutput, TInput
 
 
 class ProteinsComponentInput(BaseModel):
@@ -16,24 +19,37 @@ class ProteinsComponentOutput(BaseModel):
 
 
 class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutput]):
-    name = 'Proteins'
-    description = 'Proteins datasource'
-
-    async def execute(self):
-        self.output = ProteinsComponentOutput(
-            proteins=self.input.proteins
-        )
-
-    async def setup_jobs(self):
-        pass
-
-    async def jobs_setup_errors(self) -> List[JobValidationError]:
-        return []
-
     @property
-    def _input_parameter_type(self) -> Type[ProteinsComponentInput]:
+    def input_parameter_type(self) -> Type[TInput]:
         return ProteinsComponentInput
 
     @property
-    def _output_parameter_type(self) -> Type[ProteinsComponentOutput]:
+    def output_parameter_type(self) -> Type[TOutput]:
         return ProteinsComponentOutput
+
+    @property
+    def setup_operator_type(self) -> Type[BaseOperator]:
+        return ProteinsSetupOperator
+
+    @property
+    def job_operator_type(self) -> Optional[Type[BaseOperator]]:
+        return None
+
+    @property
+    def output_operator_type(self) -> Type[BaseOperator]:
+        return ProteinsOutputOperator
+
+    name = 'Proteins'
+    description = 'Proteins datasource'
+
+
+class ProteinsSetupOperator(SetupOperator):
+    async def execute_async(self, context: Context) -> List[str]:
+        ...
+
+
+class ProteinsOutputOperator(OutputOperator):
+    async def execute_async(self, context: Context) -> Any:
+        component = ProteinsComponent.get(self.component_id)
+        input: ProteinsComponentInput = component.input_value
+        self.setup_output(ProteinsComponentOutput(proteins=input.proteins))

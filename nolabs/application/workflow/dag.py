@@ -17,8 +17,8 @@ class DagExecutor:
     def __init__(self):
         self._settings = Settings.load()
 
-    async def execute(self, workflow_id: UUID, experiment_id: UUID, components: List[Component]):
-        dag = generate_workflow_dag(workflow_id=workflow_id, experiment_id=experiment_id, components=components)
+    async def execute(self, workflow_id: UUID, components: List[Component]):
+        dag = generate_workflow_dag(workflow_id=workflow_id, components=components)
 
         if self._settings.get_environment() == Environment.LOCAL:
             dag.test()
@@ -28,7 +28,7 @@ def build_task_name(component: Component, cls: Type) -> str:
     return f'{component.name}-{cls.__name__}-{str(component.id)}'
 
 
-def generate_workflow_dag(workflow_id: uuid.UUID, experiment_id: uuid.UUID, components: List[Component]):
+def generate_workflow_dag(workflow_id: uuid.UUID, components: List[Component]):
     with DAG(
             dag_id=str(workflow_id),
             default_args={"owner": "airflow"},
@@ -42,7 +42,6 @@ def generate_workflow_dag(workflow_id: uuid.UUID, experiment_id: uuid.UUID, comp
                 setup_task_name = build_task_name(component=component, cls=component.setup_operator_type)
 
                 setup_task = component.setup_operator_type(workflow_id=workflow_id,
-                                                           experiment_id=experiment_id,
                                                            component_id=component.id,
                                                            task_id=setup_task_name,
                                                            dag=dag)
@@ -55,12 +54,11 @@ def generate_workflow_dag(workflow_id: uuid.UUID, experiment_id: uuid.UUID, comp
                         cls=component.job_operator_type)
                     job_task = component.job_operator_type.partial(task_id=job_task_name,
                                                                    workflow_id=workflow_id,
-                                                                   experiment_id=experiment_id,
                                                                    component_id=component.id).expand(
                         job_id=setup_task.output)
 
                 output_task_name = build_task_name(component=component, cls=component.output_operator_type)
-                output_task = component.output_operator_type(component_id=component.id, experiment_id=experiment_id,
+                output_task = component.output_operator_type(component_id=component.id,
                                                              workflow_id=workflow_id, task_id=output_task_name,
                                                              dag=dag)
 

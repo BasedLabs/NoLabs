@@ -5,7 +5,7 @@ from airflow.utils.context import Context
 from pydantic import BaseModel
 
 from nolabs.application.workflow.component import Component, TOutput, TInput
-from nolabs.application.workflow.operators import SetupOperator, JobOperator, OutputOperator
+from nolabs.application.workflow.operators import SetupOperator, ExecuteJobOperator, OutputOperator
 from nolabs.domain.models.common import Job, JobInputError, JobId, JobName, Experiment
 
 
@@ -45,7 +45,7 @@ class Test1SetupOperator(SetupOperator):
         return self.serialize_job_ids(job_ids)
 
 
-class Test1JobOperator(JobOperator):
+class Test1ExecuteJobOperator(ExecuteJobOperator):
 
     async def execute_async(self, context: Context) -> Any:
         self.log.info(f'Hello there, job id is {self.job_id}')
@@ -73,8 +73,8 @@ class Test1Component(Component[Test1Input, Test1Output]):
         return Test1SetupOperator
 
     @property
-    def job_operator_type(self) -> Optional[Type['JobOperator']]:
-        return Test1JobOperator
+    def job_operator_type(self) -> Optional[Type['ExecuteJobOperator']]:
+        return Test1ExecuteJobOperator
 
     @property
     def output_operator_type(self) -> Type['OutputOperator']:
