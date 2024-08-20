@@ -11,23 +11,19 @@
 2. The folder should contain:
    - A build directory with a Dockerfile inside it.
    - A directory for the source code of the microservice.
-   - A `client/` directory, generated using a command like this (run microservice before):
-
-     
+   - A `client/` directory, generated using a command like this:
    ```shell
     npx @openapitools/openapi-generator-cli generate \
-       -i https://127.0.0.1:<microservice_port>/openapi.json \
+       -i https://127.0.0.1:5737/openapi.json \
        -g python \
        -o ./client \
-       --additional-properties=packageName=<microservice_name>
+       --additional-properties=packageName=diffdock_microservice
    ```
-
    
-3. Ensure the microservice includes FastAPI's surface with a file called api.py, api models must go to api_models.py, and Uvicorn should start upon Docker run, similar to the example files:
+3. Ensure the microservice includes FastAPI's surface, and Uvicorn should start upon Docker run, similar to the example files:
    Dockerfile: https://github.com/BasedLabs/NoLabs/blob/master/microservices/esmfold/build/Dockerfile
    API file: https://github.com/BasedLabs/NoLabs/blob/master/microservices/esmfold/esmfold/api.py
 4. Once everything is working, add the microservice to the docker-compose.yaml file in the main directory.
-5. Create github workflow configs for your microservice build in .github/workflows (use .template files as templates)
 5. If changes are made to the microservice, update the version of the image in the docker-compose file for the respective microservice:
    ```yaml
    esmfold:
@@ -44,7 +40,7 @@
 ### Opening a Pull Request
    1. Commit your changes using 
    ```
-   git commit -m "fix: Fixed something"
+   git commit -m "Your commit message here"
    ```
    
    2. Push your changes to your forked repository with 
@@ -58,10 +54,11 @@
    6. Submit the pull request.
 
 ## Best Practices
-- Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+- Use Conventional Commits: write descriptive commit messages using Conventional Commits. 
 - Branch Naming: Name your branches as "feature/<feature_name>", "fix/<fix_name>", or "refactor/<refactor_name>".
 - Python Formatting: Follow PEP8 formatting guidelines for Python code.
-- Recommended Tools: We strongly recommend using PyCharm (with pydantic and mypy plugins installed) and Webflow when developing NoLabs.
+- Recommended Tools: We strongly recommend using PyCharm and Webflow when developing NoLabs.
+- GitHub Workflows: For new microservices, add them to GitHub workflows (master template and PR template).
 
 ## Collaborating
    Feel free to discuss your changes with the community in the pull request comments.

@@ -71,6 +71,8 @@ class Experiment(Document, Entity):
     name: ExperimentName = ValueObjectStringField(required=True, factory=ExperimentName)
     created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
 
+    workflow_ids: List[UUID] = ListField(UUIDField())
+
     def __init__(self, id: ExperimentId, name: ExperimentName, created_at: datetime.datetime | None = None, *args,
                  **kwargs):
         if not id:
@@ -83,6 +85,9 @@ class Experiment(Document, Entity):
 
         super().__init__(id=id.value if isinstance(id, ExperimentId) else id, name=name, created_at=created_at, *args,
                          **kwargs)
+
+    def add_workflow(self, workflow_id: uuid.UUID):
+        self.workflow_ids.append(workflow_id)
 
     @property
     def iid(self) -> ExperimentId:

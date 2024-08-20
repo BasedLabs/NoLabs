@@ -344,7 +344,6 @@ def is_pydantic_type(t: Any) -> bool:
 
 class Component(ABC, Generic[TInput, TOutput]):
     id: uuid.UUID
-    experiment_id: uuid.UUID
 
     job_ids: List[uuid.UUID]
 
@@ -367,7 +366,6 @@ class Component(ABC, Generic[TInput, TOutput]):
 
     def __init__(self,
                  id: uuid.UUID,
-                 experiment_id: uuid.UUID,
                  job_ids: Optional[List[uuid.UUID]] = None,
                  input_schema: Optional[Union[ParameterSchema, Dict[str, Any]]] = None,
                  output_schema: Optional[Union[ParameterSchema, Dict[str, Any]]] = None,
@@ -375,7 +373,6 @@ class Component(ABC, Generic[TInput, TOutput]):
                  output_value_dict: Optional[Dict[str, Any]] = None,
                  previous_component_ids: Optional[List[uuid]] = None):
         self.id = id
-        self.experiment_id = experiment_id
         self.job_ids = job_ids or []
 
         if isinstance(input_schema, Mapping):
@@ -551,7 +548,6 @@ class Component(ABC, Generic[TInput, TOutput]):
 
         component = ComponentTypeFactory.get_type(state.name)(
             id=state.id,
-            experiment_id=state.experiment_id,
             job_ids=state.job_ids,
             input_schema=ParameterSchema(**state.input_schema),
             output_schema=ParameterSchema(**state.output_schema),
