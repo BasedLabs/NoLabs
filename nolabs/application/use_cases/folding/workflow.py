@@ -12,8 +12,8 @@ from nolabs.application.workflow.component import Component, JobValidationError,
 from nolabs.domain.models.common import Protein, JobId, JobName, Experiment
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.job_services.esmfold_light.api_models import PredictFoldingJobRequest, PredictFoldingJobResponse
-from nolabs.job_services.esmfold_light.container.operator import RunEsmFoldLightOperator
+from nolabs.job_services.esmfold_light.operators.api_models import PredictFoldingJobRequest, PredictFoldingJobResponse
+from nolabs.job_services.esmfold_light.operators.operator import RunEsmFoldLightOperator
 
 
 class FoldingComponentInput(BaseModel):
@@ -103,7 +103,7 @@ class SetupFoldingJobsOperator(SetupOperator):
 
         component: FoldingComponent = FoldingComponent.get(id=self.component_id)
 
-        experiment = Experiment.objects.with_id(self.experiment_id)
+        experiment = Experiment.objects.with_id(self.extra['experiment_id'])
 
         for protein_id in component.input_value.proteins_with_fasta:
             protein = Protein.objects.with_id(protein_id)

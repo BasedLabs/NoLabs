@@ -1,0 +1,78 @@
+import uuid
+from typing import List, Optional, Dict, Any
+from uuid import UUID
+
+from prefect import flow
+from prefect.task_runners import ConcurrentTaskRunner
+
+from nolabs.application.workflow.workflow import Component
+from nolabs.infrastructure.environment import Environment
+from nolabs.infrastructure.settings import Settings
+
+
+class PrefectDagExecutor:
+    _settings: Settings
+
+    def __init__(self):
+        self._settings = Settings.load()
+
+    async def execute(self, workflow_id: UUID, components: List[Component], extra: Optional[Dict[str, Any]] = None):
+        dag = generate_workflow_dag(workflow_id=workflow_id, components=components, extra=extra)
+
+        if self._settings.get_environment() == Environment.LOCAL:
+            dag.test()
+
+
+def generate_workflow_dag(workflow_id: uuid.UUID, components: List[Component], extra: Optional[Dict[str, Any]] = None):
+    def component_flow_factory(component: Component):
+        @flow(name=str(component.name), flow_run_name=f'{component.name}-{str(component.id)}',
+              task_runner=ConcurrentTaskRunner())
+        async def component_flow():
+            child_flows = []
+
+            for child_component_id in component.previous_component_ids:
+                child_component = [c for c in components if c.id == child_component_id][0]
+                child_flow = component_flow_factory(component=child_component)
+                child_flow_result = await child_flow()
+                child_flows.append(child_flow_result)
+
+            setup_task = component.setup_task_type(workflow_id=workflow_id,
+                                                   component_id=component.id,
+                                                   extra=extra)
+
+            if child_flows:
+                setup_task_result = await setup_task.execute(wait_for=child_flows,
+                                                             component_id=component.id,
+                                                             component_name=component.name)
+            else:
+                setup_task_result = await setup_task.execute()
+
+            execute_job_task = component.job_task_type(workflow_id=workflow_id,
+                                                       component_id=component.id,
+                                                       extra=extra)
+
+            if execute_job_task:
+                wait_for = await execute_job_task.execute.map(setup_task_result,
+                                                              component_id=component.id,
+                                                              component_name=component.name
+                                                              )
+            else:
+                wait_for = setup_task_result
+
+            output_task = component.output_task_type(
+                workflow_id=workflow_id,
+                component_id=component.id,
+                extra=extra
+            )
+
+            await output_task.execute(wait_for=[wait_for],
+                                      component_id=component.id,
+                                      component_name=component.name)
+
+        return component_flow
+
+    @flow(name=str(workflow_id), flow_run_name=f'workflow-{str(workflow_id)}', task_runner=ConcurrentTaskRunner())
+    async def workflow():
+        component_flow_factory(component=components[0])()
+
+    return workflow

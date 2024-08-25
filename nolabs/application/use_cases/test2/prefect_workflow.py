@@ -1,11 +1,10 @@
 import uuid
 from typing import Type, Optional, List, Any, ClassVar
 
-from airflow.utils.context import Context
 from pydantic import BaseModel
 
 from nolabs.application.workflow.component import Component, TOutput, TInput
-from nolabs.application.workflow.airflow.operators import SetupOperator, ExecuteJobOperator, OutputOperator
+from nolabs.application.workflow.prefect.tasks import SetupTask, ExecuteJobTask, OutputTask
 from nolabs.domain.models.common import Job, JobInputError, JobId, JobName, Experiment
 
 
@@ -28,11 +27,13 @@ class Test2Job(Job):
         return []
 
 
-class Test2SetupOperator(SetupOperator):
+class Test2SetupTask(SetupTask):
 
-    async def execute_async(self, context: Context) -> List[str]:
+    async def _execute(self) -> List[uuid.UUID]:
+        experiment_id = self.extra['experiment_id']
+
         component: Optional[Test2Component] = Component.get(self.component_id)
-        experiment: Experiment = Experiment.objects.with_id(component.experiment_id)
+        experiment: Experiment = Experiment.objects.with_id(experiment_id)
 
         job_ids = []
 
@@ -42,18 +43,20 @@ class Test2SetupOperator(SetupOperator):
 
             job_ids.append(job.iid)
 
-        return self.serialize_job_ids(job_ids)
+        return [j.value for j in job_ids]
 
 
-class Test2ExecuteJobOperator(ExecuteJobOperator):
+class Test2ExecuteJobTask(ExecuteJobTask):
 
-    async def execute_async(self, context: Context) -> Any:
-        self.log.info(f'Hello there, job id is {self.job_id}')
+    async def _execute(self, job_id: uuid.UUID) -> Optional[BaseModel]:
+        self.logger.info(f'Hello there, job id is {job_id}')
+        return None
 
 
-class Test2OutputOperator(OutputOperator):
-    async def execute_async(self, context: Context) -> Any:
+class Test2OutputTask(OutputTask):
+    async def _execute(self) -> Optional[BaseModel]:
         self.setup_output(Test2Output(x=15, y=35))
+        return None
 
 
 class Test2Component(Component[Test2Input, Test2Output]):
@@ -69,13 +72,13 @@ class Test2Component(Component[Test2Input, Test2Output]):
         return Test2Output
 
     @property
-    def setup_operator_type(self) -> Type['SetupOperator']:
-        return Test2SetupOperator
+    def setup_task_type(self) -> Type['SetupTask']:
+        return Test2SetupTask
 
     @property
-    def job_operator_type(self) -> Optional[Type['ExecuteJobOperator']]:
-        return Test2ExecuteJobOperator
+    def job_task_type(self) -> Optional[Type['ExecuteJobTask']]:
+        return Test2ExecuteJobTask
 
     @property
-    def output_operator_type(self) -> Type['OutputOperator']:
-        return Test2OutputOperator
+    def output_task_type(self) -> Type['OutputTask']:
+        return Test2OutputTask

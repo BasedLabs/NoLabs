@@ -5,16 +5,19 @@ __all__ = [
 import uuid
 from abc import abstractmethod, ABC
 from dataclasses import field
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, TYPE_CHECKING
 from typing import Optional, Union, Dict, List, Any, Type, get_origin, get_args
 from typing import TypeVar, Generic, ClassVar, Mapping
 from uuid import UUID
 
-from airflow.models import BaseOperator
 from pydantic import Field, BaseModel, ValidationError, parse_obj_as
 from pydantic.dataclasses import dataclass
 
 from nolabs.application.workflow.states import ComponentState
+
+
+if TYPE_CHECKING:
+    from nolabs.application.workflow.prefect.tasks import SetupTask, ExecuteJobTask, OutputTask
 
 
 def is_assignable_to_generic(value, generic_type):
@@ -342,7 +345,7 @@ def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or '__pydantic_post_init__' in t.__dict__
 
 
-class Component(ABC, Generic[TInput, TOutput]):
+class Component(Generic[TInput, TOutput]):
     id: uuid.UUID
 
     job_ids: List[uuid.UUID]
@@ -534,6 +537,21 @@ class Component(ABC, Generic[TInput, TOutput]):
     @property
     @abstractmethod
     def output_operator_type(self) -> Type[BaseOperator]:
+        ...
+
+    @property
+    @abstractmethod
+    def setup_task_type(self) -> Type[SetupTask]:
+        ...
+
+    @property
+    @abstractmethod
+    def job_task_type(self) -> Optional[Type[ExecuteJobTask]]:
+        ...
+
+    @property
+    @abstractmethod
+    def output_task_type(self) -> Type[OutputTask]:
         ...
 
     @classmethod

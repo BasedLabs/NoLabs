@@ -5,6 +5,7 @@ FROM apache/airflow:${AIRFLOW_VERSION} AS airflow-stage
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
 FROM python:3.8
 
 COPY --from=airflow-stage /opt/airflow /opt/airflow

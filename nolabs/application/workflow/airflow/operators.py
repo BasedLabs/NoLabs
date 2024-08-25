@@ -39,15 +39,21 @@ class SetupOperator(ABC, BaseOperator):
     workflow_id: uuid.UUID
     _communicator_cache: List[Communicator] = []
     input_changed: bool = False
+    extra: Optional[Dict[str, Any]] = None
     '''Whether input was changed after last execution'''
 
     @apply_defaults
-    def __init__(self, workflow_id: uuid.UUID, component_id: uuid.UUID, task_id: str,
+    def __init__(self,
+                 workflow_id: uuid.UUID,
+                 component_id: uuid.UUID,
+                 task_id: str,
+                 extra: Optional[Dict[str, Any]] = None,
                  **kwargs):
         super().__init__(task_id=task_id, **kwargs)
 
         self.component_id = component_id
         self.workflow_id = workflow_id
+        self.extra = extra
 
     def pre_execute(self, context: Any):
         component = Component.get(self.component_id)
@@ -104,11 +110,17 @@ class SetupOperator(ABC, BaseOperator):
 class ExecuteJobOperator(ABC, BaseOperator):
     component_id: uuid.UUID
     job_id: uuid.UUID
+    extra: Optional[Dict[str, Any]] = None,
     _communicator_cache: Optional[Communicator]
 
     @apply_defaults
-    def __init__(self, workflow_id: uuid.UUID, job_id: str, component_id: uuid.UUID,
-                 task_id: str, **kwargs):
+    def __init__(self,
+                 workflow_id: uuid.UUID,
+                 job_id: str,
+                 component_id: uuid.UUID,
+                 task_id: str,
+                 extra: Optional[Dict[str, Any]] = None,
+                 **kwargs):
         super().__init__(task_id=task_id, **kwargs)
 
         self.component_id = component_id
@@ -116,6 +128,7 @@ class ExecuteJobOperator(ABC, BaseOperator):
         self.job_id = uuid.UUID(job_id)
 
         self._refresh_communicator()
+        self.extra = extra
 
     @abstractmethod
     async def execute_async(self, context: Context) -> Any:
@@ -152,14 +165,17 @@ class OutputOperator(ABC, BaseOperator, Generic[TOutput]):
     component_id: uuid.UUID
     workflow_id: uuid.UUID
     setup_output_called: bool = False
+    extra: Optional[Dict[str, Any]] = None
 
     @apply_defaults
     def __init__(self, workflow_id: uuid.UUID, component_id: uuid.UUID, task_id: str,
+                 extra: Optional[Dict[str, Any]] = None,
                  **kwargs):
         super().__init__(task_id=task_id, **kwargs)
 
         self.component_id = component_id
         self.workflow_id = workflow_id
+        self.extra = extra
 
     @abstractmethod
     async def execute_async(self, context: Context) -> Any:
