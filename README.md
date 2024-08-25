@@ -344,7 +344,7 @@ Swagger UI will be available on http://localhost:5790/docs
 or
 [Install as python package](microservices/reinvent/client/README.md)
 
-### 11) BLAST API
+### 12) BLAST API
 
 Service that allows users to perform searches using various BLAST databases. It supports nucleotide and protein BLAST queries through different endpoints.
 
