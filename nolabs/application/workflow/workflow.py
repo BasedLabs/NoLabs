@@ -3,11 +3,11 @@ __all__ = [
 ]
 
 import uuid
-from typing import Dict, List
+from typing import Dict, List, Any
 from typing import Optional, Type
 
 from nolabs.application.workflow.component import ComponentTypeFactory, Component, ComponentState, ParameterSchema
-from nolabs.application.workflow.dag import DagExecutor
+from nolabs.application.workflow.prefect.dag import PrefectDagExecutor
 from nolabs.application.workflow.mappings import map_property
 from nolabs.application.workflow.states import WorkflowState
 from nolabs.application.workflow.schema import WorkflowSchema, ComponentTemplate, ComponentSchema, DefaultSchema, \
@@ -187,7 +187,7 @@ class Workflow:
 
         return schema
 
-    async def start(self):
+    async def start(self, extra_dag_parameters: Optional[Dict[str, Any]] = None):
         schema = self._state.get_schema()
 
         if not schema.valid:
@@ -237,8 +237,10 @@ class Workflow:
             state.set_component(components[state.id])
             state.save()
 
-        executor = DagExecutor()
-        await executor.execute(workflow_id=self._state.id, components=list(components.values()))
+        executor = PrefectDagExecutor()
+        await executor.execute(workflow_id=self._state.id,
+                               components=list(components.values()),
+                               extra=extra_dag_parameters)
 
     def _is_cyclic(self, graph: List[Component]) -> bool:
         visited: Set[WorkflowGraphNode] = set()  # type: ignore

@@ -5,10 +5,12 @@ from airflow.utils.context import Context
 from nolabs.application.workflow import ExecuteJobOperator
 
 
+
+
 class RunEsmFoldLightOperator(ExecuteJobOperator):
     async def execute_async(self, context: Context) -> Any:
         import requests
-        from nolabs.job_services.esmfold_light.container.api_models import PredictFoldingJobRequest, PredictFoldingJobResponse
+        from nolabs.job_services.esmfold_light.operators.api_models import PredictFoldingJobRequest, PredictFoldingJobResponse
 
         input = PredictFoldingJobRequest(**self.get_input())
 

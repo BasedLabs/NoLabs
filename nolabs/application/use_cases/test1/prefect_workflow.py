@@ -5,7 +5,7 @@ from airflow.utils.context import Context
 from pydantic import BaseModel
 
 from nolabs.application.workflow.component import Component, TOutput, TInput
-from nolabs.application.workflow.airflow.operators import SetupOperator, ExecuteJobOperator, OutputOperator
+from nolabs.application.workflow.prefect.tasks import SetupTask, ExecuteJobTask, OutputTask
 from nolabs.domain.models.common import Job, JobInputError, JobId, JobName, Experiment
 
 
@@ -28,11 +28,13 @@ class Test1Job(Job):
         return []
 
 
-class Test1SetupOperator(SetupOperator):
+class Test1SetupTask(SetupTask):
 
-    async def execute_async(self, context: Context) -> List[str]:
+    async def _execute(self) -> List[uuid.UUID]:
+        experiment_id = self.extra['experiment_id']
+
         component: Optional[Test1Component] = Component.get(self.component_id)
-        experiment: Experiment = Experiment.objects.with_id(component.experiment_id)
+        experiment: Experiment = Experiment.objects.with_id(experiment_id)
 
         job_ids = []
 
@@ -42,18 +44,13 @@ class Test1SetupOperator(SetupOperator):
 
             job_ids.append(job.iid)
 
-        return self.serialize_job_ids(job_ids)
+        return [j.value for j in job_ids]
 
 
-class Test1ExecuteJobOperator(ExecuteJobOperator):
-
-    async def execute_async(self, context: Context) -> Any:
-        self.log.info(f'Hello there, job id is {self.job_id}')
-
-
-class Test1OutputOperator(OutputOperator):
-    async def execute_async(self, context: Context) -> Any:
+class Test1OutputTask(OutputTask):
+    async def _execute(self) -> Optional[BaseModel]:
         self.setup_output(Test1Output(x=15, y=35))
+        return None
 
 
 class Test1Component(Component[Test1Input, Test1Output]):
@@ -69,13 +66,13 @@ class Test1Component(Component[Test1Input, Test1Output]):
         return Test1Output
 
     @property
-    def setup_operator_type(self) -> Type['SetupOperator']:
-        return Test1SetupOperator
+    def setup_task_type(self) -> Type['SetupTask']:
+        return Test1SetupTask
 
     @property
-    def job_operator_type(self) -> Optional[Type['ExecuteJobOperator']]:
-        return Test1ExecuteJobOperator
+    def job_operator_type(self) -> Optional[Type['Job']]:
+        return None
 
     @property
-    def output_operator_type(self) -> Type['OutputOperator']:
-        return Test1OutputOperator
+    def output_operator_type(self) -> Type['OutputTask']:
+        return Test1OutputTask

@@ -53,7 +53,10 @@ class UpdateWorkflowSchemaFeature:
 class StartWorkflowFeature:
     async def handle(self, id: UUID):
         workflow = Workflow.get(id)
-        await workflow.start()
+        experiment = Experiment.objects(workflow_ids=id).first()
+        await workflow.start(extra_dag_parameters={
+            'experiment_id': experiment.id
+        })
 
 
 class StartWorkflowComponentFeature:

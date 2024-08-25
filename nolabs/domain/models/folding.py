@@ -9,7 +9,7 @@ from typing import List, Tuple
 from uuid import UUID
 
 from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, EmbeddedDocumentListField, \
-    UUIDField, BinaryField, EnumField, CASCADE
+    UUIDField, BinaryField, EnumField, CASCADE, EmbeddedDocumentField
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import Job, Protein, JobInputError
@@ -38,7 +38,7 @@ class FoldingJob(Job):
 
     # endregion
 
-    folding: FoldingJobResult = EmbeddedDocument(FoldingJobResult)
+    folding: FoldingJobResult = EmbeddedDocumentField(FoldingJobResult)
 
     def set_inputs(self, protein: Protein, backend: FoldingBackendEnum):
         if not protein:

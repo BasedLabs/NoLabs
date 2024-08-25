@@ -1,4 +1,4 @@
 from .workflow import Workflow
 from .component import Component
-from .operators import *
+from nolabs.application.workflow.airflow.operators import *
 from .schema import WorkflowSchema
