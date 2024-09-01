@@ -24,13 +24,23 @@ class InputPropertyErrorDbModel(EmbeddedDocument):
 
 
 class JobRunModel(EmbeddedDocument):
-    task_run_id: uuid.UUID = UUIDField(primary_key=True, default=uuid.uuid4)
+    id: uuid.UUID = UUIDField(primary_key=True)
+    task_run_id: uuid.UUID = UUIDField(required=True)
     created_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
+
+    @classmethod
+    def create(cls, id: uuid.UUID, task_run_id: uuid.UUID, created_at: datetime) -> 'JobRunModel':
+        return JobRunModel(id=id, task_run_id=task_run_id, created_at=created_at)
 
 
 class ComponentRunModel(EmbeddedDocument):
     task_run_id: uuid.UUID = UUIDField(primary_key=True, default=uuid.uuid4)
     created_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
+    jobs: List[JobRunModel] = EmbeddedDocumentListField(JobRunModel, default=[])
+
+    @classmethod
+    def create(cls, task_run_id: uuid.UUID, created_at: datetime) -> 'ComponentRunModel':
+        return ComponentRunModel(task_run_id=task_run_id, created_at=created_at)
 
 
 class WorkflowRunModel(EmbeddedDocument):
@@ -61,18 +71,12 @@ class WorkflowState(Document):
         return WorkflowSchema(**self.schema)
 
 
-class JobState(EmbeddedDocument):
-    id: uuid.UUID = UUIDField(primary_key=True)
-    runs: List[JobRunModel] = EmbeddedDocumentListField(JobRunModel)
-
-
 class ComponentState(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
     workflow: WorkflowState = ReferenceField(WorkflowState, reverse_delete_rule=CASCADE)
 
     input_property_errors: List[InputPropertyErrorDbModel] = EmbeddedDocumentListField(InputPropertyErrorDbModel)
 
-    jobs: List[JobState] = EmbeddedDocumentListField(JobState)
     last_jobs_count: int = IntField()
 
     last_executed_at: datetime = DateTimeField()
@@ -107,10 +111,7 @@ class ComponentState(Document):
             output_value_dict=component.output_value_dict,
             previous_component_ids=component.previous_component_ids,
             name=component.name,
-            job_ids=[
-                JobState(id=job_id, runs=[])
-                for job_id in
-                component.job_ids]
+            runs=[]
         )
 
     def set_component(self, component: 'Component'):
@@ -120,19 +121,9 @@ class ComponentState(Document):
         self.output_value_dict = component.output_value_dict
         self.previous_component_ids = component.previous_component_ids
 
-    def add_run(self, task_run_id: uuid.UUID):
-        self.runs.append(ComponentRunModel(task_run_id=task_run_id))
+    def latest_job_ids(self) -> List[uuid.UUID]:
+        if not self.runs:
+            return []
 
-    def add_job(self, job_id: uuid.UUID):
-        for job in self.jobs:
-            if job.id == job_id:
-                return
-        self.jobs.append(JobState(id=job_id, runs=[]))
-
-    def add_job_run(self, job_id: uuid.UUID, task_run_id: uuid.UUID):
-        for job in self.jobs:
-            if job.id == job_id:
-                job.runs.append(JobRunModel(task_run_id=task_run_id))
-                return
-
-        raise ValueError('Job not found in component')
+        run = self.runs[-1]
+        return [j.id for j in run.jobs]

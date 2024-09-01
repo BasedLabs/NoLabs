@@ -3,11 +3,10 @@ from abc import ABC, abstractmethod
 from typing import List, Type, Optional, Dict, Any
 
 from celery.result import AsyncResult
-from prefect import task
 from pydantic import BaseModel
 
 from nolabs.application.use_cases.folding.api_models import FoldingBackendEnum
-from nolabs.application.workflow import SetupTask, OutputTask, ExecuteJobTask
+from nolabs.application.workflow import ComponentTask
 from nolabs.application.workflow.component import Component, JobValidationError, TOutput, TInput
 from nolabs.domain.models.common import Protein, JobId, JobName, Experiment
 from nolabs.domain.models.folding import FoldingJob
@@ -19,6 +18,7 @@ from nolabs.microservices.esmfold_light.service.api_models import InferenceInput
 
 class FoldingComponentInput(BaseModel):
     proteins_with_fasta: List[uuid.UUID]
+    backend: Optional[FoldingBackendEnum] = FoldingBackendEnum.esmfold_light
 
 
 class FoldingComponentOutput(BaseModel):
@@ -36,18 +36,6 @@ class FoldingComponent(ABC, Component[FoldingComponentInput, FoldingComponentOut
     @property
     def output_parameter_type(self) -> Type[TOutput]:
         return FoldingComponentOutput
-
-    @property
-    def output_task_type(self) -> Type['OutputTask']:
-        return GatherJobOutputsTask
-
-    @property
-    def job_task_type(self) -> Optional[Type['ExecuteJobTask']]:
-        return ExecuteFoldingJobTask
-
-    @property
-    def setup_task_type(self) -> Type['SetupTask']:
-        return SetupFoldingJobsTask
 
     @property
     @abstractmethod
@@ -79,8 +67,8 @@ class EsmfoldComponent(FoldingComponent):
         return FoldingBackendEnum.esmfold
 
     @property
-    def job_task_type(self) -> Optional[Type['ExecuteJobTask']]:
-        return ExecuteFoldingJobTask
+    def component_task_type(self) -> Optional[Type['FoldingComponentTask']]:
+        return FoldingComponentTask
 
 
 class EsmfoldLightComponent(FoldingComponent):
@@ -92,8 +80,8 @@ class EsmfoldLightComponent(FoldingComponent):
         return FoldingBackendEnum.esmfold_light
 
     @property
-    def job_operator_type(self) -> Optional[Type['ExecuteJobTask']]:
-        return ExecuteFoldingJobTask
+    def component_task_type(self) -> Optional[Type['FoldingComponentTask']]:
+        return FoldingComponentTask
 
 
 class RosettafoldComponent(FoldingComponent):
@@ -105,21 +93,20 @@ class RosettafoldComponent(FoldingComponent):
         return FoldingBackendEnum.rosettafold
 
     @property
-    def job_operator_type(self) -> Optional[Type['ExecuteJobTask']]:
-        return ExecuteFoldingJobTask
+    def component_task_type(self) -> Optional[Type['FoldingComponentTask']]:
+        return FoldingComponentTask
 
 
-class SetupFoldingJobsTask(SetupTask):
-    timeout_seconds = 10.0
+class FoldingComponentTask(ComponentTask):
+    job_timeout_seconds = 10.0
+    component_timeout_seconds = 120.0
 
-    async def execute(self) -> List[uuid.UUID]:
+    async def get_jobs(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
         job_ids = []
-
-        component: FoldingComponent = FoldingComponent.get(id=self.component_id)
 
         experiment = Experiment.objects.with_id(self.extra['experiment_id'])
 
-        for protein_id in component.input_value.proteins_with_fasta:
+        for protein_id in inp.proteins_with_fasta:
             protein = Protein.objects.with_id(protein_id)
 
             if not protein:
@@ -133,21 +120,25 @@ class SetupFoldingJobsTask(SetupTask):
                 experiment=experiment
             )
 
-            job.set_inputs(protein=protein, backend=component.backend)
+            job.set_inputs(protein=protein, backend=inp.backend)
             await job.save(cascade=True)
 
             job_ids.append(job.id)
 
-        component.job_ids = job_ids
-        component.save()
-
         return [i for i in job_ids]
 
+    async def post_execute(self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]):
+        items = []
 
-class ExecuteFoldingJobTask(ExecuteJobTask):
-    timeout_seconds = 10.0
+        for job_id in job_ids:
+            job: FoldingJob = FoldingJob.objects.with_id(job_id)
+            items.append(job.protein.id)
 
-    async def execute(self, job_id: uuid.UUID) -> Optional[BaseModel]:
+        return FoldingComponentOutput(
+            proteins_with_pdb=items
+        )
+
+    async def execute_job_task(self, job_id: uuid.UUID):
         job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
         job.input_errors(throw=True)
@@ -160,21 +151,3 @@ class ExecuteFoldingJobTask(ExecuteJobTask):
         job.set_result(job.protein, job_result.pdb_content)
 
         await job.save()
-
-        return
-
-
-class GatherJobOutputsTask(OutputTask):
-    async def execute(self) -> Optional[BaseModel]:
-        component = self.get_component()
-
-        items = []
-
-        for job_id in component.job_ids:
-            job: FoldingJob = FoldingJob.objects.with_id(job_id)
-            items.append(job.protein.id)
-
-        self.setup_output(FoldingComponentOutput(
-            proteins_with_pdb=items
-        ))
-        return None

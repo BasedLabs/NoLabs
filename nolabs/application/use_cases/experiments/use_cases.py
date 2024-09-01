@@ -34,7 +34,7 @@ class GetExperimentsMetadataFeature:
 
 class CreateExperimentFeature:
     def handle(self) -> ExperimentMetadataResponse:
-        experiment = Experiment(
+        experiment = Experiment.create(
             id=ExperimentId(uuid.uuid4()),
             name=ExperimentName('New experiment')
         )
@@ -43,12 +43,12 @@ class CreateExperimentFeature:
 
 
 class DeleteExperimentFeature:
-    def handle(self, experiment_id: uuid.UUID):
+    async def handle(self, experiment_id: uuid.UUID):
         assert experiment_id
 
-        experiment = Experiment.objects.with_id(experiment_id)
+        experiment: Experiment = Experiment.objects.with_id(experiment_id)
         if experiment:
-            experiment.delete()
+            await experiment.delete()
 
 
 class UpdateExperimentFeature:

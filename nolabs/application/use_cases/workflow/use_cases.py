@@ -1,11 +1,12 @@
 import logging
 import uuid
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 from nolabs.application.use_cases.workflow.api_models import (GetComponentStateResponse, GetComponentStateRequest,
                                                               AllWorkflowSchemasResponse, ResetWorkflowRequest,
                                                               StartWorkflowComponentRequest)
+from nolabs.application.use_cases.workflow.data import ExperimentWorkflowRelation
 from nolabs.application.workflow import Workflow, WorkflowSchema
 from nolabs.domain.models.common import Experiment
 from nolabs.exceptions import NoLabsException, ErrorCodes
@@ -19,9 +20,10 @@ class DeleteWorkflowSchemaFeature:
 
 class AllWorkflowSchemasFeature:
     async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
-        experiment: Experiment = Experiment.objects.with_id(experiment_id)
+        relation: ExperimentWorkflowRelation = ExperimentWorkflowRelation.objects(experiment=experiment_id).first()
+
         return AllWorkflowSchemasResponse(
-            ids=experiment.workflow_ids
+            ids=[relation.workflow.id] if relation else []
         )
 
 
@@ -29,8 +31,10 @@ class CreateWorkflowSchemaFeature:
     async def handle(self, experiment_id: UUID) -> WorkflowSchema:
         workflow = Workflow.create(uuid.uuid4())
         experiment = Experiment.objects.with_id(experiment_id)
-        experiment.add_workflow(workflow.id)
-        experiment.save()
+        ExperimentWorkflowRelation.create(
+            experiment=experiment,
+            workflow=workflow.state
+        ).save()
         return workflow.schema
 
 
@@ -54,9 +58,13 @@ class UpdateWorkflowSchemaFeature:
 class StartWorkflowFeature:
     async def handle(self, id: UUID):
         workflow = Workflow.get(id)
-        experiment = Experiment.objects(workflow_ids=id).first()
+        relation: ExperimentWorkflowRelation = ExperimentWorkflowRelation.objects(workflow=workflow.id).first()
+
+        if not relation:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
+
         await workflow.start(extra_dag_parameters={
-            'experiment_id': experiment.id
+            'experiment_id': relation.experiment.id
         })
 
 

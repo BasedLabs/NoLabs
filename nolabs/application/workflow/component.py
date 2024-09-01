@@ -3,7 +3,7 @@ __all__ = [
 ]
 
 import uuid
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 from dataclasses import field
 from typing import Iterable, Tuple, TYPE_CHECKING
 from typing import Optional, Union, Dict, List, Any, Type, get_origin, get_args
@@ -15,9 +15,8 @@ from pydantic.dataclasses import dataclass
 
 from nolabs.application.workflow.data import ComponentState
 
-
 if TYPE_CHECKING:
-    from nolabs.application.workflow.prefect.tasks import SetupTask, ExecuteJobTask, OutputTask
+    from nolabs.application.workflow.prefect.tasks import ComponentTask
 
 
 def is_assignable_to_generic(value, generic_type):
@@ -365,8 +364,6 @@ class Component(Generic[TInput, TOutput]):
     name: ClassVar[str]
     description: ClassVar[str]
 
-    _state: ComponentState
-
     def __init__(self,
                  id: uuid.UUID,
                  job_ids: Optional[List[uuid.UUID]] = None,
@@ -526,45 +523,8 @@ class Component(Generic[TInput, TOutput]):
 
     @property
     @abstractmethod
-    def setup_task_type(self) -> Type['SetupTask']:
+    def component_task_type(self) -> Type['ComponentTask']:
         ...
-
-    @property
-    @abstractmethod
-    def job_task_type(self) -> Optional[Type['ExecuteJobTask']]:
-        ...
-
-    @property
-    @abstractmethod
-    def output_task_type(self) -> Type['OutputTask']:
-        ...
-
-    @classmethod
-    def get(cls, id: uuid.UUID) -> Optional['Component']:
-        state: ComponentState = ComponentState.objects.with_id(id)
-        if state is None:
-            return None
-        state: ComponentState = ComponentState.objects.with_id(id)
-
-        if not state:
-            return
-
-        component = ComponentTypeFactory.get_type(state.name)(
-            id=state.id,
-            job_ids=state.job_ids,
-            input_schema=Parameter(**state.input_schema),
-            output_schema=Parameter(**state.output_schema),
-            input_value_dict=state.input_value_dict,
-            output_value_dict=state.output_value_dict,
-            previous_component_ids=state.previous_component_ids
-        )
-
-        component._state = state
-        return component
-
-    def save(self):
-        self._state.set_component(component=self)
-        self._state.save()
 
 
 class ComponentTypeFactory:

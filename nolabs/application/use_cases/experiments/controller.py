@@ -32,7 +32,7 @@ async def experiments(
 async def delete_experiment(experiment_id: UUID,
                             feature: Annotated[
                                 DeleteExperimentFeature, Depends(ExperimentsDependencies.delete_experiment)]):
-    return feature.handle(experiment_id)
+    return await feature.handle(experiment_id)
 
 
 @router.patch('/',

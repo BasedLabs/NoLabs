@@ -122,7 +122,7 @@ class Workflow:
 
         return ComponentTypeFactory.get_type(state.name)(
             id=state.id,
-            job_ids=state.job_ids,
+            job_ids=[j for j in state.latest_job_ids()],
             input_schema=Parameter(**state.input_schema),
             output_schema=Parameter(**state.output_schema),
             input_value_dict=state.input_value_dict,
@@ -274,3 +274,7 @@ class Workflow:
         types = {c.name: c for c in components}
 
         ComponentTypeFactory.set_types(types)
+
+    @property
+    def state(self) -> WorkflowState:
+        return self._state

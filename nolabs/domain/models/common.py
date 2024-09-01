@@ -21,11 +21,13 @@ import io
 
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
     FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
-    Q, StringField, BooleanField
+    Q, StringField, BooleanField, PULL
 from pydantic import model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
 from typing_extensions import Self
+
+from nolabs.application.workflow.data import WorkflowState
 from nolabs.utils.generate_2d_drug import generate_png_from_smiles
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
@@ -71,10 +73,8 @@ class Experiment(Document, Entity):
     name: ExperimentName = ValueObjectStringField(required=True, factory=ExperimentName)
     created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
 
-    workflow_ids: List[UUID] = ListField(UUIDField())
-
-    def __init__(self, id: ExperimentId, name: ExperimentName, created_at: datetime.datetime | None = None, *args,
-                 **kwargs):
+    @classmethod
+    def create(cls, id: ExperimentId, name: ExperimentName, created_at: datetime.datetime | None = None):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
@@ -83,11 +83,7 @@ class Experiment(Document, Entity):
 
         created_at = created_at if created_at else datetime.datetime.now(tz=datetime.timezone.utc)
 
-        super().__init__(id=id.value if isinstance(id, ExperimentId) else id, name=name, created_at=created_at, *args,
-                         **kwargs)
-
-    def add_workflow(self, workflow_id: uuid.UUID):
-        self.workflow_ids.append(workflow_id)
+        return Experiment(id=id.value if isinstance(id, ExperimentId) else id, name=name, created_at=created_at)
 
     @property
     def iid(self) -> ExperimentId:
@@ -98,6 +94,16 @@ class Experiment(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_experiment_name)
 
         self.name = name
+
+    async def delete(self, signal_kwargs=None, **write_concern):
+        self.register_event(ExperimentRemovedEvent(experiment=self))
+
+        super().delete(signal_kwargs, **write_concern)
+
+        domain_events = self.collect_events()
+
+        for e in domain_events:
+            await EventDispatcher.raise_event(e)
 
     def __hash__(self):
         return self.iid.__hash__()
@@ -780,5 +786,11 @@ class LigandCreatedEvent(DomainEvent):
 
     def __init__(self, ligand: Ligand):
         self.ligand = ligand
+
+class ExperimentRemovedEvent(DomainEvent):
+    experiment: Experiment
+
+    def __init__(self, experiment: Experiment):
+        self.experiment = experiment
 
 # endregion
