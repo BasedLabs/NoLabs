@@ -6,11 +6,11 @@ import uuid
 from typing import Dict, List, Any
 from typing import Optional, Type
 
-from nolabs.application.workflow.component import ComponentTypeFactory, Component, ComponentState, ParameterSchema
+from nolabs.application.workflow.component import ComponentTypeFactory, Component, ComponentState, Parameter
 from nolabs.application.workflow.prefect.dag import PrefectDagExecutor
 from nolabs.application.workflow.mappings import map_property
 from nolabs.application.workflow.states import WorkflowState
-from nolabs.application.workflow.schema import WorkflowSchema, ComponentTemplate, ComponentSchema, DefaultSchema, \
+from nolabs.application.workflow.schema import WorkflowSchema, ComponentSchemaTemplate, ComponentSchema, DefaultSchema, \
     MappingSchema
 from nolabs.exceptions import NoLabsException, ErrorCodes
 
@@ -42,10 +42,10 @@ class Workflow:
 
     @classmethod
     def create(cls, id: uuid.UUID) -> 'Workflow':
-        component_templates: List[ComponentTemplate] = []
+        component_templates: List[ComponentSchemaTemplate] = []
         component_schemas: List[ComponentSchema] = []
 
-        asd = uuid.uuid4()
+        #asd = uuid.uuid4()
 
         for name, bag in ComponentTypeFactory.enumerate():
             component = bag(id=uuid.uuid4())
@@ -58,49 +58,49 @@ class Workflow:
             input_parameters = {name: map_property(prop, input_schema) for name, prop in
                                 input_schema.properties.items()}
 
-            component_templates.append(ComponentTemplate(
+            component_templates.append(ComponentSchemaTemplate(
                 name=component.name,
                 input=input_parameters,
                 output=output_parameters,
                 description=component.description
             ))
 
-            if name == 'test1':
-                component_schemas.append(
-                    ComponentSchema(
-                        name=name,
-                        component_id=asd,
-                        defaults=[
-                            DefaultSchema(
-                                target_path=['x'],
-                                value=5
-                            ),
-                            DefaultSchema(
-                                target_path=['y'],
-                                value=15
-                            )
-                        ]
-                    )
-                )
-            else:
-                component_schemas.append(
-                    ComponentSchema(
-                        name=name,
-                        component_id=uuid.uuid4(),
-                        mappings=[
-                            MappingSchema(
-                                source_component_id=asd,
-                                source_path=['x'],
-                                target_path=['y']
-                            ),
-                            MappingSchema(
-                                source_component_id=asd,
-                                source_path=['y'],
-                                target_path=['x']
-                            )
-                        ]
-                    )
-                )
+            #if name == 'test1':
+            #    component_schemas.append(
+            #        ComponentSchema(
+            #            name=name,
+            #            component_id=asd,
+            #            defaults=[
+            #                DefaultSchema(
+            #                    target_path=['x'],
+            #                    value=5
+            #                ),
+            #                DefaultSchema(
+            #                    target_path=['y'],
+            #                    value=15
+            #                )
+            #            ]
+            #        )
+            #    )
+            #else:
+            #    component_schemas.append(
+            #        ComponentSchema(
+            #            name=name,
+            #            component_id=uuid.uuid4(),
+            #            mappings=[
+            #                MappingSchema(
+            #                    source_component_id=asd,
+            #                    source_path=['x'],
+            #                    target_path=['y']
+            #                ),
+            #                MappingSchema(
+            #                    source_component_id=asd,
+            #                    source_path=['y'],
+            #                    target_path=['x']
+            #                )
+            #            ]
+            #        )
+            #    )
 
         schema = WorkflowSchema(
             workflow_id=id,
@@ -123,8 +123,8 @@ class Workflow:
         return ComponentTypeFactory.get_type(state.name)(
             id=state.id,
             job_ids=state.job_ids,
-            input_schema=ParameterSchema(**state.input_schema),
-            output_schema=ParameterSchema(**state.output_schema),
+            input_schema=Parameter(**state.input_schema),
+            output_schema=Parameter(**state.output_schema),
             input_value_dict=state.input_value_dict,
             output_value_dict=state.output_value_dict,
             previous_component_ids=state.previous_component_ids

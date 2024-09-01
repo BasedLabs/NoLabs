@@ -1,0 +1,1 @@
+esmfold_light_inference = 'esmfold-light-service.inference'

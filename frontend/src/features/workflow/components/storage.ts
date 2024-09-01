@@ -312,7 +312,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       const idMapping = new Map<string, string>();
 
       // Process new nodes and generate UUIDs
-      const newNodes = data.workflow_components.map(component => {
+      const newNodes = data.components.map(component => {
         if (existingNodeIds.includes(component.id)) {
           return component; // Retain existing component
         } else {
@@ -356,7 +356,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       });
 
       // Adjust connections (edges)
-      const newEdges = data.workflow_components.flatMap(component =>
+      const newEdges = data.components.flatMap(component =>
         component.connections.map(conn => {
           // Adjust source_component_id if it matches an old ID
           const adjustedSourceId = idMapping.get(conn.source_component_id) || conn.source_component_id;
@@ -419,14 +419,14 @@ export const useWorkflowStore = defineStore('workflowStore', {
             description: string
           }
         } = {};
-        workflow.components.forEach(component => {
+        workflow.component_templates.forEach(component => {
           const inputs = component.input;
           const outputs = component.output;
           const description = this.getDescriptionString(component);
           componentIOMap[component.name] = { inputs, outputs, type: component.name, description };
         });
 
-        for (const component of workflow.workflow_components) {
+        for (const component of workflow.components) {
           const { inputs, outputs, type, description } = componentIOMap[component.name] || {
             inputs: [],
             outputs: [],
@@ -462,7 +462,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
           nodes.push(nodeData);
         }
 
-        workflow.workflow_components.forEach(component => {
+        workflow.components.forEach(component => {
           component.mappings?.forEach(mapping => {
             edges.push({
               id: `e${mapping.source_component_id}-to-${component.component_id}`,
@@ -479,7 +479,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.elements.nodes = nodes;
         this.elements.edges = edges;
 
-        this.componentOptions = workflow.components.map(component => ({
+        this.componentOptions = workflow.component_templates.map(component => ({
           name: component.name,
           type: component.name,
           inputs: component.input,
@@ -498,12 +498,12 @@ export const useWorkflowStore = defineStore('workflowStore', {
     async sendWorkflowUpdate() {
       const workflowUpdate: WorkflowSchemaModel_Input = {
         workflow_id: this.workflowId,
-        components: this.componentOptions.map(option => ({
+        component_templates: this.componentOptions.map(option => ({
           name: option.name,
           input: option.inputs,
           output: option.outputs
         }) as ComponentModel_Input),
-        workflow_components: this.elements.nodes.map(node => ({
+        components: this.elements.nodes.map(node => ({
           name: node.name,
           component_id: node.id,
           error: node.data.error,
@@ -666,20 +666,20 @@ export const useWorkflowStore = defineStore('workflowStore', {
           return;
         }
 
-        for (const workflow_component of workflow.workflow_components) {
+        for (const workflow_component of workflow.components) {
           const existingNode = this.getNodeById(workflow_component.component_id);
           if (existingNode) {
             const componentState = await getComponentState(workflow_component.component_id);
             existingNode.data.jobIds = componentState.job_ids;
             existingNode.data.jobs_errors = componentState.jobs_errors;
-            existingNode.data.input_property_errors = componentState.input_property_errors;
+            existingNode.data.input_prodefinperty_errors = componentState.input_property_errors;
             existingNode.data.last_exceptions = componentState.last_exceptions;
             existingNode.data.error = workflow_component.error;
           }
         }
 
         const updatedEdges: Edge[] = [];
-        workflow.workflow_components.forEach(component => {
+        workflow.components.forEach(component => {
           component.mappings?.forEach(mapping => {
             const existingEdge = this.elements.edges.find(edge => edge.source === mapping.source_component_id && edge.target === component.component_id);
             if (existingEdge && existingEdge.data) {

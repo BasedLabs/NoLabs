@@ -13,6 +13,7 @@ import esmfold_light_microservice
 import esmfold_microservice
 import rosettafold_microservice
 from mongoengine import Q
+from prefect import get_client
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.folding.api_models import GetJobStatusResponse, JobResult, JobResponse, \
@@ -27,14 +28,13 @@ def map_job_to_response(job: FoldingJob) -> JobResponse:
         job_id=job.iid.value,
         job_name=job.name.value,
         backend=FoldingBackendEnum(job.backend),
-        protein_ids=[p.iid.value for p in job.proteins],
+        protein_ids=[job.protein.id],
         result=[
             JobResult(
-                protein_id=item.protein_id,
-                pdb=item.pdb_content.decode('utf-8')
+                protein_id=job.folding.protein_id,
+                pdb=job.folding.pdb_content.decode('utf-8')
             )
-            for item in job.foldings
-        ],
+        ] if job.folding else [],
         experiment_id=job.experiment.id
     )
 
@@ -173,6 +173,7 @@ class RunJobFeature:
         try:
             job.started()
             await job.save()
+
 
             for protein in job.proteins:
                 sequence = protein.get_amino_acid_sequence()

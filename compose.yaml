@@ -37,9 +37,11 @@ services:
     image: 'ghcr.io/basedlabs/esmfold-light:1.0.0'
     network_mode: host
     build:
-      context: microservices/esmfold_light
+      context: nolabs/microservices/esmfold_light
       dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5733
+    command: fastapi
+    env_file:
+      - nolabs/microservices/esmfold_light/service/.env.development
   solubility:
     image: 'ghcr.io/basedlabs/solubility:1.1.0'
     network_mode: host

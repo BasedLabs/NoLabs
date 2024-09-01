@@ -11,9 +11,7 @@ import {
   WorkflowSchemaModel_Output,
   AllWorkflowSchemasResponse,
   WorkflowSchemaModel_Input,
-  ProteinSearchQuery,
   LigandContentResponse,
-  LigandSearchContentQuery,
   LigandsService,
   Body_upload_ligand_api_v1_objects_ligands_post,
   BindingPocketsService,
@@ -137,7 +135,7 @@ export function changeJobName(jobId: string, newName: string): CancelablePromise
 }
 
 export function createWorkflow(experimentId: string): CancelablePromise<any> {
-  return WorkflowService.createSchemaApiV1WorkflowExperimentIdPost(experimentId);
+  return WorkflowService.createWorkflowDefinitionApiV1WorkflowExperimentIdPost(experimentId);
 }
 
 export function getWorkflow(workflowId: string): CancelablePromise<(WorkflowSchemaModel_Output | null)> {
@@ -159,7 +157,6 @@ export function startWorkflow(experimentId: string): CancelablePromise<any> {
 export function startWorkflowComponent(workflowId:string, componentId: string): CancelablePromise<any> {
   return WorkflowService.startComponentApiV1WorkflowWorkflowIdStartComponentIdPost(workflowId, componentId);
 }
-
 
 export function resetWorkflow(workflowId: string): CancelablePromise<any> {
   return WorkflowService.resetWorkflowApiV1WorkflowWorkflowIdResetPost({workflow_id: workflowId});

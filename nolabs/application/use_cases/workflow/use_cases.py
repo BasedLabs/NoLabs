@@ -30,6 +30,7 @@ class CreateWorkflowSchemaFeature:
         workflow = Workflow.create(uuid.uuid4())
         experiment = Experiment.objects.with_id(experiment_id)
         experiment.add_workflow(workflow.id)
+        experiment.save()
         return workflow.schema
 
 
@@ -71,7 +72,14 @@ class StartWorkflowComponentFeature:
 
 class GetComponentStateFeature:
     async def handle(self, request: GetComponentStateRequest) -> GetComponentStateResponse:
-        pass
+        return GetComponentStateResponse(
+            input_dict={},
+            output_dict={},
+            job_ids=[],
+            input_property_errors=[],
+            last_exceptions=[],
+            jobs_errors=[]
+        )
 
 
 class ResetWorkflowFeature:
