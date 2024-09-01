@@ -9,7 +9,7 @@ from typing import Optional, Type
 from nolabs.application.workflow.component import ComponentTypeFactory, Component, ComponentState, Parameter
 from nolabs.application.workflow.prefect.dag import PrefectDagExecutor
 from nolabs.application.workflow.mappings import map_property
-from nolabs.application.workflow.states import WorkflowState
+from nolabs.application.workflow.data import WorkflowState
 from nolabs.application.workflow.schema import WorkflowSchema, ComponentSchemaTemplate, ComponentSchema, DefaultSchema, \
     MappingSchema
 from nolabs.exceptions import NoLabsException, ErrorCodes
