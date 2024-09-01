@@ -34,30 +34,14 @@ def generate_workflow_dag(workflow_id: uuid.UUID, components: List[Component], e
                 child_flow_result = await child_flow()
                 child_flows.append(child_flow_result)
 
-            setup_task = component.setup_task_type(workflow_id=workflow_id,
-                                                   component_id=component.id,
-                                                   component_name=component.name,
-                                                   extra=extra)
-
-            setup_task_result = await setup_task.execute_task(wait_for=child_flows)
-
-            if component.job_task_type and setup_task_result:
-                execute_job_task = component.job_task_type(workflow_id=workflow_id,
-                                                           component_id=component.id,
-                                                           component_name=component.name,
-                                                           extra=extra)
-                execute_job_task.execute_task.map(setup_task_result).wait()
-
-            output_task = component.output_task_type(
-                workflow_id=workflow_id,
+            component_task_type = component.component_task_type(
                 component_id=component.id,
                 component_name=component.name,
+                workflow_id=workflow_id,
                 extra=extra
             )
 
-            await output_task.execute_task()
-
-            await output_task.post_execute_task()
+            await component_task_type.execute_task()
 
         return component_flow
 
