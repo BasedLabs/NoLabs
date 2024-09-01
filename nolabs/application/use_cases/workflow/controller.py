@@ -17,8 +17,8 @@ router = APIRouter(
 )
 
 
-@router.post('/{experiment_id}', summary='Create workflow definition')
-async def create_workflow_definition(
+@router.post('/{experiment_id}', summary='Create workflow schema')
+async def create_workflow_schema(
         feature: Annotated[
             CreateWorkflowSchemaFeature, Depends(WorkflowDependencies.create_workflow_schema)],
         experiment_id: UUID
@@ -57,9 +57,9 @@ async def get_schema(
 async def update_workflow_schema(
         feature: Annotated[
             UpdateWorkflowSchemaFeature, Depends(WorkflowDependencies.update_workflow_schema)],
-        definition: WorkflowSchema
+        schema: WorkflowSchema
 ) -> WorkflowSchema:
-    return await feature.handle(definition=definition)
+    return await feature.handle(schema=schema)
 
 
 @router.post('/{workflow_id}/start', summary='Start workflow')

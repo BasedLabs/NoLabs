@@ -70,9 +70,9 @@ class Test1Component(Component[Test1Input, Test1Output]):
         return Test1SetupTask
 
     @property
-    def job_operator_type(self) -> Optional[Type['Job']]:
+    def job_task_type(self) -> Optional[Type['ExecuteJobTask']]:
         return None
 
     @property
-    def output_operator_type(self) -> Type['OutputTask']:
+    def output_task_type(self) -> Type['OutputTask']:
         return Test1OutputTask

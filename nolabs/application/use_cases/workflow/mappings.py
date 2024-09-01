@@ -1,10 +1,10 @@
 from typing import Union
 
-from nolabs.application.workflow.workflow_definition import PropertyTemplate
-from nolabs.application.workflow.properties import ParameterSchema, Items, Property
+from nolabs.application.workflow.workflow_definition import PropertySchema
+from nolabs.application.workflow.properties import Parameter, Items, Property
 
 
-def map_property(p: Union[Property, Items], schema: ParameterSchema) -> PropertyTemplate:
+def map_property(p: Union[Property, Items], schema: Parameter) -> PropertySchema:
     ref = None
 
     if p.ref:
@@ -29,7 +29,7 @@ def map_property(p: Union[Property, Items], schema: ParameterSchema) -> Property
         {name: map_property(prop, schema) for name, prop in (p.properties if
                                                              p.properties else {}).items()}
 
-    return PropertyTemplate(
+    return PropertySchema(
         type=p.type,
         properties=properties if not items else None,
         required=p.required,

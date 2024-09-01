@@ -1,13 +1,11 @@
-import asyncio
 import uuid
 from typing import List, Type, Any, Optional
 
-from airflow.models import BaseOperator
-from airflow.utils.context import Context
+from prefect import task
 from pydantic import BaseModel
 
-from nolabs.application.workflow import SetupOperator, OutputOperator
-from nolabs.application.workflow.component import Component, JobValidationError, TOutput, TInput
+from nolabs.application.workflow import Component, SetupTask, OutputTask, ExecuteJobTask
+from nolabs.application.workflow.component import TInput, TOutput
 
 
 class ProteinsComponentInput(BaseModel):
@@ -19,6 +17,9 @@ class ProteinsComponentOutput(BaseModel):
 
 
 class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutput]):
+    name = 'Proteins'
+    description = 'Proteins datasource'
+
     @property
     def input_parameter_type(self) -> Type[TInput]:
         return ProteinsComponentInput
@@ -28,28 +29,29 @@ class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutpu
         return ProteinsComponentOutput
 
     @property
-    def setup_operator_type(self) -> Type[BaseOperator]:
-        return ProteinsSetupOperator
+    def setup_task_type(self) -> Type[SetupTask]:
+        return ProteinsSetupTask
 
     @property
-    def job_operator_type(self) -> Optional[Type[BaseOperator]]:
+    def job_task_type(self) -> Optional[Type[ExecuteJobTask]]:
         return None
 
     @property
-    def output_operator_type(self) -> Type[BaseOperator]:
-        return ProteinsOutputOperator
-
-    name = 'Proteins'
-    description = 'Proteins datasource'
+    def output_task_type(self) -> Type[OutputTask]:
+        return ProteinsOutputTask
 
 
-class ProteinsSetupOperator(SetupOperator):
-    async def execute_async(self, context: Context) -> List[str]:
-        ...
+class ProteinsSetupTask(SetupTask):
+
+    async def execute(self) -> List[uuid.UUID]:
+        return []
 
 
-class ProteinsOutputOperator(OutputOperator):
-    async def execute_async(self, context: Context) -> Any:
+class ProteinsOutputTask(OutputTask):
+    timeout_seconds = 1.0
+
+    async def execute(self) -> Optional[BaseModel]:
         component = ProteinsComponent.get(self.component_id)
         input: ProteinsComponentInput = component.input_value
         self.setup_output(ProteinsComponentOutput(proteins=input.proteins))
+        return

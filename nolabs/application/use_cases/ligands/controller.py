@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.post('/search/content',
              summary='Search ligands content')
-async def search_ligands(
+async def search_ligands_content(
         feature: Annotated[SearchLigandsContentFeature, Depends(LigandsControllerDependencies.search_ligands_content)],
         query: LigandSearchContentQuery
 ) -> List[LigandContentResponse]:
@@ -31,7 +31,7 @@ async def search_ligands(
 
 @router.post('/search/metadata',
              summary='Search ligands metadata')
-async def search_ligands(
+async def search_ligands_metadata(
         feature: Annotated[SearchLigandsMetadataFeature, Depends(LigandsControllerDependencies.search_ligands_metadata)],
         query: LigandSearchMetadataQuery
 ) -> List[LigandMetadataResponse]:

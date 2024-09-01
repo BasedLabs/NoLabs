@@ -23,8 +23,13 @@ class RedisSettings(BaseModel):
     port: int
 
 
+class CelerySettings(BaseModel):
+    broker: str
+    backend: str
+
+
 settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                             f'appsettings.{os.environ["NOLABS_ENVIRONMENT"]}.json')
+                             f'appsettings.{os.environ["NOLABS_ENVIRONMENT"]}.json')
 
 
 class Settings(BaseSettings):
@@ -46,6 +51,7 @@ class Settings(BaseSettings):
     diffdock: MicroserviceSettings = MicroserviceSettings()
     blast: MicroserviceSettings = MicroserviceSettings()
     connection_string: str
+    celery: CelerySettings
 
     @classmethod
     def load(cls):
@@ -57,3 +63,6 @@ class Settings(BaseSettings):
             return Environment.LOCAL
 
         return Environment[os.environ[key].upper()]
+
+
+settings = Settings.load()

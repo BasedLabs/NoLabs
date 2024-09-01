@@ -1,32 +1,22 @@
 [tool.poetry]
-name = "nolabsserver"
+name = "nolabs"
 version = "1.2.1"
 description = ""
 authors = ["JaktensTid <jaktenstid1@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.13"
 uvicorn = "^0.25.0"
-fastapi = "^0.109.0"
-numpy = "^1.26.3"
-requests = "^2.31.0"
-obonet = "^1.0.0"
-setuptools = "^69.0.3"
-rdkit = "^2023.9.4"
+fastapi = "^0.112.1"
+numpy = "^2.1.0"
+rdkit = "^2024.3.5"
 python-json-logger = "^2.0.7"
-python-dateutil = "^2.8.2"
-python-slugify = "^8.0.2"
-python-multipart = "^0.0.6"
 msa-light-microservice = {path = "microservices/msa_light/client"}
 p2rank-microservice = {path = "microservices/p2rank/client"}
-jupyter = "^1.0.0"
 esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
 esmfold-microservice = {path = "microservices/esmfold/client"}
 diffdock-microservice = {path = "microservices/diffdock/client"}
-aiohttp = "^3.9.3"
-dependency-injector = "^4.41.0"
-leaf-basedlabs = "^0.0.9"
 rosettafold-microservice = {path = "microservices/rosettafold/client"}
 reinvent-microservice = {path = "microservices/reinvent/client"}
 mongoengine = "^0.28.2"
@@ -40,13 +30,15 @@ protein-design-microservice = {path = "microservices/protein_design/client"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
 external-data-query-microservice = {path = "microservices/external_data_query/client"}
 redis = "^5.0.7"
-blast-query-microservice = {path = "microservices/blast_query/client"}
+apache-airflow = "^2.10.0"
+prefect = "^2.20.3"
+
+[tool.poetry.group.dev.dependencies]
+deptry = "^0.19.1"
 
 [project]
 dependencies = [
     "fastapi",
-    "mypy",
-    "pydantic",
     "obonet",
     "jsonpickle",
     "python-multipart",
@@ -56,3 +48,6 @@ dependencies = [
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.deptry]
+extend_exclude = ["microservices", ".*venv.*", "client"]

@@ -5,9 +5,9 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-class ItemsTemplate(BaseModel):
+class ItemsSchema(BaseModel):
     type: Optional[Union[str, List[str]]] = None
-    properties: Optional[Dict[str, 'PropertyTemplate']] = Field(default_factory=dict)
+    properties: Optional[Dict[str, 'PropertySchema']] = Field(default_factory=dict)
     required: List[str] = Field(default_factory=list)
     description: Optional[str] = None
     enum: List[Any] = Field(default_factory=list)
@@ -16,12 +16,12 @@ class ItemsTemplate(BaseModel):
     format: Optional[str] = None
     default: Optional[Any] = None
     example: Optional[Any] = None
-    items: Optional[Union['ItemsTemplate', List['ItemsTemplate']]] = None
+    items: Optional[Union['ItemsSchema', List['ItemsSchema']]] = None
 
 
-class PropertyTemplate(BaseModel):
+class PropertySchema(BaseModel):
     type: Optional[Union[str, List[str]]] = None
-    properties: Optional[Dict[str, 'PropertyTemplate']] = Field(default_factory=dict)
+    properties: Optional[Dict[str, 'PropertySchema']] = Field(default_factory=dict)
     required: List[str] = Field(default_factory=list)
     description: Optional[str] = None
     enum: List[Any] = Field(default_factory=list)
@@ -30,15 +30,15 @@ class PropertyTemplate(BaseModel):
     default: Optional[Any] = None
     example: Optional[Any] = None
     title: Optional[str] = None
-    anyOf: List[Union['PropertyTemplate', dict]] = Field(default_factory=list)
+    anyOf: List[Union['PropertySchema', dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(default=None)
-    items: Optional[Union['ItemsTemplate', List['ItemsTemplate']]] = None
+    items: Optional[Union['ItemsSchema', List['ItemsSchema']]] = None
 
 
-class ComponentTemplate(BaseModel):
+class ComponentSchemaTemplate(BaseModel):
     name: str
-    input: Dict[str, PropertyTemplate]
-    output: Dict[str, PropertyTemplate]
+    input: Dict[str, PropertySchema]
+    output: Dict[str, PropertySchema]
     description: Optional[str] = None
 
 
@@ -67,7 +67,7 @@ class ComponentSchema(BaseModel):
 
 class WorkflowSchema(BaseModel):
     workflow_id: uuid.UUID
-    component_templates: List[ComponentTemplate]
+    component_templates: List[ComponentSchemaTemplate]
     components: List[ComponentSchema]
     error: Optional[str] = None
     valid: bool = True

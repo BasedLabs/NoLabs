@@ -63,8 +63,8 @@ class PropertyValidationError:
         return f'{self.msg}: {self.loc}'
 
 
-class ParameterSchema(BaseModel):
-    defs: Optional[Dict[str, 'ParameterSchema']] = Field(alias='$defs', default_factory=dict)
+class Parameter(BaseModel):
+    defs: Optional[Dict[str, 'Parameter']] = Field(alias='$defs', default_factory=dict)
     description: Optional[str] = None
     properties: Dict[str, 'Property'] = Field(default_factory=dict)
     required: List[str] = field(default_factory=list)
@@ -73,13 +73,13 @@ class ParameterSchema(BaseModel):
     anyOf: List[Union['Property', dict]] = Field(default_factory=list)
     default: Optional[Any] = None
     items: Optional[Union['Items', List['Items']]] = None
-    additionalProperties: Optional[Union[bool, 'ParameterSchema']] = True
+    additionalProperties: Optional[Union[bool, 'Parameter']] = True
     format: Optional[str] = None
     const: Optional[Any] = None
     example: Optional[Any] = None
 
     @classmethod
-    def _find_property(cls, schema: 'ParameterSchema', target_path: List[str]) -> Optional['Property']:
+    def _find_property(cls, schema: 'Parameter', target_path: List[str]) -> Optional['Property']:
         if not target_path:
             return None
 
@@ -145,7 +145,7 @@ class ParameterSchema(BaseModel):
     def find_property(self, path: List[str]) -> Optional['Property']:
         return self._find_property(schema=self, target_path=path)
 
-    def try_set_mapping(self, source_schema: 'ParameterSchema',
+    def try_set_mapping(self, source_schema: 'Parameter',
                         component_id: UUID,
                         path_from: List[str],
                         target_path: List[str]) -> Optional[PropertyValidationError]:
@@ -224,7 +224,7 @@ class ParameterSchema(BaseModel):
         target_property.target_path = target_path
 
     @staticmethod
-    def get_instance(cls: Type) -> 'ParameterSchema':
+    def get_instance(cls: Type) -> 'Parameter':
         if not issubclass(cls, BaseModel):
             raise ValueError(
                 f'Schema must be a subclass of {BaseModel}'
@@ -232,7 +232,7 @@ class ParameterSchema(BaseModel):
 
         schema = cls.schema()
 
-        return ParameterSchema(**schema)
+        return Parameter(**schema)
 
     @property
     def unmapped_properties(self) -> List['Property']:
@@ -352,10 +352,10 @@ class Component(Generic[TInput, TOutput]):
 
     # region schemas
 
-    output_schema: ParameterSchema
+    output_schema: Parameter
     output_value_dict: Dict[str, Any]
 
-    input_schema: ParameterSchema
+    input_schema: Parameter
     input_value_dict: Dict[str, Any]
 
     previous_component_ids: List[uuid.UUID] = []
@@ -370,8 +370,8 @@ class Component(Generic[TInput, TOutput]):
     def __init__(self,
                  id: uuid.UUID,
                  job_ids: Optional[List[uuid.UUID]] = None,
-                 input_schema: Optional[Union[ParameterSchema, Dict[str, Any]]] = None,
-                 output_schema: Optional[Union[ParameterSchema, Dict[str, Any]]] = None,
+                 input_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
+                 output_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
                  input_value_dict: Optional[Dict[str, Any]] = None,
                  output_value_dict: Optional[Dict[str, Any]] = None,
                  previous_component_ids: Optional[List[uuid]] = None):
@@ -379,14 +379,14 @@ class Component(Generic[TInput, TOutput]):
         self.job_ids = job_ids or []
 
         if isinstance(input_schema, Mapping):
-            self.input_schema = ParameterSchema(**input_schema)
+            self.input_schema = Parameter(**input_schema)
         else:
-            self.input_schema = input_schema or ParameterSchema.get_instance(cls=self.input_parameter_type)
+            self.input_schema = input_schema or Parameter.get_instance(cls=self.input_parameter_type)
 
         if isinstance(output_schema, Mapping):
-            self.output_schema = ParameterSchema(**output_schema)
+            self.output_schema = Parameter(**output_schema)
         else:
-            self.output_schema = output_schema or ParameterSchema.get_instance(cls=self.output_parameter_type)
+            self.output_schema = output_schema or Parameter.get_instance(cls=self.output_parameter_type)
 
         self.input_value_dict = input_value_dict or {}
         self.output_value_dict = output_value_dict or {}
@@ -526,32 +526,17 @@ class Component(Generic[TInput, TOutput]):
 
     @property
     @abstractmethod
-    def setup_operator_type(self) -> Type[BaseOperator]:
+    def setup_task_type(self) -> Type['SetupTask']:
         ...
 
     @property
     @abstractmethod
-    def job_operator_type(self) -> Optional[Type[BaseOperator]]:
+    def job_task_type(self) -> Optional[Type['ExecuteJobTask']]:
         ...
 
     @property
     @abstractmethod
-    def output_operator_type(self) -> Type[BaseOperator]:
-        ...
-
-    @property
-    @abstractmethod
-    def setup_task_type(self) -> Type[SetupTask]:
-        ...
-
-    @property
-    @abstractmethod
-    def job_task_type(self) -> Optional[Type[ExecuteJobTask]]:
-        ...
-
-    @property
-    @abstractmethod
-    def output_task_type(self) -> Type[OutputTask]:
+    def output_task_type(self) -> Type['OutputTask']:
         ...
 
     @classmethod
@@ -567,8 +552,8 @@ class Component(Generic[TInput, TOutput]):
         component = ComponentTypeFactory.get_type(state.name)(
             id=state.id,
             job_ids=state.job_ids,
-            input_schema=ParameterSchema(**state.input_schema),
-            output_schema=ParameterSchema(**state.output_schema),
+            input_schema=Parameter(**state.input_schema),
+            output_schema=Parameter(**state.output_schema),
             input_value_dict=state.input_value_dict,
             output_value_dict=state.output_value_dict,
             previous_component_ids=state.previous_component_ids

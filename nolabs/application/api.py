@@ -30,7 +30,7 @@ from nolabs.infrastructure.websocket_queue import websockets_queue
 
 app = FastAPI(
     title='NoLabs',
-    version='2.0.0'
+    version='2.1.7'
 )
 
 origins = [
