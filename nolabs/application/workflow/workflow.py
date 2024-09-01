@@ -122,7 +122,6 @@ class Workflow:
 
         return ComponentTypeFactory.get_type(state.name)(
             id=state.id,
-            job_ids=[j for j in state.latest_job_ids()],
             input_schema=Parameter(**state.input_schema),
             output_schema=Parameter(**state.output_schema),
             input_value_dict=state.input_value_dict,

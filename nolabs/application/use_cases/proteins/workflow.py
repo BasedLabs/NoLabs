@@ -3,7 +3,7 @@ from typing import List, Type
 
 from pydantic import BaseModel
 
-from nolabs.application.workflow import Component, ComponentTask
+from nolabs.application.workflow import Component, ComponentFlow
 from nolabs.application.workflow.component import TInput, TOutput
 
 
@@ -28,11 +28,11 @@ class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutpu
         return ProteinsComponentOutput
 
     @property
-    def component_task_type(self) -> Type['ComponentTask']:
+    def component_flow_type(self) -> Type['ComponentFlow']:
         return ProteinsTask
 
 
-class ProteinsTask(ComponentTask):
+class ProteinsTask(ComponentFlow):
     component_timeout_seconds = 1.0
 
     async def post_execute(self, inp: ProteinsComponentInput, **kwargs):

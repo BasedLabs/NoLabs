@@ -11,13 +11,13 @@ if TYPE_CHECKING:
     from nolabs.application.workflow.component import Component
 
 
-class InputPropertyErrorDbModel(EmbeddedDocument):
+class InputPropertyErrorModel(EmbeddedDocument):
     loc: List[str] = ListField(StringField())
     msg: str = StringField()
 
     @classmethod
-    def create(cls, loc: List[str], msg: str) -> 'InputPropertyErrorDbModel':
-        return InputPropertyErrorDbModel(
+    def create(cls, loc: List[str], msg: str) -> 'InputPropertyErrorModel':
+        return InputPropertyErrorModel(
             loc=loc,
             msg=msg
         )
@@ -34,25 +34,29 @@ class JobRunModel(EmbeddedDocument):
 
 
 class ComponentRunModel(EmbeddedDocument):
-    task_run_id: uuid.UUID = UUIDField(primary_key=True, default=uuid.uuid4)
+    task_run_id: uuid.UUID = UUIDField(primary_key=True)
     created_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
     jobs: List[JobRunModel] = EmbeddedDocumentListField(JobRunModel, default=[])
 
     @classmethod
-    def create(cls, task_run_id: uuid.UUID, created_at: datetime) -> 'ComponentRunModel':
-        return ComponentRunModel(task_run_id=task_run_id, created_at=created_at)
+    def create(cls, task_run_id: uuid.UUID, jobs: List[JobRunModel], created_at: datetime) -> 'ComponentRunModel':
+        return ComponentRunModel(task_run_id=task_run_id, jobs=jobs, created_at=created_at)
 
 
 class WorkflowRunModel(EmbeddedDocument):
     flow_run_id: uuid.UUID = UUIDField(required=True)
     created_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
 
+    @classmethod
+    def create(cls, flow_run_id: uuid.UUID, created_at: datetime) -> 'WorkflowRunModel':
+        return WorkflowRunModel(flow_run_id=flow_run_id, created_at=created_at)
+
 
 class WorkflowState(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
     schema: Dict[str, Any] = DictField()
 
-    run: WorkflowRunModel = EmbeddedDocumentField(WorkflowRunModel)
+    runs: List[WorkflowRunModel] = EmbeddedDocumentListField(WorkflowRunModel)
 
     meta = {'collection': 'workflows'}
 
@@ -75,7 +79,7 @@ class ComponentState(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
     workflow: WorkflowState = ReferenceField(WorkflowState, reverse_delete_rule=CASCADE)
 
-    input_property_errors: List[InputPropertyErrorDbModel] = EmbeddedDocumentListField(InputPropertyErrorDbModel)
+    input_property_errors: List[InputPropertyErrorModel] = EmbeddedDocumentListField(InputPropertyErrorModel)
 
     last_jobs_count: int = IntField()
 
