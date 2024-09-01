@@ -16,7 +16,7 @@ from pydantic.dataclasses import dataclass
 from nolabs.application.workflow.data import ComponentState
 
 if TYPE_CHECKING:
-    from nolabs.application.workflow.prefect.tasks import ComponentTask
+    from nolabs.application.workflow.prefect.tasks import ComponentFlow
 
 
 def is_assignable_to_generic(value, generic_type):
@@ -347,8 +347,6 @@ def is_pydantic_type(t: Any) -> bool:
 class Component(Generic[TInput, TOutput]):
     id: uuid.UUID
 
-    job_ids: List[uuid.UUID]
-
     # region schemas
 
     output_schema: Parameter
@@ -366,14 +364,12 @@ class Component(Generic[TInput, TOutput]):
 
     def __init__(self,
                  id: uuid.UUID,
-                 job_ids: Optional[List[uuid.UUID]] = None,
                  input_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
                  output_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
                  input_value_dict: Optional[Dict[str, Any]] = None,
                  output_value_dict: Optional[Dict[str, Any]] = None,
                  previous_component_ids: Optional[List[uuid]] = None):
         self.id = id
-        self.job_ids = job_ids or []
 
         if isinstance(input_schema, Mapping):
             self.input_schema = Parameter(**input_schema)
@@ -523,7 +519,7 @@ class Component(Generic[TInput, TOutput]):
 
     @property
     @abstractmethod
-    def component_task_type(self) -> Type['ComponentTask']:
+    def component_flow_type(self) -> Type['ComponentFlow']:
         ...
 
 

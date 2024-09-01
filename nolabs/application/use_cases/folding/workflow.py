@@ -6,7 +6,7 @@ from celery.result import AsyncResult
 from pydantic import BaseModel
 
 from nolabs.application.use_cases.folding.api_models import FoldingBackendEnum
-from nolabs.application.workflow import ComponentTask
+from nolabs.application.workflow import ComponentFlow
 from nolabs.application.workflow.component import Component, JobValidationError, TOutput, TInput
 from nolabs.domain.models.common import Protein, JobId, JobName, Experiment
 from nolabs.domain.models.folding import FoldingJob
@@ -67,8 +67,8 @@ class EsmfoldComponent(FoldingComponent):
         return FoldingBackendEnum.esmfold
 
     @property
-    def component_task_type(self) -> Optional[Type['FoldingComponentTask']]:
-        return FoldingComponentTask
+    def component_flow_type(self) -> Optional[Type['FoldingComponentFlow']]:
+        return FoldingComponentFlow
 
 
 class EsmfoldLightComponent(FoldingComponent):
@@ -80,8 +80,8 @@ class EsmfoldLightComponent(FoldingComponent):
         return FoldingBackendEnum.esmfold_light
 
     @property
-    def component_task_type(self) -> Optional[Type['FoldingComponentTask']]:
-        return FoldingComponentTask
+    def component_flow_type(self) -> Optional[Type['FoldingComponentFlow']]:
+        return FoldingComponentFlow
 
 
 class RosettafoldComponent(FoldingComponent):
@@ -93,11 +93,11 @@ class RosettafoldComponent(FoldingComponent):
         return FoldingBackendEnum.rosettafold
 
     @property
-    def component_task_type(self) -> Optional[Type['FoldingComponentTask']]:
-        return FoldingComponentTask
+    def component_flow_type(self) -> Optional[Type['FoldingComponentFlow']]:
+        return FoldingComponentFlow
 
 
-class FoldingComponentTask(ComponentTask):
+class FoldingComponentFlow(ComponentFlow):
     job_timeout_seconds = 10.0
     component_timeout_seconds = 120.0
 
