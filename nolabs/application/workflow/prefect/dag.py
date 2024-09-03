@@ -27,15 +27,32 @@ class PrefectDagExecutor:
             await dag()
 
 
-def generate_workflow_dag(workflow_id: uuid.UUID, components: List[Component], extra: Optional[Dict[str, Any]] = None):
+def generate_workflow_dag(workflow_id: uuid.UUID,
+                          components: List[Component],
+                          proceed_on_same_input: bool = False,
+                          extra: Optional[Dict[str, Any]] = None):
     @flow(name=str(workflow_id), flow_run_name=f'workflow-{str(workflow_id)}')
     async def workflow():
+        if not components:
+            return
+
         ctx = get_run_context()
         flow_run_id = ctx.flow_run.id
 
         state: WorkflowState = WorkflowState.objects.with_id(workflow_id)
         state.runs.append(WorkflowRunModel.create(flow_run_id=flow_run_id, created_at=datetime.datetime.utcnow()))
         state.save()
+
+        if len(components) == 1:
+            component = components[0]
+            component_flow = component.component_flow_type(
+                component_id=component.id,
+                component_name=component.name,
+                workflow_id=workflow_id,
+                extra=extra
+            )
+            await component_flow.execute(proceed_on_same_input=proceed_on_same_input)
+            return
 
         component_map: Dict[uuid.UUID, Component] = {c.id: c for c in components}
 
@@ -63,7 +80,7 @@ def generate_workflow_dag(workflow_id: uuid.UUID, components: List[Component], e
                     component_name=c.name,
                     workflow_id=workflow_id,
                     extra=extra
-                ).execute()
+                ).execute(proceed_on_same_input=proceed_on_same_input)
                 for c in parallel_group
             ]
 

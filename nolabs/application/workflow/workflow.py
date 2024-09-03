@@ -6,13 +6,67 @@ import uuid
 from typing import Dict, List, Any
 from typing import Optional, Type
 
-from nolabs.application.workflow.component import ComponentTypeFactory, Component, ComponentState, Parameter
-from nolabs.application.workflow.prefect.dag import PrefectDagExecutor
+from pydantic import BaseModel
+
+from nolabs.application.workflow.component import ComponentTypeFactory, Component, Parameter
+from nolabs.application.workflow.data import WorkflowState, ComponentState
 from nolabs.application.workflow.mappings import map_property
-from nolabs.application.workflow.data import WorkflowState
-from nolabs.application.workflow.schema import WorkflowSchema, ComponentSchemaTemplate, ComponentSchema, DefaultSchema, \
-    MappingSchema
+from nolabs.application.workflow.prefect.dag import PrefectDagExecutor
+from nolabs.application.workflow.schema import WorkflowSchema, ComponentSchemaTemplate, ComponentSchema
 from nolabs.exceptions import NoLabsException, ErrorCodes
+
+
+# TODO make it functional
+
+
+def get_component(component_id: uuid.UUID) -> Optional[Component]:
+    state: ComponentState = ComponentState.objects.with_id(component_id)
+
+    if not state:
+        return
+
+    return ComponentTypeFactory.get_type(state.name)(
+        id=state.id,
+        input_schema=Parameter(**state.input_schema),
+        output_schema=Parameter(**state.output_schema),
+        input_value_dict=state.input_value_dict,
+        output_value_dict=state.output_value_dict,
+        previous_component_ids=state.previous_component_ids
+    )
+
+
+class InputPropertyErrorView(BaseModel):
+    loc: List[str]
+    msg: str
+
+
+class JobInputErrorView(BaseModel):
+    job_id: uuid.UUID
+    msg: str
+
+
+class JobExceptionView(BaseModel):
+    job_id: uuid.UUID
+    msg: str
+
+
+class ComponentRunView(BaseModel):
+    input_dict: Dict[str, Any]
+    output_dict: Dict[str, Any]
+    job_ids: List[uuid.UUID]
+    input_property_errors: List[InputPropertyErrorView]
+    exception: str
+    jobs_input_errors: List[JobInputErrorView]
+    jobs_exception: List[JobExceptionView]
+
+
+def get_latest_component_run(component_id: uuid.UUID) -> Optional[ComponentRunView]:
+    state = ComponentState.objects.with_id(component_id)
+
+    if not state:
+        return None
+
+
 
 
 class Workflow:
@@ -45,7 +99,7 @@ class Workflow:
         component_templates: List[ComponentSchemaTemplate] = []
         component_schemas: List[ComponentSchema] = []
 
-        #asd = uuid.uuid4()
+        # asd = uuid.uuid4()
 
         for name, bag in ComponentTypeFactory.enumerate():
             component = bag(id=uuid.uuid4())
@@ -65,7 +119,7 @@ class Workflow:
                 description=component.description
             ))
 
-            #if name == 'test1':
+            # if name == 'test1':
             #    component_schemas.append(
             #        ComponentSchema(
             #            name=name,
@@ -82,7 +136,7 @@ class Workflow:
             #            ]
             #        )
             #    )
-            #else:
+            # else:
             #    component_schemas.append(
             #        ComponentSchema(
             #            name=name,
@@ -130,8 +184,6 @@ class Workflow:
         )
 
     def update(self, schema: WorkflowSchema):
-        state = self._state
-
         components: List[Component] = []
 
         for wf_component in schema.components:
@@ -192,49 +244,16 @@ class Workflow:
         if not schema.valid:
             raise NoLabsException(ErrorCodes.invalid_workflow_schema)
 
-        components: Dict[uuid.UUID, Component] = {}
-        component_states: Dict[uuid.UUID, ComponentState] = {}
+        components: List[Component] = [self._get_component(c.id) for c in schema.components]
 
         for workflow_component in schema.components:
             c: Component = self._get_component(workflow_component.component_id)
             if c:
                 components[workflow_component.component_id] = c
-                state = ComponentState.objects.with_id(c.id)
             else:
                 component: Component = ComponentTypeFactory.get_type(workflow_component.name)(
                     id=workflow_component.component_id)
-                state = ComponentState.create(
-                    id=component.id,
-                    workflow=self._state,
-                    component=component
-                )
                 components[workflow_component.component_id] = component
-
-            component_states[workflow_component.component_id] = state
-
-        for workflow_component in schema.components:
-            component: Component = components[workflow_component.component_id]
-
-            if not component:
-                raise NoLabsException(ErrorCodes.component_not_found)
-
-            # Check that component mappings exist
-            for mapping in workflow_component.mappings:
-                source_component: Component = components[mapping.source_component_id]
-
-                if source_component.id not in component.previous_component_ids:
-                    component.add_previous(component_id=source_component.id)
-
-                component.try_map_property(component=source_component,
-                                           path_from=mapping.source_path,
-                                           target_path=mapping.target_path)
-
-            for default in workflow_component.defaults:
-                component.try_set_default(default.target_path, value=default.value)
-
-        for state in component_states.values():
-            state.set_component(components[state.id])
-            state.save()
 
         executor = PrefectDagExecutor()
         await executor.execute(workflow_id=self._state.id,
