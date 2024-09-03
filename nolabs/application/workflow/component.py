@@ -13,8 +13,6 @@ from uuid import UUID
 from pydantic import Field, BaseModel, ValidationError, parse_obj_as
 from pydantic.dataclasses import dataclass
 
-from nolabs.application.workflow.data import ComponentState
-
 if TYPE_CHECKING:
     from nolabs.application.workflow.prefect.tasks import ComponentFlow
 

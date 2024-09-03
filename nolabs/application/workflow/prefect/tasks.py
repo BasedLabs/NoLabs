@@ -15,7 +15,7 @@ from prefect import task, flow
 from prefect.context import get_run_context
 
 from nolabs.application.workflow.component import Component, TOutput, TInput, ComponentTypeFactory, Parameter
-from nolabs.application.workflow.data import ComponentState, ComponentRunModel, JobRunModel, InputPropertyErrorModel
+from nolabs.application.workflow.data import ComponentState, JobRunModel, InputPropertyErrorModel
 
 
 def _name_builder(name: str, id: uuid.UUID):
@@ -29,9 +29,6 @@ def _run_name_builder(name: str, at: datetime.datetime):
 class ComponentFlow(ABC, Generic[TInput, TOutput]):
     component_id: uuid.UUID
     workflow_id: uuid.UUID
-    input_changed: bool = False
-    force_run: bool = False
-    extra: Optional[Dict[str, Any]] = None
 
     logger: logging.Logger
     '''Whether input was changed after last execution'''
@@ -43,11 +40,9 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
                  component_id: uuid.UUID,
                  component_name: str,
                  workflow_id: uuid.UUID,
-                 force_run: bool = False,
                  extra: Optional[Dict[str, Any]] = None):
         self.component_id = component_id
         self.workflow_id = workflow_id
-        self.force_run = force_run
 
         execute_flow_name = _name_builder(id=component_id, name=component_name)
 
@@ -83,14 +78,20 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
     async def _job_task(self, job_id: uuid.UUID, at: datetime.datetime):
         state: ComponentState = ComponentState.objects.with_id(self.component_id)
-        await self._add_job_task_run(job_id=job_id, state=state)
-        state.save()
-        await self.job_task(job_id=job_id)
+        run = self._add_job_task_run(job_id=job_id, state=state)
+        state.save(cascade=True)
+
+        try:
+            await self.job_task(job_id=job_id)
+        except Exception as e:
+            run.exception = str(e)
+            state.save(cascade=True)
+            raise e
 
     async def job_task(self, job_id: uuid.UUID):
         pass
 
-    async def execute(self):
+    async def _execute(self):
         state: ComponentState = ComponentState.objects.with_id(self.component_id)
 
         self._add_task_run(state)
@@ -113,9 +114,6 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
         input_changed = component.set_input_from_previous(prev_components)
 
-        if not input_changed and not self.force_run:
-            return
-
         errors = component.input_errors()
         if errors:
             state.input_property_errors = [InputPropertyErrorModel.create(loc=err.loc, msg=err.msg) for err in errors]
@@ -129,16 +127,24 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
         await self.pre_execute(input_value)
 
-        job_ids = await self.get_jobs(inp=input_value)
+        if input_changed:
+            job_ids = await self.get_jobs(inp=input_value)
+        else:
+            job_ids = [j.id for j in state.jobs_runs]
 
         if job_ids:
-            self._job_task.map(job_ids, at=datetime.datetime.utcnow()).wait()
+            state.jobs_runs = []
+            state.save()
+            self._job_task.map(job_ids, at=datetime.datetime.utcnow(), return_state=True)
 
         output = await self.post_execute(inp=input_value, job_ids=job_ids)
         if output:
             component.output_value = output
             state.set_component(component=component)
             state.save()
+
+    async def execute(self, state: ComponentState, component: Component):
+
 
     def _get_component(self, from_state: ComponentState) -> Component:
         component = ComponentTypeFactory.get_type(from_state.name)(
@@ -160,22 +166,13 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
     def _add_task_run(self, state: ComponentState):
         ctx = get_run_context()
-        task_run_id = ctx.flow_run.id
+        state.flow_run_id = ctx.flow_run.id
+        state.last_executed_at = datetime.datetime.utcnow()
 
-        previous_run = state.runs[-2] if len(state.runs) > 1 else None
-
-        state.runs.append(
-            ComponentRunModel.create(task_run_id=task_run_id,
-                                     jobs=previous_run.jobs if previous_run else [],
-                                     created_at=datetime.datetime.utcnow()))
-
-    def _add_job_task_run(self, job_id: uuid.UUID, state: ComponentState):
+    def _add_job_task_run(self, job_id: uuid.UUID, state: ComponentState) -> JobRunModel:
         ctx = get_run_context()
         task_run_id = ctx.task_run.id
 
-        if not state.runs:
-            raise ValueError('Runs were not found in component')
+        run_model = JobRunModel.create(id=job_id, task_run_id=task_run_id, executed_at=datetime.datetime.utcnow())
 
-        run = state.runs[-1]
-
-        run.jobs.append(JobRunModel.create(id=job_id, task_run_id=task_run_id, created_at=datetime.datetime.utcnow()))
+        state.jobs_runs.append(run_model)

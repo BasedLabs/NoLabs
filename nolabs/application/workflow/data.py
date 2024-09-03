@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, TYPE_CHECKING, Optional
 
 from mongoengine import ReferenceField, UUIDField, Document, DictField, CASCADE, ListField, DateTimeField, StringField, \
-    EmbeddedDocumentListField, IntField, EmbeddedDocument, EmbeddedDocumentField
+    EmbeddedDocumentListField, IntField, EmbeddedDocument
 
 from nolabs.application.workflow.schema import WorkflowSchema
 
@@ -26,37 +26,21 @@ class InputPropertyErrorModel(EmbeddedDocument):
 class JobRunModel(EmbeddedDocument):
     id: uuid.UUID = UUIDField(primary_key=True)
     task_run_id: uuid.UUID = UUIDField(required=True)
-    created_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
+    exception: str = StringField()
+    executed_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
 
     @classmethod
-    def create(cls, id: uuid.UUID, task_run_id: uuid.UUID, created_at: datetime) -> 'JobRunModel':
-        return JobRunModel(id=id, task_run_id=task_run_id, created_at=created_at)
-
-
-class ComponentRunModel(EmbeddedDocument):
-    task_run_id: uuid.UUID = UUIDField(primary_key=True)
-    created_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
-    jobs: List[JobRunModel] = EmbeddedDocumentListField(JobRunModel, default=[])
-
-    @classmethod
-    def create(cls, task_run_id: uuid.UUID, jobs: List[JobRunModel], created_at: datetime) -> 'ComponentRunModel':
-        return ComponentRunModel(task_run_id=task_run_id, jobs=jobs, created_at=created_at)
-
-
-class WorkflowRunModel(EmbeddedDocument):
-    flow_run_id: uuid.UUID = UUIDField(required=True)
-    created_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
-
-    @classmethod
-    def create(cls, flow_run_id: uuid.UUID, created_at: datetime) -> 'WorkflowRunModel':
-        return WorkflowRunModel(flow_run_id=flow_run_id, created_at=created_at)
+    def create(cls, id: uuid.UUID, task_run_id: uuid.UUID, executed_at: datetime) -> 'JobRunModel':
+        return JobRunModel(id=id, task_run_id=task_run_id, executed_at=executed_at)
 
 
 class WorkflowState(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
     schema: Dict[str, Any] = DictField()
 
-    runs: List[WorkflowRunModel] = EmbeddedDocumentListField(WorkflowRunModel)
+    last_executed_at: datetime = DateTimeField()
+    last_exception: str = StringField()
+    flow_run_id: uuid.UUID = UUIDField()
 
     meta = {'collection': 'workflows'}
 
@@ -83,7 +67,11 @@ class ComponentState(Document):
 
     last_jobs_count: int = IntField()
 
-    last_executed_at: datetime = DateTimeField()
+    last_executed_at: Optional[datetime] = DateTimeField()
+    last_exception: Optional[str] = StringField()
+    flow_run_id: Optional[uuid.UUID] = UUIDField()
+
+    jobs_runs: ListField(JobRunModel) = EmbeddedDocumentListField(JobRunModel, default=list)
 
     name: str = StringField()
 
@@ -94,8 +82,6 @@ class ComponentState(Document):
     input_value_dict: Dict[str, Any] = DictField()
     output_value_dict: Dict[str, Any] = DictField()
     previous_component_ids: List[uuid.UUID] = ListField(UUIDField())
-
-    runs: List[ComponentRunModel] = EmbeddedDocumentListField(ComponentRunModel)
 
     # endregion
 
@@ -114,8 +100,7 @@ class ComponentState(Document):
             input_value_dict=component.input_value_dict,
             output_value_dict=component.output_value_dict,
             previous_component_ids=component.previous_component_ids,
-            name=component.name,
-            runs=[]
+            name=component.name
         )
 
     def set_component(self, component: 'Component'):
@@ -124,10 +109,3 @@ class ComponentState(Document):
         self.input_value_dict = component.input_value_dict
         self.output_value_dict = component.output_value_dict
         self.previous_component_ids = component.previous_component_ids
-
-    def latest_job_ids(self) -> List[uuid.UUID]:
-        if not self.runs:
-            return []
-
-        run = self.runs[-1]
-        return [j.id for j in run.jobs]

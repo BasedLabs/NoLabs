@@ -7,7 +7,8 @@ from nolabs.application.use_cases.workflow.api_models import (GetComponentStateR
                                                               AllWorkflowSchemasResponse, ResetWorkflowRequest,
                                                               StartWorkflowComponentRequest)
 from nolabs.application.use_cases.workflow.data import ExperimentWorkflowRelation
-from nolabs.application.workflow import Workflow, WorkflowSchema
+from nolabs.application.workflow import Workflow, WorkflowSchema, Component
+from nolabs.application.workflow.workflow import get_component
 from nolabs.domain.models.common import Experiment
 from nolabs.exceptions import NoLabsException, ErrorCodes
 
@@ -80,10 +81,12 @@ class StartWorkflowComponentFeature:
 
 class GetComponentStateFeature:
     async def handle(self, request: GetComponentStateRequest) -> GetComponentStateResponse:
+        component = get_component(request.component_id)
+
         return GetComponentStateResponse(
-            input_dict={},
-            output_dict={},
-            job_ids=[],
+            input_dict=component.input_value_dict,
+            output_dict=component.output_value_dict,
+            job_ids=component.,
             input_property_errors=[],
             last_exceptions=[],
             jobs_errors=[]
