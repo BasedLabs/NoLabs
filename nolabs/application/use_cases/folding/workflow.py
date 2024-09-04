@@ -141,7 +141,7 @@ class FoldingComponentFlow(ComponentFlow):
     async def execute_job_task(self, job_id: uuid.UUID):
         job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
-        job.input_errors(throw=True)
+        job.input_errors(throw=False)
 
         async_result: AsyncResult = send_selery_task(name=esmfold_light_inference,
                                                      payload=InferenceInput(fasta_sequence=job.protein.get_fasta()))

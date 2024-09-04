@@ -7,15 +7,14 @@ from nolabs.application.use_cases.workflow.api_models import (GetComponentStateR
                                                               AllWorkflowSchemasResponse, ResetWorkflowRequest,
                                                               StartWorkflowComponentRequest)
 from nolabs.application.use_cases.workflow.data import ExperimentWorkflowRelation
-from nolabs.application.workflow import Workflow, WorkflowSchema, Component
-from nolabs.application.workflow.workflow import get_component
+import nolabs.application.workflow as workflow
 from nolabs.domain.models.common import Experiment
 from nolabs.exceptions import NoLabsException, ErrorCodes
 
 
 class DeleteWorkflowSchemaFeature:
     async def handle(self, id: UUID):
-        workflow = Workflow.get(id)
+        workflow = delete
         workflow.delete()
 
 
@@ -30,13 +29,12 @@ class AllWorkflowSchemasFeature:
 
 class CreateWorkflowSchemaFeature:
     async def handle(self, experiment_id: UUID) -> WorkflowSchema:
-        workflow = Workflow.create(uuid.uuid4())
-        experiment = Experiment.objects.with_id(experiment_id)
+        workflow = create_schema(uuid.uuid4())
         ExperimentWorkflowRelation.create(
-            experiment=experiment,
-            workflow=workflow.state
+            experiment_id=experiment_id,
+            workflow_id=workflow.workflow_id
         ).save()
-        return workflow.schema
+        return workflow
 
 
 class GetWorkflowSchemaFeature:

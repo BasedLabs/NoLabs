@@ -13,6 +13,8 @@ from uuid import UUID
 from pydantic import Field, BaseModel, ValidationError, parse_obj_as
 from pydantic.dataclasses import dataclass
 
+from nolabs.application.workflow.data import ComponentData, PropertyErrorData
+
 if TYPE_CHECKING:
     from nolabs.application.workflow.prefect.tasks import ComponentFlow
 
@@ -394,9 +396,6 @@ class Component(Generic[TInput, TOutput]):
         else:
             self.output_value_dict = value.dict()
 
-        if self.output_errors():
-            raise ValueError('There were issues while settings the output')
-
     def output_errors(self) -> List[PropertyValidationError]:
         return self.output_schema.validate_dictionary(t=self.output_parameter_type, dictionary=self.output_value_dict)
 
@@ -519,6 +518,28 @@ class Component(Generic[TInput, TOutput]):
     @abstractmethod
     def component_flow_type(self) -> Type['ComponentFlow']:
         ...
+
+    @classmethod
+    def restore(cls, data: ComponentData):
+        component = ComponentTypeFactory.get_type(data.name)(
+            id=data.id,
+            input_schema=Parameter(**data.input_schema),
+            output_schema=Parameter(**data.output_schema),
+            input_value_dict=data.input_value_dict,
+            output_value_dict=data.output_value_dict,
+            previous_component_ids=data.previous_component_ids
+        )
+
+        return component
+
+    def dump(self, data: ComponentData):
+        data.input_schema = self.input_schema.dict()
+        data.output_schema = self.output_schema.dict()
+        data.input_value_dict = self.input_value_dict
+        data.output_value_dict = self.output_value_dict
+        data.previous_component_ids = self.previous_component_ids
+        data.input_errors = [PropertyErrorData.create(loc=err.loc, msg=err.msg) for err in self.input_errors()]
+        data.output_errors = [PropertyErrorData.create(loc=err.loc, msg=err.msg) for err in self.output_errors()]
 
 
 class ComponentTypeFactory:

@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 logger.info('Starting celery service')
 
-from api_models import InferenceInput, InferenceOutput
+from api_models import InferenceInput
 
 app = Celery(__name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url)
 app.conf.enable_utc = settings.celery_enable_utc
