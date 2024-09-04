@@ -12,7 +12,6 @@ import esmfold_light_microservice
 import esmfold_microservice
 import rosettafold_microservice
 from mongoengine import Q
-from prefect import get_client
 
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.folding.api_models import GetJobStatusResponse, JobResult, JobResponse, \

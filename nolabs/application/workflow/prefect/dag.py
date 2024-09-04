@@ -1,14 +1,14 @@
 import asyncio
-import datetime
 import uuid
 from collections import defaultdict, deque
 from typing import List, Optional, Dict, Any, Set
 from uuid import UUID
 
 from prefect import flow
+from prefect.client.schemas import StateType
 from prefect.context import get_run_context
 
-from nolabs.application.workflow.data import WorkflowState, WorkflowRunModel
+from nolabs.application.workflow.data import WorkflowData
 from nolabs.application.workflow.workflow import Component
 from nolabs.infrastructure.environment import Environment
 from nolabs.infrastructure.settings import Settings
@@ -29,7 +29,6 @@ class PrefectDagExecutor:
 
 def generate_workflow_dag(workflow_id: uuid.UUID,
                           components: List[Component],
-                          proceed_on_same_input: bool = False,
                           extra: Optional[Dict[str, Any]] = None):
     @flow(name=str(workflow_id), flow_run_name=f'workflow-{str(workflow_id)}')
     async def workflow():
@@ -39,19 +38,18 @@ def generate_workflow_dag(workflow_id: uuid.UUID,
         ctx = get_run_context()
         flow_run_id = ctx.flow_run.id
 
-        state: WorkflowState = WorkflowState.objects.with_id(workflow_id)
-        state.runs.append(WorkflowRunModel.create(flow_run_id=flow_run_id, created_at=datetime.datetime.utcnow()))
-        state.save()
+        data: WorkflowData = WorkflowData.objects.with_id(workflow_id)
+        data.flow_run_id = flow_run_id
+        data.state = StateType.RUNNING
+        data.save()
 
         if len(components) == 1:
             component = components[0]
             component_flow = component.component_flow_type(
-                component_id=component.id,
-                component_name=component.name,
-                workflow_id=workflow_id,
+                component=component,
                 extra=extra
             )
-            await component_flow.execute(proceed_on_same_input=proceed_on_same_input)
+            await component_flow.execute()
             return
 
         component_map: Dict[uuid.UUID, Component] = {c.id: c for c in components}
@@ -76,11 +74,9 @@ def generate_workflow_dag(workflow_id: uuid.UUID,
 
             group = [
                 c.component_flow_type(
-                    component_id=c.id,
-                    component_name=c.name,
-                    workflow_id=workflow_id,
+                    component=c,
                     extra=extra
-                ).execute(proceed_on_same_input=proceed_on_same_input)
+                ).execute()
                 for c in parallel_group
             ]
 
