@@ -9,7 +9,7 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from nolabs.application.use_cases.workflow.use_cases import CreateWorkflowSchemaFeature, \
+from nolabs.application.workflow.api.use_cases import CreateWorkflowSchemaFeature, \
     GetWorkflowSchemaFeature, \
     UpdateWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, \
     AllWorkflowSchemasFeature, \

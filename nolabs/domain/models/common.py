@@ -11,31 +11,29 @@ __all__ = ['Protein',
            'ProteinCreatedEvent']
 
 import datetime
+import io
 import uuid
 from abc import abstractmethod
 from pathlib import Path
 from typing import Union, Dict, Any, List
 from uuid import UUID
-from Bio import SeqIO
-import io
 
+from Bio import SeqIO
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
     FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
-    Q, StringField, BooleanField, PULL
-from pydantic import model_validator
+    Q, StringField, BooleanField
+from pydantic import model_validator, BaseModel
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
 from typing_extensions import Self
 
-from nolabs.application.workflow.data import WorkflowState
-from nolabs.utils.generate_2d_drug import generate_png_from_smiles
-
-from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.event_dispatcher import EventDispatcher
+from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.mongo_fields import ValueObjectStringField, ValueObjectFloatField
 from nolabs.seedwork.domain.entities import Entity
 from nolabs.seedwork.domain.events import DomainEvent
 from nolabs.seedwork.domain.value_objects import ValueObject, ValueObjectString, ValueObjectUUID, ValueObjectFloat
+from nolabs.utils.generate_2d_drug import generate_png_from_smiles
 
 
 @dataclass
@@ -661,8 +659,7 @@ class JobName(ValueObjectString):
         return self
 
 
-@dataclass
-class JobInputError:
+class JobInputError(BaseModel):
     message: str
     error_code: ErrorCodes
 
@@ -704,7 +701,10 @@ class Job(Document, Entity):
 
         self.clear_events()
 
-        super().__init__(id=id.value if isinstance(id, JobId) else id, name=name, experiment=experiment, *args,
+        super().__init__(id=id.value if isinstance(id, JobId) else id,
+                         name=name,
+                         experiment=experiment,
+                         *args,
                          **kwargs)
 
     def set_name(self, name: JobName):

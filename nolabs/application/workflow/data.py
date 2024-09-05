@@ -5,7 +5,7 @@ from typing import Any, Dict, List, TYPE_CHECKING, Optional
 from mongoengine import ReferenceField, UUIDField, Document, DictField, CASCADE, ListField, DateTimeField, StringField, \
     EmbeddedDocumentListField, IntField, EmbeddedDocument
 
-from nolabs.application.workflow.schema import WorkflowSchema
+from nolabs.application.workflow.api.schema import WorkflowSchema
 
 if TYPE_CHECKING:
     from nolabs.application.workflow.component import Component
@@ -29,8 +29,8 @@ class JobRunData(Document):
     executed_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
     timeout: int = IntField(required=True)
 
-    state: str = StringField()
-    state_message = StringField()
+    prefect_state: str = StringField()
+    prefect_state_message = StringField()
 
     component: 'ComponentData' = ReferenceField('ComponentData')
 
@@ -40,9 +40,9 @@ class JobRunData(Document):
                id: uuid.UUID,
                task_run_id: uuid.UUID,
                timeout: int,
-               state: str,
+               prefect_state: str,
                executed_at: datetime) -> 'JobRunData':
-        return JobRunData(component=component_id, id=id, task_run_id=task_run_id, timeout=timeout, state=state, executed_at=executed_at)
+        return JobRunData(component=component_id, id=id, task_run_id=task_run_id, timeout=timeout, prefect_state=prefect_state, executed_at=executed_at)
 
 
 class WorkflowData(Document):
@@ -93,8 +93,8 @@ class ComponentData(Document):
     output_value_dict: Dict[str, Any] = DictField()
     previous_component_ids: List[uuid.UUID] = ListField(UUIDField())
 
-    state: str = StringField()
-    state_message: str = StringField()
+    prefect_state: str = StringField()
+    prefect_state_message: str = StringField()
 
     # endregion
 

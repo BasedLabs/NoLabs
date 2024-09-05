@@ -9,7 +9,7 @@ from prefect.client.schemas import StateType
 from prefect.context import get_run_context
 
 from nolabs.application.workflow.data import WorkflowData
-from nolabs.application.workflow.workflow import Component
+from nolabs.application.workflow.component import Component
 from nolabs.infrastructure.environment import Environment
 from nolabs.infrastructure.settings import Settings
 
