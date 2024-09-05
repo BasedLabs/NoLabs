@@ -11,14 +11,13 @@ from typing import Any, List, Dict, Optional
 from typing import Generic
 
 from celery.result import AsyncResult
-from prefect import task, flow, State, Task, Flow
+from prefect import task, flow, State
 from prefect.client.schemas.objects import R, StateType, TaskRun, FlowRun
 from prefect.context import get_run_context
-from prefect.states import Failed
+from prefect.states import Completed
 
 from nolabs.application.workflow.component import Component, TOutput, TInput, ComponentTypeFactory, Parameter
 from nolabs.application.workflow.data import ComponentData, JobRunData
-from nolabs.application.workflow.exceptions import WorkflowException, ErrorCodes
 
 
 def _name_builder(name: str, id: uuid.UUID):
@@ -90,7 +89,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
             id=job_id,
             task_run_id=task_run_id,
             timeout=self.job_timeout_seconds,
-            state=StateType.RUNNING,
+            prefect_state=StateType.RUNNING,
             executed_at=at)
         run.save()
         return await self.job_task(job_id=job_id)
@@ -136,7 +135,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
             if job_ids:
                 states = self._job_task.map(job_ids, at=datetime.datetime.utcnow(), return_state=True)
-                job_errors = any([s for s in states if s is Failed])
+                job_errors = any([s for s in states if s is not Completed])
 
             if not job_errors:
                 output = await self.post_execute(inp=input_value, job_ids=job_ids)
@@ -164,23 +163,23 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         data: ComponentData = ComponentData.objects.with_id(self.component_id)
         data.flow_run_id = flow_run.id
         data.last_executed_at = datetime.datetime.utcnow()
-        data.state = state.type
+        data.prefect_state = state.type
         data.save()
 
     def _on_component_completion(self, _, flow_run: FlowRun, state: State):
         data: ComponentData = ComponentData.objects(flow_run_id=flow_run.id).first()
 
         if state.type == StateType.CRASHED:
-            pass # Can crash jobs as well
+            pass  # Can crash jobs as well
 
-        data.state = state.type
-        data.state_message = state.message
+        data.prefect_state = state.type
+        data.prefect_state_message = state.message
         data.save()
 
     def _on_job_completion(self, _, task_run: TaskRun, state: State):
         run: JobRunData = JobRunData.objects(task_run_id=task_run.id).first()
-        run.state = state.type
-        run.state_message = state.message
+        run.prefect_state = state.type
+        run.prefect_state_message = state.message
         run.save()
 
     async def celery_wait_async(self, async_result: AsyncResult) -> Any:

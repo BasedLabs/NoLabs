@@ -9,7 +9,7 @@ from .di import WorkflowDependencies
 from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, UpdateWorkflowSchemaFeature, \
     StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature, \
     ResetWorkflowFeature, StartWorkflowComponentFeature
-from nolabs.application.workflow import WorkflowSchema
+from nolabs.application.workflow.api.schema import WorkflowSchema
 
 router = APIRouter(
     prefix='/api/v1/workflow',
@@ -96,7 +96,7 @@ async def reset_workflow(
 @router.get('/component/{component_id}/state', summary='Get state')
 async def get_component_state(
         feature: Annotated[
-GetComponentStateFeature, Depends(WorkflowDependencies.get_component_state)
+            GetComponentStateFeature, Depends(WorkflowDependencies.get_component_state)
         ],
         component_id: UUID
 ) -> GetComponentStateResponse:
