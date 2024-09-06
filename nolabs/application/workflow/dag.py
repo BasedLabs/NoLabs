@@ -8,22 +8,17 @@ from prefect import flow
 from prefect.client.schemas import StateType
 from prefect.context import get_run_context
 
+from infrastructure.settings import settings
 from nolabs.application.workflow.data import WorkflowData
 from nolabs.application.workflow.component import Component
 from nolabs.infrastructure.environment import Environment
-from nolabs.infrastructure.settings import Settings
 
 
 class PrefectDagExecutor:
-    _settings: Settings
-
-    def __init__(self):
-        self._settings = Settings.load()
-
     async def execute(self, workflow_id: UUID, components: List[Component], extra: Optional[Dict[str, Any]] = None):
         dag = generate_workflow_dag(workflow_id=workflow_id, components=components, extra=extra)
 
-        if self._settings.get_environment() == Environment.LOCAL:
+        if settings.get_environment() == Environment.LOCAL:
             await dag()
 
 

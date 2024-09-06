@@ -55,11 +55,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
             name=execute_flow_name,
             flow_run_name=_run_name_builder(name=execute_flow_name, at=datetime.datetime.utcnow()),
             timeout_seconds=self.component_timeout_seconds,
-            on_running=[self._on_component_running],
-            on_failure=[self._on_component_completion],
-            on_crashed=[self._on_component_completion],
-            on_cancellation=[self._on_component_completion],
-            on_completion=[self._on_component_completion]
+            on_running=[self._on_component_running]
         )(self.execute)
 
         execute_task_name = _name_builder(id=self.component_id, name=f'{self.component_name}-job')
@@ -69,9 +65,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         self._job_task = task(
             name=execute_task_name,
             task_run_name=execute_task_run_name,
-            timeout_seconds=self.job_timeout_seconds,
-            on_failure=[self._on_job_completion],
-            on_completion=[self._on_job_completion]
+            timeout_seconds=self.job_timeout_seconds
         )(self._job_task)
 
     async def get_jobs(self, inp: TInput) -> List[uuid.UUID]:
@@ -89,7 +83,6 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
             id=job_id,
             task_run_id=task_run_id,
             timeout=self.job_timeout_seconds,
-            prefect_state=StateType.RUNNING,
             executed_at=at)
         run.save()
         return await self.job_task(job_id=job_id)
@@ -101,51 +94,46 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         data: ComponentData = ComponentData.objects.with_id(self.component_id)
         component = Component.restore(data=data)
 
-        try:
-            prev_components: List[Component] = []
+        prev_components: List[Component] = []
 
-            for previous_component_id in data.previous_component_ids:
-                previous_component_state = ComponentData.objects.with_id(previous_component_id)
-                previous_component = self._get_component(from_state=previous_component_state)
+        for previous_component_id in data.previous_component_ids:
+            previous_component_state = ComponentData.objects.with_id(previous_component_id)
+            previous_component = self._get_component(from_state=previous_component_state)
 
-                errors = previous_component.output_errors()
-                if errors:
-                    return
+            errors = previous_component.output_errors()
+            if errors:
+                return
 
-                prev_components.append(previous_component)
+            prev_components.append(previous_component)
 
-            input_changed = component.set_input_from_previous(prev_components)
+        input_changed = component.set_input_from_previous(prev_components)
 
-            if input_changed:
-                input_errors = component.input_errors()
+        if input_changed:
+            input_errors = component.input_errors()
 
-                if input_errors:
-                    return
+            if input_errors:
+                return
 
-            input_value = component.input_value
+        input_value = component.input_value
 
-            if input_changed:
-                job_ids = await self.get_jobs(inp=input_value)
-            else:
-                job_ids = [j.id for j in JobRunData.objects(component=self.component_id).only('id')]
+        if input_changed:
+            job_ids = await self.get_jobs(inp=input_value)
+        else:
+            job_ids = [j.id for j in JobRunData.objects(component=self.component_id).only('id')]
 
-            job_errors = False
+        job_errors = False
 
-            JobRunData.objects(component=self.component_id).delete()
+        JobRunData.objects(component=self.component_id).delete()
 
-            if job_ids:
-                states = self._job_task.map(job_ids, at=datetime.datetime.utcnow(), return_state=True)
-                job_errors = any([s for s in states if s is not Completed])
+        if job_ids:
+            states = self._job_task.map(job_ids, at=datetime.datetime.utcnow(), return_state=True)
+            job_errors = any([s for s in states if s is not Completed])
 
-            if not job_errors:
-                output = await self.post_execute(inp=input_value, job_ids=job_ids)
-                component.output_value = output or {}
-        except Exception as e:
-            data.exception = str(e)
-            raise e
-        finally:
-            component.dump(data=data)
-            data.save()
+        if not job_errors:
+            output = await self.post_execute(inp=input_value, job_ids=job_ids)
+            component.output_value = output or {}
+        component.dump(data=data)
+        data.save()
 
     def _get_component(self, from_state: ComponentData) -> Component:
         component = ComponentTypeFactory.get_type(from_state.name)(
@@ -165,22 +153,6 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         data.last_executed_at = datetime.datetime.utcnow()
         data.prefect_state = state.type
         data.save()
-
-    def _on_component_completion(self, _, flow_run: FlowRun, state: State):
-        data: ComponentData = ComponentData.objects(flow_run_id=flow_run.id).first()
-
-        if state.type == StateType.CRASHED:
-            pass  # Can crash jobs as well
-
-        data.prefect_state = state.type
-        data.prefect_state_message = state.message
-        data.save()
-
-    def _on_job_completion(self, _, task_run: TaskRun, state: State):
-        run: JobRunData = JobRunData.objects(task_run_id=task_run.id).first()
-        run.prefect_state = state.type
-        run.prefect_state_message = state.message
-        run.save()
 
     async def celery_wait_async(self, async_result: AsyncResult) -> Any:
         while not async_result.ready():

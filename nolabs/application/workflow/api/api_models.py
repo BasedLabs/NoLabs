@@ -15,18 +15,14 @@ class JobStateEnum(str, Enum):
 @dataclass
 class GetJobResponse:
     id: uuid.UUID
+    component_id: uuid.UUID
     state: JobStateEnum
     state_message: str
 
 
 @dataclass
-class GetJobsRequest:
-    component_id: UUID
-
-
-@dataclass
-class GetJobsResponse:
-    items: List[GetJobResponse]
+class GetJobRequest:
+    job_id: uuid.UUID
 
 
 @dataclass

@@ -5,4 +5,5 @@ class Environment(str, Enum):
     LOCAL = 'local'
     TEST = 'test'
     UNITTESTS = 'unit'
+    PRODUCTION = 'production'
 

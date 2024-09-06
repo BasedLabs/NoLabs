@@ -16,7 +16,7 @@ from pydantic.dataclasses import dataclass
 from nolabs.application.workflow.data import ComponentData, PropertyErrorData
 
 if TYPE_CHECKING:
-    from nolabs.application.workflow.prefect.tasks import ComponentFlow
+    from nolabs.application.workflow.tasks import ComponentFlow
 
 
 def is_assignable_to_generic(value, generic_type):
@@ -330,12 +330,6 @@ class Items(BaseModel):
     example: Optional[Any] = None
 
 
-@dataclass
-class JobValidationError:
-    job_id: uuid.UUID
-    msg: str
-
-
 TInput = TypeVar('TInput', bound=BaseModel)
 TOutput = TypeVar('TOutput', bound=BaseModel)
 
@@ -533,6 +527,7 @@ class Component(Generic[TInput, TOutput]):
         return component
 
     def dump(self, data: ComponentData):
+        data.name = self.name
         data.input_schema = self.input_schema.dict()
         data.output_schema = self.output_schema.dict()
         data.input_value_dict = self.input_value_dict
@@ -550,8 +545,8 @@ class ComponentTypeFactory:
         return cls._types.items()
 
     @classmethod
-    def set_types(cls, types: Dict[str, Type[Component]]):
-        cls._types = types
+    def add_type(cls, t: Type[Component]):
+        cls._types[t.name] = t
 
     @classmethod
     def get_type(cls, name: str) -> Type[Component]:

@@ -7,18 +7,15 @@ from fastapi import Depends
 
 from nolabs.application.use_cases.msa_generation.use_cases import RunJobFeature, GetJobStatusFeature, GetJobFeature, \
     SetupJobFeature
-from nolabs.infrastructure.settings import MsaLightMicroserviceSettings
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 
 class MsaGenerationDependencies:
     @staticmethod
     def run_job(
-            settings: Annotated[MsaLightMicroserviceSettings, Depends(InfrastructureDependencies.msa_light_settings)],
             api: Annotated[msa_light_microservice.DefaultApi, Depends(InfrastructureDependencies.msa_light_microservice)],
     ) -> RunJobFeature:
         return RunJobFeature(
-            settings=settings,
             api=api
         )
 

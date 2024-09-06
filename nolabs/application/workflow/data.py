@@ -1,11 +1,9 @@
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, TYPE_CHECKING, Optional
+from typing import Any, Dict, List, TYPE_CHECKING, Optional, Union
 
 from mongoengine import ReferenceField, UUIDField, Document, DictField, CASCADE, ListField, DateTimeField, StringField, \
     EmbeddedDocumentListField, IntField, EmbeddedDocument
-
-from nolabs.application.workflow.api.schema import WorkflowSchema
 
 if TYPE_CHECKING:
     from nolabs.application.workflow.component import Component
@@ -23,28 +21,6 @@ class PropertyErrorData(EmbeddedDocument):
         )
 
 
-class JobRunData(Document):
-    id: uuid.UUID = UUIDField(primary_key=True)
-    task_run_id: uuid.UUID = UUIDField(required=True)
-    executed_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
-    timeout: int = IntField(required=True)
-
-    prefect_state: str = StringField()
-    prefect_state_message = StringField()
-
-    component: 'ComponentData' = ReferenceField('ComponentData')
-
-    @classmethod
-    def create(cls,
-               component_id: uuid.UUID,
-               id: uuid.UUID,
-               task_run_id: uuid.UUID,
-               timeout: int,
-               prefect_state: str,
-               executed_at: datetime) -> 'JobRunData':
-        return JobRunData(component=component_id, id=id, task_run_id=task_run_id, timeout=timeout, prefect_state=prefect_state, executed_at=executed_at)
-
-
 class WorkflowData(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
     schema: Dict[str, Any] = DictField()
@@ -52,24 +28,15 @@ class WorkflowData(Document):
     last_executed_at: datetime = DateTimeField()
     flow_run_id: uuid.UUID = UUIDField()
 
-    state: str = StringField()
-    state_message: str = StringField()
-
     meta = {'collection': 'workflows'}
 
     @staticmethod
     def create(id: uuid.UUID,
-               schema: WorkflowSchema) -> 'WorkflowData':
+               schema: Dict[str, Any]) -> 'WorkflowData':
         return WorkflowData(
             id=id,
-            schema=schema.dict()
+            schema=schema
         )
-
-    def set_schema(self, schema: WorkflowSchema):
-        self.schema = schema.dict()
-
-    def get_schema(self) -> WorkflowSchema:
-        return WorkflowSchema(**self.schema)
 
 
 class ComponentData(Document):
@@ -93,9 +60,6 @@ class ComponentData(Document):
     output_value_dict: Dict[str, Any] = DictField()
     previous_component_ids: List[uuid.UUID] = ListField(UUIDField())
 
-    prefect_state: str = StringField()
-    prefect_state_message: str = StringField()
-
     # endregion
 
     meta = {'collection': 'components'}
@@ -103,12 +67,38 @@ class ComponentData(Document):
     @classmethod
     def create(cls,
                id: uuid.UUID,
-               workflow: WorkflowData,
-               component: 'Component'):
+               workflow: Union[WorkflowData, uuid.UUID]):
         return ComponentData(
             id=id,
-            workflow=workflow,
-            input_schema=component.input_schema.dict(),
-            output_schema=component.output_schema.dict(),
-            name=component.name
+            workflow=workflow
         )
+
+
+class ExperimentWorkflowRelation(Document):
+    id: str = StringField(primary_key=True)
+    experiment = ReferenceField('Experiment', required=True, reverse_delete_rule=CASCADE)
+    workflow: WorkflowData = ReferenceField(WorkflowData, required=True, reverse_delete_rule=CASCADE)
+
+    @classmethod
+    def create(cls, experiment_id: uuid.UUID, workflow_id: uuid.UUID) -> 'ExperimentWorkflowRelation':
+        return ExperimentWorkflowRelation(id=f'{str(experiment_id)}|{str(workflow_id)}', experiment=experiment_id,
+                                          workflow=workflow_id)
+
+
+class JobRunData(Document):
+    id: uuid.UUID = UUIDField(primary_key=True)
+    task_run_id: uuid.UUID = UUIDField(required=True)
+    executed_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
+    timeout: int = IntField(required=True)
+    component: ComponentData = ReferenceField(ComponentData, required=True, reverse_delete_rule=CASCADE)
+    component_id: uuid.UUID = UUIDField(required=True)
+
+    @classmethod
+    def create(cls,
+               component_id: uuid.UUID,
+               id: uuid.UUID,
+               task_run_id: uuid.UUID,
+               timeout: int,
+               executed_at: datetime) -> 'JobRunData':
+        return JobRunData(component=component_id, component_id=component_id, id=id, task_run_id=task_run_id,
+                          timeout=timeout, executed_at=executed_at)

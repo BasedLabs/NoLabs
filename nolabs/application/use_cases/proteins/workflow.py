@@ -4,7 +4,7 @@ from typing import List, Type
 from pydantic import BaseModel
 
 from nolabs.application.workflow import Component, ComponentFlow
-from nolabs.application.workflow.component import TInput, TOutput
+from nolabs.application.workflow.component import TInput, TOutput, ComponentTypeFactory
 
 
 class ProteinsComponentInput(BaseModel):

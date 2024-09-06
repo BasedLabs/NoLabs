@@ -1,12 +1,13 @@
 import asyncio
+
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocketDisconnect
 
 from nolabs.application.middlewares.domain_exception_middleware import add_domain_exception_middleware
-from nolabs.application.use_cases.localisation.controller import router as localisation_router
 from nolabs.application.use_cases.experiments.controller import router as experiment_router
 from nolabs.application.use_cases.jobs.controller import router as job_router
+from nolabs.application.use_cases.localisation.controller import router as localisation_router
 from nolabs.application.use_cases.folding.controller import router as folding_router
 from nolabs.application.use_cases.gene_ontology.controller import router as gene_ontology_router
 from nolabs.application.use_cases.solubility.controller import router as solubility_router
@@ -25,7 +26,7 @@ from nolabs.infrastructure.logging import setup_logger
 from nolabs.application.use_cases.workflow.controller import router as workflow_router
 from nolabs.application.use_cases.blast.controller import router as blast_router
 from nolabs.infrastructure.mongo_connector import mongo_connect
-from nolabs.infrastructure.settings import Settings
+from nolabs.infrastructure.settings import settings
 from nolabs.infrastructure.websocket_queue import websockets_queue
 
 app = FastAPI(
@@ -39,7 +40,6 @@ origins = [
 
 @app.on_event("startup")
 async def startup_event():
-    settings = Settings.load()
     mongo_connect(settings.connection_string)
     EventHandlersDependencies.inject()
 
