@@ -3,7 +3,7 @@ from typing import Optional, Any, Dict
 
 import redis
 
-from nolabs.infrastructure.settings import Settings
+from nolabs.infrastructure.settings import settings
 
 
 class WebsocketsQueue:
@@ -23,5 +23,4 @@ class WebsocketsQueue:
         self.redis_client.flushdb()
 
 
-_settings = Settings.load()
-websockets_queue = WebsocketsQueue(_settings.redis.host, _settings.redis.port)
+websockets_queue = WebsocketsQueue(settings.redis_host, settings.redis_port)

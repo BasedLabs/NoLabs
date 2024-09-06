@@ -13,7 +13,7 @@ from prefect.client.orchestration import get_client
 async def _restore_statuses():
     logger = get_run_logger()
 
-    with get_client() as client:
+    async with get_client() as client:
         logger.info('Starting restore task')
 
         jobs = JobRunData.objects(state=StateType.RUNNING)

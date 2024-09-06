@@ -3,16 +3,17 @@ from abc import ABC, abstractmethod
 from typing import List, Type, Optional, Dict, Any
 
 from celery.result import AsyncResult
+from prefect.states import Failed, Completed
 from pydantic import BaseModel
 
 from nolabs.application.use_cases.folding.api_models import FoldingBackendEnum
 from nolabs.application.workflow import ComponentFlow
-from nolabs.application.workflow.component import Component, JobValidationError, TOutput, TInput
+from nolabs.application.workflow.component import Component, TOutput, TInput, ComponentTypeFactory
 from nolabs.domain.models.common import Protein, JobId, JobName, Experiment
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.celery_tasks import esmfold_light_inference
-from nolabs.infrastructure.celery_worker import celery_app, send_selery_task
+from nolabs.infrastructure.celery_worker import send_selery_task
 from nolabs.microservices.esmfold_light.service.api_models import InferenceInput, InferenceOutput
 
 
@@ -41,21 +42,6 @@ class FoldingComponent(ABC, Component[FoldingComponentInput, FoldingComponentOut
     @abstractmethod
     def backend(self) -> FoldingBackendEnum:
         return FoldingBackendEnum.esmfold_light
-
-    async def jobs_setup_errors(self) -> List[JobValidationError]:
-        jobs_errors = []
-
-        for job in self.jobs:
-            errors = job.input_errors()
-            if errors:
-                jobs_errors.append(
-                    JobValidationError(
-                        job_id=job.id,
-                        msg=', '.join([err.message for err in errors])
-                    )
-                )
-
-        return jobs_errors
 
 
 class EsmfoldComponent(FoldingComponent):
@@ -138,10 +124,15 @@ class FoldingComponentFlow(ComponentFlow):
             proteins_with_pdb=items
         )
 
-    async def execute_job_task(self, job_id: uuid.UUID):
+    async def job_task(self, job_id: uuid.UUID):
         job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
-        job.input_errors(throw=False)
+        input_errors = job.input_errors(throw=False)
+
+        if input_errors:
+            message = ', '.join(i.message for i in input_errors)
+
+            return Failed(message=message)
 
         async_result: AsyncResult = send_selery_task(name=esmfold_light_inference,
                                                      payload=InferenceInput(fasta_sequence=job.protein.get_fasta()))
@@ -151,3 +142,11 @@ class FoldingComponentFlow(ComponentFlow):
         job.set_result(job.protein, job_result.pdb_content)
 
         await job.save()
+
+        if not job.result_valid():
+            return Failed(message='Result of job is invalid')
+
+        return Completed()
+
+
+

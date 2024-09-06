@@ -1,68 +1,54 @@
-__all__ = [
-    'Settings'
-]
+from typing import Literal
 
-import os
+from pydantic import (
+    computed_field,
+)
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from pydantic import BaseModel
-from pydantic_settings import BaseSettings
-
-from nolabs.infrastructure.environment import Environment
-
-
-class MicroserviceSettings(BaseModel):
-    microservice: str = ''
-
-
-class MsaLightMicroserviceSettings(MicroserviceSettings):
-    msa_server_url: str = ''
-
-
-class RedisSettings(BaseModel):
-    host: str
-    port: int
-
-
-class CelerySettings(BaseModel):
-    broker: str
-    backend: str
-
-
-settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             f'appsettings.{os.environ["NOLABS_ENVIRONMENT"]}.json')
+from infrastructure.environment import Environment
 
 
 class Settings(BaseSettings):
-    redis: RedisSettings
-    localisation: MicroserviceSettings = MicroserviceSettings()
-    biobuddy: MicroserviceSettings = MicroserviceSettings()
-    external_query: MicroserviceSettings = MicroserviceSettings()
-    esmfold: MicroserviceSettings = MicroserviceSettings()
-    esmfold_light: MicroserviceSettings = MicroserviceSettings()
-    rosettafold: MicroserviceSettings = MicroserviceSettings()
-    gene_ontology: MicroserviceSettings = MicroserviceSettings()
-    solubility: MicroserviceSettings = MicroserviceSettings()
-    reinvent: MicroserviceSettings = MicroserviceSettings()
-    protein_design: MicroserviceSettings = MicroserviceSettings()
-    conformations: MicroserviceSettings = MicroserviceSettings()
-    p2rank: MicroserviceSettings = MicroserviceSettings()
-    msa_light: MsaLightMicroserviceSettings = MsaLightMicroserviceSettings()
-    umol: MicroserviceSettings = MicroserviceSettings()
-    diffdock: MicroserviceSettings = MicroserviceSettings()
-    blast: MicroserviceSettings = MicroserviceSettings()
+    model_config = SettingsConfigDict(
+        env_file=["infrastructure/.env.development"],
+        case_sensitive=False,
+        env_ignore_empty=True,
+        extra="ignore",
+        env_prefix='NOLABS_'
+    )
+    localisation_host: str
+    biobuddy_host: str
+    external_query_host: str
+    esmfold_host: str
+    esmfold_light_host: str
+    rosettafold_host: str
+    gene_ontology_host: str
+    solubility_host: str
+    reinvent_host: str
+    protein_design_host: str
+    conformations_host: str
+    p2rank_host: str
+    msa_light_host: str
+    msa_light_server_url: str
+    umol_host: str
+    diffdock_host: str
+    redis_host: str
+    redis_port: str
+    celery_broker: str
+    celery_backend: str
+    domain: str = "localhost"
     connection_string: str
-    celery: CelerySettings
+    environment: Literal["local", "test", "production"] = "local"
 
-    @classmethod
-    def load(cls):
-        return cls.parse_file(settings_path)
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def server_host(self) -> str:
+        if self.environment == "local":
+            return f"http://{self.domain}"
+        return f"https://{self.domain}"
 
     def get_environment(self) -> Environment:
-        key = 'NOLABS_ENVIRONMENT'
-        if key not in os.environ:
-            return Environment.LOCAL
-
-        return Environment[os.environ[key].upper()]
+        return Environment[self.environment.upper()]
 
 
-settings = Settings.load()
+settings = Settings()  # type: ignore

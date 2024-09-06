@@ -10,11 +10,11 @@ from uuid import UUID
 import msa_light_microservice
 from mongoengine import Q
 
+from infrastructure.settings import settings
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.msa_generation.api_models import JobResponse, SetupJobRequest, GetJobStatusResponse
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.msa import MsaGenerationJob
-from nolabs.infrastructure.settings import MsaLightMicroserviceSettings
 from nolabs.utils import generate_uuid
 
 
@@ -96,9 +96,8 @@ class RunJobFeature:
     Use case - start job.
     """
 
-    def __init__(self, settings: MsaLightMicroserviceSettings, api: msa_light_microservice.DefaultApi):
+    def __init__(self, api: msa_light_microservice.DefaultApi):
         self._api = api
-        self._settings = settings
 
     async def handle(self, job_id: UUID) -> JobResponse:
         try:
@@ -112,7 +111,7 @@ class RunJobFeature:
             fasta_content = job.protein.get_fasta()
 
             request = msa_light_microservice.RunMsaPredictionRequest(
-                api_url=self._settings.msa_server_url,
+                api_url=settings.msa_light_host,
                 fasta_contents=fasta_content)
             try:
                 job.started()

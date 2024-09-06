@@ -3,8 +3,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from .api_models import AllWorkflowSchemasResponse, GetComponentStateRequest, ResetWorkflowRequest, \
-    StartWorkflowComponentRequest, GetComponentStateResponse
+from .api_models import AllWorkflowSchemasResponse, GetComponentRequest, ResetWorkflowRequest, \
+    StartWorkflowComponentRequest, GetComponentResponse
 from .di import WorkflowDependencies
 from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, UpdateWorkflowSchemaFeature, \
     StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature, \
@@ -99,5 +99,5 @@ async def get_component_state(
             GetComponentStateFeature, Depends(WorkflowDependencies.get_component_state)
         ],
         component_id: UUID
-) -> GetComponentStateResponse:
-    return await feature.handle(request=GetComponentStateRequest(component_id=component_id))
+) -> GetComponentResponse:
+    return await feature.handle(request=GetComponentRequest(id=component_id))

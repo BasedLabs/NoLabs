@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from nolabs.infrastructure.settings import settings
 
-celery_app = Celery(__name__, broker=settings.celery.broker, backend=settings.celery.backend)
+celery_app = Celery(__name__, broker=settings.celery_broker, backend=settings.celery_backend)
 celery_app.conf.enable_utc = True
 
 
