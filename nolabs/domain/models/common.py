@@ -664,27 +664,12 @@ class JobInputError(BaseModel):
     error_code: ErrorCodes
 
 
-class JobStartedEvent(DomainEvent):
-    job: Job
-
-    def __init__(self, job: Job):
-        self.job = job
-
-
-class JobFinishedEvent(DomainEvent):
-    job: Job
-
-    def __init__(self, job: Job):
-        self.job = job
-
-
 class Job(Document, Entity):
     id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
     experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     name: JobName = ValueObjectStringField(required=True, factory=JobName)
     created_at: datetime.datetime = DateTimeField()
     updated_at: datetime.datetime = DateTimeField()
-    running: bool = BooleanField()
     inputs_updated_at: datetime.datetime = DateTimeField()
 
     meta = {
@@ -733,16 +718,6 @@ class Job(Document, Entity):
                 raise NoLabsException(messages=error.message, error_code=error.error_code)
 
         return errors
-
-    def started(self):
-        self.running = True
-
-        self.register_event(JobStartedEvent(self))
-
-    def finished(self):
-        self.running = False
-
-        self.register_event(JobFinishedEvent(self))
 
     async def save(self, **kwargs):
         if not self.created_at:

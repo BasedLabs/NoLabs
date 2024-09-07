@@ -2,7 +2,6 @@ __all__ = [
     'ComponentFlow'
 ]
 
-import asyncio
 import datetime
 import logging
 import uuid
@@ -10,9 +9,8 @@ from abc import ABC
 from typing import Any, List, Dict, Optional
 from typing import Generic
 
-from celery.result import AsyncResult
 from prefect import task, flow, State
-from prefect.client.schemas.objects import R, StateType, TaskRun, FlowRun
+from prefect.client.schemas.objects import R, FlowRun
 from prefect.context import get_run_context
 from prefect.states import Completed
 
@@ -153,8 +151,3 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         data.last_executed_at = datetime.datetime.utcnow()
         data.prefect_state = state.type
         data.save()
-
-    async def celery_wait_async(self, async_result: AsyncResult) -> Any:
-        while not async_result.ready():
-            await asyncio.sleep(0.5)
-        return async_result.get()

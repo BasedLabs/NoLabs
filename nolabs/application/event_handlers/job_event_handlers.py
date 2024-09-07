@@ -3,7 +3,6 @@ __all__ = [
     'JobFinishedEventHandler'
 ]
 
-from nolabs.domain.models.common import JobStartedEvent, JobFinishedEvent
 from nolabs.infrastructure.websocket_queue import websockets_queue
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler
 

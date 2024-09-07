@@ -60,6 +60,7 @@ class GetComponentResponse:
     output_errors: List[PropertyErrorResponse]
     state: ComponentStateEnum
     state_message: str
+    job_ids: List[uuid.UUID]
 
 
 @dataclass
