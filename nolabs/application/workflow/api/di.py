@@ -13,7 +13,7 @@ from nolabs.application.workflow.api.use_cases import CreateWorkflowSchemaFeatur
     GetWorkflowSchemaFeature, \
     UpdateWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, \
     AllWorkflowSchemasFeature, \
-    GetComponentStateFeature, ResetWorkflowFeature, StartWorkflowComponentFeature
+    GetComponentStateFeature, ResetWorkflowFeature, StartWorkflowComponentFeature, GetJobStateFeature
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 
@@ -49,6 +49,10 @@ class WorkflowDependencies:
     @staticmethod
     def reset_workflow():
         return ResetWorkflowFeature()
+
+    @staticmethod
+    def get_job_state():
+        return GetJobStateFeature()
 
     @staticmethod
     def all_workflow_schemas():
