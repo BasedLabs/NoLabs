@@ -2,10 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ItemsTemplate_Input } from './ItemsTemplate_Input';
-export type PropertyTemplate_Input = {
+import type { ItemsSchema_Output } from './ItemsSchema_Output';
+export type PropertySchema_Output = {
     type?: (string | Array<string> | null);
-    properties?: (Record<string, PropertyTemplate_Input> | null);
+    properties?: (Record<string, PropertySchema_Output> | null);
     required?: Array<string>;
     description?: (string | null);
     enum?: Array<any>;
@@ -14,8 +14,8 @@ export type PropertyTemplate_Input = {
     default?: null;
     example?: null;
     title?: (string | null);
-    anyOf?: Array<(PropertyTemplate_Input | Record<string, any>)>;
+    anyOf?: Array<(PropertySchema_Output | Record<string, any>)>;
     ref?: (string | null);
-    items?: (ItemsTemplate_Input | Array<ItemsTemplate_Input> | null);
+    items?: (ItemsSchema_Output | Array<ItemsSchema_Output> | null);
 };
 

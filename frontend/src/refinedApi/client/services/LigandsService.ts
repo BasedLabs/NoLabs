@@ -19,7 +19,7 @@ export class LigandsService {
      * @returns LigandContentResponse Successful Response
      * @throws ApiError
      */
-    public static searchLigandsApiV1ObjectsLigandsSearchContentPost(
+    public static searchLigandsContentApiV1ObjectsLigandsSearchContentPost(
         requestBody: LigandSearchContentQuery,
     ): CancelablePromise<Array<LigandContentResponse>> {
         return __request(OpenAPI, {
@@ -38,7 +38,7 @@ export class LigandsService {
      * @returns LigandMetadataResponse Successful Response
      * @throws ApiError
      */
-    public static searchLigandsApiV1ObjectsLigandsSearchMetadataPost(
+    public static searchLigandsMetadataApiV1ObjectsLigandsSearchMetadataPost(
         requestBody: LigandSearchMetadataQuery,
     ): CancelablePromise<Array<LigandMetadataResponse>> {
         return __request(OpenAPI, {

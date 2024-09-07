@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type JobErrorResponse = {
+export type PropertyErrorResponse = {
+    loc: Array<string>;
     msg: string;
-    job_id: string;
 };
 

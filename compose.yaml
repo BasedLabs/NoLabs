@@ -48,7 +48,7 @@ services:
     build:
       context: nolabs/microservices/esmfold_light
       dockerfile: build/Dockerfile
-    command: fastapi
+    command: celery
     env_file:
       - nolabs/microservices/esmfold_light/service/.env
   solubility:

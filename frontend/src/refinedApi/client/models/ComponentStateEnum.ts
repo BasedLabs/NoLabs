@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type InputPropertyErrorResponse = {
-    loc: Array<string>;
-    msg: string;
-};
-
+export enum ComponentStateEnum {
+    RUNNING = 'RUNNING',
+    FAILED = 'FAILED',
+    COMPLETED = 'COMPLETED',
+}
