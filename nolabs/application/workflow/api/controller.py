@@ -4,11 +4,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 
 from .api_models import AllWorkflowSchemasResponse, GetComponentRequest, ResetWorkflowRequest, \
-    StartWorkflowComponentRequest, GetComponentResponse
+    StartWorkflowComponentRequest, GetComponentResponse, GetJobRequest
 from .di import WorkflowDependencies
 from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, UpdateWorkflowSchemaFeature, \
     StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature, \
-    ResetWorkflowFeature, StartWorkflowComponentFeature
+    ResetWorkflowFeature, StartWorkflowComponentFeature, GetJobStateFeature
 from nolabs.application.workflow.api.schema import WorkflowSchema
 
 router = APIRouter(
@@ -91,6 +91,15 @@ async def reset_workflow(
         request: ResetWorkflowRequest
 ):
     return await feature.handle(request=request)
+
+
+@router.get('/job/{job_id}/state', summary='Get job state')
+async def get_job_state(
+        feature: Annotated[
+            GetJobStateFeature, Depends(WorkflowDependencies.get_job_state)],
+        job_id: UUID
+):
+    return await feature.handle(request=GetJobRequest(job_id=job_id))
 
 
 @router.get('/component/{component_id}/state', summary='Get state')
