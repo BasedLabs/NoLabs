@@ -258,6 +258,8 @@ class GetComponentStateFeature:
         if not data.flow_run_id:
             raise NoLabsException(ErrorCodes.flow_run_id_not_found)
 
+        job_ids = JobRunData.objects(component=request.id).only('id')
+
         async with get_client() as client:
             flow_run = await client.read_flow_run(data.flow_run_id)
 
@@ -282,6 +284,7 @@ class GetComponentStateFeature:
             output_errors=[PropertyErrorResponse(loc=e.loc, msg=e.msg) for e in data.output_errors],
             state=state,
             state_message=flow_run.state.message,
+            job_ids=job_ids
         )
 
 

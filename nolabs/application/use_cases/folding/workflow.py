@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from abc import ABC, abstractmethod
 from typing import List, Type, Optional, Dict, Any
@@ -148,5 +149,9 @@ class FoldingComponentFlow(ComponentFlow):
 
         return Completed()
 
+    async def celery_wait_async(self, async_result: AsyncResult) -> Any:
+        while not async_result.ready():
+            await asyncio.sleep(0.5)
+        return async_result.get()
 
 
