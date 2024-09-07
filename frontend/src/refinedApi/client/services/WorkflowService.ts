@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AllWorkflowSchemasResponse } from '../models/AllWorkflowSchemasResponse';
-import type { GetComponentStateResponse } from '../models/GetComponentStateResponse';
+import type { GetComponentResponse } from '../models/GetComponentResponse';
 import type { ResetWorkflowRequest } from '../models/ResetWorkflowRequest';
 import type { WorkflowSchema_Input } from '../models/WorkflowSchema_Input';
 import type { WorkflowSchema_Output } from '../models/WorkflowSchema_Output';
@@ -12,12 +12,12 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class WorkflowService {
     /**
-     * Create workflow definition
+     * Create workflow schema
      * @param experimentId
      * @returns WorkflowSchema_Output Successful Response
      * @throws ApiError
      */
-    public static createWorkflowDefinitionApiV1WorkflowExperimentIdPost(
+    public static createWorkflowSchemaApiV1WorkflowExperimentIdPost(
         experimentId: string,
     ): CancelablePromise<WorkflowSchema_Output> {
         return __request(OpenAPI, {
@@ -175,12 +175,12 @@ export class WorkflowService {
     /**
      * Get state
      * @param componentId
-     * @returns GetComponentStateResponse Successful Response
+     * @returns GetComponentResponse Successful Response
      * @throws ApiError
      */
     public static getComponentStateApiV1WorkflowComponentComponentIdStateGet(
         componentId: string,
-    ): CancelablePromise<GetComponentStateResponse> {
+    ): CancelablePromise<GetComponentResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/workflow/component/{component_id}/state',

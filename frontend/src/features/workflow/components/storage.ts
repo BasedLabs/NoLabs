@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia';
 import {
-  InputPropertyErrorResponse,
-  JobErrorResponse,
   JobsACommonControllerForJobsManagementService,
   LigandMetadataResponse,
   ProteinMetadataResponse,
@@ -27,16 +25,31 @@ import {
   deleteExperimentApi
 } from 'src/features/workflow/refinedApi';
 import {
-  ComponentModel_Output,
-  WorkflowSchemaModel_Input,
-  ComponentModel_Input,
-  PropertyModel_Output,
-  WorkflowComponentModel,
-  MappingModel,
-  DefaultWorkflowComponentModelValue
+  ComponentSchema,
+  PropertySchema_Input,
+  PropertySchema_Output,
+  WorkflowSchema_Input,
+  ComponentSchemaTemplate_Input,
+  ComponentSchemaTemplate_Output,
+  MappingSchema,
+  DefaultSchema
 } from 'src/refinedApi/client';
 
-// Define custom Node type
+// Define a new NodeData type
+interface NodeData {
+  description: string;
+  inputs: Record<string, PropertySchema_Output>;
+  outputs: Record<string, PropertySchema_Output>;
+  jobIds: string[];
+  jobs_errors: JobErrorResponse[];
+  input_property_errors: InputPropertyErrorResponse[];
+  last_exceptions: string[];
+  draggable: boolean;
+  defaults: DefaultSchema[];
+  error: string | null;
+}
+
+// Update the Node interface to use the new NodeData type
 export interface Node extends FlowNode {
   id: string;
   name: string;
@@ -49,7 +62,8 @@ export interface Node extends FlowNode {
   input_property_errors: InputPropertyErrorResponse[];
   last_exceptions: string[];
   error: string;
-  defaults: Array<DefaultWorkflowComponentModelValue>;
+  defaults: DefaultSchema[];
+  data: NodeData; // Use the new NodeData type here
 }
 
 export const useWorkflowStore = defineStore('workflowStore', {
@@ -66,8 +80,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
     componentOptions: [] as Array<{
       name: string;
       type: string;
-      inputs: Record<string, PropertyModel_Output>,
-      outputs: Record<string, PropertyModel_Output>,
+      inputs: Record<string, >,
+      outputs: Record<string, PropertySchema_Output>,
       description: string
     }>,
     runningComponentIds: [] as string[]
@@ -140,7 +154,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             // Initialize defaults if it doesn't exist or is not an array
             existingNode.data.defaults = [{
               target_path: Object.keys(existingNode.data.inputs || {}), value: [uploadedProtein.id]
-            }] as DefaultWorkflowComponentModelValue[];
+            }] as DefaultSchema[];
           } else {
             // Find the default entry, if it exists
             const defaultEntry = existingNode.data.defaults.find(entry =>
@@ -268,12 +282,12 @@ export const useWorkflowStore = defineStore('workflowStore', {
             defaultEntry = {
               target_path: Object.keys(existingNode.data.inputs || {}),
               value: []
-            } as DefaultWorkflowComponentModelValue;
+            } as DefaultSchema;
             existingNode.data.defaults.push(defaultEntry);
           }
 
           // Check if the ligand id already exists in the defaultEntry value array
-          if (!defaultEntry.value.includes(uploadedLigand.id)) {
+          if (defaultEntry.value && defaultEntry.value.includes(uploadedLigand.id)) {
             defaultEntry.value.push(uploadedLigand.id);
           }
         }
@@ -304,7 +318,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
         console.error('Error deleting ligand:', error);
       }
     },
-    async adjustWorkflow(data: any) {
+    async adjustWorkflow(data: WorkflowComponent) {
       // Retain existing nodes
       const existingNodeIds = this.elements.nodes.map(node => node.id);
 
@@ -413,8 +427,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
 
         const componentIOMap: {
           [key: string]: {
-            inputs: Record<string, PropertyModel_Output>,
-            outputs: Record<string, PropertyModel_Output>,
+            inputs: Record<string, PropertySchema_Output>,
+            outputs: Record<string, PropertySchema_Output>,
             type: string,
             description: string
           }
@@ -444,8 +458,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
             type: nodeType,
             jobIds: componentState.job_ids,
             jobs_errors: componentState.jobs_errors,
-            input_property_errors: componentState.input_property_errors,
-            last_exceptions: componentState.last_exceptions,
+            input_property_errors: componentState.input_errors,
+            last_exceptions: componentState.state_message,
             data: {
               description: description,
               inputs,
@@ -490,19 +504,19 @@ export const useWorkflowStore = defineStore('workflowStore', {
         console.error("Error fetching workflow:", error);
       }
     },
-    getDescriptionString(component: ComponentModel_Output): string {
+    getDescriptionString(component: ComponentSchemaTemplate_Output): string {
       const inputKeys = Object.keys(component.input || {});
       const description = inputKeys.length > 0 ? component.input[inputKeys[0]].description : null;
       return description || "No description available";
     },
     async sendWorkflowUpdate() {
-      const workflowUpdate: WorkflowSchemaModel_Input = {
+      const workflowUpdate: WorkflowSchema_Input = {
         workflow_id: this.workflowId,
         component_templates: this.componentOptions.map(option => ({
           name: option.name,
           input: option.inputs,
           output: option.outputs
-        }) as ComponentModel_Input),
+        }) as ComponentSchemaTemplate_Input),
         components: this.elements.nodes.map(node => ({
           name: node.name,
           component_id: node.id,
@@ -516,7 +530,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
               target_path: [edge.targetHandle?.split('-input-')[1]],
               source_component_id: edge.sourceHandle?.split('-output-')[0],
               error: edge.data?.text
-            }) as MappingModel),
+            }) as MappingSchema),
           defaults: node.data.defaults,
         }) as WorkflowComponentModel),
         error: null,
@@ -674,7 +688,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             existingNode.data.jobs_errors = componentState.jobs_errors;
             existingNode.data.input_prodefinperty_errors = componentState.input_property_errors;
             existingNode.data.last_exceptions = componentState.last_exceptions;
-            existingNode.data.error = workflow_component.error;
+            existingNode.data.error = workflow_component.error as string;
           }
         }
 
