@@ -10,7 +10,7 @@ from infrastructure.environment import Environment
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=["infrastructure/.env.development"],
+        env_file=["infrastructure/.env"],
         case_sensitive=False,
         env_ignore_empty=True,
         extra="ignore",

@@ -66,7 +66,7 @@ class InfrastructureDependencies:
     @staticmethod
     def esmfold_light_microservice() -> esmfold_light_microservice.DefaultApi:
         configuration = esmfold_light_microservice.Configuration(
-            host=settings.esmfold_light.microservice
+            host=settings.esmfold_light_host
         )
         client = esmfold_light_microservice.ApiClient(configuration=configuration)
         return esmfold_light_microservice.DefaultApi(client)

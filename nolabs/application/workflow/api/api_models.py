@@ -1,6 +1,6 @@
 import uuid
 from enum import Enum
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Optional
 from uuid import UUID
 
 from pydantic.dataclasses import dataclass
@@ -16,8 +16,8 @@ class JobStateEnum(str, Enum):
 class GetJobResponse:
     id: uuid.UUID
     component_id: uuid.UUID
-    state: JobStateEnum
-    state_message: str
+    state: Optional[JobStateEnum]
+    state_message: Optional[str]
 
 
 @dataclass
@@ -58,8 +58,8 @@ class GetComponentResponse:
     previous_component_ids: List[UUID]
     input_errors: List[PropertyErrorResponse]
     output_errors: List[PropertyErrorResponse]
-    state: ComponentStateEnum
-    state_message: str
+    state: Optional[ComponentStateEnum]
+    state_message: Optional[str]
     job_ids: List[uuid.UUID]
 
 
