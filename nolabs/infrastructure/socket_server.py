@@ -4,7 +4,7 @@ import socketio
 
 from infrastructure.settings import settings
 
-sio = socketio.Server(client_manager=socketio.AsyncRedisManager(settings.socketio_broker))
+sio = socketio.Server(client_manager=socketio.RedisManager(settings.socketio_broker))
 
 
 def emit_event(name: str, id: str, data: Dict[str, Any]):

@@ -1,5 +1,9 @@
 import asyncio
 
+from dotenv import load_dotenv
+
+load_dotenv('infrastructure/.env')
+
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocketDisconnect
@@ -37,6 +41,7 @@ app = FastAPI(
 origins = [
     '*'
 ]
+
 
 @app.on_event("startup")
 async def startup_event():

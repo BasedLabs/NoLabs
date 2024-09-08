@@ -224,9 +224,7 @@ class StartWorkflowFeature:
         executor = PrefectDagExecutor()
         await executor.execute(workflow_id=id,
                                components=components,
-                               extra={
-                                   'experiment_id': relation.experiment.id
-                               })
+                               experiment_id=relation.experiment.id)
 
 
 class StartWorkflowComponentFeature:
@@ -258,7 +256,7 @@ class GetComponentStateFeature:
         if not data.flow_run_id:
             raise NoLabsException(ErrorCodes.flow_run_id_not_found)
 
-        job_ids = JobRunData.objects(component=request.id).only('id')
+        job_ids = [j.id for j in JobRunData.objects(component=request.id).only('id')]
 
         async with get_client() as client:
             flow_run = await client.read_flow_run(data.flow_run_id)

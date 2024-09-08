@@ -91,7 +91,7 @@ class FoldingComponentFlow(ComponentFlow):
     async def get_jobs(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
         job_ids = []
 
-        experiment = Experiment.objects.with_id(self.extra['experiment_id'])
+        experiment = Experiment.objects.with_id(self.experiment_id)
 
         for protein_id in inp.proteins_with_fasta:
             protein = Protein.objects.with_id(protein_id)
