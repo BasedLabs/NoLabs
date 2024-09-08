@@ -15,16 +15,16 @@ from nolabs.infrastructure.environment import Environment
 
 
 class PrefectDagExecutor:
-    async def execute(self, workflow_id: UUID, components: List[Component], extra: Optional[Dict[str, Any]] = None):
-        dag = generate_workflow_dag(workflow_id=workflow_id, components=components, extra=extra)
+    async def execute(self, workflow_id: UUID, experiment_id: uuid.UUID, components: List[Component], extra: Optional[Dict[str, Any]] = None):
+        dag = generate_workflow_dag(workflow_id=workflow_id, components=components, experiment_id=experiment_id)
 
         if settings.get_environment() == Environment.LOCAL:
             await dag()
 
 
 def generate_workflow_dag(workflow_id: uuid.UUID,
-                          components: List[Component],
-                          extra: Optional[Dict[str, Any]] = None):
+                          experiment_id: uuid.UUID,
+                          components: List[Component]):
     @flow(name=str(workflow_id), flow_run_name=f'workflow-{str(workflow_id)}')
     async def workflow():
         if not components:
@@ -42,7 +42,7 @@ def generate_workflow_dag(workflow_id: uuid.UUID,
             component = components[0]
             component_flow = component.component_flow_type(
                 component=component,
-                extra=extra
+                experiment_id=experiment_id
             )
             await component_flow.execute()
             return
@@ -70,7 +70,7 @@ def generate_workflow_dag(workflow_id: uuid.UUID,
             group = [
                 c.component_flow_type(
                     component=c,
-                    extra=extra
+                    experiment_id=experiment_id
                 ).execute()
                 for c in parallel_group
             ]

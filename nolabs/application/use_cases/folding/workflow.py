@@ -14,7 +14,7 @@ from nolabs.domain.models.common import Protein, JobId, JobName, Experiment
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.celery_tasks import esmfold_light_inference
-from nolabs.infrastructure.celery_worker import send_selery_task
+from nolabs.infrastructure.celery_worker import send_celery_task
 from nolabs.microservices.esmfold_light.service.api_models import InferenceInput, InferenceOutput
 
 
@@ -135,7 +135,7 @@ class FoldingComponentFlow(ComponentFlow):
 
             return Failed(message=message)
 
-        async_result: AsyncResult = send_selery_task(name=esmfold_light_inference,
+        async_result: AsyncResult = send_celery_task(name=esmfold_light_inference,
                                                      payload=InferenceInput(fasta_sequence=job.protein.get_fasta()))
         job_result: Dict[str, Any] = await self.celery_wait_async(async_result)
         job_result: InferenceOutput = InferenceOutput(**job_result)
