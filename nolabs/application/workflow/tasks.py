@@ -6,14 +6,18 @@ import datetime
 import logging
 import uuid
 from abc import ABC
-from typing import Any, List, Dict, Optional
 from typing import Generic
+from typing import List, Optional
 
 from prefect import task, flow, State
 from prefect.client.schemas.objects import R, FlowRun
 from prefect.context import get_run_context
 from prefect.states import Completed
 
+from application.workflow.api.socketio_events_emitter import (emit_start_job_event,
+                                                              emit_finish_job_event,
+                                                              emit_start_component_event,
+                                                              emit_finish_component_event)
 from nolabs.application.workflow.component import Component, TOutput, TInput, ComponentTypeFactory, Parameter
 from nolabs.application.workflow.data import ComponentData, JobRunData
 
@@ -30,6 +34,8 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
     component_id: uuid.UUID
     component_name: str
 
+    experiment_id: uuid.UUID
+
     logger: logging.Logger
     '''Whether input was changed after last execution'''
 
@@ -38,22 +44,23 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
     def __init__(self,
                  component: Component,
-                 extra: Optional[Dict[str, Any]] = None):
+                 experiment_id: uuid.UUID):
         self.component_id = component.id
         self.component_name = component.name
 
         execute_flow_name = _name_builder(id=self.component_id, name=self.component_name)
 
-        if not extra:
-            self.extra = {}
-        else:
-            self.extra = extra
+        self.experiment_id = experiment_id
 
         self.execute = flow(
             name=execute_flow_name,
             flow_run_name=_run_name_builder(name=execute_flow_name, at=datetime.datetime.utcnow()),
             timeout_seconds=self.component_timeout_seconds,
-            on_running=[self._on_component_running]
+            on_running=[self._on_component_running],
+            on_crashed=[self._on_component_finished],
+            on_failure=[self._on_component_finished],
+            on_cancellation=[self._on_component_finished],
+            on_completion=[self._on_component_finished]
         )(self.execute)
 
         execute_task_name = _name_builder(id=self.component_id, name=f'{self.component_name}-job')
@@ -73,17 +80,22 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         pass
 
     async def _job_task(self, job_id: uuid.UUID, at: datetime.datetime) -> State[R]:
-        ctx = get_run_context()
-        task_run_id = ctx.task_run.id
+        try:
+            ctx = get_run_context()
+            task_run_id = ctx.task_run.id
 
-        run = JobRunData.create(
-            component_id=self.component_id,
-            id=job_id,
-            task_run_id=task_run_id,
-            timeout=self.job_timeout_seconds,
-            executed_at=at)
-        run.save()
-        return await self.job_task(job_id=job_id)
+            emit_start_job_event(experiment_id=self.experiment_id, job_id=job_id)
+
+            run = JobRunData.create(
+                component_id=self.component_id,
+                id=job_id,
+                task_run_id=task_run_id,
+                timeout=self.job_timeout_seconds,
+                executed_at=at)
+            run.save()
+            return await self.job_task(job_id=job_id)
+        finally:
+            emit_finish_job_event(experiment_id=self.experiment_id, job_id=job_id)
 
     async def job_task(self, job_id: uuid.UUID) -> State[R]:
         pass
@@ -151,3 +163,8 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         data.last_executed_at = datetime.datetime.utcnow()
         data.prefect_state = state.type
         data.save()
+
+        emit_start_component_event(self.experiment_id, self.component_id)
+
+    def _on_component_finished(self, _, flow_run: FlowRun, state: State):
+        emit_finish_component_event(experiment_id=self.experiment_id, component_id=self.component_id)

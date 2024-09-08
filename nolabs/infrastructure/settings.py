@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     celery_backend: str
     domain: str = "localhost"
     connection_string: str
+    socketio_broker: str
     environment: Literal["local", "test", "production"] = "local"
 
     @computed_field  # type: ignore[prop-decorator]
