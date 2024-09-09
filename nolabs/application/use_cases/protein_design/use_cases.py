@@ -10,7 +10,7 @@ from uuid import UUID
 import protein_design_microservice
 from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.protein_design.api_models import JobResponse, SetupJobRequest, GetJobStatusResponse
 from nolabs.domain.models.common import JobId, JobName, Experiment, Protein, ProteinName
 from nolabs.domain.models.protein_design import ProteinDesignJob

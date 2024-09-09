@@ -10,7 +10,7 @@ from uuid import UUID
 from mongoengine import Q
 from solubility_microservice import DefaultApi, RunSolubilityPredictionRequest
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.solubility.api_models import JobResponse, JobResult, SetupJobRequest, \
     GetJobStatusResponse
 from nolabs.domain.models.common import JobId, Experiment, JobName, Protein, SolubleProbability

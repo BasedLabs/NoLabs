@@ -9,7 +9,7 @@ from typing import List
 from mongoengine import ReferenceField, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
     CASCADE, StringField, IntField, EnumField, BooleanField, BinaryField, DateTimeField
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import Job, Protein, JobInputError
 
 

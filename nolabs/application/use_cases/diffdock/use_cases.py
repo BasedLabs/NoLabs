@@ -9,9 +9,8 @@ from typing import List
 from uuid import UUID
 
 import diffdock_microservice
-from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.diffdock.api_models import JobResponse, JobResult, \
     SetupJobRequest, GetJobStatusResponse
 from nolabs.domain.models.common import JobId, Experiment, JobName, Protein, Ligand

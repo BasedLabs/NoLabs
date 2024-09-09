@@ -10,7 +10,7 @@ from uuid import UUID
 from localisation_microservice import DefaultApi, RunLocalisationPredictionRequest
 from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.localisation.api_models import JobResponse, JobResult, SetupJobRequest, \
     GetJobStatusResponse
 from nolabs.domain.models.localisation import LocalisationJob

@@ -5,12 +5,10 @@ from typing import List, Type
 import asyncio
 from pydantic import BaseModel
 
-from nolabs.application.use_cases.small_molecules_design.api_models import SetupJobRequest
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.small_molecules_design.use_cases import RunLearningStageJobFeature, \
-    GetJobSmilesFeature, RunSamplingStageJobFeature, SetupJobFeature, GetJobStatusFeature
-from nolabs.domain.models.common import Protein, JobId, JobName, Ligand, LigandName, LigandId, \
-    DesignedLigandScore, DrugLikenessScore
+    GetJobSmilesFeature, GetJobStatusFeature
+from nolabs.domain.models.common import Protein, JobId, JobName, Ligand, LigandName, DesignedLigandScore, DrugLikenessScore
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.infrastructure.di import InfrastructureDependencies
 from nolabs.application.workflow.component import Component, JobValidationError

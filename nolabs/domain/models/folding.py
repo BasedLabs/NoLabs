@@ -5,13 +5,12 @@ __all__ = [
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Tuple
+from typing import List
 from uuid import UUID
 
-from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, EmbeddedDocumentListField, \
-    UUIDField, BinaryField, EnumField, CASCADE, EmbeddedDocumentField
+from mongoengine import ReferenceField, EmbeddedDocument, UUIDField, BinaryField, EnumField, CASCADE, EmbeddedDocumentField
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import Job, Protein, JobInputError
 
 

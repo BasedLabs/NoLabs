@@ -17,13 +17,13 @@ from prefect.states import Completed
 from application.workflow.api.socketio_events_emitter import (emit_start_job_event,
                                                               emit_finish_job_event,
                                                               emit_start_component_event,
-                                                              emit_finish_component_event)
+                                                              emit_finish_component_event, emit_component_jobs_event)
 from nolabs.application.workflow.component import Component, TOutput, TInput, ComponentTypeFactory, Parameter
 from nolabs.application.workflow.data import ComponentData, JobRunData
 
 
 def _name_builder(name: str, id: uuid.UUID):
-    return f'Name:{name},Id:{str(id)}'
+    return f'{name},{str(id)}'
 
 
 def _run_name_builder(name: str, at: datetime.datetime):
@@ -65,7 +65,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
         execute_task_name = _name_builder(id=self.component_id, name=f'{self.component_name}-job')
 
-        execute_task_run_name = execute_task_name + ',JobId:{job_id},At:{at}'
+        execute_task_run_name = execute_task_name + ',{job_id},{at}'
 
         self._job_task = task(
             name=execute_task_name,
@@ -140,6 +140,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
             job_errors = any([s for s in states if s is not Completed])
 
         if not job_errors:
+            emit_component_jobs_event(experiment_id=self.experiment_id, component_id=self.component_id, job_ids=job_ids)
             output = await self.post_execute(inp=input_value, job_ids=job_ids)
             component.output_value = output or {}
         component.dump(data=data)

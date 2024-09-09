@@ -15,13 +15,11 @@ from typing import List
 from uuid import UUID
 
 import reinvent_microservice
-from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.small_molecules_design.api_models import GetJobStatusResponse, LogsResponse, \
     SmilesResponse, JobResponse, SetupJobRequest
-from nolabs.domain.models.common import JobId, Job, JobName, Experiment, Protein, Ligand, LigandName, LigandLink, \
-    DesignedLigandScore, DrugLikenessScore
+from nolabs.domain.models.common import JobId, Job, JobName, Experiment, Protein
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.utils import generate_uuid
 

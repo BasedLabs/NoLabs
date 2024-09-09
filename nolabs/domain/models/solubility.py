@@ -16,7 +16,7 @@ from mongoengine import (ReferenceField,
                          UUIDField)
 
 from nolabs.domain.models.common import Job, Protein, JobInputError
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 
 
 class SolubilityJobResult(EmbeddedDocument):

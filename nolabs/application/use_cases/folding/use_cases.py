@@ -13,7 +13,7 @@ import esmfold_microservice
 import rosettafold_microservice
 from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.folding.api_models import GetJobStatusResponse, JobResult, JobResponse, \
     SetupJobRequest
 from nolabs.domain.models.common import JobId, Experiment, JobName, Protein

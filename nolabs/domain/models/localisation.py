@@ -9,8 +9,8 @@ from uuid import UUID
 from mongoengine import ReferenceField, ListField, PULL, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
     UUIDField
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein, LocalisationProbability, ProteinId, JobInputError
+from domain.exceptions import NoLabsException, ErrorCodes
+from nolabs.domain.models.common import Job, Protein, LocalisationProbability, JobInputError
 
 
 class LocalisationJobResult(EmbeddedDocument):

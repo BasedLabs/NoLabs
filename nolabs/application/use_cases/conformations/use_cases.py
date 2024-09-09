@@ -6,13 +6,13 @@ __all__ = [
 
 
 import datetime
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 import conformations_microservice
 from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.conformations.api_models import IntegratorsRequest, JobResponse, SetupJobRequest, \
     GetJobStatusResponse
 from nolabs.application.use_cases.experiments.api_models import TimelineResponse

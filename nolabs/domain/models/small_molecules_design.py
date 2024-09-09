@@ -8,7 +8,7 @@ from typing import List
 from mongoengine import ReferenceField, ListField, PULL, FloatField, CASCADE, IntField
 
 from nolabs.domain.models.common import Job, Protein, Ligand, JobInputError
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 
 
 class SmallMoleculesDesignJob(Job):

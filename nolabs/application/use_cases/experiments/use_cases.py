@@ -6,7 +6,7 @@ __all__ = [
 import uuid
 from typing import List
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.experiments.api_models import ExperimentMetadataResponse, \
     UpdateExperimentRequest
 from nolabs.domain.models.common import ExperimentId, ExperimentName, Experiment
