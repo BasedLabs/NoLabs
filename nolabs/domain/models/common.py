@@ -21,14 +21,14 @@ from uuid import UUID
 from Bio import SeqIO
 from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
     FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
-    Q, StringField, BooleanField
+    Q, StringField
 from pydantic import model_validator, BaseModel
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
 from typing_extensions import Self
 
 from nolabs.domain.event_dispatcher import EventDispatcher
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.mongo_fields import ValueObjectStringField, ValueObjectFloatField
 from nolabs.seedwork.domain.entities import Entity
 from nolabs.seedwork.domain.events import DomainEvent

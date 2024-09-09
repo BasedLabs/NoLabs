@@ -11,7 +11,7 @@ import msa_light_microservice
 from mongoengine import Q
 
 from infrastructure.settings import settings
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.msa_generation.api_models import JobResponse, SetupJobRequest, GetJobStatusResponse
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.msa import MsaGenerationJob

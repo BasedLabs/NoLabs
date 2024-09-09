@@ -13,7 +13,7 @@ from uuid import UUID
 
 from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.ligands.api_models import (LigandContentResponse,
                                                              LigandSearchContentQuery,
                                                              LigandSearchMetadataQuery,

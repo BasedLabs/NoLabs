@@ -3,7 +3,7 @@ from typing import List, Type
 
 from pydantic import BaseModel
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.conformations.use_cases import RunJobFeature
 from nolabs.domain.models.common import Protein, JobId, JobName
 from nolabs.domain.models.conformations import ConformationsJob

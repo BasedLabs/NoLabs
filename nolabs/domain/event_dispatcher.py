@@ -1,6 +1,6 @@
 from typing import Generic, List, get_args
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler, TDomainEvent
 
 

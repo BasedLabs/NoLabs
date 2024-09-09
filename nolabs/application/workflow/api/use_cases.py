@@ -29,7 +29,7 @@ from nolabs.application.workflow.api.schema import WorkflowSchema, ComponentSche
 from nolabs.application.workflow.component import ComponentTypeFactory, Component
 from nolabs.application.workflow.dag import PrefectDagExecutor
 from nolabs.application.workflow.data import WorkflowData, ComponentData, JobRunData, ExperimentWorkflowRelation
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 
 
 class DeleteWorkflowSchemaFeature:
@@ -243,7 +243,7 @@ class StartWorkflowComponentFeature:
         executor = PrefectDagExecutor()
         await executor.execute(workflow_id=request.workflow_id,
                                components=[c for c in components if c == request.component_id],
-                               extra={'experiment_id': relation.experiment.id})
+                               experiment_id=relation.experiment.id)
 
 
 class GetComponentStateFeature:

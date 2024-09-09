@@ -14,7 +14,7 @@ from gene_ontology_microservice import DefaultApi, RunGeneOntologyPredictionRequ
 from mongoengine import Q
 
 from nolabs.domain.gene_ontology import OboNode
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.gene_ontology.api_models import RunGeneOntologyResponseDataNode, JobResponse, \
     JobResult, SetupJobRequest, GetJobStatusResponse
 from nolabs.domain.models.common import JobId, Experiment, JobName, Protein

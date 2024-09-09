@@ -9,7 +9,7 @@ from uuid import UUID
 from mongoengine import ReferenceField, ListField, PULL, DictField, EmbeddedDocument, UUIDField, \
     EmbeddedDocumentListField
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import Job, Protein, JobInputError
 
 

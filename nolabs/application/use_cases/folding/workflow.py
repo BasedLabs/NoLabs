@@ -9,10 +9,10 @@ from pydantic import BaseModel
 
 from nolabs.application.use_cases.folding.api_models import FoldingBackendEnum
 from nolabs.application.workflow import ComponentFlow
-from nolabs.application.workflow.component import Component, TOutput, TInput, ComponentTypeFactory
+from nolabs.application.workflow.component import Component, TOutput, TInput
 from nolabs.domain.models.common import Protein, JobId, JobName, Experiment
 from nolabs.domain.models.folding import FoldingJob
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.celery_tasks import esmfold_light_inference
 from nolabs.infrastructure.celery_worker import send_celery_task
 from nolabs.microservices.esmfold_light.service.api_models import InferenceInput, InferenceOutput
@@ -126,6 +126,8 @@ class FoldingComponentFlow(ComponentFlow):
         )
 
     async def job_task(self, job_id: uuid.UUID):
+        raise ValueError()
+
         job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
         input_errors = job.input_errors(throw=False)

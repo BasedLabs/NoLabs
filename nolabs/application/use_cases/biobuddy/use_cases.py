@@ -14,7 +14,7 @@ from typing import List
 
 import biobuddy_microservice
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.biobuddy.api_models import CheckBioBuddyEnabledResponse, EditMessageRequest, \
     EditMessageResponse, LoadConversationRequest, LoadConversationResponse, CreateMessageRequest, CreateMessageResponse, \
     SendQueryRequest, SendQueryResponse, GetAvailableFunctionCallsResponse, CreateFunctionCallMessageRequest, \

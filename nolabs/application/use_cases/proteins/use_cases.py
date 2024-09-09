@@ -12,7 +12,7 @@ from uuid import UUID
 
 from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.proteins.api_models import ProteinSearchQuery, ProteinContentResponse, \
     ProteinLocalisationResponse, UploadProteinRequest, UpdateProteinRequest, ProteinMetadataResponse, \
     ProteinSearchMetadataQuery, UploadProteinResponse

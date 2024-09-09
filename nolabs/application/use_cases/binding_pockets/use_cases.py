@@ -10,7 +10,7 @@ from uuid import UUID
 import p2rank_microservice
 from mongoengine import Q
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.binding_pockets.api_models import GetJobStatusResponse, JobResponse, \
     SetupJobRequest
 from nolabs.domain.models.common import Protein, JobId, JobName, Experiment

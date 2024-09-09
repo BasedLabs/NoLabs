@@ -3,7 +3,7 @@ from typing import List, Type
 
 from pydantic import BaseModel
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.binding_pockets.api_models import SetupJobRequest
 from nolabs.application.use_cases.binding_pockets.use_cases import RunJobFeature, SetupJobFeature
 from nolabs.domain.models.pocket_prediction import PocketPredictionJob

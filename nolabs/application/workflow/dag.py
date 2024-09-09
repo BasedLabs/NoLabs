@@ -1,42 +1,40 @@
 import asyncio
 import uuid
 from collections import defaultdict, deque
-from typing import List, Optional, Dict, Any, Set
+from typing import List, Dict, Set
 from uuid import UUID
 
-from prefect import flow
-from prefect.client.schemas import StateType
-from prefect.context import get_run_context
+from prefect import flow, State
+from prefect.client.schemas import FlowRun
 
 from infrastructure.settings import settings
-from nolabs.application.workflow.data import WorkflowData
 from nolabs.application.workflow.component import Component
+from nolabs.application.workflow.data import WorkflowData
 from nolabs.infrastructure.environment import Environment
 
 
 class PrefectDagExecutor:
-    async def execute(self, workflow_id: UUID, experiment_id: uuid.UUID, components: List[Component], extra: Optional[Dict[str, Any]] = None):
+    async def execute(self, workflow_id: UUID, experiment_id: uuid.UUID, components: List[Component]):
         dag = generate_workflow_dag(workflow_id=workflow_id, components=components, experiment_id=experiment_id)
 
         if settings.get_environment() == Environment.LOCAL:
-            await dag()
+            await dag(return_state=True)
 
 
 def generate_workflow_dag(workflow_id: uuid.UUID,
                           experiment_id: uuid.UUID,
                           components: List[Component]):
-    @flow(name=str(workflow_id), flow_run_name=f'workflow-{str(workflow_id)}')
+    def on_running(_, flow_run: FlowRun, state: State):
+        data: WorkflowData = WorkflowData.objects.with_id(workflow_id)
+        data.flow_run_id = flow_run.id
+        data.save()
+
+    @flow(name=str(workflow_id), flow_run_name=f'Workflow,{str(workflow_id)}',
+          on_running=[on_running]
+          )
     async def workflow():
         if not components:
             return
-
-        ctx = get_run_context()
-        flow_run_id = ctx.flow_run.id
-
-        data: WorkflowData = WorkflowData.objects.with_id(workflow_id)
-        data.flow_run_id = flow_run_id
-        data.state = StateType.RUNNING
-        data.save()
 
         if len(components) == 1:
             component = components[0]
@@ -44,7 +42,7 @@ def generate_workflow_dag(workflow_id: uuid.UUID,
                 component=component,
                 experiment_id=experiment_id
             )
-            await component_flow.execute()
+            await component_flow.execute(return_state=True)
             return
 
         component_map: Dict[uuid.UUID, Component] = {c.id: c for c in components}
@@ -71,7 +69,7 @@ def generate_workflow_dag(workflow_id: uuid.UUID,
                 c.component_flow_type(
                     component=c,
                     experiment_id=experiment_id
-                ).execute()
+                ).execute(return_state=True)
                 for c in parallel_group
             ]
 

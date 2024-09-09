@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.jobs.api_models import UpdateJobRequest, GetJobMetadataResponse
 from nolabs.domain.models.common import ExperimentId, Experiment, JobId, Job, JobName
 
