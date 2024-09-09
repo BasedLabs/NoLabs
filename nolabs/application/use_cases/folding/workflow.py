@@ -126,8 +126,6 @@ class FoldingComponentFlow(ComponentFlow):
         )
 
     async def job_task(self, job_id: uuid.UUID):
-        raise ValueError()
-
         job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
         input_errors = job.input_errors(throw=False)
