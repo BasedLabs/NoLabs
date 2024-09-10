@@ -20,7 +20,6 @@ from nolabs.microservices.esmfold_light.service.api_models import InferenceInput
 
 class FoldingComponentInput(BaseModel):
     proteins_with_fasta: List[uuid.UUID]
-    backend: Optional[FoldingBackendEnum] = FoldingBackendEnum.esmfold_light
 
 
 class FoldingComponentOutput(BaseModel):
@@ -107,7 +106,7 @@ class FoldingComponentFlow(ComponentFlow):
                 experiment=experiment
             )
 
-            job.set_inputs(protein=protein, backend=inp.backend)
+            job.set_inputs(protein=protein, backend=self.back)
             await job.save(cascade=True)
 
             job_ids.append(job.id)

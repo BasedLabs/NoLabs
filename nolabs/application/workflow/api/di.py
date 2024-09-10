@@ -41,10 +41,8 @@ class WorkflowDependencies:
         return StartWorkflowFeature()
 
     @staticmethod
-    def start_workflow_component(logger: Annotated[logging.Logger, Depends(InfrastructureDependencies.logger)]) -> StartWorkflowComponentFeature:
-        return StartWorkflowComponentFeature(
-            #logger=logger
-        )
+    def start_workflow_component() -> StartWorkflowComponentFeature:
+        return StartWorkflowComponentFeature()
 
     @staticmethod
     def reset_workflow():

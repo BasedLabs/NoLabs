@@ -21,15 +21,10 @@ import msa_light_microservice
 import diffdock_microservice
 import blast_query_microservice
 
-from nolabs.infrastructure.logging import get_logger
 from nolabs.infrastructure.settings import settings
 
 
 class InfrastructureDependencies:
-    @staticmethod
-    def logger() -> logging.Logger:
-        return get_logger()
-
     @staticmethod
     def biobuddy_microservice() -> biobuddy_microservice.DefaultApi:
         configuration = biobuddy_microservice.Configuration(

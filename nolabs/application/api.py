@@ -85,8 +85,6 @@ app.include_router(biobuddy_controller)
 app.include_router(blast_router)
 add_domain_exception_middleware(app)
 
-setup_logger()
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

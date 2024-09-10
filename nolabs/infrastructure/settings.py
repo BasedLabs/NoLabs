@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     domain: str = "localhost"
     connection_string: str
     socketio_broker: str
+    logging_level: str
     environment: Literal["local", "test", "production"] = "local"
 
     @computed_field  # type: ignore[prop-decorator]
