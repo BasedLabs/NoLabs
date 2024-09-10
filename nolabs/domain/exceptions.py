@@ -41,7 +41,8 @@ class ErrorCodes(Enum):
     unknown_localisation_error = ErrorCode(code=27, description="Unknown localisation job error")
     duplicate_protein = ErrorCode(code=28, description="Duplicate protein")
     invalid_localisation_job_output = ErrorCode(code=29, description="Invalid localisation job output")
-    invalid_protein_solubility_probability = ErrorCode(code=30, description="Invalid protein solubility probability value")
+    invalid_protein_solubility_probability = ErrorCode(code=30,
+                                                       description="Invalid protein solubility probability value")
     no_domain_event_handler = ErrorCode(code=31, description="No domain event handler for this event")
     biobuddy_error_generating_response = ErrorCode(code=32, description="Biobuddy error generating response")
     biobuddy_unexpected_message_type = ErrorCode(code=33, description="Biobuddy unexpected message type")
@@ -98,6 +99,16 @@ class ErrorCodes(Enum):
     flow_run_id_not_found = ErrorCode(code=84, description='Flow run id not found')
     blast_api_error = ErrorCode(code=85, description="Blast microservice api error")
 
+    create_workflow_failed = ErrorCode(code=85, description='Create workflow failed')
+    delete_workflow_failed = ErrorCode(code=86, description='Delete workflow failed')
+    get_all_workflows_failed = ErrorCode(code=87, description='Get all workflows failed')
+    get_workflow_schema_failed = ErrorCode(code=88, description='Get workflow schema failed')
+    update_workflow_schema_failed = ErrorCode(code=89, description='Update workflow schema failed')
+    start_workflow_schema_failed = ErrorCode(code=90, description='Start workflow failed')
+    start_component_failed = ErrorCode(code=91, description='Start component failed')
+    get_component_state_failed = ErrorCode(code=92, description='Get component state failed')
+    get_job_state_failed = ErrorCode(code=93, description='Get job state failed')
+    job_execution_failed = ErrorCode(code=94, description='Job execution failed')
 
 
 if len([e.value.code for e in ErrorCodes]) != len(set([e.value.code for e in ErrorCodes])):

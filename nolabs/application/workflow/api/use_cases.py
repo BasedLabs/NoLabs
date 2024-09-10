@@ -16,10 +16,12 @@ from typing import List
 from typing import Optional
 from uuid import UUID
 
+from markdown.extensions import extra
 from prefect import get_client
 from prefect.client.schemas import StateType
 from prefect.client.schemas.objects import TERMINAL_STATES
 
+from infrastructure.logging import logger
 from nolabs.application.workflow.api.api_models import (GetComponentRequest, GetComponentResponse,
                                                         AllWorkflowSchemasResponse, ResetWorkflowRequest,
                                                         StartWorkflowComponentRequest, PropertyErrorResponse,
@@ -34,135 +36,207 @@ from domain.exceptions import NoLabsException, ErrorCodes
 
 class DeleteWorkflowSchemaFeature:
     async def handle(self, id: UUID):
-        WorkflowData.objects.with_id(id).delete()
+        extra = {
+            'workflow_id': id
+        }
+
+        logger.info('Deleting workflow', extra=extra)
+
+        try:
+            WorkflowData.objects.with_id(id).delete()
+
+            logger.info('Workflow deleted successfully', extra=extra)
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.delete_workflow_failed) from e
 
 
 class AllWorkflowSchemasFeature:
     async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
-        relation: ExperimentWorkflowRelation = ExperimentWorkflowRelation.objects(experiment=experiment_id).first()
+        extra = {
+            'experiment_id': experiment_id
+        }
 
-        return AllWorkflowSchemasResponse(
-            ids=[relation.workflow.id] if relation else []
-        )
+        logger.info('Get all workflow schemas', extra=extra)
+
+        try:
+            relation: ExperimentWorkflowRelation = ExperimentWorkflowRelation.objects(experiment=experiment_id).first()
+
+            response = AllWorkflowSchemasResponse(
+                ids=[relation.workflow.id] if relation else []
+            )
+
+            logger.info('Get all workflow schemas successfully', extra=extra)
+
+            return response
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.get_all_workflows_failed) from e
 
 
 class CreateWorkflowSchemaFeature:
     async def handle(self, experiment_id: UUID) -> WorkflowSchema:
-        id = uuid.uuid4()
+        extra = {
+            'experiment_id': experiment_id
+        }
 
-        component_templates: List[ComponentSchemaTemplate] = []
-        component_schemas: List[ComponentSchema] = []
+        logger.info('Staring workflow creation', extra=extra)
 
-        for name, component_type in ComponentTypeFactory.enumerate():
-            component = component_type(id=uuid.uuid4())
+        try:
+            id = uuid.uuid4()
 
-            output_schema = component.output_schema
-            output_parameters = {name: map_property(prop, output_schema) for name, prop in
-                                 output_schema.properties.items()}
+            component_templates: List[ComponentSchemaTemplate] = []
+            component_schemas: List[ComponentSchema] = []
 
-            input_schema = component.input_schema
-            input_parameters = {name: map_property(prop, input_schema) for name, prop in
-                                input_schema.properties.items()}
+            for name, component_type in ComponentTypeFactory.enumerate():
+                component = component_type(id=uuid.uuid4())
 
-            component_templates.append(ComponentSchemaTemplate(
-                name=component.name,
-                input=input_parameters,
-                output=output_parameters,
-                description=component.description
-            ))
+                output_schema = component.output_schema
+                output_parameters = {name: map_property(prop, output_schema) for name, prop in
+                                     output_schema.properties.items()}
 
-        schema = WorkflowSchema(
-            workflow_id=id,
-            error=None,
-            component_templates=component_templates,
-            components=component_schemas
-        )
+                input_schema = component.input_schema
+                input_parameters = {name: map_property(prop, input_schema) for name, prop in
+                                    input_schema.properties.items()}
 
-        state = WorkflowData.create(id=id, schema=schema.dict())
-        state.save(cascade=True)
+                component_templates.append(ComponentSchemaTemplate(
+                    name=component.name,
+                    input=input_parameters,
+                    output=output_parameters,
+                    description=component.description
+                ))
 
-        ExperimentWorkflowRelation.create(
-            experiment_id=experiment_id,
-            workflow_id=id
-        ).save()
+            schema = WorkflowSchema(
+                workflow_id=id,
+                error=None,
+                component_templates=component_templates,
+                components=component_schemas
+            )
 
-        return schema
+            state = WorkflowData.create(id=id, schema=schema.dict())
+            state.save(cascade=True)
+
+            ExperimentWorkflowRelation.create(
+                experiment_id=experiment_id,
+                workflow_id=id
+            ).save()
+
+            logger.info('Created workflow with id %s', id, extra=extra)
+
+            return schema
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.create_workflow_failed) from e
 
 
 class GetWorkflowSchemaFeature:
     async def handle(self, id: UUID) -> Optional[WorkflowSchema]:
-        data: WorkflowData = WorkflowData.objects.with_id(id)
+        extra = {
+            'workflow_id': id
+        }
 
-        if not data:
-            return None
+        logger.info('Get workflow schema', extra=extra)
 
-        return WorkflowSchema(**data.schema)
+        try:
+            data: WorkflowData = WorkflowData.objects.with_id(id)
+
+            if not data:
+                return None
+
+            logger.info('Get workflow schema success', extra=extra)
+
+            return WorkflowSchema(**data.schema)
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.get_workflow_schema_failed) from e
 
 
 class UpdateWorkflowSchemaFeature:
     async def handle(self, schema: WorkflowSchema) -> WorkflowSchema:
-        data = WorkflowData.objects.get(id=schema.workflow_id)
+        extra = {
+            'workflow_id': schema.workflow_id,
+            'components_count': len(schema.components)
+        }
 
-        components: List[Component] = []
+        logger.info('Update workflow schema', extra=extra)
 
-        for wf_component in schema.components:
-            component = ComponentTypeFactory.get_type(wf_component.name)(id=wf_component.component_id)
+        try:
+            data = WorkflowData.objects.get(id=schema.workflow_id)
 
-            components.append(component)
+            components: List[Component] = []
 
-        # Validate graph
-        if self._is_cyclic(graph=components):
-            schema.error = 'Workflow must be acyclic'
-            schema.valid = False
+            for wf_component in schema.components:
+                component = ComponentTypeFactory.get_type(wf_component.name)(id=wf_component.component_id)
+
+                components.append(component)
+
+            # Validate graph
+            schema_cyclic = self._is_cyclic(graph=components)
+
+            if schema_cyclic:
+                schema.error = 'Workflow must be acyclic'
+                schema.valid = False
+                data.schema = schema.dict()
+                data.save(cascade=True)
+
+                logger.info('Update workflow schema success, schema is cyclic', extra=extra)
+                return schema
+
+            schema_valid = True
+
+            for workflow_component in schema.components:
+                component = [c for c in components if c.id == workflow_component.component_id][0]
+
+                # Validate mappings
+                for mapping in workflow_component.mappings:
+                    source_components = [c for c in schema.components if
+                                         c.component_id == mapping.source_component_id]
+                    if not source_components:
+                        raise NoLabsException(ErrorCodes.component_not_found)
+
+                    source_component = [c for c in components if c.id == mapping.source_component_id][0]
+
+                    component.add_previous(component_id=source_component.id)
+
+                    error = component.try_map_property(
+                        component=source_component,
+                        path_from=mapping.source_path,
+                        target_path=mapping.target_path)
+
+                    if error:
+                        mapping.error = error.msg
+                        schema_valid = False
+
+                # Validate defaults
+                for default in workflow_component.defaults:
+                    error = component.try_set_default(target_path=default.target_path, value=default.value)
+                    if error:
+                        default.error = error.msg
+                        schema_valid = False
+
+                component_data = ComponentData.objects.with_id(component.id)
+
+                if not component_data:
+                    component_data = ComponentData.create(id=component.id, workflow=schema.workflow_id)
+
+                component.dump(data=component_data)
+                component_data.save()
+
+            schema.valid = schema_valid
             data.schema = schema.dict()
-            data.save(cascade=True)
+            data.save()
+
+            logger.info('Update workflow schema success', extra={**extra, **{'schema_valid': schema.valid}})
+
             return schema
-
-        schema_valid = True
-
-        for workflow_component in schema.components:
-            component = [c for c in components if c.id == workflow_component.component_id][0]
-
-            # Validate mappings
-            for mapping in workflow_component.mappings:
-                source_components = [c for c in schema.components if
-                                     c.component_id == mapping.source_component_id]
-                if not source_components:
-                    raise NoLabsException(ErrorCodes.component_not_found)
-
-                source_component = [c for c in components if c.id == mapping.source_component_id][0]
-
-                component.add_previous(component_id=source_component.id)
-
-                error = component.try_map_property(
-                    component=source_component,
-                    path_from=mapping.source_path,
-                    target_path=mapping.target_path)
-
-                if error:
-                    mapping.error = error.msg
-                    schema_valid = False
-
-            # Validate defaults
-            for default in workflow_component.defaults:
-                error = component.try_set_default(target_path=default.target_path, value=default.value)
-                if error:
-                    default.error = error.msg
-                    schema_valid = False
-
-            component_data = ComponentData.objects.with_id(component.id)
-
-            if not component_data:
-                component_data = ComponentData.create(id=component.id, workflow=schema.workflow_id)
-
-            component.dump(data=component_data)
-            component_data.save()
-
-        schema.valid = schema_valid
-        data.schema = schema.dict()
-        data.save()
-
-        return schema
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.update_workflow_schema_failed) from e
 
     def _is_cyclic(self, graph: List[Component]) -> bool:
         visited: Set[WorkflowGraphNode] = set()  # type: ignore
@@ -194,125 +268,191 @@ class UpdateWorkflowSchemaFeature:
 
 class StartWorkflowFeature:
     async def handle(self, id: UUID):
-        relation: ExperimentWorkflowRelation = ExperimentWorkflowRelation.objects(workflow=id).first()
+        extra = {
+            'workflow_id': id
+        }
 
-        data = WorkflowData.objects.with_id(id)
+        try:
+            logger.info('Starting workflow schema', extra=extra)
 
-        schema = WorkflowSchema(**data.schema)
+            relation: ExperimentWorkflowRelation = ExperimentWorkflowRelation.objects(workflow=id).first()
 
-        if not schema.valid:
-            raise NoLabsException(ErrorCodes.invalid_workflow_schema)
+            data = WorkflowData.objects.with_id(id)
 
-        components: List[Component] = []
+            schema = WorkflowSchema(**data.schema)
 
-        for schema_component in schema.components:
-            data = ComponentData.objects.with_id(schema_component.component_id)
+            if not schema.valid:
+                raise NoLabsException(ErrorCodes.invalid_workflow_schema)
 
-            #if data:
-            components.append(Component.restore(data=data))
-           #else:
-           #    component_type = ComponentTypeFactory.get_type(schema_component.name)
-           #    component = component_type(id=schema_component.component_id)
-           #    data = ComponentData.create(id=schema_component.component_id, workflow=id)
-           #    component.dump(data=data)
-           #    data.save()
-           #    components.append(component)
+            components: List[Component] = []
 
+            for schema_component in schema.components:
+                data = ComponentData.objects.with_id(schema_component.component_id)
+                components.append(Component.restore(data=data))
 
-        components: List[Component] = [Component.restore(ComponentData.objects.with_id(c.component_id)) for c in
-                                       schema.components]
-        executor = PrefectDagExecutor()
-        await executor.execute(workflow_id=id,
-                               components=components,
-                               experiment_id=relation.experiment.id)
+            components: List[Component] = [Component.restore(ComponentData.objects.with_id(c.component_id)) for c in
+                                           schema.components]
+            executor = PrefectDagExecutor()
+
+            extra = {
+                **extra, **{'component_ids': [c.id for c in components], 'experiment_id': relation.experiment.id}
+            }
+
+            logger.info('Workflow schema execute', extra=extra)
+
+            await executor.execute(workflow_id=id,
+                                   components=components,
+                                   experiment_id=relation.experiment.id)
+
+            logger.info('Workflow schema executed', extra=extra)
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.start_workflow_schema_failed) from e
 
 
 class StartWorkflowComponentFeature:
     async def handle(self, request: StartWorkflowComponentRequest):
-        relation: ExperimentWorkflowRelation = ExperimentWorkflowRelation.objects(workflow=request.workflow_id).first()
+        try:
+            extra = {
+                'component_id': request.component_id,
+                'workflow_id': request.workflow_id
+            }
 
-        data = WorkflowData.objects.with_id(request.workflow_id)
+            logger.info('Starting component', extra=extra)
 
-        schema = WorkflowSchema(**data.schema)
+            relation: ExperimentWorkflowRelation = ExperimentWorkflowRelation.objects(
+                workflow=request.workflow_id).first()
 
-        if not schema.valid:
-            raise NoLabsException(ErrorCodes.invalid_workflow_schema)
+            data = WorkflowData.objects.with_id(request.workflow_id)
 
-        components: List[Component] = [Component.restore(ComponentData.objects.with_id(c.component_id)) for c in
-                                       schema.components]
-        executor = PrefectDagExecutor()
-        await executor.execute(workflow_id=request.workflow_id,
-                               components=[c for c in components if c == request.component_id],
-                               experiment_id=relation.experiment.id)
+            schema = WorkflowSchema(**data.schema)
+
+            if not schema.valid:
+                raise NoLabsException(ErrorCodes.invalid_workflow_schema)
+
+            components: List[Component] = [Component.restore(ComponentData.objects.with_id(c.component_id)) for c in
+                                           schema.components]
+            executor = PrefectDagExecutor()
+
+            extra = {
+                **extra, **{'experiment_id': relation.experiment.id}
+            }
+
+            logger.info('Component execution', extra=extra)
+
+            await executor.execute(workflow_id=request.workflow_id,
+                                   components=[c for c in components if c == request.component_id],
+                                   experiment_id=relation.experiment.id)
+
+            logger.info('Component execution finished', extra=extra)
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.start_component_failed) from e
 
 
 class GetComponentStateFeature:
     async def handle(self, request: GetComponentRequest) -> GetComponentResponse:
-        data: ComponentData = ComponentData.objects.with_id(request.id)
+        try:
+            extra = {
+                'component_id': request.id
+            }
 
-        if not data:
-            raise NoLabsException(ErrorCodes.component_not_found)
+            logger.info('Get component state', extra=extra)
 
-        if not data.flow_run_id:
-            raise NoLabsException(ErrorCodes.flow_run_id_not_found)
+            data: ComponentData = ComponentData.objects.with_id(request.id)
 
-        job_ids = [j.id for j in JobRunData.objects(component=request.id).only('id')]
+            if not data:
+                raise NoLabsException(ErrorCodes.component_not_found)
 
-        async with get_client() as client:
-            flow_run = await client.read_flow_run(data.flow_run_id)
+            if not data.flow_run_id:
+                raise NoLabsException(ErrorCodes.flow_run_id_not_found)
 
-        prefect_state = flow_run.state_type
+            job_ids = [j.id for j in JobRunData.objects(component=request.id).only('id')]
 
-        state = ComponentStateEnum.RUNNING
+            async with get_client() as client:
+                flow_run = await client.read_flow_run(data.flow_run_id)
 
-        if prefect_state in TERMINAL_STATES:
-            state = ComponentStateEnum.COMPLETED
+            prefect_state = flow_run.state_type
 
-        if prefect_state in [StateType.FAILED, StateType.CANCELLING, StateType.CANCELLED, StateType.CRASHED]:
-            state = ComponentStateEnum.FAILED
+            state = ComponentStateEnum.RUNNING
 
-        return GetComponentResponse(
-            id=data.id,
-            input_schema=data.input_schema,
-            output_schema=data.output_schema,
-            input_value_dict=data.input_value_dict,
-            output_value_dict=data.output_value_dict,
-            previous_component_ids=data.previous_component_ids,
-            input_errors=[PropertyErrorResponse(loc=e.loc, msg=e.msg) for e in data.input_errors],
-            output_errors=[PropertyErrorResponse(loc=e.loc, msg=e.msg) for e in data.output_errors],
-            state=state,
-            state_message=flow_run.state.message,
-            job_ids=job_ids
-        )
+            if prefect_state in TERMINAL_STATES:
+                state = ComponentStateEnum.COMPLETED
+
+            if prefect_state in [StateType.FAILED, StateType.CANCELLING, StateType.CANCELLED, StateType.CRASHED]:
+                state = ComponentStateEnum.FAILED
+
+            response = GetComponentResponse(
+                id=data.id,
+                input_schema=data.input_schema,
+                output_schema=data.output_schema,
+                input_value_dict=data.input_value_dict,
+                output_value_dict=data.output_value_dict,
+                previous_component_ids=data.previous_component_ids,
+                input_errors=[PropertyErrorResponse(loc=e.loc, msg=e.msg) for e in data.input_errors],
+                output_errors=[PropertyErrorResponse(loc=e.loc, msg=e.msg) for e in data.output_errors],
+                state=state,
+                state_message=flow_run.state.message,
+                job_ids=job_ids
+            )
+
+            logger.info('Get component state success', extra=extra)
+
+            return response
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.get_component_state_failed) from e
 
 
 class GetJobStateFeature:
     async def handle(self, request: GetJobRequest) -> GetJobResponse:
-        job: JobRunData = JobRunData.objects.with_id(request.job_id)
+        try:
+            extra = {
+                'job_id': request.job_id
+            }
 
-        if not job:
-            raise NoLabsException(ErrorCodes.job_not_found)
+            logger.info('Get job state', extra=extra)
 
-        async with get_client() as client:
-            task_run = await client.read_task_run(task_run_id=job.task_run_id)
+            job: JobRunData = JobRunData.objects.with_id(request.job_id)
 
-        prefect_state = task_run.state_type
+            if not job:
+                raise NoLabsException(ErrorCodes.job_not_found)
 
-        state = JobStateEnum.RUNNING
+            async with get_client() as client:
+                task_run = await client.read_task_run(task_run_id=job.task_run_id)
 
-        if prefect_state in TERMINAL_STATES:
-            state = JobStateEnum.COMPLETED
+            prefect_state = task_run.state_type
 
-        if prefect_state in [StateType.FAILED, StateType.CANCELLING, StateType.CANCELLED,
-                             StateType.CRASHED]:
-            state = JobStateEnum.FAILED
+            state = JobStateEnum.RUNNING
 
-        return GetJobResponse(
-            id=job.id,
-            component_id=job.component_id,
-            state=state,
-            state_message=task_run.state.message,
-        )
+            if prefect_state in TERMINAL_STATES:
+                state = JobStateEnum.COMPLETED
+
+            if prefect_state in [StateType.FAILED, StateType.CANCELLING, StateType.CANCELLED,
+                                 StateType.CRASHED]:
+                state = JobStateEnum.FAILED
+
+            response = GetJobResponse(
+                id=job.id,
+                component_id=job.component_id,
+                state=state,
+                state_message=task_run.state.message,
+            )
+
+            extra = {
+                **extra, **{'component_id': job.component_id, 'job_state': state.name}
+            }
+
+            logger.info('Get job state success', extra=extra)
+
+            return response
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.get_job_state_failed) from e
 
 
 class ResetWorkflowFeature:

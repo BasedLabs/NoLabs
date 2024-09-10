@@ -3,13 +3,13 @@ __all__ = [
 ]
 
 import datetime
-import logging
 import uuid
 from abc import ABC
+from logging import Logger
 from typing import Generic
 from typing import List, Optional
 
-from prefect import task, flow, State
+from prefect import task, flow, State, get_run_logger
 from prefect.client.schemas.objects import R, FlowRun
 from prefect.context import get_run_context
 from prefect.states import Completed
@@ -36,17 +36,20 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
     experiment_id: uuid.UUID
 
-    logger: logging.Logger
     '''Whether input was changed after last execution'''
 
     job_timeout_seconds: Optional[int] = 1
     component_timeout_seconds: Optional[int] = 10
+
+    logger: Logger
 
     def __init__(self,
                  component: Component,
                  experiment_id: uuid.UUID):
         self.component_id = component.id
         self.component_name = component.name
+
+        self.logger = get_run_logger()
 
         execute_flow_name = _name_builder(id=self.component_id, name=self.component_name)
 
@@ -101,6 +104,14 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         pass
 
     async def execute(self):
+        ctx = get_run_context()
+        flow_run_id = ctx.flow_run.id
+
+        extra = {
+            'component_id': self.component_id,
+            'flow_run_id': flow_run_id
+        }
+
         data: ComponentData = ComponentData.objects.with_id(self.component_id)
         component = Component.restore(data=data)
 
@@ -112,6 +123,10 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
 
             errors = previous_component.output_errors()
             if errors:
+                self.logger.info('Previous component output errors', extra={**extra, **{
+                    'previous_component_id': previous_component_id,
+                    'errors': [(e.msg, e.loc) for e in errors]
+                }})
                 return
 
             prev_components.append(previous_component)
@@ -119,9 +134,14 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         input_changed = component.set_input_from_previous(prev_components)
 
         if input_changed:
+            self.logger.info('Input changed, checking input', extra=extra)
+
             input_errors = component.input_errors()
 
             if input_errors:
+                self.logger.info('Input errors',
+                                 extra={**extra, **{'input_errors': [(e.msg, e.loc) for e in input_errors]}})
+
                 return
 
         input_value = component.input_value
@@ -131,6 +151,10 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         else:
             job_ids = [j.id for j in JobRunData.objects(component=self.component_id).only('id')]
 
+        extra = {**extra, **{'job_ids': job_ids}}
+
+        self.logger.info('Retrieved job ids', extra=extra)
+
         job_errors = False
 
         JobRunData.objects(component=self.component_id).delete()
@@ -138,6 +162,9 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         if job_ids:
             states = self._job_task.map(job_ids, at=datetime.datetime.utcnow(), return_state=True)
             job_errors = any([s for s in states if s is not Completed])
+
+            if job_errors:
+                self.logger.info('Jobs errors', extra=extra)
 
         if not job_errors:
             emit_component_jobs_event(experiment_id=self.experiment_id, component_id=self.component_id, job_ids=job_ids)
