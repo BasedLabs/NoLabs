@@ -54,8 +54,8 @@ class DeleteWorkflowSchemaFeature:
 
 class AllWorkflowSchemasFeature:
     async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
+        raise ValueError('asdasd')
 
-        raise ValueError('Exception')
         extra = {
             'experiment_id': experiment_id
         }
@@ -69,7 +69,7 @@ class AllWorkflowSchemasFeature:
                 ids=[relation.workflow.id] if relation else []
             )
 
-            logger.info('Get all workflow schemas successfully', extra=extra)
+            logger.info('Get all workflow schemas success', extra=extra)
 
             return response
         except Exception as e:
