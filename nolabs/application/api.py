@@ -1,6 +1,9 @@
 import asyncio
 
+import socketio
 from dotenv import load_dotenv
+
+from infrastructure.logging import logger
 
 load_dotenv('infrastructure/.env')
 
@@ -49,22 +52,10 @@ async def startup_event():
     EventHandlersDependencies.inject()
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-
-    print("Websocket connected")
-    websockets_queue.clear_db()
-
-    try:
-        while True:
-            item = websockets_queue.read_last()
-            await asyncio.sleep(0.2)
-            if item:
-                await websocket.send_json(data=item)
-    except WebSocketDisconnect:
-        pass
-
+sio = socketio.AsyncServer(cors_allowed_origins='*',
+                           async_mode='asgi',
+                           client_manager=socketio.AsyncRedisManager(settings.socketio_broker))
+socket_app = socketio.ASGIApp(sio)
 
 app.include_router(localisation_router)
 app.include_router(experiment_router)
@@ -84,6 +75,7 @@ app.include_router(workflow_router)
 app.include_router(biobuddy_controller)
 app.include_router(blast_router)
 add_domain_exception_middleware(app)
+app.mount("/socketio", socket_app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -93,4 +85,4 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-print('Go to /api/v1/docs to see Swagger')
+logger.info('Go to /docs to see Swagger')
