@@ -54,6 +54,8 @@ class DeleteWorkflowSchemaFeature:
 
 class AllWorkflowSchemasFeature:
     async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
+
+        raise ValueError('Exception')
         extra = {
             'experiment_id': experiment_id
         }
