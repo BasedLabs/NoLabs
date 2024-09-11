@@ -109,6 +109,8 @@
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 
+import { io } from 'socket.io-client';
+
 import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
 import ProteinListNode from "./components/nodeTemplates/dataSourceNodes/proteins/ProteinListNode.vue";
 import ProteinListNodeContent from "./components/nodeTemplates/dataSourceNodes/proteins/ProteinListNodeContent.vue";
@@ -217,16 +219,29 @@ export default defineComponent({
   methods: {
     connectWebSocket() {
       const workflowStore = useWorkflowStore();
-      this.socket = new WebSocket('ws://127.0.0.1:8000/ws');
-      this.socket.onopen = () => {
-        console.log('Connected to WebSocket server');
-      };
-      this.socket.onmessage = async (event) => {
-        const message = JSON.parse(event.data);
-        if (message.job_id) {
-          workflowStore.addJobIdToUpdate(message.job_id);
+
+      // Create a new socket connection using Socket.IO
+      this.socket = io('http://127.0.0.1:8000');
+
+      // When connected, join a room using the experimentId
+      this.socket.on('connect', () => {
+        console.log('Connected to Socket.IO server');
+        if (this.experiment.experimentId) {
+          this.socket.emit('joinRoom', { roomId: this.experiment.experimentId });
         }
-      }
+      });
+
+      // Handle incoming messages from the server
+      this.socket.on('jobUpdate', async (data) => {
+        if (data.job_id) {
+          workflowStore.addJobIdToUpdate(data.job_id);
+        }
+      });
+
+      // Handle disconnection
+      this.socket.on('disconnect', () => {
+        console.log('Disconnected from Socket.IO server');
+      });
     },
     async checkAndCreateWorkflow() {
       const existingWorkflows = await getExistingWorkflows(this.experiment.experimentId as string);
