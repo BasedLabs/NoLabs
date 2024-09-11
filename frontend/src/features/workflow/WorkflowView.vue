@@ -221,7 +221,7 @@ export default defineComponent({
       const workflowStore = useWorkflowStore();
 
       // Create a new socket connection using Socket.IO
-      this.socket = io('http://127.0.0.1:8000');
+      this.socket = io('ws://127.0.0.1:8000', {transports: ['websocket', 'polling']});
 
       // When connected, join a room using the experimentId
       this.socket.on('connect', () => {
@@ -232,7 +232,7 @@ export default defineComponent({
       });
 
       // Handle incoming messages from the server
-      this.socket.on('jobUpdate', async (data) => {
+      this.socket.on('job_started', async (data) => {
         if (data.job_id) {
           workflowStore.addJobIdToUpdate(data.job_id);
         }

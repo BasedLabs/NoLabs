@@ -84,7 +84,7 @@ import {
   nolabs__application__use_cases__binding_pockets__api_models__JobResponse, ProteinContentResponse,
   nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse,
 } from "src/refinedApi/client";
-import { getBindingPocketJobApi, getProteinContent, changeJobName, getBindingPocketJobStatus } from "src/features/workflow/refinedApi";
+import { getBindingPocketJobApi, getProteinContent, changeJobName, getJobStatus } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
   name: 'P2RankJob',
