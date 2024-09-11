@@ -25,7 +25,7 @@ from infrastructure.logging import logger
 from nolabs.application.workflow.api.api_models import (GetComponentRequest, GetComponentResponse,
                                                         AllWorkflowSchemasResponse, ResetWorkflowRequest,
                                                         StartWorkflowComponentRequest, PropertyErrorResponse,
-                                                        ComponentStateEnum, GetJobRequest, GetJobResponse, JobStateEnum)
+                                                        ComponentStateEnum, GetJobRequest, GetJobState, JobStateEnum)
 from nolabs.application.workflow.api.mappings import map_property
 from nolabs.application.workflow.api.schema import WorkflowSchema, ComponentSchemaTemplate, ComponentSchema
 from nolabs.application.workflow.component import ComponentTypeFactory, Component
@@ -54,6 +54,7 @@ class DeleteWorkflowSchemaFeature:
 
 class AllWorkflowSchemasFeature:
     async def handle(self, experiment_id: UUID) -> AllWorkflowSchemasResponse:
+
         extra = {
             'experiment_id': experiment_id
         }
@@ -408,7 +409,7 @@ class GetComponentStateFeature:
 
 
 class GetJobStateFeature:
-    async def handle(self, request: GetJobRequest) -> GetJobResponse:
+    async def handle(self, request: GetJobRequest) -> GetJobState:
         try:
             extra = {
                 'job_id': request.job_id
@@ -435,7 +436,7 @@ class GetJobStateFeature:
                                  StateType.CRASHED]:
                 state = JobStateEnum.FAILED
 
-            response = GetJobResponse(
+            response = GetJobState(
                 id=job.id,
                 component_id=job.component_id,
                 state=state,

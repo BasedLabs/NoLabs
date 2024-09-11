@@ -88,7 +88,7 @@ import {
   nolabs__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__msa_generation__api_models__SetupJobRequest
 } from "src/refinedApi/client";
-import { getMsaJobApi, getProteinContent, getMsajobStatus, changeJobName, startMsaJob } from "src/features/workflow/refinedApi";
+import { getMsaJobApi, getProteinContent, getJobStatus, changeJobName, startMsaJob } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
   name: 'MsaJob',

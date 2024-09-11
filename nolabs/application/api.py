@@ -57,9 +57,12 @@ sio = socketio.AsyncServer(cors_allowed_origins='*',
                            client_manager=socketio.AsyncRedisManager(settings.socketio_broker))
 socket_app = socketio.ASGIApp(sio)
 
-@sio.on("connect")
-async def connect(sid, env):
-    print("ASDAKSDMOASDJASJIFDSJIFNJSDIFNJISDFJINSDF------------------------------------------------------------------------------------------------------------------------------------")
+@sio.event
+async def joinRoom(sid, data):
+    room_id = data.get("roomId")
+    if room_id:
+        await sio.enter_room(sid, room_id)
+        print(f"Client {sid} joined room: {room_id}")
 
 app.include_router(localisation_router)
 app.include_router(experiment_router)
@@ -79,7 +82,7 @@ app.include_router(workflow_router)
 app.include_router(biobuddy_controller)
 app.include_router(blast_router)
 add_domain_exception_middleware(app)
-app.mount("/socketio", socket_app)
+app.mount("/", socket_app)
 
 app.add_middleware(
     CORSMiddleware,
