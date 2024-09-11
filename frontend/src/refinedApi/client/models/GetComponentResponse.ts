@@ -15,5 +15,6 @@ export type GetComponentResponse = {
     output_errors: Array<PropertyErrorResponse>;
     state: ComponentStateEnum;
     state_message: string;
+    job_ids: Array<string>;
 };
 

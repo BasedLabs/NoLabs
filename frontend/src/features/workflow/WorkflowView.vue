@@ -116,25 +116,12 @@ import LigandListNode from "./components/nodeTemplates/dataSourceNodes/ligands/L
 import LigandListNodeContent from "./components/nodeTemplates/dataSourceNodes/ligands/LigandListNodeContent.vue";
 import ErrorEdge from "./components/nodeTemplates/ErrorEdge.vue"
 import { defineComponent, onBeforeUnmount } from "vue";
-import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import JobNode from "./components/nodeTemplates/JobNode.vue";
 import JobNodeContent from "./components/nodeTemplates/JobNodeContent.vue";
 import { startWorkflow, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow, deleteWorkflow, resetWorkflow } from './refinedApi';
-import { useWorkflowStore } from './components/storage';
+import { useWorkflowStore, Edge, Node } from './components/storage';
 import { useBioBuddyStore } from "src/features/biobuddy/storage";
-
-// Define custom Node type
-interface Node extends FlowNode {
-  id: string;
-  name: string;
-  type: string;
-  inputs: string[];
-  outputs: string[];
-  jobIds: string[];
-  description: string;
-  error: string;
-}
 
 export default defineComponent({
   name: "WorkflowView",

@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 
 from .api_models import AllWorkflowSchemasResponse, GetComponentRequest, ResetWorkflowRequest, \
-    StartWorkflowComponentRequest, GetComponentResponse, GetJobRequest
+    StartWorkflowComponentRequest, GetComponentResponse, GetJobRequest, GetJobState
 from .di import WorkflowDependencies
 from .use_cases import CreateWorkflowSchemaFeature, GetWorkflowSchemaFeature, UpdateWorkflowSchemaFeature, \
     StartWorkflowFeature, DeleteWorkflowSchemaFeature, AllWorkflowSchemasFeature, GetComponentStateFeature, \
@@ -98,7 +98,7 @@ async def get_job_state(
         feature: Annotated[
             GetJobStateFeature, Depends(WorkflowDependencies.get_job_state)],
         job_id: UUID
-):
+) -> GetJobState:
     return await feature.handle(request=GetJobRequest(job_id=job_id))
 
 

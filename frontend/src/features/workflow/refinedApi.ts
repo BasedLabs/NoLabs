@@ -16,22 +16,18 @@ import {
   BindingPocketsService,
   DiffdockService,
   nolabs__application__use_cases__diffdock__api_models__JobResponse,
-  nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__diffdock__api_models__SetupJobRequest, OpenAPI,
-  nolabs__application__use_cases__msa_generation__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__msa_generation__api_models__JobResponse,
   Body_upload_protein_api_v1_proteins_post,
   Body_update_protein_api_v1_proteins_patch,
-  nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__folding__api_models__JobResponse,
   nolabs__application__use_cases__folding__api_models__SetupJobRequest,
   nolabs__application__use_cases__binding_pockets__api_models__JobResponse,
-  nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse,
   GetJobMetadataResponse,
   ProteinMetadataResponse,
   LigandMetadataResponse,
   LigandSearchMetadataQuery,
-  ProteinSearchMetadataQuery, type WorkflowSchema_Output, type GetComponentResponse
+  ProteinSearchMetadataQuery, type WorkflowSchema_Output, type GetComponentResponse, GetJobState
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
@@ -75,20 +71,8 @@ export function getMsaJobApi(jobId: string): CancelablePromise<nolabs__applicati
   return GenerateMsaService.getJobApiV1MsaGenerationJobsJobIdGet(jobId);
 }
 
-export function getFoldingJobStatus(jobId: string): CancelablePromise<nolabs__application__use_cases__folding__api_models__GetJobStatusResponse> {
-  return FoldingService.getJobStatusApiV1FoldingJobsJobIdStatusGet(jobId);
-}
-
-export function getBindingPocketJobStatus(jobId: string): CancelablePromise<nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse> {
-  return BindingPocketsService.getJobStatusApiV1BindingPocketsJobsJobIdStatusGet(jobId);
-}
-
-export function getDiffDockJobStatus(jobId: string): CancelablePromise<nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse> {
-  return DiffdockService.getJobStatusApiV1DiffdockJobsJobIdStatusGet(jobId);
-}
-
-export function getMsajobStatus(jobId: string): CancelablePromise<nolabs__application__use_cases__msa_generation__api_models__GetJobStatusResponse> {
-  return GenerateMsaService.getJobStatusApiV1MsaGenerationJobsJobIdStatusGet(jobId);
+export function getJobStatus(jobId: string): CancelablePromise<GetJobState> {
+  return WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet(jobId);
 }
 
 export function setupDiffDockJob(job: nolabs__application__use_cases__diffdock__api_models__SetupJobRequest): CancelablePromise<any> {

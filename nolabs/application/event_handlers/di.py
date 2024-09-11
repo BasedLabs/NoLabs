@@ -6,7 +6,7 @@ class EventHandlersDependencies:
     @staticmethod
     def inject():
         event_handlers = [
-            ProteinCreatedEventHandler(),
+            ProteinCreatedEventHandler()
         ]
 
         types = [type(eh) for eh in event_handlers]
