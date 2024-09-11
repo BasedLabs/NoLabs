@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { AllWorkflowSchemasResponse } from '../models/AllWorkflowSchemasResponse';
 import type { GetComponentResponse } from '../models/GetComponentResponse';
+import type { GetJobState } from '../models/GetJobState';
 import type { ResetWorkflowRequest } from '../models/ResetWorkflowRequest';
 import type { WorkflowSchema_Input } from '../models/WorkflowSchema_Input';
 import type { WorkflowSchema_Output } from '../models/WorkflowSchema_Output';
@@ -167,6 +168,26 @@ export class WorkflowService {
             url: '/api/v1/workflow/{workflow_id}/reset',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Get job state
+     * @param jobId
+     * @returns GetJobState Successful Response
+     * @throws ApiError
+     */
+    public static getJobStateApiV1WorkflowJobJobIdStateGet(
+        jobId: string,
+    ): CancelablePromise<GetJobState> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workflow/job/{job_id}/state',
+            path: {
+                'job_id': jobId,
+            },
             errors: {
                 422: `Validation Error`,
             },

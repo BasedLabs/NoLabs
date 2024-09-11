@@ -2,9 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type DefaultSchema = {
-    target_path: Array<string>;
-    value?: (any | null);
-    error?: (string | null);
-};
-
+export enum JobStateEnum {
+    RUNNING = 'RUNNING',
+    FAILED = 'FAILED',
+    COMPLETED = 'COMPLETED',
+}

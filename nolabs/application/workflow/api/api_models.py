@@ -13,7 +13,7 @@ class JobStateEnum(str, Enum):
 
 
 @dataclass
-class GetJobResponse:
+class GetJobState:
     id: uuid.UUID
     component_id: uuid.UUID
     state: Optional[JobStateEnum]
