@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     celery_enable_utc: bool
     fastapi_host: str
     fastapi_port: int
-    application_loglevel: Literal['debug', 'info'] = 'info'
+    logging_level: Literal['debug', 'info'] = 'info'
     mode: Literal['fastapi', 'celery'] = 'celery'
 
 
-settings = Settings(_env_file='.env.development', _env_file_encoding='utf-8')
+settings = Settings(_env_file='.env', _env_file_encoding='utf-8')

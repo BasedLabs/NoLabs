@@ -50,7 +50,7 @@ services:
       dockerfile: build/Dockerfile
     command: fastapi
     env_file:
-      - nolabs/microservices/esmfold_light/service/.env.development
+      - nolabs/microservices/esmfold_light/service/.env
   solubility:
     image: 'ghcr.io/basedlabs/solubility:1.1.0'
     network_mode: host
