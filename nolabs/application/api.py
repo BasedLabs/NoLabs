@@ -57,6 +57,10 @@ sio = socketio.AsyncServer(cors_allowed_origins='*',
                            client_manager=socketio.AsyncRedisManager(settings.socketio_broker))
 socket_app = socketio.ASGIApp(sio)
 
+@sio.on("connect")
+async def connect(sid, env):
+    print("ASDAKSDMOASDJASJIFDSJIFNJSDIFNJISDFJINSDF------------------------------------------------------------------------------------------------------------------------------------")
+
 app.include_router(localisation_router)
 app.include_router(experiment_router)
 app.include_router(folding_router)
