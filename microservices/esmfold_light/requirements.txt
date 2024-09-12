@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-python-json-logger
-
-pandas
-numpy
-rdkit
-requests

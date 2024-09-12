@@ -87,6 +87,8 @@ class FoldingComponentFlow(ComponentFlow):
     job_timeout_seconds = 10.0
     component_timeout_seconds = 120.0
 
+    backend: FoldingBackendEnum
+
     async def get_jobs(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
         job_ids = []
 
@@ -106,7 +108,7 @@ class FoldingComponentFlow(ComponentFlow):
                 experiment=experiment
             )
 
-            job.set_inputs(protein=protein, backend=self.back)
+            job.set_inputs(protein=protein, backend=self.backend)
             await job.save(cascade=True)
 
             job_ids.append(job.id)
@@ -152,5 +154,8 @@ class FoldingComponentFlow(ComponentFlow):
         while not async_result.ready():
             await asyncio.sleep(0.5)
         return async_result.get()
+
+class EsmfoldLightComponentFlow(FoldingComponentFlow):
+    backend = FoldingBackendEnum.esmfold_light
 
 

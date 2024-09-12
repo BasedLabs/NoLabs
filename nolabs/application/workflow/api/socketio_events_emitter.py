@@ -2,7 +2,7 @@ from typing import List
 from uuid import UUID
 
 from infrastructure import socket_server
-from infrastructure.logging import logger
+from infrastructure.log import logger
 
 
 def emit_start_job_event(experiment_id: UUID, job_id: UUID):
