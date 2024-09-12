@@ -136,7 +136,7 @@ export default defineComponent({
       this.protein = await getProteinContent(this.job.protein_ids[0]);
     }
 
-    this.jobStatus = await getFoldingJobStatus(this.jobId as string);
+    this.jobStatus = await getJobStatus(this.jobId as string);
   },
   methods: {
     async updateJobName() {
