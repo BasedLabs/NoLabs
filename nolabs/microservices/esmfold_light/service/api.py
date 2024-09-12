@@ -1,16 +1,17 @@
-import logging
+from log import logger
 from settings import settings
+from dotenv import load_dotenv
 
 mode = settings.mode
 
-logger = logging.getLogger(__name__)
-
+load_dotenv('.env')
 
 if mode == 'celery':
     from worker import app
+    logger.info('Starting celery')
     app.worker_main([
         'worker',
-        f'--loglevel={settings.application_loglevel}'
+        f'--concurrency={settings.celery_worker_concurrency}'
     ])
 
 if mode == 'fastapi':
@@ -18,4 +19,5 @@ if mode == 'fastapi':
 
     from fastapi_api import app
 
+    logger.info('Starting fastapi')
     uvicorn.run(app, host=settings.fastapi_host, port=settings.fastapi_port)

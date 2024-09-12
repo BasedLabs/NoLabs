@@ -1,13 +1,13 @@
 import datetime
+import json
 import logging.handlers
+import sys
 import traceback
 from types import TracebackType
+import logging.config
 from typing import Optional, Union, Type, Tuple
 
-import orjson
-from prefect.serializers import JSONSerializer
-
-from infrastructure.settings import settings
+from settings import settings
 
 # imported from https://github.com/PrefectHQ/prefect/blob/main/src/prefect/logging/formatters.py
 
@@ -37,24 +37,6 @@ def format_exception_info(exc_info: ExceptionInfoType) -> dict:
 
 # NoLabs structured logging
 class JsonFormatter(logging.Formatter):
-    """
-    Formats log records as a JSON string.
-
-    The format may be specified as "pretty" to format the JSON with indents and
-    newlines.
-    """
-
-    def __init__(self, fmt, dmft, style) -> None:  # noqa
-        super().__init__()
-
-        if fmt not in ["pretty", "default"]:
-            raise ValueError("Format must be either 'pretty' or 'default'.")
-
-        self.serializer = JSONSerializer(
-            jsonlib="orjson",
-            dumps_kwargs={"option": orjson.OPT_INDENT_2} if fmt == "pretty" else {},
-        )
-
     def format(self, record: logging.LogRecord) -> str:
         record_dict = record.__dict__.copy()
 
@@ -71,8 +53,41 @@ class JsonFormatter(logging.Formatter):
         if record.exc_info:
             record_dict["exc_info"] = format_exception_info(record.exc_info)
 
-        log_json_bytes = self.serializer.dumps(record_dict)
+        return json.dumps(record_dict, default=lambda o: str(o))
 
-        # JSONSerializer returns bytes; decode to string to conform to
-        # the `logging.Formatter.format` interface
-        return log_json_bytes.decode()
+
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'standard': {
+            'format': '%(message)s',
+            'class': 'log.JsonFormatter'
+        },
+    },
+    'handlers': {
+        'default': {
+            'level': settings.logging_level,
+            'formatter': 'standard',
+            'class': 'logging.StreamHandler'
+        },
+    },
+    'loggers': {
+        '': {  # root logger
+            'handlers': ['default'],
+            'level': settings.logging_level,
+            'propagate': False
+        }
+    }
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
+
+logger = logging.root
+
+
+def exceptions_hook(exctype, value, tb):
+    logger.error(''.join(traceback.format_exception(exctype, value, tb)))
+
+
+sys.excepthook = exceptions_hook

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from domain.exceptions import NoLabsException, ErrorCodes
-from infrastructure.logging import logger
+from infrastructure.log import logger
 
 
 def add_domain_exception_middleware(app: FastAPI):

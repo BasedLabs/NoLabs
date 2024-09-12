@@ -3,13 +3,12 @@ import asyncio
 import socketio
 from dotenv import load_dotenv
 
-from infrastructure.logging import logger
+from infrastructure.log import logger
 
 load_dotenv('infrastructure/.env')
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.websockets import WebSocketDisconnect
 
 from nolabs.application.middlewares.domain_exception_middleware import add_domain_exception_middleware
 from nolabs.application.use_cases.experiments.controller import router as experiment_router
@@ -34,7 +33,6 @@ from nolabs.application.use_cases.workflow.controller import router as workflow_
 from nolabs.application.use_cases.blast.controller import router as blast_router
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import settings
-from nolabs.infrastructure.websocket_queue import websockets_queue
 
 app = FastAPI(
     title='NoLabs',
@@ -57,12 +55,14 @@ sio = socketio.AsyncServer(cors_allowed_origins='*',
                            client_manager=socketio.AsyncRedisManager(settings.socketio_broker))
 socket_app = socketio.ASGIApp(sio)
 
+
 @sio.event
-async def joinRoom(sid, data):
+async def join_room(sid, data):
     room_id = data.get("roomId")
     if room_id:
         await sio.enter_room(sid, room_id)
         print(f"Client {sid} joined room: {room_id}")
+
 
 app.include_router(localisation_router)
 app.include_router(experiment_router)

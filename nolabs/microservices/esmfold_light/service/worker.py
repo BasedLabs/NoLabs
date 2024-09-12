@@ -1,13 +1,8 @@
-import logging
 from typing import Any, Dict
 
 from settings import settings
 
 from celery import Celery
-
-logger = logging.getLogger(__name__)
-
-logger.info('Starting celery service')
 
 from api_models import InferenceInput
 

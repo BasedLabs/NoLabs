@@ -21,7 +21,7 @@ from prefect import get_client
 from prefect.client.schemas import StateType
 from prefect.client.schemas.objects import TERMINAL_STATES
 
-from infrastructure.logging import logger
+from infrastructure.log import logger
 from nolabs.application.workflow.api.api_models import (GetComponentRequest, GetComponentResponse,
                                                         AllWorkflowSchemasResponse, ResetWorkflowRequest,
                                                         StartWorkflowComponentRequest, PropertyErrorResponse,
