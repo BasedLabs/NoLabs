@@ -160,6 +160,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         JobRunData.objects(component=self.component_id).delete()
 
         if job_ids:
+            emit_component_jobs_event(experiment_id=self.experiment_id, component_id=self.component_id, job_ids=job_ids)
             states = self._job_task.map(job_ids, at=datetime.datetime.utcnow(), return_state=True)
             job_errors = any([s for s in states if s is not Completed])
 
@@ -167,7 +168,6 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
                 self.logger.info('Jobs errors', extra=extra)
 
         if not job_errors:
-            emit_component_jobs_event(experiment_id=self.experiment_id, component_id=self.component_id, job_ids=job_ids)
             output = await self.post_execute(inp=input_value, job_ids=job_ids)
             component.output_value = output or {}
         component.dump(data=data)

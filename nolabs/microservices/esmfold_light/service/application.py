@@ -1,7 +1,7 @@
 import requests
 
 from api_models import InferenceInput, InferenceOutput
-from service.log import logger
+from log import logger
 
 
 def inference(param: InferenceInput) -> InferenceOutput:
