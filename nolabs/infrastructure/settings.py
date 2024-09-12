@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     connection_string: str
     socketio_broker: str
     environment: Literal["local", "test", "production"] = "local"
+    logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
 
     @computed_field  # type: ignore[prop-decorator]
     @property

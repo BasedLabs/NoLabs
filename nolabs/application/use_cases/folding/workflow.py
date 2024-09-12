@@ -67,7 +67,7 @@ class EsmfoldLightComponent(FoldingComponent):
 
     @property
     def component_flow_type(self) -> Optional[Type['FoldingComponentFlow']]:
-        return FoldingComponentFlow
+        return EsmfoldLightComponentFlow
 
 
 class RosettafoldComponent(FoldingComponent):
