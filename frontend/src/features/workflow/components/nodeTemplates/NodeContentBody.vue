@@ -204,10 +204,6 @@ export default defineComponent({
   ],
   data() {
     return {
-      selectedJobId: '',
-      showLastExceptionsModal: false,
-      showJobModal: false,
-      loading: false,
       error: null as string | null,
       nodeData: null as Node | null,
       jobs: [] as Array<GetJobMetadataResponse & {
