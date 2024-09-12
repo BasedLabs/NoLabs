@@ -1,11 +1,9 @@
-import asyncio
-
 import socketio
 from dotenv import load_dotenv
+load_dotenv('infrastructure/.env')
 
 from infrastructure.log import logger
 
-load_dotenv('infrastructure/.env')
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -58,10 +56,13 @@ socket_app = socketio.ASGIApp(sio)
 
 @sio.event
 async def join_room(sid, data):
-    room_id = data.get("roomId")
-    if room_id:
-        await sio.enter_room(sid, room_id)
-        print(f"Client {sid} joined room: {room_id}")
+    experiment_id = data.get("experiment_id")
+    if experiment_id:
+        await sio.enter_room(sid, experiment_id)
+        logger.info('Client joined experiment', extra={
+            'client_id': sid,
+            'experiment_id': experiment_id
+        })
 
 
 app.include_router(localisation_router)

@@ -227,7 +227,7 @@ export default defineComponent({
       this.socket.on('connect', () => {
         console.log('Connected to Socket.IO server');
         if (this.experiment.experimentId) {
-          this.socket.emit('joinRoom', { roomId: this.experiment.experimentId });
+          this.socket.emit('join_room', { experiment_id: this.experiment.experimentId });
         }
       });
 
