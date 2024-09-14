@@ -92,7 +92,7 @@ import {
   getJobMetaData
 } from 'src/features/workflow/refinedApi';
 import {
-  GetJobMetadataResponse,
+  GetJobMetadataResponse, JobStateEnum,
   nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
 } from 'src/refinedApi/client';
 import EsmFoldJob from '../jobs/EsmFoldJob.vue';
@@ -207,10 +207,10 @@ export default defineComponent({
       error: null as string | null,
       nodeData: null as Node | null,
       jobs: [] as Array<GetJobMetadataResponse & {
-        executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
+        executionStatus: JobStateEnum | null
       }>,
       results: [] as Array<GetJobMetadataResponse & {
-        executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
+        executionStatus: JobStateEnum | null
       }>,
       jobErrors: {} as Record<string, string>,
       lastExceptions: [] as string[],
@@ -297,20 +297,19 @@ export default defineComponent({
         const job = await getJobMetaData(jobId);
         const executionStatus = await jobDefinition.api.executionStatus(jobId);
 
-        // Update the job in this.jobs
-        this.jobs[existingJobIndex] = { ...job, executionStatus };
-
-        // Update the results array
-        this.jobs = this.jobs.filter(job => job && !job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
-          executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
-        }>;
-        this.results = this.jobs.filter(job => job && job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
-          executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
-        }>;
+        // Check if job is completed and move it to the results list if necessary
+        if (executionStatus.state === JobStateEnum.COMPLETED) {
+          // Move the job to the results if it's completed
+          this.results.push({ ...job, executionStatus });
+          this.jobs = this.jobs.filter(j => j.job_id !== jobId); // Remove from jobs list
+        } else {
+          // Update the job in the jobs list if it's not completed
+          this.jobs[existingJobIndex] = { ...job, executionStatus };
+        }
 
         // Update workflow store with running jobs status
         const workflowStore = useWorkflowStore();
-        const anyJobRunning = this.jobs.some(job => job.executionStatus?.running);
+        const anyJobRunning = this.jobs.some(job => job.executionStatus?.state === JobStateEnum.RUNNING);
         if (anyJobRunning) {
           workflowStore.addRunningComponentId(this.nodeId);
         } else {
@@ -324,10 +323,11 @@ export default defineComponent({
         console.error(`Error updating job ${jobId}:`, error);
       }
     },
+
     async updateJobs() {
       this.loading = true;
       const workflowStore = useWorkflowStore();
-      const knownJobIds = new Set(this.jobs.map(job => job.job_id)); // Assuming 'job_id' is the job identifier
+      const knownJobIds = new Set(this.jobs.map(job => job.job_id));
       const knownResultIds = new Set(this.results.map(result => result.job_id));
 
       if (this.nodeData?.data.jobIds) {
@@ -346,29 +346,29 @@ export default defineComponent({
         );
 
         // Update the jobs and results lists with the new data
-        const newJobs = newJobsWithStatus.filter(job => job && !job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
-          executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
+        const newJobs = newJobsWithStatus.filter(job => job && job.executionStatus?.state !== JobStateEnum.COMPLETED) as Array<GetJobMetadataResponse & {
+          executionStatus: JobStateEnum | null;
         }>;
-        const newResults = newJobsWithStatus.filter(job => job && job.executionStatus.result_valid) as Array<GetJobMetadataResponse & {
-          executionStatus: nolabs__application__use_cases__folding__api_models__GetJobStatusResponse | null
+        const newResults = newJobsWithStatus.filter(job => job && job.executionStatus?.state === JobStateEnum.COMPLETED) as Array<GetJobMetadataResponse & {
+          executionStatus: JobStateEnum | null;
         }>;
 
         // Append new jobs and results to existing ones
         this.jobs = [
           ...this.jobs.filter(job => this.nodeData.data.jobIds.includes(job.job_id)),
-          ...newJobs.filter(job => !this.jobs.some(existingJob => existingJob.job_id === job.job_id))
+          ...newJobs.filter(job => !this.jobs.some(existingJob => existingJob.job_id === job.job_id)),
         ];
 
         this.results = [
           ...this.results.filter(result => this.nodeData.data.jobIds.includes(result.job_id)),
-          ...newResults.filter(result => !this.results.some(existingResult => existingResult.job_id === result.job_id))
+          ...newResults.filter(result => !this.results.some(existingResult => existingResult.job_id === result.job_id)),
         ];
       }
 
       this.loading = false;
 
       // Update workflow store with running jobs status
-      const anyJobRunning = this.jobs.some(job => job.executionStatus?.running);
+      const anyJobRunning = this.jobs.some(job => job.executionStatus?.state === JobStateEnum.RUNNING);
       if (anyJobRunning) {
         workflowStore.addRunningComponentId(this.nodeId);
       } else {

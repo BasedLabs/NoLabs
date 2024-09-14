@@ -141,6 +141,10 @@ class FoldingComponentFlow(ComponentFlow):
         job_result: Dict[str, Any] = await self.celery_wait_async(async_result)
         job_result: InferenceOutput = InferenceOutput(**job_result)
 
+        protein = Protein.objects.with_id(job.protein.id)
+        protein.set_pdb(job_result.pdb_content)
+        protein.save()
+
         job.set_result(job.protein, job_result.pdb_content)
 
         await job.save()

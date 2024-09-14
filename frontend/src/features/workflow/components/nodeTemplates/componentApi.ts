@@ -4,44 +4,37 @@ import {
   FoldingService, GeneOntologyService,
   GenerateMsaService,
   LocalisationService,
+  WorkflowService,
   OpenAPI, ProteinDesignService, SmallMoleculesDesignService, SolubilityService
 } from "src/refinedApi/client";
 import apiConstants from "src/refinedApi/constants";
 
 OpenAPI.BASE = apiConstants.hostname;
 
-const mockExecutionStatusApi = () => {
-  // TODO remove this mock
-  return {
-    running: false,
-    result_valid: true
-  }
-}
-
 const componentApi = {
   esmfoldLight: {
     getJob: FoldingService.getJobApiV1FoldingJobsJobIdGet,
-    executionStatus: FoldingService.getJobStatusApiV1FoldingJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   esmfold: {
     getJob: FoldingService.getJobApiV1FoldingJobsJobIdGet,
-    executionStatus: FoldingService.getJobStatusApiV1FoldingJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   rosettafold: {
     getJob: FoldingService.getJobApiV1FoldingJobsJobIdGet,
-    executionStatus: FoldingService.getJobStatusApiV1FoldingJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   bindingPockets: {
     getJob: BindingPocketsService.getJobApiV1BindingPocketsJobsJobIdGet,
-    executionStatus: BindingPocketsService.getJobStatusApiV1BindingPocketsJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   msaGeneration: {
     getJob: GenerateMsaService.getJobApiV1MsaGenerationJobsJobIdGet,
-    executionStatus: GenerateMsaService.getJobStatusApiV1MsaGenerationJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   diffdock: {
     getJob: DiffdockService.getJobApiV1DiffdockJobsJobIdGet,
-    executionStatus: DiffdockService.getJobStatusApiV1DiffdockJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   blast: {
     getJob: BlastService.getJobApiV1BlastJobsJobIdGet,
@@ -49,27 +42,27 @@ const componentApi = {
   },
   localisation: {
     getJob: LocalisationService.getJobApiV1LocalisationJobsJobIdGet,
-    executionStatus: LocalisationService.getJobStatusApiV1LocalisationJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   solubility: {
     getJob: SolubilityService.getJobApiV1SolubilityJobsJobIdGet,
-    executionStatus: SolubilityService.getJobStatusApiV1SolubilityJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   geneOntology: {
     getJob: GeneOntologyService.getJobApiV1GeneOntologyJobsJobIdGet,
-    executionStatus: GeneOntologyService.getJobStatusApiV1GeneOntologyJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   conformations: {
     getJob: ConformationsService.getJobApiV1ConformationsJobsJobIdGet,
-    executionStatus: ConformationsService.getJobStatusApiV1ConformationsJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   proteinDesign: {
     getJob: ProteinDesignService.getJobApiV1ProteinDesignJobsJobIdGet,
-    executionStatus: ProteinDesignService.getJobStatusApiV1ProteinDesignJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   smallMoleculesDesign: {
     getJob: SmallMoleculesDesignService.getJobApiV1SmallMoleculesDesignJobsJobIdGet,
-    executionStatus: SmallMoleculesDesignService.getJobStatusApiV1SmallMoleculesDesignJobsJobIdStatusGet
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   }
 }
 
