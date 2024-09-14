@@ -212,9 +212,14 @@ export default defineComponent({
 
     this.connectWebSocket();
 
-    this.pollIntervalId = window.setInterval(() => {
-      workflowStore.pollWorkflow();
-    }, 2000); // Poll every 2 seconds
+    // Set up listener for 'component_jobs' event
+    this.socket?.on('component_jobs', async (data: { component_id: string; job_ids: string[] }) => {
+      if (data.component_id && data.job_ids) {
+        // Call workflowStore method to adjust the component's job list
+        workflowStore.adjustComponentJobsList(data.component_id, data.job_ids);
+      }
+    });
+
   },
   methods: {
     connectWebSocket() {
