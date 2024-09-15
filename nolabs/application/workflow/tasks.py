@@ -87,7 +87,9 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
             ctx = get_run_context()
             task_run_id = ctx.task_run.id
 
-            emit_start_job_event(experiment_id=self.experiment_id, job_id=job_id)
+            emit_start_job_event(experiment_id=self.experiment_id,
+                                 component_id=self.component_id,
+                                 job_id=job_id)
 
             run = JobRunData.create(
                 component_id=self.component_id,
@@ -98,7 +100,9 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
             run.save()
             return await self.job_task(job_id=job_id)
         finally:
-            emit_finish_job_event(experiment_id=self.experiment_id, job_id=job_id)
+            emit_finish_job_event(experiment_id=self.experiment_id,
+                                  component_id=self.component_id,
+                                  job_id=job_id)
 
     async def job_task(self, job_id: uuid.UUID) -> State[R]:
         pass

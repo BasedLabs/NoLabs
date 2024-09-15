@@ -93,7 +93,6 @@ import {
 } from 'src/features/workflow/refinedApi';
 import {
   GetJobMetadataResponse, JobStateEnum,
-  nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
 } from 'src/refinedApi/client';
 import EsmFoldJob from '../jobs/EsmFoldJob.vue';
 import P2RankJob from '../jobs/P2RankJob.vue';
@@ -309,15 +308,8 @@ export default defineComponent({
 
         // Update workflow store with running jobs status
         const workflowStore = useWorkflowStore();
-        const anyJobRunning = this.jobs.some(job => job.executionStatus?.state === JobStateEnum.RUNNING);
-        if (anyJobRunning) {
-          workflowStore.addRunningComponentId(this.nodeId);
-        } else {
-          workflowStore.removeRunningComponentId(this.nodeId);
-        }
-
         // Remove jobId from the list after updating
-        workflowStore.removeJobIdToUpdate(jobId);
+        workflowStore.removeJobIdToUpdate(this.nodeId, jobId);
 
       } catch (error) {
         console.error(`Error updating job ${jobId}:`, error);
@@ -326,7 +318,6 @@ export default defineComponent({
 
     async updateJobs() {
       this.loading = true;
-      const workflowStore = useWorkflowStore();
       const knownJobIds = new Set(this.jobs.map(job => job.job_id));
       const knownResultIds = new Set(this.results.map(result => result.job_id));
 
@@ -366,20 +357,12 @@ export default defineComponent({
       }
 
       this.loading = false;
-
-      // Update workflow store with running jobs status
-      const anyJobRunning = this.jobs.some(job => job.executionStatus?.state === JobStateEnum.RUNNING);
-      if (anyJobRunning) {
-        workflowStore.addRunningComponentId(this.nodeId);
-      } else {
-        workflowStore.removeRunningComponentId(this.nodeId);
-      }
     },
     async deleteJob(job: GetJobMetadataResponse) {
       this.jobs = this.jobs.filter(j => j.job_id !== job.job_id);
       this.results = this.results.filter(j => j.job_id !== job.job_id);
       const workflowStore = useWorkflowStore();
-      await workflowStore.deleteJob(job.job_id);
+      await workflowStore.deleteJob(job.job_id, this.nodeId);
     },
     updateErrorsAndExceptions() {
       if (this.nodeData?.input_property_errors && this.nodeData.input_property_errors.length > 0) {

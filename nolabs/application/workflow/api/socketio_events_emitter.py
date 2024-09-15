@@ -5,27 +5,32 @@ from infrastructure import socket_server
 from infrastructure.log import logger
 
 
-def emit_start_job_event(experiment_id: UUID, job_id: UUID):
+def emit_start_job_event(experiment_id: UUID, component_id: UUID, job_id: UUID):
     event_name = 'job_started'
 
     logger.info(f"Emitting event", extra={
         'event_name': event_name,
         'experiment_id': experiment_id,
+        'component_id': component_id,
         'job_id': job_id
     })
-    socket_server.emit_event(name=event_name, id=str(experiment_id), data={'job_id': str(job_id)})
+    socket_server.emit_event(name=event_name, id=str(experiment_id), data={
+        'component_id': str(component_id),
+        'job_id': str(job_id)})
 
 
-def emit_finish_job_event(experiment_id: UUID, job_id: UUID):
+def emit_finish_job_event(experiment_id: UUID, component_id: UUID, job_id: UUID):
     event_name = 'job_finished'
 
     logger.info(f"Emitting event", extra={
         'event_name': event_name,
         'experiment_id': experiment_id,
+        'component_id': component_id,
         'job_id': job_id
     })
 
-    socket_server.emit_event(name='job_finished', id=str(experiment_id), data={'job_id': str(job_id)})
+    socket_server.emit_event(name='job_finished', id=str(experiment_id), data={'component_id': str(component_id),
+                                                                               'job_id': str(job_id)})
 
 
 def emit_start_component_event(experiment_id: UUID, component_id: UUID):

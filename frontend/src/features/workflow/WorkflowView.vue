@@ -124,6 +124,7 @@ import JobNodeContent from "./components/nodeTemplates/JobNodeContent.vue";
 import { startWorkflow, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow, deleteWorkflow, resetWorkflow } from './refinedApi';
 import { useWorkflowStore, Edge, Node } from './components/storage';
 import { useBioBuddyStore } from "src/features/biobuddy/storage";
+import {ComponentStateEnum, JobStateEnum} from "../../refinedApi/client";
 
 export default defineComponent({
   name: "WorkflowView",
@@ -220,6 +221,36 @@ export default defineComponent({
       }
     });
 
+    // Listen for 'component_started' event
+    this.socket.on('component_started', async (data: { component_id: string }) => {
+      if (data.component_id) {
+        workflowStore.updateComponentState(data.component_id, ComponentStateEnum.RUNNING);
+      }
+    });
+
+    // Listen for 'component_finished' event
+    this.socket.on('component_finished', async (data: { component_id: string }) => {
+      if (data.component_id) {
+        workflowStore.updateComponentState(data.component_id, ComponentStateEnum.COMPLETED);
+      }
+    });
+
+    // Listen for job_started event
+    this.socket.on('job_started', async (data: { component_id: string, job_id: string }) => {
+      if (data.component_id && data.job_id) {
+        // Call workflowStore to update job status to RUNNING
+        workflowStore.updateJobStatus(data.component_id, data.job_id, JobStateEnum.RUNNING);
+      }
+    });
+
+    // Listen for job_finished event
+    this.socket.on('job_finished', async (data: { component_id: string, job_id: string }) => {
+      if (data.component_id && data.job_id) {
+        // Call workflowStore to update job status to COMPLETED
+        workflowStore.updateJobStatus(data.component_id, data.job_id, JobStateEnum.COMPLETED);
+      }
+    });
+
   },
   methods: {
     connectWebSocket() {
@@ -233,13 +264,6 @@ export default defineComponent({
         console.log('Connected to Socket.IO server');
         if (this.experiment.experimentId) {
           this.socket.emit('join_room', { experiment_id: this.experiment.experimentId });
-        }
-      });
-
-      // Handle incoming messages from the server
-      this.socket.on('job_started', async (data) => {
-        if (data.job_id) {
-          workflowStore.addJobIdToUpdate(data.job_id);
         }
       });
 
