@@ -2,7 +2,7 @@ import {defineStore} from 'pinia';
 import {
   ComponentSchema,
   ComponentSchemaTemplate_Input,
-  ComponentSchemaTemplate_Output,
+  ComponentSchemaTemplate_Output, ComponentStateEnum,
   DefaultSchema,
   JobsACommonControllerForJobsManagementService,
   LigandMetadataResponse,
@@ -39,7 +39,9 @@ interface NodeData {
   inputs: Record<string, PropertySchema_Input>;
   outputs: Record<string, PropertySchema_Output>;
   jobIds: string[];
+  jobIdsToUpdate?: string[];
   input_property_errors: PropertyErrorResponse[];
+  state: ComponentStateEnum | null,
   stateMessage: string;
   draggable: boolean;
   defaults?: DefaultSchema[];
@@ -72,7 +74,6 @@ export const useWorkflowStore = defineStore('workflowStore', {
       nodes: [] as Node[],
       edges: [] as Edge[]
     },
-    jobIdsToUpdate: [] as string[],
     workflowId: "" as string,
     allowedTypes: ["Proteins", "Ligands", "DNA"],
     componentOptions: [] as Array<{
@@ -102,16 +103,25 @@ export const useWorkflowStore = defineStore('workflowStore', {
     async getAllProteins(experimentId: string) {
       this.proteins = await getAllProteinsMetadata(experimentId);
     },
-    addRunningComponentId(componentId: string) {
-      if (!this.runningComponentIds.includes(componentId)) {
-        this.runningComponentIds.push(componentId);
+    async deleteJob(jobId: string, componentId: string) {
+      try {
+        // Delete the job via the API
+        await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJodIdDelete(jobId);
+        console.log(`Job ${jobId} deleted successfully`);
+
+        // Find the component by componentId
+        const component = this.getNodeById(componentId);
+
+        if (component && component.data && component.data.jobIds) {
+          // Remove the jobId from component.data.jobIds
+          component.data.jobIds = component.data.jobIds.filter((id: string) => id !== jobId);
+          console.log(`Job ${jobId} removed from component ${componentId}`);
+        } else {
+          console.error(`Component with ID ${componentId} not found or has no jobIds`);
+        }
+      } catch (error) {
+        console.error(`Error deleting job ${jobId}:`, error);
       }
-    },
-    removeRunningComponentId(componentId: string) {
-      this.runningComponentIds = this.runningComponentIds.filter(id => id !== componentId);
-    },
-    async deleteJob(jobId: string) {
-      await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJodIdDelete(jobId);
     },
     async uploadProteinToExperiment(
       experimentId: string,
@@ -311,6 +321,18 @@ export const useWorkflowStore = defineStore('workflowStore', {
         console.error('Error deleting ligand:', error);
       }
     },
+    updateJobStatus(componentId: string, jobId: string) {
+      const component = this.getNodeById(componentId);
+
+      if (component && component.data && component.data.jobIdsToUpdate) {
+        // Find the job in the component's jobIds and update its status
+        if (!component.data.jobIdsToUpdate.includes(jobId)) {
+          component.data.jobIdsToUpdate.push(jobId);
+        }
+      } else {
+        console.error(`Component ${componentId} not found or has no jobIds`);
+      }
+    },
     async adjustWorkflow(data: BiobuddyWorkflowAdjustmentData) {
       // Retain existing nodes
       const existingNodeIds = this.elements.nodes.map(node => node.id);
@@ -343,8 +365,10 @@ export const useWorkflowStore = defineStore('workflowStore', {
               inputs: componentOptions ? componentOptions.inputs : {},
               outputs: componentOptions ? componentOptions.outputs : {},
               jobIds: [],
+              jobIdsToUpdate: [],
               jobs_errors: [],
               input_property_errors: [],
+              state: null,
               stateMessage: '',
               draggable: false,
               defaults: [],
@@ -452,7 +476,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
               defaults: component.defaults,
               error: component.error,
               jobIds: componentState.job_ids,
+              jobIdsToUpdate: [],
               input_property_errors: componentState.input_errors,
+              state: componentState.state,
               stateMessage: componentState.state_message,
             } as NodeData,
             position: {
@@ -545,7 +571,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
           inputs: option.inputs,
           outputs: option.outputs,
           jobIds: [],
+          jobIdsToUpdate: [],
           input_property_errors: [],
+          state: null,
           stateMessage: '',
           draggable: false,
           defaults: [],
@@ -634,6 +662,31 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.sendWorkflowUpdate();
       }
     },
+    updateComponentState(componentId: string, newState: ComponentStateEnum) {
+      const component = this.getNodeById(componentId);  // Assuming you have getNodeById method to find the component
+
+      if (component) {
+        // Update the state of the component
+        component.data.state = newState;
+
+        // Manage the runningComponentIds list based on the new state
+        if (newState === ComponentStateEnum.RUNNING) {
+          // Add the component to the list of running components if it's not already there
+          if (!this.runningComponentIds.includes(componentId)) {
+            this.runningComponentIds.push(componentId);
+            console.log(`Component ${componentId} added to running components.`);
+          }
+        } else if (newState === ComponentStateEnum.COMPLETED) {
+          // Remove the component from the running list once it has completed
+          this.runningComponentIds = this.runningComponentIds.filter(id => id !== componentId);
+          console.log(`Component ${componentId} removed from running components.`);
+        }
+
+        console.log(`Component ${componentId} updated to state: ${newState}`);
+      } else {
+        console.error(`Component with ID ${componentId} not found`);
+      }
+    },
     onNodeDragStopHandler(event: { node: Node }) {
       const id = event.node.id;
       const newPosition = event.node.position;
@@ -646,16 +699,14 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.sendWorkflowUpdate();
       }
     },
-    getNodeById(nodeId: string) {
+    getNodeById(nodeId: string): Node | null {
       return this.elements.nodes.find(node => node.id === nodeId) || null;
     },
-    addJobIdToUpdate(jobId: string) {
-      if (!this.jobIdsToUpdate.includes(jobId)) {
-        this.jobIdsToUpdate.push(jobId);
+    removeJobIdToUpdate(componentId: string, jobId: string) {
+      const component = this.getNodeById(componentId);
+      if (component && component.data && component.data.jobIdsToUpdate){
+        component.data.jobIdsToUpdate = component.data.jobIdsToUpdate.filter(id => id !== jobId);
       }
-    },
-    removeJobIdToUpdate(jobId: string) {
-      this.jobIdsToUpdate = this.jobIdsToUpdate.filter(id => id !== jobId);
     },
     async adjustComponentJobsList(componentId: string, jobIds: string[]) {
       try {
