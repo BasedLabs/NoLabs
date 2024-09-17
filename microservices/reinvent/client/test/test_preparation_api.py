@@ -31,8 +31,7 @@ class TestPreparationApi(unittest.TestCase):
 
         Prepare Target
         """
-        pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

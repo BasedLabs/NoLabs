@@ -2,14 +2,17 @@ import uuid
 from datetime import datetime
 from typing import List, Type
 
-from nolabs.domain.models.common import Experiment, ExperimentId, ExperimentName
-from nolabs.application.workflow.component import Component, JobValidationError, TInput, TOutput
+from nolabs.application.workflow.component import (Component,
+                                                   JobValidationError, TInput,
+                                                   TOutput)
+from nolabs.domain.models.common import (Experiment, ExperimentId,
+                                         ExperimentName)
 
 
 class WorkflowTestsMixin:
     def seed_empty_component(self, t_input, t_output) -> Type[Component]:
         class C(Component[t_input, t_output]):
-            name = 'C'
+            name = "C"
 
             async def setup_jobs(self):
                 pass
@@ -31,6 +34,10 @@ class WorkflowTestsMixin:
         return C
 
     def seed_experiment(self) -> Experiment:
-        e = Experiment(id=ExperimentId(uuid.uuid4()), name=ExperimentName('Test'), created_at=datetime.utcnow())
+        e = Experiment(
+            id=ExperimentId(uuid.uuid4()),
+            name=ExperimentName("Test"),
+            created_at=datetime.utcnow(),
+        )
         e.save()
         return e

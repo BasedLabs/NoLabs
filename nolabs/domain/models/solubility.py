@@ -1,22 +1,14 @@
-__all__ = [
-    'SolubilityJobResult',
-    'SolubilityJob'
-]
+__all__ = ["SolubilityJobResult", "SolubilityJob"]
 
 from datetime import datetime
 from typing import List, Tuple
 from uuid import UUID
 
-from mongoengine import (ReferenceField,
-                         ListField,
-                         PULL,
-                         EmbeddedDocument,
-                         FloatField,
-                         EmbeddedDocumentListField,
-                         UUIDField)
+from domain.exceptions import ErrorCodes, NoLabsException
+from mongoengine import (PULL, EmbeddedDocument, EmbeddedDocumentListField,
+                         FloatField, ListField, ReferenceField, UUIDField)
 
-from nolabs.domain.models.common import Job, Protein, JobInputError
-from domain.exceptions import NoLabsException, ErrorCodes
+from nolabs.domain.models.common import Job, JobInputError, Protein
 
 
 class SolubilityJobResult(EmbeddedDocument):
@@ -27,7 +19,9 @@ class SolubilityJobResult(EmbeddedDocument):
 class SolubilityJob(Job):
     # region Inputs
 
-    proteins: List[Protein] = ListField(ReferenceField(Protein, required=True, reverse_delete_rule=PULL))
+    proteins: List[Protein] = ListField(
+        ReferenceField(Protein, required=True, reverse_delete_rule=PULL)
+    )
 
     # endregion
 
@@ -60,17 +54,18 @@ class SolubilityJob(Job):
             if not [p for p in self.proteins if p.iid == protein.iid]:
                 raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
-            self.results.append(SolubilityJobResult(
-                protein_id=protein.iid.value,
-                soluble_probability=prob
-            ))
+            self.results.append(
+                SolubilityJobResult(
+                    protein_id=protein.iid.value, soluble_probability=prob
+                )
+            )
 
     def _input_errors(self) -> List[JobInputError]:
         if not self.proteins:
             return [
                 JobInputError(
-                    message='No proteins provided',
-                    error_code=ErrorCodes.protein_is_undefined
+                    message="No proteins provided",
+                    error_code=ErrorCodes.protein_is_undefined,
                 )
             ]
 
@@ -78,8 +73,8 @@ class SolubilityJob(Job):
             if not protein.fasta_content:
                 return [
                     JobInputError(
-                        message='Protein fasta is undefined',
-                        error_code=ErrorCodes.protein_fasta_is_empty
+                        message="Protein fasta is undefined",
+                        error_code=ErrorCodes.protein_fasta_is_empty,
                     )
                 ]
 

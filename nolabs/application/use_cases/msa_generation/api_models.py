@@ -1,9 +1,4 @@
-__all__ = [
-    'JobResponse',
-    'SetupJobRequest',
-    'RunJobRequest',
-    'GetJobStatusResponse'
-]
+__all__ = ["JobResponse", "SetupJobRequest", "RunJobRequest", "GetJobStatusResponse"]
 
 from typing import Optional
 from uuid import UUID
@@ -38,5 +33,3 @@ class RunJobRequest:
 class GetJobStatusResponse:
     running: bool
     result_valid: bool
-
-

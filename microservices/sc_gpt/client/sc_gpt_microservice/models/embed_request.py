@@ -13,31 +13,37 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
 from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class EmbedRequest(BaseModel):
     """
     EmbedRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     dataset_path: StrictStr
-    gene_col: Optional[StrictStr] = 'gene_name'
+    gene_col: Optional[StrictStr] = "gene_name"
     batch_size: Optional[StrictInt] = 64
-    device: Optional[StrictStr] = 'cpu'
-    __properties: ClassVar[List[str]] = ["dataset_path", "gene_col", "batch_size", "device"]
+    device: Optional[StrictStr] = "cpu"
+    __properties: ClassVar[List[str]] = [
+        "dataset_path",
+        "gene_col",
+        "batch_size",
+        "device",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -63,8 +69,7 @@ class EmbedRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -82,12 +87,18 @@ class EmbedRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "dataset_path": obj.get("dataset_path"),
-            "gene_col": obj.get("gene_col") if obj.get("gene_col") is not None else 'gene_name',
-            "batch_size": obj.get("batch_size") if obj.get("batch_size") is not None else 64,
-            "device": obj.get("device") if obj.get("device") is not None else 'cpu'
-        })
+        _obj = cls.model_validate(
+            {
+                "dataset_path": obj.get("dataset_path"),
+                "gene_col": (
+                    obj.get("gene_col")
+                    if obj.get("gene_col") is not None
+                    else "gene_name"
+                ),
+                "batch_size": (
+                    obj.get("batch_size") if obj.get("batch_size") is not None else 64
+                ),
+                "device": obj.get("device") if obj.get("device") is not None else "cpu",
+            }
+        )
         return _obj
-
-

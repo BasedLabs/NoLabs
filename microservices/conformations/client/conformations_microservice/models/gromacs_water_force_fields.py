@@ -13,12 +13,10 @@
 
 
 from __future__ import annotations
+
 import json
-import pprint
 import re  # noqa: F401
 from enum import Enum
-
-
 
 try:
     from typing import Self
@@ -34,16 +32,14 @@ class GromacsWaterForceFields(str, Enum):
     """
     allowed enum values
     """
-    SPC = 'spc'
-    SPCE = 'spce'
-    IP3P = 'ip3p'
-    TIP4P = 'tip4p'
-    TIP5P = 'tip5p'
-    TIPS3P = 'tips3p'
+    SPC = "spc"
+    SPCE = "spce"
+    IP3P = "ip3p"
+    TIP4P = "tip4p"
+    TIP5P = "tip5p"
+    TIPS3P = "tips3p"
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
         """Create an instance of GromacsWaterForceFields from a JSON string"""
         return cls(json.loads(json_str))
-
-

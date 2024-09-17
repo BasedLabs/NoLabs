@@ -1,17 +1,19 @@
 import base64
+
 from rdkit import Chem
 from rdkit.Chem import Draw
 
 
 def generate_png_from_smiles(smiles: str | bytes) -> bytes:
     if isinstance(smiles, bytes):
-        smiles = smiles.decode('utf-8')
+        smiles = smiles.decode("utf-8")
 
     molecule = Chem.MolFromSmiles(smiles)
     # Draw the molecule to a PNG file
     image = Draw.MolToImage(molecule)
 
     from io import BytesIO
+
     buffer = BytesIO()
     image.save(buffer, format="PNG")
     return buffer.getvalue()

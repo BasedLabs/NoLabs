@@ -14,9 +14,14 @@
 
 
 # import models into model package
-from localisation_microservice.models.http_validation_error import HTTPValidationError
-from localisation_microservice.models.is_job_running_response import IsJobRunningResponse
-from localisation_microservice.models.run_localisation_prediction_request import RunLocalisationPredictionRequest
-from localisation_microservice.models.run_localisation_prediction_response import RunLocalisationPredictionResponse
+from localisation_microservice.models.http_validation_error import \
+    HTTPValidationError
+from localisation_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
+from localisation_microservice.models.run_localisation_prediction_request import \
+    RunLocalisationPredictionRequest
+from localisation_microservice.models.run_localisation_prediction_response import \
+    RunLocalisationPredictionResponse
 from localisation_microservice.models.validation_error import ValidationError
-from localisation_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from localisation_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

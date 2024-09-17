@@ -14,9 +14,14 @@
 
 
 # import models into model package
-from solubility_microservice.models.http_validation_error import HTTPValidationError
-from solubility_microservice.models.is_job_running_response import IsJobRunningResponse
-from solubility_microservice.models.run_solubility_prediction_request import RunSolubilityPredictionRequest
-from solubility_microservice.models.run_solubility_prediction_response import RunSolubilityPredictionResponse
+from solubility_microservice.models.http_validation_error import \
+    HTTPValidationError
+from solubility_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
+from solubility_microservice.models.run_solubility_prediction_request import \
+    RunSolubilityPredictionRequest
+from solubility_microservice.models.run_solubility_prediction_response import \
+    RunSolubilityPredictionResponse
 from solubility_microservice.models.validation_error import ValidationError
-from solubility_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from solubility_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

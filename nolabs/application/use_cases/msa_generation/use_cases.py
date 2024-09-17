@@ -1,18 +1,14 @@
-__all__ = [
-    'GetJobStatusFeature',
-    'RunJobFeature',
-    'GetJobFeature',
-    'SetupJobFeature'
-]
+__all__ = ["GetJobStatusFeature", "RunJobFeature", "GetJobFeature", "SetupJobFeature"]
 
 from uuid import UUID
 
 import msa_light_microservice
+from domain.exceptions import ErrorCodes, NoLabsException
+from infrastructure.settings import settings
 from mongoengine import Q
 
-from infrastructure.settings import settings
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.msa_generation.api_models import JobResponse, SetupJobRequest, GetJobStatusResponse
+from nolabs.application.use_cases.msa_generation.api_models import (
+    GetJobStatusResponse, JobResponse, SetupJobRequest)
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.msa import MsaGenerationJob
 from nolabs.utils import generate_uuid
@@ -24,7 +20,7 @@ def map_job_to_response(job: MsaGenerationJob) -> JobResponse:
         job_name=job.name.value,
         experiment_id=job.experiment.iid.value,
         protein_id=job.protein.iid.value,
-        result=None if not job.msa else job.msa.decode('utf-8')
+        result=None if not job.msa else job.msa.decode("utf-8"),
     )
 
 
@@ -59,21 +55,19 @@ class SetupJobFeature:
             assert request
 
             job_id = JobId(request.job_id if request.job_id else generate_uuid())
-            job_name = JobName(request.job_name if request.job_name else 'New msa job')
+            job_name = JobName(request.job_name if request.job_name else "New msa job")
 
             experiment = Experiment.objects.with_id(request.experiment_id)
 
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job: MsaGenerationJob = MsaGenerationJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
+            job: MsaGenerationJob = MsaGenerationJob.objects(
+                Q(id=job_id.value) | Q(name=job_name.value)
+            ).first()
 
             if not job:
-                job = MsaGenerationJob(
-                    id=job_id,
-                    name=job_name,
-                    experiment=experiment
-                )
+                job = MsaGenerationJob(id=job_id, name=job_name, experiment=experiment)
 
             protein = Protein.objects.with_id(request.protein_id)
 
@@ -111,12 +105,14 @@ class RunJobFeature:
             fasta_content = job.protein.get_fasta()
 
             request = msa_light_microservice.RunMsaPredictionRequest(
-                api_url=settings.msa_light_host,
-                fasta_contents=fasta_content)
+                api_url=settings.msa_light_host, fasta_contents=fasta_content
+            )
             try:
                 job.started()
                 await job.save()
-                msa_contents = self._api.predict_msa_predict_msa_post(run_msa_prediction_request=request).msa_contents
+                msa_contents = self._api.predict_msa_predict_msa_post(
+                    run_msa_prediction_request=request
+                ).msa_contents
 
                 job.set_result(protein=job.protein, msa=msa_contents)
                 await job.save(cascade=True)
@@ -146,9 +142,10 @@ class GetJobStatusFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
+        response = self._api.is_job_running_job_job_id_is_running_get(
+            job_id=str(job_id)
+        )
 
         return GetJobStatusResponse(
-            running=response.is_running,
-            result_valid=job.result_valid()
+            running=response.is_running, result_valid=job.result_valid()
         )

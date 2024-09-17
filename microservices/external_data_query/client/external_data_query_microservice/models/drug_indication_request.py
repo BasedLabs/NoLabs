@@ -13,20 +13,22 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
 from external_data_query_microservice.models.job_id import JobId
-from typing import Optional, Set
+from pydantic import BaseModel, StrictInt, StrictStr
 from typing_extensions import Self
+
 
 class DrugIndicationRequest(BaseModel):
     """
     DrugIndicationRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     filters: Optional[Dict[str, Any]] = None
     order_by: Optional[StrictStr] = None
     limit: Optional[StrictInt] = 20
@@ -38,7 +40,6 @@ class DrugIndicationRequest(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -64,8 +65,7 @@ class DrugIndicationRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -74,7 +74,7 @@ class DrugIndicationRequest(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of job_id
         if self.job_id:
-            _dict['job_id'] = self.job_id.to_dict()
+            _dict["job_id"] = self.job_id.to_dict()
         return _dict
 
     @classmethod
@@ -86,12 +86,16 @@ class DrugIndicationRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "filters": obj.get("filters"),
-            "order_by": obj.get("order_by"),
-            "limit": obj.get("limit") if obj.get("limit") is not None else 20,
-            "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "filters": obj.get("filters"),
+                "order_by": obj.get("order_by"),
+                "limit": obj.get("limit") if obj.get("limit") is not None else 20,
+                "job_id": (
+                    JobId.from_dict(obj["job_id"])
+                    if obj.get("job_id") is not None
+                    else None
+                ),
+            }
+        )
         return _obj
-
-

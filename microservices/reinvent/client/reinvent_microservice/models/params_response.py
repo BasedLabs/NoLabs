@@ -13,19 +13,21 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set, Union
 
 from pydantic import BaseModel, ConfigDict, StrictFloat, StrictInt
-from typing import Any, ClassVar, Dict, List, Union
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class ParamsResponse(BaseModel):
     """
     ParamsResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     center_x: Union[StrictFloat, StrictInt]
     center_y: Union[StrictFloat, StrictInt]
     center_z: Union[StrictFloat, StrictInt]
@@ -35,14 +37,23 @@ class ParamsResponse(BaseModel):
     batch_size: Union[StrictFloat, StrictInt]
     minscore: Union[StrictFloat, StrictInt]
     epochs: Union[StrictFloat, StrictInt]
-    __properties: ClassVar[List[str]] = ["center_x", "center_y", "center_z", "size_x", "size_y", "size_z", "batch_size", "minscore", "epochs"]
+    __properties: ClassVar[List[str]] = [
+        "center_x",
+        "center_y",
+        "center_z",
+        "size_x",
+        "size_y",
+        "size_z",
+        "batch_size",
+        "minscore",
+        "epochs",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -68,8 +79,7 @@ class ParamsResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -87,17 +97,17 @@ class ParamsResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "center_x": obj.get("center_x"),
-            "center_y": obj.get("center_y"),
-            "center_z": obj.get("center_z"),
-            "size_x": obj.get("size_x"),
-            "size_y": obj.get("size_y"),
-            "size_z": obj.get("size_z"),
-            "batch_size": obj.get("batch_size"),
-            "minscore": obj.get("minscore"),
-            "epochs": obj.get("epochs")
-        })
+        _obj = cls.model_validate(
+            {
+                "center_x": obj.get("center_x"),
+                "center_y": obj.get("center_y"),
+                "center_z": obj.get("center_z"),
+                "size_x": obj.get("size_x"),
+                "size_y": obj.get("size_y"),
+                "size_z": obj.get("size_z"),
+                "batch_size": obj.get("batch_size"),
+                "minscore": obj.get("minscore"),
+                "epochs": obj.get("epochs"),
+            }
+        )
         return _obj
-
-

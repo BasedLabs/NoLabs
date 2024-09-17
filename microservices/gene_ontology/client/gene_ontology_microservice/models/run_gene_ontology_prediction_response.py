@@ -13,23 +13,27 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List
+
+from gene_ontology_microservice.models.go_confidence_response import \
+    GoConfidenceResponse
 from pydantic import BaseModel, StrictStr
-from gene_ontology_microservice.models.go_confidence_response import GoConfidenceResponse
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunGeneOntologyPredictionResponse(BaseModel):
     """
     RunGeneOntologyPredictionResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     go_confidence: List[GoConfidenceResponse]
     errors: List[StrictStr]
     __properties: ClassVar[List[str]] = ["go_confidence", "errors"]
@@ -39,7 +43,6 @@ class RunGeneOntologyPredictionResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -67,8 +70,7 @@ class RunGeneOntologyPredictionResponse(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         # override the default output from pydantic by calling `to_dict()` of each item in go_confidence (list)
@@ -77,7 +79,7 @@ class RunGeneOntologyPredictionResponse(BaseModel):
             for _item in self.go_confidence:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['go_confidence'] = _items
+            _dict["go_confidence"] = _items
         return _dict
 
     @classmethod
@@ -89,10 +91,17 @@ class RunGeneOntologyPredictionResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "go_confidence": [GoConfidenceResponse.from_dict(_item) for _item in obj.get("go_confidence")] if obj.get("go_confidence") is not None else None,
-            "errors": obj.get("errors")
-        })
+        _obj = cls.model_validate(
+            {
+                "go_confidence": (
+                    [
+                        GoConfidenceResponse.from_dict(_item)
+                        for _item in obj.get("go_confidence")
+                    ]
+                    if obj.get("go_confidence") is not None
+                    else None
+                ),
+                "errors": obj.get("errors"),
+            }
+        )
         return _obj
-
-

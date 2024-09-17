@@ -1,9 +1,6 @@
-from nolabs.application.use_cases.ligands.use_cases import (SearchLigandsContentFeature,
-                                                            SearchLigandsMetadataFeature,
-                                                            GetLigandFeature,
-                                                            DeleteLigandFeature,
-                                                            UploadLigandFeature,
-                                                            UpdateLigandFeature)
+from nolabs.application.use_cases.ligands.use_cases import (
+    DeleteLigandFeature, GetLigandFeature, SearchLigandsContentFeature,
+    SearchLigandsMetadataFeature, UpdateLigandFeature, UploadLigandFeature)
 
 
 class LigandsControllerDependencies:

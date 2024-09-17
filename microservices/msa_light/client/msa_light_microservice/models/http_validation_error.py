@@ -13,23 +13,26 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional
-from pydantic import BaseModel
+
 from msa_light_microservice.models.validation_error import ValidationError
+from pydantic import BaseModel
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class HTTPValidationError(BaseModel):
     """
     HTTPValidationError
-    """ # noqa: E501
+    """  # noqa: E501
+
     detail: Optional[List[ValidationError]] = None
     __properties: ClassVar[List[str]] = ["detail"]
 
@@ -38,7 +41,6 @@ class HTTPValidationError(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -66,8 +68,7 @@ class HTTPValidationError(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         # override the default output from pydantic by calling `to_dict()` of each item in detail (list)
@@ -76,7 +77,7 @@ class HTTPValidationError(BaseModel):
             for _item in self.detail:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['detail'] = _items
+            _dict["detail"] = _items
         return _dict
 
     @classmethod
@@ -88,9 +89,13 @@ class HTTPValidationError(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "detail": [ValidationError.from_dict(_item) for _item in obj.get("detail")] if obj.get("detail") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "detail": (
+                    [ValidationError.from_dict(_item) for _item in obj.get("detail")]
+                    if obj.get("detail") is not None
+                    else None
+                )
+            }
+        )
         return _obj
-
-

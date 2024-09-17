@@ -1,8 +1,4 @@
-__all__ = [
-    'GetJobFeature',
-    'SetupJobFeature',
-    'RunJobFeature'
-]
+__all__ = ["GetJobFeature", "SetupJobFeature", "RunJobFeature"]
 
 
 import datetime
@@ -10,22 +6,23 @@ from typing import List
 from uuid import UUID
 
 import conformations_microservice
+from domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import Q
 
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.conformations.api_models import IntegratorsRequest, JobResponse, SetupJobRequest, \
-    GetJobStatusResponse
-from nolabs.application.use_cases.experiments.api_models import TimelineResponse
-from nolabs.domain.models.common import JobId, JobName, Experiment, Protein
-from nolabs.domain.models.conformations import ConformationsJob, Integrator, ConformationsTimeline
+from nolabs.application.use_cases.conformations.api_models import (
+    GetJobStatusResponse, IntegratorsRequest, JobResponse, SetupJobRequest)
+from nolabs.application.use_cases.experiments.api_models import \
+    TimelineResponse
+from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
+from nolabs.domain.models.conformations import (ConformationsJob,
+                                                ConformationsTimeline,
+                                                Integrator)
 from nolabs.utils import generate_uuid
 
 
 def map_timeline(timeline: TimelineResponse) -> ConformationsTimeline:
     return ConformationsTimeline(
-        message=timeline.message,
-        error=timeline.error,
-        created_at=timeline.created_at
+        message=timeline.message, error=timeline.error, created_at=timeline.created_at
     )
 
 
@@ -35,11 +32,10 @@ def map_job_to_response(job: ConformationsJob) -> JobResponse:
         job_name=job.name.value,
         protein_id=job.protein.iid.value,
         experiment_id=job.experiment.iid.value,
-        timeline=[TimelineResponse(
-            message=t.message,
-            error=t.error,
-            created_at=t.created_at
-        ) for t in job.timeline],
+        timeline=[
+            TimelineResponse(message=t.message, error=t.error, created_at=t.created_at)
+            for t in job.timeline
+        ],
         total_frames=job.total_frames,
         temperature_k=job.temperature_k,
         take_frame_every=job.take_frame_every,
@@ -50,7 +46,7 @@ def map_job_to_response(job: ConformationsJob) -> JobResponse:
         friction_coeff=job.friction_coeff,
         ignore_missing_atoms=job.ignore_missing_atoms,
         integrator=IntegratorsRequest(job.integrator.value),
-        md_content=job.md_content
+        md_content=job.md_content,
     )
 
 
@@ -73,13 +69,16 @@ class SetupJobFeature:
     """
     Use case - create new or update existing job.
     """
+
     async def handle(self, request: SetupJobRequest) -> JobResponse:
         assert request
 
         job_id = JobId(request.job_id or generate_uuid())
-        job_name = JobName(request.job_name or 'New conformations job')
+        job_name = JobName(request.job_name or "New conformations job")
 
-        jobs: ConformationsJob = ConformationsJob.objects(Q(id=job_id.value) | Q(name=job_name.value))
+        jobs: ConformationsJob = ConformationsJob.objects(
+            Q(id=job_id.value) | Q(name=job_name.value)
+        )
 
         if not jobs:
             if not request.experiment_id:
@@ -90,11 +89,7 @@ class SetupJobFeature:
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job = ConformationsJob(
-                id=job_id,
-                name=job_name,
-                experiment=experiment
-            )
+            job = ConformationsJob(id=job_id, name=job_name, experiment=experiment)
         else:
             job = jobs[0]
 
@@ -103,25 +98,26 @@ class SetupJobFeature:
         if not protein:
             raise NoLabsException(ErrorCodes.protein_not_found)
 
-        job.set_input(protein=protein,
-                      integrator=Integrator(request.integrator.value),
-                      total_frames=request.total_frames,
-                      temperature_k=request.temperature_k,
-                      take_frame_every=request.take_frame_every,
-                      step_size=request.step_size,
-                      replace_non_standard_residues=request.replace_non_standard_residues,
-                      add_missing_atoms=request.add_missing_atoms,
-                      add_missing_hydrogens=request.add_missing_hydrogens,
-                      friction_coeff=request.friction_coeff,
-                      ignore_missing_atoms=request.ignore_missing_atoms)
+        job.set_input(
+            protein=protein,
+            integrator=Integrator(request.integrator.value),
+            total_frames=request.total_frames,
+            temperature_k=request.temperature_k,
+            take_frame_every=request.take_frame_every,
+            step_size=request.step_size,
+            replace_non_standard_residues=request.replace_non_standard_residues,
+            add_missing_atoms=request.add_missing_atoms,
+            add_missing_hydrogens=request.add_missing_hydrogens,
+            friction_coeff=request.friction_coeff,
+            ignore_missing_atoms=request.ignore_missing_atoms,
+        )
         await job.save(cascade=True)
 
         return map_job_to_response(job)
 
 
 class RunJobFeature:
-    def __init__(self,
-                 api: conformations_microservice.DefaultApi):
+    def __init__(self, api: conformations_microservice.DefaultApi):
         self._api = api
 
     async def handle(self, job_id: UUID) -> JobResponse:
@@ -137,38 +133,51 @@ class RunJobFeature:
         protein = job.protein
 
         pdb_contents = [protein.get_pdb()]
-        fixed_file_content = await self._fix_pdb(protein.get_pdb(), job, timelines=timeline)
+        fixed_file_content = await self._fix_pdb(
+            protein.get_pdb(), job, timelines=timeline
+        )
         if fixed_file_content:
             pdb_contents.append(fixed_file_content)
 
         job.clear_result()
 
         for pdb_content in pdb_contents:
-            for water_ff in [conformations_microservice.GromacsWaterForceFields(wff) for wff in
-                             conformations_microservice.GromacsWaterForceFields]:
-                for ff in [conformations_microservice.GromacsForceFields(ff) for ff in
-                           conformations_microservice.GromacsForceFields]:
+            for water_ff in [
+                conformations_microservice.GromacsWaterForceFields(wff)
+                for wff in conformations_microservice.GromacsWaterForceFields
+            ]:
+                for ff in [
+                    conformations_microservice.GromacsForceFields(ff)
+                    for ff in conformations_microservice.GromacsForceFields
+                ]:
                     generate_gromacs_files_response = self._api.gen_gro_top_endpoint_gen_gro_top_post(
                         gen_gro_top_request=conformations_microservice.GenGroTopRequest(
                             ignore_missing_atoms=job.ignore_missing_atoms,
                             force_field=ff,
                             water_force_field=water_ff,
                             pdb_content=pdb_content,
-                            job_id=job_id
-                        ))
+                            job_id=job_id,
+                        )
+                    )
 
                     for error in generate_gromacs_files_response.errors:
-                        tl_entry = TimelineResponse(message='Generate gromacs files error', error=error,
-                                                    created_at=datetime.datetime.utcnow())
+                        tl_entry = TimelineResponse(
+                            message="Generate gromacs files error",
+                            error=error,
+                            created_at=datetime.datetime.utcnow(),
+                        )
                         timeline.append(tl_entry)
                         job.append_timeline(timeline=map_timeline(tl_entry))
                         await job.save()
 
-                    if generate_gromacs_files_response.gro and generate_gromacs_files_response.top:
+                    if (
+                        generate_gromacs_files_response.gro
+                        and generate_gromacs_files_response.top
+                    ):
                         tl_entry = TimelineResponse(
-                            message=f'Gromacs simulations started, force field: {ff}, water force field: {water_ff}',
+                            message=f"Gromacs simulations started, force field: {ff}, water force field: {water_ff}",
                             error=None,
-                            created_at=datetime.datetime.utcnow()
+                            created_at=datetime.datetime.utcnow(),
                         )
                         timeline.append(tl_entry)
                         job.append_timeline(timeline=map_timeline(tl_entry))
@@ -177,22 +186,27 @@ class RunJobFeature:
                         try:
                             job.started()
                             await job.save()
-                            gromacs_simulations_result = self._run_gromacs_simulations(generate_gromacs_files_response.gro,
-                                                                                       generate_gromacs_files_response.top,
-                                                                                       job)
+                            gromacs_simulations_result = self._run_gromacs_simulations(
+                                generate_gromacs_files_response.gro,
+                                generate_gromacs_files_response.top,
+                                job,
+                            )
 
                             for error in gromacs_simulations_result.errors:
                                 tl_entry = TimelineResponse(
-                                    message='Gromacs simulation error',
+                                    message="Gromacs simulation error",
                                     error=error,
-                                    created_at=datetime.datetime.utcnow()
+                                    created_at=datetime.datetime.utcnow(),
                                 )
                                 timeline.append(tl_entry)
                                 job.append_timeline(timeline=map_timeline(tl_entry))
                                 await job.save()
 
                             if gromacs_simulations_result.pdb_content:
-                                job.set_result(protein=protein, md_content=gromacs_simulations_result.pdb_content)
+                                job.set_result(
+                                    protein=protein,
+                                    md_content=gromacs_simulations_result.pdb_content,
+                                )
                                 protein.set_md(gromacs_simulations_result.pdb_content)
                                 await job.save(cascade=True)
                                 protein.save(cascade=True)
@@ -201,14 +215,18 @@ class RunJobFeature:
                             job.finished()
                             await job.save()
 
-            for open_mm_water_ff in [conformations_microservice.OpenMmWaterForceFields(wff) for wff in
-                                     conformations_microservice.OpenMmWaterForceFields]:
-                for open_mm_ff in [conformations_microservice.OpenMmForceFields(ff) for ff in
-                                   conformations_microservice.OpenMmForceFields]:
+            for open_mm_water_ff in [
+                conformations_microservice.OpenMmWaterForceFields(wff)
+                for wff in conformations_microservice.OpenMmWaterForceFields
+            ]:
+                for open_mm_ff in [
+                    conformations_microservice.OpenMmForceFields(ff)
+                    for ff in conformations_microservice.OpenMmForceFields
+                ]:
                     tl_entry = TimelineResponse(
-                        message=f'Pdb simulations started, force field: {open_mm_ff}, water force field: {open_mm_water_ff}',
+                        message=f"Pdb simulations started, force field: {open_mm_ff}, water force field: {open_mm_water_ff}",
                         error=None,
-                        created_at=datetime.datetime.utcnow()
+                        created_at=datetime.datetime.utcnow(),
                     )
                     timeline.append(tl_entry)
                     job.append_timeline(timeline=map_timeline(tl_entry))
@@ -216,12 +234,13 @@ class RunJobFeature:
                     try:
                         job.started()
                         await job.save()
-                        pdb_simulations_result = self._run_pdb_simulations(pdb_content, open_mm_ff,
-                                                                           open_mm_water_ff, job)
+                        pdb_simulations_result = self._run_pdb_simulations(
+                            pdb_content, open_mm_ff, open_mm_water_ff, job
+                        )
                         tl_entry = TimelineResponse(
-                            message=f'Pdb simulations finish',
+                            message=f"Pdb simulations finish",
                             error=None,
-                            created_at=datetime.datetime.utcnow()
+                            created_at=datetime.datetime.utcnow(),
                         )
                         timeline.append(tl_entry)
                         job.append_timeline(timeline=map_timeline(tl_entry))
@@ -229,17 +248,19 @@ class RunJobFeature:
 
                         for error in pdb_simulations_result.errors:
                             tl_entry = TimelineResponse(
-                                message='Pdb simulations error',
+                                message="Pdb simulations error",
                                 error=error,
-                                created_at=datetime.datetime.utcnow()
+                                created_at=datetime.datetime.utcnow(),
                             )
                             timeline.append(tl_entry)
                             job.append_timeline(timeline=map_timeline(tl_entry))
                             await job.save()
 
                         if pdb_simulations_result.pdb_content:
-                            job.set_result(protein=protein,
-                                           md_content=pdb_simulations_result.pdb_content)
+                            job.set_result(
+                                protein=protein,
+                                md_content=pdb_simulations_result.pdb_content,
+                            )
                             protein.set_md(pdb_simulations_result.pdb_content)
                             await job.save(cascade=True)
                             protein.save()
@@ -251,13 +272,14 @@ class RunJobFeature:
 
         return map_job_to_response(job)
 
-    async def _fix_pdb(self, pdb_content: str, job: ConformationsJob,
-                 timelines: List[TimelineResponse]) -> str | None:
+    async def _fix_pdb(
+        self, pdb_content: str, job: ConformationsJob, timelines: List[TimelineResponse]
+    ) -> str | None:
         timelines.append(
             TimelineResponse(
-                message='Pdb fixer started',
+                message="Pdb fixer started",
                 error=None,
-                created_at=datetime.datetime.utcnow()
+                created_at=datetime.datetime.utcnow(),
             )
         )
         pdb_fixer_request = conformations_microservice.RunPdbFixerRequest(
@@ -265,46 +287,50 @@ class RunJobFeature:
             add_missing_atoms=job.add_missing_atoms,
             add_missing_hydrogens=job.add_missing_hydrogens,
             pdb_content=pdb_content,
-            job_id=job.id
+            job_id=job.id,
         )
 
         try:
             job.started()
             await job.save()
-            response = self._api.run_pdb_fixer_endpoint_run_pdb_fixer_post(run_pdb_fixer_request=pdb_fixer_request)
+            response = self._api.run_pdb_fixer_endpoint_run_pdb_fixer_post(
+                run_pdb_fixer_request=pdb_fixer_request
+            )
         finally:
             job.finished()
             await job.save()
 
         timelines.append(
             TimelineResponse(
-                message='Pdb fixer finished',
+                message="Pdb fixer finished",
                 error=None,
-                created_at=datetime.datetime.utcnow()
+                created_at=datetime.datetime.utcnow(),
             )
         )
 
         if not response.pdb_content:
             timelines.append(
                 TimelineResponse(
-                    message='Pdb fixer error',
-                    error='Unexpected error in pdb fixer',
-                    created_at=datetime.datetime.utcnow()
+                    message="Pdb fixer error",
+                    error="Unexpected error in pdb fixer",
+                    created_at=datetime.datetime.utcnow(),
                 )
             )
 
         for error in response.errors:
             timelines.append(
                 TimelineResponse(
-                    message='Pdb fixer error',
+                    message="Pdb fixer error",
                     error=error,
-                    created_at=datetime.datetime.utcnow()
+                    created_at=datetime.datetime.utcnow(),
                 )
             )
 
         return response.pdb_content
 
-    def _run_gromacs_simulations(self, gro: str, top: str, job: ConformationsJob) -> conformations_microservice.RunSimulationsResponse:
+    def _run_gromacs_simulations(
+        self, gro: str, top: str, job: ConformationsJob
+    ) -> conformations_microservice.RunSimulationsResponse:
         run_gromacs_simulations_request = conformations_microservice.RunGromacsSimulationsRequest(
             temperature_k=job.temperature_k,
             friction_coeff=job.friction_coeff,
@@ -314,16 +340,19 @@ class RunJobFeature:
             total_frames=job.total_frames,
             top=top,
             gro=gro,
-            job_id=job.id
+            job_id=job.id,
         )
         return self._api.run_gromacs_simulations_endpoint_run_gromacs_simulations_post(
-            run_gromacs_simulations_request=run_gromacs_simulations_request)
+            run_gromacs_simulations_request=run_gromacs_simulations_request
+        )
 
-    def _run_pdb_simulations(self,
-                             pdb_content: str,
-                             ff: conformations_microservice.OpenMmForceFields,
-                             water_ff: conformations_microservice.OpenMmWaterForceFields,
-                             job: ConformationsJob) -> conformations_microservice.RunSimulationsResponse:
+    def _run_pdb_simulations(
+        self,
+        pdb_content: str,
+        ff: conformations_microservice.OpenMmForceFields,
+        water_ff: conformations_microservice.OpenMmWaterForceFields,
+        job: ConformationsJob,
+    ) -> conformations_microservice.RunSimulationsResponse:
         run_pdb_simulations_request = conformations_microservice.RunPdbSimulationsRequest(
             temperature_k=job.temperature_k,
             friction_coeff=job.friction_coeff,
@@ -334,10 +363,11 @@ class RunJobFeature:
             pdb_content=pdb_content,
             force_field=ff,
             water_force_field=water_ff,
-            job_id=job.id
+            job_id=job.id,
         )
         return self._api.run_pdb_simulations_endpoint_run_pdb_simulations_post(
-            run_pdb_simulations_request=run_pdb_simulations_request)
+            run_pdb_simulations_request=run_pdb_simulations_request
+        )
 
 
 class GetJobStatusFeature:
@@ -352,9 +382,10 @@ class GetJobStatusFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
+        response = self._api.is_job_running_job_job_id_is_running_get(
+            job_id=str(job_id)
+        )
 
         return GetJobStatusResponse(
-            running=response.is_running,
-            result_valid=job.result_valid()
+            running=response.is_running, result_valid=job.result_valid()
         )

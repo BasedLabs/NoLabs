@@ -19,28 +19,30 @@ __version__ = "1.0.0"
 # import apis into sdk package
 from reinvent_microservice.api.preparation_api import PreparationApi
 from reinvent_microservice.api.reinvent_api import ReinventApi
-
+from reinvent_microservice.api_client import ApiClient
 # import ApiClient
 from reinvent_microservice.api_response import ApiResponse
-from reinvent_microservice.api_client import ApiClient
 from reinvent_microservice.configuration import Configuration
-from reinvent_microservice.exceptions import OpenApiException
-from reinvent_microservice.exceptions import ApiTypeError
-from reinvent_microservice.exceptions import ApiValueError
-from reinvent_microservice.exceptions import ApiKeyError
-from reinvent_microservice.exceptions import ApiAttributeError
-from reinvent_microservice.exceptions import ApiException
-
+from reinvent_microservice.exceptions import (ApiAttributeError, ApiException,
+                                              ApiKeyError, ApiTypeError,
+                                              ApiValueError, OpenApiException)
 # import models into sdk package
-from reinvent_microservice.models.configuration_response import ConfigurationResponse
-from reinvent_microservice.models.http_validation_error import HTTPValidationError
+from reinvent_microservice.models.configuration_response import \
+    ConfigurationResponse
+from reinvent_microservice.models.http_validation_error import \
+    HTTPValidationError
 from reinvent_microservice.models.logs_response import LogsResponse
 from reinvent_microservice.models.params_response import ParamsResponse
-from reinvent_microservice.models.response_get_config_api_reinvent_reinvent_config_id_get import ResponseGetConfigApiReinventReinventConfigIdGet
-from reinvent_microservice.models.response_logs_api_reinvent_config_id_logs_get import ResponseLogsApiReinventConfigIdLogsGet
-from reinvent_microservice.models.response_params_api_reinvent_config_id_params_get import ResponseParamsApiReinventConfigIdParamsGet
-from reinvent_microservice.models.sampling_size_request import SamplingSizeRequest
+from reinvent_microservice.models.response_get_config_api_reinvent_reinvent_config_id_get import \
+    ResponseGetConfigApiReinventReinventConfigIdGet
+from reinvent_microservice.models.response_logs_api_reinvent_config_id_logs_get import \
+    ResponseLogsApiReinventConfigIdLogsGet
+from reinvent_microservice.models.response_params_api_reinvent_config_id_params_get import \
+    ResponseParamsApiReinventConfigIdParamsGet
+from reinvent_microservice.models.sampling_size_request import \
+    SamplingSizeRequest
 from reinvent_microservice.models.smiles import Smiles
 from reinvent_microservice.models.smiles_response import SmilesResponse
 from reinvent_microservice.models.validation_error import ValidationError
-from reinvent_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from reinvent_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

@@ -1,14 +1,16 @@
 import uuid
 from typing import List, Type
 
+from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import BaseModel
 
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.msa_generation.api_models import SetupJobRequest
-from nolabs.application.use_cases.msa_generation.use_cases import SetupJobFeature, RunJobFeature
+from nolabs.application.use_cases.msa_generation.api_models import \
+    SetupJobRequest
+from nolabs.application.use_cases.msa_generation.use_cases import (
+    RunJobFeature, SetupJobFeature)
+from nolabs.application.workflow.component import Component, JobValidationError
 from nolabs.domain.models.msa import MsaGenerationJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class MsaGenerationInput(BaseModel):
@@ -20,23 +22,20 @@ class MsaGenerationOutput(BaseModel):
 
 
 class MsaGenerationComponent(Component[MsaGenerationInput, MsaGenerationOutput]):
-    name = 'Msa generation'
+    name = "Msa generation"
 
     async def execute(self):
         if await self.jobs_setup_errors():
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Jobs are not valid')
+            raise NoLabsException(ErrorCodes.invalid_job_input, "Jobs are not valid")
 
         api = InfrastructureDependencies.msa_light_microservice()
         settings = InfrastructureDependencies.msa_light_settings()
-        run_job_feature = RunJobFeature(api=api,
-                                        settings=settings)
+        run_job_feature = RunJobFeature(api=api, settings=settings)
 
         for job in self.jobs:
             await run_job_feature.handle(job_id=job.id)
 
-        self.output = MsaGenerationOutput(
-            proteins_with_msa=self.input.proteins
-        )
+        self.output = MsaGenerationOutput(proteins_with_msa=self.input.proteins)
 
     async def setup_jobs(self):
         self.jobs = []
@@ -46,16 +45,13 @@ class MsaGenerationComponent(Component[MsaGenerationInput, MsaGenerationOutput])
         for protein_id in self.input.proteins:
             job = await setup_job_feature.handle(
                 request=SetupJobRequest(
-                    experiment_id=self.experiment.id,
-                    protein_id=protein_id
+                    experiment_id=self.experiment.id, protein_id=protein_id
                 )
             )
 
             job = MsaGenerationJob.objects.with_id(job.job_id)
 
-            self.jobs.append(
-                job
-            )
+            self.jobs.append(job)
 
     async def jobs_setup_errors(self) -> List[JobValidationError]:
         jobs_errors = []
@@ -65,8 +61,7 @@ class MsaGenerationComponent(Component[MsaGenerationInput, MsaGenerationOutput])
             if errors:
                 jobs_errors.append(
                     JobValidationError(
-                        job_id=job.id,
-                        msg=', '.join([err.message for err in errors])
+                        job_id=job.id, msg=", ".join([err.message for err in errors])
                     )
                 )
 

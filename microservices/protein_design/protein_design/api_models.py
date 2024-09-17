@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 from typing import List, Optional
-
 from uuid import UUID
 
 import pydantic
+from protein_design.mixins import BaseModelMixin
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from protein_design.mixins import BaseModelMixin
 
 @dataclass
 class RunRfdiffusionRequest(BaseModelMixin):
     job_id: UUID
     pdb_content: str
     contig: str
-    hotspots: Optional[str] = ''
+    hotspots: Optional[str] = ""
     timesteps: Optional[int] = 10
     number_of_designs: Optional[int] = 1
 

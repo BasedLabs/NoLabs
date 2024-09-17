@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from protein_design_microservice.models.is_job_running_response import IsJobRunningResponse
+from protein_design_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
+
 
 class TestIsJobRunningResponse(unittest.TestCase):
     """IsJobRunningResponse unit test stubs"""
@@ -28,9 +29,9 @@ class TestIsJobRunningResponse(unittest.TestCase):
 
     def make_instance(self, include_optional) -> IsJobRunningResponse:
         """Test IsJobRunningResponse
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `IsJobRunningResponse`
         """
         model = IsJobRunningResponse()
@@ -49,5 +50,6 @@ class TestIsJobRunningResponse(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

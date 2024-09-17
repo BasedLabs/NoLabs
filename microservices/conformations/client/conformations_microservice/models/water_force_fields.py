@@ -13,12 +13,10 @@
 
 
 from __future__ import annotations
+
 import json
-import pprint
 import re  # noqa: F401
 from enum import Enum
-
-
 
 try:
     from typing import Self
@@ -34,17 +32,15 @@ class WaterForceFields(str, Enum):
     """
     allowed enum values
     """
-    AMBER14_SLASH_TIP3P_DOT_XML = 'amber14/tip3p.xml'
-    AMBER14_SLASH_TIP3PFB_DOT_XML = 'amber14/tip3pfb.xml'
-    AMBER14_SLASH_TIP4PEW_DOT_XML = 'amber14/tip4pew.xml'
-    AMBER14_SLASH_TIP4PFB_DOT_XML = 'amber14/tip4pfb.xml'
-    AMBER14_SLASH_SPCE_DOT_XML = 'amber14/spce.xml'
-    AMBER14_SLASH_OPC_DOT_XML = 'amber14/opc.xml'
-    AMBER14_SLASH_OPC3_DOT_XML = 'amber14/opc3.xml'
+    AMBER14_SLASH_TIP3P_DOT_XML = "amber14/tip3p.xml"
+    AMBER14_SLASH_TIP3PFB_DOT_XML = "amber14/tip3pfb.xml"
+    AMBER14_SLASH_TIP4PEW_DOT_XML = "amber14/tip4pew.xml"
+    AMBER14_SLASH_TIP4PFB_DOT_XML = "amber14/tip4pfb.xml"
+    AMBER14_SLASH_SPCE_DOT_XML = "amber14/spce.xml"
+    AMBER14_SLASH_OPC_DOT_XML = "amber14/opc.xml"
+    AMBER14_SLASH_OPC3_DOT_XML = "amber14/opc3.xml"
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
         """Create an instance of WaterForceFields from a JSON string"""
         return cls(json.loads(json_str))
-
-

@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "REINVENT"
+version = "1.0.0"
+description = ""
+authors = ["JaktensTid <jaktenstid1@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydantic = "^2.8.2"
+fastapi = "^0.115.0"
+requests = "^2.32.3"
+pydantic-settings = "^2.4.0"
+uvicorn = "^0.30.6"
+python-dotenv = "^1.0.1"
+celery = {extras = ["redis"], version = "^5.4.0"}
+toml = "^0.10.2"
+leaf-basedlabs = "0.0.9"
+python-multipart = "^0.0.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

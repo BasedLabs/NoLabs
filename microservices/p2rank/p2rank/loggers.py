@@ -1,7 +1,8 @@
 import logging
-from pythonjsonlogger import jsonlogger
 
-from p2rank.api_models import *
+from p2rank.api_models import (RunP2RankPredictionRequest,
+                               RunP2RankPredictionResponse)
+from pythonjsonlogger import jsonlogger
 
 _logger = logging.getLogger()
 
@@ -16,14 +17,14 @@ _logger.addHandler(_logHandler)
 class Log:
     def p2rank_request(self, request: RunP2RankPredictionRequest):
         d = request.as_log_dict()
-        _logger.info('Run p2rank request', extra=d)
+        _logger.info("Run p2rank request", extra=d)
 
     def p2rank_response(self, response: RunP2RankPredictionResponse):
         d = response.as_log_dict()
-        _logger.info('Run p2rank response', extra=d)
+        _logger.info("Run p2rank response", extra=d)
 
     def exception(self):
-        _logger.exception('Exception occured in microservice')
+        _logger.exception("Exception occured in microservice")
 
 
 logger = Log()

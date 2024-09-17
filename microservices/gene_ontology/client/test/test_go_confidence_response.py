@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from gene_ontology_microservice.models.go_confidence_response import GoConfidenceResponse
+from gene_ontology_microservice.models.go_confidence_response import \
+    GoConfidenceResponse
+
 
 class TestGoConfidenceResponse(unittest.TestCase):
     """GoConfidenceResponse unit test stubs"""
@@ -28,9 +29,9 @@ class TestGoConfidenceResponse(unittest.TestCase):
 
     def make_instance(self, include_optional) -> GoConfidenceResponse:
         """Test GoConfidenceResponse
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `GoConfidenceResponse`
         """
         model = GoConfidenceResponse()
@@ -51,5 +52,6 @@ class TestGoConfidenceResponse(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

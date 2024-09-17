@@ -1,13 +1,13 @@
 __all__ = [
-    'LigandSearchMetadataQuery',
-    'LigandMetadataResponse',
-    'LigandSearchContentQuery',
-    'LigandContentResponse',
-    'UploadLigandRequest'
+    "LigandSearchMetadataQuery",
+    "LigandMetadataResponse",
+    "LigandSearchContentQuery",
+    "LigandContentResponse",
+    "UploadLigandRequest",
 ]
 
 from dataclasses import field
-from typing import Dict, Any, Optional, Self
+from typing import Optional, Self
 from uuid import UUID
 
 from fastapi import UploadFile
@@ -45,10 +45,10 @@ class LigandSearchContentQuery(BaseModel):
     experiment_id: Optional[UUID] = None
     all: Optional[bool] = False
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_at_least_one_field_set(self) -> Self:
         if not self.all and not self.name and not self.experiment_id:
-            raise ValueError('You must specify at least one condition to search')
+            raise ValueError("You must specify at least one condition to search")
 
         return self
 
@@ -58,10 +58,10 @@ class LigandSearchMetadataQuery(BaseModel):
     experiment_id: Optional[UUID] = None
     all: Optional[bool] = False
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_at_least_one_field_set(self) -> Self:
         if not self.all and not self.name and not self.experiment_id:
-            raise ValueError('You must specify at least one condition to search')
+            raise ValueError("You must specify at least one condition to search")
 
         return self
 

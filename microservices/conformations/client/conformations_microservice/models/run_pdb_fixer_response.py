@@ -13,22 +13,25 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional
+
 from pydantic import BaseModel, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunPdbFixerResponse(BaseModel):
     """
     RunPdbFixerResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     errors: List[StrictStr]
     pdb_content: Optional[StrictStr] = None
     __properties: ClassVar[List[str]] = ["errors", "pdb_content"]
@@ -38,7 +41,6 @@ class RunPdbFixerResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -66,14 +68,13 @@ class RunPdbFixerResponse(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         # set to None if pdb_content (nullable) is None
         # and model_fields_set contains the field
         if self.pdb_content is None and "pdb_content" in self.model_fields_set:
-            _dict['pdb_content'] = None
+            _dict["pdb_content"] = None
 
         return _dict
 
@@ -86,10 +87,7 @@ class RunPdbFixerResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "errors": obj.get("errors"),
-            "pdb_content": obj.get("pdb_content")
-        })
+        _obj = cls.model_validate(
+            {"errors": obj.get("errors"), "pdb_content": obj.get("pdb_content")}
+        )
         return _obj
-
-

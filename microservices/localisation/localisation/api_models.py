@@ -1,9 +1,8 @@
 from typing import List
 from uuid import UUID
 
-from pydantic.dataclasses import dataclass
-
 from localisation.mixins import BaseModelMixin
+from pydantic.dataclasses import dataclass
 
 
 @dataclass
@@ -20,6 +19,7 @@ class RunLocalisationPredictionResponse(BaseModelMixin):
     other_proteins: float
     extracellular_secreted_proteins: float
     errors: List[str]
+
 
 @dataclass
 class IsJobRunningResponse:

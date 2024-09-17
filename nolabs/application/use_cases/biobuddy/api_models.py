@@ -1,4 +1,4 @@
-from typing import List, Optional, Any, Dict, Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -8,6 +8,7 @@ from pydantic.dataclasses import dataclass
 @dataclass
 class CheckBioBuddyEnabledResponse:
     enabled: bool
+
 
 @dataclass
 class File:
@@ -55,10 +56,9 @@ class ChemBLData(FileData):
 
 # Base class for return data, which now contains a list of FileData objects
 class FunctionCallReturnData(BaseModel):
-    files: List[Union[
-        RcsbPdbData,
-        ChemBLData
-    ]]  # List of files with their content and metadata
+    files: List[
+        Union[RcsbPdbData, ChemBLData]
+    ]  # List of files with their content and metadata
 
 
 @dataclass
@@ -106,6 +106,7 @@ class CreateFunctionCallMessageRequest:
     function_call: FunctionCall
     role: str
 
+
 @dataclass
 class CreateFunctionCallMessageResponse:
     saved_message: Message
@@ -130,6 +131,7 @@ class SendQueryResponse:
 @dataclass
 class GetAvailableFunctionCallsResponse:
     function_calls: List[Dict[str, str | Dict[str, dict[str, str] | Any]]]
+
 
 @dataclass
 class EditMessageRequest:

@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
 import socketio
-
 from infrastructure.settings import settings
 
 sio = socketio.Server(client_manager=socketio.RedisManager(settings.socketio_broker))

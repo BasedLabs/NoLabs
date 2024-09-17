@@ -11,10 +11,12 @@ class RunEsmFoldPredictionRequest(BaseModelMixin):
     protein_sequence: str
     job_id: str = None
 
+
 @dataclasses.dataclass
 class RunEsmFoldPredictionResponse(BaseModelMixin):
     errors: List[str]
     pdb_content: Optional[str] = None
+
 
 @dataclasses.dataclass
 class IsJobRunningResponse:

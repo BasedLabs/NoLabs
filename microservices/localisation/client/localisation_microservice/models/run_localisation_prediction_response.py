@@ -13,36 +13,45 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Union
+
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunLocalisationPredictionResponse(BaseModel):
     """
     RunLocalisationPredictionResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     cytosolic_proteins: Union[StrictFloat, StrictInt]
     mitochondrial_proteins: Union[StrictFloat, StrictInt]
     nuclear_proteins: Union[StrictFloat, StrictInt]
     other_proteins: Union[StrictFloat, StrictInt]
     extracellular_secreted_proteins: Union[StrictFloat, StrictInt]
     errors: List[StrictStr]
-    __properties: ClassVar[List[str]] = ["cytosolic_proteins", "mitochondrial_proteins", "nuclear_proteins", "other_proteins", "extracellular_secreted_proteins", "errors"]
+    __properties: ClassVar[List[str]] = [
+        "cytosolic_proteins",
+        "mitochondrial_proteins",
+        "nuclear_proteins",
+        "other_proteins",
+        "extracellular_secreted_proteins",
+        "errors",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -70,8 +79,7 @@ class RunLocalisationPredictionResponse(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         return _dict
@@ -85,14 +93,16 @@ class RunLocalisationPredictionResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "cytosolic_proteins": obj.get("cytosolic_proteins"),
-            "mitochondrial_proteins": obj.get("mitochondrial_proteins"),
-            "nuclear_proteins": obj.get("nuclear_proteins"),
-            "other_proteins": obj.get("other_proteins"),
-            "extracellular_secreted_proteins": obj.get("extracellular_secreted_proteins"),
-            "errors": obj.get("errors")
-        })
+        _obj = cls.model_validate(
+            {
+                "cytosolic_proteins": obj.get("cytosolic_proteins"),
+                "mitochondrial_proteins": obj.get("mitochondrial_proteins"),
+                "nuclear_proteins": obj.get("nuclear_proteins"),
+                "other_proteins": obj.get("other_proteins"),
+                "extracellular_secreted_proteins": obj.get(
+                    "extracellular_secreted_proteins"
+                ),
+                "errors": obj.get("errors"),
+            }
+        )
         return _obj
-
-

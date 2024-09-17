@@ -1,9 +1,12 @@
 from typing import List
 from uuid import UUID
 
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.jobs.api_models import UpdateJobRequest, GetJobMetadataResponse
-from nolabs.domain.models.common import ExperimentId, Experiment, JobId, Job, JobName
+from domain.exceptions import ErrorCodes, NoLabsException
+
+from nolabs.application.use_cases.jobs.api_models import (
+    GetJobMetadataResponse, UpdateJobRequest)
+from nolabs.domain.models.common import (Experiment, ExperimentId, Job, JobId,
+                                         JobName)
 
 
 class UpdateJobFeature:
@@ -44,9 +47,7 @@ class GetJobsMetadataFeature:
         for job in Job.objects.filter(experiment=experiment):
             result.append(
                 GetJobMetadataResponse(
-                    job_id=job.id,
-                    job_name=str(job.name),
-                    type=str(type(job))
+                    job_id=job.id, job_name=str(job.name), type=str(type(job))
                 )
             )
 
@@ -60,7 +61,5 @@ class GetJobMetadataFeature:
 
         job: Job = Job.objects.with_id(job_id)
         return GetJobMetadataResponse(
-            job_id=job.id,
-            job_name=str(job.name),
-            type=str(type(job))
+            job_id=job.id, job_name=str(job.name), type=str(type(job))
         )

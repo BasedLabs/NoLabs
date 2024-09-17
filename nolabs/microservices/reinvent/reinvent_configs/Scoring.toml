@@ -1,0 +1,26 @@
+run_type = "scoring"
+output_csv = ""  # run on the GPU if true, on the CPU if false
+
+[parameters]
+smiles_file = ""  # .smi file with 1 molecule per line
+
+[scoring]
+type = "geometric_mean"
+
+[[scoring.component]]
+[[scoring.component.DockStream.endpoint]]
+name = "Dockstream Docking"
+weight = 1
+params.configuration_path = ""
+params.docker_script_path = "/app/DockStream/docker.py"
+params.docker_python_path =  "/var/conda/envs/DockStream/bin/python"
+transform.type = "reverse_sigmoid"
+transform.high = -7
+transform.low = -13.5
+transform.k = 0.2
+
+[[scoring.component]]
+[scoring.component.QED]
+[[scoring.component.QED.endpoint]]
+name = "QED"
+weight = 1

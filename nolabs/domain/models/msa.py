@@ -1,20 +1,20 @@
-__all__ = [
-    'MsaGenerationJob'
-]
+__all__ = ["MsaGenerationJob"]
 
 import datetime
 from typing import List
 
-from mongoengine import ReferenceField, CASCADE, BinaryField
+from domain.exceptions import ErrorCodes, NoLabsException
+from mongoengine import CASCADE, BinaryField, ReferenceField
 
-from nolabs.domain.models.common import Job, Protein, JobInputError
-from domain.exceptions import NoLabsException, ErrorCodes
+from nolabs.domain.models.common import Job, JobInputError, Protein
 
 
 class MsaGenerationJob(Job):
     # region Inputs
 
-    protein: Protein | None = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+    protein: Protein | None = ReferenceField(
+        Protein, required=True, reverse_delete_rule=CASCADE
+    )
     msa: bytes | None = BinaryField(required=False)
 
     # endregion
@@ -29,9 +29,7 @@ class MsaGenerationJob(Job):
     def result_valid(self) -> bool:
         return not not self.msa
 
-    def set_result(self,
-                   protein: Protein,
-                   msa: bytes | str):
+    def set_result(self, protein: Protein, msa: bytes | str):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
@@ -45,7 +43,7 @@ class MsaGenerationJob(Job):
             raise NoLabsException(ErrorCodes.invalid_msa)
 
         if isinstance(msa, str):
-            msa = msa.encode('utf-8')
+            msa = msa.encode("utf-8")
 
         self.msa = msa
 
@@ -53,19 +51,23 @@ class MsaGenerationJob(Job):
         errors = []
 
         if not self.protein:
-            errors.append([
-                JobInputError(
-                    message='Protein is not defined',
-                    error_code=ErrorCodes.protein_is_undefined
-                )
-            ])
+            errors.append(
+                [
+                    JobInputError(
+                        message="Protein is not defined",
+                        error_code=ErrorCodes.protein_is_undefined,
+                    )
+                ]
+            )
 
         if self.protein and not self.protein.fasta_content:
-            errors.append([
-                JobInputError(
-                    message='Protein does not have fasta content',
-                    error_code=ErrorCodes.protein_fasta_is_empty
-                )
-            ])
+            errors.append(
+                [
+                    JobInputError(
+                        message="Protein does not have fasta content",
+                        error_code=ErrorCodes.protein_fasta_is_empty,
+                    )
+                ]
+            )
 
         return errors

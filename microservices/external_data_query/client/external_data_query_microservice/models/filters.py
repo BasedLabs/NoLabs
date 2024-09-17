@@ -13,17 +13,18 @@
 
 
 from __future__ import annotations
-from inspect import getfullargspec
+
 import json
 import pprint
 import re  # noqa: F401
-from pydantic import BaseModel, Field, StrictBool, StrictInt, StrictStr, ValidationError, field_validator
-from typing import Optional
-from typing import Union, Any, List, TYPE_CHECKING, Optional, Dict
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
+from pydantic import (BaseModel, Field, StrictBool, StrictInt, StrictStr,
+                      ValidationError, field_validator)
 from typing_extensions import Literal, Self
-from pydantic import Field
 
 FILTERS_ANY_OF_SCHEMAS = ["bool", "int", "str"]
+
 
 class Filters(BaseModel):
     """
@@ -50,14 +51,18 @@ class Filters(BaseModel):
     def __init__(self, *args, **kwargs) -> None:
         if args:
             if len(args) > 1:
-                raise ValueError("If a position argument is used, only 1 is allowed to set `actual_instance`")
+                raise ValueError(
+                    "If a position argument is used, only 1 is allowed to set `actual_instance`"
+                )
             if kwargs:
-                raise ValueError("If a position argument is used, keyword arguments cannot be used.")
+                raise ValueError(
+                    "If a position argument is used, keyword arguments cannot be used."
+                )
             super().__init__(actual_instance=args[0])
         else:
             super().__init__(**kwargs)
 
-    @field_validator('actual_instance')
+    @field_validator("actual_instance")
     def actual_instance_must_validate_anyof(cls, v):
         instance = Filters.model_construct()
         error_messages = []
@@ -81,7 +86,10 @@ class Filters(BaseModel):
             error_messages.append(str(e))
         if error_messages:
             # no match
-            raise ValueError("No match found when setting the actual_instance in Filters with anyOf schemas: bool, int, str. Details: " + ", ".join(error_messages))
+            raise ValueError(
+                "No match found when setting the actual_instance in Filters with anyOf schemas: bool, int, str. Details: "
+                + ", ".join(error_messages)
+            )
         else:
             return v
 
@@ -124,7 +132,10 @@ class Filters(BaseModel):
 
         if error_messages:
             # no match
-            raise ValueError("No match found when deserializing the JSON string into Filters with anyOf schemas: bool, int, str. Details: " + ", ".join(error_messages))
+            raise ValueError(
+                "No match found when deserializing the JSON string into Filters with anyOf schemas: bool, int, str. Details: "
+                + ", ".join(error_messages)
+            )
         else:
             return instance
 
@@ -133,7 +144,9 @@ class Filters(BaseModel):
         if self.actual_instance is None:
             return "null"
 
-        if hasattr(self.actual_instance, "to_json") and callable(self.actual_instance.to_json):
+        if hasattr(self.actual_instance, "to_json") and callable(
+            self.actual_instance.to_json
+        ):
             return self.actual_instance.to_json()
         else:
             return json.dumps(self.actual_instance)
@@ -143,7 +156,9 @@ class Filters(BaseModel):
         if self.actual_instance is None:
             return None
 
-        if hasattr(self.actual_instance, "to_dict") and callable(self.actual_instance.to_dict):
+        if hasattr(self.actual_instance, "to_dict") and callable(
+            self.actual_instance.to_dict
+        ):
             return self.actual_instance.to_dict()
         else:
             return self.actual_instance
@@ -151,5 +166,3 @@ class Filters(BaseModel):
     def to_str(self) -> str:
         """Returns the string representation of the actual instance"""
         return pprint.pformat(self.model_dump())
-
-

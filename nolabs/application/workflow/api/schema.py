@@ -1,27 +1,26 @@
 import uuid
-from typing import Dict, List, Union, Any
-from typing import Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
 
 class ItemsSchema(BaseModel):
     type: Optional[Union[str, List[str]]] = None
-    properties: Optional[Dict[str, 'PropertySchema']] = Field(default_factory=dict)
+    properties: Optional[Dict[str, "PropertySchema"]] = Field(default_factory=dict)
     required: List[str] = Field(default_factory=list)
     description: Optional[str] = None
     enum: List[Any] = Field(default_factory=list)
-    ref: Any = Field(alias='$ref', default=None)
+    ref: Any = Field(alias="$ref", default=None)
     const: Optional[Any] = None
     format: Optional[str] = None
     default: Optional[Any] = None
     example: Optional[Any] = None
-    items: Optional[Union['ItemsSchema', List['ItemsSchema']]] = None
+    items: Optional[Union["ItemsSchema", List["ItemsSchema"]]] = None
 
 
 class PropertySchema(BaseModel):
     type: Optional[Union[str, List[str]]] = None
-    properties: Optional[Dict[str, 'PropertySchema']] = Field(default_factory=dict)
+    properties: Optional[Dict[str, "PropertySchema"]] = Field(default_factory=dict)
     required: List[str] = Field(default_factory=list)
     description: Optional[str] = None
     enum: List[Any] = Field(default_factory=list)
@@ -30,9 +29,9 @@ class PropertySchema(BaseModel):
     default: Optional[Any] = None
     example: Optional[Any] = None
     title: Optional[str] = None
-    anyOf: List[Union['PropertySchema', dict]] = Field(default_factory=list)
+    anyOf: List[Union["PropertySchema", dict]] = Field(default_factory=list)
     ref: Optional[str] = Field(default=None)
-    items: Optional[Union['ItemsSchema', List['ItemsSchema']]] = None
+    items: Optional[Union["ItemsSchema", List["ItemsSchema"]]] = None
 
 
 class ComponentSchemaTemplate(BaseModel):
