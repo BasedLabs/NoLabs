@@ -6,7 +6,6 @@ import dataclasses
 
 @dataclasses.dataclass
 class RunMsaPredictionRequest:
-    api_url: str
     fasta_contents: str
     job_id: str = None
 
