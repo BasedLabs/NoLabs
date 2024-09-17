@@ -18,22 +18,22 @@ __version__ = "1.0.0"
 
 # import apis into sdk package
 from p2rank_microservice.api.default_api import DefaultApi
-
+from p2rank_microservice.api_client import ApiClient
 # import ApiClient
 from p2rank_microservice.api_response import ApiResponse
-from p2rank_microservice.api_client import ApiClient
 from p2rank_microservice.configuration import Configuration
-from p2rank_microservice.exceptions import OpenApiException
-from p2rank_microservice.exceptions import ApiTypeError
-from p2rank_microservice.exceptions import ApiValueError
-from p2rank_microservice.exceptions import ApiKeyError
-from p2rank_microservice.exceptions import ApiAttributeError
-from p2rank_microservice.exceptions import ApiException
-
+from p2rank_microservice.exceptions import (ApiAttributeError, ApiException,
+                                            ApiKeyError, ApiTypeError,
+                                            ApiValueError, OpenApiException)
 # import models into sdk package
-from p2rank_microservice.models.http_validation_error import HTTPValidationError
-from p2rank_microservice.models.is_job_running_response import IsJobRunningResponse
-from p2rank_microservice.models.run_p2_rank_prediction_request import RunP2RankPredictionRequest
-from p2rank_microservice.models.run_p2_rank_prediction_response import RunP2RankPredictionResponse
+from p2rank_microservice.models.http_validation_error import \
+    HTTPValidationError
+from p2rank_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
+from p2rank_microservice.models.run_p2_rank_prediction_request import \
+    RunP2RankPredictionRequest
+from p2rank_microservice.models.run_p2_rank_prediction_response import \
+    RunP2RankPredictionResponse
 from p2rank_microservice.models.validation_error import ValidationError
-from p2rank_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from p2rank_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

@@ -14,10 +14,16 @@
 
 
 # import models into model package
-from gene_ontology_microservice.models.go_confidence_response import GoConfidenceResponse
-from gene_ontology_microservice.models.http_validation_error import HTTPValidationError
-from gene_ontology_microservice.models.is_job_running_response import IsJobRunningResponse
-from gene_ontology_microservice.models.run_gene_ontology_prediction_request import RunGeneOntologyPredictionRequest
-from gene_ontology_microservice.models.run_gene_ontology_prediction_response import RunGeneOntologyPredictionResponse
+from gene_ontology_microservice.models.go_confidence_response import \
+    GoConfidenceResponse
+from gene_ontology_microservice.models.http_validation_error import \
+    HTTPValidationError
+from gene_ontology_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
+from gene_ontology_microservice.models.run_gene_ontology_prediction_request import \
+    RunGeneOntologyPredictionRequest
+from gene_ontology_microservice.models.run_gene_ontology_prediction_response import \
+    RunGeneOntologyPredictionResponse
 from gene_ontology_microservice.models.validation_error import ValidationError
-from gene_ontology_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from gene_ontology_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

@@ -1,19 +1,14 @@
-__all__ = [
-    'GetJobFeature',
-    'RunJobFeature',
-    'SetupJobFeature',
-    'GetJobStatusFeature'
-]
+__all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature", "GetJobStatusFeature"]
 
 from uuid import UUID
 
 import p2rank_microservice
+from domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import Q
 
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.binding_pockets.api_models import GetJobStatusResponse, JobResponse, \
-    SetupJobRequest
-from nolabs.domain.models.common import Protein, JobId, JobName, Experiment
+from nolabs.application.use_cases.binding_pockets.api_models import (
+    GetJobStatusResponse, JobResponse, SetupJobRequest)
+from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.pocket_prediction import PocketPredictionJob
 from nolabs.utils import generate_uuid
 
@@ -23,7 +18,7 @@ def map_job_to_response(job: PocketPredictionJob) -> JobResponse:
         job_id=job.iid.value,
         job_name=job.name.value,
         protein_id=job.protein.iid.value,
-        result=job.pocket_ids
+        result=job.pocket_ids,
     )
 
 
@@ -51,21 +46,19 @@ class SetupJobFeature:
         assert request
 
         job_id = JobId(request.job_id or generate_uuid())
-        job_name = JobName(request.job_name or 'New binding pocket prediction job')
+        job_name = JobName(request.job_name or "New binding pocket prediction job")
 
         experiment = Experiment.objects.with_id(request.experiment_id)
 
         if not experiment:
             raise NoLabsException(ErrorCodes.experiment_not_found)
 
-        job: PocketPredictionJob = PocketPredictionJob.objects(Q(id=job_id.value) | Q(name=job_name.value)).first()
+        job: PocketPredictionJob = PocketPredictionJob.objects(
+            Q(id=job_id.value) | Q(name=job_name.value)
+        ).first()
 
         if not job:
-            job = PocketPredictionJob(
-                id=job_id,
-                name=job_name,
-                experiment=experiment
-            )
+            job = PocketPredictionJob(id=job_id, name=job_name, experiment=experiment)
 
         protein = Protein.objects.with_id(request.protein_id)
 
@@ -82,6 +75,7 @@ class RunJobFeature:
     """
     Use case - start job.
     """
+
     _api: p2rank_microservice.DefaultApi
 
     def __init__(self, api: p2rank_microservice.DefaultApi):
@@ -97,8 +91,10 @@ class RunJobFeature:
             raise NoLabsException(ErrorCodes.job_not_found)
 
         if not job.protein.pdb_content:
-            raise NoLabsException(ErrorCodes.protein_pdb_is_empty,
-                                  'Cannot run binding pockets prediction on an empty protein pdb')
+            raise NoLabsException(
+                ErrorCodes.protein_pdb_is_empty,
+                "Cannot run binding pockets prediction on an empty protein pdb",
+            )
 
         protein = job.protein
 
@@ -108,8 +104,7 @@ class RunJobFeature:
 
             response = self._api.predict_run_p2rank_post(
                 run_p2_rank_prediction_request=p2rank_microservice.RunP2RankPredictionRequest(
-                    job_id=str(job_id),
-                    pdb_contents=protein.get_pdb()
+                    job_id=str(job_id), pdb_contents=protein.get_pdb()
                 )
             )
 
@@ -141,6 +136,5 @@ class GetJobStatusFeature:
         result = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
 
         return GetJobStatusResponse(
-            running=result.is_running,
-            result_valid=job.result_valid()
+            running=result.is_running, result_valid=job.result_valid()
         )

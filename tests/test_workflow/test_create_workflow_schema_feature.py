@@ -1,9 +1,10 @@
 from typing import List
 from unittest import IsolatedAsyncioTestCase
 
-from pydantic import create_model, BaseModel
+from pydantic import BaseModel, create_model
 
-from nolabs.application.use_cases.workflow.use_cases import CreateWorkflowSchemaFeature
+from nolabs.application.use_cases.workflow.use_cases import \
+    CreateWorkflowSchemaFeature
 from tests.test_workflow.mixins import WorkflowTestsMixin
 from tests.tests_preparations import mongo_connect
 
@@ -15,18 +16,12 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
     async def test_component_exists(self):
         # arrange
 
-        Input = create_model('Input', **{
-            'a': (int,...)
-        })
-        Output = create_model('Output', **{
-            'b': (float,...)
-        })
+        Input = create_model("Input", **{"a": (int, ...)})
+        Output = create_model("Output", **{"b": (float, ...)})
 
         C = self.seed_empty_component(Input, Output)
 
-        feature = CreateWorkflowSchemaFeature({
-            C.name: C
-        })
+        feature = CreateWorkflowSchemaFeature({C.name: C})
 
         experiment = self.seed_experiment()
 
@@ -41,18 +36,12 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
     async def test_primitive_type_io(self):
         # arrange
 
-        Input = create_model('Input', **{
-            'a': (int,...)
-        })
-        Output = create_model('Output', **{
-            'b': (float,...)
-        })
+        Input = create_model("Input", **{"a": (int, ...)})
+        Output = create_model("Output", **{"b": (float, ...)})
 
         C = self.seed_empty_component(Input, Output)
 
-        feature = CreateWorkflowSchemaFeature({
-            C.name: C
-        })
+        feature = CreateWorkflowSchemaFeature({C.name: C})
 
         experiment = self.seed_experiment()
 
@@ -63,8 +52,8 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
 
         # assert
 
-        self.assertEqual(component.input['a'].type, 'integer')
-        self.assertEqual(component.output['b'].type, 'number')
+        self.assertEqual(component.input["a"].type, "integer")
+        self.assertEqual(component.output["b"].type, "number")
 
     async def test_complex_type(self):
         # arrange
@@ -75,15 +64,11 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
         class Input(BaseModel):
             a: InnerInput
 
-        Output = create_model('Output', **{
-            'b': (float,...)
-        })
+        Output = create_model("Output", **{"b": (float, ...)})
 
         C = self.seed_empty_component(Input, Output)
 
-        feature = CreateWorkflowSchemaFeature({
-            C.name: C
-        })
+        feature = CreateWorkflowSchemaFeature({C.name: C})
 
         experiment = self.seed_experiment()
 
@@ -94,7 +79,7 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
 
         # assert
 
-        self.assertEqual(component.input['a'].properties['i'].type, 'integer')
+        self.assertEqual(component.input["a"].properties["i"].type, "integer")
 
     async def test_list_property(self):
         # arrange
@@ -102,15 +87,11 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
         class Input(BaseModel):
             a: List[int]
 
-        Output = create_model('Output', **{
-            'b': (float,...)
-        })
+        Output = create_model("Output", **{"b": (float, ...)})
 
         C = self.seed_empty_component(Input, Output)
 
-        feature = CreateWorkflowSchemaFeature({
-            C.name: C
-        })
+        feature = CreateWorkflowSchemaFeature({C.name: C})
 
         experiment = self.seed_experiment()
 
@@ -121,7 +102,7 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
 
         # assert
 
-        self.assertEqual(component.input['a'].items.type, 'integer')
+        self.assertEqual(component.input["a"].items.type, "integer")
 
     async def test_default_value(self):
         # arrange
@@ -129,15 +110,11 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
         class Input(BaseModel):
             a: int = 10
 
-        Output = create_model('Output', **{
-            'b': (float,...)
-        })
+        Output = create_model("Output", **{"b": (float, ...)})
 
         C = self.seed_empty_component(Input, Output)
 
-        feature = CreateWorkflowSchemaFeature({
-            C.name: C
-        })
+        feature = CreateWorkflowSchemaFeature({C.name: C})
 
         experiment = self.seed_experiment()
 
@@ -148,4 +125,4 @@ class TestCreateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
 
         # assert
 
-        self.assertEqual(component.input['a'].default, 10)
+        self.assertEqual(component.input["a"].default, 10)

@@ -31,22 +31,19 @@ class TestDefaultApi(unittest.TestCase):
 
         Get Running Jobs
         """
-        pass
 
     def test_is_job_running_job_job_id_is_running_get(self) -> None:
         """Test case for is_job_running_job_job_id_is_running_get
 
         Is Job Running
         """
-        pass
 
     def test_predict_send_message_post(self) -> None:
         """Test case for predict_send_message_post
 
         Predict
         """
-        pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

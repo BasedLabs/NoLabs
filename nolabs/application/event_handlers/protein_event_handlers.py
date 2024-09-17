@@ -1,6 +1,4 @@
-__all__ = [
-    'ProteinCreatedEventHandler'
-]
+__all__ = ["ProteinCreatedEventHandler"]
 
 from nolabs.domain.models.common import ProteinCreatedEvent
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler

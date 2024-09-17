@@ -31,71 +31,61 @@ class TestReinventApi(unittest.TestCase):
 
         Delete
         """
-        pass
 
     def test_get_all_configs_api_reinvent_get(self) -> None:
         """Test case for get_all_configs_api_reinvent_get
 
         Get All Configs
         """
-        pass
 
     def test_get_config_api_reinvent_reinvent_config_id_get(self) -> None:
         """Test case for get_config_api_reinvent_reinvent_config_id_get
 
         Get Config
         """
-        pass
 
     def test_learning_api_reinvent_config_id_start_learning_post(self) -> None:
         """Test case for learning_api_reinvent_config_id_start_learning_post
 
         Learning
         """
-        pass
 
     def test_logs_api_reinvent_config_id_logs_get(self) -> None:
         """Test case for logs_api_reinvent_config_id_logs_get
 
         Logs
         """
-        pass
 
     def test_params_api_reinvent_config_id_params_get(self) -> None:
         """Test case for params_api_reinvent_config_id_params_get
 
         Params
         """
-        pass
 
     def test_sampling_api_reinvent_config_id_start_sampling_post(self) -> None:
         """Test case for sampling_api_reinvent_config_id_start_sampling_post
 
         Sampling
         """
-        pass
 
     def test_save_params_api_reinvent_config_id_params_post(self) -> None:
         """Test case for save_params_api_reinvent_config_id_params_post
 
         Save Params
         """
-        pass
 
     def test_smiles_api_reinvent_config_id_smiles_get(self) -> None:
         """Test case for smiles_api_reinvent_config_id_smiles_get
 
         Smiles
         """
-        pass
 
     def test_stop_api_reinvent_config_id_jobs_stop_post(self) -> None:
         """Test case for stop_api_reinvent_config_id_jobs_stop_post
 
         Stop
         """
-        pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,11 +1,8 @@
 from typing import Literal
 
-from pydantic import (
-    computed_field,
-)
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
 from infrastructure.environment import Environment
+from pydantic import computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -14,7 +11,7 @@ class Settings(BaseSettings):
         case_sensitive=False,
         env_ignore_empty=True,
         extra="ignore",
-        env_prefix='NOLABS_'
+        env_prefix="NOLABS_",
     )
     localisation_host: str
     biobuddy_host: str

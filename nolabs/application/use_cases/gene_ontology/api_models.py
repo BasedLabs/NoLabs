@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Any
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, model_validator
@@ -44,5 +44,3 @@ class RunJobRequest:
 class GetJobStatusResponse:
     running: bool
     result_valid: bool
-
-

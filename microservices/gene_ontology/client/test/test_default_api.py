@@ -31,8 +31,7 @@ class TestDefaultApi(unittest.TestCase):
 
         Run Go Prediction
         """
-        pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

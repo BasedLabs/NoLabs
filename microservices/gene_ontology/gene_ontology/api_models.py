@@ -22,6 +22,7 @@ class RunGeneOntologyPredictionResponse(BaseModelMixin):
     go_confidence: List[GoConfidenceResponse]
     errors: List[str]
 
+
 @pydantic.dataclasses.dataclass
 class IsJobRunningResponse:
     is_running: bool

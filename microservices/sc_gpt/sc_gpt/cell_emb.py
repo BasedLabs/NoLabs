@@ -9,22 +9,23 @@ from pathlib import Path
 from typing import Optional, Union
 
 import numpy as np
-import scipy.sparse as sp
 import scanpy as sc
+import scipy.sparse as sp
 import torch
 from anndata import AnnData
-from torch.utils.data import DataLoader, SequentialSampler
-from tqdm import tqdm
-
-from scgpt import logger
-from scgpt import DataCollator
+from scgpt import DataCollator, logger
 from scgpt.model import TransformerModel
 from scgpt.tokenizer import GeneVocab
 from scgpt.utils import load_pretrained
+from torch.utils.data import DataLoader, SequentialSampler
+from tqdm import tqdm
 
 PathLike = Union[str, os.PathLike]
 
-class GeneDataset(torch.utils.data.Dataset): # Issue 1 resolved by moving this class from local to global scope
+
+class GeneDataset(
+    torch.utils.data.Dataset
+):  # Issue 1 resolved by moving this class from local to global scope
     def __init__(self, count_matrix, gene_ids, vocab, model_configs, batch_ids=None):
         self.count_matrix = count_matrix
         self.gene_ids = gene_ids
@@ -85,7 +86,9 @@ def get_batch_cell_embeddings(
     """
 
     count_matrix = adata.X
-    if isinstance(count_matrix, sp.csr_matrix):  # Issue 2 resolved by manual conversion to np.ndarray
+    if isinstance(
+        count_matrix, sp.csr_matrix
+    ):  # Issue 2 resolved by manual conversion to np.ndarray
         count_matrix = count_matrix.toarray()
 
     # gene vocabulary ids
@@ -98,7 +101,11 @@ def get_batch_cell_embeddings(
 
     if cell_embedding_mode == "cls":
         dataset = GeneDataset(
-            count_matrix, gene_ids, vocab, model_configs, batch_ids if use_batch_labels else None
+            count_matrix,
+            gene_ids,
+            vocab,
+            model_configs,
+            batch_ids if use_batch_labels else None,
         )
         collator = DataCollator(
             do_padding=True,
@@ -135,9 +142,11 @@ def get_batch_cell_embeddings(
                     input_gene_ids,
                     data_dict["expr"].to(device),
                     src_key_padding_mask=src_key_padding_mask,
-                    batch_labels=data_dict["batch_labels"].to(device)
-                    if use_batch_labels
-                    else None,
+                    batch_labels=(
+                        data_dict["batch_labels"].to(device)
+                        if use_batch_labels
+                        else None
+                    ),
                 )
 
                 embeddings = embeddings[:, 0, :]  # get the <cls> position embedding

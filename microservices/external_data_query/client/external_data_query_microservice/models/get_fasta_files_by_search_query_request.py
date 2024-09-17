@@ -13,32 +13,38 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel, StrictBool, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
 from external_data_query_microservice.models.job_id import JobId
-from typing import Optional, Set
+from pydantic import BaseModel, StrictBool, StrictInt, StrictStr
 from typing_extensions import Self
+
 
 class GetFastaFilesBySearchQueryRequest(BaseModel):
     """
     GetFastaFilesBySearchQueryRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     search_query: StrictStr
     max_results: Optional[StrictInt] = None
     exact_match: Optional[StrictBool] = False
     job_id: Optional[JobId] = None
-    __properties: ClassVar[List[str]] = ["search_query", "max_results", "exact_match", "job_id"]
+    __properties: ClassVar[List[str]] = [
+        "search_query",
+        "max_results",
+        "exact_match",
+        "job_id",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -64,8 +70,7 @@ class GetFastaFilesBySearchQueryRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -74,7 +79,7 @@ class GetFastaFilesBySearchQueryRequest(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of job_id
         if self.job_id:
-            _dict['job_id'] = self.job_id.to_dict()
+            _dict["job_id"] = self.job_id.to_dict()
         return _dict
 
     @classmethod
@@ -86,12 +91,20 @@ class GetFastaFilesBySearchQueryRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "search_query": obj.get("search_query"),
-            "max_results": obj.get("max_results"),
-            "exact_match": obj.get("exact_match") if obj.get("exact_match") is not None else False,
-            "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "search_query": obj.get("search_query"),
+                "max_results": obj.get("max_results"),
+                "exact_match": (
+                    obj.get("exact_match")
+                    if obj.get("exact_match") is not None
+                    else False
+                ),
+                "job_id": (
+                    JobId.from_dict(obj["job_id"])
+                    if obj.get("job_id") is not None
+                    else None
+                ),
+            }
+        )
         return _obj
-
-

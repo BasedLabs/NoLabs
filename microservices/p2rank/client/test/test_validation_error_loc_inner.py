@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from p2rank_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from p2rank_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner
+
 
 class TestValidationErrorLocInner(unittest.TestCase):
     """ValidationErrorLocInner unit test stubs"""
@@ -28,9 +29,9 @@ class TestValidationErrorLocInner(unittest.TestCase):
 
     def make_instance(self, include_optional) -> ValidationErrorLocInner:
         """Test ValidationErrorLocInner
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `ValidationErrorLocInner`
         """
         model = ValidationErrorLocInner()
@@ -47,5 +48,6 @@ class TestValidationErrorLocInner(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

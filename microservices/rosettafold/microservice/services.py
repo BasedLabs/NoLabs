@@ -9,11 +9,9 @@ import uuid
 from contextlib import contextmanager
 
 import psutil
-
+from leaf import DirectoryObject, FileObject, ObjectType
 from microservice.api_models import RunRosettaFoldResponse
 from microservice.loggers import logger
-
-from leaf import ObjectType, FileObject, DirectoryObject
 
 
 class RosettaService:

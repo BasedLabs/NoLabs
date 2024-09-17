@@ -1,15 +1,15 @@
 import uuid
 from enum import Enum
-from typing import List, Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from pydantic.dataclasses import dataclass
 
 
 class JobStateEnum(str, Enum):
-    RUNNING = 'RUNNING'
-    FAILED = 'FAILED'
-    COMPLETED = 'COMPLETED'
+    RUNNING = "RUNNING"
+    FAILED = "FAILED"
+    COMPLETED = "COMPLETED"
 
 
 @dataclass
@@ -43,9 +43,9 @@ class StartWorkflowComponentRequest:
 
 
 class ComponentStateEnum(str, Enum):
-    RUNNING = 'RUNNING'
-    FAILED = 'FAILED'
-    COMPLETED = 'COMPLETED'
+    RUNNING = "RUNNING"
+    FAILED = "FAILED"
+    COMPLETED = "COMPLETED"
 
 
 @dataclass

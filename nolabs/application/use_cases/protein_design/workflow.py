@@ -1,14 +1,14 @@
 import uuid
 from typing import List, Type
 
+from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import BaseModel
 
-from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.protein_design.use_cases import RunJobFeature
-from nolabs.domain.models.common import Protein, JobId, JobName
+from nolabs.application.workflow.component import Component, JobValidationError
+from nolabs.domain.models.common import JobId, JobName, Protein
 from nolabs.domain.models.protein_design import ProteinDesignJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class ProteinDesignInput(BaseModel):
@@ -20,14 +20,16 @@ class ProteinDesignOutput(BaseModel):
 
 
 class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput]):
-    name = 'Protein binder design'
-    description = 'Protein binder prediction using Rfdiffusion'
+    name = "Protein binder design"
+    description = "Protein binder prediction using Rfdiffusion"
 
     async def execute(self):
         if await self.jobs_setup_errors():
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Jobs are not valid')
+            raise NoLabsException(ErrorCodes.invalid_job_input, "Jobs are not valid")
 
-        run_job_feature = RunJobFeature(api=InfrastructureDependencies.protein_design_microservice())
+        run_job_feature = RunJobFeature(
+            api=InfrastructureDependencies.protein_design_microservice()
+        )
 
         protein_ids = []
 
@@ -45,16 +47,14 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
             protein = Protein.objects.with_id(protein_id)
 
             if not protein.pdb_content:
-                raise NoLabsException(ErrorCodes.protein_pdb_is_empty, 'Protein pdb content is undefined')
+                raise NoLabsException(
+                    ErrorCodes.protein_pdb_is_empty, "Protein pdb content is undefined"
+                )
 
             job_id = JobId(uuid.uuid4())
-            job_name = JobName(f'Protein binder design for protein {protein.name}')
+            job_name = JobName(f"Protein binder design for protein {protein.name}")
 
-            job = ProteinDesignJob(
-                id=job_id,
-                name=job_name,
-                experiment=self.experiment
-            )
+            job = ProteinDesignJob(id=job_id, name=job_name, experiment=self.experiment)
 
             job.set_protein(protein=protein)
 
@@ -70,8 +70,7 @@ class ProteinDesignComponent(Component[ProteinDesignInput, ProteinDesignOutput])
             if errors:
                 jobs_errors.append(
                     JobValidationError(
-                        job_id=job.id,
-                        msg=', '.join([err.message for err in errors])
+                        job_id=job.id, msg=", ".join([err.message for err in errors])
                     )
                 )
 

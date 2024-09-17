@@ -13,21 +13,23 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
 from pydantic import BaseModel
-from typing import Any, ClassVar, Dict, List
 from rosettafold_microservice.models.a3_m_content import A3MContent
 from rosettafold_microservice.models.fasta_content import FastaContent
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class RunRosettaFoldRequest(BaseModel):
     """
     RunRosettaFoldRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     fasta_content: FastaContent
     a3m_content: A3MContent
     __properties: ClassVar[List[str]] = ["fasta_content", "a3m_content"]
@@ -37,7 +39,6 @@ class RunRosettaFoldRequest(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -63,8 +64,7 @@ class RunRosettaFoldRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -73,10 +73,10 @@ class RunRosettaFoldRequest(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of fasta_content
         if self.fasta_content:
-            _dict['fasta_content'] = self.fasta_content.to_dict()
+            _dict["fasta_content"] = self.fasta_content.to_dict()
         # override the default output from pydantic by calling `to_dict()` of a3m_content
         if self.a3m_content:
-            _dict['a3m_content'] = self.a3m_content.to_dict()
+            _dict["a3m_content"] = self.a3m_content.to_dict()
         return _dict
 
     @classmethod
@@ -88,10 +88,18 @@ class RunRosettaFoldRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "fasta_content": FastaContent.from_dict(obj["fasta_content"]) if obj.get("fasta_content") is not None else None,
-            "a3m_content": A3MContent.from_dict(obj["a3m_content"]) if obj.get("a3m_content") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "fasta_content": (
+                    FastaContent.from_dict(obj["fasta_content"])
+                    if obj.get("fasta_content") is not None
+                    else None
+                ),
+                "a3m_content": (
+                    A3MContent.from_dict(obj["a3m_content"])
+                    if obj.get("a3m_content") is not None
+                    else None
+                ),
+            }
+        )
         return _obj
-
-

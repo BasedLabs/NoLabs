@@ -1,14 +1,14 @@
 import uuid
 from typing import List, Type
 
+from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import BaseModel
 
-from domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.application.use_cases.conformations.use_cases import RunJobFeature
-from nolabs.domain.models.common import Protein, JobId, JobName
+from nolabs.application.workflow.component import Component, JobValidationError
+from nolabs.domain.models.common import JobId, JobName, Protein
 from nolabs.domain.models.conformations import ConformationsJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class ConformationInput(BaseModel):
@@ -20,14 +20,16 @@ class ConformationOutput(BaseModel):
 
 
 class ConformationComponent(Component[ConformationInput, ConformationOutput]):
-    name = 'Conformations'
-    description = 'Protein molecular dynamics'
+    name = "Conformations"
+    description = "Protein molecular dynamics"
 
     async def execute(self):
         if await self.jobs_setup_errors():
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Jobs are not valid')
+            raise NoLabsException(ErrorCodes.invalid_job_input, "Jobs are not valid")
 
-        run_job_feature = RunJobFeature(api=InfrastructureDependencies.conformations_microservice())
+        run_job_feature = RunJobFeature(
+            api=InfrastructureDependencies.conformations_microservice()
+        )
 
         protein_ids = []
 
@@ -44,17 +46,11 @@ class ConformationComponent(Component[ConformationInput, ConformationOutput]):
             protein = Protein.objects.with_id(protein_id)
 
             job_id = JobId(uuid.uuid4())
-            job_name = JobName(f'Conformations for protein {protein.name}')
+            job_name = JobName(f"Conformations for protein {protein.name}")
 
-            job = ConformationsJob(
-                id=job_id,
-                name=job_name,
-                experiment=self.experiment
-            )
+            job = ConformationsJob(id=job_id, name=job_name, experiment=self.experiment)
 
-            job.set_protein(
-                protein=protein
-            )
+            job.set_protein(protein=protein)
 
             await job.save()
 
@@ -68,8 +64,7 @@ class ConformationComponent(Component[ConformationInput, ConformationOutput]):
             if errors:
                 jobs_errors.append(
                     JobValidationError(
-                        job_id=job.id,
-                        msg=', '.join([err.message for err in errors])
+                        job_id=job.id, msg=", ".join([err.message for err in errors])
                     )
                 )
 

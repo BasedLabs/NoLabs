@@ -1,7 +1,8 @@
 import logging
-from pythonjsonlogger import jsonlogger
 
-from esmfold.api_models import *
+from esmfold.api_models import (RunEsmFoldPredictionRequest,
+                                RunEsmFoldPredictionResponse)
+from pythonjsonlogger import jsonlogger
 
 _logger = logging.getLogger()
 
@@ -17,19 +18,17 @@ class Log:
     @staticmethod
     def folding_request(request: RunEsmFoldPredictionRequest):
         d = request.as_log_dict()
-        _logger.info('Run folding on hardware request', extra=d)
+        _logger.info("Run folding on hardware request", extra=d)
 
     @staticmethod
     def folding_response(response: RunEsmFoldPredictionResponse):
         d = response.as_log_dict()
-        _logger.info('Run folding on hardware response', extra=d)
+        _logger.info("Run folding on hardware response", extra=d)
 
     @staticmethod
     def cuda_is_avaialable(availability: bool):
-        _logger.info('Cuda is available', extra={
-            'availability': availability
-        })
+        _logger.info("Cuda is available", extra={"availability": availability})
 
     @staticmethod
     def exception():
-        _logger.exception('Exception occured in esmfold')
+        _logger.exception("Exception occured in esmfold")

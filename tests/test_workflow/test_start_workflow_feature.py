@@ -1,15 +1,19 @@
 import uuid
-from typing import Type, List
+from typing import List, Type
 from unittest import IsolatedAsyncioTestCase
 
+from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import create_model
 
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.workflow.use_cases import CreateWorkflowSchemaFeature, StartWorkflowFeature, \
-    UpdateWorkflowSchemaFeature
-from nolabs.application.workflow.component import Component, TOutput, TInput, JobValidationError
+from nolabs.application.use_cases.workflow.use_cases import (
+    CreateWorkflowSchemaFeature, StartWorkflowFeature,
+    UpdateWorkflowSchemaFeature)
+from nolabs.application.workflow.component import (Component,
+                                                   JobValidationError, TInput,
+                                                   TOutput)
 from nolabs.application.workflow.models import ComponentDbModel
-from nolabs.application.workflow.workflow_schema import WorkflowComponentModel, MappingModel, DefaultWorkflowComponentModelValue
+from nolabs.application.workflow.workflow_schema import (
+    DefaultWorkflowComponentModelValue, MappingModel, WorkflowComponentModel)
 from tests.test_workflow.mixins import WorkflowTestsMixin
 from tests.tests_preparations import mongo_connect
 
@@ -25,15 +29,11 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
 
         # arrange
 
-        Input = create_model('Input', **{
-            'a': (int, ...)
-        })
-        Output = create_model('Output', **{
-            'b': (int, ...)
-        })
+        Input = create_model("Input", **{"a": (int, ...)})
+        Output = create_model("Output", **{"b": (int, ...)})
 
         class C(Component[Input, Output]):
-            name = 'C'
+            name = "C"
 
             async def setup_jobs(self):
                 pass
@@ -50,23 +50,17 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
                 return Output
 
             async def execute(self):
-                self.output = Output(
-                    b=self.input.a
-                )
+                self.output = Output(b=self.input.a)
 
         set_schema_feature = UpdateWorkflowSchemaFeature(
-            available_components={
-                C.name: C
-            }
+            available_components={C.name: C}
         )
 
-        create_schema_feature = CreateWorkflowSchemaFeature(available_components={
-            C.name: C
-        })
+        create_schema_feature = CreateWorkflowSchemaFeature(
+            available_components={C.name: C}
+        )
 
-        start_workflow_feature = StartWorkflowFeature(available_components={
-            C.name: C
-        })
+        start_workflow_feature = StartWorkflowFeature(available_components={C.name: C})
 
         experiment = self.seed_experiment()
 
@@ -75,28 +69,25 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
         id2 = uuid.uuid4()
         schema.workflow_components = [
             WorkflowComponentModel(
-                name='C',
+                name="C",
                 component_id=id1,
                 mappings=[],
                 error=None,
                 defaults=[
-                    DefaultWorkflowComponentModelValue(
-                        target_path=['a'],
-                        value=15
-                    )
-                ]
+                    DefaultWorkflowComponentModelValue(target_path=["a"], value=15)
+                ],
             ),
             WorkflowComponentModel(
-                name='C',
+                name="C",
                 component_id=id2,
-                mappings=[MappingModel(
-                    source_path=['b'],
-                    target_path=['a'],
-                    source_component_id=id1
-                )],
+                mappings=[
+                    MappingModel(
+                        source_path=["b"], target_path=["a"], source_component_id=id1
+                    )
+                ],
                 error=None,
-                defaults=[]
-            )
+                defaults=[],
+            ),
         ]
         await set_schema_feature.handle(workflow_schema=schema)
 
@@ -108,26 +99,26 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
 
         component_db_model: ComponentDbModel = ComponentDbModel.objects.with_id(id2)
         output = component_db_model.output_parameter_dict
-        self.assertEquals(output['b'], 15)
+        self.assertEquals(output["b"], 15)
 
     async def test_diamond_test_execute(self):
         # arrange
 
-        LinearInput = create_model('LinearInput', **{
-            'a': (int, ...),
-        })
+        LinearInput = create_model(
+            "LinearInput",
+            **{
+                "a": (int, ...),
+            }
+        )
 
-        DuplexInput = create_model('DuplexInput', **{
-            'x1': (int, ...),
-            'x2': (int, ...)
-        })
+        DuplexInput = create_model(
+            "DuplexInput", **{"x1": (int, ...), "x2": (int, ...)}
+        )
 
-        Output = create_model('Output', **{
-            'b': (int, ...)
-        })
+        Output = create_model("Output", **{"b": (int, ...)})
 
         class Linear(Component[LinearInput, Output]):
-            name = 'Linear'
+            name = "Linear"
 
             async def setup_jobs(self):
                 pass
@@ -144,12 +135,10 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
                 return Output
 
             async def execute(self):
-                self.output = Output(
-                    b=self.input.a + 1
-                )
+                self.output = Output(b=self.input.a + 1)
 
         class Duplex(Component[DuplexInput, Output]):
-            name = 'Duplex'
+            name = "Duplex"
 
             async def setup_jobs(self):
                 pass
@@ -166,26 +155,19 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
                 return Output
 
             async def execute(self):
-                self.output = Output(
-                    b=self.input.x1 + self.input.x2
-                )
+                self.output = Output(b=self.input.x1 + self.input.x2)
 
         set_schema_feature = UpdateWorkflowSchemaFeature(
-            available_components={
-                Linear.name: Linear,
-                Duplex.name: Duplex
-            }
+            available_components={Linear.name: Linear, Duplex.name: Duplex}
         )
 
-        create_schema_feature = CreateWorkflowSchemaFeature(available_components={
-            Linear.name: Linear,
-            Duplex.name: Duplex
-        })
+        create_schema_feature = CreateWorkflowSchemaFeature(
+            available_components={Linear.name: Linear, Duplex.name: Duplex}
+        )
 
-        start_workflow_feature = StartWorkflowFeature(available_components={
-            Linear.name: Linear,
-            Duplex.name: Duplex
-        })
+        start_workflow_feature = StartWorkflowFeature(
+            available_components={Linear.name: Linear, Duplex.name: Duplex}
+        )
 
         experiment = self.seed_experiment()
 
@@ -196,54 +178,48 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
         id4 = uuid.uuid4()
         schema.workflow_components = [
             WorkflowComponentModel(
-                name='Linear',
+                name="Linear",
                 component_id=id1,
                 mappings=[],
                 error=None,
                 defaults=[
-                    DefaultWorkflowComponentModelValue(
-                        target_path=['a'],
-                        value=1
-                    )
-                ]
+                    DefaultWorkflowComponentModelValue(target_path=["a"], value=1)
+                ],
             ),
             WorkflowComponentModel(
-                name='Linear',
+                name="Linear",
                 component_id=id2,
-                mappings=[MappingModel(
-                    source_path=['b'],
-                    target_path=['a'],
-                    source_component_id=id1
-                )],
-                error=None
-            ),
-            WorkflowComponentModel(
-                name='Linear',
-                component_id=id3,
-                mappings=[MappingModel(
-                    source_path=['b'],
-                    target_path=['a'],
-                    source_component_id=id1
-                )],
-                error=None
-            ),
-            WorkflowComponentModel(
-                name='Duplex',
-                component_id=id4,
-                mappings=[MappingModel(
-                    source_path=['b'],
-                    target_path=['x1'],
-                    source_component_id=id2
-                ),
+                mappings=[
                     MappingModel(
-                        source_path=['b'],
-                        target_path=['x2'],
-                        source_component_id=id3
+                        source_path=["b"], target_path=["a"], source_component_id=id1
                     )
                 ],
                 error=None,
-                defaults=[]
-            )
+            ),
+            WorkflowComponentModel(
+                name="Linear",
+                component_id=id3,
+                mappings=[
+                    MappingModel(
+                        source_path=["b"], target_path=["a"], source_component_id=id1
+                    )
+                ],
+                error=None,
+            ),
+            WorkflowComponentModel(
+                name="Duplex",
+                component_id=id4,
+                mappings=[
+                    MappingModel(
+                        source_path=["b"], target_path=["x1"], source_component_id=id2
+                    ),
+                    MappingModel(
+                        source_path=["b"], target_path=["x2"], source_component_id=id3
+                    ),
+                ],
+                error=None,
+                defaults=[],
+            ),
         ]
         schema = await set_schema_feature.handle(workflow_schema=schema)
 
@@ -255,7 +231,7 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
 
         component_db_model: ComponentDbModel = ComponentDbModel.objects.with_id(id4)
         output = component_db_model.output_parameter_dict
-        self.assertEquals(output['b'], 6)
+        self.assertEquals(output["b"], 6)
 
     async def test_component_exception(self):
         """
@@ -264,15 +240,11 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
 
         # arrange
 
-        Input = create_model('Input', **{
-            'a': (int, ...)
-        })
-        Output = create_model('Output', **{
-            'b': (int, ...)
-        })
+        Input = create_model("Input", **{"a": (int, ...)})
+        Output = create_model("Output", **{"b": (int, ...)})
 
         class C(Component[Input, Output]):
-            name = 'C'
+            name = "C"
 
             async def setup_jobs(self):
                 pass
@@ -292,18 +264,14 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
         set_schema_feature = UpdateWorkflowSchemaFeature(
-            available_components={
-                C.name: C
-            }
+            available_components={C.name: C}
         )
 
-        create_schema_feature = CreateWorkflowSchemaFeature(available_components={
-            C.name: C
-        })
+        create_schema_feature = CreateWorkflowSchemaFeature(
+            available_components={C.name: C}
+        )
 
-        start_workflow_feature = StartWorkflowFeature(available_components={
-            C.name: C
-        })
+        start_workflow_feature = StartWorkflowFeature(available_components={C.name: C})
 
         experiment = self.seed_experiment()
 
@@ -311,16 +279,13 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
         id1 = uuid.uuid4()
         schema.workflow_components = [
             WorkflowComponentModel(
-                name='C',
+                name="C",
                 component_id=id1,
                 mappings=[],
                 error=None,
                 defaults=[
-                    DefaultWorkflowComponentModelValue(
-                        target_path=['a'],
-                        value=15
-                    )
-                ]
+                    DefaultWorkflowComponentModelValue(target_path=["a"], value=15)
+                ],
             )
         ]
         await set_schema_feature.handle(workflow_schema=schema)
@@ -334,4 +299,3 @@ class TestUpdateWorkflowSchemaFeature(IsolatedAsyncioTestCase, WorkflowTestsMixi
         component: ComponentDbModel = ComponentDbModel.objects.with_id(id1)
 
         self.assertTrue(component.last_exceptions)
-

@@ -31,15 +31,13 @@ class TestDefaultApi(unittest.TestCase):
 
         Embed
         """
-        pass
 
     def test_reference_classify_reference_classify_post(self) -> None:
         """Test case for reference_classify_reference_classify_post
 
         Reference Classify
         """
-        pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

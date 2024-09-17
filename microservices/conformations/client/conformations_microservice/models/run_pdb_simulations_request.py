@@ -13,25 +13,30 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional, Union
-from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
+
 from conformations_microservice.models.integrators import Integrators
-from conformations_microservice.models.open_mm_force_fields import OpenMmForceFields
-from conformations_microservice.models.open_mm_water_force_fields import OpenMmWaterForceFields
+from conformations_microservice.models.open_mm_force_fields import \
+    OpenMmForceFields
+from conformations_microservice.models.open_mm_water_force_fields import \
+    OpenMmWaterForceFields
+from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunPdbSimulationsRequest(BaseModel):
     """
     RunPdbSimulationsRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     job_id: StrictStr
     pdb_content: StrictStr
     force_field: OpenMmForceFields
@@ -42,14 +47,24 @@ class RunPdbSimulationsRequest(BaseModel):
     integrator: Optional[Integrators] = None
     take_frame_every: Optional[StrictInt] = 1000
     total_frames: Optional[StrictInt] = 10000
-    __properties: ClassVar[List[str]] = ["job_id", "pdb_content", "force_field", "water_force_field", "temperature_k", "friction_coeff", "step_size", "integrator", "take_frame_every", "total_frames"]
+    __properties: ClassVar[List[str]] = [
+        "job_id",
+        "pdb_content",
+        "force_field",
+        "water_force_field",
+        "temperature_k",
+        "friction_coeff",
+        "step_size",
+        "integrator",
+        "take_frame_every",
+        "total_frames",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -77,8 +92,7 @@ class RunPdbSimulationsRequest(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         return _dict
@@ -92,18 +106,36 @@ class RunPdbSimulationsRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "job_id": obj.get("job_id"),
-            "pdb_content": obj.get("pdb_content"),
-            "force_field": obj.get("force_field"),
-            "water_force_field": obj.get("water_force_field"),
-            "temperature_k": obj.get("temperature_k") if obj.get("temperature_k") is not None else 273.15,
-            "friction_coeff": obj.get("friction_coeff") if obj.get("friction_coeff") is not None else 1.0,
-            "step_size": obj.get("step_size") if obj.get("step_size") is not None else 0.002,
-            "integrator": obj.get("integrator"),
-            "take_frame_every": obj.get("take_frame_every") if obj.get("take_frame_every") is not None else 1000,
-            "total_frames": obj.get("total_frames") if obj.get("total_frames") is not None else 10000
-        })
+        _obj = cls.model_validate(
+            {
+                "job_id": obj.get("job_id"),
+                "pdb_content": obj.get("pdb_content"),
+                "force_field": obj.get("force_field"),
+                "water_force_field": obj.get("water_force_field"),
+                "temperature_k": (
+                    obj.get("temperature_k")
+                    if obj.get("temperature_k") is not None
+                    else 273.15
+                ),
+                "friction_coeff": (
+                    obj.get("friction_coeff")
+                    if obj.get("friction_coeff") is not None
+                    else 1.0
+                ),
+                "step_size": (
+                    obj.get("step_size") if obj.get("step_size") is not None else 0.002
+                ),
+                "integrator": obj.get("integrator"),
+                "take_frame_every": (
+                    obj.get("take_frame_every")
+                    if obj.get("take_frame_every") is not None
+                    else 1000
+                ),
+                "total_frames": (
+                    obj.get("total_frames")
+                    if obj.get("total_frames") is not None
+                    else 10000
+                ),
+            }
+        )
         return _obj
-
-

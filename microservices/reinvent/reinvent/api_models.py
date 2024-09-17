@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime
-import enum
 from typing import List
 
 import pydantic

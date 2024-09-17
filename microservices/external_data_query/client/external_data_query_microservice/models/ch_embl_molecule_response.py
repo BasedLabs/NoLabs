@@ -13,20 +13,22 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel
-from typing import Any, ClassVar, Dict, List
 from external_data_query_microservice.models.molecule import Molecule
-from typing import Optional, Set
+from pydantic import BaseModel
 from typing_extensions import Self
+
 
 class ChEMBLMoleculeResponse(BaseModel):
     """
     ChEMBLMoleculeResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     molecules: List[Molecule]
     __properties: ClassVar[List[str]] = ["molecules"]
 
@@ -35,7 +37,6 @@ class ChEMBLMoleculeResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -61,8 +62,7 @@ class ChEMBLMoleculeResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -75,7 +75,7 @@ class ChEMBLMoleculeResponse(BaseModel):
             for _item in self.molecules:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['molecules'] = _items
+            _dict["molecules"] = _items
         return _dict
 
     @classmethod
@@ -87,9 +87,13 @@ class ChEMBLMoleculeResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "molecules": [Molecule.from_dict(_item) for _item in obj["molecules"]] if obj.get("molecules") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "molecules": (
+                    [Molecule.from_dict(_item) for _item in obj["molecules"]]
+                    if obj.get("molecules") is not None
+                    else None
+                )
+            }
+        )
         return _obj
-
-

@@ -1,20 +1,18 @@
-__all__ = [
-    'GetJobFeature',
-    'RunJobFeature',
-    'SetupJobFeature'
-]
+__all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 
 from typing import List, Tuple
 from uuid import UUID
 
-from localisation_microservice import DefaultApi, RunLocalisationPredictionRequest
+from domain.exceptions import ErrorCodes, NoLabsException
+from localisation_microservice import (DefaultApi,
+                                       RunLocalisationPredictionRequest)
 from mongoengine import Q
 
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.localisation.api_models import JobResponse, JobResult, SetupJobRequest, \
-    GetJobStatusResponse
+from nolabs.application.use_cases.localisation.api_models import (
+    GetJobStatusResponse, JobResponse, JobResult, SetupJobRequest)
+from nolabs.domain.models.common import (Experiment, JobId, JobName,
+                                         LocalisationProbability, Protein)
 from nolabs.domain.models.localisation import LocalisationJob
-from nolabs.domain.models.common import JobId, Experiment, LocalisationProbability, JobName, Protein
 from nolabs.utils import generate_uuid
 
 
@@ -30,11 +28,11 @@ def map_job_to_response(job: LocalisationJob) -> JobResponse:
                 mitochondrial=item.mitochondrial,
                 nuclear=item.nuclear,
                 other=item.other,
-                extracellular=item.extracellular
+                extracellular=item.extracellular,
             )
             for item in job.probabilities
         ],
-        experiment_id=job.experiment.id
+        experiment_id=job.experiment.id,
     )
 
 
@@ -78,10 +76,9 @@ class RunJobFeature:
                 response = self._api.predict_run_post(
                     run_localisation_prediction_request=RunLocalisationPredictionRequest(
                         amino_acid_sequence=protein.get_amino_acid_sequence(),
-                        job_id=str(job_id.value)
+                        job_id=str(job_id.value),
                     )
                 )
-
 
                 if response.errors:
                     raise NoLabsException(ErrorCodes.amino_acid_localisation_run_error)
@@ -91,7 +88,7 @@ class RunJobFeature:
                     mitochondrial=response.mitochondrial_proteins,
                     nuclear=response.nuclear_proteins,
                     other=response.other_proteins,
-                    extracellular=response.extracellular_secreted_proteins
+                    extracellular=response.extracellular_secreted_proteins,
                 )
 
                 result.append((protein, localisation_probability))
@@ -118,9 +115,13 @@ class SetupJobFeature:
         assert request
 
         job_id = JobId(request.job_id if request.job_id else generate_uuid())
-        job_name = JobName(request.job_name if request.job_name else 'New localisation job')
+        job_name = JobName(
+            request.job_name if request.job_name else "New localisation job"
+        )
 
-        jobs: LocalisationJob = LocalisationJob.objects(Q(id=job_id.value) | Q(name=job_name.value))
+        jobs: LocalisationJob = LocalisationJob.objects(
+            Q(id=job_id.value) | Q(name=job_name.value)
+        )
 
         if not jobs:
             experiment = Experiment.objects.with_id(request.experiment_id)
@@ -128,11 +129,7 @@ class SetupJobFeature:
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job = LocalisationJob(
-                id=job_id,
-                name=job_name,
-                experiment=experiment
-            )
+            job = LocalisationJob(id=job_id, name=job_name, experiment=experiment)
         else:
             job = jobs[0]
 
@@ -163,9 +160,10 @@ class GetJobStatusFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
+        response = self._api.is_job_running_job_job_id_is_running_get(
+            job_id=str(job_id)
+        )
 
         return GetJobStatusResponse(
-            running=response.is_running,
-            result_valid=job.result_valid()
+            running=response.is_running, result_valid=job.result_valid()
         )

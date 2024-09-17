@@ -16,6 +16,7 @@ import unittest
 
 from rosettafold_microservice.models.a3_m_content import A3MContent
 
+
 class TestA3MContent(unittest.TestCase):
     """A3MContent unit test stubs"""
 
@@ -27,9 +28,9 @@ class TestA3MContent(unittest.TestCase):
 
     def make_instance(self, include_optional) -> A3MContent:
         """Test A3MContent
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `A3MContent`
         """
         model = A3MContent()
@@ -46,5 +47,6 @@ class TestA3MContent(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

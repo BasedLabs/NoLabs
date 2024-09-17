@@ -14,7 +14,9 @@
 
 import unittest
 
-from reinvent_microservice.models.response_get_config_api_reinvent_reinvent_config_id_get import ResponseGetConfigApiReinventReinventConfigIdGet
+from reinvent_microservice.models.response_get_config_api_reinvent_reinvent_config_id_get import \
+    ResponseGetConfigApiReinventReinventConfigIdGet
+
 
 class TestResponseGetConfigApiReinventReinventConfigIdGet(unittest.TestCase):
     """ResponseGetConfigApiReinventReinventConfigIdGet unit test stubs"""
@@ -25,11 +27,13 @@ class TestResponseGetConfigApiReinventReinventConfigIdGet(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> ResponseGetConfigApiReinventReinventConfigIdGet:
+    def make_instance(
+        self, include_optional
+    ) -> ResponseGetConfigApiReinventReinventConfigIdGet:
         """Test ResponseGetConfigApiReinventReinventConfigIdGet
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `ResponseGetConfigApiReinventReinventConfigIdGet`
         """
         model = ResponseGetConfigApiReinventReinventConfigIdGet()
@@ -56,5 +60,6 @@ class TestResponseGetConfigApiReinventReinventConfigIdGet(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

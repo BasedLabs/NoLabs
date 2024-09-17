@@ -13,22 +13,24 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
 from biobuddy_microservice.models.component import Component
 from biobuddy_microservice.models.job_id import JobId
 from biobuddy_microservice.models.workflow_component import WorkflowComponent
-from typing import Optional, Set
+from pydantic import BaseModel, StrictStr
 from typing_extensions import Self
+
 
 class SendMessageToBioBuddyRequest(BaseModel):
     """
     SendMessageToBioBuddyRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     experiment_id: StrictStr
     message_content: StrictStr
     previous_messages: List[Dict[str, StrictStr]]
@@ -36,14 +38,21 @@ class SendMessageToBioBuddyRequest(BaseModel):
     current_workflow: List[WorkflowComponent]
     tools: List[Dict[str, Any]]
     job_id: Optional[JobId] = None
-    __properties: ClassVar[List[str]] = ["experiment_id", "message_content", "previous_messages", "available_components", "current_workflow", "tools", "job_id"]
+    __properties: ClassVar[List[str]] = [
+        "experiment_id",
+        "message_content",
+        "previous_messages",
+        "available_components",
+        "current_workflow",
+        "tools",
+        "job_id",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -69,8 +78,7 @@ class SendMessageToBioBuddyRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -83,17 +91,17 @@ class SendMessageToBioBuddyRequest(BaseModel):
             for _item in self.available_components:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['available_components'] = _items
+            _dict["available_components"] = _items
         # override the default output from pydantic by calling `to_dict()` of each item in current_workflow (list)
         _items = []
         if self.current_workflow:
             for _item in self.current_workflow:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['current_workflow'] = _items
+            _dict["current_workflow"] = _items
         # override the default output from pydantic by calling `to_dict()` of job_id
         if self.job_id:
-            _dict['job_id'] = self.job_id.to_dict()
+            _dict["job_id"] = self.job_id.to_dict()
         return _dict
 
     @classmethod
@@ -105,15 +113,33 @@ class SendMessageToBioBuddyRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "experiment_id": obj.get("experiment_id"),
-            "message_content": obj.get("message_content"),
-            "previous_messages": obj.get("previous_messages"),
-            "available_components": [Component.from_dict(_item) for _item in obj["available_components"]] if obj.get("available_components") is not None else None,
-            "current_workflow": [WorkflowComponent.from_dict(_item) for _item in obj["current_workflow"]] if obj.get("current_workflow") is not None else None,
-            "tools": obj.get("tools"),
-            "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "experiment_id": obj.get("experiment_id"),
+                "message_content": obj.get("message_content"),
+                "previous_messages": obj.get("previous_messages"),
+                "available_components": (
+                    [
+                        Component.from_dict(_item)
+                        for _item in obj["available_components"]
+                    ]
+                    if obj.get("available_components") is not None
+                    else None
+                ),
+                "current_workflow": (
+                    [
+                        WorkflowComponent.from_dict(_item)
+                        for _item in obj["current_workflow"]
+                    ]
+                    if obj.get("current_workflow") is not None
+                    else None
+                ),
+                "tools": obj.get("tools"),
+                "job_id": (
+                    JobId.from_dict(obj["job_id"])
+                    if obj.get("job_id") is not None
+                    else None
+                ),
+            }
+        )
         return _obj
-
-

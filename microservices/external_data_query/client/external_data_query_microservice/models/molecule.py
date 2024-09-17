@@ -13,33 +13,41 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
 from pydantic import BaseModel, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class Molecule(BaseModel):
     """
     Molecule
-    """ # noqa: E501
+    """  # noqa: E501
+
     chembl_id: StrictStr
     molecule_type: StrictStr
     synonyms: List[StrictStr]
     smiles: StrictStr
     link: StrictStr
     pref_name: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["chembl_id", "molecule_type", "synonyms", "smiles", "link", "pref_name"]
+    __properties: ClassVar[List[str]] = [
+        "chembl_id",
+        "molecule_type",
+        "synonyms",
+        "smiles",
+        "link",
+        "pref_name",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -65,8 +73,7 @@ class Molecule(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -84,14 +91,14 @@ class Molecule(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "chembl_id": obj.get("chembl_id"),
-            "molecule_type": obj.get("molecule_type"),
-            "synonyms": obj.get("synonyms"),
-            "smiles": obj.get("smiles"),
-            "link": obj.get("link"),
-            "pref_name": obj.get("pref_name")
-        })
+        _obj = cls.model_validate(
+            {
+                "chembl_id": obj.get("chembl_id"),
+                "molecule_type": obj.get("molecule_type"),
+                "synonyms": obj.get("synonyms"),
+                "smiles": obj.get("smiles"),
+                "link": obj.get("link"),
+                "pref_name": obj.get("pref_name"),
+            }
+        )
         return _obj
-
-

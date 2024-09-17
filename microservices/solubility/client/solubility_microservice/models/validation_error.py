@@ -13,23 +13,27 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List
+
 from pydantic import BaseModel, StrictStr
-from solubility_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from solubility_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class ValidationError(BaseModel):
     """
     ValidationError
-    """ # noqa: E501
+    """  # noqa: E501
+
     loc: List[ValidationErrorLocInner]
     msg: StrictStr
     type: StrictStr
@@ -40,7 +44,6 @@ class ValidationError(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -68,8 +71,7 @@ class ValidationError(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         # override the default output from pydantic by calling `to_dict()` of each item in loc (list)
@@ -78,7 +80,7 @@ class ValidationError(BaseModel):
             for _item in self.loc:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['loc'] = _items
+            _dict["loc"] = _items
         return _dict
 
     @classmethod
@@ -90,11 +92,18 @@ class ValidationError(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "loc": [ValidationErrorLocInner.from_dict(_item) for _item in obj.get("loc")] if obj.get("loc") is not None else None,
-            "msg": obj.get("msg"),
-            "type": obj.get("type")
-        })
+        _obj = cls.model_validate(
+            {
+                "loc": (
+                    [
+                        ValidationErrorLocInner.from_dict(_item)
+                        for _item in obj.get("loc")
+                    ]
+                    if obj.get("loc") is not None
+                    else None
+                ),
+                "msg": obj.get("msg"),
+                "type": obj.get("type"),
+            }
+        )
         return _obj
-
-

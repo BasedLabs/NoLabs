@@ -15,13 +15,11 @@ class LigandsComponentOutput(BaseModel):
 
 
 class LigandsComponent(Component[LigandsComponentInput, LigandsComponentOutput]):
-    name = 'Ligands'
-    description = 'Ligands datasource'
+    name = "Ligands"
+    description = "Ligands datasource"
 
     async def execute(self):
-        self.output = LigandsComponentOutput(
-            ligands=self.input.ligands
-        )
+        self.output = LigandsComponentOutput(ligands=self.input.ligands)
 
     async def setup_jobs(self):
         pass

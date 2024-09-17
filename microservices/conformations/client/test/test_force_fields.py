@@ -13,9 +13,9 @@
 
 
 import unittest
-import datetime
 
 from conformations_microservice.models.force_fields import ForceFields
+
 
 class TestForceFields(unittest.TestCase):
     """ForceFields unit test stubs"""
@@ -30,5 +30,6 @@ class TestForceFields(unittest.TestCase):
         """Test ForceFields"""
         # inst = ForceFields()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

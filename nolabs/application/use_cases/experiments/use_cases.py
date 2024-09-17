@@ -1,22 +1,19 @@
-__all__ = [
-    'GetExperimentsMetadataFeature',
-    'CreateExperimentFeature'
-]
+__all__ = ["GetExperimentsMetadataFeature", "CreateExperimentFeature"]
 
 import uuid
 from typing import List
 
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.experiments.api_models import ExperimentMetadataResponse, \
-    UpdateExperimentRequest
-from nolabs.domain.models.common import ExperimentId, ExperimentName, Experiment
+from domain.exceptions import ErrorCodes, NoLabsException
+
+from nolabs.application.use_cases.experiments.api_models import (
+    ExperimentMetadataResponse, UpdateExperimentRequest)
+from nolabs.domain.models.common import (Experiment, ExperimentId,
+                                         ExperimentName)
 
 
 def map_experiment_to_metadata(experiment: Experiment) -> ExperimentMetadataResponse:
     return ExperimentMetadataResponse(
-        id=experiment.id,
-        name=str(experiment.name),
-        date=experiment.created_at
+        id=experiment.id, name=str(experiment.name), date=experiment.created_at
     )
 
 
@@ -35,8 +32,7 @@ class GetExperimentsMetadataFeature:
 class CreateExperimentFeature:
     def handle(self) -> ExperimentMetadataResponse:
         experiment = Experiment.create(
-            id=ExperimentId(uuid.uuid4()),
-            name=ExperimentName('New experiment')
+            id=ExperimentId(uuid.uuid4()), name=ExperimentName("New experiment")
         )
         experiment.save()
         return map_experiment_to_metadata(experiment)

@@ -16,8 +16,12 @@
 # import models into model package
 from sc_gpt_microservice.models.embed_request import EmbedRequest
 from sc_gpt_microservice.models.embed_response import EmbedResponse
-from sc_gpt_microservice.models.http_validation_error import HTTPValidationError
-from sc_gpt_microservice.models.reference_mapping_request import ReferenceMappingRequest
-from sc_gpt_microservice.models.reference_mapping_response import ReferenceMappingResponse
+from sc_gpt_microservice.models.http_validation_error import \
+    HTTPValidationError
+from sc_gpt_microservice.models.reference_mapping_request import \
+    ReferenceMappingRequest
+from sc_gpt_microservice.models.reference_mapping_response import \
+    ReferenceMappingResponse
 from sc_gpt_microservice.models.validation_error import ValidationError
-from sc_gpt_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from sc_gpt_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

@@ -1,5 +1,3 @@
-import logging
-
 import biobuddy_microservice
 import conformations_microservice
 import diffdock_microservice
@@ -27,9 +25,7 @@ from nolabs.infrastructure.settings import settings
 class InfrastructureDependencies:
     @staticmethod
     def biobuddy_microservice() -> biobuddy_microservice.DefaultApi:
-        configuration = biobuddy_microservice.Configuration(
-            host=settings.biobuddy_host
-        )
+        configuration = biobuddy_microservice.Configuration(host=settings.biobuddy_host)
         client = biobuddy_microservice.ApiClient(configuration=configuration)
         return biobuddy_microservice.DefaultApi(client)
 
@@ -41,7 +37,6 @@ class InfrastructureDependencies:
         client = external_data_query_microservice.ApiClient(configuration=configuration)
         return external_data_query_microservice.DefaultApi(client)
 
-
     @staticmethod
     def localisation_microservice() -> localisation_microservice.DefaultApi:
         configuration = localisation_microservice.Configuration(
@@ -52,9 +47,7 @@ class InfrastructureDependencies:
 
     @staticmethod
     def esmfold_microservice() -> esmfold_microservice.DefaultApi:
-        configuration = esmfold_microservice.Configuration(
-            host=settings.esmfold_host
-        )
+        configuration = esmfold_microservice.Configuration(host=settings.esmfold_host)
         client = esmfold_microservice.ApiClient(configuration=configuration)
         return esmfold_microservice.DefaultApi(client)
 
@@ -92,9 +85,7 @@ class InfrastructureDependencies:
 
     @staticmethod
     def reinvent_microservice() -> reinvent_microservice.ReinventApi:
-        configuration = reinvent_microservice.Configuration(
-            host=settings.reinvent_host
-        )
+        configuration = reinvent_microservice.Configuration(host=settings.reinvent_host)
         client = reinvent_microservice.ApiClient(configuration=configuration)
         return reinvent_microservice.ReinventApi(api_client=client)
 
@@ -116,9 +107,7 @@ class InfrastructureDependencies:
 
     @staticmethod
     def p2rank_microservice() -> p2rank_microservice.DefaultApi:
-        configuration = p2rank_microservice.Configuration(
-            host=settings.p2rank_host
-        )
+        configuration = p2rank_microservice.Configuration(host=settings.p2rank_host)
         client = p2rank_microservice.ApiClient(configuration=configuration)
         return p2rank_microservice.DefaultApi(client)
 
@@ -136,9 +125,7 @@ class InfrastructureDependencies:
 
     @staticmethod
     def diffdock_microservice() -> diffdock_microservice.DefaultApi:
-        configuration = diffdock_microservice.Configuration(
-            host=settings.diffdock_host
-        )
+        configuration = diffdock_microservice.Configuration(host=settings.diffdock_host)
         client = diffdock_microservice.ApiClient(configuration=configuration)
         return diffdock_microservice.DefaultApi(api_client=client)
 

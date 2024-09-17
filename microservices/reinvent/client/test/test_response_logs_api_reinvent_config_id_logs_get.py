@@ -14,7 +14,9 @@
 
 import unittest
 
-from reinvent_microservice.models.response_logs_api_reinvent_config_id_logs_get import ResponseLogsApiReinventConfigIdLogsGet
+from reinvent_microservice.models.response_logs_api_reinvent_config_id_logs_get import \
+    ResponseLogsApiReinventConfigIdLogsGet
+
 
 class TestResponseLogsApiReinventConfigIdLogsGet(unittest.TestCase):
     """ResponseLogsApiReinventConfigIdLogsGet unit test stubs"""
@@ -27,9 +29,9 @@ class TestResponseLogsApiReinventConfigIdLogsGet(unittest.TestCase):
 
     def make_instance(self, include_optional) -> ResponseLogsApiReinventConfigIdLogsGet:
         """Test ResponseLogsApiReinventConfigIdLogsGet
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `ResponseLogsApiReinventConfigIdLogsGet`
         """
         model = ResponseLogsApiReinventConfigIdLogsGet()
@@ -52,5 +54,6 @@ class TestResponseLogsApiReinventConfigIdLogsGet(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

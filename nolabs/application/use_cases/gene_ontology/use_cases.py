@@ -1,23 +1,21 @@
-__all__ = [
-    'GetJobFeature',
-    'RunJobFeature',
-    'SetupJobFeature'
-]
+__all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 
 import numbers
 import os
 import pickle
-from typing import List, Dict, Any, Tuple
+from typing import Any, Dict, List, Tuple
 from uuid import UUID
 
-from gene_ontology_microservice import DefaultApi, RunGeneOntologyPredictionRequest
+from domain.exceptions import ErrorCodes, NoLabsException
+from gene_ontology_microservice import (DefaultApi,
+                                        RunGeneOntologyPredictionRequest)
 from mongoengine import Q
 
+from nolabs.application.use_cases.gene_ontology.api_models import (
+    GetJobStatusResponse, JobResponse, JobResult,
+    RunGeneOntologyResponseDataNode, SetupJobRequest)
 from nolabs.domain.gene_ontology import OboNode
-from domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.application.use_cases.gene_ontology.api_models import RunGeneOntologyResponseDataNode, JobResponse, \
-    JobResult, SetupJobRequest, GetJobStatusResponse
-from nolabs.domain.models.common import JobId, Experiment, JobName, Protein
+from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.gene_ontology import GeneOntologyJob
 from nolabs.utils import generate_uuid
 
@@ -30,12 +28,16 @@ def map_job_to_response(job: GeneOntologyJob) -> JobResponse:
         result=[
             JobResult(
                 protein_id=item.protein_id,
-                go={key: RunGeneOntologyResponseDataNode(name=obo['name'], namespace=obo['namespace'],
-                                                         edges=obo['edges']) for key, obo in item.gene_ontology.items()}
+                go={
+                    key: RunGeneOntologyResponseDataNode(
+                        name=obo["name"], namespace=obo["namespace"], edges=obo["edges"]
+                    )
+                    for key, obo in item.gene_ontology.items()
+                },
             )
             for item in job.gene_ontologies
         ],
-        experiment_id=job.experiment.id
+        experiment_id=job.experiment.id,
     )
 
 
@@ -78,17 +80,25 @@ class RunJobFeature:
                 response = self._api.run_go_prediction_run_post(
                     run_gene_ontology_prediction_request=RunGeneOntologyPredictionRequest(
                         amino_acid_sequence=protein.get_amino_acid_sequence(),
-                        job_id=str(job_id.value)
+                        job_id=str(job_id.value),
                     )
                 )
 
                 if response.errors:
-                    raise NoLabsException(ErrorCodes.gene_ontology_run_error, response.errors)
+                    raise NoLabsException(
+                        ErrorCodes.gene_ontology_run_error, response.errors
+                    )
 
                 confidences = [(g.name, g.confidence) for g in response.go_confidence]
 
-                go = {key: {'name': value.name, 'namespace': value.namespace, 'edges': value.edges} for key, value in
-                      self._read_obo(confidences).items()}
+                go = {
+                    key: {
+                        "name": value.name,
+                        "namespace": value.namespace,
+                        "edges": value.edges,
+                    }
+                    for key, value in self._read_obo(confidences).items()
+                }
 
                 result.append((protein, go))
 
@@ -107,15 +117,17 @@ class RunJobFeature:
     def _read_obo(self, obo: List[Tuple[str, float]]) -> Dict[str, OboNode]:
         ids_dict = {name: prob for name, prob in obo}
         ids_dict = {key: value for key, value in ids_dict.items() if value >= 0.7}
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        pickled_file = os.path.join(__location__, 'go.pickle')
+        __location__ = os.path.realpath(
+            os.path.join(os.getcwd(), os.path.dirname(__file__))
+        )
+        pickled_file = os.path.join(__location__, "go.pickle")
 
         # f = os.path.join(__location__, 'services', 'go.obo')
         # graph = obonet.read_obo(f)
 
         # with open(pickled_file, 'wb') as handle_w:
         #    pickle.dump(graph, handle_w, protocol=pickle.HIGHEST_PROTOCOL)
-        with open(pickled_file, 'rb') as handle_r:
+        with open(pickled_file, "rb") as handle_r:
             graph = pickle.load(handle_r)
 
         ids = set(ids_dict.keys())
@@ -143,12 +155,16 @@ class RunJobFeature:
         for node in nodes_to_remove:
             graph.remove_node(node)
 
-        shaped_graph: Dict[str, OboNode] = {}  # {nodeId: {name: '', edges: { nodeId: {linkType}, }}}
+        shaped_graph: Dict[str, OboNode] = (
+            {}
+        )  # {nodeId: {name: '', edges: { nodeId: {linkType}, }}}
         for node in graph.nodes:
             if node not in shaped_graph:
-                shaped_graph[node] = OboNode(name=graph.nodes[node]['name'],
-                                             namespace=graph.nodes[node]['namespace'],
-                                             edges={})
+                shaped_graph[node] = OboNode(
+                    name=graph.nodes[node]["name"],
+                    namespace=graph.nodes[node]["namespace"],
+                    edges={},
+                )
         for node in graph.nodes:
             for out_edge in graph.out_edges(node):
                 out_node = out_edge[1]
@@ -167,9 +183,11 @@ class SetupJobFeature:
         assert request
 
         job_id = JobId(request.job_id or generate_uuid())
-        job_name = JobName(request.job_name or 'New gene ontology job')
+        job_name = JobName(request.job_name or "New gene ontology job")
 
-        jobs: GeneOntologyJob = GeneOntologyJob.objects(Q(id=job_id.value) | Q(name=job_name.value))
+        jobs: GeneOntologyJob = GeneOntologyJob.objects(
+            Q(id=job_id.value) | Q(name=job_name.value)
+        )
 
         if not jobs:
             if not request.experiment_id:
@@ -180,11 +198,7 @@ class SetupJobFeature:
             if not experiment:
                 raise NoLabsException(ErrorCodes.experiment_not_found)
 
-            job = GeneOntologyJob(
-                id=job_id,
-                name=job_name,
-                experiment=experiment
-            )
+            job = GeneOntologyJob(id=job_id, name=job_name, experiment=experiment)
         else:
             job = jobs[0]
 
@@ -215,9 +229,10 @@ class GetJobStatusFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        response = self._api.is_job_running_job_job_id_is_running_get(job_id=str(job_id))
+        response = self._api.is_job_running_job_job_id_is_running_get(
+            job_id=str(job_id)
+        )
 
         return GetJobStatusResponse(
-            running=response.is_running,
-            result_valid=job.result_valid()
+            running=response.is_running, result_valid=job.result_valid()
         )

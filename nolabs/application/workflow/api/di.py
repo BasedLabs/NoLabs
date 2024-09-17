@@ -1,27 +1,23 @@
 from __future__ import annotations
 
-__all__ = [
-    'WorkflowDependencies'
-]
+__all__ = ["WorkflowDependencies"]
 
-import logging
-from typing import Annotated
 
 from fastapi import Depends
 
-from nolabs.application.workflow.api.use_cases import CreateWorkflowSchemaFeature, \
-    GetWorkflowSchemaFeature, \
-    UpdateWorkflowSchemaFeature, StartWorkflowFeature, DeleteWorkflowSchemaFeature, \
-    AllWorkflowSchemasFeature, \
-    GetComponentStateFeature, ResetWorkflowFeature, StartWorkflowComponentFeature, GetJobStateFeature
+from nolabs.application.workflow.api.use_cases import (
+    AllWorkflowSchemasFeature, CreateWorkflowSchemaFeature,
+    DeleteWorkflowSchemaFeature, GetComponentStateFeature, GetJobStateFeature,
+    GetWorkflowSchemaFeature, ResetWorkflowFeature,
+    StartWorkflowComponentFeature, StartWorkflowFeature,
+    UpdateWorkflowSchemaFeature)
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 
 class WorkflowDependencies:
     @staticmethod
     def create_workflow_schema() -> CreateWorkflowSchemaFeature:
-        return CreateWorkflowSchemaFeature(
-        )
+        return CreateWorkflowSchemaFeature()
 
     @staticmethod
     def delete_workflow_schema() -> DeleteWorkflowSchemaFeature:
@@ -33,8 +29,7 @@ class WorkflowDependencies:
 
     @staticmethod
     def update_workflow_schema() -> UpdateWorkflowSchemaFeature:
-        return UpdateWorkflowSchemaFeature(
-        )
+        return UpdateWorkflowSchemaFeature()
 
     @staticmethod
     def start_workflow() -> StartWorkflowFeature:

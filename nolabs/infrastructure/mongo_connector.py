@@ -1,8 +1,6 @@
-__all__ = [
-    'mongo_connect'
-]
+__all__ = ["mongo_connect"]
 
-from mongoengine import connect, disconnect, get_db, ConnectionFailure
+from mongoengine import ConnectionFailure, connect, disconnect, get_db
 
 connection = None
 
@@ -19,7 +17,7 @@ def mongo_disconnect():
 def is_connected():
     try:
         # Try to get the database object for the given alias
-        db = get_db('nolabs')
+        get_db("nolabs")
         return True
     except ConnectionFailure:
         return False

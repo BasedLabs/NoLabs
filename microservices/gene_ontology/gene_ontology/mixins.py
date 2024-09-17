@@ -1,5 +1,4 @@
-import dataclasses
-from typing import Dict, Any, List
+from typing import Any, Dict
 
 
 class BaseModelMixin:
@@ -10,4 +9,3 @@ class BaseModelMixin:
             if isinstance(d[key], str) and len(d[key]) > max_val_len:
                 d[key] = d[key][:max_val_len]
         return d
-

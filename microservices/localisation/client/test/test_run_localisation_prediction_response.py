@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from localisation_microservice.models.run_localisation_prediction_response import RunLocalisationPredictionResponse
+from localisation_microservice.models.run_localisation_prediction_response import \
+    RunLocalisationPredictionResponse
+
 
 class TestRunLocalisationPredictionResponse(unittest.TestCase):
     """RunLocalisationPredictionResponse unit test stubs"""
@@ -28,9 +29,9 @@ class TestRunLocalisationPredictionResponse(unittest.TestCase):
 
     def make_instance(self, include_optional) -> RunLocalisationPredictionResponse:
         """Test RunLocalisationPredictionResponse
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `RunLocalisationPredictionResponse`
         """
         model = RunLocalisationPredictionResponse()
@@ -63,5 +64,6 @@ class TestRunLocalisationPredictionResponse(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

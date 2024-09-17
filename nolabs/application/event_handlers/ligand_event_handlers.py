@@ -1,6 +1,4 @@
-__all__ = [
-    'LigandCreatedEventHandler'
-]
+__all__ = ["LigandCreatedEventHandler"]
 
 from nolabs.domain.models.common import LigandCreatedEvent
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler

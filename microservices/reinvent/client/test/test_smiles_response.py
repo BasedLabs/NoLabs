@@ -16,6 +16,7 @@ import unittest
 
 from reinvent_microservice.models.smiles_response import SmilesResponse
 
+
 class TestSmilesResponse(unittest.TestCase):
     """SmilesResponse unit test stubs"""
 
@@ -27,9 +28,9 @@ class TestSmilesResponse(unittest.TestCase):
 
     def make_instance(self, include_optional) -> SmilesResponse:
         """Test SmilesResponse
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `SmilesResponse`
         """
         model = SmilesResponse()
@@ -60,5 +61,6 @@ class TestSmilesResponse(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

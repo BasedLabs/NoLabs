@@ -1,21 +1,24 @@
-__all__ = [
-    'ProteinDesignJob'
-]
+__all__ = ["ProteinDesignJob"]
 
 import datetime
 from typing import List
 
-from mongoengine import ReferenceField, ListField, PULL, CASCADE, StringField, IntField
+from domain.exceptions import ErrorCodes, NoLabsException
+from mongoengine import (CASCADE, PULL, IntField, ListField, ReferenceField,
+                         StringField)
 
-from nolabs.domain.models.common import Job, Protein, JobInputError
-from domain.exceptions import NoLabsException, ErrorCodes
+from nolabs.domain.models.common import Job, JobInputError, Protein
 
 
 class ProteinDesignJob(Job):
     # region Inputs
 
-    protein: Protein | None = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
-    binders: List[Protein] = ListField(ReferenceField(Protein, required=True, reverse_delete_rule=PULL))
+    protein: Protein | None = ReferenceField(
+        Protein, required=True, reverse_delete_rule=CASCADE
+    )
+    binders: List[Protein] = ListField(
+        ReferenceField(Protein, required=True, reverse_delete_rule=PULL)
+    )
 
     # endregion
 
@@ -24,13 +27,14 @@ class ProteinDesignJob(Job):
     hotspots: str = StringField(required=False)
     timesteps: int = IntField(required=False, default=50)
 
-    def set_input(self,
-                  protein: Protein,
-                  contig: str,
-                  number_of_designs: int,
-                  hotspots: str,
-                  timesteps: int
-                  ):
+    def set_input(
+        self,
+        protein: Protein,
+        contig: str,
+        number_of_designs: int,
+        hotspots: str,
+        timesteps: int,
+    ):
         self.binders = []
         self.contig = contig
         self.number_of_designs = number_of_designs
@@ -55,9 +59,7 @@ class ProteinDesignJob(Job):
     def result_valid(self) -> bool:
         return not not self.binders
 
-    def set_result(self,
-                   protein: Protein,
-                   binders: List[Protein]):
+    def set_result(self, protein: Protein, binders: List[Protein]):
         self.binders = []
 
         if not self.protein:
@@ -76,28 +78,42 @@ class ProteinDesignJob(Job):
 
         if not self.protein:
             errors.append(
-                JobInputError(message='Protein is not defined',
-                              error_code=ErrorCodes.protein_is_undefined)
+                JobInputError(
+                    message="Protein is not defined",
+                    error_code=ErrorCodes.protein_is_undefined,
+                )
             )
 
         if self.protein and not self.protein.pdb_content:
             errors.append(
                 JobInputError(
-                    message='Protein does not have pdb content',
-                    error_code=ErrorCodes.protein_pdb_is_empty
+                    message="Protein does not have pdb content",
+                    error_code=ErrorCodes.protein_pdb_is_empty,
                 )
             )
 
         if not self.contig:
-            errors.append(JobInputError(message='Contig is undefined',
-                                        error_code=ErrorCodes.invalid_job_input))
+            errors.append(
+                JobInputError(
+                    message="Contig is undefined",
+                    error_code=ErrorCodes.invalid_job_input,
+                )
+            )
 
         if not self.number_of_designs or self.number_of_designs <= 0:
-            errors.append(JobInputError(message='Number of designs cannot be <= 0',
-                                        error_code=ErrorCodes.invalid_job_input))
+            errors.append(
+                JobInputError(
+                    message="Number of designs cannot be <= 0",
+                    error_code=ErrorCodes.invalid_job_input,
+                )
+            )
 
         if not self.timesteps or self.timesteps <= 0:
-            errors.append(JobInputError(message='Timesteps cannot be <= 0',
-                                        error_code=ErrorCodes.invalid_job_input))
+            errors.append(
+                JobInputError(
+                    message="Timesteps cannot be <= 0",
+                    error_code=ErrorCodes.invalid_job_input,
+                )
+            )
 
         return errors

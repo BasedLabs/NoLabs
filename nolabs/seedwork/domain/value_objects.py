@@ -1,9 +1,9 @@
 __all__ = [
-    'ValueObject',
-    'ValueObjectUUID',
-    'ValueObjectString',
-    'ValueObjectFloat',
-    'ValueObjectBinary'
+    "ValueObject",
+    "ValueObjectUUID",
+    "ValueObjectString",
+    "ValueObjectFloat",
+    "ValueObjectBinary",
 ]
 
 import uuid
@@ -15,6 +15,7 @@ class ValueObject:
     """
     Base class for value objects
     """
+
     ...
 
 

@@ -4,11 +4,13 @@ from typing import List, Type
 from pydantic import BaseModel
 
 from nolabs.application.use_cases.solubility.api_models import SetupJobRequest
-from nolabs.application.use_cases.solubility.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
+from nolabs.application.use_cases.solubility.use_cases import (GetJobFeature,
+                                                               RunJobFeature,
+                                                               SetupJobFeature)
+from nolabs.application.workflow.component import Component, JobValidationError
 from nolabs.domain.models.common import Protein
 from nolabs.domain.models.solubility import SolubilityJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class SolubilityComponentInput(BaseModel):
@@ -19,12 +21,16 @@ class SolubilityComponentOutput(BaseModel):
     proteins_with_solubility: List[uuid.UUID]
 
 
-class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponentOutput]):
-    name = 'Solubility'
-    description = 'Protein solubility prediction'
+class SolubilityComponent(
+    Component[SolubilityComponentInput, SolubilityComponentOutput]
+):
+    name = "Solubility"
+    description = "Protein solubility prediction"
 
     async def execute(self):
-        run_job_feature = RunJobFeature(api=InfrastructureDependencies.solubility_microservice())
+        run_job_feature = RunJobFeature(
+            api=InfrastructureDependencies.solubility_microservice()
+        )
         get_job_feature = GetJobFeature()
 
         for job in self.jobs:
@@ -38,9 +44,7 @@ class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponen
             for protein_id in get_result.protein_ids:
                 items.append(protein_id)
 
-        self.output = SolubilityComponentOutput(
-            proteins_with_solubility=items
-        )
+        self.output = SolubilityComponentOutput(proteins_with_solubility=items)
 
     async def setup_jobs(self):
         setup_job_feature = SetupJobFeature()
@@ -50,11 +54,13 @@ class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponen
         for protein_id in self.input.proteins:
             protein = Protein.objects.with_id(protein_id)
 
-            result = await setup_job_feature.handle(request=SetupJobRequest(
-                experiment_id=self.experiment.id,
-                protein_ids=[protein.id],
-                job_name=f'Solubility {protein.name.fasta_name}'
-            ))
+            result = await setup_job_feature.handle(
+                request=SetupJobRequest(
+                    experiment_id=self.experiment.id,
+                    protein_ids=[protein.id],
+                    job_name=f"Solubility {protein.name.fasta_name}",
+                )
+            )
 
             self.jobs.append(SolubilityJob.objects.with_id(result.job_id))
 
@@ -66,8 +72,7 @@ class SolubilityComponent(Component[SolubilityComponentInput, SolubilityComponen
             if errors:
                 jobs_errors.append(
                     JobValidationError(
-                        job_id=job.id,
-                        msg=', '.join([err.message for err in errors])
+                        job_id=job.id, msg=", ".join([err.message for err in errors])
                     )
                 )
 

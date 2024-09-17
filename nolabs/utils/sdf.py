@@ -1,7 +1,8 @@
 import os
 import tempfile
-from rdkit.Chem import AllChem
+
 from rdkit import Chem
+from rdkit.Chem import AllChem
 
 
 class SDFReader:
@@ -12,7 +13,7 @@ class SDFReader:
         """
         Read and return the content of an SDF file as a string.
         """
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             return file.read()
 
     def get_smiles_from_sdf(self, file_path: str) -> str:
@@ -38,7 +39,7 @@ class SDFWriter:
         """
         Write the given SDF content to a file.
         """
-        with open(file_path, 'w') as file:
+        with open(file_path, "w") as file:
             file.write(sdf_content)
 
 
@@ -50,7 +51,7 @@ def smiles_to_sdf_string(input_smiles: str) -> str:
             if molecule is not None:
                 AllChem.Compute2DCoords(molecule)
                 sdf_writer.write(molecule)
-        with open(temp_file_path, 'r') as file:
+        with open(temp_file_path, "r") as file:
             sdf_contents = file.read()
     finally:
         # Ensure the temporary file is removed

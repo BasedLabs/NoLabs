@@ -13,19 +13,21 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set, Union
 
 from pydantic import BaseModel, ConfigDict, StrictFloat, StrictInt
-from typing import Any, ClassVar, Dict, List, Union
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class EmbedResponse(BaseModel):
     """
     EmbedResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     embeddings: List[List[Union[StrictFloat, StrictInt]]]
     __properties: ClassVar[List[str]] = ["embeddings"]
 
@@ -34,7 +36,6 @@ class EmbedResponse(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -60,8 +61,7 @@ class EmbedResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -79,9 +79,5 @@ class EmbedResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "embeddings": obj.get("embeddings")
-        })
+        _obj = cls.model_validate({"embeddings": obj.get("embeddings")})
         return _obj
-
-

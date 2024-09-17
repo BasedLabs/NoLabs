@@ -1,7 +1,7 @@
 services:
   prefect-server:
     image: 'prefecthq/prefect:3-python3.12-kubernetes'
-    command: prefect server start --host=localhost --port=4500 --no-ui
+    command: prefect server start
     env_file:
       - path: nolabs/infrastructure/.env
         required: true
@@ -48,7 +48,6 @@ services:
     build:
       context: nolabs/microservices/esmfold_light
       dockerfile: build/Dockerfile
-    command: celery
     env_file:
       - nolabs/microservices/esmfold_light/service/.env
   solubility:
@@ -108,12 +107,12 @@ services:
               count: 1
               capabilities: [ gpu ]
   diffdock:
-    image: 'ghcr.io/basedlabs/diffdock:1.0.1'
+    image: 'ghcr.io/basedlabs/diffdock:2.0.1'
     network_mode: host
     build:
-      context: microservices/diffdock
+      context: nolabs/microservices/diffdock
       dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5737
+    command: python api.py
     deploy:
       resources:
         reservations:
@@ -121,6 +120,10 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+    env_file:
+      - nolabs/microservices/diffdock/service/.env
+    volumes:
+      - /tmp/diffdock-weights:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
   p2rank:
     image: 'ghcr.io/basedlabs/p2rank:1.0.0'
     network_mode: host

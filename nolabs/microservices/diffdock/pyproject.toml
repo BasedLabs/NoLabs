@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "Diffdock"
+version = "1.0.0"
+description = ""
+authors = ["JaktensTid <jaktenstid1@gmail.com>","Timur Ishmuratov <ishmuratov7timur7@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8,<3.11"
+pydantic = "^2.8.2"
+fastapi = "^0.112.2"
+requests = "^2.32.3"
+pydantic-settings = "^2.4.0"
+uvicorn = "^0.30.6"
+python-dotenv = "^1.0.1"
+celery = {extras = ["redis"], version = "^5.4.0"}
+pyg = "0.7.1"
+pyyaml = "6.0"
+scipy = "1.7.3"
+networkx = "2.6.3"
+biopython = "1.79"
+rdkit-pypi = "2022.03.5"
+e3nn = "0.5.0"
+spyrmsd = "0.5.2"
+pandas = "1.5.3"
+biopandas = "0.4.1"
+torch-geometric = { git = "https://github.com/pyg-team/pytorch_geometric.git" }
+torch-scatter = {version = "^2.0.9", source = "torch-gpu"}
+torch-sparse = {version = "^0.6.15", source = "torch-gpu"}
+torch-cluster = {version = "^1.6.0", source = "torch-gpu"}
+torch-spline-conv = {version = "^1.2.1", source = "torch-gpu"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[[tool.poetry.source]]
+name = "torch-gpu"
+url = "https://data.pyg.org/whl/torch-1.11.0+cu113.html"
+priority = "supplemental"

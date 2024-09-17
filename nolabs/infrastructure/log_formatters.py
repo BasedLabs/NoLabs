@@ -3,7 +3,7 @@ import json
 import logging.handlers
 import traceback
 from types import TracebackType
-from typing import Optional, Union, Type, Tuple
+from typing import Optional, Tuple, Type, Union
 
 from infrastructure.settings import settings
 
@@ -38,10 +38,10 @@ class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         record_dict = record.__dict__.copy()
 
-        record_dict['timestamp'] = (
-                datetime.datetime.utcnow().isoformat(timespec='milliseconds') + 'Z'
+        record_dict["timestamp"] = (
+            datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
         )
-        record_dict['env'] = settings.environment
+        record_dict["env"] = settings.environment
 
         # GCP severity detection compatibility
         record_dict.setdefault("severity", record.levelname)

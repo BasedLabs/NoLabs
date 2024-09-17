@@ -18,23 +18,23 @@ __version__ = "1.0.0"
 
 # import apis into sdk package
 from rosettafold_microservice.api.default_api import DefaultApi
-
+from rosettafold_microservice.api_client import ApiClient
 # import ApiClient
 from rosettafold_microservice.api_response import ApiResponse
-from rosettafold_microservice.api_client import ApiClient
 from rosettafold_microservice.configuration import Configuration
-from rosettafold_microservice.exceptions import OpenApiException
-from rosettafold_microservice.exceptions import ApiTypeError
-from rosettafold_microservice.exceptions import ApiValueError
-from rosettafold_microservice.exceptions import ApiKeyError
-from rosettafold_microservice.exceptions import ApiAttributeError
-from rosettafold_microservice.exceptions import ApiException
-
+from rosettafold_microservice.exceptions import (ApiAttributeError,
+                                                 ApiException, ApiKeyError,
+                                                 ApiTypeError, ApiValueError,
+                                                 OpenApiException)
 # import models into sdk package
-from rosettafold_microservice.models.http_validation_error import HTTPValidationError
-from rosettafold_microservice.models.is_job_running_response import IsJobRunningResponse
+from rosettafold_microservice.models.http_validation_error import \
+    HTTPValidationError
+from rosettafold_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
 from rosettafold_microservice.models.job_id import JobId
 from rosettafold_microservice.models.pdb_content import PdbContent
-from rosettafold_microservice.models.run_rosetta_fold_response import RunRosettaFoldResponse
+from rosettafold_microservice.models.run_rosetta_fold_response import \
+    RunRosettaFoldResponse
 from rosettafold_microservice.models.validation_error import ValidationError
-from rosettafold_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from rosettafold_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

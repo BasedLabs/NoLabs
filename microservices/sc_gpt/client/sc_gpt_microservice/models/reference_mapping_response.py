@@ -13,32 +13,39 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set, Union
 
 from pydantic import BaseModel, ConfigDict, StrictFloat, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional, Union
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class ReferenceMappingResponse(BaseModel):
     """
     ReferenceMappingResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     predictions: List[StrictStr]
     accuracy: Optional[Union[StrictFloat, StrictInt]]
     precision: Optional[Union[StrictFloat, StrictInt]]
     recall: Optional[Union[StrictFloat, StrictInt]]
     macro_f1: Optional[Union[StrictFloat, StrictInt]]
-    __properties: ClassVar[List[str]] = ["predictions", "accuracy", "precision", "recall", "macro_f1"]
+    __properties: ClassVar[List[str]] = [
+        "predictions",
+        "accuracy",
+        "precision",
+        "recall",
+        "macro_f1",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -64,8 +71,7 @@ class ReferenceMappingResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -75,22 +81,22 @@ class ReferenceMappingResponse(BaseModel):
         # set to None if accuracy (nullable) is None
         # and model_fields_set contains the field
         if self.accuracy is None and "accuracy" in self.model_fields_set:
-            _dict['accuracy'] = None
+            _dict["accuracy"] = None
 
         # set to None if precision (nullable) is None
         # and model_fields_set contains the field
         if self.precision is None and "precision" in self.model_fields_set:
-            _dict['precision'] = None
+            _dict["precision"] = None
 
         # set to None if recall (nullable) is None
         # and model_fields_set contains the field
         if self.recall is None and "recall" in self.model_fields_set:
-            _dict['recall'] = None
+            _dict["recall"] = None
 
         # set to None if macro_f1 (nullable) is None
         # and model_fields_set contains the field
         if self.macro_f1 is None and "macro_f1" in self.model_fields_set:
-            _dict['macro_f1'] = None
+            _dict["macro_f1"] = None
 
         return _dict
 
@@ -103,13 +109,13 @@ class ReferenceMappingResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "predictions": obj.get("predictions"),
-            "accuracy": obj.get("accuracy"),
-            "precision": obj.get("precision"),
-            "recall": obj.get("recall"),
-            "macro_f1": obj.get("macro_f1")
-        })
+        _obj = cls.model_validate(
+            {
+                "predictions": obj.get("predictions"),
+                "accuracy": obj.get("accuracy"),
+                "precision": obj.get("precision"),
+                "recall": obj.get("recall"),
+                "macro_f1": obj.get("macro_f1"),
+            }
+        )
         return _obj
-
-

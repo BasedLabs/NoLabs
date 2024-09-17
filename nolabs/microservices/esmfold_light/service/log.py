@@ -1,11 +1,11 @@
 import datetime
 import json
+import logging.config
 import logging.handlers
 import sys
 import traceback
 from types import TracebackType
-import logging.config
-from typing import Optional, Union, Type, Tuple
+from typing import Optional, Tuple, Type, Union
 
 from settings import settings
 
@@ -40,10 +40,10 @@ class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         record_dict = record.__dict__.copy()
 
-        record_dict['timestamp'] = (
-                datetime.datetime.utcnow().isoformat(timespec='milliseconds') + 'Z'
+        record_dict["timestamp"] = (
+            datetime.datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
         )
-        record_dict['env'] = settings.environment
+        record_dict["env"] = settings.environment
 
         # GCP severity detection compatibility
         record_dict.setdefault("severity", record.levelname)
@@ -57,28 +57,25 @@ class JsonFormatter(logging.Formatter):
 
 
 LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': True,
-    'formatters': {
-        'standard': {
-            'format': '%(message)s',
-            'class': 'log.JsonFormatter'
+    "version": 1,
+    "disable_existing_loggers": True,
+    "formatters": {
+        "standard": {"format": "%(message)s", "class": "log.JsonFormatter"},
+    },
+    "handlers": {
+        "default": {
+            "level": settings.logging_level,
+            "formatter": "standard",
+            "class": "logging.StreamHandler",
         },
     },
-    'handlers': {
-        'default': {
-            'level': settings.logging_level,
-            'formatter': 'standard',
-            'class': 'logging.StreamHandler'
-        },
-    },
-    'loggers': {
-        '': {  # root logger
-            'handlers': ['default'],
-            'level': settings.logging_level,
-            'propagate': False
+    "loggers": {
+        "": {  # root logger
+            "handlers": ["default"],
+            "level": settings.logging_level,
+            "propagate": False,
         }
-    }
+    },
 }
 
 logging.config.dictConfig(LOGGING_CONFIG)
@@ -87,7 +84,7 @@ logger = logging.root
 
 
 def exceptions_hook(exctype, value, tb):
-    logger.error(''.join(traceback.format_exception(exctype, value, tb)))
+    logger.error("".join(traceback.format_exception(exctype, value, tb)))
 
 
 sys.excepthook = exceptions_hook
