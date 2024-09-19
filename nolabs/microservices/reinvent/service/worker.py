@@ -23,7 +23,7 @@ def run_reinforcement_learning(inp: Dict[str, Any]):
 
 
 @app.task(time_limit=3 * 24 * 60 * 60, name="reinvent.run_sampling")
-def run_reinforcement_learning(inp: Dict[str, Any]):
+def run_sampling(inp: Dict[str, Any]):
     import application
 
     reinvent = application.Reinvent()
@@ -41,4 +41,4 @@ def prepare_target(inp: Dict[str, Any]):
     reinvent = application.Reinvent()
     request = PreparePdbqtRequest(**inp)
     result = asyncio.run(reinvent.prepare_pdbqt(pdb=request.pdb))
-    return PreparePdbqtResponse(pdbqt=result)
+    return PreparePdbqtResponse(pdbqt=result[0], file_name=result[1])

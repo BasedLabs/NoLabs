@@ -1,11 +1,11 @@
 __all__ = ["SmallMoleculesDesignJob"]
 
 import datetime
-from typing import List
+from typing import List, Optional
 
 from domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, PULL, FloatField, IntField, ListField,
-                         ReferenceField)
+                         ReferenceField, StringField)
 
 from nolabs.domain.models.common import Job, JobInputError, Ligand, Protein
 
@@ -34,6 +34,8 @@ class SmallMoleculesDesignJob(Job):
     ligands: List[Ligand] = ListField(
         ReferenceField(Ligand, required=False, reverse_delete_rule=PULL)
     )
+
+    celery_task_id: Optional[str] = StringField()
 
     def change_sampling_size(self, sampling_size: int):
         if not sampling_size or sampling_size <= 0:
@@ -107,6 +109,9 @@ class SmallMoleculesDesignJob(Job):
             raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
         self.ligands = ligands
+
+    def set_task_id(self, task_id):
+        self.celery_task_id = task_id
 
     def _input_errors(self) -> List[JobInputError]:
         errors = []

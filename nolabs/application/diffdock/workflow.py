@@ -3,20 +3,17 @@ __all__ = ["DiffDockComponent"]
 import uuid
 from typing import Any, Dict, List, Type
 
-from application.workflow import ComponentFlow
-from application.workflow.component import TInput, TOutput
-from celery.result import AsyncResult
 from domain.exceptions import ErrorCodes, NoLabsException
-from infrastructure.celery_tasks import diffdock_inference
-from infrastructure.celery_worker import send_task, wait_async
+from infrastructure.cel import cel as celery
 from microservices.diffdock.service.api_models import (
     RunDiffDockPredictionRequest, RunDiffDockPredictionResponse)
 from prefect import State
 from prefect.client.schemas.objects import R
-from prefect.states import Completed, Failed
+from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
+from workflow import ComponentFlow
+from workflow.component import Component, TInput, TOutput
 
-from nolabs.application.workflow.component import Component
 from nolabs.domain.models.common import JobId, JobName, Ligand, Protein
 from nolabs.domain.models.diffdock import DiffDockBindingJob, DiffDockJobResult
 
@@ -87,13 +84,12 @@ class DiffdockComponentFlow(ComponentFlow):
         if input_errors:
             message = ", ".join(i.message for i in input_errors)
 
-            return Failed(message=message)
+            return Cancelled(message=message)
 
         request = RunDiffDockPredictionRequest(
             pdb_contents=job.protein.get_pdb(), sdf_contents=job.ligand.get_sdf()
         )
-        async_result: AsyncResult = send_task(name=diffdock_inference, payload=request)
-        job_result: Dict[str, Any] = await wait_async(async_result)
+        job_result: Dict[str, Any] = await celery.diffdock_inference(payload=request)
         job_result: RunDiffDockPredictionResponse = RunDiffDockPredictionResponse(
             **job_result
         )

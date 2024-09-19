@@ -184,8 +184,9 @@ services:
     image: 'ghcr.io/basedlabs/reinvent:1.0.1'
     network_mode: host
     build:
-      context: microservices/reinvent
+      context: nolabs/microservices/reinvent
       dockerfile: build/Dockerfile
+    command: python api.py
     command: --host=0.0.0.0 --port=5790
     deploy:
       resources:

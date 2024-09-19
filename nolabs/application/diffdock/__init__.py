@@ -1,0 +1,4 @@
+from application.diffdock.workflow import DiffDockComponent
+from workflow.component import ComponentTypeFactory
+
+ComponentTypeFactory.add_type(DiffDockComponent)

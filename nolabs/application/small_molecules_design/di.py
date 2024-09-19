@@ -1,84 +1,42 @@
-from typing import Annotated
-
-from fastapi import Depends
-from reinvent_microservice import ReinventApi
-
-from nolabs.application.use_cases.small_molecules_design.use_cases import (
+from nolabs.application.small_molecules_design.use_cases import (
     DeleteJobFeature, GetJobFeature, GetJobLogsFeature, GetJobSmilesFeature,
     GetJobStatusFeature, RunLearningStageJobFeature,
     RunSamplingStageJobFeature, SetupJobFeature, StopJobFeature)
-from nolabs.infrastructure.di import InfrastructureDependencies
 
 
 class SmallMoleculesDesignDependencies:
     @staticmethod
-    def delete_job(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> DeleteJobFeature:
-        return DeleteJobFeature(api=api)
+    def delete_job() -> DeleteJobFeature:
+        return DeleteJobFeature()
 
     @staticmethod
-    def get_job_status(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> GetJobStatusFeature:
-        return GetJobStatusFeature(api=api)
+    def get_job_status() -> GetJobStatusFeature:
+        return GetJobStatusFeature()
 
     @staticmethod
-    def get_job(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> GetJobFeature:
-        return GetJobFeature(api=api)
+    def get_job() -> GetJobFeature:
+        return GetJobFeature()
 
     @staticmethod
-    def get_job_logs(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> GetJobLogsFeature:
-        return GetJobLogsFeature(api=api)
+    def get_job_logs() -> GetJobLogsFeature:
+        return GetJobLogsFeature()
 
     @staticmethod
-    def get_job_smiles(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> GetJobSmilesFeature:
-        return GetJobSmilesFeature(api=api)
+    def get_job_smiles() -> GetJobSmilesFeature:
+        return GetJobSmilesFeature()
 
     @staticmethod
-    def setup_job(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> SetupJobFeature:
-        return SetupJobFeature(api=api)
+    def setup_job() -> SetupJobFeature:
+        return SetupJobFeature()
 
     @staticmethod
-    def run_learning(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> RunLearningStageJobFeature:
-        return RunLearningStageJobFeature(api=api)
+    def run_learning() -> RunLearningStageJobFeature:
+        return RunLearningStageJobFeature()
 
     @staticmethod
-    def run_sampling(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> RunSamplingStageJobFeature:
-        return RunSamplingStageJobFeature(api=api)
+    def run_sampling() -> RunSamplingStageJobFeature:
+        return RunSamplingStageJobFeature()
 
     @staticmethod
-    def stop_job(
-        api: Annotated[
-            ReinventApi, Depends(InfrastructureDependencies.reinvent_microservice)
-        ]
-    ) -> StopJobFeature:
-        return StopJobFeature(api=api)
+    def stop_job() -> StopJobFeature:
+        return StopJobFeature()

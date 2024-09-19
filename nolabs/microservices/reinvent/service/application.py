@@ -1,7 +1,7 @@
-import os
 import subprocess
 import sys
 import uuid
+from typing import Tuple
 
 import log
 import toml
@@ -11,12 +11,10 @@ from settings import settings
 
 class Reinvent:
     def __init__(self):
-        self.fs = DirectoryObject(
-            os.path.join(settings.CONFIGS_DIRECTORY, "reinvent_configs")
-        )
+        self.fs = DirectoryObject(settings.CONFIGS_DIRECTORY)
         self.logger = log.logger
 
-    async def prepare_pdbqt(self, pdb: bytes) -> bytes:
+    async def prepare_pdbqt(self, pdb: bytes) -> Tuple[bytes, str]:
         self.logger.info("Preparing PDBQT")
         tmp = self.fs.add_directory("tmp")
         pdb_file = tmp.add_file(str(uuid.uuid4()) + ".pdb")
@@ -27,7 +25,7 @@ class Reinvent:
         )
         subprocess.run([prepare_pdbqt.full_path, pdb_file.full_path, pdbqt.full_path])
         self.logger.info("Done preparing PDBQT")
-        return pdbqt.read_bytes()
+        return (pdbqt.read_bytes(), pdbqt.name)
 
     def run_reinforcement_learning(self, config_id: str):
         self.logger.info("Running reinforcement learning")

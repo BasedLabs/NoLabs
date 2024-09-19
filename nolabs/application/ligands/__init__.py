@@ -1,0 +1,4 @@
+from application.ligands.workflow import LigandsComponent
+from workflow.component import ComponentTypeFactory
+
+ComponentTypeFactory.add_type(LigandsComponent)

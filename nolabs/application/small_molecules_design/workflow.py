@@ -1,19 +1,27 @@
 import asyncio
-import os
 import uuid
-from typing import List, Type
+from pathlib import Path
+from typing import List, Optional, Type
 
+from application.small_molecules_design.services import (
+    ReinventParametersSaver, ReinventSmilesRetriever)
 from domain.exceptions import ErrorCodes, NoLabsException
+from domain.models.common import Experiment
+from infrastructure.cel import cel as celery
+from infrastructure.settings import settings
+from microservices.reinvent.service.api_models import \
+    RunReinforcementLearningRequest
+from prefect import State
+from prefect.client.schemas.objects import R
+from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
+from workflow import ComponentFlow
+from workflow.component import Component
 
-from nolabs.application.use_cases.small_molecules_design.use_cases import (
-    GetJobSmilesFeature, GetJobStatusFeature, RunLearningStageJobFeature)
-from nolabs.application.workflow.component import Component, JobValidationError
 from nolabs.domain.models.common import (DesignedLigandScore,
                                          DrugLikenessScore, JobId, JobName,
                                          Ligand, LigandName, Protein)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
-from nolabs.infrastructure.di import InfrastructureDependencies
 
 
 class SmallMoleculesDesignLearningInput(BaseModel):
@@ -29,88 +37,13 @@ class SmallMoleculesDesignLearningOutput(BaseModel):
     protein_ligands_pairs: List[SmallMoleculesDesignLearningOutputItem]
 
 
-class SmallMoleculesDesignLearningComponent(
-    Component[SmallMoleculesDesignLearningInput, SmallMoleculesDesignLearningOutput]
-):
-    name = "Small molecules design"
+class SmallMoleculesDesignFlow(ComponentFlow):
+    async def get_jobs(self, inp: SmallMoleculesDesignLearningInput) -> List[uuid.UUID]:
+        experiment = Experiment.objects.with_id(self.experiment_id)
 
-    async def execute(self):
-        if await self.jobs_setup_errors():
-            raise NoLabsException(ErrorCodes.invalid_job_input, "Jobs are not valid")
+        job_ids = []
 
-        run_learning_job_feature = RunLearningStageJobFeature(
-            api=InfrastructureDependencies.reinvent_microservice()
-        )
-        get_smiles_feature = GetJobSmilesFeature(
-            api=InfrastructureDependencies.reinvent_microservice()
-        )
-        is_job_running_feature = GetJobStatusFeature(
-            api=InfrastructureDependencies.reinvent_microservice()
-        )
-
-        result = []
-
-        job: SmallMoleculesDesignJob
-        for job in self.jobs:
-            try:
-
-                await run_learning_job_feature.handle(job_id=job.id)
-
-                await asyncio.sleep(0.5)
-
-                running_status = await is_job_running_feature.handle(job_id=job.id)
-
-                while running_status.running:
-                    await asyncio.sleep(0.5)
-                    running_status = await is_job_running_feature.handle(job_id=job.id)
-
-                smiles = await get_smiles_feature.handle(job_id=job.id)
-
-                protein = job.protein
-
-                def normalize_floats(f: float) -> str:
-                    return str(f).replace(".", "dot")
-
-                for smi in smiles:
-                    name = (
-                        str(job.protein.name)
-                        + "-binder-drug-likeness-"
-                        + normalize_floats(smi.drug_likeness)
-                        + "-score-"
-                        + normalize_floats(smi.score)
-                        + "-stage-"
-                        + smi.stage
-                    )
-                    ligand = Ligand.create(
-                        experiment=job.experiment,
-                        name=LigandName(name),
-                        smiles_content=smi.smiles,
-                    )
-                    ligand.set_designed_ligand_score(DesignedLigandScore(smi.score))
-                    ligand.set_drug_likeness_score(DrugLikenessScore(smi.drug_likeness))
-                    ligand.save()
-                    ligand.add_binding(protein=protein, confidence=smi.score)
-
-                    job.ligands.append(ligand)
-
-                    await job.save()
-
-            finally:
-                job.finished()
-                await job.save()
-
-            result.append(
-                SmallMoleculesDesignLearningOutputItem(
-                    protein=job.protein.id, ligands=[l.id for l in job.ligands]
-                )
-            )
-
-        self.output = SmallMoleculesDesignLearningOutput(protein_ligands_pairs=result)
-
-    async def setup_jobs(self):
-        api = InfrastructureDependencies.reinvent_microservice()
-
-        for protein_id in self.input.proteins_with_pdb:
+        for protein_id in inp.proteins_with_pdb:
             protein = Protein.objects.with_id(protein_id)
 
             job_id = JobId(uuid.uuid4())
@@ -118,7 +51,7 @@ class SmallMoleculesDesignLearningComponent(
             job = SmallMoleculesDesignJob(
                 id=job_id,
                 name=JobName(f"Small molecules design for {protein.name}"),
-                experiment=self.experiment,
+                experiment=experiment,
             )
 
             if not protein.pdb_content:
@@ -143,48 +76,129 @@ class SmallMoleculesDesignLearningComponent(
                 throw=False,
             )
 
-            tmp_file_path = "tmp.pdb"
-            open(tmp_file_path, "wb").write(job.protein.pdb_content)
+            job_dir: Path = settings.reinvent_directory / str(job.id)
 
-            api.save_params_api_reinvent_config_id_params_post(
-                config_id=str(job.iid.value),
-                name=job.name.value,
-                pdb_file=os.path.abspath(tmp_file_path),
-                center_x=job.center_x,
-                center_y=job.center_y,
-                center_z=job.center_z,
-                size_x=job.size_x,
-                size_y=job.size_y,
-                size_z=job.size_z,
-                batch_size=job.batch_size,
-                minscore=job.minscore,
-                epochs=job.epochs,
+            tmp_file = job_dir / (str(job.id) + "tmp.pdb")
+            tmp_file.write_bytes(job.protein.pdb_content)
+
+            parameters_saver = ReinventParametersSaver()
+            await parameters_saver.save_params(
+                job_dir=job_dir, job=job, pdb=tmp_file.read_bytes()
             )
 
             job.change_sampling_size(5)
 
-            job.save(cascade=True)
+            await job.save(cascade=True)
 
-            self.jobs.append(job)
+            job_ids.append(job.id)
 
-    async def jobs_setup_errors(self) -> List[JobValidationError]:
-        jobs_errors = []
+        return job_ids
 
-        for job in self.jobs:
-            errors = job.input_errors()
-            if errors:
-                jobs_errors.append(
-                    JobValidationError(
-                        job_id=job.id, msg=", ".join([err.message for err in errors])
-                    )
+    async def job_task(self, job_id: uuid.UUID) -> State[R]:
+        job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
+
+        if not job:
+            return Cancelled(message="Job was not found")
+
+        input_errors = job.input_errors(throw=False)
+
+        if input_errors:
+            message = ", ".join(i.message for i in input_errors)
+            return Cancelled(message=message)
+
+        if not job.celery_task_id:
+            (res, task_id) = celery.reinvent_run_learning(
+                request=RunReinforcementLearningRequest(config_id=str(job_id)),
+                wait=False,
+            )
+            job.set_task_id(task_id=task_id)
+            await job.save()
+
+        if job.celery_task_id:
+            celery_task_id = job.celery_task_id
+            result = celery.task_result(celery_task_id)
+
+            while not result.failed() and not result.ready():
+                await asyncio.sleep(10.0)
+                result = celery.task_result(celery_task_id)
+
+            job.celery_task_id = None
+            await job.save()
+
+            if result.failed():
+                return Failed()
+
+        def normalize_floats(f: float) -> str:
+            return str(f).replace(".", "dot")
+
+        smiles_retriever = ReinventSmilesRetriever()
+
+        for smi in smiles_retriever.get_ligands(job.id):
+            name = (
+                str(job.protein.name)
+                + "-binder-drug-likeness-"
+                + normalize_floats(smi.drug_likeness)
+                + "-score-"
+                + normalize_floats(smi.score)
+                + "-stage-"
+                + smi.stage
+            )
+            ligand = Ligand.create(
+                experiment=job.experiment,
+                name=LigandName(name),
+                smiles_content=smi.smiles,
+            )
+            ligand.set_designed_ligand_score(DesignedLigandScore(smi.score))
+            ligand.set_drug_likeness_score(DrugLikenessScore(smi.drug_likeness))
+            ligand.save()
+            complex = ligand.add_binding(protein=job.protein, confidence=smi.score)
+            complex.save()
+
+            job.ligands.append(ligand)
+
+            await job.save()
+
+        return Completed()
+
+    async def post_execute(
+        self, inp: SmallMoleculesDesignLearningInput, job_ids: List[uuid.UUID]
+    ) -> Optional[SmallMoleculesDesignLearningOutput]:
+        protein_ligands_pairs = []
+
+        for job_id in job_ids:
+            job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(
+                job_id
+            )
+
+            if not job:
+                self.logger.warning("Could not find job", extra={"job_id": job.id})
+                continue
+
+            protein_ligands_pairs.append(
+                SmallMoleculesDesignLearningOutputItem(
+                    protein=job.protein.id,
+                    ligands=[l.id for l in job.ligands],
                 )
+            )
 
-        return jobs_errors
+        return SmallMoleculesDesignLearningOutput(
+            protein_ligands_pairs=protein_ligands_pairs
+        )
+
+
+class SmallMoleculesDesignLearningComponent(
+    Component[SmallMoleculesDesignLearningInput, SmallMoleculesDesignLearningOutput]
+):
+    name = "Small molecules design"
 
     @property
-    def _input_parameter_type(self) -> Type[SmallMoleculesDesignLearningInput]:
+    def component_flow_type(self) -> Type["ComponentFlow"]:
+        return SmallMoleculesDesignFlow
+
+    @property
+    def input_parameter_type(self) -> Type[SmallMoleculesDesignLearningInput]:
         return SmallMoleculesDesignLearningInput
 
     @property
-    def _output_parameter_type(self) -> Type[SmallMoleculesDesignLearningOutput]:
+    def output_parameter_type(self) -> Type[SmallMoleculesDesignLearningOutput]:
         return SmallMoleculesDesignLearningOutput

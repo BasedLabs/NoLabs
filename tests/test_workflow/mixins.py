@@ -2,9 +2,8 @@ import uuid
 from datetime import datetime
 from typing import List, Type
 
-from nolabs.application.workflow.component import (Component,
-                                                   JobValidationError, TInput,
-                                                   TOutput)
+from workflow.component import Component, JobValidationError, TInput, TOutput
+
 from nolabs.domain.models.common import (Experiment, ExperimentId,
                                          ExperimentName)
 

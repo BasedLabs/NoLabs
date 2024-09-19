@@ -3,17 +3,15 @@ from abc import ABC
 from typing import Any, Dict, List, Optional, Type
 
 from application.folding.api_models import FoldingBackendEnum
-from celery.result import AsyncResult
 from domain.exceptions import ErrorCodes, NoLabsException
-from prefect.states import Completed, Failed
+from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
+from workflow import ComponentFlow
+from workflow.component import Component, TInput, TOutput
 
-from nolabs.application.workflow import ComponentFlow
-from nolabs.application.workflow.component import Component, TInput, TOutput
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
-from nolabs.infrastructure.celery_tasks import esmfold_light_inference
-from nolabs.infrastructure.celery_worker import send_task, wait_async
+from nolabs.infrastructure.cel import cel as celery
 from nolabs.microservices.esmfold_light.service.api_models import (
     InferenceInput, InferenceOutput)
 
@@ -115,13 +113,11 @@ class FoldingComponentFlow(ComponentFlow):
         if input_errors:
             message = ", ".join(i.message for i in input_errors)
 
-            return Failed(message=message)
+            return Cancelled(message=message)
 
-        async_result: AsyncResult = send_task(
-            name=esmfold_light_inference,
-            payload=InferenceInput(fasta_sequence=job.protein.get_fasta()),
+        job_result: Dict[str, Any] = await celery.esmfold_light_inference(
+            payload=InferenceInput(fasta_sequence=job.protein.get_fasta())
         )
-        job_result: Dict[str, Any] = await wait_async(async_result)
         job_result: InferenceOutput = InferenceOutput(**job_result)
 
         protein = Protein.objects.with_id(job.protein.id)
