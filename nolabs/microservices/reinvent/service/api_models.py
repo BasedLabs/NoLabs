@@ -24,4 +24,5 @@ class PreparePdbqtRequest(BaseModel):
 
 
 class PreparePdbqtResponse(BaseModel):
+    file_name: str
     pdbqt: bytes

@@ -46,11 +46,7 @@ def map_job_to_response(job: SmallMoleculesDesignJob) -> JobResponse:
 
 
 class DeleteJobFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, job_id: UUID):
-        self._api.delete_api_reinvent_config_id_delete(config_id=job_id)
         job_id = JobId(job_id)
         job: Job = Job.objects.with_id(job_id.value)
         if not job:

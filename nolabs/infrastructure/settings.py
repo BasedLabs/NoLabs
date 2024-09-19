@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from infrastructure.environment import Environment
@@ -36,6 +37,8 @@ class Settings(BaseSettings):
     domain: str = "localhost"
     connection_string: str
     socketio_broker: str
+    home: Path
+    reinvent_directory: Path
     environment: Literal["local", "test", "production"] = "local"
     logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
 
@@ -51,3 +54,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()  # type: ignore
+
+if not Path(settings.home).exists():
+    raise RuntimeError(f"{settings.home} does not exist. Create it.")

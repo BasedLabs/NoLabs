@@ -10,12 +10,16 @@ __all__ = [
     "StopJobFeature",
 ]
 
-import os
+from pathlib import Path
 from typing import List
 from uuid import UUID
 
-import reinvent_microservice
+from application.small_molecules_design.services import ReinventParametersSaver
 from domain.exceptions import ErrorCodes, NoLabsException
+from infrastructure.cel import cel as celery
+from infrastructure.settings import settings
+from microservices.reinvent.service.api_models import (
+    RunReinforcementLearningRequest, RunSamplingRequest)
 
 from nolabs.application.use_cases.small_molecules_design.api_models import (
     GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
@@ -45,12 +49,12 @@ def map_job_to_response(job: SmallMoleculesDesignJob) -> JobResponse:
     )
 
 
-class DeleteJobFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
+reinvent_directory = settings.reinvent_directory
 
+
+class DeleteJobFeature:
     async def handle(self, job_id: UUID):
-        self._api.delete_api_reinvent_config_id_delete(config_id=job_id)
+        (reinvent_directory / str(job_id)).rmdir()
         job_id = JobId(job_id)
         job: Job = Job.objects.with_id(job_id.value)
         if not job:
@@ -59,39 +63,31 @@ class DeleteJobFeature:
 
 
 class GetJobStatusFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, job_id: UUID) -> GetJobStatusResponse:
-        if not SmallMoleculesDesignJob.objects(id=job_id):
+        job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
+
+        if not job:
             return GetJobStatusResponse(
                 running=False, sampling_allowed=False, result_valid=False
             )
 
-        job = SmallMoleculesDesignJob.objects.with_id(job_id)
+        chkpt_exists = (reinvent_directory / str(job_id) / "rl_direct.chkpt").exists()
 
-        config_result = self._api.get_config_api_reinvent_reinvent_config_id_get(
-            config_id=str(job_id)
-        )
+        celery_task_ready = False
+        celery_task_id = job.celery_task_id
 
-        if not config_result:
-            return GetJobStatusResponse(
-                running=False, sampling_allowed=False, result_valid=job.result_valid()
-            )
-
-        config = config_result.actual_instance
+        if celery_task_id:
+            task_result = celery.task_result(celery_task_id)
+            celery_task_ready = task_result.ready()
 
         return GetJobStatusResponse(
-            running=config.running,
-            sampling_allowed=config.sampling_allowed,
+            running=not celery_task_ready,
+            sampling_allowed=not chkpt_exists and not celery_task_ready,
             result_valid=job.result_valid(),
         )
 
 
 class GetJobFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, job_id: UUID) -> JobResponse:
         if not Job.objects(id=job_id):
             raise NoLabsException(ErrorCodes.job_not_found)
@@ -105,56 +101,46 @@ class GetJobFeature:
 
 
 class GetJobLogsFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, job_id: UUID) -> LogsResponse:
         if not Job.objects(id=job_id):
             return LogsResponse(output="", docking_output="", errors="")
 
-        response = self._api.logs_api_reinvent_config_id_logs_get(config_id=str(job_id))
-
-        if not response:
-            return LogsResponse(output="Empty", docking_output="Empty", errors="Empty")
-
-        instance = response.actual_instance
+        output = (reinvent_directory / str(job_id) / "output.log").read_text()
+        errors = (reinvent_directory / str(job_id) / "error.log").read_text()
+        docking_output = (reinvent_directory / str(job_id) / "docking.log").read_text()
 
         return LogsResponse(
-            output=instance.output,
-            docking_output=instance.docking_output,
-            errors=instance.errors,
+            output=output,
+            docking_output=docking_output,
+            errors=errors,
         )
 
 
 class GetJobSmilesFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, job_id: UUID) -> List[SmilesResponse]:
-        job = Job.objects.with_id(job_id)
+        job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
         if not job:
             return []
 
-        response = self._api.smiles_api_reinvent_config_id_smiles_get(
-            config_id=str(job_id)
-        )
+        ligands = job.ligands
 
-        return [
-            SmilesResponse(
-                smiles=s.smiles,
-                drug_likeness=s.drug_likeness,
-                score=s.score,
-                stage=s.stage,
-                created_at=job.created_at,
+        result = []
+
+        for ligand in ligands:
+            result.append(
+                SmilesResponse(
+                    smiles=ligand.get_smiles(),
+                    drug_likeness=ligand.drug_likeness.value,
+                    score=ligand.designed_ligand_score.value,
+                    created_at=ligand.created_at,
+                    stage=ligand.generated_stage,
+                )
             )
-            for s in response.smiles
-        ]
+
+        return result
 
 
 class SetupJobFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, request: SetupJobRequest) -> JobResponse:
         job_id = JobId(request.job_id if request.job_id else generate_uuid())
         job_name = JobName(
@@ -202,22 +188,14 @@ class SetupJobFeature:
             epochs=request.epochs,
         )
 
-        tmp_file_path = "tmp.pdb"
-        open(tmp_file_path, "wb").write(job.protein.pdb_content)
+        job_dir: Path = reinvent_directory / str(job.id)
 
-        self._api.save_params_api_reinvent_config_id_params_post(
-            config_id=str(job.iid.value),
-            name=job.name.value,
-            pdb_file=os.path.abspath(tmp_file_path),
-            center_x=request.center_x,
-            center_y=request.center_y,
-            center_z=request.center_z,
-            size_x=request.size_x,
-            size_y=request.size_y,
-            size_z=request.size_z,
-            batch_size=request.batch_size,
-            minscore=request.minscore,
-            epochs=request.epochs,
+        tmp_file = job_dir / (str(job.id) + "tmp.pdb")
+        tmp_file.write_bytes(job.protein.pdb_content)
+
+        parameters_saver = ReinventParametersSaver()
+        await parameters_saver.save_params(
+            job_dir=job_dir, job=job, pdb=tmp_file.read_bytes()
         )
 
         job.change_sampling_size(request.sampling_size)
@@ -228,9 +206,6 @@ class SetupJobFeature:
 
 
 class RunLearningStageJobFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, job_id: UUID):
         job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
 
@@ -238,9 +213,12 @@ class RunLearningStageJobFeature:
             raise NoLabsException(ErrorCodes.job_not_found)
 
         if not job.input_errors():
-            self._api.learning_api_reinvent_config_id_start_learning_post(
-                config_id=str(job_id)
+            (res, task_id) = celery.reinvent_run_learning(
+                request=RunReinforcementLearningRequest(config_id=str(job_id)),
+                wait=False,
             )
+            job.set_task_id(task_id=task_id)
+            await job.save()
             return
 
         input_error = job.input_errors()[0]
@@ -250,36 +228,45 @@ class RunLearningStageJobFeature:
 
 
 class RunSamplingStageJobFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, job_id: UUID):
         job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
 
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        config_result = self._api.get_config_api_reinvent_reinvent_config_id_get(
-            config_id=str(job_id)
-        )
+        chkpt_exists = (reinvent_directory / str(job_id) / "rl_direct.chkpt").exists()
 
-        if not config_result.actual_instance.sampling_allowed:
+        celery_task_ready = False
+        celery_task_id = job.celery_task_id
+
+        if celery_task_id:
+            task_result = celery.task_result(celery_task_id)
+            celery_task_ready = task_result.ready()
+
+        sampling_allowed = not chkpt_exists and not celery_task_ready
+
+        if not sampling_allowed:
             raise NoLabsException(
                 ErrorCodes.reinvent_cannot_run_sampling,
                 "Cannot run sampling because learning stage was not started first or sampling is already running",
             )
 
-        self._api.sampling_api_reinvent_config_id_start_sampling_post(
-            config_id=str(job_id),
-            sampling_size_request=reinvent_microservice.SamplingSizeRequest(
-                number_of_molecules_to_design=job.sampling_size
+        (res, task_id) = await celery.reinvent_run_sampling(
+            request=RunSamplingRequest(
+                config_id=str(job_id), number_of_molecules_to_generate=job.sampling_size
             ),
+            wait=False,
         )
+        job.set_task_id(task_id=task_id)
+        await job.save()
 
 
 class StopJobFeature:
-    def __init__(self, api: reinvent_microservice.ReinventApi):
-        self._api = api
-
     async def handle(self, job_id: UUID):
-        self._api.stop_api_reinvent_config_id_jobs_stop_post(config_id=str(job_id))
+        job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
+
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
+
+        if job.celery_task_id:
+            celery.cancel_task(job.celery_task_id)

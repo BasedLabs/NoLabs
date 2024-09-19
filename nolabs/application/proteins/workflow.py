@@ -2,10 +2,8 @@ import uuid
 from typing import List, Type
 
 from pydantic import BaseModel
-
-from nolabs.application.workflow import Component, ComponentFlow
-from nolabs.application.workflow.component import (ComponentTypeFactory,
-                                                   TInput, TOutput)
+from workflow import Component, ComponentFlow
+from workflow.component import TInput, TOutput
 
 
 class ProteinsComponentInput(BaseModel):
@@ -30,10 +28,10 @@ class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutpu
 
     @property
     def component_flow_type(self) -> Type["ComponentFlow"]:
-        return ProteinsTask
+        return ProteinsFlow
 
 
-class ProteinsTask(ComponentFlow):
+class ProteinsFlow(ComponentFlow):
     component_timeout_seconds = 1.0
 
     async def post_execute(self, inp: ProteinsComponentInput, **kwargs):

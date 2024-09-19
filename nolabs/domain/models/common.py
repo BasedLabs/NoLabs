@@ -13,6 +13,7 @@ __all__ = [
 ]
 
 import datetime
+import hashlib
 import io
 import uuid
 from abc import abstractmethod
@@ -505,13 +506,17 @@ class Ligand(Document, Entity):
     experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     name = ValueObjectStringField(required=False, factory=LigandName)
     smiles_content = BinaryField(required=False)
+    smiles_hash = StringField(required=False)
     sdf_content = BinaryField(required=False)
+    sdf_hash = BinaryField(required=False)
     drug_likeness = ValueObjectFloatField(required=False, factory=DrugLikenessScore)
     designed_ligand_score = ValueObjectFloatField(
         required=False, factory=DesignedLigandScore
     )
     link: LigandLink | None = StringField(required=False)  # New field for link
     image = BinaryField(required=False)  # New field for image
+    generated_stage = StringField()
+    created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
 
     def __hash__(self):
         return self.iid.__hash__()
@@ -525,6 +530,9 @@ class Ligand(Document, Entity):
     def iid(self) -> LigandId:
         return LigandId(self.id)
 
+    def set_generated_stage(self, stage: str):
+        self.generated_stage = stage
+
     def set_name(self, name: LigandName | None):
         self.name = name
 
@@ -535,6 +543,7 @@ class Ligand(Document, Entity):
         if isinstance(smiles_content, str):
             smiles_content = smiles_content.encode("utf-8")
 
+        self.smiles_hash = Ligand.calc_hash(smiles_content)
         self.smiles_content = smiles_content
         self.image = generate_png_from_smiles(self.smiles_content)
 
@@ -551,6 +560,8 @@ class Ligand(Document, Entity):
     def set_sdf(self, sdf: Union[str, bytes]):
         if isinstance(sdf, str):
             sdf = sdf.encode("utf-8")
+
+        self.sdf_hash = Ligand.calc_hash(sdf)
         self.sdf_content = sdf
         self._set_smiles_from_sdf(sdf)  # Set smiles from sdf
 
@@ -681,6 +692,14 @@ class Ligand(Document, Entity):
 
     def get_bindings(self) -> List["LigandBinder"]:
         return LigandBinder.objects(ligand=self)
+
+    @classmethod
+    def calc_hash(cls, s: bytes | str) -> str:
+        if isinstance(s, str):
+            s = s.encode("utf-8")
+
+        hash_size = 8 if len(s) > 32 else 32
+        return hashlib.shake_128(s).hexdigest(hash_size)  # 64 symbols
 
 
 @dataclass
