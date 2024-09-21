@@ -10,7 +10,7 @@ if mode == "celery":
     from worker import app
 
     logger.info("Starting celery")
-    app.worker_main(["worker", f"--concurrency={settings.celery_worker_concurrency}"])
+    app.worker_main(["worker", f"--concurrency={settings.celery_worker_concurrency}", "-E"])
 
 if mode == "fastapi":
     import uvicorn

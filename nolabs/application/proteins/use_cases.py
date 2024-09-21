@@ -10,7 +10,7 @@ import pathlib
 from typing import List, Optional
 from uuid import UUID
 
-from application.proteins.api_models import (ProteinContentResponse,
+from nolabs.application.proteins.api_models import (ProteinContentResponse,
                                              ProteinLocalisationResponse,
                                              ProteinMetadataResponse,
                                              ProteinSearchMetadataQuery,
@@ -213,11 +213,12 @@ class UploadProteinFeature:
             raise NoLabsException(ErrorCodes.fasta_file_is_invalid)
 
         name = request.name
-        if request.pdb:
-            name = name or request.pdb.filename
 
         if request.fasta:
-            name = name or request.fasta.filename
+            name = request.fasta.filename or name
+
+        if request.pdb:
+            name = request.pdb.filename or name
 
         protein_name = ProteinName(name)
 

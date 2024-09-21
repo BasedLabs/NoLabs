@@ -1,10 +1,10 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { nolabs__application__use_cases__folding__api_models__GetJobStatusResponse } from '../models/nolabs__application__use_cases__folding__api_models__GetJobStatusResponse';
-import type { nolabs__application__use_cases__folding__api_models__JobResponse } from '../models/nolabs__application__use_cases__folding__api_models__JobResponse';
-import type { nolabs__application__use_cases__folding__api_models__SetupJobRequest } from '../models/nolabs__application__use_cases__folding__api_models__SetupJobRequest';
+import type { application__folding__api_models__GetJobStatusResponse } from '../models/application__folding__api_models__GetJobStatusResponse';
+import type { application__folding__api_models__JobResponse } from '../models/application__folding__api_models__JobResponse';
+import type { application__folding__api_models__SetupJobRequest } from '../models/application__folding__api_models__SetupJobRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -12,12 +12,12 @@ export class FoldingService {
     /**
      * Start folding job
      * @param jobId
-     * @returns nolabs__application__use_cases__folding__api_models__JobResponse Successful Response
+     * @returns application__folding__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static startJobApiV1FoldingJobsRunJobIdPost(
         jobId: string,
-    ): CancelablePromise<nolabs__application__use_cases__folding__api_models__JobResponse> {
+    ): CancelablePromise<application__folding__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/folding/jobs/run/{job_id}',
@@ -32,12 +32,12 @@ export class FoldingService {
     /**
      * Get job
      * @param jobId
-     * @returns nolabs__application__use_cases__folding__api_models__JobResponse Successful Response
+     * @returns application__folding__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static getJobApiV1FoldingJobsJobIdGet(
         jobId: string,
-    ): CancelablePromise<nolabs__application__use_cases__folding__api_models__JobResponse> {
+    ): CancelablePromise<application__folding__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/folding/jobs/{job_id}',
@@ -52,12 +52,12 @@ export class FoldingService {
     /**
      * Get job execution status
      * @param jobId
-     * @returns nolabs__application__use_cases__folding__api_models__GetJobStatusResponse Successful Response
+     * @returns application__folding__api_models__GetJobStatusResponse Successful Response
      * @throws ApiError
      */
     public static getJobStatusApiV1FoldingJobsJobIdStatusGet(
         jobId: string,
-    ): CancelablePromise<nolabs__application__use_cases__folding__api_models__GetJobStatusResponse> {
+    ): CancelablePromise<application__folding__api_models__GetJobStatusResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/folding/jobs/{job_id}/status',
@@ -72,12 +72,12 @@ export class FoldingService {
     /**
      * Setup job
      * @param requestBody
-     * @returns nolabs__application__use_cases__folding__api_models__JobResponse Successful Response
+     * @returns application__folding__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static setupJobApiV1FoldingJobsPost(
-        requestBody: nolabs__application__use_cases__folding__api_models__SetupJobRequest,
-    ): CancelablePromise<nolabs__application__use_cases__folding__api_models__JobResponse> {
+        requestBody: application__folding__api_models__SetupJobRequest,
+    ): CancelablePromise<application__folding__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/folding/jobs',

@@ -5,15 +5,15 @@ __all__ = [
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from application.proteins.api_models import (ProteinContentResponse,
+from nolabs.application.proteins.api_models import (ProteinContentResponse,
                                              ProteinMetadataResponse,
                                              ProteinSearchMetadataQuery,
                                              ProteinSearchQuery,
                                              UpdateProteinRequest,
                                              UploadProteinRequest,
                                              UploadProteinResponse)
-from application.proteins.di import ProteinsControllerDependencies
-from application.proteins.use_cases import (DeleteProteinFeature,
+from nolabs.application.proteins.di import ProteinsControllerDependencies
+from nolabs.application.proteins.use_cases import (DeleteProteinFeature,
                                             GetProteinFeature,
                                             GetProteinMetadataFeature,
                                             SearchProteinsContentFeature,

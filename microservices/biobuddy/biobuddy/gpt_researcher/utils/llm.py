@@ -8,8 +8,8 @@ from colorama import Fore, Style
 from fastapi import WebSocket
 from langchain.adapters import openai as lc_openai
 
-from ..master.prompts import auto_agent_instructions
 from ...api_models import SendMessageToBioBuddyResponse
+from ..master.prompts import auto_agent_instructions
 
 
 async def create_chat_completion(
@@ -92,7 +92,9 @@ async def stream_response(
             paragraph += content
             if "\n" in paragraph:
                 if websocket is not None:
-                    message = SendMessageToBioBuddyResponse(reply_type="stream", content=paragraph)
+                    message = SendMessageToBioBuddyResponse(
+                        reply_type="stream", content=paragraph
+                    )
                     await websocket.send_text(json.dumps(message.to_dict()))
                 else:
                     print(f"{Fore.GREEN}{paragraph}{Style.RESET_ALL}")

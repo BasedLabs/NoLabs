@@ -56,10 +56,16 @@ class GetJobsMetadataFeature:
 
 class GetJobMetadataFeature:
     async def handle(self, job_id: UUID) -> GetJobMetadataResponse:
-        if not job_id:
-            raise NoLabsException(ErrorCodes.job_not_found)
+        try:
+            if not job_id:
+                raise NoLabsException(ErrorCodes.job_not_found)
 
-        job: Job = Job.objects.with_id(job_id)
-        return GetJobMetadataResponse(
-            job_id=job.id, job_name=str(job.name), type=str(type(job))
-        )
+            job: Job = Job.objects.with_id(job_id)
+            return GetJobMetadataResponse(
+                job_id=job.id, job_name=str(job.name), type=str(type(job))
+            )
+        except Exception as e:
+            if isinstance(e, NoLabsException):
+                raise e
+
+            raise NoLabsException(ErrorCodes.unknown_exception) from e

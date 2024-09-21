@@ -1,14 +1,22 @@
 import uuid
-from typing import List, Type
+from typing import List, Optional, Type
 
+from prefect import State
+from prefect.client.schemas.objects import R
+from prefect.states import Completed
 from pydantic import BaseModel
 
 from nolabs.application.use_cases.blast.api_models import SetupJobRequest
-from nolabs.application.use_cases.blast.use_cases import SetupJobFeature, RunJobFeature, GetJobFeature
-from nolabs.domain.models.common import Protein
+from nolabs.application.use_cases.blast.services import BlastJobRunner
+from nolabs.application.use_cases.blast.use_cases import (GetJobFeature,
+                                                          RunJobFeature,
+                                                          SetupJobFeature)
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.blast import BlastJob
+from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
+from nolabs.workflow import ComponentFlow
+from nolabs.workflow.component import Component
 
 
 class BlastComponentInput(BaseModel):
@@ -19,77 +27,83 @@ class BlastComponentInput(BaseModel):
     expect: int = 10
 
 
-
 class BlastComponentOutput(BaseModel):
     hits: List[str]
 
 
 class BlastComponent(Component[BlastComponentInput, BlastComponentOutput]):
-    name = 'Blast'
-    description = 'Finds similar sequences for proteins and nucleotides.'
-
-    async def execute(self):
-        run_job_feature = RunJobFeature(blast=InfrastructureDependencies.blast_query_microservice())
-        get_job_feature = GetJobFeature()
-
-        for job in self.jobs:
-            await run_job_feature.handle(job_id=job.id)
-
-        items: List[str] = []
-
-        for job in self.jobs:
-            get_result = await get_job_feature.handle(job_id=job.id)
-
-            for result in get_result.result:
-                for hit in result.hits:
-                    items.append(
-                        hit.id
-                    )
-
-        self.output = BlastComponentOutput(
-            hits=items
-        )
-
-    async def setup_jobs(self):
-        setup_job_feature = SetupJobFeature()
-
-        self.jobs = []
-
-        for protein_id in self.input.proteins_with_fasta:
-            protein: Protein = Protein.objects.with_id(protein_id)
-
-            result = await setup_job_feature.handle(request=SetupJobRequest(
-                experiment_id=self.experiment.id,
-                protein_id=protein.iid.value,
-                descriptions=self.input.descriptions,
-                alignments=self.input.alignments,
-                hitlist_size=self.input.hitlist_size,
-                expect=self.input.expect,
-                job_id=None,
-                job_name=f'Blast {protein.name.fasta_name}'
-            ))
-
-            self.jobs.append(BlastJob.objects.with_id(result.job_id))
-
-    async def jobs_setup_errors(self) -> List[JobValidationError]:
-        jobs_errors = []
-
-        for job in self.jobs:
-            errors = job.input_errors()
-            if errors:
-                jobs_errors.append(
-                    JobValidationError(
-                        job_id=job.id,
-                        msg=', '.join([err.message for err in errors])
-                    )
-                )
-
-        return jobs_errors
+    name = "Blast"
+    description = "Finds similar sequences for proteins and nucleotides."
 
     @property
-    def _input_parameter_type(self) -> Type[BlastComponentInput]:
+    def component_flow_type(self) -> Type["ComponentFlow"]:
+        return BlastFlow
+
+    @property
+    def input_parameter_type(self) -> Type[BlastComponentInput]:
         return BlastComponentInput
 
     @property
-    def _output_parameter_type(self) -> Type[BlastComponentOutput]:
+    def output_parameter_type(self) -> Type[BlastComponentOutput]:
         return BlastComponentOutput
+
+
+class BlastFlow(ComponentFlow):
+    async def get_jobs(self, inp: BlastComponentInput) -> List[uuid.UUID]:
+        experiment = Experiment.objects.with_id(self.experiment_id)
+
+        if not experiment:
+            raise NoLabsException(ErrorCodes.experiment_not_found)
+
+        job_ids = []
+
+        for protein_id in inp.proteins_with_fasta:
+            job = BlastJob(
+                id=JobId(uuid.uuid4()),
+                name=JobName("New BLAST job"),
+                experiment=experiment,
+            )
+
+            protein = Protein.objects.with_id(protein_id)
+
+            if not protein:
+                raise NoLabsException(ErrorCodes.protein_not_found)
+
+            job.set_input(
+                protein=protein,
+                job_type="blastp",
+                descriptions=inp.descriptions,
+                alignments=inp.alignments,
+                hitlist_size=inp.hitlist_size,
+                expect=inp.expect,
+            )
+
+            await job.save(cascade=True)
+
+            job_ids.append(job.id)
+
+        return job_ids
+
+    async def job_task(self, job_id: uuid.UUID) -> State[R]:
+        job: BlastJob = BlastJob.objects.with_id(job_id)
+
+        if not job:
+            raise NoLabsException(ErrorCodes.job_not_found)
+
+        job_runner = BlastJobRunner()
+        await job_runner.run(job=job)
+
+        return Completed()
+
+    async def gather_jobs(
+        self, inp: BlastComponentInput, job_ids: List[uuid.UUID]
+    ) -> Optional[BlastComponentOutput]:
+        result = []
+
+        for job_id in job_ids:
+            job: BlastJob = BlastJob.objects.with_id(job_id)
+            for res in job.result:
+                for hit in res.hits:
+                    result.append(hit.id)
+
+        return BlastComponentOutput(hits=result)

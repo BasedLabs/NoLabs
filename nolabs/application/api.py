@@ -1,20 +1,21 @@
+import uvicorn
 from dotenv import load_dotenv
 
 load_dotenv("infrastructure/.env")
 
+from nolabs.infrastructure.log import logger
+
 import socketio
-from application.diffdock.controller import router as diffdock_router
-from application.folding.controller import router as folding_router
-from application.ligands.controller import router as ligand_router
-from application.proteins.controller import router as proteins_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from infrastructure.log import logger
-from workflow import router as workflow_router
 
+from nolabs.application.diffdock.controller import router as diffdock_router
 from nolabs.application.event_handlers.di import EventHandlersDependencies
+from nolabs.application.folding.controller import router as folding_router
+from nolabs.application.ligands.controller import router as ligand_router
 from nolabs.application.middlewares.domain_exception_middleware import \
     add_domain_exception_middleware
+from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.application.use_cases.binding_pockets.controller import \
     router as binding_pockets_controller
 from nolabs.application.use_cases.biobuddy.controller import \
@@ -40,6 +41,7 @@ from nolabs.application.use_cases.solubility.controller import \
     router as solubility_router
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import settings
+from nolabs.workflow.api.controller import router as workflow_router
 
 app = FastAPI(title="NoLabs", version="2.1.7")
 
@@ -100,3 +102,5 @@ app.add_middleware(
 )
 
 logger.info("Go to /docs to see Swagger")
+
+uvicorn.run(app)

@@ -1,16 +1,15 @@
-__all__ = [
-    'BlastJob'
-]
+__all__ = ["BlastJob"]
 
 import datetime
 from typing import List
 from uuid import UUID
 
-from mongoengine import ReferenceField, EmbeddedDocument, FloatField, EmbeddedDocumentListField, \
-    UUIDField, CASCADE, IntField, StringField
+from domain.exceptions import ErrorCodes, NoLabsException
+from mongoengine import (CASCADE, EmbeddedDocument, EmbeddedDocumentListField,
+                         FloatField, IntField, ReferenceField, StringField,
+                         UUIDField)
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, Protein, JobInputError
+from nolabs.domain.models.common import Job, JobInputError, Protein
 
 
 class Hsp(EmbeddedDocument):
@@ -52,8 +51,15 @@ class BlastJobResult(EmbeddedDocument):
     hits = EmbeddedDocumentListField(Hit, required=True)
 
     @staticmethod
-    def create(protein_id: UUID, program: str, database: str, query_id: str, query_def: str, query_len: int,
-               hits: List[Hit]):
+    def create(
+        protein_id: UUID,
+        program: str,
+        database: str,
+        query_id: str,
+        query_def: str,
+        query_len: int,
+        hits: List[Hit],
+    ):
         return BlastJobResult(
             protein_id=protein_id,
             program=program,
@@ -61,14 +67,16 @@ class BlastJobResult(EmbeddedDocument):
             query_id=query_id,
             query_def=query_def,
             query_len=query_len,
-            hits=hits
+            hits=hits,
         )
 
 
 class BlastJob(Job):
     # region Inputs
 
-    protein: Protein = ReferenceField(Protein, reverse_delete_rule=CASCADE, required=True)
+    protein: Protein = ReferenceField(
+        Protein, reverse_delete_rule=CASCADE, required=True
+    )
     job_type = StringField(required=True)
     descriptions = IntField(default=10)
     alignments = IntField(default=10)
@@ -79,13 +87,15 @@ class BlastJob(Job):
 
     result: List[BlastJobResult] = EmbeddedDocumentListField(BlastJobResult)
 
-    def set_input(self,
-                  protein: Protein,
-                  job_type: str,
-                  descriptions: int = 10,
-                  alignments: int = 10,
-                  hitlist_size: int = 10,
-                  expect: float = 10.0):
+    def set_input(
+        self,
+        protein: Protein,
+        job_type: str,
+        descriptions: int = 10,
+        alignments: int = 10,
+        hitlist_size: int = 10,
+        expect: float = 10.0,
+    ):
         self.result = []
 
         self.protein = protein
@@ -103,15 +113,18 @@ class BlastJob(Job):
         return bool(self.result)
 
     def input_valid(self) -> bool:
-        #TODO: add more blast jobs types when DNA is introduced, move to enums then
+        # TODO: add more blast jobs types when DNA is introduced, move to enums then
         return bool(self.protein and self.job_type and (self.job_type in ["blastp"]))
 
     def set_result(self, result: List[BlastJobResult]):
         if not self.protein:
-            raise NoLabsException(ErrorCodes.invalid_job_input, 'Cannot set a result on a job without inputs')
+            raise NoLabsException(
+                ErrorCodes.invalid_job_input,
+                "Cannot set a result on a job without inputs",
+            )
 
         if not result:
-            raise NoLabsException(ErrorCodes.invalid_job_result, 'Result is empty')
+            raise NoLabsException(ErrorCodes.invalid_job_result, "Result is empty")
 
         self.result = result
 
@@ -121,62 +134,25 @@ class BlastJob(Job):
         if not self.protein:
             errors.append(
                 JobInputError(
-                    message='Protein is undefined',
-                    error_code=ErrorCodes.invalid_job_input
+                    message="Protein is undefined",
+                    error_code=ErrorCodes.invalid_job_input,
                 )
             )
 
         if self.protein and not self.protein.fasta_content:
             errors.append(
                 JobInputError(
-                    message='Protein fasta content is undefined',
-                    error_code=ErrorCodes.invalid_job_input
+                    message="Protein fasta content is undefined",
+                    error_code=ErrorCodes.invalid_job_input,
                 )
             )
 
         if not self.job_type:
             errors.append(
                 JobInputError(
-                    message='BLAST type is undefined',
-                    error_code=ErrorCodes.invalid_job_input
+                    message="BLAST type is undefined",
+                    error_code=ErrorCodes.invalid_job_input,
                 )
             )
 
         return errors
-
-
-# Function to create hits and hsps from BLAST output
-def create_hits_and_hsps(blast_output: dict) -> List[Hit]:
-    hits = []
-    iteration_hits = blast_output['BlastOutput']['BlastOutput_iterations']['Iteration']['Iteration_hits']['Hit']
-    for hit in iteration_hits:
-        hsps = []
-        for hsp in hit['Hit_hsps']['Hsp']:
-            hsps.append(Hsp(
-                num=hsp['Hsp_num'],
-                bit_score=hsp['Hsp_bit-score'],
-                score=hsp['Hsp_score'],
-                evalue=hsp['Hsp_evalue'],
-                query_from=hsp['Hsp_query-from'],
-                query_to=hsp['Hsp_query-to'],
-                hit_from=hsp['Hsp_hit-from'],
-                hit_to=hsp['Hsp_hit-to'],
-                query_frame=hsp['Hsp_query-frame'],
-                hit_frame=hsp['Hsp_hit-frame'],
-                identity=hsp['Hsp_identity'],
-                positive=hsp['Hsp_positive'],
-                gaps=hsp['Hsp_gaps'],
-                align_len=hsp['Hsp_align-len'],
-                qseq=hsp['Hsp_qseq'],
-                hseq=hsp['Hsp_hseq'],
-                midline=hsp['Hsp_midline']
-            ))
-        hits.append(Hit(
-            num=hit['Hit_num'],
-            id=hit['Hit_id'],
-            definition=hit['Hit_def'],
-            accession=hit['Hit_accession'],
-            length=hit['Hit_len'],
-            hsps=hsps
-        ))
-    return hits

@@ -4,11 +4,11 @@ from collections import defaultdict, deque
 from typing import Dict, List, Set
 from uuid import UUID
 
-from infrastructure.settings import settings
+from nolabs.infrastructure.settings import settings
 from prefect import State, flow
 from prefect.client.schemas import FlowRun
-from workflow.component import Component
-from workflow.data import WorkflowData
+from nolabs.workflow.component import Component
+from nolabs.workflow.data import WorkflowData
 
 from nolabs.infrastructure.environment import Environment
 

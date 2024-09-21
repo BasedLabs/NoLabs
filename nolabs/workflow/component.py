@@ -10,10 +10,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationError, parse_obj_as
 from pydantic.dataclasses import dataclass
-from workflow.data import ComponentData, PropertyErrorData
+from nolabs.workflow.data import ComponentData, PropertyErrorData
 
 if TYPE_CHECKING:
-    from workflow.tasks import ComponentFlow
+    from nolabs.workflow.tasks import ComponentFlow
 
 
 def is_assignable_to_generic(value, generic_type):

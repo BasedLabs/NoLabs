@@ -1,13 +1,7 @@
-__all__ = [
-    'JobResult',
-    'JobResponse',
-    'RunJobRequest',
-    'GetJobStatusResponse'
-]
+__all__ = ["JobResult", "JobResponse", "RunJobRequest", "GetJobStatusResponse"]
 
 
-from enum import Enum
-from typing import List, Any, Optional
+from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, model_validator

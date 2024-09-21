@@ -150,14 +150,20 @@ class ErrorCodes(Enum):
     reinvent_cannot_run_sampling = ErrorCode(code=75, description="Cannot run sampling")
     folding_run_error = ErrorCode(code=76, description="Folding run error")
     workflow_not_found = ErrorCode(code=77, description="Workflow not found")
-    same_component_already_registered = ErrorCode(code=78, description="Same component was already registered")
-    component_has_unmapped_properties = ErrorCode(code=79, description='Component has unmapped properties')
-    cannot_start_component = ErrorCode(code=80, description='Cannot start component')
-    invalid_workflow_schema = ErrorCode(code=81, description='Invalid workflow schema')
-    component_not_found = ErrorCode(code=82, description='Component not found')
-    component_input_invalid = ErrorCode(code=83, description='Component input is invalid')
-    flow_run_id_not_found = ErrorCode(code=84, description='Flow run id not found')
-    blast_api_error = ErrorCode(code=85, description="Blast microservice api error")
+    same_component_already_registered = ErrorCode(
+        code=78, description="Same component was already registered"
+    )
+    component_has_unmapped_properties = ErrorCode(
+        code=79, description="Component has unmapped properties"
+    )
+    cannot_start_component = ErrorCode(code=80, description="Cannot start component")
+    invalid_workflow_schema = ErrorCode(code=81, description="Invalid workflow schema")
+    component_not_found = ErrorCode(code=82, description="Component not found")
+    component_input_invalid = ErrorCode(
+        code=83, description="Component input is invalid"
+    )
+    flow_run_id_not_found = ErrorCode(code=84, description="Flow run id not found")
+    blast_api_error = ErrorCode(code=85, description="Blast api error")
 
     create_workflow_failed = ErrorCode(code=86, description="Create workflow failed")
     delete_workflow_failed = ErrorCode(code=87, description="Delete workflow failed")
@@ -179,6 +185,8 @@ class ErrorCodes(Enum):
     )
     get_job_state_failed = ErrorCode(code=94, description="Get job state failed")
     job_execution_failed = ErrorCode(code=95, description="Job execution failed")
+    get_job_metadata_failed = ErrorCode(code=96, description="Get job metadata failed")
+    job_run_not_found = ErrorCode(code=97, description="Job run not found")
 
 
 if len([e.value.code for e in ErrorCodes]) != len(
@@ -188,18 +196,20 @@ if len([e.value.code for e in ErrorCodes]) != len(
 
 
 class NoLabsException(Exception):
-    data: Dict[str, Any]
+    data: Dict[str, Any] = {}
+    message: str
 
-    def __init__(self, error_code: ErrorCodes, messages: str | List[str] | None = None):
+    def __init__(self, error_code: ErrorCodes, message: str | None = None, data: Dict[str, Any] | None = None):
         self.error_code = error_code.value.code
 
-        if messages:
-            if isinstance(messages, str):
-                self.messages = [messages]
-            else:
-                self.messages = messages
+        if message:
+            message = message
         else:
-            self.messages = [error_code.value.description]
+            message = error_code.value.description
 
-    def with_data(self, d: Dict[str, Any]):
-        self.data = d
+        self.message = message
+
+        if data is not None:
+            self.data = data
+
+        super(Exception, self).__init__(self.message)

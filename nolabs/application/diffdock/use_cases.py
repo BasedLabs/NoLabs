@@ -4,7 +4,7 @@ from typing import List
 from uuid import UUID
 
 import diffdock_microservice
-from application.diffdock.api_models import (GetJobStatusResponse, JobResponse,
+from nolabs.application.diffdock.api_models import (GetJobStatusResponse, JobResponse,
                                              JobResult, SetupJobRequest)
 from domain.exceptions import ErrorCodes, NoLabsException
 

@@ -19,4 +19,3 @@ COPY --from=requirements /app/requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 COPY service /app/service
 WORKDIR /app/service
-ENTRYPOINT ["python", "api.py"]

@@ -2,8 +2,8 @@ import uuid
 from typing import List, Optional, Type
 
 from pydantic import BaseModel
-from workflow import ComponentFlow
-from workflow.component import Component, TInput, TOutput
+from nolabs.workflow import ComponentFlow
+from nolabs.workflow.component import Component, TInput, TOutput
 
 
 class LigandsComponentInput(BaseModel):
@@ -32,7 +32,7 @@ class LigandsComponent(Component[LigandsComponentInput, LigandsComponentOutput])
 
 
 class LigandsFlow(ComponentFlow):
-    async def post_execute(
+    async def gather_jobs(
         self, inp: LigandsComponentInput, job_ids: List[uuid.UUID]
     ) -> Optional[TOutput]:
         return LigandsComponentOutput(ligands=inp.ligands)

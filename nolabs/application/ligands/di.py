@@ -1,4 +1,4 @@
-from application.ligands.use_cases import (DeleteLigandFeature,
+from nolabs.application.ligands.use_cases import (DeleteLigandFeature,
                                            GetLigandFeature,
                                            SearchLigandsContentFeature,
                                            SearchLigandsMetadataFeature,

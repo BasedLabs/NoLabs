@@ -4,9 +4,9 @@ from unittest import IsolatedAsyncioTestCase
 
 from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import create_model
-from workflow import (ComponentDbModel, DefaultWorkflowComponentModelValue,
+from nolabs.workflow import (ComponentDbModel, DefaultWorkflowComponentModelValue,
                       MappingModel, WorkflowComponentModel)
-from workflow.component import Component, JobValidationError, TInput, TOutput
+from nolabs.workflow.component import Component, JobValidationError, TInput, TOutput
 
 from nolabs.application.use_cases.workflow.use_cases import (
     CreateWorkflowSchemaFeature, StartWorkflowFeature,

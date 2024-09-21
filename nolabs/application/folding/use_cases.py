@@ -6,7 +6,7 @@ from uuid import UUID
 import esmfold_light_microservice
 import esmfold_microservice
 import rosettafold_microservice
-from application.folding.api_models import (GetJobStatusResponse, JobResponse,
+from nolabs.application.folding.api_models import (GetJobStatusResponse, JobResponse,
                                             JobResult, SetupJobRequest)
 from domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import Q

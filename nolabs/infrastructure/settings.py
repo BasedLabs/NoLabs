@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Literal
 
-from infrastructure.environment import Environment
+from nolabs.infrastructure.environment import Environment
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -34,20 +34,14 @@ class Settings(BaseSettings):
     redis_port: str
     celery_broker: str
     celery_backend: str
-    domain: str = "localhost"
     connection_string: str
     socketio_broker: str
+    enable_structured_logging: bool
     home: Path
     reinvent_directory: Path
+    blast_email: str
     environment: Literal["local", "test", "production"] = "local"
     logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def server_host(self) -> str:
-        if self.environment == "local":
-            return f"http://{self.domain}"
-        return f"https://{self.domain}"
 
     def get_environment(self) -> Environment:
         return Environment[self.environment.upper()]

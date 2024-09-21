@@ -5,10 +5,10 @@ __all__ = [
 from typing import Annotated
 from uuid import UUID
 
-from application.folding.api_models import (GetJobStatusResponse, JobResponse,
+from nolabs.application.folding.api_models import (GetJobStatusResponse, JobResponse,
                                             SetupJobRequest)
-from application.folding.di import FoldingDependencies
-from application.folding.use_cases import (GetJobFeature, GetJobStatusFeature,
+from nolabs.application.folding.di import FoldingDependencies
+from nolabs.application.folding.use_cases import (GetJobFeature, GetJobStatusFeature,
                                            RunJobFeature, SetupJobFeature)
 from fastapi import APIRouter, Depends
 

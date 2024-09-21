@@ -6,6 +6,8 @@ from mongoengine import (CASCADE, DateTimeField, DictField, Document,
                          EmbeddedDocument, EmbeddedDocumentListField, IntField,
                          ListField, ReferenceField, StringField, UUIDField)
 
+from nolabs.domain.models.common import Experiment
+
 if TYPE_CHECKING:
     pass
 
@@ -69,9 +71,7 @@ class ComponentData(Document):
 
 class ExperimentWorkflowRelation(Document):
     id: str = StringField(primary_key=True)
-    experiment = ReferenceField(
-        "Experiment", required=True, reverse_delete_rule=CASCADE
-    )
+    experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     workflow: WorkflowData = ReferenceField(
         WorkflowData, required=True, reverse_delete_rule=CASCADE
     )

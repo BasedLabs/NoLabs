@@ -14,10 +14,10 @@ from pathlib import Path
 from typing import List
 from uuid import UUID
 
-from application.small_molecules_design.services import ReinventParametersSaver
+from nolabs.application.small_molecules_design.services import ReinventParametersSaver
 from domain.exceptions import ErrorCodes, NoLabsException
-from infrastructure.cel import cel as celery
-from infrastructure.settings import settings
+from nolabs.infrastructure.cel import cel as celery
+from nolabs.infrastructure.settings import settings
 from microservices.reinvent.service.api_models import (
     RunReinforcementLearningRequest, RunSamplingRequest)
 

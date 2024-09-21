@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     celery_backend_url: str
     celery_enable_utc: bool
     celery_worker_concurrency: int
+    celery_worker_queue: str
     fastapi_host: str
     fastapi_port: int
     logging_level: Literal["DEBUG", "WARNING", "ERROR", "INFO"] = "INFO"

@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -13,8 +13,8 @@ export type GetComponentResponse = {
     previous_component_ids: Array<string>;
     input_errors: Array<PropertyErrorResponse>;
     output_errors: Array<PropertyErrorResponse>;
-    state: ComponentStateEnum;
-    state_message: string;
+    state: (ComponentStateEnum | null);
+    state_message: (string | null);
     job_ids: Array<string>;
 };
 

@@ -3,7 +3,7 @@ __all__ = ["restore_statuses"]
 from prefect import get_run_logger, task
 from prefect.client.orchestration import get_client
 from prefect.client.schemas import StateType
-from workflow.data import ComponentData, JobRunData
+from nolabs.workflow.data import ComponentData, JobRunData
 
 
 @task

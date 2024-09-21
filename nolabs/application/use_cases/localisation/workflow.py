@@ -2,7 +2,7 @@ import uuid
 from typing import List, Type
 
 from pydantic import BaseModel
-from workflow.component import Component, JobValidationError
+from nolabs.workflow.component import Component, JobValidationError
 
 from nolabs.application.use_cases.localisation.api_models import \
     SetupJobRequest

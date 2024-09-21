@@ -10,6 +10,7 @@ class JobStateEnum(str, Enum):
     RUNNING = "RUNNING"
     FAILED = "FAILED"
     COMPLETED = "COMPLETED"
+    UNKNOWN = "UNKNOWN"
 
 
 @dataclass
@@ -46,6 +47,7 @@ class ComponentStateEnum(str, Enum):
     RUNNING = "RUNNING"
     FAILED = "FAILED"
     COMPLETED = "COMPLETED"
+    UNKNOWN = "UNKNOWN"
 
 
 @dataclass

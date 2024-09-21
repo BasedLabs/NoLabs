@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from application.folding.use_cases import (GetJobFeature, GetJobStatusFeature,
+from nolabs.application.folding.use_cases import (GetJobFeature, GetJobStatusFeature,
                                            RunJobFeature, SetupJobFeature)
 from esmfold_microservice import DefaultApi
 from fastapi import Depends
