@@ -26,5 +26,6 @@ class SequenceQuery(BaseModel):
     expect: Optional[float] = 10.0
     job_id: Optional[str] = None
 
+
 class IsJobRunningResponse(BaseModel):
     is_running: bool

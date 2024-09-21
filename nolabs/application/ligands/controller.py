@@ -5,15 +5,15 @@ __all__ = [
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from application.ligands.api_models import (LigandContentResponse,
+from nolabs.application.ligands.api_models import (LigandContentResponse,
                                             LigandMetadataResponse,
                                             LigandSearchContentQuery,
                                             LigandSearchMetadataQuery,
                                             UpdateLigandRequest,
                                             UploadLigandRequest,
                                             UploadLigandResponse)
-from application.ligands.di import LigandsControllerDependencies
-from application.ligands.use_cases import (DeleteLigandFeature,
+from nolabs.application.ligands.di import LigandsControllerDependencies
+from nolabs.application.ligands.use_cases import (DeleteLigandFeature,
                                            GetLigandFeature,
                                            SearchLigandsContentFeature,
                                            SearchLigandsMetadataFeature,

@@ -3,7 +3,7 @@ from typing import List
 from unittest import IsolatedAsyncioTestCase
 
 from pydantic import BaseModel, create_model
-from workflow import (DefaultWorkflowComponentModelValue, MappingModel,
+from nolabs.workflow import (DefaultWorkflowComponentModelValue, MappingModel,
                       WorkflowComponentModel)
 
 from nolabs.application.use_cases.workflow.use_cases import (

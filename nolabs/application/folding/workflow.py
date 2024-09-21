@@ -2,12 +2,12 @@ import uuid
 from abc import ABC
 from typing import Any, Dict, List, Optional, Type
 
-from application.folding.api_models import FoldingBackendEnum
+from nolabs.application.folding.api_models import FoldingBackendEnum
 from domain.exceptions import ErrorCodes, NoLabsException
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
-from workflow import ComponentFlow
-from workflow.component import Component, TInput, TOutput
+from nolabs.workflow import ComponentFlow
+from nolabs.workflow.component import Component, TInput, TOutput
 
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
@@ -96,7 +96,7 @@ class FoldingComponentFlow(ComponentFlow):
 
         return [i for i in job_ids]
 
-    async def post_execute(self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]):
+    async def gather_jobs(self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]):
         items = []
 
         for job_id in job_ids:
@@ -115,10 +115,8 @@ class FoldingComponentFlow(ComponentFlow):
 
             return Cancelled(message=message)
 
-        job_result: Dict[str, Any] = await celery.esmfold_light_inference(
-            payload=InferenceInput(fasta_sequence=job.protein.get_fasta())
-        )
-        job_result: InferenceOutput = InferenceOutput(**job_result)
+        job_result = await celery.esmfold_light_inference(task_id=str(job.id),
+                                                    payload=InferenceInput(fasta_sequence=job.protein.get_fasta()))
 
         protein = Protein.objects.with_id(job.protein.id)
         protein.set_pdb(job_result.pdb_content)

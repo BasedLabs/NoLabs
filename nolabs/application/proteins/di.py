@@ -1,4 +1,4 @@
-from application.proteins.use_cases import (DeleteProteinFeature,
+from nolabs.application.proteins.use_cases import (DeleteProteinFeature,
                                             GetProteinFeature,
                                             GetProteinMetadataFeature,
                                             SearchProteinsContentFeature,

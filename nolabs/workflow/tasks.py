@@ -6,18 +6,21 @@ from abc import ABC
 from logging import Logger
 from typing import Generic, List, Optional
 
-from prefect import State, flow, get_run_logger, task
+from prefect import State, flow, task, get_run_logger
 from prefect.client.schemas.objects import FlowRun, R
 from prefect.context import get_run_context
 from prefect.states import Completed
-from workflow.api.socketio_events_emitter import (emit_component_jobs_event,
-                                                  emit_finish_component_event,
-                                                  emit_finish_job_event,
-                                                  emit_start_component_event,
-                                                  emit_start_job_event)
-from workflow.component import (Component, ComponentTypeFactory, Parameter,
-                                TInput, TOutput)
-from workflow.data import ComponentData, JobRunData
+
+from nolabs.domain.exceptions import ErrorCodes
+from nolabs.domain.exceptions import NoLabsException
+from nolabs.workflow.api.socketio_events_emitter import (emit_component_jobs_event,
+                                                         emit_finish_component_event,
+                                                         emit_finish_job_event,
+                                                         emit_start_component_event,
+                                                         emit_start_job_event)
+from nolabs.workflow.component import (Component, ComponentTypeFactory, Parameter,
+                                       TInput, TOutput)
+from nolabs.workflow.data import ComponentData, JobRunData
 
 
 def _name_builder(name: str, id: uuid.UUID):
@@ -81,7 +84,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
     async def get_jobs(self, inp: TInput) -> List[uuid.UUID]:
         return []
 
-    async def post_execute(
+    async def gather_jobs(
         self, inp: TInput, job_ids: List[uuid.UUID]
     ) -> Optional[TOutput]:
         pass
@@ -201,7 +204,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
                 self.logger.info("Jobs errors", extra=extra)
 
         if not job_errors:
-            output = await self.post_execute(inp=input_value, job_ids=job_ids)
+            output = await self.gather_jobs(inp=input_value, job_ids=job_ids)
             component.output_value = output or {}
         component.dump(data=data)
         data.save()

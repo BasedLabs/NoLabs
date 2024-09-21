@@ -15,25 +15,27 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 
+from prefect.exceptions import ObjectNotFound
+
 from domain.exceptions import ErrorCodes, NoLabsException
-from infrastructure.log import logger
+from nolabs.infrastructure.log import logger
 from prefect import get_client
 from prefect.client.schemas import StateType
 from prefect.client.schemas.objects import TERMINAL_STATES
-from workflow.api.api_models import (AllWorkflowSchemasResponse,
-                                     ComponentStateEnum, GetComponentRequest,
-                                     GetComponentResponse, GetJobRequest,
-                                     GetJobState, JobStateEnum,
-                                     PropertyErrorResponse,
-                                     ResetWorkflowRequest,
-                                     StartWorkflowComponentRequest)
-from workflow.api.mappings import map_property
-from workflow.api.schema import (ComponentSchema, ComponentSchemaTemplate,
-                                 WorkflowSchema)
-from workflow.component import Component, ComponentTypeFactory
-from workflow.dag import PrefectDagExecutor
-from workflow.data import (ComponentData, ExperimentWorkflowRelation,
-                           JobRunData, WorkflowData)
+from nolabs.workflow.api.api_models import (AllWorkflowSchemasResponse,
+                                            ComponentStateEnum, GetComponentRequest,
+                                            GetComponentResponse, GetJobRequest,
+                                            GetJobState, JobStateEnum,
+                                            PropertyErrorResponse,
+                                            ResetWorkflowRequest,
+                                            StartWorkflowComponentRequest)
+from nolabs.workflow.api.mappings import map_property
+from nolabs.workflow.api.schema import (ComponentSchema, ComponentSchemaTemplate,
+                                        WorkflowSchema)
+from nolabs.workflow.component import Component, ComponentTypeFactory
+from nolabs.workflow.dag import PrefectDagExecutor
+from nolabs.workflow.data import (ComponentData, ExperimentWorkflowRelation,
+                                  JobRunData, WorkflowData)
 
 
 class DeleteWorkflowSchemaFeature:
@@ -396,30 +398,14 @@ class GetComponentStateFeature:
             if not data:
                 raise NoLabsException(ErrorCodes.component_not_found)
 
-            if not data.flow_run_id:
-                raise NoLabsException(ErrorCodes.flow_run_id_not_found)
-
             job_ids = [
                 j.id for j in JobRunData.objects(component=request.id).only("id")
             ]
 
-            async with get_client() as client:
-                flow_run = await client.read_flow_run(data.flow_run_id)
-
-            prefect_state = flow_run.state_type
-
-            state = ComponentStateEnum.RUNNING
-
-            if prefect_state in TERMINAL_STATES:
-                state = ComponentStateEnum.COMPLETED
-
-            if prefect_state in [
-                StateType.FAILED,
-                StateType.CANCELLING,
-                StateType.CANCELLED,
-                StateType.CRASHED,
-            ]:
-                state = ComponentStateEnum.FAILED
+            if data.flow_run_id:
+                (state, message) = self._get_state(data.flow_run_id)
+            else:
+                (state, message) = ComponentStateEnum.UNKNOWN, None
 
             response = GetComponentResponse(
                 id=data.id,
@@ -437,7 +423,7 @@ class GetComponentStateFeature:
                     for e in data.output_errors
                 ],
                 state=state,
-                state_message=flow_run.state.message,
+                state_message=message,
                 job_ids=job_ids,
             )
 
@@ -449,6 +435,30 @@ class GetComponentStateFeature:
                 raise e
             raise NoLabsException(ErrorCodes.get_component_state_failed) from e
 
+    async def _get_state(self, flow_run_id: uuid.UUID) -> (ComponentStateEnum, str):
+        try:
+            async with get_client() as client:
+                flow_run = await client.read_flow_run(flow_run_id)
+
+            prefect_state = flow_run.state_type
+
+            state = ComponentStateEnum.RUNNING
+
+            if prefect_state in TERMINAL_STATES:
+                state = ComponentStateEnum.COMPLETED
+
+            if prefect_state in [
+                StateType.FAILED,
+                StateType.CANCELLING,
+                StateType.CANCELLED,
+                StateType.CRASHED,
+            ]:
+                state = ComponentStateEnum.FAILED
+
+            return (state, flow_run.state.message)
+        except ObjectNotFound:
+            return (ComponentStateEnum.UNKNOWN, None)
+
 
 class GetJobStateFeature:
     async def handle(self, request: GetJobRequest) -> GetJobState:
@@ -459,12 +469,35 @@ class GetJobStateFeature:
 
             job: JobRunData = JobRunData.objects.with_id(request.job_id)
 
-            if not job:
-                raise NoLabsException(ErrorCodes.job_not_found)
+            if job and job.task_run_id:
+                (state, message) = await self._get_state(job.task_run_id)
+            else:
+                (state, message) = JobStateEnum.UNKNOWN, None
 
+            response = GetJobState(
+                id=job.id,
+                component_id=job.component_id,
+                state=state,
+                state_message=message,
+            )
+
+            extra = {
+                **extra,
+                **{"component_id": job.component_id, "job_state": state.name},
+            }
+
+            logger.info("Get job state success", extra=extra)
+
+            return response
+        except Exception as e:
+            if e is NoLabsException:
+                raise e
+            raise NoLabsException(ErrorCodes.get_job_state_failed) from e
+
+    async def _get_state(self, task_run_id: uuid.UUID) -> (JobStateEnum, str):
+        try:
             async with get_client() as client:
-                task_run = await client.read_task_run(task_run_id=job.task_run_id)
-
+                task_run = await client.read_task_run(task_run_id=task_run_id)
             prefect_state = task_run.state_type
 
             state = JobStateEnum.RUNNING
@@ -480,25 +513,9 @@ class GetJobStateFeature:
             ]:
                 state = JobStateEnum.FAILED
 
-            response = GetJobState(
-                id=job.id,
-                component_id=job.component_id,
-                state=state,
-                state_message=task_run.state.message,
-            )
-
-            extra = {
-                **extra,
-                **{"component_id": job.component_id, "job_state": state.name},
-            }
-
-            logger.info("Get job state success", extra=extra)
-
-            return response
-        except Exception as e:
-            if e is NoLabsException:
-                raise e
-            raise NoLabsException(ErrorCodes.get_job_state_failed) from e
+            return (state, task_run.state.message)
+        except ObjectNotFound:
+            return (JobStateEnum.UNKNOWN, None)
 
 
 class ResetWorkflowFeature:

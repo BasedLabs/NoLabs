@@ -2,7 +2,7 @@ from typing import Annotated, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from workflow.api.schema import WorkflowSchema
+from nolabs.workflow.api.schema import WorkflowSchema
 
 from .api_models import (AllWorkflowSchemasResponse, GetComponentRequest,
                          GetComponentResponse, GetJobRequest, GetJobState,

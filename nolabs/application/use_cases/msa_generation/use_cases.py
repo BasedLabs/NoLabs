@@ -4,7 +4,7 @@ from uuid import UUID
 
 import msa_light_microservice
 from domain.exceptions import ErrorCodes, NoLabsException
-from infrastructure.settings import settings
+from nolabs.infrastructure.settings import settings
 from mongoengine import Q
 
 from nolabs.application.use_cases.msa_generation.api_models import (

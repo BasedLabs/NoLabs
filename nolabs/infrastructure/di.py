@@ -12,12 +12,6 @@ import protein_design_microservice
 import reinvent_microservice
 import rosettafold_microservice
 import solubility_microservice
-import protein_design_microservice
-import conformations_microservice
-import p2rank_microservice
-import msa_light_microservice
-import diffdock_microservice
-import blast_query_microservice
 
 from nolabs.infrastructure.settings import settings
 
@@ -128,12 +122,3 @@ class InfrastructureDependencies:
         configuration = diffdock_microservice.Configuration(host=settings.diffdock_host)
         client = diffdock_microservice.ApiClient(configuration=configuration)
         return diffdock_microservice.DefaultApi(api_client=client)
-
-    @staticmethod
-    def blast_query_microservice() -> blast_query_microservice.DefaultApi:
-        settings = Settings.load()
-        configuration = blast_query_microservice.Configuration(
-            host=settings.blast.microservice
-        )
-        client = blast_query_microservice.ApiClient(configuration=configuration)
-        return blast_query_microservice.DefaultApi(api_client=client)

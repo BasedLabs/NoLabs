@@ -3,10 +3,7 @@ services:
     image: 'prefecthq/prefect:3-python3.12-kubernetes'
     command: prefect server start
     env_file:
-      - path: nolabs/infrastructure/.env
-        required: true
-    volumes:
-      - /tmp/prefect-data:/tmp/prefect-data
+      - nolabs/infrastructure/.env
     network_mode: host
   mongo:
     image: 'mongo:latest'
@@ -45,6 +42,7 @@ services:
   esmfold_light:
     image: 'ghcr.io/basedlabs/esmfold-light:1.0.0'
     network_mode: host
+    command: python api.py
     build:
       context: nolabs/microservices/esmfold_light
       dockerfile: build/Dockerfile

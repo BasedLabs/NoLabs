@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -6,7 +6,7 @@ import type { JobStateEnum } from './JobStateEnum';
 export type GetJobState = {
     id: string;
     component_id: string;
-    state: JobStateEnum;
-    state_message: string;
+    state: (JobStateEnum | null);
+    state_message: (string | null);
 };
 

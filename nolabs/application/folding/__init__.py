@@ -1,4 +1,4 @@
-from application.folding.workflow import EsmfoldLightComponent
-from workflow.component import ComponentTypeFactory
+from nolabs.application.folding.workflow import EsmfoldLightComponent
+from nolabs.workflow.component import ComponentTypeFactory
 
 ComponentTypeFactory.add_type(EsmfoldLightComponent)

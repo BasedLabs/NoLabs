@@ -13,20 +13,22 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set, Union
 
-from pydantic import BaseModel, ConfigDict, StrictFloat, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional, Union
 from blast_query_microservice.models.blast_type import BlastType
-from typing import Optional, Set
+from pydantic import BaseModel, ConfigDict, StrictFloat, StrictInt, StrictStr
 from typing_extensions import Self
+
 
 class SequenceQuery(BaseModel):
     """
     A query for a BLAST search.  - sequence: could be nucleotide sequence for blastn, tblastx, or tblastn, or amino acid sequence for blastp or blastx.
-    """ # noqa: E501
+    """  # noqa: E501
+
     sequence: StrictStr
     type: BlastType
     descriptions: Optional[StrictInt] = None
@@ -34,14 +36,21 @@ class SequenceQuery(BaseModel):
     hitlist_size: Optional[StrictInt] = None
     expect: Optional[Union[StrictFloat, StrictInt]] = None
     job_id: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["sequence", "type", "descriptions", "alignments", "hitlist_size", "expect", "job_id"]
+    __properties: ClassVar[List[str]] = [
+        "sequence",
+        "type",
+        "descriptions",
+        "alignments",
+        "hitlist_size",
+        "expect",
+        "job_id",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -67,8 +76,7 @@ class SequenceQuery(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -78,27 +86,27 @@ class SequenceQuery(BaseModel):
         # set to None if descriptions (nullable) is None
         # and model_fields_set contains the field
         if self.descriptions is None and "descriptions" in self.model_fields_set:
-            _dict['descriptions'] = None
+            _dict["descriptions"] = None
 
         # set to None if alignments (nullable) is None
         # and model_fields_set contains the field
         if self.alignments is None and "alignments" in self.model_fields_set:
-            _dict['alignments'] = None
+            _dict["alignments"] = None
 
         # set to None if hitlist_size (nullable) is None
         # and model_fields_set contains the field
         if self.hitlist_size is None and "hitlist_size" in self.model_fields_set:
-            _dict['hitlist_size'] = None
+            _dict["hitlist_size"] = None
 
         # set to None if expect (nullable) is None
         # and model_fields_set contains the field
         if self.expect is None and "expect" in self.model_fields_set:
-            _dict['expect'] = None
+            _dict["expect"] = None
 
         # set to None if job_id (nullable) is None
         # and model_fields_set contains the field
         if self.job_id is None and "job_id" in self.model_fields_set:
-            _dict['job_id'] = None
+            _dict["job_id"] = None
 
         return _dict
 
@@ -111,15 +119,15 @@ class SequenceQuery(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "sequence": obj.get("sequence"),
-            "type": obj.get("type"),
-            "descriptions": obj.get("descriptions"),
-            "alignments": obj.get("alignments"),
-            "hitlist_size": obj.get("hitlist_size"),
-            "expect": obj.get("expect"),
-            "job_id": obj.get("job_id")
-        })
+        _obj = cls.model_validate(
+            {
+                "sequence": obj.get("sequence"),
+                "type": obj.get("type"),
+                "descriptions": obj.get("descriptions"),
+                "alignments": obj.get("alignments"),
+                "hitlist_size": obj.get("hitlist_size"),
+                "expect": obj.get("expect"),
+                "job_id": obj.get("job_id"),
+            }
+        )
         return _obj
-
-

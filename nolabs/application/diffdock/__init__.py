@@ -1,4 +1,4 @@
-from application.diffdock.workflow import DiffDockComponent
-from workflow.component import ComponentTypeFactory
+from nolabs.application.diffdock.workflow import DiffDockComponent
+from nolabs.workflow.component import ComponentTypeFactory
 
 ComponentTypeFactory.add_type(DiffDockComponent)

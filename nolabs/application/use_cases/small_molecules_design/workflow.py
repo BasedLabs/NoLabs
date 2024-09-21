@@ -5,7 +5,7 @@ from typing import List, Type
 
 from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import BaseModel
-from workflow.component import Component
+from nolabs.workflow.component import Component
 
 from nolabs.application.use_cases.small_molecules_design.use_cases import (
     GetJobSmilesFeature, GetJobStatusFeature, RunLearningStageJobFeature)

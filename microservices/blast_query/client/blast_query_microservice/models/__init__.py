@@ -15,8 +15,11 @@
 
 # import models into model package
 from blast_query_microservice.models.blast_type import BlastType
-from blast_query_microservice.models.http_validation_error import HTTPValidationError
-from blast_query_microservice.models.is_job_running_response import IsJobRunningResponse
+from blast_query_microservice.models.http_validation_error import \
+    HTTPValidationError
+from blast_query_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
 from blast_query_microservice.models.sequence_query import SequenceQuery
 from blast_query_microservice.models.validation_error import ValidationError
-from blast_query_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from blast_query_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

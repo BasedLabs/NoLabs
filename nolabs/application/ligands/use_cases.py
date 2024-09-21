@@ -11,7 +11,7 @@ import pathlib
 from typing import List, Optional
 from uuid import UUID
 
-from application.ligands.api_models import (LigandContentResponse,
+from nolabs.application.ligands.api_models import (LigandContentResponse,
                                             LigandMetadataResponse,
                                             LigandSearchContentQuery,
                                             LigandSearchMetadataQuery,

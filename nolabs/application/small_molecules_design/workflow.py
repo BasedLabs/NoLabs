@@ -3,20 +3,20 @@ import uuid
 from pathlib import Path
 from typing import List, Optional, Type
 
-from application.small_molecules_design.services import (
+from nolabs.application.small_molecules_design.services import (
     ReinventParametersSaver, ReinventSmilesRetriever)
 from domain.exceptions import ErrorCodes, NoLabsException
 from domain.models.common import Experiment
-from infrastructure.cel import cel as celery
-from infrastructure.settings import settings
+from nolabs.infrastructure.cel import cel as celery
+from nolabs.infrastructure.settings import settings
 from microservices.reinvent.service.api_models import \
     RunReinforcementLearningRequest
 from prefect import State
 from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
-from workflow import ComponentFlow
-from workflow.component import Component
+from nolabs.workflow import ComponentFlow
+from nolabs.workflow.component import Component
 
 from nolabs.domain.models.common import (DesignedLigandScore,
                                          DrugLikenessScore, JobId, JobName,
@@ -160,7 +160,7 @@ class SmallMoleculesDesignFlow(ComponentFlow):
 
         return Completed()
 
-    async def post_execute(
+    async def gather_jobs(
         self, inp: SmallMoleculesDesignLearningInput, job_ids: List[uuid.UUID]
     ) -> Optional[SmallMoleculesDesignLearningOutput]:
         protein_ligands_pairs = []
