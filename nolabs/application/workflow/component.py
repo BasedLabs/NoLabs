@@ -10,6 +10,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationError, parse_obj_as
 from pydantic.dataclasses import dataclass
+
 from nolabs.workflow.data import ComponentData, PropertyErrorData
 
 if TYPE_CHECKING:
@@ -555,7 +556,7 @@ class Component(Generic[TInput, TOutput]):
     def component_flow_type(self) -> Type["ComponentFlow"]: ...
 
     @classmethod
-    def restore(cls, data: ComponentData):
+    def restore(cls, data: ComponentData) -> 'Component':
         component = ComponentTypeFactory.get_type(data.name)(
             id=data.id,
             input_schema=Parameter(**data.input_schema),
