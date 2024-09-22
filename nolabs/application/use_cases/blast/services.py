@@ -1,9 +1,10 @@
 from typing import List
 
-from nolabs.application.use_cases.blast import blast_api
-from nolabs.application.use_cases.blast.blast_api import BlastType
 from domain.exceptions import ErrorCodes, NoLabsException
 from domain.models.blast import BlastJob, BlastJobResult, Hit, Hsp
+
+from nolabs.application.use_cases.blast import blast_api
+from nolabs.application.use_cases.blast.blast_api import BlastType
 
 
 class BlastJobRunner:

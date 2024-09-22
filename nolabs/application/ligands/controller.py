@@ -5,21 +5,22 @@ __all__ = [
 from typing import Annotated, List, Optional
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, File, Form, UploadFile
+
 from nolabs.application.ligands.api_models import (LigandContentResponse,
-                                            LigandMetadataResponse,
-                                            LigandSearchContentQuery,
-                                            LigandSearchMetadataQuery,
-                                            UpdateLigandRequest,
-                                            UploadLigandRequest,
-                                            UploadLigandResponse)
+                                                   LigandMetadataResponse,
+                                                   LigandSearchContentQuery,
+                                                   LigandSearchMetadataQuery,
+                                                   UpdateLigandRequest,
+                                                   UploadLigandRequest,
+                                                   UploadLigandResponse)
 from nolabs.application.ligands.di import LigandsControllerDependencies
 from nolabs.application.ligands.use_cases import (DeleteLigandFeature,
-                                           GetLigandFeature,
-                                           SearchLigandsContentFeature,
-                                           SearchLigandsMetadataFeature,
-                                           UpdateLigandFeature,
-                                           UploadLigandFeature)
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+                                                  GetLigandFeature,
+                                                  SearchLigandsContentFeature,
+                                                  SearchLigandsMetadataFeature,
+                                                  UpdateLigandFeature,
+                                                  UploadLigandFeature)
 
 router = APIRouter(
     prefix="/api/v1/objects/ligands",

@@ -24,13 +24,16 @@ class Cel:
         )
         self._app.conf.enable_utc = True
         self._app.autodiscover_tasks(force=True)
-        pass
 
     def _send_task(self, name: str, payload: BaseModel) -> AsyncResult:
         return self._app.send_task(name=name, args=[payload.model_dump()])
 
-    def send_task(self, id: uuid.UUID, name: str, queue: str, payload: BaseModel) -> AsyncResult:
-        return self._app.send_task(id=str(id), name=name, queue=queue, args=[payload.model_dump()])
+    def send_task(
+        self, id: uuid.UUID, name: str, queue: str, payload: BaseModel
+    ) -> AsyncResult:
+        return self._app.send_task(
+            id=str(id), name=name, queue=queue, args=[payload.model_dump()]
+        )
 
     async def _wait_async(self, async_result: AsyncResult) -> Any:
         while not async_result.ready():
@@ -77,15 +80,16 @@ class Cel:
         return (result, id)
 
     async def esmfold_light_inference(
-        self, task_id: str, payload: esmfold_light.InferenceInput, queue_prefix: str
+        self, task_id: str, payload: esmfold_light.InferenceInput
     ) -> esmfold_light.InferenceOutput:
-        async_result = self._app.send_task(id=task_id,
-                                           name="esmfold-light-service.inference",
-                                           queue="esmfold-light-service",
-                                           args=[payload.model_dump()])
+        async_result = self._app.send_task(
+            id=task_id,
+            name="esmfold-light-service.inference",
+            queue="esmfold-light-service",
+            args=[payload.model_dump()],
+        )
         result = await self._wait_async(async_result)
         return esmfold_light.InferenceOutput(**result)
-
 
     async def diffdock_inference(
         self, payload: diffdock.RunDiffDockPredictionRequest, wait=True

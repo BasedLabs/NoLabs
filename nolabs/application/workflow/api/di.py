@@ -2,16 +2,16 @@ from __future__ import annotations
 
 __all__ = ["WorkflowDependencies"]
 
-from nolabs.workflow.api.use_cases import (AllWorkflowSchemasFeature,
-                                           CreateWorkflowSchemaFeature,
-                                           DeleteWorkflowSchemaFeature,
-                                           GetComponentStateFeature,
-                                           GetJobStateFeature,
-                                           GetWorkflowSchemaFeature,
-                                           ResetWorkflowFeature,
-                                           StartWorkflowComponentFeature,
-                                           StartWorkflowFeature,
-                                           UpdateWorkflowSchemaFeature)
+from application.workflow.api.use_cases import (AllWorkflowSchemasFeature,
+                                                CreateWorkflowSchemaFeature,
+                                                DeleteWorkflowSchemaFeature,
+                                                GetComponentStateFeature,
+                                                GetJobStateFeature,
+                                                GetWorkflowSchemaFeature,
+                                                ResetWorkflowFeature,
+                                                StartWorkflowComponentFeature,
+                                                StartWorkflowFeature,
+                                                UpdateWorkflowSchemaFeature)
 
 
 class WorkflowDependencies:

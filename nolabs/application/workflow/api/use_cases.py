@@ -22,23 +22,23 @@ from prefect.client.schemas.objects import TERMINAL_STATES
 from prefect.exceptions import ObjectNotFound
 
 from nolabs.infrastructure.log import logger
-from nolabs.workflow.api.api_models import (AllWorkflowSchemasResponse,
-                                            ComponentStateEnum,
-                                            GetComponentRequest,
-                                            GetComponentResponse,
-                                            GetJobRequest, GetJobState,
-                                            JobStateEnum,
-                                            PropertyErrorResponse,
-                                            ResetWorkflowRequest,
-                                            StartWorkflowComponentRequest)
-from nolabs.workflow.api.mappings import map_property
-from nolabs.workflow.api.schema import (ComponentSchema,
-                                        ComponentSchemaTemplate,
-                                        WorkflowSchema)
-from nolabs.workflow.component import Component, ComponentTypeFactory
-from nolabs.workflow.dag import PrefectDagExecutor
-from nolabs.workflow.data import (ComponentData, ExperimentWorkflowRelation,
-                                  JobRunData, WorkflowData)
+from application.workflow.api.api_models import (AllWorkflowSchemasResponse,
+                                                 ComponentStateEnum,
+                                                 GetComponentRequest,
+                                                 GetComponentResponse,
+                                                 GetJobRequest, GetJobState,
+                                                 JobStateEnum,
+                                                 PropertyErrorResponse,
+                                                 ResetWorkflowRequest,
+                                                 StartWorkflowComponentRequest)
+from application.workflow.api.mappings import map_property
+from application.workflow.api.schema import (ComponentSchema,
+                                             ComponentSchemaTemplate,
+                                             WorkflowSchema)
+from application.workflow.component import Component, ComponentTypeFactory
+from application.workflow.dag import PrefectDagExecutor
+from application.workflow.data import (ComponentData, ExperimentWorkflowRelation,
+                                       JobRunData, WorkflowData)
 
 
 class DeleteWorkflowSchemaFeature:

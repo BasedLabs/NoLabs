@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from pydantic.dataclasses import dataclass
 
@@ -199,7 +199,12 @@ class NoLabsException(Exception):
     data: Dict[str, Any] = {}
     message: str
 
-    def __init__(self, error_code: ErrorCodes, message: str | None = None, data: Dict[str, Any] | None = None):
+    def __init__(
+        self,
+        error_code: ErrorCodes,
+        message: str | None = None,
+        data: Dict[str, Any] | None = None,
+    ):
         self.error_code = error_code.value.code
 
         if message:

@@ -1,21 +1,21 @@
 __all__ = ["DiffDockComponent"]
 
 import uuid
-from typing import Any, Dict, List, Type
+from typing import List, Type
 
 from domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.infrastructure.cel import cel as celery
 from microservices.diffdock.service.api_models import (
-    RunDiffDockPredictionRequest, RunDiffDockPredictionResponse)
+    RunDiffDockPredictionRequest)
 from prefect import State
 from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
-from nolabs.workflow import ComponentFlow
-from nolabs.workflow.component import Component, TInput, TOutput
 
 from nolabs.domain.models.common import JobId, JobName, Ligand, Protein
 from nolabs.domain.models.diffdock import DiffDockBindingJob, DiffDockJobResult
+from nolabs.infrastructure.cel import cel as celery
+from application.workflow import ComponentFlow
+from application.workflow.component import Component, TInput, TOutput
 
 
 class DiffDockComponentInput(BaseModel):
@@ -53,21 +53,28 @@ class DiffdockComponentFlow(ComponentFlow):
                 protein: Protein = Protein.objects.with_id(protein_id)
 
                 if not protein:
-                    raise NoLabsException(ErrorCodes.protein_not_found, data={"protein_id": protein_id})
+                    raise NoLabsException(
+                        ErrorCodes.protein_not_found, data={"protein_id": protein_id}
+                    )
 
                 ligand: Ligand = Ligand.objects.with_id(ligand_id)
 
                 if not ligand:
-                    raise NoLabsException(ErrorCodes.ligand_not_found, data={"ligand_id": ligand_id})
+                    raise NoLabsException(
+                        ErrorCodes.ligand_not_found, data={"ligand_id": ligand_id}
+                    )
 
-                job = DiffDockBindingJob(
-                    id=JobId(uuid.uuid4()),
-                    name=JobName("Diffdock binding job"),
-                    experiment=self.experiment_id,
-                )
+                job = DiffDockBindingJob.objects(protein=protein.id, ligand=ligand.id).first()
 
-                job.set_input(protein=protein, ligand=ligand)
-                await job.save()
+                if not job:
+                    job = DiffDockBindingJob(
+                        id=JobId(uuid.uuid4()),
+                        name=JobName("Diffdock binding job"),
+                        experiment=self.experiment_id,
+                    )
+                    job.set_input(protein=protein, ligand=ligand)
+                    await job.save()
+
                 job_ids.append(job.id)
 
         return job_ids

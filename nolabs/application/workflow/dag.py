@@ -9,8 +9,8 @@ from prefect.client.schemas import FlowRun
 
 from nolabs.infrastructure.environment import Environment
 from nolabs.infrastructure.settings import settings
-from nolabs.workflow.component import Component
-from nolabs.workflow.data import WorkflowData
+from application.workflow.component import Component
+from application.workflow.data import WorkflowData
 
 
 class PrefectDagExecutor:

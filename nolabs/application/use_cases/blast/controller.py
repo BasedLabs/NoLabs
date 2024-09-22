@@ -30,6 +30,7 @@ async def get_job(
 ) -> JobResponse:
     return await feature.handle(job_id=job_id)
 
+
 @router.post("/jobs", summary="Setup job")
 async def setup_job(
     request: SetupJobRequest,

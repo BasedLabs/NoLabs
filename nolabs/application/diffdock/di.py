@@ -1,10 +1,12 @@
 from typing import Annotated
 
-from nolabs.application.diffdock.use_cases import (GetJobFeature, GetJobStatusFeature,
-                                            RunJobFeature, SetupJobFeature)
 from diffdock_microservice import DefaultApi
 from fastapi import Depends
 
+from nolabs.application.diffdock.use_cases import (GetJobFeature,
+                                                   GetJobStatusFeature,
+                                                   RunJobFeature,
+                                                   SetupJobFeature)
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 

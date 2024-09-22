@@ -6,11 +6,12 @@ from uuid import UUID
 import esmfold_light_microservice
 import esmfold_microservice
 import rosettafold_microservice
-from nolabs.application.folding.api_models import (GetJobStatusResponse, JobResponse,
-                                            JobResult, SetupJobRequest)
 from domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import Q
 
+from nolabs.application.folding.api_models import (GetJobStatusResponse,
+                                                   JobResponse, JobResult,
+                                                   SetupJobRequest)
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingBackendEnum, FoldingJob
 from nolabs.utils import generate_uuid

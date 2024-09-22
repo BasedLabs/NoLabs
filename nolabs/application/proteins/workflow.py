@@ -2,8 +2,9 @@ import uuid
 from typing import List, Type
 
 from pydantic import BaseModel
-from nolabs.workflow import Component, ComponentFlow
-from nolabs.workflow.component import TInput, TOutput
+
+from application.workflow import Component, ComponentFlow
+from application.workflow.component import TInput, TOutput
 
 
 class ProteinsComponentInput(BaseModel):

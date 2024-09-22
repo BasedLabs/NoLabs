@@ -3,25 +3,25 @@ import uuid
 from pathlib import Path
 from typing import List, Optional, Type
 
-from nolabs.application.small_molecules_design.services import (
-    ReinventParametersSaver, ReinventSmilesRetriever)
 from domain.exceptions import ErrorCodes, NoLabsException
 from domain.models.common import Experiment
-from nolabs.infrastructure.cel import cel as celery
-from nolabs.infrastructure.settings import settings
 from microservices.reinvent.service.api_models import \
     RunReinforcementLearningRequest
 from prefect import State
 from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
-from nolabs.workflow import ComponentFlow
-from nolabs.workflow.component import Component
 
+from nolabs.application.small_molecules_design.services import (
+    ReinventParametersSaver, ReinventSmilesRetriever)
 from nolabs.domain.models.common import (DesignedLigandScore,
                                          DrugLikenessScore, JobId, JobName,
                                          Ligand, LigandName, Protein)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
+from nolabs.infrastructure.cel import cel as celery
+from nolabs.infrastructure.settings import settings
+from application.workflow import ComponentFlow
+from application.workflow.component import Component
 
 
 class SmallMoleculesDesignLearningInput(BaseModel):
@@ -57,7 +57,7 @@ class SmallMoleculesDesignFlow(ComponentFlow):
             if not protein.pdb_content:
                 raise NoLabsException(
                     ErrorCodes.protein_pdb_is_empty,
-                    messages="Protein pdb content is undefined",
+                    message="Protein pdb content is undefined",
                 )
 
             job.set_protein(protein=protein)

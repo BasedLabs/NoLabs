@@ -10,9 +10,9 @@ def handler(exctype, value, traceback_):
 
 sys.excepthook = handler
 
-from nolabs.infrastructure.settings import settings
-
 from uvicorn.config import LOGGING_CONFIG
+
+from nolabs.infrastructure.settings import settings
 
 if settings.enable_structured_logging:
     from nolabs.infrastructure.log_formatters import JsonFormatter
@@ -56,7 +56,7 @@ if settings.enable_structured_logging:
 
     logging.config.dictConfig(LOGGING_CONFIG)
 
-logger = logging.getLogger('nolabs')
+logger = logging.getLogger("nolabs")
 
 if settings.enable_structured_logging:
     for handler in logger.handlers:
