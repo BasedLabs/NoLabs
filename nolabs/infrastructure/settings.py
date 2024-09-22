@@ -1,9 +1,10 @@
 from pathlib import Path
 from typing import Literal
 
-from nolabs.infrastructure.environment import Environment
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from nolabs.infrastructure.environment import Environment
 
 
 class Settings(BaseSettings):

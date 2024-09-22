@@ -6,17 +6,12 @@ from prefect.client.schemas.objects import R
 from prefect.states import Completed
 from pydantic import BaseModel
 
-from nolabs.application.use_cases.blast.api_models import SetupJobRequest
 from nolabs.application.use_cases.blast.services import BlastJobRunner
-from nolabs.application.use_cases.blast.use_cases import (GetJobFeature,
-                                                          RunJobFeature,
-                                                          SetupJobFeature)
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.blast import BlastJob
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
-from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.workflow import ComponentFlow
-from nolabs.workflow.component import Component
+from application.workflow import ComponentFlow
+from application.workflow.component import Component
 
 
 class BlastComponentInput(BaseModel):

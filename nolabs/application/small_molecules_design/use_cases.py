@@ -14,19 +14,20 @@ from pathlib import Path
 from typing import List
 from uuid import UUID
 
-from nolabs.application.small_molecules_design.services import ReinventParametersSaver
 from domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.infrastructure.cel import cel as celery
-from nolabs.infrastructure.settings import settings
 from microservices.reinvent.service.api_models import (
     RunReinforcementLearningRequest, RunSamplingRequest)
 
+from nolabs.application.small_molecules_design.services import \
+    ReinventParametersSaver
 from nolabs.application.use_cases.small_molecules_design.api_models import (
     GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
     SmilesResponse)
 from nolabs.domain.models.common import (Experiment, Job, JobId, JobName,
                                          Protein)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
+from nolabs.infrastructure.cel import cel as celery
+from nolabs.infrastructure.settings import settings
 from nolabs.utils import generate_uuid
 
 
@@ -172,7 +173,7 @@ class SetupJobFeature:
         if not protein.pdb_content:
             raise NoLabsException(
                 ErrorCodes.protein_pdb_is_empty,
-                messages="Protein pdb content is undefined",
+                message="Protein pdb content is undefined",
             )
 
         job.set_inputs(
@@ -223,7 +224,7 @@ class RunLearningStageJobFeature:
 
         input_error = job.input_errors()[0]
         raise NoLabsException(
-            error_code=input_error.error_code, messages=input_error.message
+            error_code=input_error.error_code, message=input_error.message
         )
 
 

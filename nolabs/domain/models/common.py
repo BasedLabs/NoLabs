@@ -81,10 +81,10 @@ class Experiment(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            id: ExperimentId,
-            name: ExperimentName,
-            created_at: datetime.datetime | None = None,
+        cls,
+        id: ExperimentId,
+        name: ExperimentName,
+        created_at: datetime.datetime | None = None,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
@@ -197,14 +197,14 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
     extracellular: float = FloatField(required=True)
 
     def __init__(
-            self,
-            cytosolic: float,
-            mitochondrial: float,
-            nuclear: float,
-            other: float,
-            extracellular: float,
-            *args,
-            **kwargs,
+        self,
+        cytosolic: float,
+        mitochondrial: float,
+        nuclear: float,
+        other: float,
+        extracellular: float,
+        *args,
+        **kwargs,
     ):
         values = [cytosolic, mitochondrial, nuclear, other, extracellular]
 
@@ -327,12 +327,14 @@ class Protein(Document, Entity):
         if not pdb_content:
             raise NoLabsException(ErrorCodes.invalid_protein_content)
 
-        as_str = pdb_content if isinstance(pdb_content, str) else pdb_content.decode('utf-8')
+        as_str = (
+            pdb_content if isinstance(pdb_content, str) else pdb_content.decode("utf-8")
+        )
 
-        if not as_str.lstrip().startswith('HEADER'):
-            raise NoLabsException(ErrorCodes.invalid_protein_content, data={
-                'pdb_content': as_str[:20]
-            })
+        if not as_str.lstrip().startswith("HEADER"):
+            raise NoLabsException(
+                ErrorCodes.invalid_protein_content, data={"pdb_content": as_str[:20]}
+            )
 
         if isinstance(pdb_content, str):
             pdb_content = pdb_content.encode("utf-8")
@@ -362,13 +364,13 @@ class Protein(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            experiment: Experiment,
-            name: ProteinName,
-            fasta_content: Union[bytes, str, None] = None,
-            pdb_content: Union[bytes, str, None] = None,
-            *args,
-            **kwargs,
+        cls,
+        experiment: Experiment,
+        name: ProteinName,
+        fasta_content: Union[bytes, str, None] = None,
+        pdb_content: Union[bytes, str, None] = None,
+        *args,
+        **kwargs,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_protein_id)
@@ -593,14 +595,14 @@ class Ligand(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            experiment: Experiment,
-            name: LigandName | None = None,
-            smiles_content: Union[bytes, str, None] = None,
-            sdf_content: Union[bytes, str, None] = None,
-            link: LigandLink | None = None,
-            *args,
-            **kwargs,
+        cls,
+        experiment: Experiment,
+        name: LigandName | None = None,
+        smiles_content: Union[bytes, str, None] = None,
+        sdf_content: Union[bytes, str, None] = None,
+        link: LigandLink | None = None,
+        *args,
+        **kwargs,
     ) -> "Ligand":  # Added link parameter
         if not name:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
@@ -645,15 +647,15 @@ class Ligand(Document, Entity):
         return ligand
 
     def add_binding(
-            self,
-            protein: "Protein",
-            sdf_content: bytes | str | None = None,
-            minimized_affinity: float | None = None,
-            scored_affinity: float | None = None,
-            confidence: float | None = None,
-            plddt_array: List[int] | None = None,
-            name: str | None = None,
-            pdb_content: Union[bytes, str, None] = None,
+        self,
+        protein: "Protein",
+        sdf_content: bytes | str | None = None,
+        minimized_affinity: float | None = None,
+        scored_affinity: float | None = None,
+        confidence: float | None = None,
+        plddt_array: List[int] | None = None,
+        name: str | None = None,
+        pdb_content: Union[bytes, str, None] = None,
     ) -> "Protein":
         if not plddt_array:
             plddt_array = []
@@ -753,12 +755,12 @@ class Job(Document, Entity):
     meta = {"allow_inheritance": True}
 
     def __init__(
-            self,
-            id: JobId,
-            name: JobName,
-            experiment: Union[Experiment, uuid.UUID],
-            *args,
-            **kwargs,
+        self,
+        id: JobId,
+        name: JobName,
+        experiment: Union[Experiment, uuid.UUID],
+        *args,
+        **kwargs,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_job_id)
@@ -788,12 +790,10 @@ class Job(Document, Entity):
         return JobId(self.id)
 
     @abstractmethod
-    def result_valid(self) -> bool:
-        ...
+    def result_valid(self) -> bool: ...
 
     @abstractmethod
-    def _input_errors(self) -> List[JobInputError]:
-        ...
+    def _input_errors(self) -> List[JobInputError]: ...
 
     def input_errors(self, throw: bool = False) -> List[JobInputError]:
         errors = self._input_errors()
@@ -857,5 +857,6 @@ class ExperimentRemovedEvent(DomainEvent):
 
     def __init__(self, experiment: Experiment):
         self.experiment = experiment
+
 
 # endregion

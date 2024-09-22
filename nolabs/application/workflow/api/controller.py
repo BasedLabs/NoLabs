@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from nolabs.workflow.api.schema import WorkflowSchema
+from application.workflow.api.schema import WorkflowSchema
 
 from .api_models import (AllWorkflowSchemasResponse, GetComponentRequest,
                          GetComponentResponse, GetJobRequest, GetJobState,

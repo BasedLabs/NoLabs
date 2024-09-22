@@ -7,10 +7,11 @@ from typing import List
 import toml
 from domain.models.common import Ligand
 from domain.models.small_molecules_design import SmallMoleculesDesignJob
-from nolabs.infrastructure.cel import cel as celery
-from nolabs.infrastructure.settings import settings
 from microservices.reinvent.service.api_models import PreparePdbqtRequest
 from pydantic import BaseModel
+
+from nolabs.infrastructure.cel import cel as celery
+from nolabs.infrastructure.settings import settings
 
 
 class ReinventSmiles(BaseModel):

@@ -1,10 +1,7 @@
-from nolabs.application.proteins.use_cases import (DeleteProteinFeature,
-                                            GetProteinFeature,
-                                            GetProteinMetadataFeature,
-                                            SearchProteinsContentFeature,
-                                            SearchProteinsMetadataFeature,
-                                            UpdateProteinFeature,
-                                            UploadProteinFeature)
+from nolabs.application.proteins.use_cases import (
+    DeleteProteinFeature, GetProteinFeature, GetProteinMetadataFeature,
+    SearchProteinsContentFeature, SearchProteinsMetadataFeature,
+    UpdateProteinFeature, UploadProteinFeature)
 
 
 class ProteinsControllerDependencies:

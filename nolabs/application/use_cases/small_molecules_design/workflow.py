@@ -5,7 +5,6 @@ from typing import List, Type
 
 from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import BaseModel
-from nolabs.workflow.component import Component
 
 from nolabs.application.use_cases.small_molecules_design.use_cases import (
     GetJobSmilesFeature, GetJobStatusFeature, RunLearningStageJobFeature)
@@ -14,6 +13,7 @@ from nolabs.domain.models.common import (DesignedLigandScore,
                                          Ligand, LigandName, Protein)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.infrastructure.di import InfrastructureDependencies
+from application.workflow.component import Component
 
 
 class SmallMoleculesDesignLearningInput(BaseModel):

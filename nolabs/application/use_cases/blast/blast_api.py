@@ -8,6 +8,7 @@ from typing import Any, Dict
 import xmltodict
 from Bio.Blast import NCBIWWW
 from domain.exceptions import ErrorCodes, NoLabsException
+
 from nolabs.infrastructure.settings import settings
 
 

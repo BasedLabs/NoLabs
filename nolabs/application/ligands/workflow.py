@@ -2,8 +2,9 @@ import uuid
 from typing import List, Optional, Type
 
 from pydantic import BaseModel
-from nolabs.workflow import ComponentFlow
-from nolabs.workflow.component import Component, TInput, TOutput
+
+from application.workflow import ComponentFlow
+from application.workflow.component import Component, TInput, TOutput
 
 
 class LigandsComponentInput(BaseModel):

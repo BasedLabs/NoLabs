@@ -5,9 +5,9 @@ __all__ = [
 from typing import Annotated
 from uuid import UUID
 
-from nolabs.application.folding.use_cases import RunJobFeature
 from fastapi import APIRouter, Depends
 
+from nolabs.application.folding.use_cases import RunJobFeature
 from nolabs.application.use_cases.localisation.api_models import (
     GetJobStatusResponse, JobResponse, SetupJobRequest)
 from nolabs.application.use_cases.localisation.di import \

@@ -1,19 +1,19 @@
 import uuid
 from abc import ABC
-from typing import Any, Dict, List, Optional, Type
+from typing import List, Optional, Type
 
-from nolabs.application.folding.api_models import FoldingBackendEnum
 from domain.exceptions import ErrorCodes, NoLabsException
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
-from nolabs.workflow import ComponentFlow
-from nolabs.workflow.component import Component, TInput, TOutput
 
+from nolabs.application.folding.api_models import FoldingBackendEnum
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.microservices.esmfold_light.service.api_models import (
-    InferenceInput, InferenceOutput)
+    InferenceInput)
+from application.workflow import ComponentFlow
+from application.workflow.component import Component, TInput, TOutput
 
 
 class FoldingComponentInput(BaseModel):
@@ -85,12 +85,14 @@ class FoldingComponentFlow(ComponentFlow):
             if not protein:
                 raise NoLabsException(ErrorCodes.protein_not_found)
 
-            job_id = JobId(uuid.uuid4())
-            job_name = JobName("New folding job")
-            job = FoldingJob(id=job_id, name=job_name, experiment=experiment)
+            job: FoldingJob = FoldingJob.objects(protein=protein_id).first()
 
-            job.set_inputs(protein=protein, backend=self.backend)
-            await job.save(cascade=True)
+            if not job:
+                job_id = JobId(uuid.uuid4())
+                job_name = JobName(f"Folding of {protein.name}")
+                job = FoldingJob(id=job_id, name=job_name, experiment=experiment)
+                job.set_inputs(protein=protein, backend=self.backend)
+                await job.save(cascade=True)
 
             job_ids.append(job.id)
 
@@ -115,8 +117,10 @@ class FoldingComponentFlow(ComponentFlow):
 
             return Cancelled(message=message)
 
-        job_result = await celery.esmfold_light_inference(task_id=str(job.id),
-                                                    payload=InferenceInput(fasta_sequence=job.protein.get_fasta()))
+        job_result = await celery.esmfold_light_inference(
+            task_id=str(job.id),
+            payload=InferenceInput(fasta_sequence=job.protein.get_fasta()),
+        )
 
         protein = Protein.objects.with_id(job.protein.id)
         protein.set_pdb(job_result.pdb_content)

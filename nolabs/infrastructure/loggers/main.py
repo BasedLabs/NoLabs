@@ -3,28 +3,24 @@ import logging.config
 import sys
 import traceback
 import warnings
-from typing import Any, Dict, Optional, Union
-
 from pathlib import Path
+from typing import Any, Dict
 
 _local_path = Path(__file__).parent
 
 
 def init_logger(
-        file_config=None,
-        level=None,
-        defaults=None,
-        disable_existing_loggers=True
+    file_config=None, level=None, defaults=None, disable_existing_loggers=True
 ):
     if not file_config:
         file_config = _local_path / "logging.ini"
     logging.config.fileConfig(
         file_config,
         defaults=defaults,
-        disable_existing_loggers=disable_existing_loggers
+        disable_existing_loggers=disable_existing_loggers,
     )
     if level is None:
-        level = 'INFO'
+        level = "INFO"
 
     logger = logging.root
     logger.setLevel(level)
@@ -49,26 +45,28 @@ def setup_excepthook(logger):
 
 def make_logging_config(level=None, disable_existing_loggers=True) -> Dict[str, Any]:
     if level is None:
-        level = 'INFO'
+        level = "INFO"
     return {
-        'version': 1,
-        'disable_existing_loggers': disable_existing_loggers,
-        'root': {'handlers': ['console'], 'level': level},
-        'handlers': {
-            'console': {
-                'formatter': 'nolabs',
-                'class': 'logging.StreamHandler',
+        "version": 1,
+        "disable_existing_loggers": disable_existing_loggers,
+        "root": {"handlers": ["console"], "level": level},
+        "handlers": {
+            "console": {
+                "formatter": "nolabs",
+                "class": "logging.StreamHandler",
             }
         },
-        'formatters': {
-            'nolabs': {
-                'format': '%(message)s',
-                'class': 'nolabs.infrastructure.log_formatters.JsonFormatter'
+        "formatters": {
+            "nolabs": {
+                "format": "%(message)s",
+                "class": "nolabs.infrastructure.log_formatters.JsonFormatter",
             }
-        }
+        },
     }
 
 
 def get_config(level=None, disable_existing_loggers=True) -> Dict[str, Any]:
-    warnings.warn('asdasdasd')
-    return make_logging_config(level=level, disable_existing_loggers=disable_existing_loggers)
+    warnings.warn("asdasdasd")
+    return make_logging_config(
+        level=level, disable_existing_loggers=disable_existing_loggers
+    )

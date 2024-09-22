@@ -4,13 +4,13 @@ from uuid import UUID
 
 import msa_light_microservice
 from domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.infrastructure.settings import settings
 from mongoengine import Q
 
 from nolabs.application.use_cases.msa_generation.api_models import (
     GetJobStatusResponse, JobResponse, SetupJobRequest)
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.msa import MsaGenerationJob
+from nolabs.infrastructure.settings import settings
 from nolabs.utils import generate_uuid
 
 

@@ -5,12 +5,16 @@ __all__ = [
 from typing import Annotated
 from uuid import UUID
 
-from nolabs.application.folding.api_models import (GetJobStatusResponse, JobResponse,
-                                            SetupJobRequest)
-from nolabs.application.folding.di import FoldingDependencies
-from nolabs.application.folding.use_cases import (GetJobFeature, GetJobStatusFeature,
-                                           RunJobFeature, SetupJobFeature)
 from fastapi import APIRouter, Depends
+
+from nolabs.application.folding.api_models import (GetJobStatusResponse,
+                                                   JobResponse,
+                                                   SetupJobRequest)
+from nolabs.application.folding.di import FoldingDependencies
+from nolabs.application.folding.use_cases import (GetJobFeature,
+                                                  GetJobStatusFeature,
+                                                  RunJobFeature,
+                                                  SetupJobFeature)
 
 router = APIRouter(
     prefix="/api/v1/folding",

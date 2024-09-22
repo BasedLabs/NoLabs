@@ -3,7 +3,6 @@ from typing import List, Type
 
 from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import BaseModel
-from nolabs.workflow.component import Component, JobValidationError
 
 from nolabs.application.use_cases.msa_generation.api_models import \
     SetupJobRequest
@@ -11,6 +10,7 @@ from nolabs.application.use_cases.msa_generation.use_cases import (
     RunJobFeature, SetupJobFeature)
 from nolabs.domain.models.msa import MsaGenerationJob
 from nolabs.infrastructure.di import InfrastructureDependencies
+from application.workflow.component import Component, JobValidationError
 
 
 class MsaGenerationInput(BaseModel):

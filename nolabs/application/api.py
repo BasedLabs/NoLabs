@@ -3,8 +3,6 @@ from dotenv import load_dotenv
 
 load_dotenv("infrastructure/.env")
 
-from nolabs.infrastructure.log import logger
-
 import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,9 +37,10 @@ from nolabs.application.use_cases.small_molecules_design.controller import \
     router as small_molecules_design_router
 from nolabs.application.use_cases.solubility.controller import \
     router as solubility_router
+from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import settings
-from nolabs.workflow.api.controller import router as workflow_router
+from application.workflow.api import router as workflow_router
 
 app = FastAPI(title="NoLabs", version="2.1.7")
 

@@ -5,12 +5,16 @@ __all__ = [
 from typing import Annotated
 from uuid import UUID
 
-from nolabs.application.diffdock.api_models import (GetJobStatusResponse, JobResponse,
-                                             SetupJobRequest)
-from nolabs.application.diffdock.di import DiffDockDependencies
-from nolabs.application.diffdock.use_cases import (GetJobFeature, GetJobStatusFeature,
-                                            RunJobFeature, SetupJobFeature)
 from fastapi import APIRouter, Depends
+
+from nolabs.application.diffdock.api_models import (GetJobStatusResponse,
+                                                    JobResponse,
+                                                    SetupJobRequest)
+from nolabs.application.diffdock.di import DiffDockDependencies
+from nolabs.application.diffdock.use_cases import (GetJobFeature,
+                                                   GetJobStatusFeature,
+                                                   RunJobFeature,
+                                                   SetupJobFeature)
 
 router = APIRouter(prefix="/api/v1/diffdock", tags=["Diffdock"])
 

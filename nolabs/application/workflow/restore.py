@@ -4,7 +4,7 @@ from prefect import get_run_logger, task
 from prefect.client.orchestration import get_client
 from prefect.client.schemas import StateType
 
-from nolabs.workflow.data import ComponentData, JobRunData
+from application.workflow.data import ComponentData, JobRunData
 
 
 @task
