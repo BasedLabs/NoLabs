@@ -6,20 +6,17 @@ from abc import ABC
 from logging import Logger
 from typing import Generic, List, Optional
 
-from prefect import State, flow, task, get_run_logger
+from prefect import State, flow, get_run_logger, task
 from prefect.client.schemas.objects import FlowRun, R
 from prefect.context import get_run_context
 from prefect.states import Completed
 
-from nolabs.domain.exceptions import ErrorCodes
-from nolabs.domain.exceptions import NoLabsException
-from nolabs.workflow.api.socketio_events_emitter import (emit_component_jobs_event,
-                                                         emit_finish_component_event,
-                                                         emit_finish_job_event,
-                                                         emit_start_component_event,
-                                                         emit_start_job_event)
-from nolabs.workflow.component import (Component, ComponentTypeFactory, Parameter,
-                                       TInput, TOutput)
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.workflow.api.socketio_events_emitter import (
+    emit_component_jobs_event, emit_finish_component_event,
+    emit_finish_job_event, emit_start_component_event, emit_start_job_event)
+from nolabs.workflow.component import (Component, ComponentTypeFactory,
+                                       Parameter, TInput, TOutput)
 from nolabs.workflow.data import ComponentData, JobRunData
 
 
@@ -173,13 +170,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
                 return
 
         input_value = component.input_value
-
-        if input_changed:
-            job_ids = await self.get_jobs(inp=input_value)
-        else:
-            job_ids = [
-                j.id for j in JobRunData.objects(component=self.component_id).only("id")
-            ]
+        job_ids = await self.get_jobs(inp=input_value)
 
         extra = {**extra, **{"job_ids": job_ids}}
 
