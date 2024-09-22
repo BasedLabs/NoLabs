@@ -1,13 +1,16 @@
 # connect any client to gpt-researcher using websocket
 import asyncio
 import datetime
-from typing import List, Dict
+from typing import Dict, List
+
 from fastapi import WebSocket
+
 from ..master.agent import GPTResearcher
 
 
 class WebSocketManager:
     """Manage websockets"""
+
     def __init__(self):
         """Initialize the WebSocketManager class."""
         self.active_connections: List[WebSocket] = []
@@ -59,10 +62,18 @@ async def run_agent(task, report_type, websocket):
     # add customized JSON config file path here
     config_path = None
     # run agent
-    researcher = GPTResearcher(query=task, report_type=report_type, source_urls=None, config_path=config_path, websocket=websocket)
+    researcher = GPTResearcher(
+        query=task,
+        report_type=report_type,
+        source_urls=None,
+        config_path=config_path,
+        websocket=websocket,
+    )
     report = await researcher.run()
     # measure time
     end_time = datetime.datetime.now()
-    await websocket.send_json({"type": "logs", "output": f"\nTotal run time: {end_time - start_time}\n"})
+    await websocket.send_json(
+        {"type": "logs", "output": f"\nTotal run time: {end_time - start_time}\n"}
+    )
 
     return report

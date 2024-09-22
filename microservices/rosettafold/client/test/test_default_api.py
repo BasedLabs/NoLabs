@@ -31,15 +31,13 @@ class TestDefaultApi(unittest.TestCase):
 
         Instances Running
         """
-        pass
 
     def test_run_folding_run_folding_post(self) -> None:
         """Test case for run_folding_run_folding_post
 
         Run Folding
         """
-        pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

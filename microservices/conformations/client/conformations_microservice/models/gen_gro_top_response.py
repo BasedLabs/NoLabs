@@ -13,22 +13,25 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional
+
 from pydantic import BaseModel, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class GenGroTopResponse(BaseModel):
     """
     GenGroTopResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     gro: Optional[StrictStr]
     top: Optional[StrictStr]
     errors: List[StrictStr]
@@ -39,7 +42,6 @@ class GenGroTopResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -67,19 +69,18 @@ class GenGroTopResponse(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         # set to None if gro (nullable) is None
         # and model_fields_set contains the field
         if self.gro is None and "gro" in self.model_fields_set:
-            _dict['gro'] = None
+            _dict["gro"] = None
 
         # set to None if top (nullable) is None
         # and model_fields_set contains the field
         if self.top is None and "top" in self.model_fields_set:
-            _dict['top'] = None
+            _dict["top"] = None
 
         return _dict
 
@@ -92,11 +93,7 @@ class GenGroTopResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "gro": obj.get("gro"),
-            "top": obj.get("top"),
-            "errors": obj.get("errors")
-        })
+        _obj = cls.model_validate(
+            {"gro": obj.get("gro"), "top": obj.get("top"), "errors": obj.get("errors")}
+        )
         return _obj
-
-

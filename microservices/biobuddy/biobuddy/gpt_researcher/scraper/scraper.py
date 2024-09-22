@@ -1,15 +1,17 @@
 from concurrent.futures.thread import ThreadPoolExecutor
-from langchain.document_loaders import PyMuPDFLoader
-from langchain.retrievers import ArxivRetriever
 from functools import partial
+
 import requests
 from bs4 import BeautifulSoup
+from langchain.document_loaders import PyMuPDFLoader
+from langchain.retrievers import ArxivRetriever
 
 
 class Scraper:
     """
     Scraper class to extract the content from the links
     """
+
     def __init__(self, urls, user_agent):
         """
         Initialize the Scraper class.
@@ -18,9 +20,7 @@ class Scraper:
         """
         self.urls = urls
         self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": user_agent
-        })
+        self.session.headers.update({"User-Agent": user_agent})
 
     def run(self):
         """
@@ -29,7 +29,7 @@ class Scraper:
         partial_extract = partial(self.extract_data_from_link, session=self.session)
         with ThreadPoolExecutor(max_workers=20) as executor:
             contents = executor.map(partial_extract, self.urls)
-        res = [content for content in contents if content['raw_content'] is not None]
+        res = [content for content in contents if content["raw_content"] is not None]
         return res
 
     def extract_data_from_link(self, link, session):
@@ -47,14 +47,14 @@ class Scraper:
                 content = self.scrape_text_with_bs(link, session)
 
             if len(content) < 100:
-                return {'url': link, 'raw_content': None}
-            return {'url': link, 'raw_content': content}
-        except Exception as e:
-            return {'url': link, 'raw_content': None}
+                return {"url": link, "raw_content": None}
+            return {"url": link, "raw_content": content}
+        except Exception:
+            return {"url": link, "raw_content": None}
 
     def scrape_text_with_bs(self, link, session):
         response = session.get(link, timeout=4)
-        soup = BeautifulSoup(response.content, 'lxml', from_encoding=response.encoding)
+        soup = BeautifulSoup(response.content, "lxml", from_encoding=response.encoding)
 
         for script_or_style in soup(["script", "style"]):
             script_or_style.extract()
@@ -102,7 +102,7 @@ class Scraper:
             str: The text from the soup
         """
         text = ""
-        tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5']
+        tags = ["p", "h1", "h2", "h3", "h4", "h5"]
         for element in soup.find_all(tags):  # Find all the <p> elements
             text += element.text + "\n"
         return text

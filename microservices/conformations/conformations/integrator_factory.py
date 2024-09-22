@@ -1,8 +1,8 @@
 from typing import Any
 
 from conformations.api_models import Integrators
-from openmm.app import *
 from openmm import *
+from openmm.app import *
 
 
 def create_integrator(integrator: Integrators) -> Any:

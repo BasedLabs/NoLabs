@@ -70,14 +70,12 @@ export default defineComponent({
       return [
         {
           name: 'name',
-          label: 'Experiment Name',
-          field: (row: {name: string, id:string}) => row.name,
-          style: 'font-size: 3em'
+          label: 'Name:',
+          field: (row: {name: string, id:string}) => row.name
         }, {
           name: 'id',
-          label: 'Experiment Id',
-          field: (row: {name: string, id:string}) => row.id,
-          style: 'font-size: 3em'
+          label: 'Id:',
+          field: (row: {name: string, id:string}) => row.id
         }
       ]
     }

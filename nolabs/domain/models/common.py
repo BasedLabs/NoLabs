@@ -1,44 +1,52 @@
 from __future__ import annotations
 
-__all__ = ['Protein',
-           'ProteinId',
-           'ProteinName',
-           'Experiment',
-           'Job',
-           'JobId',
-           'JobName',
-           'LocalisationProbability',
-           'ProteinCreatedEvent']
+__all__ = [
+    "Protein",
+    "ProteinId",
+    "ProteinName",
+    "Experiment",
+    "Job",
+    "JobId",
+    "JobName",
+    "LocalisationProbability",
+    "ProteinCreatedEvent",
+]
 
 import datetime
+import hashlib
+import io
 import uuid
 from abc import abstractmethod
 from pathlib import Path
-from typing import Union, Dict, Any, List
+from typing import Any, Dict, List, Union
 from uuid import UUID
-from Bio import SeqIO
-import io
 
-from mongoengine import DateTimeField, Document, ReferenceField, CASCADE, EmbeddedDocument, \
-    FloatField, EmbeddedDocumentField, BinaryField, UUIDField, DictField, ListField, IntField, \
-    Q, StringField, BooleanField
-from pydantic import model_validator
+from Bio import SeqIO
+from domain.exceptions import ErrorCodes, NoLabsException
+from mongoengine import (CASCADE, BinaryField, DateTimeField, DictField,
+                         Document, EmbeddedDocument, EmbeddedDocumentField,
+                         FloatField, IntField, ListField, Q, ReferenceField,
+                         StringField, UUIDField)
+from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
 from typing_extensions import Self
-from nolabs.utils.generate_2d_drug import generate_png_from_smiles
 
-from nolabs.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.event_dispatcher import EventDispatcher
-from nolabs.infrastructure.mongo_fields import ValueObjectStringField, ValueObjectFloatField
+from nolabs.infrastructure.mongo_fields import (ValueObjectFloatField,
+                                                ValueObjectStringField)
 from nolabs.seedwork.domain.entities import Entity
 from nolabs.seedwork.domain.events import DomainEvent
-from nolabs.seedwork.domain.value_objects import ValueObject, ValueObjectString, ValueObjectUUID, ValueObjectFloat
+from nolabs.seedwork.domain.value_objects import (ValueObject,
+                                                  ValueObjectFloat,
+                                                  ValueObjectString,
+                                                  ValueObjectUUID)
+from nolabs.utils.generate_2d_drug import generate_png_from_smiles
 
 
 @dataclass
 class ExperimentId(ValueObjectUUID):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         try:
             uuid.UUID(str(self.value))
@@ -56,7 +64,7 @@ class ExperimentId(ValueObjectUUID):
 
 @dataclass
 class ExperimentName(ValueObjectString):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_experiment_name)
@@ -71,18 +79,30 @@ class Experiment(Document, Entity):
     name: ExperimentName = ValueObjectStringField(required=True, factory=ExperimentName)
     created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
 
-    def __init__(self, id: ExperimentId, name: ExperimentName, created_at: datetime.datetime | None = None, *args,
-                 **kwargs):
+    @classmethod
+    def create(
+        cls,
+        id: ExperimentId,
+        name: ExperimentName,
+        created_at: datetime.datetime | None = None,
+    ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
         if not name:
             raise NoLabsException(ErrorCodes.invalid_experiment_name)
 
-        created_at = created_at if created_at else datetime.datetime.now(tz=datetime.timezone.utc)
+        created_at = (
+            created_at
+            if created_at
+            else datetime.datetime.now(tz=datetime.timezone.utc)
+        )
 
-        super().__init__(id=id.value if isinstance(id, ExperimentId) else id, name=name, created_at=created_at, *args,
-                         **kwargs)
+        return Experiment(
+            id=id.value if isinstance(id, ExperimentId) else id,
+            name=name,
+            created_at=created_at,
+        )
 
     @property
     def iid(self) -> ExperimentId:
@@ -93,6 +113,16 @@ class Experiment(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_experiment_name)
 
         self.name = name
+
+    async def delete(self, signal_kwargs=None, **write_concern):
+        self.register_event(ExperimentRemovedEvent(experiment=self))
+
+        super().delete(signal_kwargs, **write_concern)
+
+        domain_events = self.collect_events()
+
+        for e in domain_events:
+            await EventDispatcher.raise_event(e)
 
     def __hash__(self):
         return self.iid.__hash__()
@@ -106,7 +136,7 @@ class Experiment(Document, Entity):
 
 @dataclass
 class ProteinName(ValueObjectString):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_protein_name)
@@ -122,16 +152,16 @@ class ProteinName(ValueObjectString):
 
     @property
     def fasta_name(self):
-        return self.value + '.fasta'
+        return self.value + ".fasta"
 
     @property
     def pdb_name(self):
-        return self.value + '.pdb'
+        return self.value + ".pdb"
 
 
 @dataclass
 class ProteinId(ValueObjectUUID):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         try:
             uuid.UUID(str(self.value))
@@ -142,7 +172,7 @@ class ProteinId(ValueObjectUUID):
 
 
 class SolubleProbability(ValueObjectFloat):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_solubility_probability)
@@ -154,7 +184,7 @@ class SolubleProbability(ValueObjectFloat):
 
 
 class ProteinLink(ValueObjectString):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         return self
 
@@ -166,15 +196,17 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
     other: float = FloatField(required=True)
     extracellular: float = FloatField(required=True)
 
-    def __init__(self, cytosolic: float, mitochondrial: float,
-                 nuclear: float, other: float, extracellular: float, *args, **kwargs):
-        values = [
-            cytosolic,
-            mitochondrial,
-            nuclear,
-            other,
-            extracellular
-        ]
+    def __init__(
+        self,
+        cytosolic: float,
+        mitochondrial: float,
+        nuclear: float,
+        other: float,
+        extracellular: float,
+        *args,
+        **kwargs,
+    ):
+        values = [cytosolic, mitochondrial, nuclear, other, extracellular]
 
         for value in values:
             if not value:
@@ -189,25 +221,32 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
             other=other,
             extracellular=extracellular,
             *args,
-            **kwargs)
+            **kwargs,
+        )
 
 
 class Protein(Document, Entity):
     id: UUID = UUIDField(primary_key=True)
-    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
+    experiment: Experiment = ReferenceField(
+        Experiment, required=True, reverse_delete_rule=CASCADE
+    )
     name: ProteinName = ValueObjectStringField(required=True, factory=ProteinName)
     fasta_content: bytes | None = BinaryField(required=False)
     pdb_content: bytes | None = BinaryField(required=False)
-    localisation: LocalisationProbability | None = EmbeddedDocumentField(LocalisationProbability, required=False)
+    localisation: LocalisationProbability | None = EmbeddedDocumentField(
+        LocalisationProbability, required=False
+    )
     gene_ontology: Dict[str, Any] | None = DictField(required=False)
-    soluble_probability: SolubleProbability | None = ValueObjectFloatField(required=False, factory=SolubleProbability)
+    soluble_probability: SolubleProbability | None = ValueObjectFloatField(
+        required=False, factory=SolubleProbability
+    )
     msa: bytes | None = BinaryField(required=False)
 
     binding_pockets: List[int] = ListField(IntField())
     md_content: bytes | None = BinaryField(required=False)
 
-    source_binding_protein = ReferenceField('Protein', required=False)
-    binding_ligand: Ligand = ReferenceField('Ligand', required=False)
+    source_binding_protein = ReferenceField("Protein", required=False)
+    binding_ligand: Ligand = ReferenceField("Ligand", required=False)
     sdf_content: bytes | None = BinaryField(required=False)
     minimized_affinity: float | None = FloatField(required=False)
     scored_affinity: float | None = FloatField(required=False)
@@ -216,20 +255,20 @@ class Protein(Document, Entity):
 
     link: ProteinLink = ValueObjectStringField(required=False, factory=ProteinLink)
 
-    '''
+    """
     Conformations content
-    '''
+    """
 
     def get_msa(self) -> str | None:
         if self.msa:
-            return self.msa.decode('utf-8')
+            return self.msa.decode("utf-8")
 
         return None
 
-    def get_protein_binders(self) -> List['ProteinBinder']:
+    def get_protein_binders(self) -> List["ProteinBinder"]:
         return ProteinBinder.objects(Q(protein1=self) or Q(protein2=self))
 
-    def get_ligand_binders(self) -> List['LigandBinder']:
+    def get_ligand_binders(self) -> List["LigandBinder"]:
         return LigandBinder.objects(protein=self)
 
     @property
@@ -247,7 +286,7 @@ class Protein(Document, Entity):
             raise NoLabsException(ErrorCodes.protein_fasta_is_empty)
 
         if isinstance(fasta_content, str):
-            fasta_content = fasta_content.encode('utf-8')
+            fasta_content = fasta_content.encode("utf-8")
 
         self.fasta_content = fasta_content
 
@@ -256,15 +295,15 @@ class Protein(Document, Entity):
 
     def get_fasta(self) -> str | None:
         if self.fasta_content:
-            return self.fasta_content.decode('utf-8')
+            return self.fasta_content.decode("utf-8")
 
         return None
 
     def get_amino_acid_sequence(self) -> str | None:
         fasta = self.get_fasta()
         if fasta:
-            res = ''
-            for chain in SeqIO.parse(io.StringIO(fasta), 'fasta'):
+            res = ""
+            for chain in SeqIO.parse(io.StringIO(fasta), "fasta"):
                 res += str(chain.seq)
 
             return res
@@ -274,13 +313,13 @@ class Protein(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_protein_content)
 
         if isinstance(md_content, str):
-            md_content = md_content.encode('utf-8')
+            md_content = md_content.encode("utf-8")
 
         self.md_content = md_content
 
     def get_md(self) -> str | None:
         if self.md_content:
-            return self.md_content.decode('utf-8')
+            return self.md_content.decode("utf-8")
 
         return None
 
@@ -288,14 +327,23 @@ class Protein(Document, Entity):
         if not pdb_content:
             raise NoLabsException(ErrorCodes.invalid_protein_content)
 
+        as_str = (
+            pdb_content if isinstance(pdb_content, str) else pdb_content.decode("utf-8")
+        )
+
+        if not as_str.lstrip().startswith("HEADER"):
+            raise NoLabsException(
+                ErrorCodes.invalid_protein_content, data={"pdb_content": as_str[:20]}
+            )
+
         if isinstance(pdb_content, str):
-            pdb_content = pdb_content.encode('utf-8')
+            pdb_content = pdb_content.encode("utf-8")
 
         self.pdb_content = pdb_content
 
     def get_pdb(self) -> str | None:
         if self.pdb_content:
-            return self.pdb_content.decode('utf-8')
+            return self.pdb_content.decode("utf-8")
 
         return None
 
@@ -315,12 +363,15 @@ class Protein(Document, Entity):
         self.binding_pockets = binding_pockets
 
     @classmethod
-    def create(cls, experiment: Experiment,
-               name: ProteinName,
-               fasta_content: Union[bytes, str, None] = None,
-               pdb_content: Union[bytes, str, None] = None,
-               *args,
-               **kwargs):
+    def create(
+        cls,
+        experiment: Experiment,
+        name: ProteinName,
+        fasta_content: Union[bytes, str, None] = None,
+        pdb_content: Union[bytes, str, None] = None,
+        *args,
+        **kwargs,
+    ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_protein_id)
         if not name:
@@ -329,10 +380,10 @@ class Protein(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
         if fasta_content and isinstance(fasta_content, str):
-            fasta_content = fasta_content.encode('utf-8')
+            fasta_content = fasta_content.encode("utf-8")
 
         if pdb_content and isinstance(fasta_content, str):
-            pdb_content = pdb_content.encode('utf-8')
+            pdb_content = pdb_content.encode("utf-8")
 
         if not fasta_content and not pdb_content:
             raise NoLabsException(ErrorCodes.protein_initialization_error)
@@ -342,7 +393,7 @@ class Protein(Document, Entity):
             experiment=experiment,
             name=name,
             *args,
-            **kwargs
+            **kwargs,
         )
 
         if fasta_content:
@@ -361,7 +412,7 @@ class Protein(Document, Entity):
 
         self.localisation = localisation
 
-    def add_protein_binder(self, protein: 'Protein'):
+    def add_protein_binder(self, protein: "Protein"):
         if self == protein:
             raise NoLabsException(ErrorCodes.protein_cannot_be_binder_to_itself)
 
@@ -377,7 +428,7 @@ class Protein(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_msa)
 
         if isinstance(msa, str):
-            msa = msa.encode('utf-8')
+            msa = msa.encode("utf-8")
 
         self.msa = msa
 
@@ -393,7 +444,7 @@ class Protein(Document, Entity):
 
 @dataclass
 class LigandId(ValueObjectUUID):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         try:
             uuid.UUID(str(self.value))
@@ -405,7 +456,7 @@ class LigandId(ValueObjectUUID):
 
 @dataclass
 class LigandName(ValueObjectString):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
@@ -419,14 +470,16 @@ class LigandName(ValueObjectString):
 
 @dataclass
 class DrugLikenessScore(ValueObjectFloat):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_drug_likeness_score)
 
         if self.value < 0 or self.value > 1.0:
-            raise NoLabsException(ErrorCodes.invalid_drug_likeness_score,
-                                  'Drug likeness score must be in a range [0,1.0]')
+            raise NoLabsException(
+                ErrorCodes.invalid_drug_likeness_score,
+                "Drug likeness score must be in a range [0,1.0]",
+            )
 
         return self
 
@@ -437,34 +490,42 @@ class DesignedLigandScore(ValueObjectFloat):
     Average weighted score of a designed ligand.
     """
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_designed_ligand_score)
 
         if self.value < 0 or self.value > 1.0:
-            raise NoLabsException(ErrorCodes.invalid_designed_ligand_score,
-                                  'Designed ligand score must be in a range [0,1.0]')
+            raise NoLabsException(
+                ErrorCodes.invalid_designed_ligand_score,
+                "Designed ligand score must be in a range [0,1.0]",
+            )
 
         return self
 
 
 class LigandLink(ValueObjectString):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         return self
 
 
 class Ligand(Document, Entity):
-    id = UUIDField(db_field='_id', primary_key=True, required=True)
+    id = UUIDField(db_field="_id", primary_key=True, required=True)
     experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
     name = ValueObjectStringField(required=False, factory=LigandName)
     smiles_content = BinaryField(required=False)
+    smiles_hash = StringField(required=False)
     sdf_content = BinaryField(required=False)
+    sdf_hash = BinaryField(required=False)
     drug_likeness = ValueObjectFloatField(required=False, factory=DrugLikenessScore)
-    designed_ligand_score = ValueObjectFloatField(required=False, factory=DesignedLigandScore)
+    designed_ligand_score = ValueObjectFloatField(
+        required=False, factory=DesignedLigandScore
+    )
     link: LigandLink | None = StringField(required=False)  # New field for link
     image = BinaryField(required=False)  # New field for image
+    generated_stage = StringField()
+    created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
 
     def __hash__(self):
         return self.iid.__hash__()
@@ -478,6 +539,9 @@ class Ligand(Document, Entity):
     def iid(self) -> LigandId:
         return LigandId(self.id)
 
+    def set_generated_stage(self, stage: str):
+        self.generated_stage = stage
+
     def set_name(self, name: LigandName | None):
         self.name = name
 
@@ -486,33 +550,36 @@ class Ligand(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_smiles)
 
         if isinstance(smiles_content, str):
-            smiles_content = smiles_content.encode('utf-8')
+            smiles_content = smiles_content.encode("utf-8")
 
+        self.smiles_hash = Ligand.calc_hash(smiles_content)
         self.smiles_content = smiles_content
         self.image = generate_png_from_smiles(self.smiles_content)
 
     def get_sdf(self) -> str | None:
         if self.sdf_content:
-            return self.sdf_content.decode('utf-8')
+            return self.sdf_content.decode("utf-8")
         return None
 
     def get_smiles(self) -> str | None:
         if self.smiles_content:
-            return self.smiles_content.decode('utf-8')
+            return self.smiles_content.decode("utf-8")
         return None
 
     def set_sdf(self, sdf: Union[str, bytes]):
         if isinstance(sdf, str):
-            sdf = sdf.encode('utf-8')
+            sdf = sdf.encode("utf-8")
+
+        self.sdf_hash = Ligand.calc_hash(sdf)
         self.sdf_content = sdf
         self._set_smiles_from_sdf(sdf)  # Set smiles from sdf
 
     def _set_smiles_from_sdf(self, sdf: Union[str, bytes]):
         if isinstance(sdf, bytes):
-            sdf = sdf.decode('utf-8')
+            sdf = sdf.decode("utf-8")
         mol = Chem.MolFromMolBlock(sdf)
         if mol is None:
-            raise NoLabsException(ErrorCodes.sdf_file_is_invalid, 'Invalid SDF content')
+            raise NoLabsException(ErrorCodes.sdf_file_is_invalid, "Invalid SDF content")
         smiles = Chem.MolToSmiles(mol)
         self.set_smiles(smiles)
 
@@ -527,21 +594,26 @@ class Ligand(Document, Entity):
         self.designed_ligand_score = score
 
     @classmethod
-    def create(cls, experiment: Experiment,
-               name: LigandName | None = None,
-               smiles_content: Union[bytes, str, None] = None,
-               sdf_content: Union[bytes, str, None] = None,
-               link: LigandLink | None = None,
-               *args,
-               **kwargs) -> 'Ligand':  # Added link parameter
+    def create(
+        cls,
+        experiment: Experiment,
+        name: LigandName | None = None,
+        smiles_content: Union[bytes, str, None] = None,
+        sdf_content: Union[bytes, str, None] = None,
+        link: LigandLink | None = None,
+        *args,
+        **kwargs,
+    ) -> "Ligand":  # Added link parameter
         if not name:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
         if not experiment:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
         if not smiles_content and not sdf_content:
-            raise NoLabsException(ErrorCodes.ligand_initialization_error,
-                                  'Cannot create a ligand without smiles and sdf content')
+            raise NoLabsException(
+                ErrorCodes.ligand_initialization_error,
+                "Cannot create a ligand without smiles and sdf content",
+            )
 
         if smiles_content and isinstance(smiles_content, str):
             smiles_content = smiles_content.encode()
@@ -549,10 +621,10 @@ class Ligand(Document, Entity):
         if sdf_content and isinstance(sdf_content, str):
             sdf_content = sdf_content.encode()
 
-        if 'id' not in kwargs:
+        if "id" not in kwargs:
             id = LigandId(uuid.uuid4()).value
         else:
-            id = kwargs.get('id')
+            id = kwargs.get("id")
             if isinstance(id, LigandId):
                 id = id.value
 
@@ -564,25 +636,27 @@ class Ligand(Document, Entity):
             sdf_content=sdf_content,
             link=link,  # Set link
             *args,
-            **kwargs
+            **kwargs,
         )
 
         if smiles_content:
-            ligand.image = generate_png_from_smiles(smiles_content.decode('utf-8'))
+            ligand.image = generate_png_from_smiles(smiles_content.decode("utf-8"))
         elif sdf_content:
-            ligand._set_smiles_from_sdf(sdf_content.decode('utf-8'))
+            ligand._set_smiles_from_sdf(sdf_content.decode("utf-8"))
 
         return ligand
 
-    def add_binding(self,
-                    protein: 'Protein',
-                    sdf_content: bytes | None = None,
-                    minimized_affinity: float | None = None,
-                    scored_affinity: float | None = None,
-                    confidence: float | None = None,
-                    plddt_array: List[int] | None = None,
-                    name: str | None = None,
-                    pdb_content: Union[bytes, str, None] = None) -> 'Protein':
+    def add_binding(
+        self,
+        protein: "Protein",
+        sdf_content: bytes | str | None = None,
+        minimized_affinity: float | None = None,
+        scored_affinity: float | None = None,
+        confidence: float | None = None,
+        plddt_array: List[int] | None = None,
+        name: str | None = None,
+        pdb_content: Union[bytes, str, None] = None,
+    ) -> "Protein":
         if not plddt_array:
             plddt_array = []
 
@@ -600,35 +674,48 @@ class Ligand(Document, Entity):
         if complexes:
             complex = complexes[0]
         else:
-            protein_name = ProteinName(f'{str(protein.name)}-{str(self.name)}-complex' + (f'-{name}' if name else ''))
+            protein_name = ProteinName(
+                f"{str(protein.name)}-{str(self.name)}-complex"
+                + (f"-{name}" if name else "")
+            )
 
             complex = Protein.create(
                 experiment=self.experiment,
                 name=protein_name,
                 pdb_content=pdb_content,
-                fasta_content=protein.fasta_content
+                fasta_content=protein.fasta_content,
             )
 
         complex.sdf_content = sdf_content
-        complex.scored_affinity = scored_affinity if scored_affinity else complex.scored_affinity
-        complex.minimized_affinity = minimized_affinity if minimized_affinity else complex.minimized_affinity
+        complex.scored_affinity = (
+            scored_affinity if scored_affinity else complex.scored_affinity
+        )
+        complex.minimized_affinity = (
+            minimized_affinity if minimized_affinity else complex.minimized_affinity
+        )
         complex.confidence = confidence if confidence else complex.confidence
         complex.plddt_array = plddt_array if plddt_array else complex.plddt_array
         complex.pdb_content = pdb_content if pdb_content else complex.pdb_content
 
-        complex.save()
-
         return complex
 
-    def get_bindings(self) -> List['LigandBinder']:
+    def get_bindings(self) -> List["LigandBinder"]:
         return LigandBinder.objects(ligand=self)
+
+    @classmethod
+    def calc_hash(cls, s: bytes | str) -> str:
+        if isinstance(s, str):
+            s = s.encode("utf-8")
+
+        hash_size = 8 if len(s) > 32 else 32
+        return hashlib.shake_128(s).hexdigest(hash_size)  # 64 symbols
 
 
 @dataclass
 class JobId(ValueObjectUUID):
     value: UUID
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         try:
             uuid.UUID(str(self.value))
@@ -640,7 +727,7 @@ class JobId(ValueObjectUUID):
 
 @dataclass
 class JobName(ValueObjectString):
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def post_root(self) -> Self:
         if not self.value:
             raise NoLabsException(ErrorCodes.invalid_job_name)
@@ -650,40 +737,31 @@ class JobName(ValueObjectString):
         return self
 
 
-@dataclass
-class JobInputError:
+class JobInputError(BaseModel):
     message: str
     error_code: ErrorCodes
 
 
-class JobStartedEvent(DomainEvent):
-    job: Job
-
-    def __init__(self, job: Job):
-        self.job = job
-
-
-class JobFinishedEvent(DomainEvent):
-    job: Job
-
-    def __init__(self, job: Job):
-        self.job = job
-
-
 class Job(Document, Entity):
-    id: UUID = UUIDField(db_field='_id', primary_key=True, required=True)
-    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
+    id: UUID = UUIDField(db_field="_id", primary_key=True, required=True)
+    experiment: Experiment = ReferenceField(
+        Experiment, required=True, reverse_delete_rule=CASCADE
+    )
     name: JobName = ValueObjectStringField(required=True, factory=JobName)
     created_at: datetime.datetime = DateTimeField()
     updated_at: datetime.datetime = DateTimeField()
-    running: bool = BooleanField()
     inputs_updated_at: datetime.datetime = DateTimeField()
 
-    meta = {
-        'allow_inheritance': True
-    }
+    meta = {"allow_inheritance": True}
 
-    def __init__(self, id: JobId, name: JobName, experiment: Experiment, *args, **kwargs):
+    def __init__(
+        self,
+        id: JobId,
+        name: JobName,
+        experiment: Union[Experiment, uuid.UUID],
+        *args,
+        **kwargs,
+    ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_job_id)
         if not name:
@@ -693,8 +771,13 @@ class Job(Document, Entity):
 
         self.clear_events()
 
-        super().__init__(id=id.value if isinstance(id, JobId) else id, name=name, experiment=experiment, *args,
-                         **kwargs)
+        super().__init__(
+            id=id.value if isinstance(id, JobId) else id,
+            name=name,
+            experiment=experiment,
+            *args,
+            **kwargs,
+        )
 
     def set_name(self, name: JobName):
         if not name:
@@ -707,31 +790,21 @@ class Job(Document, Entity):
         return JobId(self.id)
 
     @abstractmethod
-    def result_valid(self) -> bool:
-        ...
+    def result_valid(self) -> bool: ...
 
     @abstractmethod
-    def _input_errors(self) -> List[JobInputError]:
-        ...
+    def _input_errors(self) -> List[JobInputError]: ...
 
     def input_errors(self, throw: bool = False) -> List[JobInputError]:
         errors = self._input_errors()
 
         if throw:
             for error in errors:
-                raise NoLabsException(messages=error.message, error_code=error.error_code)
+                raise NoLabsException(
+                    messages=error.message, error_code=error.error_code
+                )
 
         return errors
-
-    def started(self):
-        self.running = True
-
-        self.register_event(JobStartedEvent(self))
-
-    def finished(self):
-        self.running = False
-
-        self.register_event(JobFinishedEvent(self))
 
     async def save(self, **kwargs):
         if not self.created_at:
@@ -752,7 +825,9 @@ class ProteinBinder(Document):
 
 
 class LigandBinder(Document):
-    protein: Protein = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+    protein: Protein = ReferenceField(
+        Protein, required=True, reverse_delete_rule=CASCADE
+    )
     ligand: Ligand = ReferenceField(Ligand, required=True, reverse_delete_rule=CASCADE)
     sdf_content: bytes | None = BinaryField(required=False)
     minimized_affinity: float | None = FloatField(required=False)
@@ -775,5 +850,13 @@ class LigandCreatedEvent(DomainEvent):
 
     def __init__(self, ligand: Ligand):
         self.ligand = ligand
+
+
+class ExperimentRemovedEvent(DomainEvent):
+    experiment: Experiment
+
+    def __init__(self, experiment: Experiment):
+        self.experiment = experiment
+
 
 # endregion

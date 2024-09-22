@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Optional, Dict, Union
+from typing import List, Optional
 
 
 @dataclasses.dataclass
@@ -16,6 +16,7 @@ class ReferenceMappingRequest:
         device (str, optional): Device to use for computation (e.g., "cpu", "cuda"). Defaults to "cpu".
         k_neighbors (int, optional): Number of neighbors to consider for classification task. Defaults to 10.
     """
+
     query_path: str
     reference_path: str
     cell_type_key: Optional[str] = "celltype"
@@ -46,4 +47,3 @@ class EmbedRequest:
 @dataclasses.dataclass
 class EmbedResponse:
     embeddings: List[List[float]]
-

@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -8,6 +8,14 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { AllWorkflowSchemasResponse } from './models/AllWorkflowSchemasResponse';
+export type { application__diffdock__api_models__GetJobStatusResponse } from './models/application__diffdock__api_models__GetJobStatusResponse';
+export type { application__diffdock__api_models__JobResponse } from './models/application__diffdock__api_models__JobResponse';
+export type { application__diffdock__api_models__JobResult } from './models/application__diffdock__api_models__JobResult';
+export type { application__diffdock__api_models__SetupJobRequest } from './models/application__diffdock__api_models__SetupJobRequest';
+export type { application__folding__api_models__GetJobStatusResponse } from './models/application__folding__api_models__GetJobStatusResponse';
+export type { application__folding__api_models__JobResponse } from './models/application__folding__api_models__JobResponse';
+export type { application__folding__api_models__JobResult } from './models/application__folding__api_models__JobResult';
+export type { application__folding__api_models__SetupJobRequest } from './models/application__folding__api_models__SetupJobRequest';
 export type { Body_update_ligand_api_v1_objects_ligands_patch } from './models/Body_update_ligand_api_v1_objects_ligands_patch';
 export type { Body_update_protein_api_v1_proteins_patch } from './models/Body_update_protein_api_v1_proteins_patch';
 export type { Body_upload_ligand_api_v1_objects_ligands_post } from './models/Body_upload_ligand_api_v1_objects_ligands_post';
@@ -15,11 +23,13 @@ export type { Body_upload_protein_api_v1_proteins_post } from './models/Body_upl
 export type { CheckBioBuddyEnabledResponse } from './models/CheckBioBuddyEnabledResponse';
 export type { ChemBLData } from './models/ChemBLData';
 export type { ChemBLMetaData } from './models/ChemBLMetaData';
-export type { ComponentModel_Input } from './models/ComponentModel_Input';
-export type { ComponentModel_Output } from './models/ComponentModel_Output';
+export type { ComponentSchema } from './models/ComponentSchema';
+export type { ComponentSchemaTemplate_Input } from './models/ComponentSchemaTemplate_Input';
+export type { ComponentSchemaTemplate_Output } from './models/ComponentSchemaTemplate_Output';
+export { ComponentStateEnum } from './models/ComponentStateEnum';
 export type { CreateFunctionCallMessageResponse } from './models/CreateFunctionCallMessageResponse';
 export type { CreateMessageResponse } from './models/CreateMessageResponse';
-export type { DefaultWorkflowComponentModelValue } from './models/DefaultWorkflowComponentModelValue';
+export type { DefaultSchema } from './models/DefaultSchema';
 export type { EditMessageResponse } from './models/EditMessageResponse';
 export type { ExperimentMetadataResponse } from './models/ExperimentMetadataResponse';
 export { FoldingBackendEnum } from './models/FoldingBackendEnum';
@@ -29,42 +39,33 @@ export type { FunctionCallReturnData_Input } from './models/FunctionCallReturnDa
 export type { FunctionCallReturnData_Output } from './models/FunctionCallReturnData_Output';
 export type { FunctionParam } from './models/FunctionParam';
 export type { GetAvailableFunctionCallsResponse } from './models/GetAvailableFunctionCallsResponse';
-export type { GetComponentStateResponse } from './models/GetComponentStateResponse';
+export type { GetComponentResponse } from './models/GetComponentResponse';
 export type { GetJobMetadataResponse } from './models/GetJobMetadataResponse';
+export type { GetJobState } from './models/GetJobState';
 export type { HitModel } from './models/HitModel';
 export type { HspModel } from './models/HspModel';
 export type { HTTPValidationError } from './models/HTTPValidationError';
-export type { InputPropertyErrorResponse } from './models/InputPropertyErrorResponse';
 export { IntegratorsRequest } from './models/IntegratorsRequest';
-export type { ItemsModel_Input } from './models/ItemsModel_Input';
-export type { ItemsModel_Output } from './models/ItemsModel_Output';
-export type { JobErrorResponse } from './models/JobErrorResponse';
+export type { ItemsSchema_Input } from './models/ItemsSchema_Input';
+export type { ItemsSchema_Output } from './models/ItemsSchema_Output';
+export { JobStateEnum } from './models/JobStateEnum';
 export type { LigandContentResponse } from './models/LigandContentResponse';
 export type { LigandMetadataResponse } from './models/LigandMetadataResponse';
 export type { LigandSearchContentQuery } from './models/LigandSearchContentQuery';
 export type { LigandSearchMetadataQuery } from './models/LigandSearchMetadataQuery';
 export type { LoadConversationResponse } from './models/LoadConversationResponse';
 export type { LogsResponse } from './models/LogsResponse';
-export type { MappingModel } from './models/MappingModel';
+export type { MappingSchema } from './models/MappingSchema';
 export type { Message } from './models/Message';
 export type { nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__binding_pockets__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__binding_pockets__api_models__JobResponse } from './models/nolabs__application__use_cases__binding_pockets__api_models__JobResponse';
 export type { nolabs__application__use_cases__binding_pockets__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__binding_pockets__api_models__SetupJobRequest';
-export type { nolabs__application__use_cases__blast__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__blast__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__blast__api_models__JobResponse } from './models/nolabs__application__use_cases__blast__api_models__JobResponse';
 export type { nolabs__application__use_cases__blast__api_models__JobResult } from './models/nolabs__application__use_cases__blast__api_models__JobResult';
 export type { nolabs__application__use_cases__blast__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__blast__api_models__SetupJobRequest';
 export type { nolabs__application__use_cases__conformations__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__conformations__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__conformations__api_models__JobResponse } from './models/nolabs__application__use_cases__conformations__api_models__JobResponse';
 export type { nolabs__application__use_cases__conformations__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__conformations__api_models__SetupJobRequest';
-export type { nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse';
-export type { nolabs__application__use_cases__diffdock__api_models__JobResponse } from './models/nolabs__application__use_cases__diffdock__api_models__JobResponse';
-export type { nolabs__application__use_cases__diffdock__api_models__JobResult } from './models/nolabs__application__use_cases__diffdock__api_models__JobResult';
-export type { nolabs__application__use_cases__diffdock__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__diffdock__api_models__SetupJobRequest';
-export type { nolabs__application__use_cases__folding__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__folding__api_models__GetJobStatusResponse';
-export type { nolabs__application__use_cases__folding__api_models__JobResponse } from './models/nolabs__application__use_cases__folding__api_models__JobResponse';
-export type { nolabs__application__use_cases__folding__api_models__JobResult } from './models/nolabs__application__use_cases__folding__api_models__JobResult';
-export type { nolabs__application__use_cases__folding__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__folding__api_models__SetupJobRequest';
 export type { nolabs__application__use_cases__gene_ontology__api_models__GetJobStatusResponse } from './models/nolabs__application__use_cases__gene_ontology__api_models__GetJobStatusResponse';
 export type { nolabs__application__use_cases__gene_ontology__api_models__JobResponse } from './models/nolabs__application__use_cases__gene_ontology__api_models__JobResponse';
 export type { nolabs__application__use_cases__gene_ontology__api_models__JobResult } from './models/nolabs__application__use_cases__gene_ontology__api_models__JobResult';
@@ -86,8 +87,9 @@ export type { nolabs__application__use_cases__solubility__api_models__GetJobStat
 export type { nolabs__application__use_cases__solubility__api_models__JobResponse } from './models/nolabs__application__use_cases__solubility__api_models__JobResponse';
 export type { nolabs__application__use_cases__solubility__api_models__JobResult } from './models/nolabs__application__use_cases__solubility__api_models__JobResult';
 export type { nolabs__application__use_cases__solubility__api_models__SetupJobRequest } from './models/nolabs__application__use_cases__solubility__api_models__SetupJobRequest';
-export type { PropertyModel_Input } from './models/PropertyModel_Input';
-export type { PropertyModel_Output } from './models/PropertyModel_Output';
+export type { PropertyErrorResponse } from './models/PropertyErrorResponse';
+export type { PropertySchema_Input } from './models/PropertySchema_Input';
+export type { PropertySchema_Output } from './models/PropertySchema_Output';
 export type { ProteinContentResponse } from './models/ProteinContentResponse';
 export type { ProteinLocalisationResponse } from './models/ProteinLocalisationResponse';
 export type { ProteinMetadataResponse } from './models/ProteinMetadataResponse';
@@ -106,9 +108,8 @@ export type { UpdateJobRequest } from './models/UpdateJobRequest';
 export type { UploadLigandResponse } from './models/UploadLigandResponse';
 export type { UploadProteinResponse } from './models/UploadProteinResponse';
 export type { ValidationError } from './models/ValidationError';
-export type { WorkflowComponentModel } from './models/WorkflowComponentModel';
-export type { WorkflowSchemaModel_Input } from './models/WorkflowSchemaModel_Input';
-export type { WorkflowSchemaModel_Output } from './models/WorkflowSchemaModel_Output';
+export type { WorkflowSchema_Input } from './models/WorkflowSchema_Input';
+export type { WorkflowSchema_Output } from './models/WorkflowSchema_Output';
 
 export { BindingPocketsService } from './services/BindingPocketsService';
 export { BiobuddyService } from './services/BiobuddyService';

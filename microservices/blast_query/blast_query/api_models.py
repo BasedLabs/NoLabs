@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from typing import Optional
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel
 
 
 class BlastType(str, Enum):
@@ -16,6 +17,7 @@ class SequenceQuery(BaseModel):
 
     - sequence: could be nucleotide sequence for blastn, tblastx, or tblastn, or amino acid sequence for blastp or blastx.
     """
+
     sequence: str
     type: BlastType
     descriptions: Optional[int] = 10
@@ -23,6 +25,7 @@ class SequenceQuery(BaseModel):
     hitlist_size: Optional[int] = 10
     expect: Optional[float] = 10.0
     job_id: Optional[str] = None
+
 
 class IsJobRunningResponse(BaseModel):
     is_running: bool

@@ -13,20 +13,22 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel, StrictInt
-from typing import Any, ClassVar, Dict, List
 from external_data_query_microservice.models.molecule import Molecule
-from typing import Optional, Set
+from pydantic import BaseModel, StrictInt
 from typing_extensions import Self
+
 
 class DrugIndicationResponse(BaseModel):
     """
     DrugIndicationResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     drugs: List[Molecule]
     total_count: StrictInt
     page: StrictInt
@@ -38,7 +40,6 @@ class DrugIndicationResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -64,8 +65,7 @@ class DrugIndicationResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -78,7 +78,7 @@ class DrugIndicationResponse(BaseModel):
             for _item in self.drugs:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['drugs'] = _items
+            _dict["drugs"] = _items
         return _dict
 
     @classmethod
@@ -90,12 +90,16 @@ class DrugIndicationResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "drugs": [Molecule.from_dict(_item) for _item in obj["drugs"]] if obj.get("drugs") is not None else None,
-            "total_count": obj.get("total_count"),
-            "page": obj.get("page"),
-            "pages": obj.get("pages")
-        })
+        _obj = cls.model_validate(
+            {
+                "drugs": (
+                    [Molecule.from_dict(_item) for _item in obj["drugs"]]
+                    if obj.get("drugs") is not None
+                    else None
+                ),
+                "total_count": obj.get("total_count"),
+                "page": obj.get("page"),
+                "pages": obj.get("pages"),
+            }
+        )
         return _obj
-
-

@@ -333,7 +333,7 @@ export default defineComponent({
       }));
 
       // Map the workflow components to the required structure
-      const currentWorkflow = workflowSchema?.workflow_components.map(workflowComponent => ({
+      const currentWorkflow = workflowSchema?.components.map(workflowComponent => ({
         id: workflowComponent.component_id,
         name: workflowComponent.name,
         description: '',
@@ -449,7 +449,7 @@ export default defineComponent({
       }));
 
       // Map the workflow components to the required structure
-      const currentWorkflow = workflowSchema?.workflow_components.map(workflowComponent => ({
+      const currentWorkflow = workflowSchema?.components.map(workflowComponent => ({
         id: workflowComponent.component_id,
         name: workflowComponent.name,
         description: '',

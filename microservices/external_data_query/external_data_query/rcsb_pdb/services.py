@@ -1,26 +1,34 @@
-from typing import Dict, Any
+import json
+from typing import Any, Dict
 
 import requests
-import json
+from external_data_query.rcsb_pdb.api_models import (
+    ComplexQueryRequest, FetchedProtein, GetFastaFilesByIdsRequest,
+    GetFastaFilesBySearchQueryRequest, GetFastaFilesResponse, LogicalNode,
+    QueryNode, SequenceQueryRequest, TerminalNode)
 
-from external_data_query.rcsb_pdb.api_models import GetFastaFilesByIdsRequest, GetFastaFilesResponse, FetchedProtein, \
-    GetFastaFilesBySearchQueryRequest, SequenceQueryRequest, ComplexQueryRequest, QueryNode, \
-    TerminalNode, LogicalNode
+__all__ = [
+    "fetch_fasta_files_by_ids",
+    "fetch_protein_entries_by_name",
+    "fetch_entries_by_complex_query",
+    "fetch_proteins_by_sequence",
+    "create_query_node",
+]
 
-__all__ = ['fetch_fasta_files_by_ids', 'fetch_protein_entries_by_name',
-           'fetch_entries_by_complex_query', 'fetch_proteins_by_sequence', 'create_query_node']
 
-
-def create_query_node(data: Dict[str, Any]) -> 'QueryNode':
-    if 'attribute' in data:
+def create_query_node(data: Dict[str, Any]) -> "QueryNode":
+    if "attribute" in data:
         return TerminalNode(**data)
-    elif 'operator' in data and 'children' in data:
-        children = [create_query_node(child) for child in data['children']]
-        return LogicalNode(operator=data['operator'], children=children)
+    elif "operator" in data and "children" in data:
+        children = [create_query_node(child) for child in data["children"]]
+        return LogicalNode(operator=data["operator"], children=children)
     else:
-        raise ValueError('Invalid input for QueryNode')
+        raise ValueError("Invalid input for QueryNode")
 
-def fetch_fasta_files_by_ids(request: GetFastaFilesByIdsRequest) -> GetFastaFilesResponse:
+
+def fetch_fasta_files_by_ids(
+    request: GetFastaFilesByIdsRequest,
+) -> GetFastaFilesResponse:
     base_url = "https://www.rcsb.org/fasta/entry/"
     pdb_base_link = "https://www.rcsb.org/structure/"
     results = []
@@ -28,14 +36,18 @@ def fetch_fasta_files_by_ids(request: GetFastaFilesByIdsRequest) -> GetFastaFile
     for pdb_id in request.rcsb_pdb_ids:
         fasta_response = requests.get(f"{base_url}{pdb_id}")
         if fasta_response.status_code == 200:
-            results.append(FetchedProtein(fasta_response.text, f"{pdb_base_link}{pdb_id}"))
+            results.append(
+                FetchedProtein(fasta_response.text, f"{pdb_base_link}{pdb_id}")
+            )
         else:
             print(f"Failed to fetch FASTA for ID: {pdb_id}")
 
     return GetFastaFilesResponse(results)
 
 
-def fetch_protein_entries_by_name(request: GetFastaFilesBySearchQueryRequest) -> GetFastaFilesResponse:
+def fetch_protein_entries_by_name(
+    request: GetFastaFilesBySearchQueryRequest,
+) -> GetFastaFilesResponse:
     protein_name = request.search_query
     max_results = request.max_results
     exact_match = request.exact_match  # Use the new field
@@ -44,17 +56,14 @@ def fetch_protein_entries_by_name(request: GetFastaFilesBySearchQueryRequest) ->
     if max_results is not None:
         request_options = {
             "return_all_hits": False,
-            "paginate": {
-                "start": 0,
-                "rows": max_results
-            }
+            "paginate": {"start": 0, "rows": max_results},
         }
     else:
         request_options = {"return_all_hits": True}
 
     operator = "exact_match" if exact_match else "contains_phrase"
     search_url = "https://search.rcsb.org/rcsbsearch/v2/query"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     query_payload = {
         "query": {
             "type": "group",
@@ -66,8 +75,8 @@ def fetch_protein_entries_by_name(request: GetFastaFilesBySearchQueryRequest) ->
                     "parameters": {
                         "attribute": "rcsb_entry_info.selected_polymer_entity_types",
                         "operator": "exact_match",
-                        "value": "Protein (only)"
-                    }
+                        "value": "Protein (only)",
+                    },
                 },
                 {
                     "type": "terminal",
@@ -75,17 +84,19 @@ def fetch_protein_entries_by_name(request: GetFastaFilesBySearchQueryRequest) ->
                     "parameters": {
                         "attribute": "struct.title",
                         "operator": operator,
-                        "value": protein_name
-                    }
-                }
-            ]
+                        "value": protein_name,
+                    },
+                },
+            ],
         },
         "request_options": request_options,
-        "return_type": "entry"
+        "return_type": "entry",
     }
 
     print(query_payload)
-    search_response = requests.post(search_url, headers=headers, data=json.dumps(query_payload))
+    search_response = requests.post(
+        search_url, headers=headers, data=json.dumps(query_payload)
+    )
     fetched_proteins = []
 
     fasta_base_url = "https://www.rcsb.org/fasta/entry/"
@@ -101,7 +112,9 @@ def fetch_protein_entries_by_name(request: GetFastaFilesBySearchQueryRequest) ->
             if fasta_response.status_code == 200:
                 fasta_contents = fasta_response.text
                 link = f"{pdb_base_link}{pdb_id}"
-                fetched_proteins.append(FetchedProtein(fasta_contents=fasta_contents, link=link))
+                fetched_proteins.append(
+                    FetchedProtein(fasta_contents=fasta_contents, link=link)
+                )
             else:
                 print(f"Failed to fetch FASTA for PDB ID: {pdb_id}")
 
@@ -110,9 +123,11 @@ def fetch_protein_entries_by_name(request: GetFastaFilesBySearchQueryRequest) ->
     return GetFastaFilesResponse(fasta_contents=[])
 
 
-def fetch_entries_by_complex_query(request: ComplexQueryRequest) -> GetFastaFilesResponse:
+def fetch_entries_by_complex_query(
+    request: ComplexQueryRequest,
+) -> GetFastaFilesResponse:
     search_url = "https://search.rcsb.org/rcsbsearch/v2/query"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     fasta_base_url = "https://www.rcsb.org/fasta/entry/"
     pdb_base_link = "https://www.rcsb.org/structure/"
 
@@ -121,38 +136,37 @@ def fetch_entries_by_complex_query(request: ComplexQueryRequest) -> GetFastaFile
             parameters = {
                 "attribute": node.attribute,
                 "operator": node.operator,
-                "value": node.value
+                "value": node.value,
             }
             # Only add 'negation' if it is True
             if node.negation:
                 parameters["negation"] = node.negation
-            return {
-                "type": "terminal",
-                "service": "text",
-                "parameters": parameters
-            }
+            return {"type": "terminal", "service": "text", "parameters": parameters}
         elif isinstance(node, LogicalNode):
             return {
                 "type": "group",
                 "logical_operator": node.operator,
-                "nodes": [build_query(child) for child in node.children]
+                "nodes": [build_query(child) for child in node.children],
             }
 
     query_payload = {
         "query": build_query(request.query),
         "request_options": {
             "return_all_hits": True if request.max_results is None else False,
-            "paginate": {
-                "start": 0,
-                "rows": request.max_results
-            } if request.max_results is not None else {}
+            "paginate": (
+                {"start": 0, "rows": request.max_results}
+                if request.max_results is not None
+                else {}
+            ),
         },
-        "return_type": "entry"
+        "return_type": "entry",
     }
 
     print(query_payload)
 
-    response = requests.post(search_url, headers=headers, data=json.dumps(query_payload))
+    response = requests.post(
+        search_url, headers=headers, data=json.dumps(query_payload)
+    )
     fetched_proteins = []
 
     if response.status_code == 200:
@@ -165,7 +179,9 @@ def fetch_entries_by_complex_query(request: ComplexQueryRequest) -> GetFastaFile
             if fasta_response.status_code == 200:
                 fasta_contents = fasta_response.text
                 link = f"{pdb_base_link}{pdb_id}"
-                fetched_proteins.append(FetchedProtein(fasta_contents=fasta_contents, link=link))
+                fetched_proteins.append(
+                    FetchedProtein(fasta_contents=fasta_contents, link=link)
+                )
             else:
                 print(f"Failed to fetch FASTA for PDB ID: {pdb_id}")
 
@@ -174,7 +190,7 @@ def fetch_entries_by_complex_query(request: ComplexQueryRequest) -> GetFastaFile
 
 def fetch_proteins_by_sequence(request: SequenceQueryRequest) -> GetFastaFilesResponse:
     search_url = "https://search.rcsb.org/rcsbsearch/v2/query"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     fasta_base_url = "https://www.rcsb.org/fasta/entry/"
     pdb_base_link = "https://www.rcsb.org/structure/"
 
@@ -191,16 +207,16 @@ def fetch_proteins_by_sequence(request: SequenceQueryRequest) -> GetFastaFilesRe
             "parameters": {
                 "sequence": request.sequence,
                 "sequence_type": request.sequence_type,
-                **sequence_filters
-            }
+                **sequence_filters,
+            },
         },
-        "request_options": {
-            "return_all_hits": True
-        },
-        "return_type": "entry"
+        "request_options": {"return_all_hits": True},
+        "return_type": "entry",
     }
 
-    response = requests.post(search_url, headers=headers, data=json.dumps(query_payload))
+    response = requests.post(
+        search_url, headers=headers, data=json.dumps(query_payload)
+    )
     fetched_proteins = []
 
     if response.status_code == 200:
@@ -213,7 +229,9 @@ def fetch_proteins_by_sequence(request: SequenceQueryRequest) -> GetFastaFilesRe
             if fasta_response.status_code == 200:
                 fasta_contents = fasta_response.text
                 link = f"{pdb_base_link}{pdb_id}"
-                fetched_proteins.append(FetchedProtein(fasta_contents=fasta_contents, link=link))
+                fetched_proteins.append(
+                    FetchedProtein(fasta_contents=fasta_contents, link=link)
+                )
             else:
                 print(f"Failed to fetch FASTA for PDB ID: {pdb_id}")
 

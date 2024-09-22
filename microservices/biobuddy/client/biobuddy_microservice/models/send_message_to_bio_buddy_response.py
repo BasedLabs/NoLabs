@@ -13,19 +13,21 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
 from pydantic import BaseModel, StrictStr
-from typing import Any, ClassVar, Dict, List
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class SendMessageToBioBuddyResponse(BaseModel):
     """
     SendMessageToBioBuddyResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     reply_type: StrictStr
     content: StrictStr
     __properties: ClassVar[List[str]] = ["reply_type", "content"]
@@ -35,7 +37,6 @@ class SendMessageToBioBuddyResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -61,8 +62,7 @@ class SendMessageToBioBuddyResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -80,10 +80,7 @@ class SendMessageToBioBuddyResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "reply_type": obj.get("reply_type"),
-            "content": obj.get("content")
-        })
+        _obj = cls.model_validate(
+            {"reply_type": obj.get("reply_type"), "content": obj.get("content")}
+        )
         return _obj
-
-

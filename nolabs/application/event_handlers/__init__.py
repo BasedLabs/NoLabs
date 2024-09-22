@@ -1,1 +1,2 @@
-from .protein_event_handlers import ProteinCreatedEventHandler, ProteinCreatedEvent
+from .protein_event_handlers import (ProteinCreatedEvent,
+                                     ProteinCreatedEventHandler)

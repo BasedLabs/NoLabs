@@ -6,7 +6,7 @@ class PDBReader:
         """
         Read and return the content of a PDB file as a string.
         """
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             return file.read()
 
 
@@ -18,5 +18,5 @@ class PDBWriter:
         """
         Write the given PDB content to a file.
         """
-        with open(file_path, 'w') as file:
+        with open(file_path, "w") as file:
             file.write(pdb_content)

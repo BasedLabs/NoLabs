@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from conformations_microservice.models.gromacs_force_fields import GromacsForceFields
+from conformations_microservice.models.gromacs_force_fields import \
+    GromacsForceFields
+
 
 class TestGromacsForceFields(unittest.TestCase):
     """GromacsForceFields unit test stubs"""
@@ -30,5 +31,6 @@ class TestGromacsForceFields(unittest.TestCase):
         """Test GromacsForceFields"""
         # inst = GromacsForceFields()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

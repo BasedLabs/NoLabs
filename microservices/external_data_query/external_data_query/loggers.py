@@ -1,7 +1,8 @@
 import logging
-from pythonjsonlogger import jsonlogger
 
-from external_data_query.api_models import *
+from external_data_query.api_models import (GetFastaFilesByIdsRequest,
+                                            GetFastaFilesResponse)
+from pythonjsonlogger import jsonlogger
 
 _logger = logging.getLogger()
 
@@ -17,15 +18,16 @@ class Log:
     @staticmethod
     def query_request(request: GetFastaFilesByIdsRequest):
         d = request.as_log_dict()
-        _logger.info('Run request', extra=d)
+        _logger.info("Run request", extra=d)
 
     @staticmethod
     def query_response(response: GetFastaFilesResponse):
         d = response.as_log_dict()
-        _logger.info('Return response', extra=d)
+        _logger.info("Return response", extra=d)
 
     @staticmethod
     def exception():
-        _logger.exception('Exception occured')
+        _logger.exception("Exception occured")
+
 
 logger = Log()

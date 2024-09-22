@@ -1,12 +1,13 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
 import type { AllWorkflowSchemasResponse } from '../models/AllWorkflowSchemasResponse';
-import type { GetComponentStateResponse } from '../models/GetComponentStateResponse';
+import type { GetComponentResponse } from '../models/GetComponentResponse';
+import type { GetJobState } from '../models/GetJobState';
 import type { ResetWorkflowRequest } from '../models/ResetWorkflowRequest';
-import type { WorkflowSchemaModel_Input } from '../models/WorkflowSchemaModel_Input';
-import type { WorkflowSchemaModel_Output } from '../models/WorkflowSchemaModel_Output';
+import type { WorkflowSchema_Input } from '../models/WorkflowSchema_Input';
+import type { WorkflowSchema_Output } from '../models/WorkflowSchema_Output';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -14,12 +15,12 @@ export class WorkflowService {
     /**
      * Create workflow schema
      * @param experimentId
-     * @returns WorkflowSchemaModel_Output Successful Response
+     * @returns WorkflowSchema_Output Successful Response
      * @throws ApiError
      */
-    public static createSchemaApiV1WorkflowExperimentIdPost(
+    public static createWorkflowSchemaApiV1WorkflowExperimentIdPost(
         experimentId: string,
-    ): CancelablePromise<WorkflowSchemaModel_Output> {
+    ): CancelablePromise<WorkflowSchema_Output> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/workflow/{experiment_id}',
@@ -59,7 +60,7 @@ export class WorkflowService {
      */
     public static getSchemaApiV1WorkflowWorkflowIdGet(
         workflowId: string,
-    ): CancelablePromise<(WorkflowSchemaModel_Output | null)> {
+    ): CancelablePromise<(WorkflowSchema_Output | null)> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/workflow/{workflow_id}',
@@ -94,12 +95,12 @@ export class WorkflowService {
     /**
      * Update workflow schema
      * @param requestBody
-     * @returns WorkflowSchemaModel_Output Successful Response
+     * @returns WorkflowSchema_Output Successful Response
      * @throws ApiError
      */
     public static updateWorkflowSchemaApiV1WorkflowPut(
-        requestBody: WorkflowSchemaModel_Input,
-    ): CancelablePromise<WorkflowSchemaModel_Output> {
+        requestBody: WorkflowSchema_Input,
+    ): CancelablePromise<WorkflowSchema_Output> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/api/v1/workflow/',
@@ -173,14 +174,34 @@ export class WorkflowService {
         });
     }
     /**
+     * Get job state
+     * @param jobId
+     * @returns GetJobState Successful Response
+     * @throws ApiError
+     */
+    public static getJobStateApiV1WorkflowJobJobIdStateGet(
+        jobId: string,
+    ): CancelablePromise<GetJobState> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/workflow/job/{job_id}/state',
+            path: {
+                'job_id': jobId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
      * Get state
      * @param componentId
-     * @returns GetComponentStateResponse Successful Response
+     * @returns GetComponentResponse Successful Response
      * @throws ApiError
      */
     public static getComponentStateApiV1WorkflowComponentComponentIdStateGet(
         componentId: string,
-    ): CancelablePromise<GetComponentStateResponse> {
+    ): CancelablePromise<GetComponentResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/workflow/component/{component_id}/state',

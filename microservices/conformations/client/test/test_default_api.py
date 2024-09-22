@@ -31,29 +31,27 @@ class TestDefaultApi(unittest.TestCase):
 
         Gen Gro Top Endpoint
         """
-        pass
 
-    def test_run_gromacs_simulations_endpoint_run_gromacs_simulations_post(self) -> None:
+    def test_run_gromacs_simulations_endpoint_run_gromacs_simulations_post(
+        self,
+    ) -> None:
         """Test case for run_gromacs_simulations_endpoint_run_gromacs_simulations_post
 
         Run Gromacs Simulations Endpoint
         """
-        pass
 
     def test_run_pdb_fixer_endpoint_run_pdb_fixer_post(self) -> None:
         """Test case for run_pdb_fixer_endpoint_run_pdb_fixer_post
 
         Run Pdb Fixer Endpoint
         """
-        pass
 
     def test_run_pdb_simulations_endpoint_run_pdb_simulations_post(self) -> None:
         """Test case for run_pdb_simulations_endpoint_run_pdb_simulations_post
 
         Run Pdb Simulations Endpoint
         """
-        pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

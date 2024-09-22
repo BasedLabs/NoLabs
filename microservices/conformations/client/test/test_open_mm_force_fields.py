@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from conformations_microservice.models.open_mm_force_fields import OpenMmForceFields
+from conformations_microservice.models.open_mm_force_fields import \
+    OpenMmForceFields
+
 
 class TestOpenMmForceFields(unittest.TestCase):
     """OpenMmForceFields unit test stubs"""
@@ -30,5 +31,6 @@ class TestOpenMmForceFields(unittest.TestCase):
         """Test OpenMmForceFields"""
         # inst = OpenMmForceFields()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

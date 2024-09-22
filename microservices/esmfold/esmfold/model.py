@@ -2,8 +2,10 @@ from typing import List
 
 import torch
 from transformers import AutoTokenizer, EsmForProteinFolding
-from transformers.models.esm.openfold_utils.protein import to_pdb, Protein as OFProtein
 from transformers.models.esm.openfold_utils.feats import atom14_to_atom37
+from transformers.models.esm.openfold_utils.protein import Protein as OFProtein
+from transformers.models.esm.openfold_utils.protein import to_pdb
+
 
 class Folding:
 
@@ -13,7 +15,9 @@ class Folding:
 
     def load_model(self):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = EsmForProteinFolding.from_pretrained(self.model_name, low_cpu_mem_usage=True)
+        self.model = EsmForProteinFolding.from_pretrained(
+            self.model_name, low_cpu_mem_usage=True
+        )
         if self.gpu:
             self.model = self.model.cuda()
         self.model.eval()
@@ -35,14 +39,18 @@ class Folding:
                 atom_mask=mask,
                 residue_index=resid,
                 b_factors=outputs["plddt"][i],
-                chain_index=outputs["chain_index"][i] if "chain_index" in outputs else None,
+                chain_index=(
+                    outputs["chain_index"][i] if "chain_index" in outputs else None
+                ),
             )
             pdbs.append(to_pdb(pred))
         return pdbs
 
     def _raw_inference(self, sequence: str):
 
-        tokenized_input = self.tokenizer([sequence], return_tensors="pt", add_special_tokens=False)['input_ids']
+        tokenized_input = self.tokenizer(
+            [sequence], return_tensors="pt", add_special_tokens=False
+        )["input_ids"]
 
         if self.gpu:
             tokenized_input = tokenized_input.cuda()
@@ -58,4 +66,3 @@ class Folding:
         pdbs = self.convert_outputs_to_pdb(output)
 
         return "".join(pdbs)
-

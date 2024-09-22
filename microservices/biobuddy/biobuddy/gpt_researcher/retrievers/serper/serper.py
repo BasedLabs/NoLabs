@@ -1,15 +1,17 @@
 # Google Serper Retriever
 
 # libraries
-import os
-import requests
 import json
+import os
+
+import requests
 
 
-class SerperSearch():
+class SerperSearch:
     """
     Google Serper Retriever
     """
+
     def __init__(self, query):
         """
         Initializes the SerperSearch object
@@ -28,8 +30,10 @@ class SerperSearch():
         try:
             api_key = os.environ["SERPER_API_KEY"]
         except:
-            raise Exception("Serper API key not found. Please set the SERPER_API_KEY environment variable. "
-                            "You can get a key at https://serper.dev/")
+            raise Exception(
+                "Serper API key not found. Please set the SERPER_API_KEY environment variable. "
+                "You can get a key at https://serper.dev/"
+            )
         return api_key
 
     def search(self, max_results=7):
@@ -41,14 +45,10 @@ class SerperSearch():
         print("Searching with query {0}...".format(self.query))
         """Useful for general internet search queries using the Serp API."""
 
-
         # Search the query (see https://serper.dev/playground for the format)
         url = "https://google.serper.dev/search"
 
-        headers = {
-        'X-API-KEY': self.api_key,
-        'Content-Type': 'application/json'
-        }
+        headers = {"X-API-KEY": self.api_key, "Content-Type": "application/json"}
         data = json.dumps({"q": self.query})
 
         resp = requests.request("POST", url, headers=headers, data=data)

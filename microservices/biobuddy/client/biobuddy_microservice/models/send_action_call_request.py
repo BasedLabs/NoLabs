@@ -13,20 +13,22 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
 from biobuddy_microservice.models.job_id import JobId
-from typing import Optional, Set
+from pydantic import BaseModel, StrictStr
 from typing_extensions import Self
+
 
 class SendActionCallRequest(BaseModel):
     """
     SendActionCallRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     action_text: StrictStr
     tools: List[Dict[str, Any]]
     job_id: Optional[JobId] = None
@@ -37,7 +39,6 @@ class SendActionCallRequest(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -63,8 +64,7 @@ class SendActionCallRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -73,7 +73,7 @@ class SendActionCallRequest(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of job_id
         if self.job_id:
-            _dict['job_id'] = self.job_id.to_dict()
+            _dict["job_id"] = self.job_id.to_dict()
         return _dict
 
     @classmethod
@@ -85,11 +85,15 @@ class SendActionCallRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "action_text": obj.get("action_text"),
-            "tools": obj.get("tools"),
-            "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "action_text": obj.get("action_text"),
+                "tools": obj.get("tools"),
+                "job_id": (
+                    JobId.from_dict(obj["job_id"])
+                    if obj.get("job_id") is not None
+                    else None
+                ),
+            }
+        )
         return _obj
-
-

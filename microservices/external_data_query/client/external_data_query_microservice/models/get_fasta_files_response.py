@@ -13,20 +13,23 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
+from external_data_query_microservice.models.fetched_protein import \
+    FetchedProtein
 from pydantic import BaseModel
-from typing import Any, ClassVar, Dict, List
-from external_data_query_microservice.models.fetched_protein import FetchedProtein
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class GetFastaFilesResponse(BaseModel):
     """
     GetFastaFilesResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     fasta_contents: List[FetchedProtein]
     __properties: ClassVar[List[str]] = ["fasta_contents"]
 
@@ -35,7 +38,6 @@ class GetFastaFilesResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -61,8 +63,7 @@ class GetFastaFilesResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -75,7 +76,7 @@ class GetFastaFilesResponse(BaseModel):
             for _item in self.fasta_contents:
                 if _item:
                     _items.append(_item.to_dict())
-            _dict['fasta_contents'] = _items
+            _dict["fasta_contents"] = _items
         return _dict
 
     @classmethod
@@ -87,9 +88,13 @@ class GetFastaFilesResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "fasta_contents": [FetchedProtein.from_dict(_item) for _item in obj["fasta_contents"]] if obj.get("fasta_contents") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "fasta_contents": (
+                    [FetchedProtein.from_dict(_item) for _item in obj["fasta_contents"]]
+                    if obj.get("fasta_contents") is not None
+                    else None
+                )
+            }
+        )
         return _obj
-
-

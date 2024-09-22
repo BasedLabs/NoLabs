@@ -13,22 +13,25 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Union
+
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class GoConfidenceResponse(BaseModel):
     """
     GoConfidenceResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     name: StrictStr
     confidence: Union[StrictFloat, StrictInt]
     __properties: ClassVar[List[str]] = ["name", "confidence"]
@@ -38,7 +41,6 @@ class GoConfidenceResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -66,8 +68,7 @@ class GoConfidenceResponse(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         return _dict
@@ -81,10 +82,7 @@ class GoConfidenceResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "name": obj.get("name"),
-            "confidence": obj.get("confidence")
-        })
+        _obj = cls.model_validate(
+            {"name": obj.get("name"), "confidence": obj.get("confidence")}
+        )
         return _obj
-
-

@@ -2,7 +2,6 @@ from typing import Optional
 from uuid import UUID
 
 from pydantic.dataclasses import dataclass
-
 from solubility.mixins import BaseModelMixin, ErrorResponseMixing
 
 

@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from p2rank_microservice.models.run_p2_rank_prediction_response import RunP2RankPredictionResponse
+from p2rank_microservice.models.run_p2_rank_prediction_response import \
+    RunP2RankPredictionResponse
+
 
 class TestRunP2RankPredictionResponse(unittest.TestCase):
     """RunP2RankPredictionResponse unit test stubs"""
@@ -28,9 +29,9 @@ class TestRunP2RankPredictionResponse(unittest.TestCase):
 
     def make_instance(self, include_optional) -> RunP2RankPredictionResponse:
         """Test RunP2RankPredictionResponse
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `RunP2RankPredictionResponse`
         """
         model = RunP2RankPredictionResponse()
@@ -53,5 +54,6 @@ class TestRunP2RankPredictionResponse(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

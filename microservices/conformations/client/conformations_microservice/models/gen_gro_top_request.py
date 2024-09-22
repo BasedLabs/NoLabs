@@ -13,37 +13,47 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional
+
+from conformations_microservice.models.gromacs_force_fields import \
+    GromacsForceFields
+from conformations_microservice.models.gromacs_water_force_fields import \
+    GromacsWaterForceFields
 from pydantic import BaseModel, StrictBool, StrictStr
-from conformations_microservice.models.gromacs_force_fields import GromacsForceFields
-from conformations_microservice.models.gromacs_water_force_fields import GromacsWaterForceFields
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class GenGroTopRequest(BaseModel):
     """
     GenGroTopRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     job_id: StrictStr
     force_field: GromacsForceFields
     water_force_field: GromacsWaterForceFields
     pdb_content: StrictStr
     ignore_missing_atoms: Optional[StrictBool] = False
-    __properties: ClassVar[List[str]] = ["job_id", "force_field", "water_force_field", "pdb_content", "ignore_missing_atoms"]
+    __properties: ClassVar[List[str]] = [
+        "job_id",
+        "force_field",
+        "water_force_field",
+        "pdb_content",
+        "ignore_missing_atoms",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -71,8 +81,7 @@ class GenGroTopRequest(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         return _dict
@@ -86,13 +95,17 @@ class GenGroTopRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "job_id": obj.get("job_id"),
-            "force_field": obj.get("force_field"),
-            "water_force_field": obj.get("water_force_field"),
-            "pdb_content": obj.get("pdb_content"),
-            "ignore_missing_atoms": obj.get("ignore_missing_atoms") if obj.get("ignore_missing_atoms") is not None else False
-        })
+        _obj = cls.model_validate(
+            {
+                "job_id": obj.get("job_id"),
+                "force_field": obj.get("force_field"),
+                "water_force_field": obj.get("water_force_field"),
+                "pdb_content": obj.get("pdb_content"),
+                "ignore_missing_atoms": (
+                    obj.get("ignore_missing_atoms")
+                    if obj.get("ignore_missing_atoms") is not None
+                    else False
+                ),
+            }
+        )
         return _obj
-
-

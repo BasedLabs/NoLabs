@@ -13,35 +13,43 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
 from external_data_query_microservice.models.evalue_cutoff import EvalueCutoff
-from external_data_query_microservice.models.identity_cutoff import IdentityCutoff
+from external_data_query_microservice.models.identity_cutoff import \
+    IdentityCutoff
 from external_data_query_microservice.models.job_id import JobId
-from typing import Optional, Set
+from pydantic import BaseModel, StrictStr
 from typing_extensions import Self
+
 
 class SequenceQueryRequest(BaseModel):
     """
     SequenceQueryRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     sequence: StrictStr
     sequence_type: StrictStr
     identity_cutoff: Optional[IdentityCutoff] = None
     evalue_cutoff: Optional[EvalueCutoff] = None
     job_id: Optional[JobId] = None
-    __properties: ClassVar[List[str]] = ["sequence", "sequence_type", "identity_cutoff", "evalue_cutoff", "job_id"]
+    __properties: ClassVar[List[str]] = [
+        "sequence",
+        "sequence_type",
+        "identity_cutoff",
+        "evalue_cutoff",
+        "job_id",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -67,8 +75,7 @@ class SequenceQueryRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -77,13 +84,13 @@ class SequenceQueryRequest(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of identity_cutoff
         if self.identity_cutoff:
-            _dict['identity_cutoff'] = self.identity_cutoff.to_dict()
+            _dict["identity_cutoff"] = self.identity_cutoff.to_dict()
         # override the default output from pydantic by calling `to_dict()` of evalue_cutoff
         if self.evalue_cutoff:
-            _dict['evalue_cutoff'] = self.evalue_cutoff.to_dict()
+            _dict["evalue_cutoff"] = self.evalue_cutoff.to_dict()
         # override the default output from pydantic by calling `to_dict()` of job_id
         if self.job_id:
-            _dict['job_id'] = self.job_id.to_dict()
+            _dict["job_id"] = self.job_id.to_dict()
         return _dict
 
     @classmethod
@@ -95,13 +102,25 @@ class SequenceQueryRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "sequence": obj.get("sequence"),
-            "sequence_type": obj.get("sequence_type"),
-            "identity_cutoff": IdentityCutoff.from_dict(obj["identity_cutoff"]) if obj.get("identity_cutoff") is not None else None,
-            "evalue_cutoff": EvalueCutoff.from_dict(obj["evalue_cutoff"]) if obj.get("evalue_cutoff") is not None else None,
-            "job_id": JobId.from_dict(obj["job_id"]) if obj.get("job_id") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "sequence": obj.get("sequence"),
+                "sequence_type": obj.get("sequence_type"),
+                "identity_cutoff": (
+                    IdentityCutoff.from_dict(obj["identity_cutoff"])
+                    if obj.get("identity_cutoff") is not None
+                    else None
+                ),
+                "evalue_cutoff": (
+                    EvalueCutoff.from_dict(obj["evalue_cutoff"])
+                    if obj.get("evalue_cutoff") is not None
+                    else None
+                ),
+                "job_id": (
+                    JobId.from_dict(obj["job_id"])
+                    if obj.get("job_id") is not None
+                    else None
+                ),
+            }
+        )
         return _obj
-
-

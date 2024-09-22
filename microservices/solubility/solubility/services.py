@@ -1,22 +1,20 @@
 import os
-from typing import Dict
+from argparse import Namespace
 
 import numpy
+import numpy as np
+import requests
 import torch
 import torch.nn as nn
-import numpy as np
-from argparse import Namespace
 from esm import FastaBatchedDataset, pretrained  # type: ignore
-
-import requests
-
-from solubility.api_models import RunSolubilityPredictionRequest, RunSolubilityPredictionResponse
+from solubility.api_models import (RunSolubilityPredictionRequest,
+                                   RunSolubilityPredictionResponse)
 from solubility.loggers import logger
 from solubility.settings import Settings
-from solubility.shared import memory_manager, JobStatusEnum
+from solubility.shared import JobStatusEnum, memory_manager
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-models_dir = os.path.join(current_dir, 'models')
+models_dir = os.path.join(current_dir, "models")
 
 
 logger.cuda_available(torch.cuda.is_available())
@@ -24,7 +22,13 @@ logger.cuda_available(torch.cuda.is_available())
 
 class SimpleSolubilityMultiLayerPerceptron(nn.Module):
     # Current MLP is build on top of ESM-2 150M
-    def __init__(self, input_size = 640, hidden_sizes = [320, 160, 80, 40], output_size = 1, dropout_rate = 0.2):
+    def __init__(
+        self,
+        input_size=640,
+        hidden_sizes=[320, 160, 80, 40],
+        output_size=1,
+        dropout_rate=0.2,
+    ):
         super(SimpleSolubilityMultiLayerPerceptron, self).__init__()
         layers = []
         prev_size = input_size
@@ -52,9 +56,9 @@ class ESM2EmbeddingGenerator:
         self.tokenizer = None
         self.gpu = gpu
         if gpu:
-            self.device = torch.device('cuda')
+            self.device = torch.device("cuda")
         else:
-            self.device = torch.device('cpu')
+            self.device = torch.device("cpu")
 
     def load_model(self):
         self.model, self.alphabet = pretrained.load_model_and_alphabet(self.model_name)
@@ -73,34 +77,42 @@ class ESM2EmbeddingGenerator:
             include=include,
             truncation_seq_length=truncation_seq_length,
             nogpu=nogpu,
-            toks_per_batch=toks_per_batch
+            toks_per_batch=toks_per_batch,
         )
 
-        if self.device == torch.device('cuda'):
+        if self.device == torch.device("cuda"):
             self.model = self.model.cuda()
             logger.transferred_models_to_gpu()
 
         dataset = FastaBatchedDataset(["mockId"], [protein_sequence])
         batches = dataset.get_batch_indices(args.toks_per_batch, extra_toks_per_seq=1)
         data_loader = torch.utils.data.DataLoader(
-            dataset, collate_fn=self.alphabet.get_batch_converter(args.truncation_seq_length), batch_sampler=batches
+            dataset,
+            collate_fn=self.alphabet.get_batch_converter(args.truncation_seq_length),
+            batch_sampler=batches,
         )
 
         return_contacts = "contacts" in args.include
 
-        repr_layers = [(i + self.model.num_layers + 1) % (self.model.num_layers + 1) for i in args.repr_layers]
+        repr_layers = [
+            (i + self.model.num_layers + 1) % (self.model.num_layers + 1)
+            for i in args.repr_layers
+        ]
 
         with torch.no_grad():
             for batch_idx, (labels, strs, toks) in enumerate(data_loader):
 
-                if self.device == torch.device('cuda'):
+                if self.device == torch.device("cuda"):
                     toks = toks.to(device="cuda", non_blocking=True)
 
-                out = self.model(toks, repr_layers=repr_layers, return_contacts=return_contacts)
+                out = self.model(
+                    toks, repr_layers=repr_layers, return_contacts=return_contacts
+                )
 
                 logits = out["logits"].to(device="cpu")
                 representations = {
-                    layer: t.to(device="cpu") for layer, t in out["representations"].items()
+                    layer: t.to(device="cpu")
+                    for layer, t in out["representations"].items()
                 }
 
                 for i, label in enumerate(labels):
@@ -108,7 +120,7 @@ class ESM2EmbeddingGenerator:
                     result = {"label": label}
                     truncate_len = min(args.truncation_seq_length, len(strs[i]))
                     result["mean_representations"] = {
-                        layer: t[i, 1: truncate_len + 1].mean(0).clone() \
+                        layer: t[i, 1 : truncate_len + 1].mean(0).clone()
                         for layer, t in representations.items()
                     }
                     return result["mean_representations"][30]
@@ -121,9 +133,9 @@ class SolubilityPrediction:
         self.tokenizer = None
         self.gpu = gpu
         if gpu:
-            self.device = torch.device('cuda')
+            self.device = torch.device("cuda")
         else:
-            self.device = torch.device('cpu')
+            self.device = torch.device("cpu")
         self.embedding_model = None
 
     def load_model(self):
@@ -144,7 +156,7 @@ class SolubilityPrediction:
         local_path = os.path.join(models_dir, "solubility_model.pth")
 
         if not os.path.exists(local_path):
-            with open(local_path, 'wb') as f:
+            with open(local_path, "wb") as f:
                 response = requests.get(model_url)
                 f.write(response.content)
 
@@ -159,10 +171,14 @@ class SolubilityPrediction:
         return outputs.item()
 
 
-def run_solubility_predictions(request: RunSolubilityPredictionRequest) -> RunSolubilityPredictionResponse:
+def run_solubility_predictions(
+    request: RunSolubilityPredictionRequest,
+) -> RunSolubilityPredictionResponse:
     memory_manager.change_status(str(request.job_id), JobStatusEnum.running)
     try:
-        model = SolubilityPrediction(model_name='solubility', gpu=torch.cuda.is_available())
+        model = SolubilityPrediction(
+            model_name="solubility", gpu=torch.cuda.is_available()
+        )
         model.load_model()
         if not model.embedding_model:
             settings = Settings()
@@ -174,7 +190,9 @@ def run_solubility_predictions(request: RunSolubilityPredictionRequest) -> RunSo
         return RunSolubilityPredictionResponse(soluble_probability=result, errors=[])
     except Exception:
         logger.exception()
-        return RunSolubilityPredictionResponse(soluble_probability=None,
-                                                 errors=['Internal error in solubility prediction occured'])
+        return RunSolubilityPredictionResponse(
+            soluble_probability=None,
+            errors=["Internal error in solubility prediction occured"],
+        )
     finally:
         memory_manager.change_status(str(request.job_id), JobStatusEnum.idle)

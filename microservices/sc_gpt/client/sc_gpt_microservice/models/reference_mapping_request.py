@@ -13,35 +13,45 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
 from pydantic import BaseModel, ConfigDict, StrictBool, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class ReferenceMappingRequest(BaseModel):
     """
     ReferenceMappingRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     query_path: StrictStr
     reference_path: StrictStr
     cell_type_key: Optional[StrictStr] = None
-    gene_col: Optional[StrictStr] = 'gene_name'
+    gene_col: Optional[StrictStr] = "gene_name"
     batch_size: Optional[StrictInt] = 64
-    device: Optional[StrictStr] = 'cpu'
+    device: Optional[StrictStr] = "cpu"
     k_neighbors: Optional[StrictInt] = 10
     calculate_metrics: Optional[StrictBool] = False
-    __properties: ClassVar[List[str]] = ["query_path", "reference_path", "cell_type_key", "gene_col", "batch_size", "device", "k_neighbors", "calculate_metrics"]
+    __properties: ClassVar[List[str]] = [
+        "query_path",
+        "reference_path",
+        "cell_type_key",
+        "gene_col",
+        "batch_size",
+        "device",
+        "k_neighbors",
+        "calculate_metrics",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -67,8 +77,7 @@ class ReferenceMappingRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -78,7 +87,7 @@ class ReferenceMappingRequest(BaseModel):
         # set to None if cell_type_key (nullable) is None
         # and model_fields_set contains the field
         if self.cell_type_key is None and "cell_type_key" in self.model_fields_set:
-            _dict['cell_type_key'] = None
+            _dict["cell_type_key"] = None
 
         return _dict
 
@@ -91,16 +100,28 @@ class ReferenceMappingRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "query_path": obj.get("query_path"),
-            "reference_path": obj.get("reference_path"),
-            "cell_type_key": obj.get("cell_type_key"),
-            "gene_col": obj.get("gene_col") if obj.get("gene_col") is not None else 'gene_name',
-            "batch_size": obj.get("batch_size") if obj.get("batch_size") is not None else 64,
-            "device": obj.get("device") if obj.get("device") is not None else 'cpu',
-            "k_neighbors": obj.get("k_neighbors") if obj.get("k_neighbors") is not None else 10,
-            "calculate_metrics": obj.get("calculate_metrics") if obj.get("calculate_metrics") is not None else False
-        })
+        _obj = cls.model_validate(
+            {
+                "query_path": obj.get("query_path"),
+                "reference_path": obj.get("reference_path"),
+                "cell_type_key": obj.get("cell_type_key"),
+                "gene_col": (
+                    obj.get("gene_col")
+                    if obj.get("gene_col") is not None
+                    else "gene_name"
+                ),
+                "batch_size": (
+                    obj.get("batch_size") if obj.get("batch_size") is not None else 64
+                ),
+                "device": obj.get("device") if obj.get("device") is not None else "cpu",
+                "k_neighbors": (
+                    obj.get("k_neighbors") if obj.get("k_neighbors") is not None else 10
+                ),
+                "calculate_metrics": (
+                    obj.get("calculate_metrics")
+                    if obj.get("calculate_metrics") is not None
+                    else False
+                ),
+            }
+        )
         return _obj
-
-

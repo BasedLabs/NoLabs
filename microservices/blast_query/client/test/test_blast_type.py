@@ -16,6 +16,7 @@ import unittest
 
 from blast_query_microservice.models.blast_type import BlastType
 
+
 class TestBlastType(unittest.TestCase):
     """BlastType unit test stubs"""
 
@@ -29,5 +30,6 @@ class TestBlastType(unittest.TestCase):
         """Test BlastType"""
         # inst = BlastType()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

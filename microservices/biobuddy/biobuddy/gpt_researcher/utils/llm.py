@@ -1,23 +1,25 @@
 # libraries
 from __future__ import annotations
+
 import json
-from fastapi import WebSocket
-from langchain.adapters import openai as lc_openai
-from colorama import Fore, Style
 from typing import Optional
 
-from ..master.prompts import auto_agent_instructions
+from colorama import Fore, Style
+from fastapi import WebSocket
+from langchain.adapters import openai as lc_openai
+
 from ...api_models import SendMessageToBioBuddyResponse
+from ..master.prompts import auto_agent_instructions
 
 
 async def create_chat_completion(
-        messages: list,  # type: ignore
-        model: Optional[str] = None,
-        temperature: float = 1.0,
-        max_tokens: Optional[int] = None,
-        llm_provider: Optional[str] = None,
-        stream: Optional[bool] = False,
-        websocket: WebSocket | None = None,
+    messages: list,  # type: ignore
+    model: Optional[str] = None,
+    temperature: float = 1.0,
+    max_tokens: Optional[int] = None,
+    llm_provider: Optional[str] = None,
+    stream: Optional[bool] = False,
+    websocket: WebSocket | None = None,
 ) -> str:
     """Create a chat completion using the OpenAI API
     Args:
@@ -53,7 +55,7 @@ import logging
 
 
 async def send_chat_completion_request(
-        messages, model, temperature, max_tokens, stream, llm_provider, websocket
+    messages, model, temperature, max_tokens, stream, llm_provider, websocket
 ):
     if not stream:
         result = lc_openai.ChatCompletion.create(
@@ -65,20 +67,24 @@ async def send_chat_completion_request(
         )
         return result["choices"][0]["message"]["content"]
     else:
-        return await stream_response(model, messages, temperature, max_tokens, llm_provider, websocket)
+        return await stream_response(
+            model, messages, temperature, max_tokens, llm_provider, websocket
+        )
 
 
-async def stream_response(model, messages, temperature, max_tokens, llm_provider, websocket=None):
+async def stream_response(
+    model, messages, temperature, max_tokens, llm_provider, websocket=None
+):
     paragraph = ""
     response = ""
 
     for chunk in lc_openai.ChatCompletion.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            provider=llm_provider,
-            stream=True,
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        provider=llm_provider,
+        stream=True,
     ):
         content = chunk["choices"][0].get("delta", {}).get("content")
         if content is not None:
@@ -86,7 +92,9 @@ async def stream_response(model, messages, temperature, max_tokens, llm_provider
             paragraph += content
             if "\n" in paragraph:
                 if websocket is not None:
-                    message = SendMessageToBioBuddyResponse(reply_type="stream", content=paragraph)
+                    message = SendMessageToBioBuddyResponse(
+                        reply_type="stream", content=paragraph
+                    )
                     await websocket.send_text(json.dumps(message.to_dict()))
                 else:
                     print(f"{Fore.GREEN}{paragraph}{Style.RESET_ALL}")
@@ -109,14 +117,17 @@ def choose_agent(smart_llm_model: str, llm_provider: str, task: str) -> dict:
             model=smart_llm_model,
             messages=[
                 {"role": "system", "content": f"{auto_agent_instructions()}"},
-                {"role": "user", "content": f"task: {task}"}],
+                {"role": "user", "content": f"task: {task}"},
+            ],
             temperature=0,
-            llm_provider=llm_provider
+            llm_provider=llm_provider,
         )
         agent_dict = json.loads(response)
         print(f"Agent: {agent_dict.get('server')}")
         return agent_dict
     except Exception as e:
         print(f"{Fore.RED}Error in choose_agent: {e}{Style.RESET_ALL}")
-        return {"server": "Default Agent",
-                "agent_role_prompt": "You are an AI critical thinker research assistant. Your sole purpose is to write well written, critically acclaimed, objective and structured reports on given text."}
+        return {
+            "server": "Default Agent",
+            "agent_role_prompt": "You are an AI critical thinker research assistant. Your sole purpose is to write well written, critically acclaimed, objective and structured reports on given text.",
+        }

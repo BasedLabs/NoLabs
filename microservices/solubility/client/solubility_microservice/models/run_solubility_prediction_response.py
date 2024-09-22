@@ -13,22 +13,25 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional, Union
+
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunSolubilityPredictionResponse(BaseModel):
     """
     RunSolubilityPredictionResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     errors: List[StrictStr]
     soluble_probability: Optional[Union[StrictFloat, StrictInt]]
     __properties: ClassVar[List[str]] = ["errors", "soluble_probability"]
@@ -38,7 +41,6 @@ class RunSolubilityPredictionResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -66,14 +68,16 @@ class RunSolubilityPredictionResponse(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         # set to None if soluble_probability (nullable) is None
         # and model_fields_set contains the field
-        if self.soluble_probability is None and "soluble_probability" in self.model_fields_set:
-            _dict['soluble_probability'] = None
+        if (
+            self.soluble_probability is None
+            and "soluble_probability" in self.model_fields_set
+        ):
+            _dict["soluble_probability"] = None
 
         return _dict
 
@@ -86,10 +90,10 @@ class RunSolubilityPredictionResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "errors": obj.get("errors"),
-            "soluble_probability": obj.get("soluble_probability")
-        })
+        _obj = cls.model_validate(
+            {
+                "errors": obj.get("errors"),
+                "soluble_probability": obj.get("soluble_probability"),
+            }
+        )
         return _obj
-
-

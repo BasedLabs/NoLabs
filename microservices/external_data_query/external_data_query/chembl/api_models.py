@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from pydantic.dataclasses import dataclass
-from typing import List, Optional, Dict, Union
+from typing import Dict, List, Optional, Union
 
 from external_data_query.mixins import BaseModelMixin
+from pydantic.dataclasses import dataclass
 
 
 @dataclass

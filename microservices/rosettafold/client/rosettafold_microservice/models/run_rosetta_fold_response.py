@@ -13,20 +13,22 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
 from pydantic import BaseModel, StrictStr
-from typing import Any, ClassVar, Dict, List
 from rosettafold_microservice.models.pdb_content import PdbContent
-from typing import Optional, Set
 from typing_extensions import Self
+
 
 class RunRosettaFoldResponse(BaseModel):
     """
     RunRosettaFoldResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     pdb_content: PdbContent
     errors: List[StrictStr]
     __properties: ClassVar[List[str]] = ["pdb_content", "errors"]
@@ -36,7 +38,6 @@ class RunRosettaFoldResponse(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -62,8 +63,7 @@ class RunRosettaFoldResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -72,7 +72,7 @@ class RunRosettaFoldResponse(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of pdb_content
         if self.pdb_content:
-            _dict['pdb_content'] = self.pdb_content.to_dict()
+            _dict["pdb_content"] = self.pdb_content.to_dict()
         return _dict
 
     @classmethod
@@ -84,10 +84,14 @@ class RunRosettaFoldResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "pdb_content": PdbContent.from_dict(obj["pdb_content"]) if obj.get("pdb_content") is not None else None,
-            "errors": obj.get("errors")
-        })
+        _obj = cls.model_validate(
+            {
+                "pdb_content": (
+                    PdbContent.from_dict(obj["pdb_content"])
+                    if obj.get("pdb_content") is not None
+                    else None
+                ),
+                "errors": obj.get("errors"),
+            }
+        )
         return _obj
-
-

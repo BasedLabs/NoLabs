@@ -5,4 +5,5 @@ build/Dockerfile
 .github
 .git
 **/.git
+**/.env**
 

@@ -1,4 +1,10 @@
 services:
+  prefect-server:
+    image: 'prefecthq/prefect:3-python3.12-kubernetes'
+    command: prefect server start
+    env_file:
+      - nolabs/infrastructure/.env
+    network_mode: host
   mongo:
     image: 'mongo:latest'
     network_mode: host
@@ -36,10 +42,12 @@ services:
   esmfold_light:
     image: 'ghcr.io/basedlabs/esmfold-light:1.0.0'
     network_mode: host
+    command: python api.py
     build:
-      context: microservices/esmfold_light
+      context: nolabs/microservices/esmfold_light
       dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5733
+    env_file:
+      - nolabs/microservices/esmfold_light/service/.env
   solubility:
     image: 'ghcr.io/basedlabs/solubility:1.1.0'
     network_mode: host
@@ -97,12 +105,12 @@ services:
               count: 1
               capabilities: [ gpu ]
   diffdock:
-    image: 'ghcr.io/basedlabs/diffdock:1.0.1'
+    image: 'ghcr.io/basedlabs/diffdock:2.0.1'
     network_mode: host
     build:
-      context: microservices/diffdock
+      context: nolabs/microservices/diffdock
       dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5737
+    command: python api.py
     deploy:
       resources:
         reservations:
@@ -110,6 +118,10 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+    env_file:
+      - nolabs/microservices/diffdock/service/.env
+    volumes:
+      - /tmp/diffdock-weights:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
   p2rank:
     image: 'ghcr.io/basedlabs/p2rank:1.0.0'
     network_mode: host
@@ -156,9 +168,9 @@ services:
     image: 'ghcr.io/basedlabs/reinvent:1.0.1'
     network_mode: host
     build:
-      context: microservices/reinvent
+      context: nolabs/microservices/reinvent
       dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5790
+    command: python api.py
   blast_query:
     image: 'ghcr.io/basedlabs/blast_query:1.0.0'
     network_mode: host

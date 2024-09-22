@@ -1,21 +1,21 @@
-__all__ = [
-    'ConformationsDependencies'
-]
+__all__ = ["ConformationsDependencies"]
 
 from typing import Annotated
 
 from fastapi import Depends
 from localisation_microservice import DefaultApi
 
-from nolabs.application.use_cases.conformations.use_cases import SetupJobFeature, GetJobFeature, RunJobFeature, \
-    GetJobStatusFeature
+from nolabs.application.use_cases.conformations.use_cases import (
+    GetJobFeature, GetJobStatusFeature, RunJobFeature, SetupJobFeature)
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 
 class ConformationsDependencies:
     @staticmethod
     def run_job(
-            api: Annotated[DefaultApi, Depends(InfrastructureDependencies.conformations_microservice)]
+        api: Annotated[
+            DefaultApi, Depends(InfrastructureDependencies.conformations_microservice)
+        ]
     ) -> RunJobFeature:
         return RunJobFeature(api=api)
 
@@ -29,9 +29,8 @@ class ConformationsDependencies:
 
     @staticmethod
     def get_job_status(
-            api: Annotated[
-                DefaultApi, Depends(InfrastructureDependencies.conformations_microservice)]
+        api: Annotated[
+            DefaultApi, Depends(InfrastructureDependencies.conformations_microservice)
+        ]
     ) -> GetJobStatusFeature:
-        return GetJobStatusFeature(
-            api=api
-        )
+        return GetJobStatusFeature(api=api)

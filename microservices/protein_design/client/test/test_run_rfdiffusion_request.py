@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from protein_design_microservice.models.run_rfdiffusion_request import RunRfdiffusionRequest
+from protein_design_microservice.models.run_rfdiffusion_request import \
+    RunRfdiffusionRequest
+
 
 class TestRunRfdiffusionRequest(unittest.TestCase):
     """RunRfdiffusionRequest unit test stubs"""
@@ -28,9 +29,9 @@ class TestRunRfdiffusionRequest(unittest.TestCase):
 
     def make_instance(self, include_optional) -> RunRfdiffusionRequest:
         """Test RunRfdiffusionRequest
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `RunRfdiffusionRequest`
         """
         model = RunRfdiffusionRequest()
@@ -53,5 +54,6 @@ class TestRunRfdiffusionRequest(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

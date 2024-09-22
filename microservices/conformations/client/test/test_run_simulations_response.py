@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from conformations_microservice.models.run_simulations_response import RunSimulationsResponse
+from conformations_microservice.models.run_simulations_response import \
+    RunSimulationsResponse
+
 
 class TestRunSimulationsResponse(unittest.TestCase):
     """RunSimulationsResponse unit test stubs"""
@@ -28,9 +29,9 @@ class TestRunSimulationsResponse(unittest.TestCase):
 
     def make_instance(self, include_optional) -> RunSimulationsResponse:
         """Test RunSimulationsResponse
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `RunSimulationsResponse`
         """
         model = RunSimulationsResponse()
@@ -51,5 +52,6 @@ class TestRunSimulationsResponse(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

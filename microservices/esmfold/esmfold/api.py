@@ -1,13 +1,14 @@
-from fastapi import FastAPI
+from esmfold.api_models import (IsJobRunningResponse,
+                                RunEsmFoldPredictionRequest,
+                                RunEsmFoldPredictionResponse)
 from esmfold.services import run_folding
-from esmfold.api_models import RunEsmFoldPredictionRequest, RunEsmFoldPredictionResponse, IsJobRunningResponse
+from fastapi import FastAPI
 
-app = FastAPI(
-    title="ESM Fold"
-)
+app = FastAPI(title="ESM Fold")
 
-from esmfold.loggers import Log
 from esmfold.job_state_manager import job_state_manager
+from esmfold.loggers import Log
+
 
 @app.post("/run-folding")
 def predict(request: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionResponse:
@@ -20,9 +21,11 @@ def predict(request: RunEsmFoldPredictionRequest) -> RunEsmFoldPredictionRespons
     Log.folding_response(result)
     return result
 
+
 @app.get("/job/{job_id}/is-running")
 def is_job_running(job_id: str) -> IsJobRunningResponse:
     return IsJobRunningResponse(is_running=job_state_manager.is_job_running(job_id))
+
 
 @app.get("/jobs/running")
 def get_running_jobs():

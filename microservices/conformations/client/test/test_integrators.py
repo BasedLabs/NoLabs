@@ -13,9 +13,9 @@
 
 
 import unittest
-import datetime
 
 from conformations_microservice.models.integrators import Integrators
+
 
 class TestIntegrators(unittest.TestCase):
     """Integrators unit test stubs"""
@@ -30,5 +30,6 @@ class TestIntegrators(unittest.TestCase):
         """Test Integrators"""
         # inst = Integrators()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -18,22 +18,22 @@ __version__ = "1.0.0"
 
 # import apis into sdk package
 from msa_light_microservice.api.default_api import DefaultApi
-
+from msa_light_microservice.api_client import ApiClient
 # import ApiClient
 from msa_light_microservice.api_response import ApiResponse
-from msa_light_microservice.api_client import ApiClient
 from msa_light_microservice.configuration import Configuration
-from msa_light_microservice.exceptions import OpenApiException
-from msa_light_microservice.exceptions import ApiTypeError
-from msa_light_microservice.exceptions import ApiValueError
-from msa_light_microservice.exceptions import ApiKeyError
-from msa_light_microservice.exceptions import ApiAttributeError
-from msa_light_microservice.exceptions import ApiException
-
+from msa_light_microservice.exceptions import (ApiAttributeError, ApiException,
+                                               ApiKeyError, ApiTypeError,
+                                               ApiValueError, OpenApiException)
 # import models into sdk package
-from msa_light_microservice.models.http_validation_error import HTTPValidationError
-from msa_light_microservice.models.is_job_running_response import IsJobRunningResponse
-from msa_light_microservice.models.run_msa_prediction_request import RunMsaPredictionRequest
-from msa_light_microservice.models.run_msa_prediction_response import RunMsaPredictionResponse
+from msa_light_microservice.models.http_validation_error import \
+    HTTPValidationError
+from msa_light_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
+from msa_light_microservice.models.run_msa_prediction_request import \
+    RunMsaPredictionRequest
+from msa_light_microservice.models.run_msa_prediction_response import \
+    RunMsaPredictionResponse
 from msa_light_microservice.models.validation_error import ValidationError
-from msa_light_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from msa_light_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

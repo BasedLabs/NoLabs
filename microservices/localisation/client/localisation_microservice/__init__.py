@@ -18,22 +18,23 @@ __version__ = "1.0.0"
 
 # import apis into sdk package
 from localisation_microservice.api.default_api import DefaultApi
-
+from localisation_microservice.api_client import ApiClient
 # import ApiClient
 from localisation_microservice.api_response import ApiResponse
-from localisation_microservice.api_client import ApiClient
 from localisation_microservice.configuration import Configuration
-from localisation_microservice.exceptions import OpenApiException
-from localisation_microservice.exceptions import ApiTypeError
-from localisation_microservice.exceptions import ApiValueError
-from localisation_microservice.exceptions import ApiKeyError
-from localisation_microservice.exceptions import ApiAttributeError
-from localisation_microservice.exceptions import ApiException
-
+from localisation_microservice.exceptions import (ApiAttributeError,
+                                                  ApiException, ApiKeyError,
+                                                  ApiTypeError, ApiValueError,
+                                                  OpenApiException)
 # import models into sdk package
-from localisation_microservice.models.http_validation_error import HTTPValidationError
-from localisation_microservice.models.is_job_running_response import IsJobRunningResponse
-from localisation_microservice.models.run_localisation_prediction_request import RunLocalisationPredictionRequest
-from localisation_microservice.models.run_localisation_prediction_response import RunLocalisationPredictionResponse
+from localisation_microservice.models.http_validation_error import \
+    HTTPValidationError
+from localisation_microservice.models.is_job_running_response import \
+    IsJobRunningResponse
+from localisation_microservice.models.run_localisation_prediction_request import \
+    RunLocalisationPredictionRequest
+from localisation_microservice.models.run_localisation_prediction_response import \
+    RunLocalisationPredictionResponse
 from localisation_microservice.models.validation_error import ValidationError
-from localisation_microservice.models.validation_error_loc_inner import ValidationErrorLocInner
+from localisation_microservice.models.validation_error_loc_inner import \
+    ValidationErrorLocInner

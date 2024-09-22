@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import List
 
 import pydantic
-
 from microservice.mixins import BaseModelMixin
+
 
 @pydantic.dataclasses.dataclass
 class RunRosettaFoldResponse(BaseModelMixin):

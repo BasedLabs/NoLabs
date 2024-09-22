@@ -4,15 +4,16 @@ from uuid import UUID
 
 from pydantic.dataclasses import dataclass
 
-from nolabs.application.use_cases.experiments.api_models import TimelineResponse
+from nolabs.application.use_cases.experiments.api_models import \
+    TimelineResponse
 
 
 class IntegratorsRequest(Enum):
-    langevin = 'LangevinIntegator'
-    langevin_middle = 'LangevinMiddleIntegator'
-    nose_hoover = 'NoseHooverIntegrator'
-    brownian = 'BrownianIntegrator'
-    variable_verlet = 'VariableVerletIntegrator'
+    langevin = "LangevinIntegator"
+    langevin_middle = "LangevinMiddleIntegator"
+    nose_hoover = "NoseHooverIntegrator"
+    brownian = "BrownianIntegrator"
+    variable_verlet = "VariableVerletIntegrator"
 
 
 @dataclass

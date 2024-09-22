@@ -13,9 +13,10 @@
 
 
 import unittest
-import datetime
 
-from conformations_microservice.models.water_force_fields import WaterForceFields
+from conformations_microservice.models.water_force_fields import \
+    WaterForceFields
+
 
 class TestWaterForceFields(unittest.TestCase):
     """WaterForceFields unit test stubs"""
@@ -30,5 +31,6 @@ class TestWaterForceFields(unittest.TestCase):
         """Test WaterForceFields"""
         # inst = WaterForceFields()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

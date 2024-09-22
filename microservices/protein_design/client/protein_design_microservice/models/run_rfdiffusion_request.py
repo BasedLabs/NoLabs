@@ -13,36 +13,45 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional
+
 from pydantic import BaseModel, StrictInt, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunRfdiffusionRequest(BaseModel):
     """
     RunRfdiffusionRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     job_id: StrictStr
     pdb_content: StrictStr
     contig: StrictStr
     hotspots: Optional[StrictStr] = None
     timesteps: Optional[StrictInt] = None
     number_of_designs: Optional[StrictInt] = None
-    __properties: ClassVar[List[str]] = ["job_id", "pdb_content", "contig", "hotspots", "timesteps", "number_of_designs"]
+    __properties: ClassVar[List[str]] = [
+        "job_id",
+        "pdb_content",
+        "contig",
+        "hotspots",
+        "timesteps",
+        "number_of_designs",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -70,24 +79,26 @@ class RunRfdiffusionRequest(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         # set to None if hotspots (nullable) is None
         # and model_fields_set contains the field
         if self.hotspots is None and "hotspots" in self.model_fields_set:
-            _dict['hotspots'] = None
+            _dict["hotspots"] = None
 
         # set to None if timesteps (nullable) is None
         # and model_fields_set contains the field
         if self.timesteps is None and "timesteps" in self.model_fields_set:
-            _dict['timesteps'] = None
+            _dict["timesteps"] = None
 
         # set to None if number_of_designs (nullable) is None
         # and model_fields_set contains the field
-        if self.number_of_designs is None and "number_of_designs" in self.model_fields_set:
-            _dict['number_of_designs'] = None
+        if (
+            self.number_of_designs is None
+            and "number_of_designs" in self.model_fields_set
+        ):
+            _dict["number_of_designs"] = None
 
         return _dict
 
@@ -100,14 +111,14 @@ class RunRfdiffusionRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "job_id": obj.get("job_id"),
-            "pdb_content": obj.get("pdb_content"),
-            "contig": obj.get("contig"),
-            "hotspots": obj.get("hotspots"),
-            "timesteps": obj.get("timesteps"),
-            "number_of_designs": obj.get("number_of_designs")
-        })
+        _obj = cls.model_validate(
+            {
+                "job_id": obj.get("job_id"),
+                "pdb_content": obj.get("pdb_content"),
+                "contig": obj.get("contig"),
+                "hotspots": obj.get("hotspots"),
+                "timesteps": obj.get("timesteps"),
+                "number_of_designs": obj.get("number_of_designs"),
+            }
+        )
         return _obj
-
-

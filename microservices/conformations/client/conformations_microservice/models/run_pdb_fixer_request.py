@@ -13,35 +13,43 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional
+
 from pydantic import BaseModel, StrictBool, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunPdbFixerRequest(BaseModel):
     """
     RunPdbFixerRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     job_id: StrictStr
     pdb_content: StrictStr
     replace_nonstandard_residues: Optional[StrictBool] = False
     add_missing_atoms: Optional[StrictBool] = False
     add_missing_hydrogens: Optional[StrictBool] = True
-    __properties: ClassVar[List[str]] = ["job_id", "pdb_content", "replace_nonstandard_residues", "add_missing_atoms", "add_missing_hydrogens"]
+    __properties: ClassVar[List[str]] = [
+        "job_id",
+        "pdb_content",
+        "replace_nonstandard_residues",
+        "add_missing_atoms",
+        "add_missing_hydrogens",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -69,8 +77,7 @@ class RunPdbFixerRequest(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         return _dict
@@ -84,13 +91,25 @@ class RunPdbFixerRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "job_id": obj.get("job_id"),
-            "pdb_content": obj.get("pdb_content"),
-            "replace_nonstandard_residues": obj.get("replace_nonstandard_residues") if obj.get("replace_nonstandard_residues") is not None else False,
-            "add_missing_atoms": obj.get("add_missing_atoms") if obj.get("add_missing_atoms") is not None else False,
-            "add_missing_hydrogens": obj.get("add_missing_hydrogens") if obj.get("add_missing_hydrogens") is not None else True
-        })
+        _obj = cls.model_validate(
+            {
+                "job_id": obj.get("job_id"),
+                "pdb_content": obj.get("pdb_content"),
+                "replace_nonstandard_residues": (
+                    obj.get("replace_nonstandard_residues")
+                    if obj.get("replace_nonstandard_residues") is not None
+                    else False
+                ),
+                "add_missing_atoms": (
+                    obj.get("add_missing_atoms")
+                    if obj.get("add_missing_atoms") is not None
+                    else False
+                ),
+                "add_missing_hydrogens": (
+                    obj.get("add_missing_hydrogens")
+                    if obj.get("add_missing_hydrogens") is not None
+                    else True
+                ),
+            }
+        )
         return _obj
-
-

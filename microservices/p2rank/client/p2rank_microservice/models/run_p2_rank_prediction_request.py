@@ -13,22 +13,25 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional
+
 from pydantic import BaseModel, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunP2RankPredictionRequest(BaseModel):
     """
     RunP2RankPredictionRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     pdb_contents: StrictStr
     job_id: Optional[StrictStr] = None
     __properties: ClassVar[List[str]] = ["pdb_contents", "job_id"]
@@ -38,7 +41,6 @@ class RunP2RankPredictionRequest(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -66,8 +68,7 @@ class RunP2RankPredictionRequest(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         return _dict
@@ -81,10 +82,7 @@ class RunP2RankPredictionRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "pdb_contents": obj.get("pdb_contents"),
-            "job_id": obj.get("job_id")
-        })
+        _obj = cls.model_validate(
+            {"pdb_contents": obj.get("pdb_contents"), "job_id": obj.get("job_id")}
+        )
         return _obj
-
-

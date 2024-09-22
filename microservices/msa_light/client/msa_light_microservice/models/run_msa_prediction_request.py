@@ -13,22 +13,25 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
-
-
 from typing import Any, ClassVar, Dict, List, Optional
+
 from pydantic import BaseModel, StrictStr
+
 try:
     from typing import Self
 except ImportError:
     from typing_extensions import Self
 
+
 class RunMsaPredictionRequest(BaseModel):
     """
     RunMsaPredictionRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     api_url: StrictStr
     fasta_contents: StrictStr
     job_id: Optional[StrictStr] = None
@@ -39,7 +42,6 @@ class RunMsaPredictionRequest(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -67,8 +69,7 @@ class RunMsaPredictionRequest(BaseModel):
         """
         _dict = self.model_dump(
             by_alias=True,
-            exclude={
-            },
+            exclude={},
             exclude_none=True,
         )
         return _dict
@@ -82,11 +83,11 @@ class RunMsaPredictionRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "api_url": obj.get("api_url"),
-            "fasta_contents": obj.get("fasta_contents"),
-            "job_id": obj.get("job_id")
-        })
+        _obj = cls.model_validate(
+            {
+                "api_url": obj.get("api_url"),
+                "fasta_contents": obj.get("fasta_contents"),
+                "job_id": obj.get("job_id"),
+            }
+        )
         return _obj
-
-

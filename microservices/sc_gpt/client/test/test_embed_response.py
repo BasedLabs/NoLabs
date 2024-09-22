@@ -16,6 +16,7 @@ import unittest
 
 from sc_gpt_microservice.models.embed_response import EmbedResponse
 
+
 class TestEmbedResponse(unittest.TestCase):
     """EmbedResponse unit test stubs"""
 
@@ -27,9 +28,9 @@ class TestEmbedResponse(unittest.TestCase):
 
     def make_instance(self, include_optional) -> EmbedResponse:
         """Test EmbedResponse
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `EmbedResponse`
         """
         model = EmbedResponse()
@@ -56,5 +57,6 @@ class TestEmbedResponse(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -13,8 +13,10 @@
 
 
 from __future__ import annotations
+
 import json
 from enum import Enum
+
 from typing_extensions import Self
 
 
@@ -26,15 +28,13 @@ class BlastType(str, Enum):
     """
     allowed enum values
     """
-    BLASTN = 'blastn'
-    BLASTP = 'blastp'
-    BLASTX = 'blastx'
-    TBLASTN = 'tblastn'
-    TBLASTX = 'tblastx'
+    BLASTN = "blastn"
+    BLASTP = "blastp"
+    BLASTX = "blastx"
+    TBLASTN = "tblastn"
+    TBLASTX = "tblastx"
 
     @classmethod
     def from_json(cls, json_str: str) -> Self:
         """Create an instance of BlastType from a JSON string"""
         return cls(json.loads(json_str))
-
-
