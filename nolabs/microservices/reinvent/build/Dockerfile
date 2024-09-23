@@ -56,11 +56,11 @@ COPY service /app/service
 COPY --from=requirements /app/requirements.txt /app/service/requirements.txt
 RUN pip install -r service/requirements.txt
 
-COPY reinvent_configs /app/service/reinvent_configs
+ADD reinvent_configs /app/service/reinvent_configs
 
-RUN sed -i 's/\r$//' /app/service/reinvent_configs/prepare_pdbqt.sh && chmod +x /app/service/reinvent_configs/prepare_pdbqt.sh
-RUN sed -i 's/\r$//' /app/service/reinvent_configs/start_reinforcement_learning.sh && chmod +x /app/service/reinvent_configs/start_reinforcement_learning.sh
-RUN sed -i 's/\r$//' /app/service/reinvent_configs/start_sampling.sh && chmod +x /app/service/reinvent_configs/start_sampling.sh
+RUN sed -i 's/\r$//' /app/service/reinvent_configs/base_configs/prepare_pdbqt.sh && chmod +x /app/service/reinvent_configs/base_configs/prepare_pdbqt.sh
+RUN sed -i 's/\r$//' /app/service/reinvent_configs/base_configs/start_reinforcement_learning.sh && chmod +x /app/service/reinvent_configs/base_configs/start_reinforcement_learning.sh
+RUN sed -i 's/\r$//' /app/service/reinvent_configs/base_configs/start_sampling.sh && chmod +x /app/service/reinvent_configs/base_configs/start_sampling.sh
 
 WORKDIR /app/service
 

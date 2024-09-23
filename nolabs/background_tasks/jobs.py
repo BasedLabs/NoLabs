@@ -2,8 +2,9 @@ import uuid
 
 from prefect import flow, get_client, task
 from prefect.exceptions import ObjectNotFound
-from application.workflow import ComponentData, JobRunData
 
+from nolabs.domain.models.common import Job
+from domain.models import ComponentData
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import settings
@@ -23,14 +24,14 @@ async def _cleanup_orhpan_task_run_id(task_run_id: uuid.UUID) -> bool:
 async def cleanup_orhpan_task_run_ids():
     mongo_connect(settings.connection_string)
 
-    for job in JobRunData.objects(task_run_id__ne=None).only("id", "task_run_id"):
+    for job in Job.objects(task_run_id__ne=None).only("id", "task_run_id"):
         exists = await _cleanup_orhpan_task_run_id(job.task_run_id)
         if not exists:
             logger.info(
                 "Task run not found for job, cleaning up",
                 extra={"job_id": job.id, "task_run_id": job.task_run_id},
             )
-            JobRunData.objects(id=job.id).remove()
+            Job.objects(id=job.id).update(set__task_run_id=None)
 
 
 @task(task_run_name="cleanup-orphan-flow-run-id")

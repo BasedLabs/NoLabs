@@ -40,28 +40,6 @@ class InfrastructureDependencies:
         return localisation_microservice.DefaultApi(client)
 
     @staticmethod
-    def esmfold_microservice() -> esmfold_microservice.DefaultApi:
-        configuration = esmfold_microservice.Configuration(host=settings.esmfold_host)
-        client = esmfold_microservice.ApiClient(configuration=configuration)
-        return esmfold_microservice.DefaultApi(client)
-
-    @staticmethod
-    def esmfold_light_microservice() -> esmfold_light_microservice.DefaultApi:
-        configuration = esmfold_light_microservice.Configuration(
-            host=settings.esmfold_light_host
-        )
-        client = esmfold_light_microservice.ApiClient(configuration=configuration)
-        return esmfold_light_microservice.DefaultApi(client)
-
-    @staticmethod
-    def rosettafold_microservice() -> rosettafold_microservice.DefaultApi:
-        configuration = rosettafold_microservice.Configuration(
-            host=settings.rosettafold_host
-        )
-        client = rosettafold_microservice.ApiClient(configuration=configuration)
-        return rosettafold_microservice.DefaultApi(client)
-
-    @staticmethod
     def gene_ontology_microservice() -> gene_ontology_microservice.DefaultApi:
         configuration = gene_ontology_microservice.Configuration(
             host=settings.gene_ontology_host

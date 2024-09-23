@@ -10,7 +10,7 @@ from nolabs.application.use_cases.solubility.use_cases import (GetJobFeature,
 from nolabs.domain.models.common import Protein
 from nolabs.domain.models.solubility import SolubilityJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from application.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class SolubilityComponentInput(BaseModel):

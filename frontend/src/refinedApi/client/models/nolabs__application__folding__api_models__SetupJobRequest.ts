@@ -2,11 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type application__diffdock__api_models__SetupJobRequest = {
+import type { FoldingBackendEnum } from './FoldingBackendEnum';
+export type nolabs__application__folding__api_models__SetupJobRequest = {
     experiment_id: string;
+    backend: (FoldingBackendEnum | null);
     protein_id: string;
-    ligand_id: string;
-    samples_per_complex?: (number | null);
     job_id?: (string | null);
     job_name?: (string | null);
 };

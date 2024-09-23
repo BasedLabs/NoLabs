@@ -5,6 +5,8 @@ services:
     env_file:
       - nolabs/infrastructure/.env
     network_mode: host
+    volumes:
+      - /var/prefect:/var/prefect
   mongo:
     image: 'mongo:latest'
     network_mode: host
@@ -171,6 +173,17 @@ services:
       context: nolabs/microservices/reinvent
       dockerfile: build/Dockerfile
     command: python api.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    env_file:
+      - nolabs/microservices/reinvent/service/.env
+    volumes:
+      - /home/jt/.nolabs/reinvent/jobs_configs:/app/service/reinvent_configs/jobs_configs # nolabs.env.NOLABS_REINVENT_DIRECTORY / reinvent.env.CONFIGS_DIRECTORY
   blast_query:
     image: 'ghcr.io/basedlabs/blast_query:1.0.0'
     network_mode: host

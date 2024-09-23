@@ -5,7 +5,7 @@ import traceback
 from types import TracebackType
 from typing import Optional, Tuple, Type, Union
 
-from domain.exceptions import NoLabsException
+from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 
 from nolabs.infrastructure.settings import settings
 
@@ -42,6 +42,8 @@ def format_exception_info(exc_info: ExceptionInfoType) -> dict:
                 traceback.TracebackException.from_exception(ex).format()
             )
         d["error_code"] = ex.error_code
+    else:
+        d["error_code"] = ErrorCodes.unknown_exception.value.code
 
     return d
 

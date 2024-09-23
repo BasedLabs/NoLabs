@@ -148,7 +148,6 @@ class ErrorCodes(Enum):
     smiles_file_is_invalid = ErrorCode(code=73, description="Smiles file is invalid")
     sdf_file_is_invalid = ErrorCode(code=74, description="Sdf file is invalid")
     reinvent_cannot_run_sampling = ErrorCode(code=75, description="Cannot run sampling")
-    folding_run_error = ErrorCode(code=76, description="Folding run error")
     workflow_not_found = ErrorCode(code=77, description="Workflow not found")
     same_component_already_registered = ErrorCode(
         code=78, description="Same component was already registered"
@@ -187,6 +186,11 @@ class ErrorCodes(Enum):
     job_execution_failed = ErrorCode(code=95, description="Job execution failed")
     get_job_metadata_failed = ErrorCode(code=96, description="Get job metadata failed")
     job_run_not_found = ErrorCode(code=97, description="Job run not found")
+    get_folding_job_failed = ErrorCode(code=98, description="Get folding job failed")
+    setup_folding_job_failed = ErrorCode(code=99, description="Setup folding job failed")
+    run_folding_job_failed = ErrorCode(code=100, description="Run folding job failed")
+    workflow_get_folding_jobs_failed = ErrorCode(code=101, description="Get folding jobs in workflow failed")
+    workflow_run_folding_job_failed = ErrorCode(code=102, description="Run folding job in workflow failed")
 
 
 if len([e.value.code for e in ErrorCodes]) != len(

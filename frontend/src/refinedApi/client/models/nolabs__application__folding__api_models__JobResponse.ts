@@ -2,14 +2,14 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { application__folding__api_models__JobResult } from './application__folding__api_models__JobResult';
 import type { FoldingBackendEnum } from './FoldingBackendEnum';
-export type application__folding__api_models__JobResponse = {
+import type { nolabs__application__folding__api_models__JobResult } from './nolabs__application__folding__api_models__JobResult';
+export type nolabs__application__folding__api_models__JobResponse = {
     job_id: string;
     job_name: string;
     backend: FoldingBackendEnum;
-    protein_ids: Array<string>;
-    result: Array<application__folding__api_models__JobResult>;
+    protein_id: string;
+    result: nolabs__application__folding__api_models__JobResult;
     experiment_id: string;
 };
 

@@ -1,4 +1,4 @@
-__all__ = ["FoldingJobResult", "FoldingJob"]
+__all__ = ["FoldingJob"]
 
 from datetime import datetime
 from enum import Enum
@@ -19,27 +19,14 @@ class FoldingBackendEnum(str, Enum):
     rosettafold = "rosettafold"
 
 
-class FoldingJobResult(EmbeddedDocument):
-    """
-    Not a domain object
-    Currently used just to keep job outputs
-    """
-
-    protein_id: UUID = UUIDField(required=True)
-    pdb_content: bytes = BinaryField(required=True)
-
-
 class FoldingJob(Job):
-    # region Inputs
-
     protein: Protein = ReferenceField(
         Protein, required=True, reverse_delete_rule=CASCADE
     )
+    folded_protein: Protein = ReferenceField(
+        Protein, required=False
+    )
     backend: FoldingBackendEnum = EnumField(FoldingBackendEnum, required=True)
-
-    # endregion
-
-    folding: FoldingJobResult = EmbeddedDocumentField(FoldingJobResult)
 
     def set_inputs(self, protein: Protein, backend: FoldingBackendEnum):
         if not protein:
@@ -58,28 +45,17 @@ class FoldingJob(Job):
 
         self.backend = backend
         self.protein = protein
-
-        self.inputs_updated_at = datetime.utcnow()
+        self.processing_required = True
 
     def result_valid(self) -> bool:
-        return not not self.folding
+        return not not self.folded_protein
 
-    def set_result(self, protein: Protein, pdb: str | bytes):
+    def set_result(self, protein: Protein):
         if not protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
-        if not pdb:
-            raise NoLabsException(ErrorCodes.invalid_job_result)
-
-        self.folding = None
-
-        if protein != self.protein:
-            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
-
-        self.folding = FoldingJobResult(
-            protein_id=protein.iid.value,
-            pdb_content=pdb if isinstance(pdb, bytes) else pdb.encode("utf-8"),
-        )
+        self.folded_protein = protein
+        self.processing_required = False
 
     def _input_errors(self) -> List[JobInputError]:
         if not self.protein:

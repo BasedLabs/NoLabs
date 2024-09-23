@@ -1,19 +1,19 @@
 import uuid
 from abc import ABC
+from enum import Enum
 from typing import List, Optional, Type
 
-from domain.exceptions import ErrorCodes, NoLabsException
-from prefect.states import Cancelled, Completed, Failed
+from prefect.states import Cancelled, Completed
 from pydantic import BaseModel
 
-from nolabs.application.folding.api_models import FoldingBackendEnum
+from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.application.workflow import ComponentFlow
+from nolabs.application.workflow.component import Component, TInput, TOutput
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.microservices.esmfold_light.service.api_models import (
     InferenceInput)
-from application.workflow import ComponentFlow
-from application.workflow.component import Component, TInput, TOutput
 
 
 class FoldingComponentInput(BaseModel):
@@ -22,6 +22,12 @@ class FoldingComponentInput(BaseModel):
 
 class FoldingComponentOutput(BaseModel):
     proteins_with_pdb: List[uuid.UUID]
+
+
+class FoldingBackendEnum(str, Enum):
+    rosettafold = "rosettafold"
+    esmfold = "esmfold"
+    esmfold_light = "esmfold_light"
 
 
 class FoldingComponent(ABC, Component[FoldingComponentInput, FoldingComponentOutput]):
@@ -75,65 +81,76 @@ class FoldingComponentFlow(ComponentFlow):
     backend: FoldingBackendEnum
 
     async def get_jobs(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
-        job_ids = []
+        try:
+            job_ids = []
 
-        experiment = Experiment.objects.with_id(self.experiment_id)
+            experiment = Experiment.objects.with_id(self.experiment_id)
 
-        for protein_id in inp.proteins_with_fasta:
-            protein = Protein.objects.with_id(protein_id)
+            for protein_id in inp.proteins_with_fasta:
+                protein = Protein.objects.with_id(protein_id)
 
-            if not protein:
-                raise NoLabsException(ErrorCodes.protein_not_found)
+                if not protein:
+                    raise NoLabsException(ErrorCodes.protein_not_found)
 
-            job: FoldingJob = FoldingJob.objects(protein=protein_id).first()
+                job: FoldingJob = FoldingJob.objects(protein=protein_id).first()
 
-            if not job:
-                job_id = JobId(uuid.uuid4())
-                job_name = JobName(f"Folding of {protein.name}")
-                job = FoldingJob(id=job_id, name=job_name, experiment=experiment)
-                job.set_inputs(protein=protein, backend=self.backend)
-                await job.save(cascade=True)
+                if not job:
+                    job_id = JobId(uuid.uuid4())
+                    job_name = JobName(f"Folding of {protein.name}")
+                    job = FoldingJob.create(id=job_id,
+                                            name=job_name,
+                                            experiment=experiment,
+                                            component=self.component_id)
+                    job.set_inputs(protein=protein, backend=self.backend)
+                    await job.save(cascade=True)
 
-            job_ids.append(job.id)
+                job_ids.append(job.id)
 
-        return [i for i in job_ids]
+            return [i for i in job_ids]
+        except Exception as e:
+            if isinstance(e, NoLabsException):
+                raise e
+            raise NoLabsException(ErrorCodes.workflow_get_folding_jobs_failed) from e
 
     async def gather_jobs(self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]):
         items = []
 
         for job_id in job_ids:
             job: FoldingJob = FoldingJob.objects.with_id(job_id)
-            items.append(job.protein.id)
+            items.append(job.folded_protein.id)
 
         return FoldingComponentOutput(proteins_with_pdb=items)
 
     async def job_task(self, job_id: uuid.UUID):
-        job: FoldingJob = FoldingJob.objects.with_id(job_id)
+        try:
+            job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
-        input_errors = job.input_errors(throw=False)
+            input_errors = job.input_errors(throw=False)
 
-        if input_errors:
-            message = ", ".join(i.message for i in input_errors)
+            if input_errors:
+                message = ", ".join(i.message for i in input_errors)
 
-            return Cancelled(message=message)
+                return Cancelled(message=message)
 
-        job_result = await celery.esmfold_light_inference(
-            task_id=str(job.id),
-            payload=InferenceInput(fasta_sequence=job.protein.get_fasta()),
-        )
+            if not job.processing_required:
+                return Completed(message='No processing required')
 
-        protein = Protein.objects.with_id(job.protein.id)
-        protein.set_pdb(job_result.pdb_content)
-        protein.save()
+            inference_result = await celery.esmfold_light_inference(
+                task_id=str(job.id),
+                payload=InferenceInput(fasta_sequence=job.protein.get_fasta()),
+            )
 
-        job.set_result(job.protein, job_result.pdb_content)
+            id = uuid.uuid4()
+            folded_protein = job.protein.copy(id=id)
+            folded_protein.set_pdb(inference_result.pdb_content)
+            job.set_result(protein=folded_protein)
+            await job.save(cascade=True)
 
-        await job.save()
-
-        if not job.result_valid():
-            return Failed(message="Result of job is invalid")
-
-        return Completed()
+            return Completed()
+        except Exception as e:
+            if isinstance(e, NoLabsException):
+                raise e
+            raise NoLabsException(ErrorCodes.workflow_run_folding_job_failed) from e
 
 
 class EsmfoldLightComponentFlow(FoldingComponentFlow):

@@ -8,7 +8,7 @@ from nolabs.application.use_cases.protein_design.use_cases import RunJobFeature
 from nolabs.domain.models.common import JobId, JobName, Protein
 from nolabs.domain.models.protein_design import ProteinDesignJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from application.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class ProteinDesignInput(BaseModel):

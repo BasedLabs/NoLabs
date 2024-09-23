@@ -1,12 +1,10 @@
 import asyncio
 import uuid
-from pathlib import Path
 from typing import List, Optional, Type
 
 from domain.exceptions import ErrorCodes, NoLabsException
 from domain.models.common import Experiment
-from microservices.reinvent.service.api_models import \
-    RunReinforcementLearningRequest
+from microservices.reinvent.service.api_models import RunReinforcementLearningRequest
 from prefect import State
 from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
@@ -19,9 +17,8 @@ from nolabs.domain.models.common import (DesignedLigandScore,
                                          Ligand, LigandName, Protein)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.infrastructure.cel import cel as celery
-from nolabs.infrastructure.settings import settings
-from application.workflow import ComponentFlow
-from application.workflow.component import Component
+from nolabs.application.workflow import ComponentFlow
+from nolabs.application.workflow.component import Component
 
 
 class SmallMoleculesDesignLearningInput(BaseModel):
@@ -48,10 +45,11 @@ class SmallMoleculesDesignFlow(ComponentFlow):
 
             job_id = JobId(uuid.uuid4())
 
-            job = SmallMoleculesDesignJob(
+            job = SmallMoleculesDesignJob.create(
                 id=job_id,
                 name=JobName(f"Small molecules design for {protein.name}"),
-                experiment=experiment,
+                experiment=experiment.id,
+                component=self.component_id
             )
 
             if not protein.pdb_content:
@@ -76,14 +74,9 @@ class SmallMoleculesDesignFlow(ComponentFlow):
                 throw=False,
             )
 
-            job_dir: Path = settings.reinvent_directory / str(job.id)
-
-            tmp_file = job_dir / (str(job.id) + "tmp.pdb")
-            tmp_file.write_bytes(job.protein.pdb_content)
-
             parameters_saver = ReinventParametersSaver()
             await parameters_saver.save_params(
-                job_dir=job_dir, job=job, pdb=tmp_file.read_bytes()
+                job=job, pdb=job.protein.pdb_content
             )
 
             job.change_sampling_size(5)
@@ -106,10 +99,14 @@ class SmallMoleculesDesignFlow(ComponentFlow):
             message = ", ".join(i.message for i in input_errors)
             return Cancelled(message=message)
 
+        if not job.processing_required:
+            return Completed(message='No processing required')
+
         if not job.celery_task_id:
-            (res, task_id) = celery.reinvent_run_learning(
-                request=RunReinforcementLearningRequest(config_id=str(job_id)),
-                wait=False,
+            task_id = uuid.uuid4()
+            await celery.reinvent_run_learning(
+                task_id=task_id,
+                request=RunReinforcementLearningRequest(config_id=str(job_id))
             )
             job.set_task_id(task_id=task_id)
             await job.save()
@@ -166,9 +163,7 @@ class SmallMoleculesDesignFlow(ComponentFlow):
         protein_ligands_pairs = []
 
         for job_id in job_ids:
-            job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(
-                job_id
-            )
+            job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
 
             if not job:
                 self.logger.warning("Could not find job", extra={"job_id": job.id})
@@ -190,6 +185,7 @@ class SmallMoleculesDesignLearningComponent(
     Component[SmallMoleculesDesignLearningInput, SmallMoleculesDesignLearningOutput]
 ):
     name = "Small molecules design"
+    description = "Small molecules design using REINVENT4"
 
     @property
     def component_flow_type(self) -> Type["ComponentFlow"]:

@@ -24,9 +24,9 @@ def add_domain_exception_middleware(app: FastAPI):
         )
 
     @app.exception_handler(Exception)
-    async def handle(request: Request, exc: NoLabsException):
+    async def handle(request: Request, exc: Exception):
         logger.exception(
-            exc.message,
+            str(exc),
             exc_info=exc,
             extra={"httpRequest": {"requestUrl": request.url}},
         )

@@ -78,11 +78,11 @@ export default {
   methods: {
     async startWorkflow() {
       const workflowStore = useWorkflowStore();
-      const workflowId = workflowStore.workflowId;
+      const experimentId = workflowStore.experimentId;
       try {
         this.isLocallyRunning = true;
-        await startWorkflowComponent(workflowId, this.nodeId);
-        console.log(`Started workflow component with workflowId: ${workflowId} and nodeId: ${this.nodeId}`);
+        await startWorkflowComponent(experimentId, this.nodeId);
+        console.log(`Started workflow component with experiment id: ${experimentId} and nodeId: ${this.nodeId}`);
         setTimeout(() => {
           this.isLocallyRunning = false;
         }, 5000); // Reset isLocallyRunning after 5 seconds

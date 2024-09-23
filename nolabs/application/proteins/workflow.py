@@ -3,8 +3,8 @@ from typing import List, Type
 
 from pydantic import BaseModel
 
-from application.workflow import Component, ComponentFlow
-from application.workflow.component import TInput, TOutput
+from nolabs.application.workflow import Component, ComponentFlow
+from nolabs.application.workflow.component import TInput, TOutput
 
 
 class ProteinsComponentInput(BaseModel):

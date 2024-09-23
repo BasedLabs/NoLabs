@@ -7,10 +7,10 @@ __all__ = [
     "SetupJobFeature",
     "RunLearningStageJobFeature",
     "RunSamplingStageJobFeature",
-    "StopJobFeature",
+    "StopJobFeature"
 ]
 
-from pathlib import Path
+import uuid
 from typing import List
 from uuid import UUID
 
@@ -20,7 +20,7 @@ from microservices.reinvent.service.api_models import (
 
 from nolabs.application.small_molecules_design.services import \
     ReinventParametersSaver
-from nolabs.application.use_cases.small_molecules_design.api_models import (
+from nolabs.application.small_molecules_design.api_models import (
     GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
     SmilesResponse)
 from nolabs.domain.models.common import (Experiment, Job, JobId, JobName,
@@ -82,7 +82,7 @@ class GetJobStatusFeature:
             celery_task_ready = task_result.ready()
 
         return GetJobStatusResponse(
-            running=not celery_task_ready,
+            running=celery_task_ready,
             sampling_allowed=not chkpt_exists and not celery_task_ready,
             result_valid=job.result_valid(),
         )
@@ -189,14 +189,9 @@ class SetupJobFeature:
             epochs=request.epochs,
         )
 
-        job_dir: Path = reinvent_directory / str(job.id)
-
-        tmp_file = job_dir / (str(job.id) + "tmp.pdb")
-        tmp_file.write_bytes(job.protein.pdb_content)
-
         parameters_saver = ReinventParametersSaver()
         await parameters_saver.save_params(
-            job_dir=job_dir, job=job, pdb=tmp_file.read_bytes()
+            job=job, pdb=job.protein.pdb_content
         )
 
         job.change_sampling_size(request.sampling_size)
@@ -214,9 +209,10 @@ class RunLearningStageJobFeature:
             raise NoLabsException(ErrorCodes.job_not_found)
 
         if not job.input_errors():
-            (res, task_id) = celery.reinvent_run_learning(
-                request=RunReinforcementLearningRequest(config_id=str(job_id)),
-                wait=False,
+            task_id = uuid.uuid4()
+            await celery.reinvent_run_learning(
+                task_id=task_id,
+                request=RunReinforcementLearningRequest(config_id=str(job_id))
             )
             job.set_task_id(task_id=task_id)
             await job.save()

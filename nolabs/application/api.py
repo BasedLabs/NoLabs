@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from dotenv import load_dotenv
 
@@ -33,25 +35,26 @@ from nolabs.application.use_cases.msa_generation.controller import \
     router as msa_generation_controller
 from nolabs.application.use_cases.protein_design.controller import \
     router as protein_design_controller
-from nolabs.application.use_cases.small_molecules_design.controller import \
+from nolabs.application.small_molecules_design.controller import \
     router as small_molecules_design_router
 from nolabs.application.use_cases.solubility.controller import \
     router as solubility_router
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import settings
-from application.workflow.api import router as workflow_router
-
-app = FastAPI(title="NoLabs", version="2.1.7")
-
-origins = ["*"]
+from nolabs.application.workflow.api.controller import router as workflow_router
 
 
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     mongo_connect(settings.connection_string)
     EventHandlersDependencies.inject()
+    yield
 
+
+app = FastAPI(title="NoLabs", version="2.1.7", lifespan=lifespan)
+
+origins = ["*"]
 
 sio = socketio.AsyncServer(
     cors_allowed_origins="*",
@@ -70,7 +73,6 @@ async def join_room(sid, data):
             "Client joined experiment",
             extra={"client_id": sid, "experiment_id": experiment_id},
         )
-
 
 app.include_router(localisation_router)
 app.include_router(experiment_router)

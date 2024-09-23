@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type application__diffdock__api_models__GetJobStatusResponse = {
+export type nolabs__application__diffdock__api_models__GetJobStatusResponse = {
     running: boolean;
     result_valid: boolean;
 };
