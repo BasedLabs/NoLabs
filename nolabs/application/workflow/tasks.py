@@ -3,22 +3,22 @@ __all__ = ["ComponentFlow"]
 import datetime
 import uuid
 from abc import ABC
-from functools import partial
 from logging import Logger
 from typing import Generic, List, Optional
 
-from prefect import State, flow, get_run_logger, task, Task
+from prefect import State, Task, flow, get_run_logger, task
 from prefect.cache_policies import INPUTS
-from prefect.client.schemas.objects import FlowRun, R, TaskRun, StateType
+from prefect.client.schemas.objects import FlowRun, R, StateType, TaskRun
 from prefect.context import get_run_context
 from prefect.states import Completed
 
-from nolabs.domain.models.common import Job, ComponentData
 from nolabs.application.workflow.api.socketio_events_emitter import (
     emit_component_jobs_event, emit_finish_component_event,
     emit_finish_job_event, emit_start_component_event, emit_start_job_event)
-from nolabs.application.workflow.component import (Component, ComponentTypeFactory,
-                                            Parameter, TInput, TOutput)
+from nolabs.application.workflow.component import (Component,
+                                                   ComponentTypeFactory,
+                                                   Parameter, TInput, TOutput)
+from nolabs.domain.models.common import ComponentData, Job
 
 
 def _name_builder(name: str, id: uuid.UUID):
@@ -80,7 +80,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
             task_run_name=execute_task_run_name,
             timeout_seconds=self.job_timeout_seconds,
             on_failure=[self._on_task_finish],
-            on_completion=[self._on_task_finish]
+            on_completion=[self._on_task_finish],
         )(self._job_task)
 
     async def get_jobs(self, inp: TInput) -> List[uuid.UUID]:
@@ -92,7 +92,11 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         pass
 
     def _on_task_finish(self, task: Task, task_run: TaskRun, state: State):
-        emit_finish_job_event(experiment_id=self.experiment_id, component_id=self.component_id, job_id=self._job_task_inputs_memo[task_run.id])
+        emit_finish_job_event(
+            experiment_id=self.experiment_id,
+            component_id=self.component_id,
+            job_id=self._job_task_inputs_memo[task_run.id],
+        )
 
     async def _job_task(self, job_id: uuid.UUID, at: datetime.datetime) -> State[R]:
         ctx = get_run_context()
@@ -107,10 +111,7 @@ class ComponentFlow(ABC, Generic[TInput, TOutput]):
         )
 
         job: Job = Job.objects.with_id(job_id)
-        job.set_run_info(
-            task_run_id=task_run_id,
-            executed_at=at
-        )
+        job.set_run_info(task_run_id=task_run_id, executed_at=at)
         await job.save()
         return await self.job_task(job_id=job_id)
 

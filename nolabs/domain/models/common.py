@@ -12,21 +12,22 @@ __all__ = [
     "ProteinCreatedEvent",
 ]
 
-from datetime import datetime
 import hashlib
 import io
 import uuid
 from abc import abstractmethod
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Union, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from Bio import SeqIO
 from domain.exceptions import ErrorCodes, NoLabsException
-from mongoengine import (CASCADE, BinaryField, DateTimeField, DictField,
-                         Document, EmbeddedDocument, EmbeddedDocumentField,
+from mongoengine import (CASCADE, BinaryField, BooleanField, DateTimeField,
+                         DictField, Document, EmbeddedDocument,
+                         EmbeddedDocumentField, EmbeddedDocumentListField,
                          FloatField, IntField, ListField, Q, ReferenceField,
-                         StringField, UUIDField, EmbeddedDocumentListField, BooleanField)
+                         StringField, UUIDField)
 from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
@@ -89,10 +90,10 @@ class Experiment(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            id: ExperimentId,
-            name: ExperimentName,
-            created_at: datetime | None = None,
+        cls,
+        id: ExperimentId,
+        name: ExperimentName,
+        created_at: datetime | None = None,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
@@ -100,11 +101,7 @@ class Experiment(Document, Entity):
         if not name:
             raise NoLabsException(ErrorCodes.invalid_experiment_name)
 
-        created_at = (
-            created_at
-            if created_at
-            else datetime.utcnow()
-        )
+        created_at = created_at if created_at else datetime.utcnow()
 
         return Experiment(
             id=id.value if isinstance(id, ExperimentId) else id,
@@ -156,7 +153,9 @@ class PropertyErrorData(EmbeddedDocument):
 
 class ComponentData(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
-    experiment: 'Experiment' = ReferenceField('Experiment', required=True, reverse_delete_rule=CASCADE)
+    experiment: "Experiment" = ReferenceField(
+        "Experiment", required=True, reverse_delete_rule=CASCADE
+    )
 
     input_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
         PropertyErrorData, default=list
@@ -184,7 +183,7 @@ class ComponentData(Document):
     meta = {"collection": "components"}
 
     @classmethod
-    def create(cls, id: uuid.UUID, experiment: Union['Experiment', uuid.UUID]):
+    def create(cls, id: uuid.UUID, experiment: Union["Experiment", uuid.UUID]):
         return ComponentData(id=id, experiment=experiment)
 
 
@@ -251,14 +250,14 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
     extracellular: float = FloatField(required=True)
 
     def __init__(
-            self,
-            cytosolic: float,
-            mitochondrial: float,
-            nuclear: float,
-            other: float,
-            extracellular: float,
-            *args,
-            **kwargs,
+        self,
+        cytosolic: float,
+        mitochondrial: float,
+        nuclear: float,
+        other: float,
+        extracellular: float,
+        *args,
+        **kwargs,
     ):
         values = [cytosolic, mitochondrial, nuclear, other, extracellular]
 
@@ -418,13 +417,13 @@ class Protein(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            experiment: Experiment,
-            name: ProteinName,
-            fasta_content: Union[bytes, str, None] = None,
-            pdb_content: Union[bytes, str, None] = None,
-            *args,
-            **kwargs,
+        cls,
+        experiment: Experiment,
+        name: ProteinName,
+        fasta_content: Union[bytes, str, None] = None,
+        pdb_content: Union[bytes, str, None] = None,
+        *args,
+        **kwargs,
     ):
         if not name:
             raise NoLabsException(ErrorCodes.invalid_protein_name)
@@ -478,7 +477,7 @@ class Protein(Document, Entity):
             scored_affinity=self.scored_affinity,
             confidence=self.confidence,
             plddt_array=self.plddt_array,
-            link=self.link
+            link=self.link,
         )
 
     def set_localisation_probability(self, localisation: LocalisationProbability):
@@ -670,14 +669,14 @@ class Ligand(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            experiment: Experiment,
-            name: LigandName | None = None,
-            smiles_content: Union[bytes, str, None] = None,
-            sdf_content: Union[bytes, str, None] = None,
-            link: LigandLink | None = None,
-            *args,
-            **kwargs,
+        cls,
+        experiment: Experiment,
+        name: LigandName | None = None,
+        smiles_content: Union[bytes, str, None] = None,
+        sdf_content: Union[bytes, str, None] = None,
+        link: LigandLink | None = None,
+        *args,
+        **kwargs,
     ) -> "Ligand":  # Added link parameter
         if not name:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
@@ -722,15 +721,15 @@ class Ligand(Document, Entity):
         return ligand
 
     def add_binding(
-            self,
-            protein: "Protein",
-            sdf_content: bytes | str | None = None,
-            minimized_affinity: float | None = None,
-            scored_affinity: float | None = None,
-            confidence: float | None = None,
-            plddt_array: List[int] | None = None,
-            name: str | None = None,
-            pdb_content: Union[bytes, str, None] = None,
+        self,
+        protein: "Protein",
+        sdf_content: bytes | str | None = None,
+        minimized_affinity: float | None = None,
+        scored_affinity: float | None = None,
+        confidence: float | None = None,
+        plddt_array: List[int] | None = None,
+        name: str | None = None,
+        pdb_content: Union[bytes, str, None] = None,
     ) -> "Protein":
         if not plddt_array:
             plddt_array = []
@@ -822,7 +821,9 @@ class Job(Document, Entity):
     experiment: Experiment = ReferenceField(
         Experiment, required=True, reverse_delete_rule=CASCADE
     )
-    component: 'ComponentData' = ReferenceField('ComponentData', required=False, reverse_delete_rule=CASCADE)
+    component: "ComponentData" = ReferenceField(
+        "ComponentData", required=False, reverse_delete_rule=CASCADE
+    )
     name: JobName = ValueObjectStringField(required=True, factory=JobName)
     created_at: datetime = DateTimeField()
     updated_at: datetime = DateTimeField()
@@ -837,12 +838,12 @@ class Job(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            id: JobId,
-            name: JobName,
-            experiment: Union[Experiment, uuid.UUID],
-            *args,
-            **kwargs,
+        cls,
+        id: JobId,
+        name: JobName,
+        experiment: Union[Experiment, uuid.UUID],
+        *args,
+        **kwargs,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_job_id)
@@ -851,10 +852,13 @@ class Job(Document, Entity):
         if not experiment:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
-        instance = cls(id=id.value if isinstance(id, JobId) else id,
-                       name=name,
-                       experiment=experiment,
-                       *args, **kwargs)
+        instance = cls(
+            id=id.value if isinstance(id, JobId) else id,
+            name=name,
+            experiment=experiment,
+            *args,
+            **kwargs,
+        )
         instance.clear_events()
 
         return instance
@@ -874,12 +878,10 @@ class Job(Document, Entity):
         return JobId(self.id)
 
     @abstractmethod
-    def result_valid(self) -> bool:
-        ...
+    def result_valid(self) -> bool: ...
 
     @abstractmethod
-    def _input_errors(self) -> List[JobInputError]:
-        ...
+    def _input_errors(self) -> List[JobInputError]: ...
 
     def input_errors(self, throw: bool = False) -> List[JobInputError]:
         errors = self._input_errors()
@@ -943,5 +945,6 @@ class ExperimentRemovedEvent(DomainEvent):
 
     def __init__(self, experiment: Experiment):
         self.experiment = experiment
+
 
 # endregion

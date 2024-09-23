@@ -4,9 +4,8 @@ import uuid
 from pathlib import Path
 from typing import Tuple
 
-import toml
-
 import log
+import toml
 from settings import settings
 
 
@@ -65,11 +64,13 @@ class Reinvent:
         sampling_output = directory / "sampling_direct.csv"
         sampling_output.touch()
 
-        sampling_config_toml = toml.load(sampling_config.open('r'))
+        sampling_config_toml = toml.load(sampling_config.open("r"))
         sampling_config_toml["parameters"]["output_file"] = sampling_output
         sampling_config_toml["parameters"]["model_file"] = chkpt
-        sampling_config_toml["parameters"]["num_smiles"] = number_of_molecules_to_generate
-        sampling_config.write_text(toml.dumps(sampling_config_toml), encoding='utf-8')
+        sampling_config_toml["parameters"][
+            "num_smiles"
+        ] = number_of_molecules_to_generate
+        sampling_config.write_text(toml.dumps(sampling_config_toml), encoding="utf-8")
 
         (directory / "sampling_direct.csv").touch()
         (directory / "scoring_input.smi").touch()

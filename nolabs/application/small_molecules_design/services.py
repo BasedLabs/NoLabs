@@ -7,10 +7,10 @@ from pathlib import Path
 from typing import List
 
 import toml
-from pydantic import BaseModel
-
 from domain.models.small_molecules_design import SmallMoleculesDesignJob
 from microservices.reinvent.service.api_models import PreparePdbqtRequest
+from pydantic import BaseModel
+
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.infrastructure.settings import settings
 
@@ -65,7 +65,7 @@ class ReinventParametersSaver:
         self.reinvent_directory = settings.reinvent_directory
 
     def _prepare_dockstream_config(
-            self, job: SmallMoleculesDesignJob, pdbqt: Path, logfile: Path
+        self, job: SmallMoleculesDesignJob, pdbqt: Path, logfile: Path
     ) -> Path:
         # Configure dockstream
         dockstream_config = self.reinvent_directory / str(job.id) / "dockstream.json"
@@ -117,7 +117,9 @@ class ReinventParametersSaver:
             "scores_path"
         ] = scores
 
-        dockstream_config.write_text(json.dumps(dockstream_config_json, default=lambda x: str(x)))
+        dockstream_config.write_text(
+            json.dumps(dockstream_config_json, default=lambda x: str(x))
+        )
 
         return dockstream_config
 
@@ -140,7 +142,7 @@ class ReinventParametersSaver:
         return scoring_config
 
     def _prepare_sampling(
-            self, number_of_molecules_to_generate: int, job_dir: Path
+        self, number_of_molecules_to_generate: int, job_dir: Path
     ) -> Path:
         chkpt = job_dir / "rl_direct.chkpt"
         sampling_config: Path = job_dir / "Sampling.toml"
@@ -158,11 +160,11 @@ class ReinventParametersSaver:
         return sampling_config
 
     def _prepare_rl(
-            self,
-            job_dir: Path,
-            job: SmallMoleculesDesignJob,
-            csv_result: Path,
-            dockstream_config: Path,
+        self,
+        job_dir: Path,
+        job: SmallMoleculesDesignJob,
+        csv_result: Path,
+        dockstream_config: Path,
     ) -> Path:
         # Configure learning
         reinforcement_learning_config = job_dir / "RL.toml"
@@ -181,14 +183,17 @@ class ReinventParametersSaver:
         reinforcement_learning_config.write_text(toml.dumps(t))
         return reinforcement_learning_config
 
-    async def save_params(
-            self, job: SmallMoleculesDesignJob, pdb: bytes | str
-    ):
+    async def save_params(self, job: SmallMoleculesDesignJob, pdb: bytes | str):
         job_dir = settings.reinvent_directory / str(job.id)
         if job_dir.exists():
             shutil.rmtree(job_dir)
         job_dir.mkdir(exist_ok=True, parents=True)
-        copy_tree(str(Path("microservices") / "reinvent" / "reinvent_configs" / "base_configs"), str(job_dir))
+        copy_tree(
+            str(
+                Path("microservices") / "reinvent" / "reinvent_configs" / "base_configs"
+            ),
+            str(job_dir),
+        )
         response = await celery.reinvent_prepare_target(
             task_id=uuid.uuid4(), payload=PreparePdbqtRequest(pdb=pdb)
         )

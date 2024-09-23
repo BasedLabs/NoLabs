@@ -187,10 +187,16 @@ class ErrorCodes(Enum):
     get_job_metadata_failed = ErrorCode(code=96, description="Get job metadata failed")
     job_run_not_found = ErrorCode(code=97, description="Job run not found")
     get_folding_job_failed = ErrorCode(code=98, description="Get folding job failed")
-    setup_folding_job_failed = ErrorCode(code=99, description="Setup folding job failed")
+    setup_folding_job_failed = ErrorCode(
+        code=99, description="Setup folding job failed"
+    )
     run_folding_job_failed = ErrorCode(code=100, description="Run folding job failed")
-    workflow_get_folding_jobs_failed = ErrorCode(code=101, description="Get folding jobs in workflow failed")
-    workflow_run_folding_job_failed = ErrorCode(code=102, description="Run folding job in workflow failed")
+    workflow_get_folding_jobs_failed = ErrorCode(
+        code=101, description="Get folding jobs in workflow failed"
+    )
+    workflow_run_folding_job_failed = ErrorCode(
+        code=102, description="Run folding job in workflow failed"
+    )
 
 
 if len([e.value.code for e in ErrorCodes]) != len(

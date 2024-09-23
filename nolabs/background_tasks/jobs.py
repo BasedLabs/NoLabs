@@ -1,10 +1,10 @@
 import uuid
 
+from domain.models import ComponentData
 from prefect import flow, get_client, task
 from prefect.exceptions import ObjectNotFound
 
 from nolabs.domain.models.common import Job
-from domain.models import ComponentData
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import settings

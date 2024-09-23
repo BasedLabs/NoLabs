@@ -12,27 +12,24 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 
+from domain.exceptions import ErrorCodes, NoLabsException
 from prefect import get_client
 from prefect.client.schemas import StateType
 from prefect.client.schemas.objects import TERMINAL_STATES
 from prefect.exceptions import ObjectNotFound
 
-from domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.application.workflow.api.api_models import (ComponentStateEnum,
-                                                        GetComponentRequest,
-                                                        GetComponentResponse,
-                                                        GetJobRequest, GetJobState,
-                                                        JobStateEnum,
-                                                        PropertyErrorResponse,
-                                                        ResetWorkflowRequest,
-                                                        StartWorkflowComponentRequest)
+from nolabs.application.workflow.api.api_models import (
+    ComponentStateEnum, GetComponentRequest, GetComponentResponse,
+    GetJobRequest, GetJobState, JobStateEnum, PropertyErrorResponse,
+    ResetWorkflowRequest, StartWorkflowComponentRequest)
 from nolabs.application.workflow.api.mappings import map_property
 from nolabs.application.workflow.api.schema import (ComponentSchema,
                                                     ComponentSchemaTemplate,
                                                     WorkflowSchema)
-from nolabs.application.workflow.component import Component, ComponentTypeFactory
+from nolabs.application.workflow.component import (Component,
+                                                   ComponentTypeFactory)
 from nolabs.application.workflow.dag import PrefectDagExecutor
-from nolabs.domain.models.common import Experiment, Job, ComponentData
+from nolabs.domain.models.common import ComponentData, Experiment, Job
 from nolabs.infrastructure.log import logger
 
 
@@ -275,16 +272,13 @@ class StartWorkflowFeature:
                 **extra,
                 **{
                     "component_ids": [c.id for c in components],
-                    "experiment_id": experiment.id
+                    "experiment_id": experiment.id,
                 },
             }
 
             logger.info("Workflow schema execute", extra=extra)
 
-            await executor.execute(
-                components=components,
-                experiment_id=experiment.id
-            )
+            await executor.execute(components=components, experiment_id=experiment.id)
 
             logger.info("Workflow schema executed", extra=extra)
         except Exception as e:
@@ -344,9 +338,7 @@ class GetComponentStateFeature:
             if not data:
                 raise NoLabsException(ErrorCodes.component_not_found)
 
-            job_ids = [
-                j.id for j in Job.objects(component=request.id).only("id")
-            ]
+            job_ids = [j.id for j in Job.objects(component=request.id).only("id")]
 
             if data.flow_run_id:
                 (state, message) = await self._get_state(data.flow_run_id)
@@ -393,9 +385,7 @@ class GetComponentStateFeature:
             if prefect_state in TERMINAL_STATES:
                 state = ComponentStateEnum.COMPLETED
 
-            if prefect_state in [
-                StateType.CANCELLED
-            ]:
+            if prefect_state in [StateType.CANCELLED]:
                 state = ComponentStateEnum.CANCELLED
 
             if prefect_state in [
@@ -419,9 +409,7 @@ class GetJobStateFeature:
             job: Job = Job.objects.with_id(request.job_id)
 
             if not job:
-                raise NoLabsException(ErrorCodes.job_not_found, data={
-                    "job_id": job.id
-                })
+                raise NoLabsException(ErrorCodes.job_not_found, data={"job_id": job.id})
 
             if job and job.task_run_id:
                 (state, message) = await self._get_state(job.task_run_id)
@@ -459,15 +447,10 @@ class GetJobStateFeature:
             if prefect_state in TERMINAL_STATES:
                 state = JobStateEnum.COMPLETED
 
-            if prefect_state in [
-                StateType.CANCELLED
-            ]:
+            if prefect_state in [StateType.CANCELLED]:
                 state = JobStateEnum.CANCELLED
 
-            if prefect_state in [
-                StateType.FAILED,
-                StateType.CRASHED
-            ]:
+            if prefect_state in [StateType.FAILED, StateType.CRASHED]:
                 state = JobStateEnum.FAILED
 
             return (state, task_run.state.message)

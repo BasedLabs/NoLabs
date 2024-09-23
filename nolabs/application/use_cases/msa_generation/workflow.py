@@ -8,9 +8,9 @@ from nolabs.application.use_cases.msa_generation.api_models import \
     SetupJobRequest
 from nolabs.application.use_cases.msa_generation.use_cases import (
     RunJobFeature, SetupJobFeature)
+from nolabs.application.workflow.component import Component, JobValidationError
 from nolabs.domain.models.msa import MsaGenerationJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class MsaGenerationInput(BaseModel):

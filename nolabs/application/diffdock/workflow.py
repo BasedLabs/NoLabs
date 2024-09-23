@@ -4,18 +4,18 @@ import uuid
 from typing import List, Type
 
 from domain.exceptions import ErrorCodes, NoLabsException
-from microservices.diffdock.service.api_models import (
-    RunDiffDockPredictionRequest)
+from microservices.diffdock.service.api_models import \
+    RunDiffDockPredictionRequest
 from prefect import State
 from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
 
+from nolabs.application.workflow import ComponentFlow
+from nolabs.application.workflow.component import Component, TInput, TOutput
 from nolabs.domain.models.common import JobId, JobName, Ligand, Protein
 from nolabs.domain.models.diffdock import DiffDockBindingJob, DiffDockJobResult
 from nolabs.infrastructure.cel import cel as celery
-from nolabs.application.workflow import ComponentFlow
-from nolabs.application.workflow.component import Component, TInput, TOutput
 
 
 class DiffDockComponentInput(BaseModel):
@@ -64,7 +64,9 @@ class DiffdockComponentFlow(ComponentFlow):
                         ErrorCodes.ligand_not_found, data={"ligand_id": ligand_id}
                     )
 
-                job = DiffDockBindingJob.objects(protein=protein.id, ligand=ligand.id).first()
+                job = DiffDockBindingJob.objects(
+                    protein=protein.id, ligand=ligand.id
+                ).first()
 
                 if not job:
                     job = DiffDockBindingJob(
