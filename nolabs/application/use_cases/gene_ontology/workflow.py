@@ -10,7 +10,7 @@ from nolabs.application.use_cases.gene_ontology.use_cases import (
 from nolabs.domain.models.common import Protein
 from nolabs.domain.models.gene_ontology import GeneOntologyJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from application.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class GeneOntologyComponentInput(BaseModel):

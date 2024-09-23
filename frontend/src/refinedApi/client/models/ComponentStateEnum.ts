@@ -6,4 +6,5 @@ export enum ComponentStateEnum {
     RUNNING = 'RUNNING',
     FAILED = 'FAILED',
     COMPLETED = 'COMPLETED',
+    UNKNOWN = 'UNKNOWN',
 }

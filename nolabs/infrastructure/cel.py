@@ -29,7 +29,7 @@ class Cel:
         return self._app.send_task(name=name, args=[payload.model_dump()])
 
     def send_task(
-        self, id: uuid.UUID, name: str, queue: str, payload: BaseModel
+            self, id: uuid.UUID, name: str, queue: str, payload: BaseModel
     ) -> AsyncResult:
         return self._app.send_task(
             id=str(id), name=name, queue=queue, args=[payload.model_dump()]
@@ -59,28 +59,26 @@ class Cel:
     def failed_states(self) -> Any:
         return self._app.backend.FAILED_STATES
 
-    async def reinvent_run_sampling(
-        self, request: reinvent.RunSamplingRequest, wait=True
-    ) -> Tuple[Any, str]:
-        task = self._send_task("reinvent.run_sampling", payload=request)
-        id = task.id
-        if not wait:
-            return (None, id)
-        result = await self._wait_async(task)
-        return (result, id)
+    async def reinvent_run_sampling(self, task_id: str, request: reinvent.RunSamplingRequest):
+        task = self._app.send_task(
+            id=task_id,
+            name="reinvent.run_sampling",
+            queue="reinvent",
+            args=[request.model_dump()],
+        )
+        await self._wait_async(task)
 
-    async def reinvent_run_learning(
-        self, request: reinvent.RunReinforcementLearningRequest, wait=True
-    ) -> Tuple[Any, str]:
-        task = self._send_task("reinvent.run_reinforcement_learning", payload=request)
-        id = task.id
-        if not wait:
-            return (None, id)
-        result = await self._wait_async(task)
-        return (result, id)
+    async def reinvent_run_learning(self, task_id: str, request: reinvent.RunReinforcementLearningRequest):
+        task = self._app.send_task(
+            id=task_id,
+            name="reinvent.run_reinforcement_learning",
+            queue="reinvent",
+            args=[request.model_dump()],
+        )
+        await self._wait_async(task)
 
     async def esmfold_light_inference(
-        self, task_id: str, payload: esmfold_light.InferenceInput
+            self, task_id: str, payload: esmfold_light.InferenceInput
     ) -> esmfold_light.InferenceOutput:
         async_result = self._app.send_task(
             id=task_id,
@@ -92,7 +90,7 @@ class Cel:
         return esmfold_light.InferenceOutput(**result)
 
     async def diffdock_inference(
-        self, payload: diffdock.RunDiffDockPredictionRequest, wait=True
+            self, payload: diffdock.RunDiffDockPredictionRequest, wait=True
     ) -> Tuple[Optional[diffdock.RunDiffDockPredictionResponse], str]:
         task = self._send_task("diffdock.inference", payload=payload)
         id = task.id
@@ -101,15 +99,15 @@ class Cel:
         result = await self._wait_async(task)
         return (diffdock.RunDiffDockPredictionResponse(**result), id)
 
-    async def reinvent_prepare_target(
-        self, payload: reinvent.PreparePdbqtRequest, wait=True
-    ) -> Tuple[Optional[reinvent.PreparePdbqtResponse], str]:
-        task = self._send_task("reinvent.prepare_target", payload=payload)
-        id = task.id
-        if not wait:
-            return (None, id)
+    async def reinvent_prepare_target(self, task_id: str, payload: reinvent.PreparePdbqtRequest) -> reinvent.PreparePdbqtResponse:
+        task = self._app.send_task(
+            id=task_id,
+            name="reinvent.prepare_target",
+            queue="reinvent",
+            args=[payload.model_dump()],
+        )
         result = await self._wait_async(task)
-        return (reinvent.PreparePdbqtResponse(**result), id)
+        return reinvent.PreparePdbqtResponse(**result)
 
 
 cel = Cel()

@@ -10,7 +10,7 @@ from nolabs.application.use_cases.localisation.use_cases import (
 from nolabs.domain.models.common import Protein
 from nolabs.domain.models.localisation import LocalisationJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from application.workflow.component import Component, JobValidationError
+from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class LocalisationComponentInput(BaseModel):

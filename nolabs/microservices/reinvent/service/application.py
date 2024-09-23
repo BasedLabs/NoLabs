@@ -1,49 +1,49 @@
 import subprocess
 import sys
 import uuid
+from pathlib import Path
 from typing import Tuple
 
-import log
 import toml
-from leaf import DirectoryObject, FileObject
+
+import log
 from settings import settings
 
 
 class Reinvent:
     def __init__(self):
-        self.fs = DirectoryObject(settings.CONFIGS_DIRECTORY)
+        self.fs = Path(settings.configs_directory)
         self.logger = log.logger
 
     async def prepare_pdbqt(self, pdb: bytes) -> Tuple[bytes, str]:
         self.logger.info("Preparing PDBQT")
-        tmp = self.fs.add_directory("tmp")
-        pdb_file = tmp.add_file(str(uuid.uuid4()) + ".pdb")
+        tmp = Path("/tmp")
+        tmp.mkdir(exist_ok=True)
+        pdb_file = tmp / (str(uuid.uuid4()) + ".pdb")
+        pdb_file.touch()
         pdb_file.write_bytes(pdb)
-        pdbqt = self.fs.add_directory("tmp").add_file(str(uuid.uuid4()) + ".pdbqt")
-        prepare_pdbqt = self.fs.files.first_or_default(
-            lambda o: o.name == "prepare_pdbqt.sh"
-        )
-        subprocess.run([prepare_pdbqt.full_path, pdb_file.full_path, pdbqt.full_path])
+        pdbqt = tmp / (str(uuid.uuid4()) + ".pdbqt")
+        pdbqt.touch()
+        prepare_pdbqt = self.fs / "base_configs" / "prepare_pdbqt.sh"
+        subprocess.run([prepare_pdbqt, pdb_file, pdbqt])
         self.logger.info("Done preparing PDBQT")
-        return (pdbqt.read_bytes(), pdbqt.name)
+        return (pdbqt.read_bytes(), str(pdbqt))
 
     def run_reinforcement_learning(self, config_id: str):
         self.logger.info("Running reinforcement learning")
-        directory = self.fs.directories.first_or_default(lambda x: x.name == config_id)
-        rl_config = directory.files.first_or_default(lambda o: o.name == "RL.toml")
-        log_file = directory.files.first_or_default(lambda o: o.name == "output.log")
-        error_file = directory.files.first_or_default(lambda o: o.name == "error.log")
+        directory = self.fs / "jobs_configs" / config_id
+        rl_config = directory / "RL.toml"
+        log_file = directory / "output.log"
+        error_file = directory / "error.log"
 
-        run_reinforcement_learning_shell = directory.first_or_default(
-            lambda o: o.name == "start_reinforcement_learning.sh"
-        )
+        run_reinforcement_learning_shell = directory / "start_reinforcement_learning.sh"
 
         process = subprocess.Popen(
             [
-                run_reinforcement_learning_shell.full_path,
-                rl_config.full_path,
-                error_file.full_path,
-                log_file.full_path,
+                run_reinforcement_learning_shell,
+                rl_config,
+                error_file,
+                log_file,
             ],
             stdout=sys.stdout,
             stderr=sys.stderr,
@@ -56,51 +56,33 @@ class Reinvent:
         self, config_id: str, number_of_molecules_to_generate: int
     ):
         self.logger.info("Running reinforcement sampling")
-        directory = self.fs.directories.first_or_default(lambda x: x.name == config_id)
+        directory = self.fs / "jobs_configs" / config_id
+        scoring_config = directory / "Scoring.toml"
+        log_file = directory / "output.log"
+        error_file = directory / "error.log"
+        chkpt = directory / "rl_direct.chkpt"
+        sampling_config: Path = directory / "Sampling.toml"
+        sampling_output = directory / "sampling_direct.csv"
+        sampling_output.touch()
 
-        scoring_config = directory.files.first_or_default(
-            lambda o: o.name == "Scoring.toml"
-        )
+        sampling_config_toml = toml.load(sampling_config.open('r'))
+        sampling_config_toml["parameters"]["output_file"] = sampling_output
+        sampling_config_toml["parameters"]["model_file"] = chkpt
+        sampling_config_toml["parameters"]["num_smiles"] = number_of_molecules_to_generate
+        sampling_config.write_text(toml.dumps(sampling_config_toml), encoding='utf-8')
 
-        log_file = directory.files.first_or_default(lambda o: o.name == "output.log")
-        error_file = directory.files.first_or_default(lambda o: o.name == "error.log")
-
-        chkpt = directory.files.first_or_default(lambda o: o.name == "rl_direct.chkpt")
-        sampling_config: FileObject = directory.files.first_or_default(
-            lambda o: o.name == "Sampling.toml"
-        )
-        sampling_output = directory.add_file("sampling_direct.csv")
-
-        sampling_config_toml = sampling_config.read(toml.load, mode="r")
-        sampling_config_toml["parameters"]["output_file"] = sampling_output.full_path
-        sampling_config_toml["parameters"]["model_file"] = chkpt.full_path
-        sampling_config_toml["parameters"][
-            "num_smiles"
-        ] = number_of_molecules_to_generate
-
-        sampling_config.write_string(toml.dumps(sampling_config_toml))
-
-        directory.files.first_or_default(
-            lambda o: o.name == "sampling_direct.csv"
-        ).write_string("")
-        directory.files.first_or_default(
-            lambda o: o.name == "scoring_input.smi"
-        ).write_string("")
-        directory.files.first_or_default(
-            lambda o: o.name == "scoring_direct.csv"
-        ).write_string("")
-
-        shell = directory.files.first_or_default(
-            lambda o: o.name == "start_sampling.sh"
-        )
+        (directory / "sampling_direct.csv").touch()
+        (directory / "scoring_input.smi").touch()
+        (directory / "scoring_direct.csv").touch()
+        shell = directory / "start_sampling.sh"
 
         process = subprocess.Popen(
             [
-                shell.full_path,
-                sampling_config.full_path,
-                scoring_config.full_path,
-                error_file.full_path,
-                log_file.full_path,
+                shell,
+                sampling_config,
+                scoring_config,
+                error_file,
+                log_file,
             ],
             stdout=sys.stdout,
             stderr=sys.stderr,

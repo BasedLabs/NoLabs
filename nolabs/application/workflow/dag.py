@@ -2,40 +2,34 @@ import asyncio
 import uuid
 from collections import defaultdict, deque
 from typing import Dict, List, Set
-from uuid import UUID
 
 from prefect import State, flow
 from prefect.client.schemas import FlowRun
 
+from nolabs.domain.models.common import Experiment
 from nolabs.infrastructure.environment import Environment
 from nolabs.infrastructure.settings import settings
-from application.workflow.component import Component
-from application.workflow.data import WorkflowData
+from nolabs.application.workflow.component import Component
 
 
 class PrefectDagExecutor:
     async def execute(
-        self, workflow_id: UUID, experiment_id: uuid.UUID, components: List[Component]
+        self, experiment_id: uuid.UUID, components: List[Component]
     ):
-        dag = generate_workflow_dag(
-            workflow_id=workflow_id, components=components, experiment_id=experiment_id
+        dag = generate_workflow_dag(components=components, experiment_id=experiment_id
         )
 
         if settings.get_environment() == Environment.LOCAL:
             await dag(return_state=True)
 
 
-def generate_workflow_dag(
-    workflow_id: uuid.UUID, experiment_id: uuid.UUID, components: List[Component]
-):
+def generate_workflow_dag(experiment_id: uuid.UUID, components: List[Component]):
     def on_running(_, flow_run: FlowRun, state: State):
-        data: WorkflowData = WorkflowData.objects.with_id(workflow_id)
-        data.flow_run_id = flow_run.id
-        data.save()
+        Experiment.objects(id=experiment_id).update(set__flow_run_id=flow_run.id)
 
     @flow(
-        name=str(workflow_id),
-        flow_run_name=f"Workflow,{str(workflow_id)}",
+        name=str(experiment_id),
+        flow_run_name=f"Experiment,{str(experiment_id)}",
         on_running=[on_running],
     )
     async def workflow():

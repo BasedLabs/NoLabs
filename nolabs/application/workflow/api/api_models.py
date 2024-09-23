@@ -10,6 +10,7 @@ class JobStateEnum(str, Enum):
     RUNNING = "RUNNING"
     FAILED = "FAILED"
     COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
     UNKNOWN = "UNKNOWN"
 
 
@@ -34,12 +35,12 @@ class PropertyErrorResponse:
 
 @dataclass
 class ResetWorkflowRequest:
-    workflow_id: UUID
+    experiment_id: UUID
 
 
 @dataclass
 class StartWorkflowComponentRequest:
-    workflow_id: UUID
+    experiment_id: UUID
     component_id: UUID
 
 
@@ -47,6 +48,7 @@ class ComponentStateEnum(str, Enum):
     RUNNING = "RUNNING"
     FAILED = "FAILED"
     COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
     UNKNOWN = "UNKNOWN"
 
 

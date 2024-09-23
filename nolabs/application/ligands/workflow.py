@@ -3,8 +3,8 @@ from typing import List, Optional, Type
 
 from pydantic import BaseModel
 
-from application.workflow import ComponentFlow
-from application.workflow.component import Component, TInput, TOutput
+from nolabs.application.workflow import ComponentFlow
+from nolabs.application.workflow.component import Component, TInput, TOutput
 
 
 class LigandsComponentInput(BaseModel):

@@ -100,12 +100,8 @@ export function createWorkflow(experimentId: string): CancelablePromise<any> {
   return WorkflowService.createWorkflowSchemaApiV1WorkflowExperimentIdPost(experimentId);
 }
 
-export function getWorkflow(workflowId: string): CancelablePromise<(WorkflowSchema_Output | null)> {
-  return WorkflowService.getSchemaApiV1WorkflowWorkflowIdGet(workflowId);
-}
-
-export function getExistingWorkflows(experimentId: string): CancelablePromise<AllWorkflowSchemasResponse> {
-  return WorkflowService.getSchemaApiV1WorkflowAllExperimentIdGet(experimentId);
+export function getWorkflow(experimentId: string): CancelablePromise<(WorkflowSchema_Output | null)> {
+  return WorkflowService.getSchemaApiV1WorkflowExperimentIdGet(experimentId);
 }
 
 export function sendWorkflowUpdate(workflow: WorkflowSchema_Input): CancelablePromise<any> {
@@ -113,23 +109,19 @@ export function sendWorkflowUpdate(workflow: WorkflowSchema_Input): CancelablePr
 }
 
 export function startWorkflow(experimentId: string): CancelablePromise<any> {
-  return WorkflowService.startWorkflowApiV1WorkflowWorkflowIdStartPost(experimentId)
+  return WorkflowService.startWorkflowApiV1WorkflowExperimentIdStartPost(experimentId)
 }
 
-export function startWorkflowComponent(workflowId:string, componentId: string): CancelablePromise<any> {
-  return WorkflowService.startComponentApiV1WorkflowWorkflowIdStartComponentIdPost(workflowId, componentId);
-}
-
-export function resetWorkflow(workflowId: string): CancelablePromise<any> {
-  return WorkflowService.resetWorkflowApiV1WorkflowWorkflowIdResetPost({workflow_id: workflowId});
+export function startWorkflowComponent(experimentId:string, componentId: string): CancelablePromise<any> {
+  return WorkflowService.startComponentApiV1WorkflowWorkflowIdStartComponentIdPost(experimentId, componentId);
 }
 
 export function getComponentState(componentId: string): CancelablePromise<GetComponentResponse> {
   return WorkflowService.getComponentStateApiV1WorkflowComponentComponentIdStateGet(componentId);
 }
 
-export function deleteWorkflow(workflowId: string): CancelablePromise<any> {
-  return WorkflowService.createSchemaApiV1WorkflowWorkflowIdDelete(workflowId);
+export function deleteWorkflow(experimentId: string): CancelablePromise<any> {
+  return WorkflowService.createSchemaApiV1WorkflowWorkflowIdDelete(experimentId);
 }
 
 export function getAllProteinsMetadata(experimentId: string): CancelablePromise<Array<ProteinMetadataResponse>> {

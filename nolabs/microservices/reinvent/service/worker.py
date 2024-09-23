@@ -10,6 +10,7 @@ app = Celery(
     __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
 )
 app.conf.enable_utc = settings.celery_enable_utc
+# app.conf.task_default_queue = settings.celery_worker_queue
 app.conf.accept_content = ["application/json", "application/x-python-serialize"]
 
 
@@ -41,4 +42,4 @@ def prepare_target(inp: Dict[str, Any]):
     reinvent = application.Reinvent()
     request = PreparePdbqtRequest(**inp)
     result = asyncio.run(reinvent.prepare_pdbqt(pdb=request.pdb))
-    return PreparePdbqtResponse(pdbqt=result[0], file_name=result[1])
+    return PreparePdbqtResponse(pdbqt=result[0], file_path=result[1]).model_dump()

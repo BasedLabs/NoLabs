@@ -65,7 +65,7 @@ class ComponentSchema(BaseModel):
 
 
 class WorkflowSchema(BaseModel):
-    workflow_id: uuid.UUID
+    experiment_id: uuid.UUID
     component_templates: List[ComponentSchemaTemplate]
     components: List[ComponentSchema]
     error: Optional[str] = None

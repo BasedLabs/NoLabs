@@ -57,6 +57,7 @@ export class JobsACommonControllerForJobsManagementService {
     public static deleteJobApiV1JobsJodIdDelete(
         jobId: string,
     ): CancelablePromise<any> {
+      debugger;
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/jobs/{jod_id}',

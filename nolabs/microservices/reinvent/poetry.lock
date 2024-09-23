@@ -402,17 +402,6 @@ yaml = ["PyYAML (>=3.10)"]
 zookeeper = ["kazoo (>=2.8.0)"]
 
 [[package]]
-name = "leaf-basedlabs"
-version = "0.0.9"
-description = "Leaf is a small (just two .py files) on-demand hierachical filesystem database."
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "leaf_BasedLabs-0.0.9-py3-none-any.whl", hash = "sha256:e35b94369a2298ea6718a963535fb3cd016beca38ea1a8af9b4327228a040236"},
-    {file = "leaf_basedlabs-0.0.9.tar.gz", hash = "sha256:1397cfdd9b72385168dabddc307d48a26a4da689480a09ebf5986360b97e540a"},
-]
-
-[[package]]
 name = "prompt-toolkit"
 version = "3.0.47"
 description = "Library for building powerful interactive command lines in Python"
@@ -784,4 +773,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "27225c7a61dcd812b568680578e0c9028ac4ae7bad97a68abd1142562255e08b"
+content-hash = "19b5f9f892612bf55f168f25280c1b6f163432f208de9a479fce2ba62b316b73"

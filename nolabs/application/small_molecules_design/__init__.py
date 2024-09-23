@@ -1,4 +1,4 @@
-from nolabs.application..workflow import ProteinsComponent
-from application.workflow.component import ComponentTypeFactory
+from nolabs.application.small_molecules_design.workflow import SmallMoleculesDesignLearningComponent
+from nolabs.application.workflow.component import ComponentTypeFactory
 
-ComponentTypeFactory.add_type(ProteinsComponent)
+ComponentTypeFactory.add_type(SmallMoleculesDesignLearningComponent)

@@ -6,4 +6,5 @@ export enum JobStateEnum {
     RUNNING = 'RUNNING',
     FAILED = 'FAILED',
     COMPLETED = 'COMPLETED',
+    UNKNOWN = 'UNKNOWN',
 }

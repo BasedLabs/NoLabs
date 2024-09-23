@@ -2,7 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type AllWorkflowSchemasResponse = {
-    ids: Array<string>;
+export type nolabs__application__folding__api_models__JobResult = {
+    protein_id: string;
+    pdb: string;
 };
 

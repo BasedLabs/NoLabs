@@ -12,13 +12,13 @@ __all__ = [
     "ProteinCreatedEvent",
 ]
 
-import datetime
+from datetime import datetime
 import hashlib
 import io
 import uuid
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional, TYPE_CHECKING
 from uuid import UUID
 
 from Bio import SeqIO
@@ -26,7 +26,7 @@ from domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, BinaryField, DateTimeField, DictField,
                          Document, EmbeddedDocument, EmbeddedDocumentField,
                          FloatField, IntField, ListField, Q, ReferenceField,
-                         StringField, UUIDField)
+                         StringField, UUIDField, EmbeddedDocumentListField, BooleanField)
 from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
@@ -42,6 +42,9 @@ from nolabs.seedwork.domain.value_objects import (ValueObject,
                                                   ValueObjectString,
                                                   ValueObjectUUID)
 from nolabs.utils.generate_2d_drug import generate_png_from_smiles
+
+if TYPE_CHECKING:
+    pass
 
 
 @dataclass
@@ -77,14 +80,19 @@ class ExperimentName(ValueObjectString):
 class Experiment(Document, Entity):
     id: UUID = UUIDField(primary_key=True)
     name: ExperimentName = ValueObjectStringField(required=True, factory=ExperimentName)
-    created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
+    created_at: datetime = DateTimeField(default=datetime.utcnow)
+
+    schema: Dict[str, Any] = DictField()
+
+    last_executed_at: datetime = DateTimeField()
+    flow_run_id: uuid.UUID = UUIDField()
 
     @classmethod
     def create(
-        cls,
-        id: ExperimentId,
-        name: ExperimentName,
-        created_at: datetime.datetime | None = None,
+            cls,
+            id: ExperimentId,
+            name: ExperimentName,
+            created_at: datetime | None = None,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
@@ -95,7 +103,7 @@ class Experiment(Document, Entity):
         created_at = (
             created_at
             if created_at
-            else datetime.datetime.now(tz=datetime.timezone.utc)
+            else datetime.utcnow()
         )
 
         return Experiment(
@@ -124,6 +132,9 @@ class Experiment(Document, Entity):
         for e in domain_events:
             await EventDispatcher.raise_event(e)
 
+    def set_schema(self, schema: Dict[str, Any]):
+        self.schema = schema
+
     def __hash__(self):
         return self.iid.__hash__()
 
@@ -132,6 +143,49 @@ class Experiment(Document, Entity):
             return self.iid == other.iid
 
         return False
+
+
+class PropertyErrorData(EmbeddedDocument):
+    loc: List[str] = ListField(StringField())
+    msg: str = StringField()
+
+    @classmethod
+    def create(cls, loc: List[str], msg: str) -> "PropertyErrorData":
+        return PropertyErrorData(loc=loc, msg=msg)
+
+
+class ComponentData(Document):
+    id: uuid.UUID = UUIDField(primary_key=True)
+    experiment: 'Experiment' = ReferenceField('Experiment', required=True, reverse_delete_rule=CASCADE)
+
+    input_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
+        PropertyErrorData, default=list
+    )
+    output_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
+        PropertyErrorData, default=list
+    )
+
+    executed_at: Optional[datetime] = DateTimeField()
+    exception: Optional[str] = StringField()
+    flow_run_id: Optional[uuid.UUID] = UUIDField()
+
+    name: str = StringField()
+
+    # region component fields
+
+    input_schema: Dict[str, Any] = DictField()
+    output_schema: Dict[str, Any] = DictField()
+    input_value_dict: Dict[str, Any] = DictField()
+    output_value_dict: Dict[str, Any] = DictField()
+    previous_component_ids: List[uuid.UUID] = ListField(UUIDField())
+
+    # endregion
+
+    meta = {"collection": "components"}
+
+    @classmethod
+    def create(cls, id: uuid.UUID, experiment: Union['Experiment', uuid.UUID]):
+        return ComponentData(id=id, experiment=experiment)
 
 
 @dataclass
@@ -197,14 +251,14 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
     extracellular: float = FloatField(required=True)
 
     def __init__(
-        self,
-        cytosolic: float,
-        mitochondrial: float,
-        nuclear: float,
-        other: float,
-        extracellular: float,
-        *args,
-        **kwargs,
+            self,
+            cytosolic: float,
+            mitochondrial: float,
+            nuclear: float,
+            other: float,
+            extracellular: float,
+            *args,
+            **kwargs,
     ):
         values = [cytosolic, mitochondrial, nuclear, other, extracellular]
 
@@ -364,16 +418,14 @@ class Protein(Document, Entity):
 
     @classmethod
     def create(
-        cls,
-        experiment: Experiment,
-        name: ProteinName,
-        fasta_content: Union[bytes, str, None] = None,
-        pdb_content: Union[bytes, str, None] = None,
-        *args,
-        **kwargs,
+            cls,
+            experiment: Experiment,
+            name: ProteinName,
+            fasta_content: Union[bytes, str, None] = None,
+            pdb_content: Union[bytes, str, None] = None,
+            *args,
+            **kwargs,
     ):
-        if not id:
-            raise NoLabsException(ErrorCodes.invalid_protein_id)
         if not name:
             raise NoLabsException(ErrorCodes.invalid_protein_name)
         if not experiment:
@@ -405,6 +457,29 @@ class Protein(Document, Entity):
         EventDispatcher.raise_event(ProteinCreatedEvent(protein))
 
         return protein
+
+    def copy(self, id: uuid.UUID) -> Protein:
+        return Protein(
+            id=id,
+            experiment=self.experiment,
+            name=self.name,
+            fasta_content=self.fasta_content,
+            pdb_content=self.pdb_content,
+            localisation=self.localisation,
+            gene_ontology=self.gene_ontology,
+            soluble_probability=self.soluble_probability,
+            msa=self.msa,
+            binding_pockets=self.binding_pockets,
+            md_content=self.md_content,
+            source_binding_protein=self.source_binding_protein,
+            binding_ligand=self.binding_ligand,
+            sdf_content=self.sdf_content,
+            minimized_affinity=self.minimized_affinity,
+            scored_affinity=self.scored_affinity,
+            confidence=self.confidence,
+            plddt_array=self.plddt_array,
+            link=self.link
+        )
 
     def set_localisation_probability(self, localisation: LocalisationProbability):
         if not localisation:
@@ -525,7 +600,7 @@ class Ligand(Document, Entity):
     link: LigandLink | None = StringField(required=False)  # New field for link
     image = BinaryField(required=False)  # New field for image
     generated_stage = StringField()
-    created_at: datetime.datetime = DateTimeField(default=datetime.datetime.utcnow)
+    created_at: datetime = DateTimeField(default=datetime.utcnow)
 
     def __hash__(self):
         return self.iid.__hash__()
@@ -595,14 +670,14 @@ class Ligand(Document, Entity):
 
     @classmethod
     def create(
-        cls,
-        experiment: Experiment,
-        name: LigandName | None = None,
-        smiles_content: Union[bytes, str, None] = None,
-        sdf_content: Union[bytes, str, None] = None,
-        link: LigandLink | None = None,
-        *args,
-        **kwargs,
+            cls,
+            experiment: Experiment,
+            name: LigandName | None = None,
+            smiles_content: Union[bytes, str, None] = None,
+            sdf_content: Union[bytes, str, None] = None,
+            link: LigandLink | None = None,
+            *args,
+            **kwargs,
     ) -> "Ligand":  # Added link parameter
         if not name:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
@@ -647,15 +722,15 @@ class Ligand(Document, Entity):
         return ligand
 
     def add_binding(
-        self,
-        protein: "Protein",
-        sdf_content: bytes | str | None = None,
-        minimized_affinity: float | None = None,
-        scored_affinity: float | None = None,
-        confidence: float | None = None,
-        plddt_array: List[int] | None = None,
-        name: str | None = None,
-        pdb_content: Union[bytes, str, None] = None,
+            self,
+            protein: "Protein",
+            sdf_content: bytes | str | None = None,
+            minimized_affinity: float | None = None,
+            scored_affinity: float | None = None,
+            confidence: float | None = None,
+            plddt_array: List[int] | None = None,
+            name: str | None = None,
+            pdb_content: Union[bytes, str, None] = None,
     ) -> "Protein":
         if not plddt_array:
             plddt_array = []
@@ -747,20 +822,27 @@ class Job(Document, Entity):
     experiment: Experiment = ReferenceField(
         Experiment, required=True, reverse_delete_rule=CASCADE
     )
+    component: 'ComponentData' = ReferenceField('ComponentData', required=False, reverse_delete_rule=CASCADE)
     name: JobName = ValueObjectStringField(required=True, factory=JobName)
-    created_at: datetime.datetime = DateTimeField()
-    updated_at: datetime.datetime = DateTimeField()
-    inputs_updated_at: datetime.datetime = DateTimeField()
+    created_at: datetime = DateTimeField()
+    updated_at: datetime = DateTimeField()
+    processing_required: bool = BooleanField(default=False)
+
+    # region Prefect
+    task_run_id: uuid.UUID = UUIDField(required=False)
+    executed_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
+    # endregion
 
     meta = {"allow_inheritance": True}
 
-    def __init__(
-        self,
-        id: JobId,
-        name: JobName,
-        experiment: Union[Experiment, uuid.UUID],
-        *args,
-        **kwargs,
+    @classmethod
+    def create(
+            cls,
+            id: JobId,
+            name: JobName,
+            experiment: Union[Experiment, uuid.UUID],
+            *args,
+            **kwargs,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_job_id)
@@ -769,15 +851,13 @@ class Job(Document, Entity):
         if not experiment:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
-        self.clear_events()
+        instance = cls(id=id.value if isinstance(id, JobId) else id,
+                       name=name,
+                       experiment=experiment,
+                       *args, **kwargs)
+        instance.clear_events()
 
-        super().__init__(
-            id=id.value if isinstance(id, JobId) else id,
-            name=name,
-            experiment=experiment,
-            *args,
-            **kwargs,
-        )
+        return instance
 
     def set_name(self, name: JobName):
         if not name:
@@ -785,15 +865,21 @@ class Job(Document, Entity):
 
         self.name = name
 
+    def set_run_info(self, task_run_id: uuid.UUID, executed_at: datetime):
+        self.task_run_id = task_run_id
+        self.executed_at = executed_at
+
     @property
     def iid(self) -> JobId:
         return JobId(self.id)
 
     @abstractmethod
-    def result_valid(self) -> bool: ...
+    def result_valid(self) -> bool:
+        ...
 
     @abstractmethod
-    def _input_errors(self) -> List[JobInputError]: ...
+    def _input_errors(self) -> List[JobInputError]:
+        ...
 
     def input_errors(self, throw: bool = False) -> List[JobInputError]:
         errors = self._input_errors()
@@ -801,16 +887,16 @@ class Job(Document, Entity):
         if throw:
             for error in errors:
                 raise NoLabsException(
-                    messages=error.message, error_code=error.error_code
+                    message=error.message, error_code=error.error_code
                 )
 
         return errors
 
     async def save(self, **kwargs):
         if not self.created_at:
-            self.created_at = datetime.datetime.utcnow()
+            self.created_at = datetime.utcnow()
         else:
-            self.updated_at = datetime.datetime.utcnow()
+            self.updated_at = datetime.utcnow()
         super().save(**kwargs)
 
         domain_events = self.collect_events()
@@ -857,6 +943,5 @@ class ExperimentRemovedEvent(DomainEvent):
 
     def __init__(self, experiment: Experiment):
         self.experiment = experiment
-
 
 # endregion

@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type application__diffdock__api_models__JobResult = {
+export type nolabs__application__diffdock__api_models__JobResult = {
     complex_id: string;
     sdf_content: string;
     minimized_affinity?: (number | null);

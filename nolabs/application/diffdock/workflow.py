@@ -14,8 +14,8 @@ from pydantic import BaseModel
 from nolabs.domain.models.common import JobId, JobName, Ligand, Protein
 from nolabs.domain.models.diffdock import DiffDockBindingJob, DiffDockJobResult
 from nolabs.infrastructure.cel import cel as celery
-from application.workflow import ComponentFlow
-from application.workflow.component import Component, TInput, TOutput
+from nolabs.application.workflow import ComponentFlow
+from nolabs.application.workflow.component import Component, TInput, TOutput
 
 
 class DiffDockComponentInput(BaseModel):

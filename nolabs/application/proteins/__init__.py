@@ -1,4 +1,4 @@
 from nolabs.application.proteins.workflow import ProteinsComponent
-from application.workflow.component import ComponentTypeFactory
+from nolabs.application.workflow.component import ComponentTypeFactory
 
 ComponentTypeFactory.add_type(ProteinsComponent)

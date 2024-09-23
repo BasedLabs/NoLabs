@@ -74,7 +74,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       nodes: [] as Node[],
       edges: [] as Edge[]
     },
-    workflowId: "" as string,
+    experimentId: "" as string,
     allowedTypes: ["Proteins", "Ligands", "DNA"],
     componentOptions: [] as Array<{
       name: string;
@@ -424,12 +424,12 @@ export const useWorkflowStore = defineStore('workflowStore', {
       // Update the state
       await this.sendWorkflowUpdate();
 
-      await this.fetchWorkflow(this.workflowId);
+      await this.fetchWorkflow(this.experimentId);
     },
-    async fetchWorkflow(workflowId: string) {
-      this.workflowId = workflowId;
+    async fetchWorkflow(experimentId: string) {
+      this.experimentId = experimentId;
       try {
-        const workflow = await getWorkflow(workflowId);
+        const workflow = await getWorkflow(experimentId);
         if (!workflow) {
           console.error("Failed to load workflow");
           return;
@@ -524,7 +524,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
     },
     async sendWorkflowUpdate() {
       const workflowUpdate: WorkflowSchema_Input = {
-        workflow_id: this.workflowId,
+        experiment_id: this.experimentId,
         component_templates: this.componentOptions.map(option => ({
           name: option.name,
           input: option.inputs,

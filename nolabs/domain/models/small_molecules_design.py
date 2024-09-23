@@ -96,7 +96,7 @@ class SmallMoleculesDesignJob(Job):
         if throw:
             self.input_errors(throw=True)
 
-        self.inputs_updated_at = datetime.datetime.utcnow()
+        self.processing_required = True
 
     def set_result(self, protein: Protein, ligands: List[Ligand]):
         if not ligands:
@@ -109,6 +109,7 @@ class SmallMoleculesDesignJob(Job):
             raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
         self.ligands = ligands
+        self.processing_required = False
 
     def set_task_id(self, task_id):
         self.celery_task_id = task_id
