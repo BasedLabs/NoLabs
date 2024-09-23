@@ -8,10 +8,10 @@ from nolabs.application.use_cases.binding_pockets.api_models import \
     SetupJobRequest
 from nolabs.application.use_cases.binding_pockets.use_cases import (
     RunJobFeature, SetupJobFeature)
+from nolabs.application.workflow.component import Component, JobValidationError
 from nolabs.domain.models.common import Protein
 from nolabs.domain.models.pocket_prediction import PocketPredictionJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class BindingPocketPredictionInput(BaseModel):

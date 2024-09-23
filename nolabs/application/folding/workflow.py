@@ -3,17 +3,17 @@ from abc import ABC
 from enum import Enum
 from typing import List, Optional, Type
 
+from domain.exceptions import ErrorCodes, NoLabsException
 from prefect.states import Cancelled, Completed
 from pydantic import BaseModel
 
-from domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.application.workflow import ComponentFlow
 from nolabs.application.workflow.component import Component, TInput, TOutput
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.infrastructure.cel import cel as celery
-from nolabs.microservices.esmfold_light.service.api_models import (
-    InferenceInput)
+from nolabs.microservices.esmfold_light.service.api_models import \
+    InferenceInput
 
 
 class FoldingComponentInput(BaseModel):
@@ -97,10 +97,12 @@ class FoldingComponentFlow(ComponentFlow):
                 if not job:
                     job_id = JobId(uuid.uuid4())
                     job_name = JobName(f"Folding of {protein.name}")
-                    job = FoldingJob.create(id=job_id,
-                                            name=job_name,
-                                            experiment=experiment,
-                                            component=self.component_id)
+                    job = FoldingJob.create(
+                        id=job_id,
+                        name=job_name,
+                        experiment=experiment,
+                        component=self.component_id,
+                    )
                     job.set_inputs(protein=protein, backend=self.backend)
                     await job.save(cascade=True)
 
@@ -133,7 +135,7 @@ class FoldingComponentFlow(ComponentFlow):
                 return Cancelled(message=message)
 
             if not job.processing_required:
-                return Completed(message='No processing required')
+                return Completed(message="No processing required")
 
             inference_result = await celery.esmfold_light_inference(
                 task_id=str(job.id),

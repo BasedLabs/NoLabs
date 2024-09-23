@@ -6,18 +6,15 @@ from typing import Dict, List, Set
 from prefect import State, flow
 from prefect.client.schemas import FlowRun
 
+from nolabs.application.workflow.component import Component
 from nolabs.domain.models.common import Experiment
 from nolabs.infrastructure.environment import Environment
 from nolabs.infrastructure.settings import settings
-from nolabs.application.workflow.component import Component
 
 
 class PrefectDagExecutor:
-    async def execute(
-        self, experiment_id: uuid.UUID, components: List[Component]
-    ):
-        dag = generate_workflow_dag(components=components, experiment_id=experiment_id
-        )
+    async def execute(self, experiment_id: uuid.UUID, components: List[Component]):
+        dag = generate_workflow_dag(components=components, experiment_id=experiment_id)
 
         if settings.get_environment() == Environment.LOCAL:
             await dag(return_state=True)

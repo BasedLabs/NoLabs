@@ -3,16 +3,16 @@ __all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 import uuid
 from uuid import UUID
 
-from mongoengine import Q
-
 from domain.exceptions import ErrorCodes, NoLabsException
 from microservices.esmfold_light.service.api_models import InferenceInput
-from nolabs.infrastructure.log import logger
+from mongoengine import Q
+
 from nolabs.application.folding.api_models import (JobResponse, JobResult,
                                                    SetupJobRequest)
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingBackendEnum, FoldingJob
 from nolabs.infrastructure.cel import cel as celery
+from nolabs.infrastructure.log import logger
 from nolabs.utils import generate_uuid
 
 
@@ -22,7 +22,9 @@ def map_job_to_response(job: FoldingJob) -> JobResponse:
         job_name=job.name.value,
         backend=FoldingBackendEnum(job.backend),
         protein_id=job.protein.id,
-        result=JobResult(protein_id=job.folded_protein.id, pdb=job.folded_protein.get_pdb()),
+        result=JobResult(
+            protein_id=job.folded_protein.id, pdb=job.folded_protein.get_pdb()
+        ),
         experiment_id=job.experiment.id,
     )
 
@@ -61,7 +63,9 @@ class SetupJobFeature:
 
         try:
             job_id = JobId(request.job_id if request.job_id else generate_uuid())
-            job_name = JobName(request.job_name if request.job_name else "New folding job")
+            job_name = JobName(
+                request.job_name if request.job_name else "New folding job"
+            )
             folding_backend = (
                 FoldingBackendEnum(request.backend)
                 if request.backend
@@ -78,7 +82,9 @@ class SetupJobFeature:
             ).first()
 
             if not job:
-                job: FoldingJob = FoldingJob.create(id=job_id, name=job_name, experiment=experiment)
+                job: FoldingJob = FoldingJob.create(
+                    id=job_id, name=job_name, experiment=experiment
+                )
 
             protein = Protein.objects.with_id(request.protein_id)
 
@@ -99,9 +105,7 @@ class SetupJobFeature:
 
 class RunJobFeature:
     async def handle(self, job_id: UUID) -> JobResponse:
-        extra = {
-            "job_id": job_id
-        }
+        extra = {"job_id": job_id}
 
         logger.info("Setup folding job", extra=extra)
 
@@ -123,9 +127,10 @@ class RunJobFeature:
                 )
 
             if job.backend == FoldingBackendEnum.esmfold_light:
-                inference_result = await celery.esmfold_light_inference(task_id=job.id, payload=InferenceInput(
-                    fasta_sequence=protein.get_fasta()
-                ))
+                inference_result = await celery.esmfold_light_inference(
+                    task_id=job.id,
+                    payload=InferenceInput(fasta_sequence=protein.get_fasta()),
+                )
                 id = uuid.uuid4()
                 folded_protein = protein.copy(id=id)
                 folded_protein.set_pdb(inference_result.pdb_content)

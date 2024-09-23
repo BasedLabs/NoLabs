@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, WebSocket
 from nolabs.application.small_molecules_design.api_models import (
     GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
     SmilesResponse)
-from nolabs.application.small_molecules_design.di import SmallMoleculesDesignDependencies
+from nolabs.application.small_molecules_design.di import \
+    SmallMoleculesDesignDependencies
 from nolabs.application.small_molecules_design.use_cases import (
     DeleteJobFeature, GetJobFeature, GetJobLogsFeature, GetJobSmilesFeature,
     GetJobStatusFeature, RunLearningStageJobFeature,

@@ -5,8 +5,7 @@ import traceback
 from types import TracebackType
 from typing import Optional, Tuple, Type, Union
 
-from nolabs.domain.exceptions import NoLabsException, ErrorCodes
-
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.infrastructure.settings import settings
 
 # imported from https://github.com/PrefectHQ/prefect/blob/main/src/prefect/logging/formatters.py

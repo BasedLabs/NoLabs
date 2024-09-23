@@ -5,10 +5,10 @@ from domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import BaseModel
 
 from nolabs.application.use_cases.conformations.use_cases import RunJobFeature
+from nolabs.application.workflow.component import Component, JobValidationError
 from nolabs.domain.models.common import JobId, JobName, Protein
 from nolabs.domain.models.conformations import ConformationsJob
 from nolabs.infrastructure.di import InfrastructureDependencies
-from nolabs.application.workflow.component import Component, JobValidationError
 
 
 class ConformationInput(BaseModel):

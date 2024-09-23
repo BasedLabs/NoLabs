@@ -16,6 +16,8 @@ from nolabs.application.ligands.controller import router as ligand_router
 from nolabs.application.middlewares.domain_exception_middleware import \
     add_domain_exception_middleware
 from nolabs.application.proteins.controller import router as proteins_router
+from nolabs.application.small_molecules_design.controller import \
+    router as small_molecules_design_router
 from nolabs.application.use_cases.binding_pockets.controller import \
     router as binding_pockets_controller
 from nolabs.application.use_cases.biobuddy.controller import \
@@ -35,14 +37,13 @@ from nolabs.application.use_cases.msa_generation.controller import \
     router as msa_generation_controller
 from nolabs.application.use_cases.protein_design.controller import \
     router as protein_design_controller
-from nolabs.application.small_molecules_design.controller import \
-    router as small_molecules_design_router
 from nolabs.application.use_cases.solubility.controller import \
     router as solubility_router
+from nolabs.application.workflow.api.controller import \
+    router as workflow_router
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import settings
-from nolabs.application.workflow.api.controller import router as workflow_router
 
 
 @asynccontextmanager
@@ -73,6 +74,7 @@ async def join_room(sid, data):
             "Client joined experiment",
             extra={"client_id": sid, "experiment_id": experiment_id},
         )
+
 
 app.include_router(localisation_router)
 app.include_router(experiment_router)

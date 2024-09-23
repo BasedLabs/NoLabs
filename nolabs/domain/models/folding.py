@@ -1,9 +1,7 @@
 __all__ = ["FoldingJob"]
 
-from datetime import datetime
 from enum import Enum
 from typing import List
-from uuid import UUID
 
 from domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, BinaryField, EmbeddedDocument,
@@ -23,9 +21,7 @@ class FoldingJob(Job):
     protein: Protein = ReferenceField(
         Protein, required=True, reverse_delete_rule=CASCADE
     )
-    folded_protein: Protein = ReferenceField(
-        Protein, required=False
-    )
+    folded_protein: Protein = ReferenceField(Protein, required=False)
     backend: FoldingBackendEnum = EnumField(FoldingBackendEnum, required=True)
 
     def set_inputs(self, protein: Protein, backend: FoldingBackendEnum):

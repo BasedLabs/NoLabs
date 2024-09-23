@@ -7,7 +7,7 @@ __all__ = [
     "SetupJobFeature",
     "RunLearningStageJobFeature",
     "RunSamplingStageJobFeature",
-    "StopJobFeature"
+    "StopJobFeature",
 ]
 
 import uuid
@@ -18,11 +18,11 @@ from domain.exceptions import ErrorCodes, NoLabsException
 from microservices.reinvent.service.api_models import (
     RunReinforcementLearningRequest, RunSamplingRequest)
 
-from nolabs.application.small_molecules_design.services import \
-    ReinventParametersSaver
 from nolabs.application.small_molecules_design.api_models import (
     GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
     SmilesResponse)
+from nolabs.application.small_molecules_design.services import \
+    ReinventParametersSaver
 from nolabs.domain.models.common import (Experiment, Job, JobId, JobName,
                                          Protein)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
@@ -190,9 +190,7 @@ class SetupJobFeature:
         )
 
         parameters_saver = ReinventParametersSaver()
-        await parameters_saver.save_params(
-            job=job, pdb=job.protein.pdb_content
-        )
+        await parameters_saver.save_params(job=job, pdb=job.protein.pdb_content)
 
         job.change_sampling_size(request.sampling_size)
 
@@ -212,7 +210,7 @@ class RunLearningStageJobFeature:
             task_id = uuid.uuid4()
             await celery.reinvent_run_learning(
                 task_id=task_id,
-                request=RunReinforcementLearningRequest(config_id=str(job_id))
+                request=RunReinforcementLearningRequest(config_id=str(job_id)),
             )
             job.set_task_id(task_id=task_id)
             await job.save()
