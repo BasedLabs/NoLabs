@@ -115,7 +115,7 @@ class SmallMoleculesDesignFlow(ComponentFlow):
                 await asyncio.sleep(10.0)
                 result = celery.task_result(celery_task_id)
 
-            job.celery_task_id = None
+            job.set_task_id(task_id=None)
             await job.save()
 
             if result.failed():

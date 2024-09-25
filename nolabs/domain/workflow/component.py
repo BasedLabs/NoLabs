@@ -574,12 +574,6 @@ class Component(Generic[TInput, TOutput]):
             for err in self.output_errors()
         ]
 
-    async def on_delete(self, data: ComponentData): ...
-
-    async def delete(self, data: ComponentData):
-        await self.on_delete(data=data)
-        data.delete()
-
 
 class ComponentTypeFactory:
     _types: ClassVar[Dict[str, Type[Component]]] = {}

@@ -3,11 +3,11 @@ from typing import List
 from unittest import IsolatedAsyncioTestCase
 
 from pydantic import BaseModel, create_model
-from nolabs.workflow import (DefaultWorkflowComponentModelValue, MappingModel,
-                      WorkflowComponentModel)
 
 from nolabs.application.use_cases.workflow.use_cases import (
     CreateWorkflowSchemaFeature, UpdateWorkflowSchemaFeature)
+from nolabs.workflow import (DefaultWorkflowComponentModelValue, MappingModel,
+                             WorkflowComponentModel)
 from tests.test_workflow.mixins import WorkflowTestsMixin
 from tests.tests_preparations import mongo_connect
 

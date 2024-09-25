@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from nolabs.application.workflow.tasks import ComponentFlow
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import JobId, JobName, Ligand, Protein
-from nolabs.domain.models.diffdock import DiffDockBindingJob, DiffDockJobResult
+from nolabs.domain.models.diffdock import DiffDockBindingJob
 from nolabs.domain.workflow.component import Component, TInput, TOutput
 from nolabs.infrastructure.cel import cel as celery
 
@@ -95,7 +95,8 @@ class DiffdockComponentFlow(ComponentFlow):
             pdb_contents=job.protein.get_pdb(), sdf_contents=job.ligand.get_sdf()
         )
         task_id = uuid.uuid4()
-        # job.
+        job.set_task_id(task_id=str(task_id))
+        await job.save()
         job_result = await celery.diffdock_inference(task_id=task_id, payload=request)
 
         ligand = job.ligand
@@ -113,21 +114,11 @@ class DiffdockComponentFlow(ComponentFlow):
                 name=item.sdf_file_name,
             )
 
-            complex.save()
+            result.append(complex)
 
-            result.append(
-                DiffDockJobResult.create(
-                    complex_id=complex.iid.value,
-                    sdf_content=item.sdf_content,
-                    minimized_affinity=item.minimized_affinity,
-                    scored_affinity=item.scored_affinity,
-                    confidence=item.confidence,
-                )
-            )
+        job.set_result(complexes=result)
 
-        job.set_result(result=result)
-
-        await job.save()
+        await job.save(cascade=True)
 
         if not job.result_valid():
             return Failed(message="Result of job is invalid")
@@ -140,7 +131,7 @@ class DiffdockComponentFlow(ComponentFlow):
         for job_id in job_ids:
             job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id)
 
-            for complex in job.result:
-                ids.append(complex.complex_id)
+            for complex in job.complexes:
+                ids.append(complex.id)
 
         return DiffDockComponentOutput(protein_complexes=ids)
