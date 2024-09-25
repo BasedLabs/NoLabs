@@ -3,7 +3,7 @@ __all__ = ["FoldingJob"]
 from enum import Enum
 from typing import List
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, BinaryField, EmbeddedDocument,
                          EmbeddedDocumentField, EnumField, ReferenceField,
                          UUIDField)

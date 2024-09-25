@@ -3,7 +3,7 @@ __all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 import uuid
 from uuid import UUID
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from microservices.esmfold_light.service.api_models import InferenceInput
 from mongoengine import Q
 

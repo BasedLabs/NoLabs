@@ -3,7 +3,7 @@ __all__ = ["GetExperimentsMetadataFeature", "CreateExperimentFeature"]
 import uuid
 from typing import List
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 
 from nolabs.application.experiments.api_models import (
     ExperimentMetadataResponse, UpdateExperimentRequest)

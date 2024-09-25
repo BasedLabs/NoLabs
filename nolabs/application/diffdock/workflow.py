@@ -3,7 +3,7 @@ __all__ = ["DiffDockComponent"]
 import uuid
 from typing import List, Type
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from microservices.diffdock.service.api_models import \
     RunDiffDockPredictionRequest
 from prefect import State
@@ -11,8 +11,8 @@ from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
 
-from nolabs.application.workflow import ComponentFlow
-from nolabs.application.workflow.component import Component, TInput, TOutput
+from nolabs.application.workflow.tasks import ComponentFlow
+from nolabs.domain.workflow.component import Component, TInput, TOutput
 from nolabs.domain.models.common import JobId, JobName, Ligand, Protein
 from nolabs.domain.models.diffdock import DiffDockBindingJob, DiffDockJobResult
 from nolabs.infrastructure.cel import cel as celery
@@ -94,7 +94,9 @@ class DiffdockComponentFlow(ComponentFlow):
         request = RunDiffDockPredictionRequest(
             pdb_contents=job.protein.get_pdb(), sdf_contents=job.ligand.get_sdf()
         )
-        (job_result, task_id) = await celery.diffdock_inference(payload=request)
+        task_id = uuid.uuid4()
+        #job.
+        job_result = await celery.diffdock_inference(task_id=task_id, payload=request)
 
         ligand = job.ligand
 

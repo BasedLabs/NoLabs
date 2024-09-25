@@ -1,7 +1,7 @@
 from typing import Union
 
 from nolabs.application.workflow.api.schema import ItemsSchema, PropertySchema
-from nolabs.application.workflow.component import Items, Parameter, Property
+from nolabs.domain.workflow.component import Items, Parameter, Property
 
 
 def map_items(i: Items, schema: Parameter) -> ItemsSchema:

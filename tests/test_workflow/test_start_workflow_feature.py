@@ -2,7 +2,7 @@ import uuid
 from typing import List, Type
 from unittest import IsolatedAsyncioTestCase
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import create_model
 from nolabs.workflow import (ComponentDbModel, DefaultWorkflowComponentModelValue,
                       MappingModel, WorkflowComponentModel)

@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, BinaryField, BooleanField, DateTimeField,
                          EmbeddedDocument, EmbeddedDocumentListField,
                          EnumField, FloatField, IntField, ReferenceField,

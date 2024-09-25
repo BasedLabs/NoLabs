@@ -22,23 +22,8 @@ from nolabs.application.middlewares.domain_exception_middleware import \
 from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.application.small_molecules_design.controller import \
     router as small_molecules_design_router
-from nolabs.application.use_cases.binding_pockets.controller import \
-    router as binding_pockets_controller
-from nolabs.application.use_cases.blast.controller import \
-    router as blast_router
-from nolabs.application.use_cases.conformations.controller import \
-    router as conformations_controller
-from nolabs.application.use_cases.gene_ontology.controller import \
-    router as gene_ontology_router
-from nolabs.application.use_cases.jobs.controller import router as job_router
-from nolabs.application.use_cases.localisation.controller import \
-    router as localisation_router
-from nolabs.application.use_cases.msa_generation.controller import \
-    router as msa_generation_controller
-from nolabs.application.use_cases.protein_design.controller import \
-    router as protein_design_controller
-from nolabs.application.use_cases.solubility.controller import \
-    router as solubility_router
+from nolabs.application.blast.controller import router as blast_router
+from nolabs.application.jobs.controller import router as job_router
 from nolabs.application.workflow.api.controller import \
     router as workflow_router
 from nolabs.infrastructure.log import logger
@@ -76,16 +61,9 @@ async def join_room(sid, data):
         )
 
 
-app.include_router(localisation_router)
 app.include_router(experiment_router)
 app.include_router(folding_router)
 app.include_router(job_router)
-app.include_router(gene_ontology_router)
-app.include_router(solubility_router)
-app.include_router(conformations_controller)
-app.include_router(protein_design_controller)
-app.include_router(binding_pockets_controller)
-app.include_router(msa_generation_controller)
 app.include_router(small_molecules_design_router)
 app.include_router(diffdock_router)
 app.include_router(proteins_router)

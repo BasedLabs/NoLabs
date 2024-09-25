@@ -4,7 +4,7 @@ import datetime
 from typing import List
 from uuid import UUID
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, EmbeddedDocument, EmbeddedDocumentListField,
                          FloatField, IntField, ReferenceField, StringField,
                          UUIDField)

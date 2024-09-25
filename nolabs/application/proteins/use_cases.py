@@ -10,7 +10,7 @@ import pathlib
 from typing import List, Optional
 from uuid import UUID
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import Q
 
 from nolabs.application.proteins.api_models import (
