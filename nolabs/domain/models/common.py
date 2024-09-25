@@ -18,14 +18,15 @@ import uuid
 from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from Bio import SeqIO
 from mongoengine import (CASCADE, BinaryField, BooleanField, DateTimeField,
                          DictField, Document, EmbeddedDocument,
-                         EmbeddedDocumentField, FloatField, IntField, ListField, Q, ReferenceField,
-                         StringField, UUIDField, EmbeddedDocumentListField)
+                         EmbeddedDocumentField, EmbeddedDocumentListField,
+                         FloatField, IntField, ListField, Q, ReferenceField,
+                         StringField, UUIDField)
 from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
@@ -943,12 +944,13 @@ class ExperimentRemovedEvent(DomainEvent):
         self.experiment = experiment
 
 
-#class ComponentDeletedEvent(DomainEvent):
+# class ComponentDeletedEvent(DomainEvent):
 #    component: Component
 #
 #    def __init__(self, component: Component):
 #        self.protein = protein
 #
+
 
 # endregion
 @dataclass
@@ -961,6 +963,3 @@ class PropertyValidationError:
 
     def __str__(self):
         return f"{self.msg}: {self.loc}"
-
-
-

@@ -6,8 +6,8 @@ from typing import Dict, List, Set
 from prefect import State, flow
 from prefect.client.schemas import FlowRun
 
-from nolabs.domain.workflow.component import Component
 from nolabs.domain.models.common import Experiment
+from nolabs.domain.workflow.component import Component
 from nolabs.infrastructure.environment import Environment
 from nolabs.infrastructure.settings import settings
 

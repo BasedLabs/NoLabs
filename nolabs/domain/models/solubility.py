@@ -4,10 +4,10 @@ from datetime import datetime
 from typing import List, Tuple
 from uuid import UUID
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (PULL, EmbeddedDocument, EmbeddedDocumentListField,
                          FloatField, ListField, ReferenceField, UUIDField)
 
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Protein
 
 

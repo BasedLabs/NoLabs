@@ -7,12 +7,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from nolabs.application.jobs.api_models import (
-    GetJobMetadataResponse, UpdateJobRequest)
+from nolabs.application.jobs.api_models import (GetJobMetadataResponse,
+                                                UpdateJobRequest)
 from nolabs.application.jobs.di import JobDependencies
-from nolabs.application.jobs.use_cases import (
-    DeleteJobFeature, GetJobMetadataFeature, GetJobsMetadataFeature,
-    UpdateJobFeature)
+from nolabs.application.jobs.use_cases import (DeleteJobFeature,
+                                               GetJobMetadataFeature,
+                                               GetJobsMetadataFeature,
+                                               UpdateJobFeature)
 
 router = APIRouter(
     prefix="/api/v1/jobs",

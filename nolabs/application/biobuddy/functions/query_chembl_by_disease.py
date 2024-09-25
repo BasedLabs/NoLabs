@@ -2,13 +2,13 @@ import json
 from typing import Any, Dict
 
 import external_data_query_microservice
+
 from nolabs.application.biobuddy.api_models import (ChemBLData, ChemBLMetaData,
-                                             FunctionCall,
-                                             FunctionCallReturnData,
-                                             FunctionParam)
+                                                    FunctionCall,
+                                                    FunctionCallReturnData,
+                                                    FunctionParam)
 from nolabs.application.biobuddy.functions.base_function import (
     BiobuddyFunction, FunctionParameterDefinition)
-
 from nolabs.utils.sdf import smiles_to_sdf_string
 
 

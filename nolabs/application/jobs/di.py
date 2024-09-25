@@ -1,6 +1,7 @@
-from nolabs.application.jobs.use_cases import (
-    DeleteJobFeature, GetJobMetadataFeature, GetJobsMetadataFeature,
-    UpdateJobFeature)
+from nolabs.application.jobs.use_cases import (DeleteJobFeature,
+                                               GetJobMetadataFeature,
+                                               GetJobsMetadataFeature,
+                                               UpdateJobFeature)
 
 
 class JobDependencies:

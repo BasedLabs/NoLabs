@@ -3,7 +3,7 @@
 
 import asyncio
 import uuid
-from typing import Any, Optional, Tuple
+from typing import Any
 
 import microservices.diffdock.service.api_models as diffdock
 import microservices.esmfold_light.service.api_models as esmfold_light

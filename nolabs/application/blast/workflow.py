@@ -8,10 +8,10 @@ from pydantic import BaseModel
 
 from nolabs.application.blast.services import BlastJobRunner
 from nolabs.application.workflow import ComponentFlow
-from nolabs.domain.workflow.component import Component
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.blast import BlastJob
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
+from nolabs.domain.workflow.component import Component
 
 
 class BlastComponentInput(BaseModel):

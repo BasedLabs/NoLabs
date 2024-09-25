@@ -4,11 +4,11 @@ from typing import List
 from uuid import UUID
 
 import diffdock_microservice
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 
 from nolabs.application.diffdock.api_models import (GetJobStatusResponse,
                                                     JobResponse, JobResult,
                                                     SetupJobRequest)
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import (Experiment, JobId, JobName, Ligand,
                                          Protein)
 from nolabs.domain.models.diffdock import DiffDockBindingJob, DiffDockJobResult

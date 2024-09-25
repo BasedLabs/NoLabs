@@ -2,10 +2,10 @@ __all__ = ["SmallMoleculesDesignJob"]
 
 from typing import List, Optional
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, PULL, FloatField, IntField, ListField,
                          ReferenceField, StringField)
 
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Ligand, Protein
 
 

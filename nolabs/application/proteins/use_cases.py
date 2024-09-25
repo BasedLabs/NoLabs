@@ -10,13 +10,13 @@ import pathlib
 from typing import List, Optional
 from uuid import UUID
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import Q
 
 from nolabs.application.proteins.api_models import (
     ProteinContentResponse, ProteinLocalisationResponse,
     ProteinMetadataResponse, ProteinSearchMetadataQuery, ProteinSearchQuery,
     UpdateProteinRequest, UploadProteinRequest, UploadProteinResponse)
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, Protein, ProteinName
 
 
