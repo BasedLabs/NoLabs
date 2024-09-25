@@ -34,12 +34,6 @@ class SmallMoleculesDesignJob(Job):
 
     celery_task_id: Optional[str] = StringField()
 
-    def change_sampling_size(self, sampling_size: int):
-        if not sampling_size or sampling_size <= 0:
-            raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        self.sampling_size = sampling_size
-
     def result_valid(self) -> bool:
         return not not self.ligands
 

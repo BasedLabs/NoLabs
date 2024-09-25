@@ -202,6 +202,16 @@ class UpdateWorkflowSchemaFeature:
             data.set_schema(schema=schema.model_dump())
             data.save()
 
+            # delete component
+            old_comp: ComponentData
+            for old_comp in ComponentData.objects(experiment=schema.experiment_id):
+                found = False
+                for c in components:
+                    if c.id == old_comp.id:
+                        found = True
+                if not found:
+                    old_comp.delete()
+
             logger.info(
                 "Update workflow schema success",
                 extra={**extra, **{"schema_valid": schema.valid}},

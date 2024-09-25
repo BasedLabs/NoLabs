@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     celery_broker_url: str
     celery_backend_url: str
     celery_enable_utc: bool
+    celery_worker_queue: str
     celery_worker_concurrency: int
     fastapi_host: str
     fastapi_port: int

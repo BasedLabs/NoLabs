@@ -148,7 +148,7 @@ class PropertyErrorData(EmbeddedDocument):
         return PropertyErrorData(loc=loc, msg=msg)
 
 
-class ComponentData(Document):
+class ComponentData(Document, Entity):
     id: uuid.UUID = UUIDField(primary_key=True)
     experiment: "Experiment" = ReferenceField(
         "Experiment", required=True, reverse_delete_rule=CASCADE
@@ -182,6 +182,16 @@ class ComponentData(Document):
     @classmethod
     def create(cls, id: uuid.UUID, experiment: Union["Experiment", uuid.UUID]):
         return ComponentData(id=id, experiment=experiment)
+
+    async def delete(self, signal_kwargs=None, **write_concern):
+        self.register_event(ComponentDeletedEvent(component=self))
+
+        super().delete(signal_kwargs, **write_concern)
+
+        domain_events = self.collect_events()
+
+        for e in domain_events:
+            await EventDispatcher.raise_event(e)
 
 
 @dataclass
@@ -944,12 +954,11 @@ class ExperimentRemovedEvent(DomainEvent):
         self.experiment = experiment
 
 
-# class ComponentDeletedEvent(DomainEvent):
-#    component: Component
-#
-#    def __init__(self, component: Component):
-#        self.protein = protein
-#
+class ComponentDeletedEvent(DomainEvent):
+    component_data: "ComponentData"
+
+    def __init__(self, component: ComponentData):
+        self.component_data = component
 
 
 # endregion

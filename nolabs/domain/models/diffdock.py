@@ -1,43 +1,12 @@
 __all__ = ["DiffDockBindingJob"]
 
-import datetime
-import uuid
-from typing import List
-from uuid import UUID
+from typing import List, Optional
 
-from mongoengine import (CASCADE, BinaryField, EmbeddedDocument,
-                         EmbeddedDocumentListField, FloatField, IntField,
-                         ReferenceField, UUIDField)
+from mongoengine import (CASCADE, PULL, IntField, ListField, ReferenceField,
+                         StringField, UUIDField)
 
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Ligand, Protein
-
-
-class DiffDockJobResult(EmbeddedDocument):
-    complex_id: UUID = UUIDField(required=True)
-    sdf_content: bytes = BinaryField(required=True)
-    minimized_affinity: float = FloatField(required=False)
-    scored_affinity: float = FloatField(required=False)
-    confidence: float = FloatField(required=False)
-
-    @staticmethod
-    def create(
-        complex_id: UUID,
-        sdf_content: bytes | str,
-        minimized_affinity: float,
-        scored_affinity: float,
-        confidence: float,
-    ):
-        if isinstance(sdf_content, str):
-            sdf_content = sdf_content.encode("utf-8")
-
-        return DiffDockJobResult(
-            complex_id=complex_id,
-            sdf_content=sdf_content,
-            minimized_affinity=minimized_affinity,
-            scored_affinity=scored_affinity,
-            confidence=confidence,
-        )
 
 
 class DiffDockBindingJob(Job):
@@ -51,12 +20,17 @@ class DiffDockBindingJob(Job):
 
     # endregion
 
-    celery_task_id: uuid.UUID = UUIDField()
+    celery_task_id: Optional[str] = StringField()
 
-    result: List[DiffDockJobResult] = EmbeddedDocumentListField(DiffDockJobResult)
+    complexes: List[Protein] = ListField(
+        ReferenceField(Protein, required=True, reverse_delete_rule=PULL)
+    )
+
+    def set_task_id(self, task_id: str):
+        self.celery_task_id = task_id
 
     def set_input(self, protein: Protein, ligand: Ligand, samples_per_complex: int = 1):
-        self.result = []
+        self.complexes = []
 
         self.protein = protein
         self.ligand = ligand
@@ -64,19 +38,17 @@ class DiffDockBindingJob(Job):
 
         self.input_errors(throw=True)
 
-        self.inputs_updated_at = datetime.datetime.utcnow()
-
     def result_valid(self) -> bool:
-        return not not self.result
+        return not not self.complexes
 
     def input_valid(self) -> bool:
         return bool(self.protein and self.ligand)
 
-    def set_result(self, result: List[DiffDockJobResult]):
-        if not result:
+    def set_result(self, complexes: List[Protein]):
+        if not complexes:
             raise NoLabsException(ErrorCodes.invalid_job_result, "Result is empty")
 
-        self.result = result
+        self.complexes = complexes
 
     def _input_errors(self) -> List[JobInputError]:
         errors = []

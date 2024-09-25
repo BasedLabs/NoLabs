@@ -1,4 +1,4 @@
-__all__ = ["JobResult", "JobResponse", "RunJobRequest", "GetJobStatusResponse"]
+__all__ = ["JobResult", "JobResponse", "RunJobRequest"]
 
 
 from typing import List, Optional
@@ -40,9 +40,3 @@ class SetupJobRequest:
 @dataclass
 class RunJobRequest:
     job_id: UUID
-
-
-@dataclass
-class GetJobStatusResponse:
-    running: bool
-    result_valid: bool
