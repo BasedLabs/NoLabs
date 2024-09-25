@@ -16,13 +16,6 @@ class ErrorCode:
 
 class ErrorCodes(Enum):
     unknown_exception = ErrorCode(code=0, description="Unknown exception")
-    conformations_update_metadata_error = ErrorCode(
-        code=1, description="Error while updating conformations metadata"
-    )
-    amino_acid_solubility_run_error = ErrorCode(
-        code=2, description="Amino acid solubility run error"
-    )
-    no_amino_acids = ErrorCode(code=3, description="Amino acids weren't provided")
     experiment_not_found = ErrorCode(code=4, description="Experiment not found")
     amino_acid_localisation_run_error = ErrorCode(
         code=5, description="Amino acid localisation run error"

@@ -5,7 +5,7 @@ from typing import List
 
 from domain.exceptions import ErrorCodes, NoLabsException
 
-from nolabs.application.use_cases.experiments.api_models import (
+from nolabs.application.experiments.api_models import (
     ExperimentMetadataResponse, UpdateExperimentRequest)
 from nolabs.domain.models.common import (Experiment, ExperimentId,
                                          ExperimentName)

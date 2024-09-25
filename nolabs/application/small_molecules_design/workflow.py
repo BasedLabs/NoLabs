@@ -78,8 +78,6 @@ class SmallMoleculesDesignFlow(ComponentFlow):
             parameters_saver = ReinventParametersSaver()
             await parameters_saver.save_params(job=job, pdb=job.protein.pdb_content)
 
-            job.change_sampling_size(5)
-
             await job.save(cascade=True)
 
             job_ids.append(job.id)

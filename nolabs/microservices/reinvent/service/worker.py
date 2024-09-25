@@ -10,7 +10,7 @@ app = Celery(
     __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
 )
 app.conf.enable_utc = settings.celery_enable_utc
-# app.conf.task_default_queue = settings.celery_worker_queue
+app.conf.task_default_queue = settings.celery_worker_queue
 app.conf.accept_content = ["application/json", "application/x-python-serialize"]
 
 
@@ -35,7 +35,7 @@ def run_sampling(inp: Dict[str, Any]):
     )
 
 
-@app.task(time_limit=3 * 24 * 60 * 60, name="reinvent.prepare_target")
+@app.task(time_limit=30, name="reinvent.prepare_target")
 def prepare_target(inp: Dict[str, Any]):
     import application
 

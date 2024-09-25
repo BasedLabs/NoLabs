@@ -5,10 +5,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from nolabs.application.use_cases.experiments.api_models import (
+from nolabs.application.experiments.api_models import (
     ExperimentMetadataResponse, UpdateExperimentRequest)
-from nolabs.application.use_cases.experiments.di import ExperimentsDependencies
-from nolabs.application.use_cases.experiments.use_cases import (
+from nolabs.application.experiments.di import ExperimentsDependencies
+from nolabs.application.experiments.use_cases import (
     CreateExperimentFeature, DeleteExperimentFeature,
     GetExperimentsMetadataFeature, UpdateExperimentFeature)
 

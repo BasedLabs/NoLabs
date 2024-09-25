@@ -1,6 +1,5 @@
 __all__ = ["SmallMoleculesDesignJob"]
 
-import datetime
 from typing import List, Optional
 
 from domain.exceptions import ErrorCodes, NoLabsException
@@ -29,8 +28,6 @@ class SmallMoleculesDesignJob(Job):
     minscore: float = FloatField(default=0.4)
     epochs: int = IntField(default=50)
 
-    sampling_size: int = IntField(default=1)
-
     ligands: List[Ligand] = ListField(
         ReferenceField(Ligand, required=False, reverse_delete_rule=PULL)
     )
@@ -54,7 +51,6 @@ class SmallMoleculesDesignJob(Job):
             raise NoLabsException(ErrorCodes.protein_not_found)
 
         self.protein = protein
-        self.inputs_updated_at = datetime.datetime.utcnow()
 
     def set_inputs(
         self,
@@ -80,6 +76,8 @@ class SmallMoleculesDesignJob(Job):
             or self.batch_size != batch_size
             or self.minscore != minscore
             or self.epochs != epochs
+            or not self.protein
+            or not self.protein.id != protein.id
         ):
             self.ligands = []
             self.protein = protein
@@ -93,20 +91,14 @@ class SmallMoleculesDesignJob(Job):
             self.minscore = minscore
             self.epochs = epochs
 
+            self.processing_required = True
+
         if throw:
             self.input_errors(throw=True)
 
-        self.processing_required = True
-
-    def set_result(self, protein: Protein, ligands: List[Ligand]):
+    def set_result(self, ligands: List[Ligand]):
         if not ligands:
             raise NoLabsException(ErrorCodes.small_molecules_design_empty_output)
-
-        if not self.protein:
-            raise NoLabsException(ErrorCodes.protein_is_undefined)
-
-        if protein != protein:
-            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
 
         self.ligands = ligands
         self.processing_required = False
