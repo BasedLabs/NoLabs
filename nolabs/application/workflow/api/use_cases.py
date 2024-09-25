@@ -12,7 +12,7 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from prefect import get_client
 from prefect.client.schemas import StateType
 from prefect.client.schemas.objects import TERMINAL_STATES
@@ -26,10 +26,11 @@ from nolabs.application.workflow.api.mappings import map_property
 from nolabs.application.workflow.api.schema import (ComponentSchema,
                                                     ComponentSchemaTemplate,
                                                     WorkflowSchema)
-from nolabs.application.workflow.component import (Component,
-                                                   ComponentTypeFactory)
+from nolabs.domain.workflow.component import (Component,
+                                       ComponentTypeFactory)
 from nolabs.application.workflow.dag import PrefectDagExecutor
-from nolabs.domain.models.common import ComponentData, Experiment, Job
+from nolabs.domain.models.common import Experiment, Job
+from nolabs.domain.models.common import ComponentData
 from nolabs.infrastructure.log import logger
 
 

@@ -13,7 +13,7 @@ import uuid
 from typing import List
 
 import biobuddy_microservice
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 
 from nolabs.application.biobuddy.api_models import (
     CheckBioBuddyEnabledResponse, CreateFunctionCallMessageRequest,

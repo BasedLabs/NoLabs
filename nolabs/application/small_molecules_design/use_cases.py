@@ -14,7 +14,7 @@ import uuid
 from typing import List
 from uuid import UUID
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from microservices.reinvent.service.api_models import (
     RunReinforcementLearningRequest, RunSamplingRequest)
 

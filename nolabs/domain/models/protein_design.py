@@ -3,7 +3,7 @@ __all__ = ["ProteinDesignJob"]
 import datetime
 from typing import List
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, PULL, IntField, ListField, ReferenceField,
                          StringField)
 

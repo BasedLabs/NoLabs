@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-python-multipart
-python-json-logger
-psutil
-leaf-BasedLabs

@@ -1,4 +1,4 @@
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 

@@ -1,10 +1,11 @@
 __all__ = ["DiffDockBindingJob"]
 
 import datetime
+import uuid
 from typing import List
 from uuid import UUID
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, BinaryField, EmbeddedDocument,
                          EmbeddedDocumentListField, FloatField, IntField,
                          ReferenceField, UUIDField)
@@ -49,6 +50,8 @@ class DiffDockBindingJob(Job):
     samples_per_complex: int = IntField(default=2, required=False)
 
     # endregion
+
+    celery_task_id: uuid.UUID = UUIDField()
 
     result: List[DiffDockJobResult] = EmbeddedDocumentListField(DiffDockJobResult)
 

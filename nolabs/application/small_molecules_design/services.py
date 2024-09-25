@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List
 
 import toml
-from domain.models.small_molecules_design import SmallMoleculesDesignJob
+from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from microservices.reinvent.service.api_models import PreparePdbqtRequest
 from pydantic import BaseModel
 

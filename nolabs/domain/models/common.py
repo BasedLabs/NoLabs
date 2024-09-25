@@ -18,22 +18,21 @@ import uuid
 from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union, Optional
 from uuid import UUID
 
 from Bio import SeqIO
-from domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, BinaryField, BooleanField, DateTimeField,
                          DictField, Document, EmbeddedDocument,
-                         EmbeddedDocumentField, EmbeddedDocumentListField,
-                         FloatField, IntField, ListField, Q, ReferenceField,
-                         StringField, UUIDField)
+                         EmbeddedDocumentField, FloatField, IntField, ListField, Q, ReferenceField,
+                         StringField, UUIDField, EmbeddedDocumentListField)
 from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
 from typing_extensions import Self
 
 from nolabs.domain.event_dispatcher import EventDispatcher
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.infrastructure.mongo_fields import (ValueObjectFloatField,
                                                 ValueObjectStringField)
 from nolabs.seedwork.domain.entities import Entity
@@ -43,9 +42,6 @@ from nolabs.seedwork.domain.value_objects import (ValueObject,
                                                   ValueObjectString,
                                                   ValueObjectUUID)
 from nolabs.utils.generate_2d_drug import generate_png_from_smiles
-
-if TYPE_CHECKING:
-    pass
 
 
 @dataclass
@@ -947,4 +943,24 @@ class ExperimentRemovedEvent(DomainEvent):
         self.experiment = experiment
 
 
+#class ComponentDeletedEvent(DomainEvent):
+#    component: Component
+#
+#    def __init__(self, component: Component):
+#        self.protein = protein
+#
+
 # endregion
+@dataclass
+class PropertyValidationError:
+    msg: str
+    loc: List[str]
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return f"{self.msg}: {self.loc}"
+
+
+

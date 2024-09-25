@@ -94,14 +94,16 @@ class Cel:
         return esmfold_light.InferenceOutput(**result)
 
     async def diffdock_inference(
-        self, payload: diffdock.RunDiffDockPredictionRequest, wait=True
-    ) -> Tuple[Optional[diffdock.RunDiffDockPredictionResponse], str]:
-        task = self._send_task("diffdock.inference", payload=payload)
-        id = task.id
-        if not wait:
-            return (None, id)
-        result = await self._wait_async(task)
-        return (diffdock.RunDiffDockPredictionResponse(**result), id)
+        self, task_id: str, payload: diffdock.RunDiffDockPredictionRequest
+    ) -> diffdock.RunDiffDockPredictionResponse:
+        async_result = self._app.send_task(
+            id=task_id,
+            name="diffdock.inference",
+            queue="diffdock",
+            args=[payload.model_dump()],
+        )
+        result = await self._wait_async(async_result)
+        return diffdock.RunDiffDockPredictionResponse(**result)
 
     async def reinvent_prepare_target(
         self, task_id: str, payload: reinvent.PreparePdbqtRequest

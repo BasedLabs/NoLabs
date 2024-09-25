@@ -7,18 +7,17 @@ from logging import Logger
 from typing import Generic, List, Optional
 
 from prefect import State, Task, flow, get_run_logger, task
-from prefect.cache_policies import INPUTS
 from prefect.client.schemas.objects import FlowRun, R, StateType, TaskRun
 from prefect.context import get_run_context
-from prefect.states import Completed
 
 from nolabs.application.workflow.api.socketio_events_emitter import (
     emit_component_jobs_event, emit_finish_component_event,
     emit_finish_job_event, emit_start_component_event, emit_start_job_event)
-from nolabs.application.workflow.component import (Component,
-                                                   ComponentTypeFactory,
-                                                   Parameter, TInput, TOutput)
-from nolabs.domain.models.common import ComponentData, Job
+from nolabs.domain.workflow.component import (Component,
+                                       ComponentTypeFactory,
+                                       Parameter, TInput, TOutput)
+from nolabs.domain.models.common import Job
+from nolabs.domain.models.common import ComponentData
 
 
 def _name_builder(name: str, id: uuid.UUID):

@@ -1,6 +1,6 @@
 import uuid
 
-from domain.models import ComponentData
+from nolabs.domain.models import ComponentData
 from prefect import flow, get_client, task
 from prefect.exceptions import ObjectNotFound
 

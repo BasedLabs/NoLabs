@@ -1,11 +1,11 @@
 from typing import Any, Dict
 
 import rcsb_pdb_query_microservice
-from application.biobuddy.api_models import (FunctionCall,
+from nolabs.application.biobuddy.api_models import (FunctionCall,
                                              FunctionCallReturnData,
                                              FunctionParam, RcsbPdbData,
                                              RcsbPdbMetaData)
-from application.biobuddy.functions.base_function import (
+from nolabs.application.biobuddy.functions.base_function import (
     BiobuddyFunction, FunctionParameterDefinition)
 
 

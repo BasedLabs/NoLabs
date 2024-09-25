@@ -2,8 +2,8 @@ import asyncio
 import uuid
 from typing import List, Optional, Type
 
-from domain.exceptions import ErrorCodes, NoLabsException
-from domain.models.common import Experiment
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.models.common import Experiment
 from microservices.reinvent.service.api_models import \
     RunReinforcementLearningRequest
 from prefect import State
@@ -13,8 +13,8 @@ from pydantic import BaseModel
 
 from nolabs.application.small_molecules_design.services import (
     ReinventParametersSaver, ReinventSmilesRetriever)
-from nolabs.application.workflow import ComponentFlow
-from nolabs.application.workflow.component import Component
+from nolabs.application.workflow.tasks import ComponentFlow
+from nolabs.domain.workflow.component import Component
 from nolabs.domain.models.common import (DesignedLigandScore,
                                          DrugLikenessScore, JobId, JobName,
                                          Ligand, LigandName, Protein)

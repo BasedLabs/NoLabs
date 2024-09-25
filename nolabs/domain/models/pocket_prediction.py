@@ -3,7 +3,7 @@ __all__ = ["PocketPredictionJob"]
 import datetime
 from typing import List
 
-from domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import CASCADE, IntField, ListField, ReferenceField
 
 from nolabs.domain.models.common import Job, JobInputError, Protein
