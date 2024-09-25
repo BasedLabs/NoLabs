@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic.dataclasses import dataclass
 
-from nolabs.application.use_cases.experiments.api_models import \
+from nolabs.application.experiments.api_models import \
     TimelineResponse
 
 

@@ -20,9 +20,8 @@ from microservices.reinvent.service.api_models import (
 
 from nolabs.application.small_molecules_design.api_models import (
     GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
-    SmilesResponse)
-from nolabs.application.small_molecules_design.services import \
-    ReinventParametersSaver
+    SmilesResponse, StartSamplingRequest)
+from nolabs.application.small_molecules_design.services import ReinventParametersSaver
 from nolabs.domain.models.common import (Experiment, Job, JobId, JobName,
                                          Protein)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
@@ -223,7 +222,7 @@ class RunLearningStageJobFeature:
 
 
 class RunSamplingStageJobFeature:
-    async def handle(self, job_id: UUID):
+    async def handle(self, job_id: UUID, request: StartSamplingRequest):
         job: SmallMoleculesDesignJob = SmallMoleculesDesignJob.objects.with_id(job_id)
 
         if not job:
@@ -248,7 +247,7 @@ class RunSamplingStageJobFeature:
 
         (res, task_id) = await celery.reinvent_run_sampling(
             request=RunSamplingRequest(
-                config_id=str(job_id), number_of_molecules_to_generate=job.sampling_size
+                config_id=str(job_id), number_of_molecules_to_generate=request.sampling_size
             ),
             wait=False,
         )

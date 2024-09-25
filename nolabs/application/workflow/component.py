@@ -421,7 +421,7 @@ class Component(Generic[TInput, TOutput]):
         if value is dict:
             self.output_value_dict = value
         else:
-            self.output_value_dict = value.dict()
+            self.output_value_dict = value.model_dump()
 
     def output_errors(self) -> List[PropertyValidationError]:
         return self.output_schema.validate_dictionary(
@@ -570,8 +570,8 @@ class Component(Generic[TInput, TOutput]):
 
     def dump(self, data: ComponentData):
         data.name = self.name
-        data.input_schema = self.input_schema.dict()
-        data.output_schema = self.output_schema.dict()
+        data.input_schema = self.input_schema.model_dump()
+        data.output_schema = self.output_schema.model_dump()
         data.input_value_dict = self.input_value_dict
         data.output_value_dict = self.output_value_dict
         data.previous_component_ids = self.previous_component_ids

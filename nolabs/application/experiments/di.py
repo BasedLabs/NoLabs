@@ -1,7 +1,7 @@
 __all__ = ["ExperimentsDependencies"]
 
 
-from nolabs.application.use_cases.experiments.use_cases import (
+from nolabs.application.experiments.use_cases import (
     CreateExperimentFeature, DeleteExperimentFeature,
     GetExperimentsMetadataFeature, UpdateExperimentFeature)
 

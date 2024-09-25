@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 from pydantic import dataclasses as pcdataclass
 
-from nolabs.application.use_cases.biobuddy.api_models import FunctionCall
+from application.biobuddy.api_models import FunctionCall
 
 
 @pcdataclass.dataclass

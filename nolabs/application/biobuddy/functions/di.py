@@ -3,13 +3,13 @@ from typing import Annotated
 import external_data_query_microservice
 from fastapi import Depends
 
-from nolabs.application.use_cases.biobuddy.functions.query_chembl import \
+from application.biobuddy.functions.query_chembl import \
     QueryChemblFunction
-from nolabs.application.use_cases.biobuddy.functions.query_chembl_by_disease import \
+from application.biobuddy.functions.query_chembl_by_disease import \
     QueryChemblByConditionFunction
-from nolabs.application.use_cases.biobuddy.functions.query_rcsb_pdb import \
+from application.biobuddy.functions.query_rcsb_pdb import \
     QueryRCSBPDBFunction
-from nolabs.application.use_cases.biobuddy.functions.query_rcsb_pdb_by_id import \
+from application.biobuddy.functions.query_rcsb_pdb_by_id import \
     QueryRcsbPdbByIdFunction
 from nolabs.infrastructure.di import InfrastructureDependencies
 

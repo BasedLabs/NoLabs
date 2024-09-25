@@ -20,14 +20,12 @@ from nolabs.application.small_molecules_design.controller import \
     router as small_molecules_design_router
 from nolabs.application.use_cases.binding_pockets.controller import \
     router as binding_pockets_controller
-from nolabs.application.use_cases.biobuddy.controller import \
-    router as biobuddy_controller
+from nolabs.application.biobuddy.controller import router as biobuddy_controller
 from nolabs.application.use_cases.blast.controller import \
     router as blast_router
 from nolabs.application.use_cases.conformations.controller import \
     router as conformations_controller
-from nolabs.application.use_cases.experiments.controller import \
-    router as experiment_router
+from nolabs.application.experiments.controller import router as experiment_router
 from nolabs.application.use_cases.gene_ontology.controller import \
     router as gene_ontology_router
 from nolabs.application.use_cases.jobs.controller import router as job_router

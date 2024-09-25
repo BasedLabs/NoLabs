@@ -11,7 +11,7 @@ from mongoengine import Q
 
 from nolabs.application.use_cases.conformations.api_models import (
     GetJobStatusResponse, IntegratorsRequest, JobResponse, SetupJobRequest)
-from nolabs.application.use_cases.experiments.api_models import \
+from application.experiments.api_models import \
     TimelineResponse
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.conformations import (ConformationsJob,

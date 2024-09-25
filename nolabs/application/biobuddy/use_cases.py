@@ -15,22 +15,22 @@ from typing import List
 import biobuddy_microservice
 from domain.exceptions import ErrorCodes, NoLabsException
 
-from nolabs.application.use_cases.biobuddy.api_models import (
+from nolabs.application.biobuddy.api_models import (
     CheckBioBuddyEnabledResponse, CreateFunctionCallMessageRequest,
     CreateFunctionCallMessageResponse, CreateMessageRequest,
     CreateMessageResponse, EditMessageRequest, EditMessageResponse)
-from nolabs.application.use_cases.biobuddy.api_models import \
+from nolabs.application.biobuddy.api_models import \
     FunctionCall as ApiFunctionCall
-from nolabs.application.use_cases.biobuddy.api_models import \
+from nolabs.application.biobuddy.api_models import \
     FunctionParam as ApiFunctionParam
-from nolabs.application.use_cases.biobuddy.api_models import (
+from nolabs.application.biobuddy.api_models import (
     GetAvailableFunctionCallsResponse, LoadConversationRequest,
     LoadConversationResponse)
-from nolabs.application.use_cases.biobuddy.api_models import \
+from nolabs.application.biobuddy.api_models import \
     Message as ApiMessage
-from nolabs.application.use_cases.biobuddy.api_models import \
+from nolabs.application.biobuddy.api_models import \
     RegularMessage as ApiRegularMessage
-from nolabs.application.use_cases.biobuddy.api_models import (
+from nolabs.application.biobuddy.api_models import (
     SendQueryRequest, SendQueryResponse)
 from nolabs.domain.models.biobuddy import (Chat, FunctionCall,
                                            FunctionCallMessage, FunctionParam,

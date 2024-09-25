@@ -20,7 +20,7 @@ def add_domain_exception_middleware(app: FastAPI):
                 "data": exc.data,
             },
             headers={"Content-Type": "application/problem+json"},
-            status_code=200,
+            status_code=500,
         )
 
     @app.exception_handler(Exception)

@@ -65,15 +65,10 @@ class Reinvent:
         sampling_output.touch()
 
         sampling_config_toml = toml.load(sampling_config.open("r"))
-        sampling_config_toml["parameters"]["output_file"] = sampling_output
-        sampling_config_toml["parameters"]["model_file"] = chkpt
         sampling_config_toml["parameters"][
             "num_smiles"
         ] = number_of_molecules_to_generate
         sampling_config.write_text(toml.dumps(sampling_config_toml), encoding="utf-8")
-
-        (directory / "sampling_direct.csv").touch()
-        (directory / "scoring_input.smi").touch()
         (directory / "scoring_direct.csv").touch()
         shell = directory / "start_sampling.sh"
 

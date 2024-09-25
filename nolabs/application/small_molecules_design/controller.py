@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, WebSocket
 
 from nolabs.application.small_molecules_design.api_models import (
     GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
-    SmilesResponse)
+    SmilesResponse, StartSamplingRequest)
 from nolabs.application.small_molecules_design.di import \
     SmallMoleculesDesignDependencies
 from nolabs.application.small_molecules_design.use_cases import (
@@ -48,8 +48,9 @@ async def run_sampling_stage_job(
         Depends(SmallMoleculesDesignDependencies.run_sampling),
     ],
     job_id: UUID,
+    request: StartSamplingRequest
 ):
-    return await feature.handle(job_id=job_id)
+    return await feature.handle(job_id=job_id, request=request)
 
 
 @router.get("/jobs/{job_id}")

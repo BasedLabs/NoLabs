@@ -44,6 +44,11 @@ class JobResponse:
 
 
 @dataclass
+class StartSamplingRequest:
+    sampling_size: int = 5
+
+
+@dataclass
 class SetupJobRequest:
     protein_id: UUID
 
@@ -65,11 +70,6 @@ class SetupJobRequest:
     sampling_size: int = 5
 
     experiment_id: Optional[UUID] = None
-
-
-@dataclass
-class RunJobRequest:
-    job_id: UUID
 
 
 @dataclass
