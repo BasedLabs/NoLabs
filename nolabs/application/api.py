@@ -9,8 +9,12 @@ import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from nolabs.application.biobuddy.controller import \
+    router as biobuddy_controller
 from nolabs.application.diffdock.controller import router as diffdock_router
 from nolabs.application.event_handlers.di import EventHandlersDependencies
+from nolabs.application.experiments.controller import \
+    router as experiment_router
 from nolabs.application.folding.controller import router as folding_router
 from nolabs.application.ligands.controller import router as ligand_router
 from nolabs.application.middlewares.domain_exception_middleware import \
@@ -20,12 +24,10 @@ from nolabs.application.small_molecules_design.controller import \
     router as small_molecules_design_router
 from nolabs.application.use_cases.binding_pockets.controller import \
     router as binding_pockets_controller
-from nolabs.application.biobuddy.controller import router as biobuddy_controller
 from nolabs.application.use_cases.blast.controller import \
     router as blast_router
 from nolabs.application.use_cases.conformations.controller import \
     router as conformations_controller
-from nolabs.application.experiments.controller import router as experiment_router
 from nolabs.application.use_cases.gene_ontology.controller import \
     router as gene_ontology_router
 from nolabs.application.use_cases.jobs.controller import router as job_router
