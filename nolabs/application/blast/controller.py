@@ -7,12 +7,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from nolabs.application.blast.api_models import (
-    JobResponse, SetupJobRequest)
+from nolabs.application.blast.api_models import JobResponse, SetupJobRequest
 from nolabs.application.blast.di import BlastDependencies
-from nolabs.application.blast.use_cases import (GetJobFeature,
-                                         RunJobFeature,
-                                         SetupJobFeature)
+from nolabs.application.blast.use_cases import (GetJobFeature, RunJobFeature,
+                                                SetupJobFeature)
 
 router = APIRouter(prefix="/api/v1/blast", tags=["Blast"])
 

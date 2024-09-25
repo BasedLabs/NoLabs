@@ -14,7 +14,6 @@ import uuid
 from typing import List
 from uuid import UUID
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from microservices.reinvent.service.api_models import (
     RunReinforcementLearningRequest, RunSamplingRequest)
 
@@ -23,6 +22,7 @@ from nolabs.application.small_molecules_design.api_models import (
     SmilesResponse, StartSamplingRequest)
 from nolabs.application.small_molecules_design.services import \
     ReinventParametersSaver
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import (Experiment, Job, JobId, JobName,
                                          Protein)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob

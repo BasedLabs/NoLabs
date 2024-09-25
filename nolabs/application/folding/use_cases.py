@@ -3,12 +3,12 @@ __all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 import uuid
 from uuid import UUID
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from microservices.esmfold_light.service.api_models import InferenceInput
 from mongoengine import Q
 
 from nolabs.application.folding.api_models import (JobResponse, JobResult,
                                                    SetupJobRequest)
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingBackendEnum, FoldingJob
 from nolabs.infrastructure.cel import cel as celery

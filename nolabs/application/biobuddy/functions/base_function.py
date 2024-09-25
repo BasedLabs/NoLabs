@@ -1,7 +1,8 @@
 from typing import Any, Dict, List
 
-from nolabs.application.biobuddy.api_models import FunctionCall
 from pydantic import dataclasses as pcdataclass
+
+from nolabs.application.biobuddy.api_models import FunctionCall
 
 
 @pcdataclass.dataclass

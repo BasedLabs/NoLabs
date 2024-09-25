@@ -7,10 +7,10 @@ from pathlib import Path
 from typing import List
 
 import toml
-from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from microservices.reinvent.service.api_models import PreparePdbqtRequest
 from pydantic import BaseModel
 
+from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.infrastructure.settings import settings
 

@@ -3,9 +3,9 @@ __all__ = ["MsaGenerationJob"]
 import datetime
 from typing import List
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import CASCADE, BinaryField, ReferenceField
 
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Protein
 
 

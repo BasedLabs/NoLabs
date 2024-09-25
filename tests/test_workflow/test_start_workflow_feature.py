@@ -2,15 +2,17 @@ import uuid
 from typing import List, Type
 from unittest import IsolatedAsyncioTestCase
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from pydantic import create_model
-from nolabs.workflow import (ComponentDbModel, DefaultWorkflowComponentModelValue,
-                      MappingModel, WorkflowComponentModel)
-from nolabs.workflow.component import Component, JobValidationError, TInput, TOutput
 
 from nolabs.application.use_cases.workflow.use_cases import (
     CreateWorkflowSchemaFeature, StartWorkflowFeature,
     UpdateWorkflowSchemaFeature)
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.workflow import (ComponentDbModel,
+                             DefaultWorkflowComponentModelValue, MappingModel,
+                             WorkflowComponentModel)
+from nolabs.workflow.component import (Component, JobValidationError, TInput,
+                                       TOutput)
 from tests.test_workflow.mixins import WorkflowTestsMixin
 from tests.tests_preparations import mongo_connect
 

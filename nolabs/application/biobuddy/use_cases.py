@@ -13,7 +13,6 @@ import uuid
 from typing import List
 
 import biobuddy_microservice
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 
 from nolabs.application.biobuddy.api_models import (
     CheckBioBuddyEnabledResponse, CreateFunctionCallMessageRequest,
@@ -31,6 +30,7 @@ from nolabs.application.biobuddy.api_models import \
     RegularMessage as ApiRegularMessage
 from nolabs.application.biobuddy.api_models import (SendQueryRequest,
                                                     SendQueryResponse)
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.biobuddy import (Chat, FunctionCall,
                                            FunctionCallMessage, FunctionParam,
                                            TextMessage, UserRoleEnum)

@@ -12,7 +12,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationError, parse_obj_as
 
-from nolabs.domain.models.common import PropertyValidationError, ComponentData, PropertyErrorData
+from nolabs.domain.models.common import (ComponentData, PropertyErrorData,
+                                         PropertyValidationError)
 
 if TYPE_CHECKING:
     from nolabs.application.workflow.tasks import ComponentFlow
@@ -573,8 +574,7 @@ class Component(Generic[TInput, TOutput]):
             for err in self.output_errors()
         ]
 
-    async def on_delete(self, data: ComponentData):
-        ...
+    async def on_delete(self, data: ComponentData): ...
 
     async def delete(self, data: ComponentData):
         await self.on_delete(data=data)
@@ -603,6 +603,3 @@ class ComponentTypeFactory:
             raise ValueError(f"Cannot find component with name {name}")
 
         return cls._types[name]
-
-
-

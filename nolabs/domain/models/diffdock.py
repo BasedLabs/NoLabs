@@ -5,11 +5,11 @@ import uuid
 from typing import List
 from uuid import UUID
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import (CASCADE, BinaryField, EmbeddedDocument,
                          EmbeddedDocumentListField, FloatField, IntField,
                          ReferenceField, UUIDField)
 
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Ligand, Protein
 
 

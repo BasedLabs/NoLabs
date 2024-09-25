@@ -11,7 +11,6 @@ import pathlib
 from typing import List, Optional
 from uuid import UUID
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from mongoengine import Q
 
 from nolabs.application.ligands.api_models import (LigandContentResponse,
@@ -21,6 +20,7 @@ from nolabs.application.ligands.api_models import (LigandContentResponse,
                                                    UpdateLigandRequest,
                                                    UploadLigandRequest,
                                                    UploadLigandResponse)
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, Ligand, LigandName
 
 

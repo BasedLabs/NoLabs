@@ -1,7 +1,7 @@
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.infrastructure.log import logger
 
 

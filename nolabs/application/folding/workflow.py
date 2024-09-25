@@ -3,14 +3,14 @@ from abc import ABC
 from enum import Enum
 from typing import List, Optional, Type
 
-from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from prefect.states import Cancelled, Completed
 from pydantic import BaseModel
 
 from nolabs.application.workflow.tasks import ComponentFlow
-from nolabs.domain.workflow.component import Component, TInput, TOutput
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
+from nolabs.domain.workflow.component import Component, TInput, TOutput
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.microservices.esmfold_light.service.api_models import \
     InferenceInput

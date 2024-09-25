@@ -1,10 +1,9 @@
 from typing import List
 from uuid import UUID
 
+from nolabs.application.jobs.api_models import (GetJobMetadataResponse,
+                                                UpdateJobRequest)
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
-
-from nolabs.application.jobs.api_models import (
-    GetJobMetadataResponse, UpdateJobRequest)
 from nolabs.domain.models.common import (Experiment, ExperimentId, Job, JobId,
                                          JobName)
 

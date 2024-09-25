@@ -1,10 +1,11 @@
 from typing import Any, Dict
 
 import external_data_query_microservice
+
 from nolabs.application.biobuddy.api_models import (FunctionCall,
-                                             FunctionCallReturnData,
-                                             FunctionParam, RcsbPdbData,
-                                             RcsbPdbMetaData)
+                                                    FunctionCallReturnData,
+                                                    FunctionParam, RcsbPdbData,
+                                                    RcsbPdbMetaData)
 from nolabs.application.biobuddy.functions.base_function import (
     BiobuddyFunction, FunctionParameterDefinition)
 

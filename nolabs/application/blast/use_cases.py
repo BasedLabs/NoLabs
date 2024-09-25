@@ -3,9 +3,8 @@ __all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 from uuid import UUID
 
 from nolabs.application.blast.api_models import (HitModel, HspModel,
-                                          JobResponse,
-                                          JobResult,
-                                          SetupJobRequest)
+                                                 JobResponse, JobResult,
+                                                 SetupJobRequest)
 from nolabs.application.blast.services import BlastJobRunner
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.blast import BlastJob
