@@ -4,8 +4,7 @@ from uuid import UUID
 
 from pydantic.dataclasses import dataclass
 
-from nolabs.application.experiments.api_models import \
-    TimelineResponse
+from nolabs.application.experiments.api_models import TimelineResponse
 
 
 class IntegratorsRequest(Enum):

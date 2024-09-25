@@ -59,7 +59,7 @@ class Reinvent:
         scoring_config = directory / "Scoring.toml"
         log_file = directory / "output.log"
         error_file = directory / "error.log"
-        chkpt = directory / "rl_direct.chkpt"
+        directory / "rl_direct.chkpt"
         sampling_config: Path = directory / "Sampling.toml"
         sampling_output = directory / "sampling_direct.csv"
         sampling_output.touch()

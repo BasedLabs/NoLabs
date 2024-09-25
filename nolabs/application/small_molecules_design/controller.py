@@ -48,7 +48,7 @@ async def run_sampling_stage_job(
         Depends(SmallMoleculesDesignDependencies.run_sampling),
     ],
     job_id: UUID,
-    request: StartSamplingRequest
+    request: StartSamplingRequest,
 ):
     return await feature.handle(job_id=job_id, request=request)
 

@@ -1,16 +1,14 @@
 from typing import Annotated
 
 import external_data_query_microservice
-from fastapi import Depends
-
-from application.biobuddy.functions.query_chembl import \
-    QueryChemblFunction
+from application.biobuddy.functions.query_chembl import QueryChemblFunction
 from application.biobuddy.functions.query_chembl_by_disease import \
     QueryChemblByConditionFunction
-from application.biobuddy.functions.query_rcsb_pdb import \
-    QueryRCSBPDBFunction
+from application.biobuddy.functions.query_rcsb_pdb import QueryRCSBPDBFunction
 from application.biobuddy.functions.query_rcsb_pdb_by_id import \
     QueryRcsbPdbByIdFunction
+from fastapi import Depends
+
 from nolabs.infrastructure.di import InfrastructureDependencies
 
 
