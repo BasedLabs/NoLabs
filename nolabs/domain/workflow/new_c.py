@@ -2,16 +2,15 @@ from __future__ import annotations
 
 __all__ = ["Component"]
 
+import importlib
 import uuid
 from abc import abstractmethod
 from dataclasses import field
-from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
     Dict,
-    Generic,
     Iterable,
     List,
     Mapping,
@@ -25,14 +24,10 @@ from typing import (
 )
 from uuid import UUID
 
-from mongoengine import ReferenceField, CASCADE, EmbeddedDocumentListField, DateTimeField, StringField, UUIDField
+from mongoengine import UUIDField, DictField, ListField, StringField, Document
 from pydantic import BaseModel, Field, ValidationError, TypeAdapter
 
-from nolabs.domain.models.common import (
-    ComponentData,
-    PropertyErrorData,
-    PropertyValidationError,
-)
+from nolabs.domain.models.common import (PropertyValidationError)
 
 if TYPE_CHECKING:
     from nolabs.application.workflow.tasks import ComponentFlow
@@ -285,7 +280,7 @@ class Parameter(BaseModel):
 
         return result
 
-    def _validate_dictionary(
+    def validate_dictionary(
             self, t: Type, dictionary: Dict[str, Any]
     ) -> List[PropertyValidationError]:
         try:
@@ -350,73 +345,88 @@ def is_pydantic_type(t: Any) -> bool:
     return issubclass(type(t), BaseModel) or "__pydantic_post_init__" in t.__dict__
 
 
-class Component(Generic[TInput, TOutput]):
-    id: uuid.UUID
-
-    # region schemas
-
+class Component(Document):
+    id: uuid.UUID = UUIDField()
+    name: str = StringField()
+    input_schema_dict: Dict[str, Any] = DictField()
+    output_schema_dict: Dict[str, Any] = DictField()
+    input_value_dict: Dict[str, Any] = DictField()
+    output_value_dict: Dict[str, Any] = DictField()
+    previous_component_ids: List[uuid.UUID] = ListField(UUIDField())
+    import_input_type: str = StringField()
+    import_output_type: str = StringField()
+    import_flow_type: str = StringField()
     output_schema: Parameter
-    output_value_dict: Dict[str, Any]
-
     input_schema: Parameter
-    input_value_dict: Dict[str, Any]
-
-    previous_component_ids: List[uuid.UUID] = []
-
-    # endregion
 
     name: ClassVar[str]
     description: ClassVar[str]
 
-    experiment: "Experiment" = ReferenceField(
-        "Experiment", required=True, reverse_delete_rule=CASCADE
-    )
+    _cached_input_type: Type[BaseModel]
+    _cached_output_type: Type[BaseModel]
 
-    input_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
-        PropertyErrorData, default=list
-    )
-    output_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
-        PropertyErrorData, default=list
-    )
+    @classmethod
+    def create(cls,
+               id: uuid.UUID,
+               name: str,
+               description: str,
+               input_type: Type,
+               output_type: Type,
+               input_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
+               output_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
+               input_value_dict: Optional[Dict[str, Any]] = None,
+               output_value_dict: Optional[Dict[str, Any]] = None,
+               previous_component_ids: Optional[List[uuid]] = None,
+               ):
+        component = cls(
+            id=id,
+            name=name,
+            description=description
+        )
 
-    executed_at: Optional[datetime] = DateTimeField()
-    exception: Optional[str] = StringField()
-    flow_run_id: Optional[uuid.UUID] = UUIDField()
-
-    meta = {"collection": "components"}
-
-    def __init__(
-            self,
-            id: uuid.UUID,
-            input_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
-            output_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
-            input_value_dict: Optional[Dict[str, Any]] = None,
-            output_value_dict: Optional[Dict[str, Any]] = None,
-            previous_component_ids: Optional[List[uuid]] = None,
-    ):
-        self.id = id
+        component.id = id
 
         if isinstance(input_schema, Mapping):
-            self.input_schema = Parameter(**input_schema)
+            component.input_schema = Parameter(**input_schema)
         else:
-            self.input_schema = input_schema or Parameter.get_instance(
-                cls=self.input_parameter_type
+            component.input_schema = input_schema or Parameter.get_instance(
+                cls=input_type
             )
+        component.input_schema_dict = component.input_schema.model_dump()
 
         if isinstance(output_schema, Mapping):
-            self.output_schema = Parameter(**output_schema)
+            component.output_schema = Parameter(**output_schema)
         else:
-            self.output_schema = output_schema or Parameter.get_instance(
-                cls=self.output_parameter_type
+            component.output_schema = output_schema or Parameter.get_instance(
+                cls=output_type
             )
+        component.output_schema_dict = component.input_schema.model_dump()
 
-        self.input_value_dict = input_value_dict or {}
-        self.output_value_dict = output_value_dict or {}
-        self.previous_component_ids = previous_component_ids or []
+        component.input_value_dict = input_value_dict or {}
+        component.output_value_dict = output_value_dict or {}
+        component.previous_component_ids = previous_component_ids or []
+        component.import_input_type = f"{input_type.__module__}.{input_type.__qualname__}"
+        component.import_output_type = f"{output_type.__module__}.{output_type.__qualname__}"
+
+    def __init__(self, *args, **values):
+        super().__init__(*args, **values)
+
+        module_name, class_name = self.import_input_type.rsplit('.', 1)
+        module = importlib.import_module(module_name)
+
+        self._cached_input_type = getattr(module, class_name)
+
+        module_name, class_name = self.import_output_type.rsplit('.', 1)
+        module = importlib.import_module(module_name)
+
+        self._cached_output_type = getattr(module, class_name)
+
+        self.input_schema = Parameter(**self.input_schema_dict)
+        self.output_schema = Parameter(**self.output_schema_dict)
 
     @property
     def output_value(self) -> TOutput:
-        return self.output_parameter_type(**self.output_value_dict)
+        return self._cached_output_type(**self.output_value_dict)
 
     @output_value.setter
     def output_value(self, value: Union[TOutput, Dict[str, Any]]):
@@ -426,41 +436,35 @@ class Component(Generic[TInput, TOutput]):
             self.output_value_dict = value.model_dump()
 
     def output_errors(self) -> List[PropertyValidationError]:
-        return self.output_schema._validate_dictionary(t=self.output_parameter_type, dictionary=self.output_value_dict)
-
-    @property
-    @abstractmethod
-    def input_parameter_type(self) -> Type[TInput]:
-        ...
-
-    @property
-    @abstractmethod
-    def output_parameter_type(self) -> Type[TOutput]:
-        ...
+        return self.output_schema.validate_dictionary(t=self._cached_output_type, dictionary=self.output_value_dict)
 
     @property
     def input_value(self) -> TInput:
-        return self.input_parameter_type(**self.input_value_dict)
+        return self._cached_input_type(**self.input_value_dict)
 
     def input_errors(self):
-        return self.input_schema._validate_dictionary(t=self.input_parameter_type, dictionary=self.input_value_dict)
+        return self.input_schema.validate_dictionary(t=self._cached_input_type, dictionary=self.input_value_dict)
 
     def try_map_property(
             self, component: "Component", path_from: List[str], target_path: List[str]
     ) -> Optional[PropertyValidationError]:
-        return self.input_schema.try_set_mapping(
+        validation_errors = self.input_schema.try_set_mapping(
             source_schema=component.output_schema,
             component_id=component.id,
             path_from=path_from,
             target_path=target_path,
         )
+        self.input_schema_dict = self.input_schema.model_dump()
+        return validation_errors
 
     def try_set_default(
             self, target_path: List[str], value: Any
     ) -> Optional[PropertyValidationError]:
-        return self.input_schema.try_set_default(
-            target_path=target_path, value=value, input_type=self.input_parameter_type
+        validation_errors = self.input_schema.try_set_default(
+            target_path=target_path, value=value, input_type=self._cached_input_type
         )
+        self.input_schema_dict = self.input_schema.model_dump()
+        return validation_errors
 
     def add_previous(self, component_id: Union[uuid.UUID, List[uuid.UUID]]):
         if isinstance(component_id, list):
@@ -488,7 +492,7 @@ class Component(Generic[TInput, TOutput]):
 
     def set_input_from_previous(self, components: List["Component"]) -> bool:
         """
-        returns: True if input was changed
+        :returns: True if input was changed
         """
 
         for component in components:
@@ -549,42 +553,9 @@ class Component(Generic[TInput, TOutput]):
 
                     continue
 
+        self.input_schema_dict = self.input_schema.model_dump()
+
         return changed
-
-    @property
-    @abstractmethod
-    def component_flow_type(self) -> Type["ComponentFlow"]:
-        ...
-
-    @classmethod
-    def restore(cls, data: ComponentData) -> "Component":
-        component = ComponentTypeFactory.get_type(data.name)(
-            id=data.id,
-            input_schema=Parameter(**data.input_schema),
-            output_schema=Parameter(**data.output_schema),
-            input_value_dict=data.input_value_dict,
-            output_value_dict=data.output_value_dict,
-            previous_component_ids=data.previous_component_ids,
-        )
-
-        return component
-
-    def dump(self, data: ComponentData):
-        data.name = self.name
-        data.input_schema = self.input_schema.model_dump()
-        data.output_schema = self.output_schema.model_dump()
-        data.input_value_dict = self.input_value_dict
-        data.output_value_dict = self.output_value_dict
-        data.previous_component_ids = self.previous_component_ids
-        data.input_errors = [
-            PropertyErrorData.create(loc=err.loc, msg=err.msg)
-            for err in self.input_errors()
-        ]
-        data.output_errors = [
-            PropertyErrorData.create(loc=err.loc, msg=err.msg)
-            for err in self.output_errors()
-        ]
-
 
 class ComponentTypeFactory:
     _types: ClassVar[Dict[str, Type[Component]]] = {}
