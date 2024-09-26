@@ -87,29 +87,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped>
-.special-node {
-  border: 2px solid #ff6600;
-  background-color: black;
-  padding: 8px;
-  border-radius: 4px;
-  height: 400px;
-  width: 400px
-}
-
-.special-node.input {
-  border-color: #00bcd4;
-  /* Change border color for input nodes */
-}
-
-.special-node.output {
-  border-color: #4caf50;
-  /* Change border color for output nodes */
-}
-
-.content {
-  height: 100%;
-  width: 100%;
-}
-</style>
