@@ -1,32 +1,80 @@
 <template>
-  <q-card-section class="job-section q-pa-sm">
+  <q-card-section class="job-section q-pa-sm" style="width: 100%;">
     <div class="text-white q-pa-sm text-caption">Jobs queue</div>
-    <q-scroll-area v-if="jobs.length > 0" visible :thumbStyle="thumbStyle" :barStyle="barStyle" style="height: 30vh">
-      <draggable class="q-pa-sm" v-model="jobs" handle=".drag-handle" @end="updateJobOrder" item-key="job_id">
+    <q-scroll-area
+      v-if="jobs.length > 0"
+      visible
+      :thumb-style="thumbStyle"
+      :bar-style="barStyle"
+      style="height: 30vh; width: 100%;"
+    >
+      <draggable
+        class="q-pa-sm"
+        v-model="jobs"
+        handle=".drag-handle"
+        @end="updateJobOrder"
+        item-key="job_id"
+      >
         <template #item="{ element }">
           <q-item class="bg-grey-3 text-black">
-            <q-item-section>
-              <q-btn @click="copyContent(element.job_id)" icon="content_copy" label="ID"></q-btn>
+            <!-- Copy ID Button -->
+            <q-item-section style="flex: 0 0 60px;">
+              <q-btn
+                @click="copyContent(element.job_id)"
+                icon="content_copy"
+                label="ID"
+                dense
+              />
             </q-item-section>
+
+            <!-- Job Name -->
             <q-item-section class="col">
-              <q-item-label class="text-truncate">{{ element.job_name }}</q-item-label>
+              <q-item-label class="job-name">{{ element.job_name }}</q-item-label>
               <q-tooltip>{{ element.job_name }}</q-tooltip>
             </q-item-section>
-            <q-item-section>
-              <div v-if="element.executionStatus === null">No execution status</div>
+
+            <!-- Execution Status -->
+            <q-item-section style="flex: 0 0 120px;">
+              <div v-if="element.executionStatus === null">No status</div>
               <div v-else>
-                <q-spinner v-if="element.executionStatus.running" color="primary" size="20px" />
-                {{ element.executionStatus.running ? 'Running...' : 'Not running' }}
+                <!-- Display Error for FAILED state -->
+                <div v-if="element.executionStatus.state === 'FAILED'">
+                  <q-btn dense label="ERROR" text-color="black" icon="warning" color="yellow"></q-btn>
+                  <q-tooltip>{{ element.executionStatus.state_message }}</q-tooltip>
+                </div>
+                <!-- Display Running... for RUNNING state -->
+                <div v-else-if="element.executionStatus.state === 'RUNNING'">
+                  <q-spinner color="primary" size="20px" />
+                  Running...
+                </div>
+                <!-- Handle other states -->
+                <div v-else>
+                  {{ element.executionStatus.state }}
+                </div>
               </div>
             </q-item-section>
-            <q-item-section v-if="jobErrors[element.job_id]">
+
+            <!-- Job Error Message -->
+            <q-item-section
+              v-if="jobErrors[element.job_id]"
+              style="flex: 0 0 150px;"
+            >
               <q-item-label class="text-red">{{ jobErrors[element.job_id] }}</q-item-label>
             </q-item-section>
-            <q-item-section>
-              <q-btn to="" @click="openJob(element)" label="View" dense />
+
+            <!-- View Button -->
+            <q-item-section style="flex: 0 0 60px;">
+              <q-btn @click="openJob(element)" label="View" dense />
             </q-item-section>
-            <q-item-section>
-              <q-btn @click="deleteJob(element)" color="negative" label="Delete" dense />
+
+            <!-- Delete Button -->
+            <q-item-section style="flex: 0 0 70px;">
+              <q-btn
+                @click="deleteJob(element)"
+                color="negative"
+                label="Delete"
+                dense
+              />
             </q-item-section>
           </q-item>
         </template>
@@ -235,19 +283,10 @@ export default defineComponent({
     this.nodeData = workflowStore.getNodeById(this.nodeId);
     await this.updateJobs();
     this.updateErrorsAndExceptions();
-    watch(
-      () => workflowStore.jobIdsToUpdate,
-      async (newJobIds) => {
-        for (const jobId of newJobIds) {
-          await this.updateJobById(jobId);
-        }
-      },
-      { deep: true }
-    );
   },
   watch: {
-    'nodeData.data.jobIds': {
-      handler: 'updateJobs',
+    'nodeData.data.jobIdsToUpdate': {
+      handler: 'updateJobsToUpdate',
       immediate: true,
       deep: true
     },
@@ -276,6 +315,16 @@ export default defineComponent({
         message: `Copied ${s}`
       });
     },
+    async updateJobsToUpdate() {
+      if (!this.nodeData || !this.nodeData.data.jobIdsToUpdate || this.nodeData.data.jobIdsToUpdate.length === 0) {
+        return;
+      }
+
+      // Loop over each job ID in the jobIdsToUpdate and call updateJobById for each
+      for (const jobId of this.nodeData.data.jobIdsToUpdate) {
+        await this.updateJobById(jobId);
+      }
+    },
     async updateJobById(jobId: string) {
       const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
 
@@ -284,26 +333,40 @@ export default defineComponent({
         return;
       }
 
-      // Check if the job is already in the list
-      const existingJobIndex = this.jobs.findIndex(job => job.job_id === jobId);
-      const existingResultIndex = this.results.findIndex(job => job.job_id === jobId);
-      if (existingJobIndex === -1 && existingResultIndex === -1) {
-        console.log(`Job ${jobId} is not in the list of jobs for this component.`);
-        return;
-      }
-
       try {
         const job = await getJobMetaData(jobId);
         const executionStatus = await jobDefinition.api.executionStatus(jobId);
 
-        // Check if job is completed and move it to the results list if necessary
+        // Check if the job is already in the jobs or results lists
+        const existingJobIndex = this.jobs.findIndex(job => job.job_id === jobId);
+        const existingResultIndex = this.results.findIndex(job => job.job_id === jobId);
+
+        // If the job is completed, it should be in the results list and removed from jobs list
         if (executionStatus.state === JobStateEnum.COMPLETED) {
-          // Move the job to the results if it's completed
-          this.results.push({ ...job, executionStatus });
-          this.jobs = this.jobs.filter(j => j.job_id !== jobId); // Remove from jobs list
+          if (existingJobIndex !== -1) {
+            // Remove the job from the jobs list if it's there
+            this.jobs.splice(existingJobIndex, 1);
+          }
+          if (existingResultIndex === -1) {
+            // If it's not already in results, add it
+            this.results.push({ ...job, executionStatus });
+          } else {
+            // Update the job in results if it's already there
+            this.results[existingResultIndex] = { ...job, executionStatus };
+          }
         } else {
-          // Update the job in the jobs list if it's not completed
-          this.jobs[existingJobIndex] = { ...job, executionStatus };
+          // If the job is not completed, it should be in the jobs list and removed from results list
+          if (existingResultIndex !== -1) {
+            // Remove the job from the results list if it's there
+            this.results.splice(existingResultIndex, 1);
+          }
+          if (existingJobIndex === -1) {
+            // If it's not already in jobs, add it
+            this.jobs.push({ ...job, executionStatus });
+          } else {
+            // Update the job in jobs if it's already there
+            this.jobs[existingJobIndex] = { ...job, executionStatus };
+          }
         }
 
         // Update workflow store with running jobs status
@@ -315,24 +378,17 @@ export default defineComponent({
         console.error(`Error updating job ${jobId}:`, error);
       }
     },
-
     async updateJobs() {
       this.loading = true;
-      const knownJobIds = new Set(this.jobs.map(job => job.job_id));
-      const knownResultIds = new Set(this.results.map(result => result.job_id));
 
       if (this.nodeData?.data.jobIds) {
         // Fetch new jobs and update existing ones if necessary
         const newJobsWithStatus = await Promise.all(
           this.nodeData.data.jobIds.map(async (jobId: string) => {
-            if (!knownJobIds.has(jobId) && !knownResultIds.has(jobId)) {
               const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
               const job = await getJobMetaData(jobId);
               const executionStatus = await jobDefinition.api.executionStatus(jobId);
               return { ...job, executionStatus };
-            } else {
-              return this.jobs.find(job => job.job_id === jobId) || this.results.find(result => result.job_id === jobId);
-            }
           })
         );
 
@@ -421,9 +477,12 @@ export default defineComponent({
   padding: 10px;
 }
 
-.text-truncate {
-  white-space: nowrap;
+.job-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 2 lines */
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: normal; /* Allow text to wrap */
 }
 </style>

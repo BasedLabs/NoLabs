@@ -2,7 +2,7 @@
   <q-card dark bordered :class="{'pulsating-border': isRunning || isLocallyRunning}" v-if="!nodeData">
     <q-spinner color="primary" size="3em" />
   </q-card>
-  <q-card dark bordered :class="{'pulsating-border': isRunning || isLocallyRunning}" v-if="nodeData" style="max-width: 400px">
+  <q-card dark bordered :class="{'pulsating-border': isRunning || isLocallyRunning}" v-if="nodeData" style="width: 600px">
     <q-card-section v-if="nodeData?.data.error">
       <div class="row no-wrap items-center">
         <q-space />

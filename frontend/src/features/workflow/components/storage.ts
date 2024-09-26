@@ -276,6 +276,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             existingNode.data.defaults = [];
           }
 
+          // Find or create the default entry
           let defaultEntry = existingNode.data.defaults.find(entry =>
             Array.isArray(entry.target_path) &&
             entry.target_path.every((path, index) => path === Object.keys(existingNode.data.inputs || {})[index])
@@ -289,11 +290,18 @@ export const useWorkflowStore = defineStore('workflowStore', {
             existingNode.data.defaults.push(defaultEntry);
           }
 
+          // Initialize the value array if it's not an array
+          if (!Array.isArray(defaultEntry.value)) {
+            defaultEntry.value = [];
+          }
+
           // Check if the ligand id already exists in the defaultEntry value array
-          if (defaultEntry.value && defaultEntry.value.includes(uploadedLigand.id)) {
+          if (!defaultEntry.value.includes(uploadedLigand.id)) {
+            // Push the new id to the existing value array
             defaultEntry.value.push(uploadedLigand.id);
           }
         }
+
         this.sendWorkflowUpdate();
       } catch (error) {
         console.error('Error uploading ligand:', error);
@@ -313,7 +321,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
           );
 
           if (defaultEntry) {
-            defaultEntry.value = defaultEntry.value.filter((id: string) => id !== ligandId);
+            defaultEntry.value = defaultEntry?.value.filter((id: string) => id !== ligandId);
           }
         }
         this.sendWorkflowUpdate();
