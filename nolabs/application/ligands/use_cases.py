@@ -13,13 +13,15 @@ from uuid import UUID
 
 from mongoengine import Q
 
-from nolabs.application.ligands.api_models import (LigandContentResponse,
-                                                   LigandMetadataResponse,
-                                                   LigandSearchContentQuery,
-                                                   LigandSearchMetadataQuery,
-                                                   UpdateLigandRequest,
-                                                   UploadLigandRequest,
-                                                   UploadLigandResponse)
+from nolabs.application.ligands.api_models import (
+    LigandContentResponse,
+    LigandMetadataResponse,
+    LigandSearchContentQuery,
+    LigandSearchMetadataQuery,
+    UpdateLigandRequest,
+    UploadLigandRequest,
+    UploadLigandResponse,
+)
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, Ligand, LigandName
 

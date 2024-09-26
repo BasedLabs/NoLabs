@@ -14,8 +14,7 @@
 
 import unittest
 
-from external_data_query_microservice.models.identity_cutoff import \
-    IdentityCutoff
+from external_data_query_microservice.models.identity_cutoff import IdentityCutoff
 
 
 class TestIdentityCutoff(unittest.TestCase):

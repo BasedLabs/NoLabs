@@ -19,8 +19,9 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from biobuddy_microservice.models.validation_error_loc_inner import \
-    ValidationErrorLocInner
+from biobuddy_microservice.models.validation_error_loc_inner import (
+    ValidationErrorLocInner,
+)
 from pydantic import BaseModel, StrictStr
 from typing_extensions import Self
 

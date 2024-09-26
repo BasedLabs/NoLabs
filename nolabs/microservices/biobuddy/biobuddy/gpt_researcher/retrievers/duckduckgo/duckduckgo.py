@@ -1,5 +1,3 @@
-from itertools import islice
-
 from duckduckgo_search import DDGS
 
 

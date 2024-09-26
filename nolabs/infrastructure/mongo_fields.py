@@ -1,7 +1,6 @@
 from mongoengine import fields
 
-from nolabs.seedwork.domain.value_objects import (ValueObjectFloat,
-                                                  ValueObjectString)
+from nolabs.seedwork.domain.value_objects import ValueObjectFloat, ValueObjectString
 
 
 class ValueObjectStringField(fields.BaseField):

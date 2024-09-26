@@ -15,20 +15,24 @@ from typing import List
 from uuid import UUID
 
 from microservices.reinvent.service.api_models import (
-    RunReinforcementLearningRequest, RunSamplingRequest)
+    RunReinforcementLearningRequest,
+    RunSamplingRequest,
+)
 
 from nolabs.application.small_molecules_design.api_models import (
-    GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
-    SmilesResponse, StartSamplingRequest)
-from nolabs.application.small_molecules_design.services import \
-    ReinventParametersSaver
+    GetJobStatusResponse,
+    JobResponse,
+    LogsResponse,
+    SetupJobRequest,
+    SmilesResponse,
+    StartSamplingRequest,
+)
+from nolabs.application.small_molecules_design.services import ReinventParametersSaver
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.domain.models.common import (Experiment, Job, JobId, JobName,
-                                         Protein)
+from nolabs.domain.models.common import Experiment, Job, JobId, JobName, Protein
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.infrastructure.settings import settings
-from nolabs.utils import generate_uuid
 
 
 def map_job_to_response(job: SmallMoleculesDesignJob) -> JobResponse:
@@ -143,7 +147,7 @@ class GetJobSmilesFeature:
 
 class SetupJobFeature:
     async def handle(self, request: SetupJobRequest) -> JobResponse:
-        job_id = JobId(request.job_id if request.job_id else generate_uuid())
+        job_id = JobId(request.job_id if request.job_id else uuid.uuid4())
         job_name = JobName(
             request.job_name if request.job_name else "New small molecules design job"
         )

@@ -4,10 +4,11 @@ import uuid
 from typing import List
 
 from nolabs.application.experiments.api_models import (
-    ExperimentMetadataResponse, UpdateExperimentRequest)
+    ExperimentMetadataResponse,
+    UpdateExperimentRequest,
+)
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.domain.models.common import (Experiment, ExperimentId,
-                                         ExperimentName)
+from nolabs.domain.models.common import Experiment, ExperimentId, ExperimentName
 
 
 def map_experiment_to_metadata(experiment: Experiment) -> ExperimentMetadataResponse:

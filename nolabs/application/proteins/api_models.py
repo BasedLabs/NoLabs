@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import UploadFile
-from pydantic import BaseModel, model_validator, root_validator
+from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 

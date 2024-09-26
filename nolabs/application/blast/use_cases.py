@@ -1,15 +1,18 @@
 __all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from nolabs.application.blast.api_models import (HitModel, HspModel,
-                                                 JobResponse, JobResult,
-                                                 SetupJobRequest)
+from nolabs.application.blast.api_models import (
+    HitModel,
+    HspModel,
+    JobResponse,
+    JobResult,
+    SetupJobRequest,
+)
 from nolabs.application.blast.services import BlastJobRunner
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.blast import BlastJob
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
-from nolabs.utils import generate_uuid
 
 
 def map_job_to_response(job: BlastJob) -> JobResponse:
@@ -90,7 +93,7 @@ class SetupJobFeature:
     async def handle(self, request: SetupJobRequest) -> JobResponse:
         assert request
 
-        job_id = JobId(request.job_id if request.job_id else generate_uuid())
+        job_id = JobId(request.job_id if request.job_id else uuid4())
         job_name = JobName(request.job_name if request.job_name else "New BLAST job")
 
         experiment = Experiment.objects.with_id(request.experiment_id)

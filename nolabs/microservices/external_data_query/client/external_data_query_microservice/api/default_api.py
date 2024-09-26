@@ -13,27 +13,35 @@
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from external_data_query_microservice.api_client import (ApiClient,
-                                                         RequestSerialized)
+from external_data_query_microservice.api_client import ApiClient, RequestSerialized
 from external_data_query_microservice.api_response import ApiResponse
-from external_data_query_microservice.models.ch_embl_molecule_request import \
-    ChEMBLMoleculeRequest
-from external_data_query_microservice.models.ch_embl_molecule_response import \
-    ChEMBLMoleculeResponse
-from external_data_query_microservice.models.drug_indication_request import \
-    DrugIndicationRequest
-from external_data_query_microservice.models.drug_indication_response import \
-    DrugIndicationResponse
-from external_data_query_microservice.models.get_fasta_files_by_ids_request import \
-    GetFastaFilesByIdsRequest
-from external_data_query_microservice.models.get_fasta_files_by_search_query_request import \
-    GetFastaFilesBySearchQueryRequest
-from external_data_query_microservice.models.get_fasta_files_response import \
-    GetFastaFilesResponse
-from external_data_query_microservice.models.is_job_running_response import \
-    IsJobRunningResponse
-from external_data_query_microservice.models.sequence_query_request import \
-    SequenceQueryRequest
+from external_data_query_microservice.models.ch_embl_molecule_request import (
+    ChEMBLMoleculeRequest,
+)
+from external_data_query_microservice.models.ch_embl_molecule_response import (
+    ChEMBLMoleculeResponse,
+)
+from external_data_query_microservice.models.drug_indication_request import (
+    DrugIndicationRequest,
+)
+from external_data_query_microservice.models.drug_indication_response import (
+    DrugIndicationResponse,
+)
+from external_data_query_microservice.models.get_fasta_files_by_ids_request import (
+    GetFastaFilesByIdsRequest,
+)
+from external_data_query_microservice.models.get_fasta_files_by_search_query_request import (
+    GetFastaFilesBySearchQueryRequest,
+)
+from external_data_query_microservice.models.get_fasta_files_response import (
+    GetFastaFilesResponse,
+)
+from external_data_query_microservice.models.is_job_running_response import (
+    IsJobRunningResponse,
+)
+from external_data_query_microservice.models.sequence_query_request import (
+    SequenceQueryRequest,
+)
 from external_data_query_microservice.rest import RESTResponseType
 from pydantic import Field, StrictFloat, StrictInt, StrictStr, validate_call
 from typing_extensions import Annotated

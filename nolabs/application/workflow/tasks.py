@@ -11,11 +11,20 @@ from prefect.client.schemas.objects import FlowRun, R, StateType, TaskRun
 from prefect.context import get_run_context
 
 from nolabs.application.workflow.api.socketio_events_emitter import (
-    emit_component_jobs_event, emit_finish_component_event,
-    emit_finish_job_event, emit_start_component_event, emit_start_job_event)
+    emit_component_jobs_event,
+    emit_finish_component_event,
+    emit_finish_job_event,
+    emit_start_component_event,
+    emit_start_job_event,
+)
 from nolabs.domain.models.common import ComponentData, Job
-from nolabs.domain.workflow.component import (Component, ComponentTypeFactory,
-                                              Parameter, TInput, TOutput)
+from nolabs.domain.workflow.component import (
+    Component,
+    ComponentTypeFactory,
+    Parameter,
+    TInput,
+    TOutput,
+)
 
 
 def _name_builder(name: str, id: uuid.UUID):

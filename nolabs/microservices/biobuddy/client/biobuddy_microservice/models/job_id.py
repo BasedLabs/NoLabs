@@ -19,8 +19,7 @@ import pprint
 import re  # noqa: F401
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from pydantic import (BaseModel, Field, StrictStr, ValidationError,
-                      field_validator)
+from pydantic import BaseModel, Field, StrictStr, ValidationError, field_validator
 from typing_extensions import Literal, Self
 
 JOBID_ANY_OF_SCHEMAS = ["object", "str"]

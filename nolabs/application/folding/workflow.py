@@ -12,8 +12,7 @@ from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.domain.workflow.component import Component, TInput, TOutput
 from nolabs.infrastructure.cel import cel as celery
-from nolabs.microservices.esmfold_light.service.api_models import \
-    InferenceInput
+from nolabs.microservices.esmfold_light.service.api_models import InferenceInput
 
 
 class FoldingComponentInput(BaseModel):

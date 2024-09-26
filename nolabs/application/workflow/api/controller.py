@@ -5,14 +5,23 @@ from fastapi import APIRouter, Depends
 
 from nolabs.application.workflow.api.schema import WorkflowSchema
 
-from .api_models import (GetComponentRequest, GetComponentResponse,
-                         GetJobRequest, GetJobState,
-                         StartWorkflowComponentRequest)
+from .api_models import (
+    GetComponentRequest,
+    GetComponentResponse,
+    GetJobRequest,
+    GetJobState,
+    StartWorkflowComponentRequest,
+)
 from .di import WorkflowDependencies
-from .use_cases import (CreateWorkflowSchemaFeature, GetComponentStateFeature,
-                        GetJobStateFeature, GetWorkflowSchemaFeature,
-                        StartWorkflowComponentFeature, StartWorkflowFeature,
-                        UpdateWorkflowSchemaFeature)
+from .use_cases import (
+    CreateWorkflowSchemaFeature,
+    GetComponentStateFeature,
+    GetJobStateFeature,
+    GetWorkflowSchemaFeature,
+    StartWorkflowComponentFeature,
+    StartWorkflowFeature,
+    UpdateWorkflowSchemaFeature,
+)
 
 router = APIRouter(
     prefix="/api/v1/workflow",

@@ -1,7 +1,9 @@
 import logging
 
-from external_data_query.api_models import (GetFastaFilesByIdsRequest,
-                                            GetFastaFilesResponse)
+from external_data_query.api_models import (
+    GetFastaFilesByIdsRequest,
+    GetFastaFilesResponse,
+)
 from pythonjsonlogger import jsonlogger
 
 _logger = logging.getLogger()

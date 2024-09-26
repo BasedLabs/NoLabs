@@ -9,23 +9,22 @@ import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from nolabs.application.biobuddy.controller import \
-    router as biobuddy_controller
+from nolabs.application.biobuddy.controller import router as biobuddy_controller
 from nolabs.application.blast.controller import router as blast_router
 from nolabs.application.diffdock.controller import router as diffdock_router
 from nolabs.application.event_handlers.di import EventHandlersDependencies
-from nolabs.application.experiments.controller import \
-    router as experiment_router
+from nolabs.application.experiments.controller import router as experiment_router
 from nolabs.application.folding.controller import router as folding_router
 from nolabs.application.jobs.controller import router as job_router
 from nolabs.application.ligands.controller import router as ligand_router
-from nolabs.application.middlewares.domain_exception_middleware import \
-    add_domain_exception_middleware
+from nolabs.application.middlewares.domain_exception_middleware import (
+    add_domain_exception_middleware,
+)
 from nolabs.application.proteins.controller import router as proteins_router
-from nolabs.application.small_molecules_design.controller import \
-    router as small_molecules_design_router
-from nolabs.application.workflow.api.controller import \
-    router as workflow_router
+from nolabs.application.small_molecules_design.controller import (
+    router as small_molecules_design_router,
+)
+from nolabs.application.workflow.api.controller import router as workflow_router
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import settings

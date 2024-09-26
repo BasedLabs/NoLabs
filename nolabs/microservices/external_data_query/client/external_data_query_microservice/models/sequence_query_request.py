@@ -20,8 +20,7 @@ import re  # noqa: F401
 from typing import Any, ClassVar, Dict, List, Optional, Set
 
 from external_data_query_microservice.models.evalue_cutoff import EvalueCutoff
-from external_data_query_microservice.models.identity_cutoff import \
-    IdentityCutoff
+from external_data_query_microservice.models.identity_cutoff import IdentityCutoff
 from external_data_query_microservice.models.job_id import JobId
 from pydantic import BaseModel, StrictStr
 from typing_extensions import Self

@@ -6,11 +6,16 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 
 from nolabs.application.experiments.api_models import (
-    ExperimentMetadataResponse, UpdateExperimentRequest)
+    ExperimentMetadataResponse,
+    UpdateExperimentRequest,
+)
 from nolabs.application.experiments.di import ExperimentsDependencies
 from nolabs.application.experiments.use_cases import (
-    CreateExperimentFeature, DeleteExperimentFeature,
-    GetExperimentsMetadataFeature, UpdateExperimentFeature)
+    CreateExperimentFeature,
+    DeleteExperimentFeature,
+    GetExperimentsMetadataFeature,
+    UpdateExperimentFeature,
+)
 
 router = APIRouter(prefix="/api/v1/experiments", tags=["Experiments"])
 

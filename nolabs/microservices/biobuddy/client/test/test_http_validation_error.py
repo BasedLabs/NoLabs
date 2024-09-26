@@ -14,8 +14,7 @@
 
 import unittest
 
-from biobuddy_microservice.models.http_validation_error import \
-    HTTPValidationError
+from biobuddy_microservice.models.http_validation_error import HTTPValidationError
 
 
 class TestHTTPValidationError(unittest.TestCase):

@@ -9,8 +9,11 @@ import glob
 import re
 import shutil
 
-from api_models import (RunDiffDockPredictionRequest,
-                        RunDiffDockPredictionResponse, SDFResult)
+from api_models import (
+    RunDiffDockPredictionRequest,
+    RunDiffDockPredictionResponse,
+    SDFResult,
+)
 from log import logger
 from settings import settings
 

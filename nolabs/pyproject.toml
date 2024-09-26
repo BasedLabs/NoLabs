@@ -3,46 +3,27 @@ name = "nolabs"
 version = "1.2.1"
 description = ""
 authors = ["JaktensTid <jaktenstid1@gmail.com>"]
-readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-uvicorn = "^0.25.0"
-fastapi = "^0.112.1"
-numpy = "^2.1.0"
-rdkit = "^2024.3.5"
-msa-light-microservice = {path = "microservices/msa_light/client"}
-p2rank-microservice = {path = "microservices/p2rank/client"}
-esmfold-light-microservice = {path = "microservices/esmfold_light/client"}
-esmfold-microservice = {path = "microservices/esmfold/client"}
-diffdock-microservice = {path = "microservices/diffdock/client"}
-rosettafold-microservice = {path = "microservices/rosettafold/client"}
-reinvent-microservice = {path = "microservices/reinvent/client"}
-mongoengine = "^0.28.2"
-pydantic-settings = "^2.2.1"
-biopython = "^1.83"
-localisation-microservice = {path = "microservices/localisation/client"}
-solubility-microservice = {path = "microservices/solubility/client"}
-conformations-microservice = {path = "microservices/conformations/client"}
-gene-ontology-microservice = {path = "microservices/gene_ontology/client"}
-protein-design-microservice = {path = "microservices/protein_design/client"}
+uvicorn = "^0.30.6"
+python-socketio = {extras = ["asyncio"], version = "^5.11.4"}
+fastapi = "^0.115.0"
+python-dotenv = "^1.0.1"
+celery = {extras = ["redis"], version = "^5.4.0"}
 biobuddy-microservice = {path = "microservices/biobuddy/client"}
 external-data-query-microservice = {path = "microservices/external_data_query/client"}
-redis = "^5.0.7"
-apache-airflow = "^2.10.0"
-prefect = "^2.20.3"
+rdkit = "^2024.3.5"
+pydantic-settings = "^2.5.2"
+mongoengine = "^0.29.1"
+xmltodict = "^0.13.0"
+biopython = "^1.84"
+prefect = "^3.0.3"
+python-multipart = "^0.0.10"
 
 [tool.poetry.group.dev.dependencies]
 deptry = "^0.19.1"
-
-[project]
-dependencies = [
-    "fastapi",
-    "obonet",
-    "jsonpickle",
-    "python-multipart",
-    "rdkit"
-]
 
 [build-system]
 requires = ["poetry-core"]

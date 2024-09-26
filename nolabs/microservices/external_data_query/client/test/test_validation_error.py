@@ -14,8 +14,7 @@
 
 import unittest
 
-from external_data_query_microservice.models.validation_error import \
-    ValidationError
+from external_data_query_microservice.models.validation_error import ValidationError
 
 
 class TestValidationError(unittest.TestCase):

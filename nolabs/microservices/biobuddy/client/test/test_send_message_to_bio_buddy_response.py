@@ -14,8 +14,9 @@
 
 import unittest
 
-from biobuddy_microservice.models.send_message_to_bio_buddy_response import \
-    SendMessageToBioBuddyResponse
+from biobuddy_microservice.models.send_message_to_bio_buddy_response import (
+    SendMessageToBioBuddyResponse,
+)
 
 
 class TestSendMessageToBioBuddyResponse(unittest.TestCase):

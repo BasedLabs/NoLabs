@@ -4,7 +4,6 @@ __all__ = ["JobResult", "JobResponse", "RunJobRequest"]
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 
 

@@ -3,9 +3,7 @@ __all__ = ["FoldingJob"]
 from enum import Enum
 from typing import List
 
-from mongoengine import (CASCADE, BinaryField, EmbeddedDocument,
-                         EmbeddedDocumentField, EnumField, ReferenceField,
-                         UUIDField)
+from mongoengine import CASCADE, EnumField, ReferenceField
 
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Protein

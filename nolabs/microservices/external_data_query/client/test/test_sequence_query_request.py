@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.sequence_query_request import \
-    SequenceQueryRequest
+from external_data_query_microservice.models.sequence_query_request import (
+    SequenceQueryRequest,
+)
 
 
 class TestSequenceQueryRequest(unittest.TestCase):

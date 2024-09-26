@@ -15,25 +15,33 @@ from typing import List
 import biobuddy_microservice
 
 from nolabs.application.biobuddy.api_models import (
-    CheckBioBuddyEnabledResponse, CreateFunctionCallMessageRequest,
-    CreateFunctionCallMessageResponse, CreateMessageRequest,
-    CreateMessageResponse, EditMessageRequest, EditMessageResponse)
-from nolabs.application.biobuddy.api_models import \
-    FunctionCall as ApiFunctionCall
-from nolabs.application.biobuddy.api_models import \
-    FunctionParam as ApiFunctionParam
+    CheckBioBuddyEnabledResponse,
+    CreateFunctionCallMessageRequest,
+    CreateFunctionCallMessageResponse,
+    CreateMessageRequest,
+    CreateMessageResponse,
+    EditMessageRequest,
+    EditMessageResponse,
+)
+from nolabs.application.biobuddy.api_models import FunctionCall as ApiFunctionCall
+from nolabs.application.biobuddy.api_models import FunctionParam as ApiFunctionParam
 from nolabs.application.biobuddy.api_models import (
-    GetAvailableFunctionCallsResponse, LoadConversationRequest,
-    LoadConversationResponse)
+    GetAvailableFunctionCallsResponse,
+    LoadConversationRequest,
+    LoadConversationResponse,
+)
 from nolabs.application.biobuddy.api_models import Message as ApiMessage
-from nolabs.application.biobuddy.api_models import \
-    RegularMessage as ApiRegularMessage
-from nolabs.application.biobuddy.api_models import (SendQueryRequest,
-                                                    SendQueryResponse)
+from nolabs.application.biobuddy.api_models import RegularMessage as ApiRegularMessage
+from nolabs.application.biobuddy.api_models import SendQueryRequest, SendQueryResponse
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.domain.models.biobuddy import (Chat, FunctionCall,
-                                           FunctionCallMessage, FunctionParam,
-                                           TextMessage, UserRoleEnum)
+from nolabs.domain.models.biobuddy import (
+    Chat,
+    FunctionCall,
+    FunctionCallMessage,
+    FunctionParam,
+    TextMessage,
+    UserRoleEnum,
+)
 
 
 class CheckBioBuddyEnabledFeature:

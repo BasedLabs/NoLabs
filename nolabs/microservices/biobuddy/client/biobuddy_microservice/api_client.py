@@ -27,12 +27,7 @@ from biobuddy_microservice import rest
 from biobuddy_microservice.api_response import ApiResponse
 from biobuddy_microservice.api_response import T as ApiResponseT
 from biobuddy_microservice.configuration import Configuration
-from biobuddy_microservice.exceptions import (ApiException, ApiValueError,
-                                              BadRequestException,
-                                              ForbiddenException,
-                                              NotFoundException,
-                                              ServiceException,
-                                              UnauthorizedException)
+from biobuddy_microservice.exceptions import ApiException, ApiValueError
 from dateutil.parser import parse
 
 RequestSerialized = Tuple[str, str, Dict[str, str], Optional[str], List[str]]

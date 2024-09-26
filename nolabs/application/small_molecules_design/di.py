@@ -1,7 +1,14 @@
 from nolabs.application.small_molecules_design.use_cases import (
-    DeleteJobFeature, GetJobFeature, GetJobLogsFeature, GetJobSmilesFeature,
-    GetJobStatusFeature, RunLearningStageJobFeature,
-    RunSamplingStageJobFeature, SetupJobFeature, StopJobFeature)
+    DeleteJobFeature,
+    GetJobFeature,
+    GetJobLogsFeature,
+    GetJobSmilesFeature,
+    GetJobStatusFeature,
+    RunLearningStageJobFeature,
+    RunSamplingStageJobFeature,
+    SetupJobFeature,
+    StopJobFeature,
+)
 
 
 class SmallMoleculesDesignDependencies:

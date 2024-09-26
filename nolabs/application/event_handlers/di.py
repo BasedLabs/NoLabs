@@ -1,4 +1,4 @@
-from nolabs.application.event_handlers import ProteinCreatedEventHandler
+from nolabs.application.event_handlers.protein_event_handlers import ProteinCreatedEventHandler
 from nolabs.domain.event_dispatcher import EventDispatcher
 
 

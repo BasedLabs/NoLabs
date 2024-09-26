@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.ch_embl_molecule_response import \
-    ChEMBLMoleculeResponse
+from external_data_query_microservice.models.ch_embl_molecule_response import (
+    ChEMBLMoleculeResponse,
+)
 
 
 class TestChEMBLMoleculeResponse(unittest.TestCase):

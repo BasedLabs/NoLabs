@@ -14,35 +14,3 @@
 
 
 # import models into model package
-from external_data_query_microservice.models.ch_embl_molecule_request import \
-    ChEMBLMoleculeRequest
-from external_data_query_microservice.models.ch_embl_molecule_response import \
-    ChEMBLMoleculeResponse
-from external_data_query_microservice.models.drug_indication_request import \
-    DrugIndicationRequest
-from external_data_query_microservice.models.drug_indication_response import \
-    DrugIndicationResponse
-from external_data_query_microservice.models.evalue_cutoff import EvalueCutoff
-from external_data_query_microservice.models.fetched_protein import \
-    FetchedProtein
-from external_data_query_microservice.models.filters import Filters
-from external_data_query_microservice.models.get_fasta_files_by_ids_request import \
-    GetFastaFilesByIdsRequest
-from external_data_query_microservice.models.get_fasta_files_by_search_query_request import \
-    GetFastaFilesBySearchQueryRequest
-from external_data_query_microservice.models.get_fasta_files_response import \
-    GetFastaFilesResponse
-from external_data_query_microservice.models.http_validation_error import \
-    HTTPValidationError
-from external_data_query_microservice.models.identity_cutoff import \
-    IdentityCutoff
-from external_data_query_microservice.models.is_job_running_response import \
-    IsJobRunningResponse
-from external_data_query_microservice.models.job_id import JobId
-from external_data_query_microservice.models.molecule import Molecule
-from external_data_query_microservice.models.sequence_query_request import \
-    SequenceQueryRequest
-from external_data_query_microservice.models.validation_error import \
-    ValidationError
-from external_data_query_microservice.models.validation_error_loc_inner import \
-    ValidationErrorLocInner

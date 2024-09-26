@@ -2,20 +2,28 @@ import asyncio
 import uuid
 from typing import List, Optional, Type
 
-from microservices.reinvent.service.api_models import \
-    RunReinforcementLearningRequest
+from microservices.reinvent.service.api_models import RunReinforcementLearningRequest
 from prefect import State
 from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
 
 from nolabs.application.small_molecules_design.services import (
-    ReinventParametersSaver, ReinventSmilesRetriever)
+    ReinventParametersSaver,
+    ReinventSmilesRetriever,
+)
 from nolabs.application.workflow.tasks import ComponentFlow
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.domain.models.common import (DesignedLigandScore,
-                                         DrugLikenessScore, Experiment, JobId,
-                                         JobName, Ligand, LigandName, Protein)
+from nolabs.domain.models.common import (
+    DesignedLigandScore,
+    DrugLikenessScore,
+    Experiment,
+    JobId,
+    JobName,
+    Ligand,
+    LigandName,
+    Protein,
+)
 from nolabs.domain.models.small_molecules_design import SmallMoleculesDesignJob
 from nolabs.domain.workflow.component import Component
 from nolabs.infrastructure.cel import cel as celery

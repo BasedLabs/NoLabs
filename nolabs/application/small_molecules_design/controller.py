@@ -4,14 +4,27 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, WebSocket
 
 from nolabs.application.small_molecules_design.api_models import (
-    GetJobStatusResponse, JobResponse, LogsResponse, SetupJobRequest,
-    SmilesResponse, StartSamplingRequest)
-from nolabs.application.small_molecules_design.di import \
-    SmallMoleculesDesignDependencies
+    GetJobStatusResponse,
+    JobResponse,
+    LogsResponse,
+    SetupJobRequest,
+    SmilesResponse,
+    StartSamplingRequest,
+)
+from nolabs.application.small_molecules_design.di import (
+    SmallMoleculesDesignDependencies,
+)
 from nolabs.application.small_molecules_design.use_cases import (
-    DeleteJobFeature, GetJobFeature, GetJobLogsFeature, GetJobSmilesFeature,
-    GetJobStatusFeature, RunLearningStageJobFeature,
-    RunSamplingStageJobFeature, SetupJobFeature, StopJobFeature)
+    DeleteJobFeature,
+    GetJobFeature,
+    GetJobLogsFeature,
+    GetJobSmilesFeature,
+    GetJobStatusFeature,
+    RunLearningStageJobFeature,
+    RunSamplingStageJobFeature,
+    SetupJobFeature,
+    StopJobFeature,
+)
 
 logs_websocket: WebSocket | None
 

@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.ch_embl_molecule_request import \
-    ChEMBLMoleculeRequest
+from external_data_query_microservice.models.ch_embl_molecule_request import (
+    ChEMBLMoleculeRequest,
+)
 
 
 class TestChEMBLMoleculeRequest(unittest.TestCase):

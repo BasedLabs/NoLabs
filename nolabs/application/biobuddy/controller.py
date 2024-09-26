@@ -4,16 +4,30 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 
 from nolabs.application.biobuddy.api_models import (
-    CheckBioBuddyEnabledResponse, CreateFunctionCallMessageRequest,
-    CreateFunctionCallMessageResponse, CreateMessageRequest,
-    CreateMessageResponse, EditMessageRequest, EditMessageResponse,
-    FunctionCall, GetAvailableFunctionCallsResponse, LoadConversationRequest,
-    LoadConversationResponse, SendQueryRequest, SendQueryResponse)
+    CheckBioBuddyEnabledResponse,
+    CreateFunctionCallMessageRequest,
+    CreateFunctionCallMessageResponse,
+    CreateMessageRequest,
+    CreateMessageResponse,
+    EditMessageRequest,
+    EditMessageResponse,
+    FunctionCall,
+    GetAvailableFunctionCallsResponse,
+    LoadConversationRequest,
+    LoadConversationResponse,
+    SendQueryRequest,
+    SendQueryResponse,
+)
 from nolabs.application.biobuddy.di import BiobuddyDependencies
 from nolabs.application.biobuddy.use_cases import (
-    CheckBioBuddyEnabledFeature, CreateFunctionCallMessageFeature,
-    CreateMessageFeature, EditMessageFeature, GetAvailableFunctionCallsFeature,
-    LoadConversationFeature, SendActionQueryFeature)
+    CheckBioBuddyEnabledFeature,
+    CreateFunctionCallMessageFeature,
+    CreateMessageFeature,
+    EditMessageFeature,
+    GetAvailableFunctionCallsFeature,
+    LoadConversationFeature,
+    SendActionQueryFeature,
+)
 
 router = APIRouter(prefix="/api/v1/biobuddy", tags=["biobuddy"])
 

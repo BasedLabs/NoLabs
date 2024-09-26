@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.drug_indication_request import \
-    DrugIndicationRequest
+from external_data_query_microservice.models.drug_indication_request import (
+    DrugIndicationRequest,
+)
 
 
 class TestDrugIndicationRequest(unittest.TestCase):

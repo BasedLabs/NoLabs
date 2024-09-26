@@ -1,22 +1,35 @@
 from typing import Any, Dict
 
-from external_data_query.chembl.api_models import (ChEMBLMoleculeRequest,
-                                                   ChEMBLMoleculeResponse,
-                                                   DrugIndicationRequest,
-                                                   DrugIndicationResponse)
-from external_data_query.chembl.services import (search_chembl_molecules,
-                                                 search_drugs_for_condition)
-from external_data_query.pubmed.api_models import (PubMedSearchRequest,
-                                                   PubMedSearchResponse)
+from external_data_query.chembl.api_models import (
+    ChEMBLMoleculeRequest,
+    ChEMBLMoleculeResponse,
+    DrugIndicationRequest,
+    DrugIndicationResponse,
+)
+from external_data_query.chembl.services import (
+    search_chembl_molecules,
+    search_drugs_for_condition,
+)
+from external_data_query.pubmed.api_models import (
+    PubMedSearchRequest,
+    PubMedSearchResponse,
+)
 from external_data_query.pubmed.services import search_pubmed
 from external_data_query.rcsb_pdb.api_models import (
-    ComplexQueryRequest, GetFastaFilesByIdsRequest,
-    GetFastaFilesBySearchQueryRequest, GetFastaFilesResponse,
-    IsJobRunningResponse, SequenceQueryRequest)
+    ComplexQueryRequest,
+    GetFastaFilesByIdsRequest,
+    GetFastaFilesBySearchQueryRequest,
+    GetFastaFilesResponse,
+    IsJobRunningResponse,
+    SequenceQueryRequest,
+)
 from external_data_query.rcsb_pdb.services import (
-    create_query_node, fetch_entries_by_complex_query,
-    fetch_fasta_files_by_ids, fetch_protein_entries_by_name,
-    fetch_proteins_by_sequence)
+    create_query_node,
+    fetch_entries_by_complex_query,
+    fetch_fasta_files_by_ids,
+    fetch_protein_entries_by_name,
+    fetch_proteins_by_sequence,
+)
 from fastapi import FastAPI
 
 app = FastAPI(title="External Databases Query API")

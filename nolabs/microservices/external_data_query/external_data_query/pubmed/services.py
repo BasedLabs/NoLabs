@@ -1,11 +1,12 @@
 import os
 
 import certifi
-import requests
 from Bio import Entrez
-from external_data_query.pubmed.api_models import (FetchedArticle,
-                                                   PubMedSearchRequest,
-                                                   PubMedSearchResponse)
+from external_data_query.pubmed.api_models import (
+    FetchedArticle,
+    PubMedSearchRequest,
+    PubMedSearchResponse,
+)
 
 os.environ["SSL_CERT_FILE"] = certifi.where()
 

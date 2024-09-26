@@ -7,18 +7,25 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 
-from nolabs.application.proteins.api_models import (ProteinContentResponse,
-                                                    ProteinMetadataResponse,
-                                                    ProteinSearchMetadataQuery,
-                                                    ProteinSearchQuery,
-                                                    UpdateProteinRequest,
-                                                    UploadProteinRequest,
-                                                    UploadProteinResponse)
+from nolabs.application.proteins.api_models import (
+    ProteinContentResponse,
+    ProteinMetadataResponse,
+    ProteinSearchMetadataQuery,
+    ProteinSearchQuery,
+    UpdateProteinRequest,
+    UploadProteinRequest,
+    UploadProteinResponse,
+)
 from nolabs.application.proteins.di import ProteinsControllerDependencies
 from nolabs.application.proteins.use_cases import (
-    DeleteProteinFeature, GetProteinFeature, GetProteinMetadataFeature,
-    SearchProteinsContentFeature, SearchProteinsMetadataFeature,
-    UpdateProteinFeature, UploadProteinFeature)
+    DeleteProteinFeature,
+    GetProteinFeature,
+    GetProteinMetadataFeature,
+    SearchProteinsContentFeature,
+    SearchProteinsMetadataFeature,
+    UpdateProteinFeature,
+    UploadProteinFeature,
+)
 
 router = APIRouter(prefix="/api/v1/proteins", tags=["Proteins"])
 
