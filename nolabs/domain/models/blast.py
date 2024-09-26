@@ -4,9 +4,16 @@ import datetime
 from typing import List
 from uuid import UUID
 
-from mongoengine import (CASCADE, EmbeddedDocument, EmbeddedDocumentListField,
-                         FloatField, IntField, ReferenceField, StringField,
-                         UUIDField)
+from mongoengine import (
+    CASCADE,
+    EmbeddedDocument,
+    EmbeddedDocumentListField,
+    FloatField,
+    IntField,
+    ReferenceField,
+    StringField,
+    UUIDField,
+)
 
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Protein

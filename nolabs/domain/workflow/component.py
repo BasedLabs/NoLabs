@@ -5,15 +5,32 @@ __all__ = ["Component"]
 import uuid
 from abc import abstractmethod
 from dataclasses import field
-from typing import (TYPE_CHECKING, Any, ClassVar, Dict, Generic, Iterable,
-                    List, Mapping, Optional, Tuple, Type, TypeVar, Union,
-                    get_args, get_origin)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Dict,
+    Generic,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+)
 from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationError, parse_obj_as
 
-from nolabs.domain.models.common import (ComponentData, PropertyErrorData,
-                                         PropertyValidationError)
+from nolabs.domain.models.common import (
+    ComponentData,
+    PropertyErrorData,
+    PropertyValidationError,
+)
 
 if TYPE_CHECKING:
     from nolabs.application.workflow.tasks import ComponentFlow

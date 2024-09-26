@@ -4,8 +4,14 @@ from enum import Enum
 from typing import Any, List, Union
 from uuid import UUID
 
-from mongoengine import (Document, EmbeddedDocument, EmbeddedDocumentListField,
-                         EnumField, StringField, UUIDField)
+from mongoengine import (
+    Document,
+    EmbeddedDocument,
+    EmbeddedDocumentListField,
+    EnumField,
+    StringField,
+    UUIDField,
+)
 
 
 class UserRoleEnum(str, Enum):

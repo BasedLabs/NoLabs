@@ -9,8 +9,11 @@ from fastapi import APIRouter, Depends
 
 from nolabs.application.folding.api_models import JobResponse, SetupJobRequest
 from nolabs.application.folding.di import FoldingDependencies
-from nolabs.application.folding.use_cases import (GetJobFeature, RunJobFeature,
-                                                  SetupJobFeature)
+from nolabs.application.folding.use_cases import (
+    GetJobFeature,
+    RunJobFeature,
+    SetupJobFeature,
+)
 
 router = APIRouter(
     prefix="/api/v1/folding",

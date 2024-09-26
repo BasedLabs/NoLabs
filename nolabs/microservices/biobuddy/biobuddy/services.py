@@ -1,11 +1,16 @@
 import asyncio
 from typing import Any, AsyncGenerator, Dict, List
 
-from biobuddy.api_models import (SendMessageToBioBuddyRequest,
-                                 SendMessageToBioBuddyResponse)
+from biobuddy.api_models import (
+    SendMessageToBioBuddyRequest,
+    SendMessageToBioBuddyResponse,
+)
 from biobuddy.gpt_researcher import get_report
-from biobuddy.prompts import (generate_strategy_prompt, generate_system_prompt,
-                              generate_workflow_prompt)
+from biobuddy.prompts import (
+    generate_strategy_prompt,
+    generate_system_prompt,
+    generate_workflow_prompt,
+)
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder

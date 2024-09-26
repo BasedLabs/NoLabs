@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.get_fasta_files_response import \
-    GetFastaFilesResponse
+from external_data_query_microservice.models.get_fasta_files_response import (
+    GetFastaFilesResponse,
+)
 
 
 class TestGetFastaFilesResponse(unittest.TestCase):

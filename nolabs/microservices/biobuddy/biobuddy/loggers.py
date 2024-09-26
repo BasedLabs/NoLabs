@@ -1,7 +1,9 @@
 import logging
 
-from biobuddy.api_models import (SendMessageToBioBuddyRequest,
-                                 SendMessageToBioBuddyResponse)
+from biobuddy.api_models import (
+    SendMessageToBioBuddyRequest,
+    SendMessageToBioBuddyResponse,
+)
 from pythonjsonlogger import jsonlogger
 
 _logger = logging.getLogger()

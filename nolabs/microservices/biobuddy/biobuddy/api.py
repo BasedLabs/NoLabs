@@ -1,9 +1,12 @@
 import json
 from typing import Dict
 
-from biobuddy.api_models import (IsJobRunningResponse, SendActionCallRequest,
-                                 SendMessageToBioBuddyRequest,
-                                 SendMessageToBioBuddyResponse)
+from biobuddy.api_models import (
+    IsJobRunningResponse,
+    SendActionCallRequest,
+    SendMessageToBioBuddyRequest,
+    SendMessageToBioBuddyResponse,
+)
 from biobuddy.connection_manager import ConnectionManager
 from biobuddy.services import invoke_action, send_message, send_message_async
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect

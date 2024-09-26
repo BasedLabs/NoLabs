@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.http_validation_error import \
-    HTTPValidationError
+from external_data_query_microservice.models.http_validation_error import (
+    HTTPValidationError,
+)
 
 
 class TestHTTPValidationError(unittest.TestCase):

@@ -5,7 +5,9 @@ from nolabs.api_models.biobuddy import FunctionCall, FunctionCallReturnData
 from nolabs.domain.experiment import ExperimentId
 from nolabs.infrastructure.settings import Settings
 from nolabs.modules.biobuddy.functions.base_function import (
-    BiobuddyFunction, FunctionParameterDefinition)
+    BiobuddyFunction,
+    FunctionParameterDefinition,
+)
 
 components = []
 

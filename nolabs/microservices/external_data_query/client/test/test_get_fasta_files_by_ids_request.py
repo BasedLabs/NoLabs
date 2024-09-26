@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.get_fasta_files_by_ids_request import \
-    GetFastaFilesByIdsRequest
+from external_data_query_microservice.models.get_fasta_files_by_ids_request import (
+    GetFastaFilesByIdsRequest,
+)
 
 
 class TestGetFastaFilesByIdsRequest(unittest.TestCase):

@@ -4,10 +4,19 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 
-from mongoengine import (CASCADE, BinaryField, BooleanField, DateTimeField,
-                         EmbeddedDocument, EmbeddedDocumentListField,
-                         EnumField, FloatField, IntField, ReferenceField,
-                         StringField)
+from mongoengine import (
+    CASCADE,
+    BinaryField,
+    BooleanField,
+    DateTimeField,
+    EmbeddedDocument,
+    EmbeddedDocumentListField,
+    EnumField,
+    FloatField,
+    IntField,
+    ReferenceField,
+    StringField,
+)
 
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Protein

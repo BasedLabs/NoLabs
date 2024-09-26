@@ -14,8 +14,9 @@
 
 import unittest
 
-from biobuddy_microservice.models.validation_error_loc_inner import \
-    ValidationErrorLocInner
+from biobuddy_microservice.models.validation_error_loc_inner import (
+    ValidationErrorLocInner,
+)
 
 
 class TestValidationErrorLocInner(unittest.TestCase):

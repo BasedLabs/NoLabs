@@ -19,8 +19,9 @@ import pprint
 import re  # noqa: F401
 from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from biobuddy_microservice.models.chat_completion_message_function_call import \
-    ChatCompletionMessageFunctionCall
+from biobuddy_microservice.models.chat_completion_message_function_call import (
+    ChatCompletionMessageFunctionCall,
+)
 from biobuddy_microservice.models.content import Content
 from biobuddy_microservice.models.tool_calls import ToolCalls
 from pydantic import BaseModel

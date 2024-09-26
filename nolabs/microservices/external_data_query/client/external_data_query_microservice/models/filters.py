@@ -19,8 +19,15 @@ import pprint
 import re  # noqa: F401
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from pydantic import (BaseModel, Field, StrictBool, StrictInt, StrictStr,
-                      ValidationError, field_validator)
+from pydantic import (
+    BaseModel,
+    Field,
+    StrictBool,
+    StrictInt,
+    StrictStr,
+    ValidationError,
+    field_validator,
+)
 from typing_extensions import Literal, Self
 
 FILTERS_ANY_OF_SCHEMAS = ["bool", "int", "str"]

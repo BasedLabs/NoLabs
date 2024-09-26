@@ -14,8 +14,7 @@
 
 import unittest
 
-from biobuddy_microservice.models.send_action_call_request import \
-    SendActionCallRequest
+from biobuddy_microservice.models.send_action_call_request import SendActionCallRequest
 
 
 class TestSendActionCallRequest(unittest.TestCase):

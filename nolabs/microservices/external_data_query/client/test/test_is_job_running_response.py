@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.is_job_running_response import \
-    IsJobRunningResponse
+from external_data_query_microservice.models.is_job_running_response import (
+    IsJobRunningResponse,
+)
 
 
 class TestIsJobRunningResponse(unittest.TestCase):

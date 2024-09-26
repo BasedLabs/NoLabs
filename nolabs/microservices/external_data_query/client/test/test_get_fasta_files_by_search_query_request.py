@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.get_fasta_files_by_search_query_request import \
-    GetFastaFilesBySearchQueryRequest
+from external_data_query_microservice.models.get_fasta_files_by_search_query_request import (
+    GetFastaFilesBySearchQueryRequest,
+)
 
 
 class TestGetFastaFilesBySearchQueryRequest(unittest.TestCase):

@@ -3,8 +3,7 @@ __all__ = ["DiffDockComponent"]
 import uuid
 from typing import List, Type
 
-from microservices.diffdock.service.api_models import \
-    RunDiffDockPredictionRequest
+from microservices.diffdock.service.api_models import RunDiffDockPredictionRequest
 from prefect import State
 from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed

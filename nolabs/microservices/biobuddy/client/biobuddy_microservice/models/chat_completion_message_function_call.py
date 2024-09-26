@@ -20,8 +20,7 @@ import re  # noqa: F401
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from biobuddy_microservice.models.function_call import FunctionCall
-from pydantic import (BaseModel, Field, StrictStr, ValidationError,
-                      field_validator)
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from typing_extensions import Literal, Self
 
 CHATCOMPLETIONMESSAGEFUNCTIONCALL_ANY_OF_SCHEMAS = ["FunctionCall", "object"]

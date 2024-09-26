@@ -1,5 +1,8 @@
-from nolabs.application.folding.use_cases import (GetJobFeature, RunJobFeature,
-                                                  SetupJobFeature)
+from nolabs.application.folding.use_cases import (
+    GetJobFeature,
+    RunJobFeature,
+    SetupJobFeature,
+)
 
 
 class FoldingDependencies:

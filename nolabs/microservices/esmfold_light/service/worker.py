@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from api_models import InferenceInput
-from celery import Celery, shared_task
+from celery import Celery
 from settings import settings
 
 app = Celery(

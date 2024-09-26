@@ -14,8 +14,9 @@
 
 import unittest
 
-from biobuddy_microservice.models.chat_completion_message_function_call import \
-    ChatCompletionMessageFunctionCall
+from biobuddy_microservice.models.chat_completion_message_function_call import (
+    ChatCompletionMessageFunctionCall,
+)
 
 
 class TestChatCompletionMessageFunctionCall(unittest.TestCase):

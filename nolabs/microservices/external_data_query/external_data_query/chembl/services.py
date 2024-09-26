@@ -1,9 +1,11 @@
 import requests
-from external_data_query.chembl.api_models import (ChEMBLMoleculeRequest,
-                                                   ChEMBLMoleculeResponse,
-                                                   DrugIndicationRequest,
-                                                   DrugIndicationResponse,
-                                                   Molecule)
+from external_data_query.chembl.api_models import (
+    ChEMBLMoleculeRequest,
+    ChEMBLMoleculeResponse,
+    DrugIndicationRequest,
+    DrugIndicationResponse,
+    Molecule,
+)
 
 __all__ = ["search_chembl_molecules", "search_drugs_for_condition"]
 

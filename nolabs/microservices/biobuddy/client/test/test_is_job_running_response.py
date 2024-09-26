@@ -14,8 +14,7 @@
 
 import unittest
 
-from biobuddy_microservice.models.is_job_running_response import \
-    IsJobRunningResponse
+from biobuddy_microservice.models.is_job_running_response import IsJobRunningResponse
 
 
 class TestIsJobRunningResponse(unittest.TestCase):

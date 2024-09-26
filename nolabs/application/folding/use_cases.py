@@ -6,14 +6,16 @@ from uuid import UUID
 from microservices.esmfold_light.service.api_models import InferenceInput
 from mongoengine import Q
 
-from nolabs.application.folding.api_models import (JobResponse, JobResult,
-                                                   SetupJobRequest)
+from nolabs.application.folding.api_models import (
+    JobResponse,
+    JobResult,
+    SetupJobRequest,
+)
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingBackendEnum, FoldingJob
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.infrastructure.log import logger
-from nolabs.utils import generate_uuid
 
 
 def map_job_to_response(job: FoldingJob) -> JobResponse:
@@ -62,7 +64,7 @@ class SetupJobFeature:
         logger.info("Setup folding job", extra=extra)
 
         try:
-            job_id = JobId(request.job_id if request.job_id else generate_uuid())
+            job_id = JobId(request.job_id if request.job_id else uuid.uuid4())
             job_name = JobName(
                 request.job_name if request.job_name else "New folding job"
             )

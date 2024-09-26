@@ -2,8 +2,7 @@ __all__ = ["DiffDockBindingJob"]
 
 from typing import List, Optional
 
-from mongoengine import (CASCADE, PULL, IntField, ListField, ReferenceField,
-                         StringField, UUIDField)
+from mongoengine import CASCADE, PULL, IntField, ListField, ReferenceField, StringField
 
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Ligand, Protein

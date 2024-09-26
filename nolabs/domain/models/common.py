@@ -22,11 +22,24 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from Bio import SeqIO
-from mongoengine import (CASCADE, BinaryField, BooleanField, DateTimeField,
-                         DictField, Document, EmbeddedDocument,
-                         EmbeddedDocumentField, EmbeddedDocumentListField,
-                         FloatField, IntField, ListField, Q, ReferenceField,
-                         StringField, UUIDField)
+from mongoengine import (
+    CASCADE,
+    BinaryField,
+    BooleanField,
+    DateTimeField,
+    DictField,
+    Document,
+    EmbeddedDocument,
+    EmbeddedDocumentField,
+    EmbeddedDocumentListField,
+    FloatField,
+    IntField,
+    ListField,
+    Q,
+    ReferenceField,
+    StringField,
+    UUIDField,
+)
 from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
 from rdkit import Chem
@@ -34,14 +47,18 @@ from typing_extensions import Self
 
 from nolabs.domain.event_dispatcher import EventDispatcher
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.infrastructure.mongo_fields import (ValueObjectFloatField,
-                                                ValueObjectStringField)
+from nolabs.infrastructure.mongo_fields import (
+    ValueObjectFloatField,
+    ValueObjectStringField,
+)
 from nolabs.seedwork.domain.entities import Entity
 from nolabs.seedwork.domain.events import DomainEvent
-from nolabs.seedwork.domain.value_objects import (ValueObject,
-                                                  ValueObjectFloat,
-                                                  ValueObjectString,
-                                                  ValueObjectUUID)
+from nolabs.seedwork.domain.value_objects import (
+    ValueObject,
+    ValueObjectFloat,
+    ValueObjectString,
+    ValueObjectUUID,
+)
 from nolabs.utils.generate_2d_drug import generate_png_from_smiles
 
 
@@ -311,7 +328,7 @@ class Protein(Document, Entity):
     minimized_affinity: float | None = FloatField(required=False)
     scored_affinity: float | None = FloatField(required=False)
     confidence: float | None = FloatField(required=False)
-    plddt_array: List[int] = ListField(IntField, required=False)
+    plddt_array: List[int] = ListField(IntField(), required=False)
 
     link: ProteinLink = ValueObjectStringField(required=False, factory=ProteinLink)
 
@@ -928,7 +945,7 @@ class LigandBinder(Document):
     minimized_affinity: float | None = FloatField(required=False)
     scored_affinity: float | None = FloatField(required=False)
     confidence: float | None = FloatField(required=False)
-    plddt_array: List[int] = ListField(IntField, required=False)
+    plddt_array: List[int] = ListField(IntField(), required=False)
     pdb_content: bytes | None = BinaryField(required=False)
 
 

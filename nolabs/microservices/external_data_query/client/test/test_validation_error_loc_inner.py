@@ -14,8 +14,9 @@
 
 import unittest
 
-from external_data_query_microservice.models.validation_error_loc_inner import \
-    ValidationErrorLocInner
+from external_data_query_microservice.models.validation_error_loc_inner import (
+    ValidationErrorLocInner,
+)
 
 
 class TestValidationErrorLocInner(unittest.TestCase):

@@ -1,5 +1,4 @@
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
 
 
 class Memory:

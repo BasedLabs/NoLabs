@@ -3,9 +3,16 @@ from typing import Any, Dict
 
 import requests
 from external_data_query.rcsb_pdb.api_models import (
-    ComplexQueryRequest, FetchedProtein, GetFastaFilesByIdsRequest,
-    GetFastaFilesBySearchQueryRequest, GetFastaFilesResponse, LogicalNode,
-    QueryNode, SequenceQueryRequest, TerminalNode)
+    ComplexQueryRequest,
+    FetchedProtein,
+    GetFastaFilesByIdsRequest,
+    GetFastaFilesBySearchQueryRequest,
+    GetFastaFilesResponse,
+    LogicalNode,
+    QueryNode,
+    SequenceQueryRequest,
+    TerminalNode,
+)
 
 __all__ = [
     "fetch_fasta_files_by_ids",

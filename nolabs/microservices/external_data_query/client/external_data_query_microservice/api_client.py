@@ -28,13 +28,7 @@ from external_data_query_microservice import rest
 from external_data_query_microservice.api_response import ApiResponse
 from external_data_query_microservice.api_response import T as ApiResponseT
 from external_data_query_microservice.configuration import Configuration
-from external_data_query_microservice.exceptions import (ApiException,
-                                                         ApiValueError,
-                                                         BadRequestException,
-                                                         ForbiddenException,
-                                                         NotFoundException,
-                                                         ServiceException,
-                                                         UnauthorizedException)
+from external_data_query_microservice.exceptions import ApiException, ApiValueError
 
 RequestSerialized = Tuple[str, str, Dict[str, str], Optional[str], List[str]]
 

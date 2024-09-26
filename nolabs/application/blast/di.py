@@ -1,5 +1,8 @@
-from nolabs.application.blast.use_cases import (GetJobFeature, RunJobFeature,
-                                                SetupJobFeature)
+from nolabs.application.blast.use_cases import (
+    GetJobFeature,
+    RunJobFeature,
+    SetupJobFeature,
+)
 
 
 class BlastDependencies:

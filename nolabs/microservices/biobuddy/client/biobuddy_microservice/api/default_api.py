@@ -15,14 +15,14 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from biobuddy_microservice.api_client import ApiClient, RequestSerialized
 from biobuddy_microservice.api_response import ApiResponse
-from biobuddy_microservice.models.is_job_running_response import \
-    IsJobRunningResponse
-from biobuddy_microservice.models.send_action_call_request import \
-    SendActionCallRequest
-from biobuddy_microservice.models.send_message_to_bio_buddy_request import \
-    SendMessageToBioBuddyRequest
-from biobuddy_microservice.models.send_message_to_bio_buddy_response import \
-    SendMessageToBioBuddyResponse
+from biobuddy_microservice.models.is_job_running_response import IsJobRunningResponse
+from biobuddy_microservice.models.send_action_call_request import SendActionCallRequest
+from biobuddy_microservice.models.send_message_to_bio_buddy_request import (
+    SendMessageToBioBuddyRequest,
+)
+from biobuddy_microservice.models.send_message_to_bio_buddy_response import (
+    SendMessageToBioBuddyResponse,
+)
 from biobuddy_microservice.rest import RESTResponseType
 from pydantic import Field, StrictFloat, StrictInt, StrictStr, validate_call
 from typing_extensions import Annotated

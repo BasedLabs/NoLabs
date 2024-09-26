@@ -14,8 +14,7 @@
 
 import unittest
 
-from external_data_query_microservice.models.fetched_protein import \
-    FetchedProtein
+from external_data_query_microservice.models.fetched_protein import FetchedProtein
 
 
 class TestFetchedProtein(unittest.TestCase):

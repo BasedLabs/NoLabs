@@ -1,8 +1,12 @@
 import asyncio
 from typing import Any, Dict
 
-from api_models import (PreparePdbqtRequest, PreparePdbqtResponse,
-                        RunReinforcementLearningRequest, RunSamplingRequest)
+from api_models import (
+    PreparePdbqtRequest,
+    PreparePdbqtResponse,
+    RunReinforcementLearningRequest,
+    RunSamplingRequest,
+)
 from celery import Celery
 from settings import settings
 

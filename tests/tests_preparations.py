@@ -7,8 +7,7 @@ os.environ["NOLABS_ENVIRONMENT"] = "unit"
 import uuid
 from datetime import datetime, timezone
 
-from nolabs.domain.models.common import (Experiment, ExperimentId,
-                                         ExperimentName)
+from nolabs.domain.models.common import Experiment, ExperimentId, ExperimentName
 from nolabs.infrastructure.settings import Settings
 
 mongodb_connection = None
@@ -25,8 +24,7 @@ def mongo_connect():
 def mongo_disconnect():
     from mongoengine.connection import _get_db  # type: ignore
 
-    from nolabs.infrastructure.mongo_connector import \
-        mongo_disconnect  # type: ignore
+    from nolabs.infrastructure.mongo_connector import mongo_disconnect  # type: ignore
 
     settings = Settings.load()
     db_name = settings.connection_string.split("/")[-1]

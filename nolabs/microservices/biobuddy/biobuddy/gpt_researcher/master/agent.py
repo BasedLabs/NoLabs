@@ -3,8 +3,15 @@ import time
 from ..config import Config
 from ..context.compression import ContextCompressor
 from ..memory import Memory
-from .functions import (asyncio, choose_agent, generate_report, get_retriever,
-                        get_sub_queries, scrape_urls, stream_output)
+from .functions import (
+    asyncio,
+    choose_agent,
+    generate_report,
+    get_retriever,
+    get_sub_queries,
+    scrape_urls,
+    stream_output,
+)
 
 
 class GPTResearcher:

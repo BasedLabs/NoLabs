@@ -4,8 +4,10 @@ load_dotenv("infrastructure/.env")
 
 from prefect import serve
 
-from nolabs.background_tasks.jobs import (cleanup_orhpan_flow_run_ids,
-                                          cleanup_orhpan_task_run_ids)
+from nolabs.background_tasks.jobs import (
+    cleanup_orhpan_flow_run_ids,
+    cleanup_orhpan_task_run_ids,
+)
 
 if __name__ == "__main__":
     serve(

@@ -1,6 +1,8 @@
-from nolabs.application.diffdock.use_cases import (GetJobFeature,
-                                                   RunJobFeature,
-                                                   SetupJobFeature)
+from nolabs.application.diffdock.use_cases import (
+    GetJobFeature,
+    RunJobFeature,
+    SetupJobFeature,
+)
 
 
 class DiffDockDependencies:
