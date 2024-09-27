@@ -110,19 +110,22 @@
     </q-scroll-area>
   </q-card-section>
 
-  <q-card-section class="exception-section q-pa-sm" v-if="lastExceptions.length">
-    <div class="text-white q-pa-sm">Last Exceptions</div>
+  <!-- Component Error Section -->
+  <q-card-section class="component-error-section q-pa-sm" v-if="nodeData?.data.state === 'FAILED'">
+    <div class="text-white q-pa-sm">Component Error</div>
     <q-item class="text-black q-pa-sm q-mb-sm q-border-radius-md">
       <q-item-section>
-        <q-btn color="red" label="Show last exceptions" class="q-pm-md"
-          @click="showLastExceptionsModal = !showLastExceptionsModal">
+        <q-btn color="yellow" text-color="black" label="Component Error" class="q-pm-md">
           <q-icon left name="warning" />
         </q-btn>
+        <div class="error-message">
+          {{ nodeData.data.stateMessage }}
+        </div>
       </q-item-section>
-      <ComponentExceptionsModal v-model:visible="showLastExceptionsModal" :exceptions="lastExceptions" />
     </q-item>
   </q-card-section>
 
+  <!-- Job Modal -->
   <q-dialog v-model="showJobModal" full-width>
     <q-card style="max-width: 90vw;">
       <component :is="selectedJobComponent" :job-id="selectedJobId" />
@@ -134,23 +137,24 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch } from 'vue';
+import { defineComponent } from 'vue';
 import { useWorkflowStore, Node } from 'src/features/workflow/components/storage';
 import {
-  getJobMetaData
+  getJobMetaData,
 } from 'src/features/workflow/refinedApi';
 import {
-  GetJobMetadataResponse, JobStateEnum,
+  GetJobMetadataResponse,
+  JobStateEnum,
+  ComponentStateEnum, // Import ComponentStateEnum
 } from 'src/refinedApi/client';
 import EsmFoldJob from '../jobs/EsmFoldJob.vue';
 import P2RankJob from '../jobs/P2RankJob.vue';
 import DiffDockJob from '../jobs/DiffDockJob.vue';
 import draggable from 'vuedraggable';
-import { Notify } from "quasar";
-import componentApi from "./componentApi";
+import { Notify } from 'quasar';
+import componentApi from './componentApi';
 import MsaJob from '../jobs/MsaJob.vue';
-import ComponentExceptionsModal from "./ComponentExceptionsModal.vue";
-import BlastJobVue from 'src';
+import ComponentExceptionsModal from './ComponentExceptionsModal.vue';
 
 export default defineComponent({
   name: 'NodeContentBody',
@@ -160,7 +164,7 @@ export default defineComponent({
     P2RankJob,
     MsaJob,
     draggable,
-    DiffDockJob
+    DiffDockJob,
   },
   props: {
     nodeId: { type: String, required: true },
@@ -260,29 +264,31 @@ export default defineComponent({
         executionStatus: JobStateEnum | null
       }>,
       jobErrors: {} as Record<string, string>,
-      lastExceptions: [] as string[],
       selectedJobComponent: null as any,
       thumbStyle: {
         right: '4px',
         borderRadius: '7px',
         backgroundColor: '#027be3',
         width: '4px',
-        opacity: 0.75
+        opacity: 0.75,
       },
       barStyle: {
         right: '2px',
         borderRadius: '9px',
         backgroundColor: '#027be3',
         width: '8px',
-        opacity: 0.2
-      }
+        opacity: 0.2,
+      },
+      JobStateEnum, // Make JobStateEnum available in the template
+      showJobModal: false,
+      selectedJobId: '',
+      ComponentStateEnum, // Make ComponentStateEnum available in the template
     };
   },
   async mounted() {
     const workflowStore = useWorkflowStore();
     this.nodeData = workflowStore.getNodeById(this.nodeId);
     await this.updateJobs();
-    this.updateErrorsAndExceptions();
   },
   watch: {
     'nodeData.data.jobIdsToUpdate': {
@@ -290,21 +296,6 @@ export default defineComponent({
       immediate: true,
       deep: true
     },
-    'nodeData.data.last_exceptions': {
-      handler: 'updateErrorsAndExceptions',
-      immediate: true,
-      deep: true
-    },
-    'nodeData.data.input_property_errors': {
-      handle: 'updateErrorsAndExceptions',
-      immediate: true,
-      deep: true
-    },
-    'nodeData.data.jobs_errors': {
-      handler: 'updateErrorsAndExceptions',
-      immediate: true,
-      deep: true
-    }
   },
   methods: {
     copyContent(s: string) {
@@ -420,23 +411,6 @@ export default defineComponent({
       const workflowStore = useWorkflowStore();
       await workflowStore.deleteJob(job.job_id, this.nodeId);
     },
-    updateErrorsAndExceptions() {
-      if (this.nodeData?.input_property_errors && this.nodeData.input_property_errors.length > 0) {
-        this.lastExceptions = this.nodeData?.input_property_errors.map(x => x.msg + ' - ' + x.loc.join(', ')) || [];
-      } else {
-        this.lastExceptions = this.nodeData?.data.last_exceptions || [];
-      }
-
-      if (this.nodeData?.data.jobs_errors) {
-        this.jobErrors = this.nodeData?.data.jobs_errors.reduce((acc: Record<string, string>, error: {
-          msg: string;
-          job_id: string
-        }) => {
-          acc[error.job_id] = error.msg;
-          return acc;
-        }, {}) || {};
-      }
-    },
     openJob(job: GetJobMetadataResponse) {
       const jobDefinition = this.$options.jobsDefinitions.find(item => item.name === this.name);
 
@@ -448,7 +422,8 @@ export default defineComponent({
         } else {
           const experimentId = this.$route.params.experimentId as string;
           const routeData = this.$router.resolve({
-            name: jobDefinition.routeName, params: { experimentId: experimentId, jobId: job.job_id }
+            name: jobDefinition.routeName,
+            params: { experimentId: experimentId, jobId: job.job_id },
           });
           window.open(routeData.href, '_blank');
         }
@@ -472,7 +447,7 @@ export default defineComponent({
   padding: 10px;
 }
 
-.exception-section {
+.component-error-section {
   border: 1px dashed #ccc;
   padding: 10px;
 }
@@ -484,5 +459,10 @@ export default defineComponent({
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal; /* Allow text to wrap */
+}
+
+.error-message {
+  margin-top: 10px;
+  color: red;
 }
 </style>
