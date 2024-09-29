@@ -121,7 +121,7 @@ services:
     env_file:
       - nolabs/microservices/diffdock/service/.env
     volumes:
-      - /tmp/diffdock-weights:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
+      - /home/jt/.nolabs/diffdock-weights:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
   p2rank:
     image: 'ghcr.io/basedlabs/p2rank:1.0.0'
     network_mode: host

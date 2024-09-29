@@ -29,7 +29,7 @@
           <q-btn icon="close" flat round dense v-close-popup/>
         </q-card-section>
         <q-card-section>
-          <AminoAcidInferenceForm :on-submit="onSubmit" :properties="job?.properties"/>
+          <AminoAcidInferenceForm :on-submit="onSubmit" :properties="job?.properties" :multiple="false"/>
         </q-card-section>
       </q-card>
     </q-dialog>

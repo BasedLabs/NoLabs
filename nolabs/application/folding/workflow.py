@@ -6,7 +6,7 @@ from typing import List, Optional, Type
 from prefect.states import Cancelled, Completed
 from pydantic import BaseModel
 
-from nolabs.application.workflow.tasks import ComponentFlow
+from workflow.flows import ComponentFlow
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob

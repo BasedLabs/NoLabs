@@ -13,9 +13,15 @@ from settings import settings
 app = Celery(
     __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
 )
-app.conf.enable_utc = settings.celery_enable_utc
-app.conf.task_default_queue = settings.celery_worker_queue
-app.conf.accept_content = ["application/json", "application/x-python-serialize"]
+app.conf.update(
+    enable_utc=True,
+    task_default_queue=settings.celery_worker_queue,
+    task_track_started=True,
+    task_acks_late=True,
+    task_reject_on_worker_lost=True,
+    worker_state_db="./celery-state.db",
+    accept_content=["application/json", "application/x-python-serialize"]
+)
 
 
 @app.task(time_limit=3 * 24 * 60 * 60, name="reinvent.run_reinforcement_learning")

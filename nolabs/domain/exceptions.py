@@ -168,7 +168,7 @@ class ErrorCodes(Enum):
     update_workflow_schema_failed = ErrorCode(
         code=90, description="Update workflow schema failed"
     )
-    start_workflow_schema_failed = ErrorCode(
+    start_workflow_failed = ErrorCode(
         code=91, description="Start workflow failed"
     )
     start_component_failed = ErrorCode(code=92, description="Start component failed")
@@ -189,6 +189,15 @@ class ErrorCodes(Enum):
     )
     workflow_run_folding_job_failed = ErrorCode(
         code=102, description="Run folding job in workflow failed"
+    )
+    workflow_running = ErrorCode(
+        code=103, description="Workflow is running"
+    )
+    component_running = ErrorCode(
+        code=104, description="Component is running"
+    )
+    invalid_workflow_timeouts = ErrorCode(
+        code=105, description="Invalid workflow timeouts"
     )
 
 

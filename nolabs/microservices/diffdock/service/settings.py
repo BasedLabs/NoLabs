@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from pydantic_settings import BaseSettings
@@ -6,12 +7,11 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     celery_broker_url: str
     celery_backend_url: str
-    celery_enable_utc: bool
     celery_worker_queue: str
     celery_worker_concurrency: int
     fastapi_host: str
     fastapi_port: int
-    weights_path: str
+    weights_path: Path
     use_max_power: bool
     omp_num_threads: int
     mkl_num_threads: int

@@ -24,6 +24,7 @@ python-multipart = "^0.0.10"
 
 [tool.poetry.group.dev.dependencies]
 deptry = "^0.19.1"
+flower = "^2.0.1"
 
 [build-system]
 requires = ["poetry-core"]

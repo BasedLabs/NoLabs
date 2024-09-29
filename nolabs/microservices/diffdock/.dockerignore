@@ -2,3 +2,4 @@
 service/.env**
 .idea
 README.md
+celery-state.db

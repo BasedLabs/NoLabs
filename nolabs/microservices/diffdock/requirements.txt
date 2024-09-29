@@ -1,0 +1,22 @@
+# Standard Python dependencies
+pydantic==2.8.2
+fastapi==0.112.2
+requests==2.32.3
+pydantic-settings==2.4.0
+uvicorn==0.30.6
+python-dotenv==1.0.1
+celery[redis]==5.4.0
+pyg==0.7.1
+pyyaml==6.0
+scipy==1.7.3
+networkx==2.6.3
+biopython==1.79
+rdkit-pypi==2022.03.5
+e3nn==0.5.0
+spyrmsd==0.5.2
+pandas==1.5.3
+biopandas==0.4.1
+python-json-logger==2.0.7
+
+# Git-based dependencies
+git+https://github.com/pyg-team/pytorch_geometric.git#egg=torch-geometric
