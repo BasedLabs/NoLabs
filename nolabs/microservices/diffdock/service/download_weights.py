@@ -1,13 +1,7 @@
 import os
+import sys
 import urllib.request
 from pathlib import Path
-
-from dotenv import load_dotenv
-
-load_dotenv(".env")
-
-from log import logger
-from settings import settings
 
 
 def download_file(url, file_name):
@@ -25,30 +19,30 @@ def download_file(url, file_name):
                 file.write(chunk)
                 downloaded_size += len(chunk)
 
-                logger.info(f"Downloaded: {downloaded_size / (1024 * 1024):.2f} MB / {total_size / (1024 * 1024):.2f} MB")
+                print(f"Downloaded: {downloaded_size / (1024 * 1024):.2f} MB / {total_size / (1024 * 1024):.2f} MB")
 
-    logger.info(f"Download complete: {file_name}")
+    print(f"Download complete: {file_name}")
 
 
-def download_model_weights():
-    logger.info(
-        "Downloading model weights", extra={"model_weight_url": settings.model1_url}
+def download_model_weights(dir: str, model1_url: str, model2_url: str):
+    print(
+        f"Downloading model weights, model_weight_url: {model1_url}"
     )
 
-    path1 = Path(settings.weights_path, settings.model1_url.split("/")[-1])
+    path1 = Path(dir, model1_url.split("/")[-1])
     download_file(
-        settings.model1_url, str(path1)
+        model1_url, str(path1)
     )
 
-    logger.info(
-        "Downloading model weights", extra={"model_weight_url": settings.model2_url}
+    print(
+        f"Downloading model weights, model_weight_url: {model2_url}"
     )
 
-    path2 = Path(settings.weights_path, settings.model2_url.split("/")[-1])
+    path2 = Path(dir, model2_url.split("/")[-1])
     download_file(
-        settings.model2_url, str(path2)
+        model2_url, str(path2)
     )
 
-    logger.info("Finished")
+    print("Finished")
 
-download_model_weights()
+download_model_weights(os.environ[""])
