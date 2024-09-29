@@ -123,6 +123,9 @@ class Experiment(Document, Entity):
             created_at=created_at,
         )
 
+    def set_flow_run_id(self, flow_run_id: uuid.UUID):
+        self.flow_run_id = flow_run_id
+
     @property
     def iid(self) -> ExperimentId:
         return ExperimentId(self.id)
@@ -209,6 +212,9 @@ class ComponentData(Document, Entity):
 
         for e in domain_events:
             await EventDispatcher.raise_event(e)
+
+    def set_flow_run_id(self, flow_run_id: uuid.UUID):
+        self.flow_run_id = flow_run_id
 
 
 @dataclass
@@ -866,6 +872,7 @@ class Job(Document, Entity):
         id: JobId,
         name: JobName,
         experiment: Union[Experiment, uuid.UUID],
+        component: Union[ComponentData, uuid.UUID, None] = None,
         *args,
         **kwargs,
     ):
@@ -880,6 +887,7 @@ class Job(Document, Entity):
             id=id.value if isinstance(id, JobId) else id,
             name=name,
             experiment=experiment,
+            component=component,
             *args,
             **kwargs,
         )

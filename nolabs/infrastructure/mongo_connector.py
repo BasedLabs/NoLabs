@@ -2,22 +2,24 @@ __all__ = ["mongo_connect"]
 
 from mongoengine import ConnectionFailure, connect, disconnect, get_db
 
+from nolabs.infrastructure.settings import settings
+
 connection = None
 
 
-def mongo_connect(connection_string: str):
-    connection = connect(host=connection_string)
+def get_connection():
+    try:
+        return get_db("nolabs")
+    except ConnectionFailure:
+        return None
+
+
+def mongo_connect():
+    connection = get_connection()
+    if not connection:
+        return connect(host=settings.connection_string)
     return connection
 
 
 def mongo_disconnect():
     disconnect()
-
-
-def is_connected():
-    try:
-        # Try to get the database object for the given alias
-        get_db("nolabs")
-        return True
-    except ConnectionFailure:
-        return False

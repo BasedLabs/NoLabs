@@ -3,7 +3,7 @@ from typing import List, Type
 
 from pydantic import BaseModel
 
-from nolabs.application.workflow.tasks import Component, ComponentFlow
+from workflow.flows import Component, ComponentFlow
 from nolabs.domain.workflow.component import TInput, TOutput
 
 
@@ -33,7 +33,5 @@ class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutpu
 
 
 class ProteinsFlow(ComponentFlow):
-    component_timeout_seconds = 1.0
-
     async def gather_jobs(self, inp: ProteinsComponentInput, **kwargs):
         return ProteinsComponentOutput(proteins=inp.proteins)

@@ -3,7 +3,7 @@ from typing import List, Optional, Type
 
 from pydantic import BaseModel
 
-from nolabs.application.workflow.tasks import ComponentFlow
+from workflow.flows import ComponentFlow
 from nolabs.domain.workflow.component import Component, TInput, TOutput
 
 

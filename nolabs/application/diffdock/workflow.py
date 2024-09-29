@@ -9,7 +9,7 @@ from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
 
-from nolabs.application.workflow.tasks import ComponentFlow
+from workflow.flows import ComponentFlow
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import JobId, JobName, Ligand, Protein
 from nolabs.domain.models.diffdock import DiffDockBindingJob
@@ -44,6 +44,9 @@ class DiffDockComponent(Component[DiffDockComponentInput, DiffDockComponentOutpu
 
 
 class DiffdockComponentFlow(ComponentFlow):
+    component_timeout_seconds = 620
+    job_timeout_seconds = 600
+
     async def get_jobs(self, inp: DiffDockComponentInput) -> List[uuid.UUID]:
         job_ids = []
 
@@ -68,10 +71,11 @@ class DiffdockComponentFlow(ComponentFlow):
                 ).first()
 
                 if not job:
-                    job = DiffDockBindingJob(
+                    job = DiffDockBindingJob.create(
                         id=JobId(uuid.uuid4()),
                         name=JobName("Diffdock binding job"),
                         experiment=self.experiment_id,
+                        component=self.component_id
                     )
                     job.set_input(protein=protein, ligand=ligand)
                     await job.save()

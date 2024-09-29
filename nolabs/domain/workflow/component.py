@@ -5,7 +5,6 @@ __all__ = ["Component"]
 import uuid
 from abc import abstractmethod
 from dataclasses import field
-from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -25,7 +24,6 @@ from typing import (
 )
 from uuid import UUID
 
-from mongoengine import ReferenceField, CASCADE, EmbeddedDocumentListField, DateTimeField, StringField, UUIDField
 from pydantic import BaseModel, Field, ValidationError, TypeAdapter
 
 from nolabs.domain.models.common import (
@@ -35,7 +33,7 @@ from nolabs.domain.models.common import (
 )
 
 if TYPE_CHECKING:
-    from nolabs.application.workflow.tasks import ComponentFlow
+    from workflow.flows import ComponentFlow
 
 
 def is_assignable_to_generic(value, generic_type):
@@ -367,21 +365,6 @@ class Component(Generic[TInput, TOutput]):
 
     name: ClassVar[str]
     description: ClassVar[str]
-
-    experiment: "Experiment" = ReferenceField(
-        "Experiment", required=True, reverse_delete_rule=CASCADE
-    )
-
-    input_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
-        PropertyErrorData, default=list
-    )
-    output_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
-        PropertyErrorData, default=list
-    )
-
-    executed_at: Optional[datetime] = DateTimeField()
-    exception: Optional[str] = StringField()
-    flow_run_id: Optional[uuid.UUID] = UUIDField()
 
     meta = {"collection": "components"}
 

@@ -12,7 +12,7 @@ from nolabs.application.small_molecules_design.services import (
     ReinventParametersSaver,
     ReinventSmilesRetriever,
 )
-from nolabs.application.workflow.tasks import ComponentFlow
+from workflow.flows import ComponentFlow
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import (
     DesignedLigandScore,

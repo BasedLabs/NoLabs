@@ -2,7 +2,7 @@ import os
 import subprocess
 import tempfile
 
-__all__ = ["run_docking", "download_model_weights"]
+__all__ = ["run_docking"]
 
 import csv
 import glob
@@ -22,24 +22,6 @@ if settings.use_max_power:
     os.environ["MKL_NUM_THREADS"] = str(os.cpu_count())
 
 
-def download_model_weights():
-    import urllib.request
-
-    logger.info(
-        "Downloading model weights", extra={"model_weight_url": settings.model1_url}
-    )
-    urllib.request.urlretrieve(
-        settings.model1_url, os.path.join(settings, settings.model1_url.split("/")[-1])
-    )
-
-    logger.info(
-        "Downloading model weights", extra={"model_weight_url": settings.model2_url}
-    )
-    urllib.request.urlretrieve(
-        settings.model2_url, os.path.join(settings, settings.model2_url.split("/")[-1])
-    )
-
-
 def clear_results_directory(directory):
     # Check if the directory exists
     if os.path.exists(directory):
@@ -53,6 +35,12 @@ def clear_results_directory(directory):
 
 
 def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionResponse:
+    mw1_path = settings.weights_path / settings.model1_url.split("/")[-1]
+    mw2_path = settings.weights_path / settings.model2_url.split("/")[-1]
+
+    if not mw1_path.exists() or not mw2_path.exists():
+        raise RuntimeError("Weights do not exist. Download weights first")
+
     results_dir = "/app/DiffDock/results/user_predictions_small_new"
 
     clear_results_directory(results_dir)
@@ -99,7 +87,7 @@ def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionR
 
         # Generate ESM embeddings
         logger.info("Generating embeddings")
-        os.environ["HOME"] = "/app/DiffDock/esm/model_weights"
+        os.environ["HOME"] = str(settings.weights_path)
         os.environ["PYTHONPATH"] = (
             os.environ.get("PYTHONPATH", "") + ":/app/DiffDock/esm"
         )
@@ -233,6 +221,3 @@ def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionR
         )
 
     return response
-
-
-download_model_weights()

@@ -1,18 +1,3 @@
-# Generate workable requirements.txt from Poetry dependencies
-FROM python:3.10-slim as requirements
-
-RUN pip install poetry poetry-plugin-export
-
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
-
-WORKDIR /app
-COPY pyproject.toml /app
-RUN poetry lock --no-update
-RUN poetry export -f requirements.txt --without-hashes -o requirements.txt
-
 FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
 
 RUN apt-get update && apt-get install -y wget git build-essential
@@ -40,9 +25,11 @@ RUN wget https://sourceforge.net/projects/smina/files/smina.static/download -O /
 RUN wget https://github.com/gnina/gnina/releases/download/v1.0.3/gnina -O /app/DiffDock/gnina && \
     chmod +x /app/DiffDock/gnina
 
-COPY --from=requirements /app/requirements.txt /app/requirements.txt
+COPY requirements.txt /app
+COPY install_dependencies.sh /app
 
-RUN pip install -r /app/requirements.txt
+RUN chmod +x install_dependencies.sh
+RUN ./install_dependencies.sh
 
 ADD service /app/service
 

@@ -22,7 +22,14 @@ class Cel:
         self._app = Celery(
             __name__, broker=settings.celery_broker, backend=settings.celery_backend
         )
-        self._app.conf.enable_utc = True
+        self._app.conf.update(
+            enable_utc=True,
+            task_track_started=True,
+            task_acks_late=True,
+            task_reject_on_worker_lost=True,
+            worker_state_db="celery-state.db",
+            accept_content=["application/json", "application/x-python-serialize"]
+        )
         self._app.autodiscover_tasks(force=True)
 
     def _send_task(self, name: str, payload: BaseModel) -> AsyncResult:
@@ -36,11 +43,6 @@ class Cel:
         )
 
     async def _wait_async(self, async_result: AsyncResult) -> Any:
-        while not async_result.ready():
-            await asyncio.sleep(0.5)
-        return async_result.get()
-
-    async def wait_async(self, async_result: AsyncResult) -> Any:
         while not async_result.ready():
             await asyncio.sleep(0.5)
         return async_result.get()

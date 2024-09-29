@@ -7,7 +7,7 @@ from prefect.states import Completed
 from pydantic import BaseModel
 
 from nolabs.application.blast.services import BlastJobRunner
-from nolabs.application.workflow import ComponentFlow
+from workflow import ComponentFlow
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.blast import BlastJob
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein

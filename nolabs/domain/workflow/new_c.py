@@ -4,7 +4,6 @@ __all__ = ["Component"]
 
 import importlib
 import uuid
-from abc import abstractmethod
 from dataclasses import field
 from typing import (
     TYPE_CHECKING,
@@ -30,7 +29,7 @@ from pydantic import BaseModel, Field, ValidationError, TypeAdapter
 from nolabs.domain.models.common import (PropertyValidationError)
 
 if TYPE_CHECKING:
-    from nolabs.application.workflow.tasks import ComponentFlow
+    pass
 
 
 def is_assignable_to_generic(value, generic_type):
