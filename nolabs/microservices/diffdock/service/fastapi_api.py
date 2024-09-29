@@ -1,10 +1,10 @@
 import application
-from api_models import InferenceInput, InferenceOutput
+from api_models import RunDiffDockPredictionRequest, RunDiffDockPredictionResponse
 from fastapi import FastAPI
 
-app = FastAPI(title="Esmfold Light")
+app = FastAPI(title="Diffdock")
 
 
 @app.post("/inference")
-def inference(request: InferenceInput) -> InferenceOutput:
-    return application.inference(param=request)
+def inference(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionResponse:
+    return application.run_docking(request=request)

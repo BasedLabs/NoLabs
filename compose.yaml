@@ -111,17 +111,21 @@ services:
       context: nolabs/microservices/diffdock
       dockerfile: build/Dockerfile
     command: python api.py
+    ports:
+      - "8001:8001"
+    environment:
+      - NVIDIA_DRIVER_CAPABILITIES=all
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               capabilities: [ gpu ]
     env_file:
       - nolabs/microservices/diffdock/service/.env
     volumes:
-      - /home/jt/.nolabs/diffdock-weights:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
+      - ${DIFFDOCK_WEIGHTS_LOCATION}:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
   p2rank:
     image: 'ghcr.io/basedlabs/p2rank:1.0.0'
     network_mode: host
@@ -167,9 +171,9 @@ services:
       context: microservices/rosettafold
       dockerfile: build/Dockerfile
     volumes:
-      - /media/jt/Local Disk/RoseTTAFold/bfd:/RoseTTAFold/bfd
-      - /media/jt/Local Disk/RoseTTAFold/pdb100_2021Mar03:/RoseTTAFold/pdb100_2021Mar03
-      - /media/jt/Local Disk/RoseTTAFold/UniRef30_2020_06:/RoseTTAFold/UniRef30_2020_06
+      - ${ROSETTAFOLD_BFD_PATH}:/RoseTTAFold/bfd
+      - ${ROSETTAFOLD_PDB_PATH}:/RoseTTAFold/pdb100_2021Mar03
+      - ${ROSETTAFOLD_UNIREF_PATH}:/RoseTTAFold/UniRef30_2020_06
     command: --host=0.0.0.0 --port=5737
     deploy:
       resources:
@@ -195,7 +199,7 @@ services:
     env_file:
       - nolabs/microservices/reinvent/service/.env
     volumes:
-      - /home/jt/.nolabs/reinvent/jobs_configs:/app/service/reinvent_configs/jobs_configs # nolabs.env.NOLABS_REINVENT_DIRECTORY / reinvent.env.CONFIGS_DIRECTORY
+      - ${NOLABS_HOME}/reinvent/jobs_configs:/app/service/reinvent_configs/jobs_configs # nolabs.env.NOLABS_REINVENT_DIRECTORY / reinvent.env.CONFIGS_DIRECTORY
   blast_query:
     image: 'ghcr.io/basedlabs/blast_query:1.0.0'
     network_mode: host
