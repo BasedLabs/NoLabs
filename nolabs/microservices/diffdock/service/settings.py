@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     fastapi_host: str
     fastapi_port: int
     weights_path: Path
-    weights_root_path: Path
+    home: Path
     use_max_power: bool
     omp_num_threads: int
     mkl_num_threads: int

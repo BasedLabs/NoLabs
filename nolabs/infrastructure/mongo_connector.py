@@ -9,8 +9,8 @@ connection = None
 
 def get_connection():
     try:
-        return get_db("nolabs")
-    except ConnectionFailure:
+        return get_db()
+    except ConnectionFailure as e:
         return None
 
 

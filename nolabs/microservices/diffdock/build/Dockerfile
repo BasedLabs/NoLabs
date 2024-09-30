@@ -35,7 +35,7 @@ RUN pip install --upgrade pip && \
                         scikit-learn
 
 # Install PyTorch Geometric and its dependencies
-RUN pip install git+https://github.com/pyg-team/pytorch_geometric.git@2.5.0
+RUN pip install git+https://github.com/pyg-team/pytorch_geometric.git@2.4.0
 RUN pip install --no-index torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-1.11.0+cu113.html
 
 # Clone the ESM repository, check out the specified commit, and install

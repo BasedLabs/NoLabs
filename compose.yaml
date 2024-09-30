@@ -111,16 +111,12 @@ services:
       context: nolabs/microservices/diffdock
       dockerfile: build/Dockerfile
     command: python api.py
-    ports:
-      - "8001:8001"
-    environment:
-      - NVIDIA_DRIVER_CAPABILITIES=all
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: all
+              count: 1
               capabilities: [ gpu ]
     env_file:
       - nolabs/microservices/diffdock/service/.env

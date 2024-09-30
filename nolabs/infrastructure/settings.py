@@ -29,7 +29,6 @@ class Settings(BaseSettings):
     connection_string: str
     socketio_broker: str
     enable_structured_logging: bool
-    home: Path
     reinvent_directory: Path
     blast_email: str
     workflow_version: int
@@ -42,6 +41,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()  # type: ignore
-
-if not Path(settings.home).exists():
-    raise RuntimeError(f"{settings.home} does not exist. Create it.")
