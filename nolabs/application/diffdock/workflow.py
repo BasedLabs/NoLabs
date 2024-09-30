@@ -3,13 +3,14 @@ __all__ = ["DiffDockComponent"]
 import uuid
 from typing import List, Type
 
-from microservices.diffdock.service.api_models import RunDiffDockPredictionRequest
+from nolabs.infrastructure.mongo_connector import get_connection
+from nolabs.microservices.diffdock.service.api_models import RunDiffDockPredictionRequest
 from prefect import State
 from prefect.client.schemas.objects import R
 from prefect.states import Cancelled, Completed, Failed
 from pydantic import BaseModel
 
-from workflow.flows import ComponentFlow
+from nolabs.workflow.flows import ComponentFlow
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import JobId, JobName, Ligand, Protein
 from nolabs.domain.models.diffdock import DiffDockBindingJob
@@ -100,28 +101,34 @@ class DiffdockComponentFlow(ComponentFlow):
         task_id = uuid.uuid4()
         job.set_task_id(task_id=str(task_id))
         await job.save()
+
         job_result = await celery.diffdock_inference(task_id=task_id, payload=request)
-
         ligand = job.ligand
-
         result = []
 
-        for item in job_result.sdf_results:
-            complex = ligand.add_binding(
-                protein=job.protein,
-                sdf_content=item.sdf_content,
-                minimized_affinity=item.minimized_affinity,
-                scored_affinity=item.scored_affinity,
-                confidence=item.confidence,
-                plddt_array=[],
-                name=item.sdf_file_name,
-            )
+        db = get_connection()
+        session = db.client.start_session()
+        with session.start_transaction():
+            for item in job_result.sdf_results:
+                ligand_for_complex = Ligand.copy(ligand)
 
-            result.append(complex)
+                ligand_for_complex.save(session=session)
 
-        job.set_result(complexes=result)
+                complex = Protein.create_complex(
+                    protein=job.protein,
+                    ligand=ligand_for_complex,
+                    minimized_affinity=item.minimized_affinity,
+                    scored_affinity=item.scored_affinity,
+                    confidence=item.confidence,
+                    plddt_array=[]
+                )
 
-        await job.save(cascade=True)
+                complex.save(session=session)
+                result.append(complex)
+
+            job.set_result(complexes=result)
+
+            await job.save(session=session, cascade=True)
 
         if not job.result_valid():
             return Failed(message="Result of job is invalid")

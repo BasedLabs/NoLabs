@@ -87,7 +87,6 @@ def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionR
 
         # Generate ESM embeddings
         logger.info("Generating embeddings")
-        os.environ["HOME"] = str(settings.weights_root_path)
         os.environ["PYTHONPATH"] = (
             os.environ.get("PYTHONPATH", "") + ":/app/DiffDock/esm"
         )
@@ -153,6 +152,7 @@ def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionR
                         sdf_content = file.read()
 
                     # Extract confidence from the file name
+                    logger.info(f'SDF FILE {sdf_file}')
                     confidence_match = re.search("confidence([\-\.\d]+)\.sdf", sdf_file)
                     if confidence_match:
                         confidence = float(confidence_match.group(1))

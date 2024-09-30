@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -20,7 +20,7 @@ class SDFResult(BaseModel):
     sdf_content: str
     scored_affinity: float
     minimized_affinity: float
-    confidence: float = None
+    confidence: Optional[float] = None
 
 
 class RunDiffDockPredictionResponse(BaseModel):

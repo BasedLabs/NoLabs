@@ -3,7 +3,8 @@ __all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 from typing import List
 from uuid import UUID, uuid4
 
-from microservices.diffdock.service.api_models import RunDiffDockPredictionRequest
+from nolabs.infrastructure.mongo_connector import get_connection
+from nolabs.microservices.diffdock.service.api_models import RunDiffDockPredictionRequest
 
 from nolabs.application.diffdock.api_models import (
     JobResponse,
@@ -117,7 +118,7 @@ class RunJobFeature:
         job.set_task_id(task_id=str(task_id))
         await job.save()
 
-        response = celery.diffdock_inference(
+        job_result = celery.diffdock_inference(
             task_id=task_id,
             payload=RunDiffDockPredictionRequest(
                 pdb_contents=job.protein.get_pdb(),
@@ -126,17 +127,29 @@ class RunJobFeature:
             ),
         )
 
-        for item in response.sdf_results:
-            complex = ligand.add_binding(
-                protein=job.protein,
-                sdf_content=item.sdf_content,
-                minimized_affinity=item.minimized_affinity,
-                scored_affinity=item.scored_affinity,
-                confidence=item.confidence,
-                plddt_array=[],
-                name=item.sdf_file_name,
-            )
-            result.append(complex)
+        db = get_connection()
+        session = db.client.start_session()
+        with session.start_transaction():
+            for item in job_result.sdf_results:
+                ligand_for_complex = Ligand.copy(ligand)
+
+                ligand_for_complex.save(session=session)
+
+                complex = Protein.create_complex(
+                    protein=job.protein,
+                    ligand=ligand_for_complex,
+                    minimized_affinity=item.minimized_affinity,
+                    scored_affinity=item.scored_affinity,
+                    confidence=item.confidence,
+                    plddt_array=[]
+                )
+
+                complex.save(session=session)
+                result.append(complex)
+
+            job.set_result(complexes=result)
+
+            await job.save(session=session, cascade=True)
 
         job.set_result(complexes=result)
         await job.save(cascade=True)
