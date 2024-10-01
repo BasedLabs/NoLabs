@@ -325,7 +325,7 @@ export default defineComponent({
       const workflowSchema = await getWorkflowSchema(this.experimentId);
 
       // Map the schema components to the required structure
-      const availableComponents = workflowSchema?.components.map(component => ({
+      const availableComponents = workflowSchema?.component_templates.map(component => ({
         name: component.name,
         description: component.description,
         inputs: Object.keys(component.input),

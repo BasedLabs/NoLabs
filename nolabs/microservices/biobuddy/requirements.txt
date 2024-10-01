@@ -7,6 +7,7 @@ biopython
 langchain-openai
 langchain==0.1.14
 websockets
+websocket
 asyncio==3.4.3
 beautifulsoup4==4.12.2
 colorama==0.4.6

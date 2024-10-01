@@ -93,7 +93,7 @@ class LoadConversationFeature:
 
         chat = Chat.objects(experiment_id=experiment_id).first()
         if not chat:
-            return LoadConversationResponse(message=[])
+            return LoadConversationResponse(messages=[])
 
         messages = chat.messages
         api_messages = []
@@ -126,7 +126,7 @@ class LoadConversationFeature:
                 continue
             api_messages.append(api_message)
 
-        return LoadConversationResponse(message=api_messages)
+        return LoadConversationResponse(messages=api_messages)
 
 
 class CreateMessageFeature:
