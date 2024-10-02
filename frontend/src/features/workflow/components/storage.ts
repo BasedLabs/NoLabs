@@ -349,7 +349,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       const idMapping = new Map<string, string>();
 
       // Process new nodes and generate UUIDs
-      const newNodes = data.components.map(component => {
+      const newNodes = data.workflow_components.map(component => {
         if (existingNodeIds.includes(component.id)) {
           return component; // Retain existing component
         } else {
@@ -395,7 +395,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       });
 
       // Adjust connections (edges)
-      const newEdges = data.components.flatMap(component =>
+      const newEdges = data.workflow_components.flatMap(component =>
         component.connections.map(conn => {
           // Adjust source_component_id if it matches an old ID
           const adjustedSourceId = idMapping.get(conn.source_component_id) || conn.source_component_id;
@@ -471,6 +471,14 @@ export const useWorkflowStore = defineStore('workflowStore', {
           const nodeType = this.allowedTypes.includes(type) ? type : "custom";
 
           const componentState = await getComponentState(component.component_id);
+
+          this.runningComponentIds = [];
+
+          // Check if the component is running
+          if (componentState.state === ComponentStateEnum.RUNNING) {
+            // Add the component ID to runningComponentIds list
+            this.runningComponentIds.push(component.component_id);
+          }
 
           const nodeData: Node = {
             id: component.component_id,

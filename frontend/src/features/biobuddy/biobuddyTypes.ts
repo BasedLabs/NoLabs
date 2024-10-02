@@ -19,5 +19,5 @@ export interface BiobuddyWorkflowComponent {
 
 // Define the main data type
 export interface BiobuddyWorkflowAdjustmentData {
-  components: BiobuddyWorkflowComponent[];
+  workflow_components: BiobuddyWorkflowComponent[];
 }

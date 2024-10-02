@@ -142,7 +142,7 @@ services:
     image: 'ghcr.io/basedlabs/external-data-query:1.0.3'
     network_mode: host
     build:
-      context: microservices/external_data_query
+      context: nolabs/microservices/external_data_query
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5739
   biobuddy:

@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from multiprocessing import Process
+from multiprocessing import Process, freeze_support
 
 from dotenv import load_dotenv
 
@@ -94,13 +94,16 @@ def serve_workflow():
 
 
 def serve_united():
+    freeze_support()
     Process(target=serve_workflow).start()
     serve_fastapi()
 
 
-if settings.mode == "fastapi":
-    serve_fastapi()
-if settings.mode == "workflow":
-    serve_workflow()
-if settings.mode == "united":
-    serve_united()
+if __name__ == '__main__':
+    freeze_support()
+    if settings.mode == "fastapi":
+        serve_fastapi()
+    if settings.mode == "workflow":
+        serve_workflow()
+    if settings.mode == "united":
+        serve_united()
