@@ -21,6 +21,7 @@ xmltodict = "^0.13.0"
 biopython = "^1.84"
 prefect = "^3.0.3"
 python-multipart = "^0.0.10"
+pottery = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
 deptry = "^0.19.1"

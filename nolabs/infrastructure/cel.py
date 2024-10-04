@@ -32,6 +32,10 @@ class Cel:
         )
         self._app.autodiscover_tasks(force=True)
 
+    @property
+    def app(self) -> Celery:
+        return self._app
+
     def _send_task(self, name: str, payload: BaseModel) -> AsyncResult:
         return self._app.send_task(name=name, args=[payload.model_dump()])
 

@@ -183,7 +183,6 @@ class ComponentData(Document, Entity):
 
     executed_at: Optional[datetime] = DateTimeField()
     exception: Optional[str] = StringField()
-    flow_run_id: Optional[uuid.UUID] = UUIDField()
 
     name: str = StringField()
 
@@ -203,6 +202,10 @@ class ComponentData(Document, Entity):
     def create(cls, id: uuid.UUID, experiment: Union["Experiment", uuid.UUID]):
         return ComponentData(id=id, experiment=experiment)
 
+    def set_state(self, state: str, state_message: Optional[str] = None):
+        self.state = state
+        self.state_message = state_message
+
     async def delete(self, signal_kwargs=None, **write_concern):
         self.register_event(ComponentDeletedEvent(component=self))
 
@@ -212,9 +215,6 @@ class ComponentData(Document, Entity):
 
         for e in domain_events:
             await EventDispatcher.raise_event(e)
-
-    def set_flow_run_id(self, flow_run_id: uuid.UUID):
-        self.flow_run_id = flow_run_id
 
 
 @dataclass
@@ -845,11 +845,6 @@ class Job(Document, Entity):
     updated_at: datetime = DateTimeField()
     processing_required: bool = BooleanField(default=False)
 
-    # region Prefect
-    task_run_id: uuid.UUID = UUIDField(required=False)
-    executed_at: datetime = DateTimeField(default=datetime.utcnow, required=True)
-    # endregion
-
     meta = {"allow_inheritance": True}
 
     @classmethod
@@ -886,10 +881,6 @@ class Job(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_job_name)
 
         self.name = name
-
-    def set_run_info(self, task_run_id: uuid.UUID, executed_at: datetime):
-        self.task_run_id = task_run_id
-        self.executed_at = executed_at
 
     @property
     def iid(self) -> JobId:
