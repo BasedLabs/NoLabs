@@ -199,6 +199,10 @@ class ErrorCodes(Enum):
     invalid_workflow_timeouts = ErrorCode(
         code=105, description="Invalid workflow timeouts"
     )
+    job_running = ErrorCode(
+        code=106, description="Job is running"
+    )
+
 
 
 if len([e.value.code for e in ErrorCodes]) != len(

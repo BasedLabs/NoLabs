@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     diffdock_host: str
     celery_broker: str
     celery_backend: str
+    workflow_queue: str = 'workflow'
     connection_string: str
     socketio_broker: str
     enable_structured_logging: bool
