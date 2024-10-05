@@ -1,8 +1,6 @@
 import uuid
 from typing import Optional, List, Generic
 
-from pydantic import BaseModel
-
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import ComponentData, Job
 from nolabs.domain.workflow.component import Component, ComponentTypeFactory, Parameter, TInput, TOutput
@@ -14,10 +12,6 @@ from nolabs.workflow.logic.correlation import make_correlation_id, unpack_correl
 from nolabs.workflow.logic.states import ControlStates, _set_state, _get_state
 from nolabs.workflow.socketio_events_emitter import emit_component_jobs_event, emit_start_component_event, \
     emit_start_job_event, emit_finish_job_event, emit_finish_component_event
-
-
-class TaskContext(BaseModel):
-
 
 
 @celery.app.task("control._component_task", bind=True, queue=settings.workflow_queue)
@@ -71,7 +65,6 @@ async def _component_task(bind):
                     **{"input_errors": [(e.msg, e.loc) for e in input_errors]},
                 },
             )
-
             return
 
     control_flow: ComponentFlowHandler = component.component_flow_type(
@@ -92,9 +85,19 @@ async def _component_task(bind):
         )
 
         for job_id in job_ids:
-            await _start_job(experiment_id=experiment_id,
-                             component_id=component_id,
-                             job_id=job_id)
+            correlation_id = make_correlation_id(experiment_id, component_id, job_id)
+
+            state, _ = _get_state(id=job_id)
+            if state == ControlStates.STARTED:
+                continue
+
+            redis_client.delete(correlation_id)
+            task_id = uuid.UUID()
+            redis_client.set(name=correlation_id, key=task_id, value=1)
+            _job_task.apply_async(kwargs={
+                "job_id": job_id},
+                task_id=task_id,
+                headers={"correlation_id": correlation_id})
 
 
 async def _start_job(experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
@@ -159,9 +162,18 @@ class Flow:
             if state == ControlStates.STARTED:
                 raise NoLabsException(ErrorCodes.job_running)
 
-        await _start_job(experiment_id=experiment_id, component_id=component_id, job_id=job_id)
+        redis_client.delete(correlation_id)
+        task_id = uuid.UUID()
+        redis_client.set(name=correlation_id, key=task_id, value=1)
+        _job_task.apply_async(kwargs={
+            "job_id": job_id},
+            task_id=task_id,
+            headers={"correlation_id": correlation_id})
 
-    async def complete_job(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
+    async def complete_job(self,
+                           experiment_id: uuid.UUID,
+                           component_id: uuid.UUID,
+                           job_id: uuid.UUID):
         _set_state(id=job_id, state=ControlStates.SUCCESS)
 
         emit_finish_job_event(experiment_id=experiment_id,
@@ -225,7 +237,6 @@ class Flow:
             redis_client.rpush(name=correlation_id, *[task_id])
             _component_task.apply_async(task_id=str(task_id),
                                         headers={'correlation_id': correlation_id})
-
 
 
 class ComponentFlowHandler(Generic[TInput, TOutput]):
