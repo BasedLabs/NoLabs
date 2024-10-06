@@ -16,7 +16,7 @@ def get_connection():
 
 def mongo_connect():
     connection = get_connection()
-    if not connection:
+    if connection is None:
         return connect(host=settings.connection_string)
     return connection
 

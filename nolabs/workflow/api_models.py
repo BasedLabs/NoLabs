@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
+from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 
@@ -14,32 +15,27 @@ class JobStateEnum(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-@dataclass
-class GetJobState:
+class GetJobState(BaseModel):
     id: uuid.UUID
     component_id: uuid.UUID
     state: Optional[JobStateEnum]
     state_message: Optional[str]
 
 
-@dataclass
-class GetJobRequest:
+class GetJobRequest(BaseModel):
     job_id: uuid.UUID
 
 
-@dataclass
-class PropertyErrorResponse:
+class PropertyErrorResponse(BaseModel):
     loc: List[str]
     msg: str
 
 
-@dataclass
-class ResetWorkflowRequest:
+class ResetWorkflowRequest(BaseModel):
     experiment_id: UUID
 
 
-@dataclass
-class StartWorkflowComponentRequest:
+class StartWorkflowComponentRequest(BaseModel):
     experiment_id: UUID
     component_id: UUID
 
@@ -52,8 +48,7 @@ class ComponentStateEnum(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-@dataclass
-class GetComponentResponse:
+class GetComponentResponse(BaseModel):
     id: UUID
     input_schema: Dict[str, Any]
     output_schema: Dict[str, Any]
@@ -62,16 +57,14 @@ class GetComponentResponse:
     previous_component_ids: List[UUID]
     input_errors: List[PropertyErrorResponse]
     output_errors: List[PropertyErrorResponse]
-    state: Optional[ComponentStateEnum]
-    state_message: Optional[str]
+    state: ComponentStateEnum
     job_ids: List[uuid.UUID]
+    state_message: Optional[str] = None
 
 
-@dataclass
-class GetComponentRequest:
+class GetComponentRequest(BaseModel):
     id: UUID
 
 
-@dataclass
-class AllWorkflowSchemasResponse:
+class AllWorkflowSchemasResponse(BaseModel):
     ids: List[UUID]

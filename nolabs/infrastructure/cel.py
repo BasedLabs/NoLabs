@@ -9,7 +9,7 @@ import microservices.diffdock.service.api_models as diffdock
 import microservices.esmfold_light.service.api_models as esmfold_light
 import microservices.reinvent.service.api_models as reinvent
 from celery import Celery
-from celery.result import AsyncResult
+from celery.result import AsyncResult, allow_join_result
 from pydantic import BaseModel
 
 from nolabs.infrastructure.settings import settings
@@ -24,7 +24,9 @@ class Cel:
         )
         self._app.conf.update(
             enable_utc=True,
+            task_default_queue='workflow',
             task_track_started=True,
+            worker_send_task_events=True,
             task_acks_late=True,
             task_reject_on_worker_lost=True,
             worker_state_db="celery-state.db",
@@ -49,7 +51,8 @@ class Cel:
     async def _wait_async(self, async_result: AsyncResult) -> Any:
         while not async_result.ready():
             await asyncio.sleep(0.5)
-        return async_result.get()
+        with allow_join_result():
+            return async_result.get()
 
     async def task_result(self, task_id: str) -> AsyncResult:
         return AsyncResult(id=task_id, app=self._app)

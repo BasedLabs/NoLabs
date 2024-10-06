@@ -123,9 +123,6 @@ class Experiment(Document, Entity):
             created_at=created_at,
         )
 
-    def set_flow_run_id(self, flow_run_id: uuid.UUID):
-        self.flow_run_id = flow_run_id
-
     @property
     def iid(self) -> ExperimentId:
         return ExperimentId(self.id)
@@ -201,10 +198,6 @@ class ComponentData(Document, Entity):
     @classmethod
     def create(cls, id: uuid.UUID, experiment: Union["Experiment", uuid.UUID]):
         return ComponentData(id=id, experiment=experiment)
-
-    def set_state(self, state: str, state_message: Optional[str] = None):
-        self.state = state
-        self.state_message = state_message
 
     async def delete(self, signal_kwargs=None, **write_concern):
         self.register_event(ComponentDeletedEvent(component=self))

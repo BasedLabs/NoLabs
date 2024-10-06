@@ -19,7 +19,6 @@ pydantic-settings = "^2.5.2"
 mongoengine = "^0.29.1"
 xmltodict = "^0.13.0"
 biopython = "^1.84"
-prefect = "^3.0.3"
 python-multipart = "^0.0.10"
 pottery = "^3.0.0"
 

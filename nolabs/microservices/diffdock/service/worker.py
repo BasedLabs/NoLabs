@@ -5,8 +5,6 @@ from celery import Celery
 from api_models import RunDiffDockPredictionRequest
 from settings import settings
 
-print('hey')
-
 app = Celery(
     __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
 )

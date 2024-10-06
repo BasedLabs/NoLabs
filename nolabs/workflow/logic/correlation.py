@@ -1,18 +1,27 @@
 import uuid
-from typing import Optional
+from typing import List
+
+from nolabs.infrastructure.red import redis_client
 
 
-def make_correlation_id(experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: Optional[uuid.UUID] = None):
-    if not job_id:
-        return f"{str(experiment_id)}:{str(component_id)}"
+def _make_correlation_id(id: str | uuid.UUID) -> str:
+    return f"correlation_id:{str(id)}"
 
-    return f"{str(experiment_id)}:{str(component_id)}:{str(job_id)}"
+def _unpack_correlation_id(correlation_id: str) -> uuid.UUID:
+    return uuid.UUID(correlation_id.split(':')[-1])
 
+async def _assign_correlation_id(correlation_id: str) -> str:
+    """
+    :return: celery_task_id
+    """
+    await redis_client.delete(correlation_id)
+    celery_task_id = str(uuid.uuid4())
+    await redis_client.rpush(correlation_id, celery_task_id)
+    return celery_task_id
 
-def unpack_correlation_id(correlation_id: str) -> (uuid.UUID, uuid.UUID, Optional[uuid.UUID]):
-    parts = correlation_id.split(":")
+async def _all_correlation_ids() -> List[str]:
+    _, keys = await redis_client.scan(match="correlation_id:*")
+    return keys
 
-    if len(parts) == 2:
-        return uuid.UUID(parts[0]), uuid.UUID(parts[1]), None
-
-    return uuid.UUID(parts[0]), uuid.UUID(parts[1]), uuid.UUID(parts[2])
+async def _all_celery_tasks(cid: str) -> List[str]:
+    return await redis_client.lrange(cid, 0, -1)
