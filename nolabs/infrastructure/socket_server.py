@@ -30,4 +30,5 @@ def start_async_worker():
 def enqueue_event(name: str, room_id: str, data: Dict[str, Any]):
     sync_queue.put({'name': name, 'room_id': room_id, 'data': data})
 
-threading.Thread(target=start_async_worker, daemon=True).start()
+def start_queue_worker():
+    threading.Thread(target=start_async_worker, daemon=True).start()

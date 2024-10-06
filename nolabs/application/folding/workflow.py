@@ -3,16 +3,15 @@ from abc import ABC
 from enum import Enum
 from typing import List, Optional, Type
 
-from prefect.states import Cancelled, Completed
 from pydantic import BaseModel
 
-from workflow.flows import ComponentFlow
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
-from nolabs.domain.workflow.component import Component, TInput, TOutput
+from workflow.component import Component, TInput, TOutput
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.microservices.esmfold_light.service.api_models import InferenceInput
+from workflow.logic.control import ComponentFlowHandler, Flow
 
 
 class FoldingComponentInput(BaseModel):
@@ -73,13 +72,13 @@ class RosettafoldComponent(FoldingComponent):
         return FoldingComponentFlow
 
 
-class FoldingComponentFlow(ComponentFlow):
+class FoldingComponentFlow(ComponentFlowHandler):
     job_timeout_seconds = 10.0
     component_timeout_seconds = 120.0
 
     backend: FoldingBackendEnum
 
-    async def get_jobs(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
+    async def on_started(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
         try:
             job_ids = []
 
@@ -113,7 +112,7 @@ class FoldingComponentFlow(ComponentFlow):
                 raise e
             raise NoLabsException(ErrorCodes.workflow_get_folding_jobs_failed) from e
 
-    async def gather_jobs(self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]):
+    async def on_completion(self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]) -> FoldingComponentOutput:
         items = []
 
         for job_id in job_ids:
@@ -122,7 +121,7 @@ class FoldingComponentFlow(ComponentFlow):
 
         return FoldingComponentOutput(proteins_with_pdb=items)
 
-    async def job_task(self, job_id: uuid.UUID):
+    async def on_job_task(self, job_id: uuid.UUID):
         try:
             job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
@@ -131,10 +130,11 @@ class FoldingComponentFlow(ComponentFlow):
             if input_errors:
                 message = ", ".join(i.message for i in input_errors)
 
-                return Cancelled(message=message)
+                raise NoLabsException(ErrorCodes.component_input_invalid, message=message)
 
             if not job.processing_required:
-                return Completed(message="No processing required")
+                await self.complete_job(job_id=job_id)
+                return
 
             inference_result = await celery.esmfold_light_inference(
                 task_id=str(job.id),
@@ -147,7 +147,7 @@ class FoldingComponentFlow(ComponentFlow):
             job.set_result(protein=folded_protein)
             await job.save(cascade=True)
 
-            return Completed()
+            await self.complete_job(job_id=job_id)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e

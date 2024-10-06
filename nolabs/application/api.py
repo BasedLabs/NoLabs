@@ -3,9 +3,18 @@ from multiprocessing import Process
 
 from dotenv import load_dotenv
 
-
 load_dotenv("infrastructure/.env")
 
+from nolabs.application.biobuddy.controller import router as biobuddy_controller
+from nolabs.application.experiments.controller import router as experiment_router
+from nolabs.application.folding.controller import router as folding_router
+from nolabs.application.jobs.controller import router as job_router
+from nolabs.application.middlewares.domain_exception_middleware import (
+    add_domain_exception_middleware,
+)
+from nolabs.application.proteins.controller import router as proteins_router
+from nolabs.workflow.controller import router as workflow_router
+from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.settings import settings
 
 
@@ -16,31 +25,7 @@ def serve_fastapi():
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
 
-    from nolabs.application import initialize
-    from nolabs.application.biobuddy.controller import router as biobuddy_controller
-    from nolabs.application.blast.controller import router as blast_router
-    from nolabs.application.diffdock.controller import router as diffdock_router
-    from nolabs.application.experiments.controller import router as experiment_router
-    from nolabs.application.folding.controller import router as folding_router
-    from nolabs.application.jobs.controller import router as job_router
-    from nolabs.application.ligands.controller import router as ligand_router
-    from nolabs.application.middlewares.domain_exception_middleware import (
-        add_domain_exception_middleware,
-    )
-    from nolabs.application.proteins.controller import router as proteins_router
-    from nolabs.application.small_molecules_design.controller import (
-        router as small_molecules_design_router,
-    )
-    from workflow.controller import router as workflow_router
-    from nolabs.infrastructure.log import logger
-    from nolabs.infrastructure.settings import settings
-
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        initialize()
-        yield
-
-    app = FastAPI(title="NoLabs", lifespan=lifespan)
+    app = FastAPI(title="NoLabs")
 
     origins = ["*"]
 
@@ -64,13 +49,9 @@ def serve_fastapi():
     app.include_router(experiment_router)
     app.include_router(folding_router)
     app.include_router(job_router)
-    app.include_router(small_molecules_design_router)
-    app.include_router(diffdock_router)
     app.include_router(proteins_router)
-    app.include_router(ligand_router)
     app.include_router(workflow_router)
     app.include_router(biobuddy_controller)
-    app.include_router(blast_router)
     add_domain_exception_middleware(app)
     app.mount("/", socket_app)
 
@@ -88,9 +69,9 @@ def serve_fastapi():
 
 
 def serve_workflow():
-    from workflow.flows import serve_workflow
+    from nolabs.infrastructure.cel import cel
 
-    serve_workflow()
+    cel.app.worker_main(["worker", f"--concurrency=1"])
 
 
 def serve_united():

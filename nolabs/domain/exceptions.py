@@ -202,6 +202,9 @@ class ErrorCodes(Enum):
     job_running = ErrorCode(
         code=106, description="Job is running"
     )
+    string_is_not_correlation_id = ErrorCode(
+        code=107, description="Passed string is not correlation id"
+    )
 
 
 

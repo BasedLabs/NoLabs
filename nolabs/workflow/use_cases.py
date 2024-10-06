@@ -12,12 +12,6 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 
-from prefect import get_client
-from prefect.client.schemas import StateType
-from prefect.client.schemas.objects import TERMINAL_STATES
-from prefect.exceptions import ObjectNotFound
-
-from workflow.flows import is_workflow_running, start_workflow, start_component_flow
 from workflow.api_models import (
     ComponentStateEnum,
     GetComponentRequest,
@@ -29,6 +23,8 @@ from workflow.api_models import (
     ResetWorkflowRequest,
     StartWorkflowComponentRequest,
 )
+from workflow.logic.control import Flow
+from workflow.logic.states import _ready, _get_internal_state, TERMINAL_STATES, ControlStates
 from workflow.mappings import map_property
 from workflow.schema import (
     ComponentSchema,
@@ -37,7 +33,7 @@ from workflow.schema import (
 )
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import ComponentData, Experiment, Job
-from nolabs.domain.workflow.component import Component, ComponentTypeFactory
+from workflow.component import Component, ComponentTypeFactory
 from nolabs.infrastructure.log import logger
 
 
@@ -131,7 +127,7 @@ class UpdateWorkflowSchemaFeature:
         try:
             data: Experiment = Experiment.objects.with_id(schema.experiment_id)
 
-            await self._ensure_workflow_not_running(flow_run_id=data.flow_run_id)
+            await self._ensure_workflow_not_running(schema.experiment_id)
 
             components = self._fetch_components(schema=schema)
 
@@ -159,7 +155,7 @@ class UpdateWorkflowSchemaFeature:
                         found = True
                         break
                 if not found:
-                    await self._ensure_component_not_running(old_comp.flow_run_id)
+                    await self._ensure_component_not_running(old_comp.id)
                     await old_comp.delete()
 
             schema_valid = True
@@ -269,13 +265,15 @@ class UpdateWorkflowSchemaFeature:
 
         return components
 
-    async def _ensure_component_not_running(self, flow_run_id: Optional[uuid.UUID]):
-        if flow_run_id and await is_workflow_running(flow_run_id):
+    async def _ensure_component_not_running(self, component_id: uuid.UUID):
+        if not await _ready(id=component_id):
             raise NoLabsException(ErrorCodes.component_running)
 
-    async def _ensure_workflow_not_running(self, flow_run_id: Optional[uuid.UUID]):
-        if flow_run_id and await is_workflow_running(flow_run_id):
-            raise NoLabsException(ErrorCodes.component_running)
+    async def _ensure_workflow_not_running(self, experiment_id: uuid.UUID):
+        component_ids = ComponentData.objects(experiment=experiment_id).only('id')
+        for comp_id in component_ids:
+            if not await _ready(id=comp_id):
+                raise NoLabsException(ErrorCodes.workflow_running)
 
 
 class StartWorkflowFeature:
@@ -313,21 +311,25 @@ class StartWorkflowFeature:
 
             logger.info("Workflow schema execute", extra=extra)
 
-            await self._ensure_not_running(flow_run_id=experiment.flow_run_id)
+            await self._ensure_not_running(experiment_id=id)
 
-            flow_run = await start_workflow(experiment_id=experiment.id)
-            experiment.set_flow_run_id(flow_run_id=flow_run.id)
-            experiment.save()
-
+            flow_run = await self.start_workflow(experiment_id=experiment.id, components_graph=components)
             logger.info("Workflow schema executed", extra=extra)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e
             raise NoLabsException(ErrorCodes.start_workflow_failed) from e
 
-    async def _ensure_not_running(self, flow_run_id: Optional[uuid.UUID]):
-        if flow_run_id and await is_workflow_running(flow_run_id):
-            raise NoLabsException(ErrorCodes.workflow_running)
+    async def _ensure_not_running(self, experiment_id: uuid.UUID):
+        component_ids = ComponentData.objects(experiment=experiment_id).only('id')
+        for comp_id in component_ids:
+            if not await _ready(id=comp_id):
+                raise NoLabsException(ErrorCodes.workflow_running)
+
+    async def start_workflow(self, experiment_id: uuid.UUID, components_graph: List[Component]):
+        for component in components_graph:
+            if not component.previous_component_ids:
+                await Flow.start_component(experiment_id=experiment_id, component_id=component.id)
 
 
 class StartWorkflowComponentFeature:
@@ -349,11 +351,9 @@ class StartWorkflowComponentFeature:
 
             data = ComponentData.objects.with_id(request.component_id)
 
-            await self._ensure_not_running(flow_run_id=data.flow_run_id)
+            await self._ensure_component_not_running(component_id=data.id)
 
-            flow_run = await start_component_flow(component_id=request.component_id)
-            data.set_flow_run_id(flow_run_id=flow_run.id)
-            data.save()
+            flow_run = await Flow.start_component(experiment_id=request.experiment_id, component_id=request.component_id)
 
             extra = {**extra, **{"experiment_id": experiment.id}}
 
@@ -363,8 +363,8 @@ class StartWorkflowComponentFeature:
                 raise e
             raise NoLabsException(ErrorCodes.start_component_failed) from e
 
-    async def _ensure_not_running(self, flow_run_id: Optional[uuid.UUID]):
-        if flow_run_id and await is_workflow_running(flow_run_id):
+    async def _ensure_component_not_running(self, component_id: uuid.UUID):
+        if not await _ready(id=component_id):
             raise NoLabsException(ErrorCodes.component_running)
 
 
@@ -382,10 +382,7 @@ class GetComponentStateFeature:
 
             job_ids = [j.id for j in Job.objects(component=request.id).only("id")]
 
-            if data.flow_run_id:
-                (state, message) = await self._get_state(data.flow_run_id)
-            else:
-                (state, message) = ComponentStateEnum.UNKNOWN, None
+            state, message = await self._get_state(component_id=request.id)
 
             response = GetComponentResponse(
                 id=data.id,
@@ -415,30 +412,24 @@ class GetComponentStateFeature:
                 raise e
             raise NoLabsException(ErrorCodes.get_component_state_failed) from e
 
-    async def _get_state(self, flow_run_id: uuid.UUID) -> (ComponentStateEnum, str):
-        try:
-            async with get_client() as client:
-                flow_run = await client.read_flow_run(flow_run_id)
+    async def _get_state(self, component_id: uuid.UUID) -> (ComponentStateEnum, str):
+        internal_state, state_message = await _get_internal_state(id=component_id)
 
-            prefect_state = flow_run.state_type
+        if internal_state == ControlStates.UNKNOWN:
+            return ComponentStateEnum.UNKNOWN, state_message
 
-            state = ComponentStateEnum.RUNNING
+        state = ComponentStateEnum.RUNNING
 
-            if prefect_state in TERMINAL_STATES:
-                state = ComponentStateEnum.COMPLETED
+        if internal_state in TERMINAL_STATES:
+            state = ComponentStateEnum.COMPLETED
 
-            if prefect_state in [StateType.CANCELLED]:
-                state = ComponentStateEnum.CANCELLED
+        if internal_state == ControlStates.CANCELLED:
+            state = ComponentStateEnum.CANCELLED
 
-            if prefect_state in [
-                StateType.FAILED,
-                StateType.CRASHED,
-            ]:
-                state = ComponentStateEnum.FAILED
+        if internal_state == ControlStates.FAILURE:
+            state = ComponentStateEnum.FAILED
 
-            return (state, flow_run.state.message)
-        except ObjectNotFound:
-            return (ComponentStateEnum.UNKNOWN, None)
+        return state, state_message
 
 
 class GetJobStateFeature:
@@ -453,10 +444,7 @@ class GetJobStateFeature:
             if not job:
                 raise NoLabsException(ErrorCodes.job_not_found, data={"job_id": job.id})
 
-            if job and job.task_run_id:
-                (state, message) = await self._get_state(job.task_run_id)
-            else:
-                (state, message) = JobStateEnum.UNKNOWN, None
+            state, message = await self._get_state(job.id)
 
             response = GetJobState(
                 id=job.id,
@@ -478,26 +466,24 @@ class GetJobStateFeature:
                 raise e
             raise NoLabsException(ErrorCodes.get_job_state_failed) from e
 
-    async def _get_state(self, task_run_id: uuid.UUID) -> (JobStateEnum, str):
-        try:
-            async with get_client() as client:
-                task_run = await client.read_task_run(task_run_id=task_run_id)
-            prefect_state = task_run.state_type
+    async def _get_state(self, job_id: uuid.UUID) -> (JobStateEnum, Optional[str]):
+        internal_state, state_message = await _get_internal_state(id=job_id)
 
-            state = JobStateEnum.RUNNING
+        if internal_state == ControlStates.UNKNOWN:
+            return JobStateEnum.UNKNOWN, state_message
 
-            if prefect_state in TERMINAL_STATES:
-                state = JobStateEnum.COMPLETED
+        state = JobStateEnum.RUNNING
 
-            if prefect_state in [StateType.CANCELLED]:
-                state = JobStateEnum.CANCELLED
+        if internal_state in TERMINAL_STATES:
+            state = JobStateEnum.COMPLETED
 
-            if prefect_state in [StateType.FAILED, StateType.CRASHED]:
-                state = JobStateEnum.FAILED
+        if internal_state == ControlStates.CANCELLED:
+            state = JobStateEnum.CANCELLED
 
-            return (state, task_run.state.message)
-        except ObjectNotFound:
-            return (JobStateEnum.UNKNOWN, None)
+        if internal_state == ControlStates.FAILURE:
+            state = JobStateEnum.FAILED
+
+        return state, state_message
 
 
 class StopWorkflowFeature:

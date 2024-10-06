@@ -1,10 +1,10 @@
 import uuid
-from typing import List, Type
+from typing import List, Type, Optional
 
 from pydantic import BaseModel
 
-from workflow.flows import Component, ComponentFlow
-from nolabs.domain.workflow.component import TInput, TOutput
+from workflow.component import TInput, TOutput, Component
+from workflow.logic.control import ComponentFlowHandler
 
 
 class ProteinsComponentInput(BaseModel):
@@ -28,10 +28,10 @@ class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutpu
         return ProteinsComponentOutput
 
     @property
-    def component_flow_type(self) -> Type["ComponentFlow"]:
+    def component_flow_type(self) -> Type["ComponentFlowHandler"]:
         return ProteinsFlow
 
 
-class ProteinsFlow(ComponentFlow):
-    async def gather_jobs(self, inp: ProteinsComponentInput, **kwargs):
+class ProteinsFlow(ComponentFlowHandler):
+    async def on_completion(self, inp: ProteinsComponentInput, job_ids: List[uuid.UUID]) -> Optional[ProteinsComponentOutput]:
         return ProteinsComponentOutput(proteins=inp.proteins)

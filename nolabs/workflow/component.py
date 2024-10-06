@@ -33,7 +33,7 @@ from nolabs.domain.models.common import (
 )
 
 if TYPE_CHECKING:
-    from workflow.flows import ComponentFlow
+    from workflow.logic.control import ComponentFlowHandler
 
 
 def is_assignable_to_generic(value, generic_type):
@@ -441,9 +441,22 @@ class Component(Generic[TInput, TOutput]):
     def try_set_default(
             self, target_path: List[str], value: Any
     ) -> Optional[PropertyValidationError]:
-        return self.input_schema.try_set_default(
+        error =  self.input_schema.try_set_default(
             target_path=target_path, value=value, input_type=self.input_parameter_type
         )
+
+        if not error:
+            path = target_path
+
+            current_level = self.input_value_dict
+            for key in path[:-1]:
+                if key not in current_level:
+                    current_level[key] = {}
+                current_level = current_level[key]
+
+            current_level[path[-1]] = value
+
+        return error
 
     def add_previous(self, component_id: Union[uuid.UUID, List[uuid.UUID]]):
         if isinstance(component_id, list):
@@ -536,7 +549,7 @@ class Component(Generic[TInput, TOutput]):
 
     @property
     @abstractmethod
-    def component_flow_type(self) -> Type["ComponentFlow"]:
+    def component_flow_type(self) -> Type["ComponentFlowHandler"]:
         ...
 
     @classmethod
