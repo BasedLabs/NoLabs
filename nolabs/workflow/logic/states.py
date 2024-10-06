@@ -3,36 +3,34 @@ import uuid
 from enum import Enum
 from typing import Optional, Tuple
 
-from celery.result import AsyncResult
-from celery.states import FAILURE, PENDING, STARTED, RETRY, RECEIVED, SUCCESS
+import celery.states as celery_states
 
 from nolabs.infrastructure.red import redis_client
 
 
 class ControlStates(str, Enum):
     FAILURE = "FAILURE"
-    CANCELLED = "CANCELLED"
-    PENDING = "PENDING"
     STARTED = "STARTED"
+    CANCELLED = "CANCELLED"
     SUCCESS = "SUCCESS"
     UNKNOWN = "UNKNOWN"
 
 
-UNREADY_STATES = [ControlStates.PENDING, ControlStates.STARTED]
-TERMINAL_STATES = [ControlStates.FAILURE, ControlStates.CANCELLED, ControlStates.SUCCESS]
+UNREADY_STATES = [ControlStates.STARTED, ControlStates.UNKNOWN]
+TERMINAL_STATES = [ControlStates.FAILURE, ControlStates.SUCCESS, ControlStates.CANCELLED]
 
 
-def _celery_to_internal(result: AsyncResult) -> ControlStates:
-    if result.state == FAILURE:
-        return ControlStates.FAILURE
-    if result.state in [PENDING, RETRY, RECEIVED]:
-        return ControlStates.PENDING
-    if result.state == STARTED:
-        return ControlStates.STARTED
-    if result.state == SUCCESS:
-        return ControlStates.SUCCESS
-
-    return ControlStates.UNKNOWN
+celery_to_internal_mapping = {
+    celery_states.FAILURE: ControlStates.FAILURE,
+    celery_states.RETRY:  ControlStates.FAILURE,
+    celery_states.REVOKED:  ControlStates.CANCELLED,
+    celery_states.PENDING: ControlStates.STARTED,
+    celery_states.RECEIVED: ControlStates.STARTED,
+    celery_states.STARTED: ControlStates.STARTED,
+    celery_states.SUCCESS: ControlStates.SUCCESS,
+    celery_states.REJECTED: ControlStates.CANCELLED,
+    celery_states.IGNORED: ControlStates.UNKNOWN
+}
 
 
 async def _set_internal_state(id: uuid.UUID | str, state: ControlStates, state_message: Optional[str] = None):
