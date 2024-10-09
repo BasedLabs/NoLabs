@@ -1,24 +1,16 @@
 import asyncio
 import uuid
-from typing import Optional, List, Generic
+from typing import Optional, List, Generic, Dict, Any
 
-from celery.result import AsyncResult
-
-from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import ComponentData
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.infrastructure.log import logger
-from nolabs.infrastructure.red import redis_client, redlock
 from nolabs.infrastructure.settings import settings
 from nolabs.workflow.component import Component, ComponentTypeFactory, Parameter, TInput, TOutput
-from nolabs.workflow.logic.correlation import _assign_correlation_id, _make_component_cid, _make_job_cid
-from nolabs.workflow.logic.states import _ready, ControlStates, _set_internal_state
-from nolabs.workflow.socketio_events_emitter import emit_component_jobs_event, emit_start_component_event, \
-    emit_finish_job_event
 
 
-@celery.app.task(name="control._component_task", bind=True, queue=settings.workflow_queue)
-def _component_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
+@celery.app.task(name="control._component_main_task", bind=True, queue=settings.workflow_queue)
+def _component_main_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID) -> List[uuid.UUID]:
     async def _():
         data: ComponentData = ComponentData.objects.with_id(component_id)
 
@@ -71,46 +63,17 @@ def _component_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
         )
 
         input_value = component.input_value
-        job_ids = await control_flow.on_started(inp=input_value)
+        job_ids = await control_flow.on_component_task(inp=input_value)
 
         logger.info("Retrieved job ids", extra={**extra, **{"job_ids": job_ids}})
 
-        if job_ids:
-            emit_component_jobs_event(
-                experiment_id=experiment_id,
-                component_id=component_id,
-                job_ids=job_ids
-            )
-
-            for job_id in job_ids:
-                await _start_job(job_id=job_id)
+        return job_ids
 
     asyncio.run(_())
 
 
-async def _start_job(job_id: uuid.UUID):
-    lock = redlock(key=str(job_id))
-    try:
-        # Locking with blocking=False to prevent simultaneous running
-        # Skip execution if someone is executing it right now
-        if lock.acquire(blocking=False):
-            if not await _ready(id=job_id):
-                logger.info("Cannot start job since it is already executing",
-                            extra={"job_id": job_id})
-                return
-
-            correlation_id = _make_job_cid(job_id)
-            celery_task_id = await _assign_correlation_id(correlation_id)
-            _job_task.apply_async(kwargs={
-                "job_id": job_id},
-                task_id=celery_task_id,
-                retry=False)
-    finally:
-        lock.release()
-
-
-@celery.app.task(name="control._job_task", bind=True, queue=settings.workflow_queue)
-def _job_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
+@celery.app.task(name="control._job_main_task", bind=True, queue=settings.workflow_queue)
+def _job_main_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
     async def _():
         data: ComponentData = ComponentData.objects.with_id(component_id)
         component = Component.restore(data=data)
@@ -123,7 +86,26 @@ def _job_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: u
     asyncio.run(_())
 
 
-async def _complete_component(experiment_id: uuid.UUID, component_id: uuid.UUID, job_ids: List[uuid.UUID]):
+@celery.app.task(name="control._complete_job_task", bind=True, queue=settings.workflow_queue)
+def _complete_job_task(bind,
+                       experiment_id: uuid.UUID,
+                       component_id: uuid.UUID,
+                       job_id: uuid.UUID,
+                       long_running_output: Optional[Dict[str, Any]]):
+    async def _():
+        data: ComponentData = ComponentData.objects.with_id(component_id)
+        component = Component.restore(data=data)
+        control_flow: ComponentFlowHandler = component.component_flow_type(
+            experiment_id=experiment_id,
+            component_id=component_id
+        )
+        await control_flow.on_job_task(job_id=job_id, long_running_output=long_running_output)
+
+    asyncio.run(_())
+
+
+@celery.app.task(name="control._complete_component_task", bind=True, queue=settings.workflow_queue)
+async def _complete_component_task(experiment_id: uuid.UUID, component_id: uuid.UUID, job_ids: List[uuid.UUID]):
     data: ComponentData = ComponentData.objects.with_id(component_id)
     component = Component.restore(data=data)
     flow: ComponentFlowHandler = component.component_flow_type(experiment_id=experiment_id,
@@ -134,41 +116,6 @@ async def _complete_component(experiment_id: uuid.UUID, component_id: uuid.UUID,
     data.save()
 
     logger.info("Component finished", extra={"component_id": component_id})
-
-    #next_components = ComponentData.objects(previous_component_ids=component_id).only('id')
-#
-    #for next_component in next_components:
-    #    await _start_component(experiment_id=experiment_id, component_id=next_component.id)
-
-
-async def _start_component(experiment_id: uuid.UUID, component_id: uuid.UUID):
-    correlation_id = _make_component_cid(component_id)
-
-    lock = redlock(key=correlation_id)
-    try:
-        # Locking with blocking=False to prevent simultaneous running
-        # Skip execution if someone is executing it right now
-        if lock.acquire(blocking=False):
-            if not await _ready(id=component_id):
-                logger.info("Cannot start component since it is already executing",
-                            extra={"correlation_id": correlation_id, "component_id": component_id})
-                return
-
-            _, matching_keys = await redis_client.scan(match=f"{correlation_id}*")
-
-            for job_correlation_id in matching_keys:
-                await redis_client.delete(job_correlation_id)
-
-            celery_task_id = await _assign_correlation_id(correlation_id=correlation_id)
-            _component_task.apply_async(task_id=celery_task_id, kwargs={
-                "experiment_id": experiment_id,
-                "component_id": component_id
-            }, retry=False)
-            emit_start_component_event(experiment_id=experiment_id,
-                                       component_id=component_id)
-            logger.info("Component started", extra={"component_id": component_id})
-    finally:
-        lock.release()
 
 
 def _get_component(from_state: ComponentData) -> Component:
@@ -184,33 +131,6 @@ def _get_component(from_state: ComponentData) -> Component:
     return component
 
 
-class Flow:
-    @classmethod
-    async def start_component(cls, experiment_id: uuid.UUID, component_id: uuid.UUID):
-
-        lock = redlock(key=str(component_id))
-        try:
-            if lock.acquire(blocking=False):
-                if not await _ready(id=component_id):
-                    raise NoLabsException(ErrorCodes.component_running)
-
-                await _start_component(experiment_id=experiment_id, component_id=component_id)
-        finally:
-            lock.release()
-
-    @classmethod
-    async def start_job(cls, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
-        lock = redlock(key=str(job_id))
-        try:
-            if lock.acquire(blocking=False):
-                if not await _ready(id=component_id):
-                    raise NoLabsException(ErrorCodes.job_running)
-
-                await _start_job(job_id=job_id)
-        finally:
-            lock.release()
-
-
 class ComponentFlowHandler(Generic[TInput, TOutput]):
     """
     Represents component flow and available client handlers
@@ -222,26 +142,14 @@ class ComponentFlowHandler(Generic[TInput, TOutput]):
         self.component_id = component_id
         self.experiment_id = experiment_id
 
-    # will be called from within task
-    async def on_started(self, inp: TInput) -> List[uuid.UUID]:
+    async def on_component_task(self, inp: TInput) -> List[uuid.UUID]:
         return []
 
     async def on_completion(self, inp: TInput, job_ids: List[uuid.UUID]) -> Optional[TOutput]:
         return None
 
-    # will be called from within task
-    async def on_job_task(self, job_id: uuid.UUID):
+    async def on_job_task(self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]):
         pass
 
-    async def complete_job(self, job_id: uuid.UUID):
-        return await self._complete_job(job_id=job_id, state=ControlStates.SUCCESS)
-
-    async def cancel_job(self, job_id: uuid.UUID):
-        return await self._complete_job(job_id=job_id, state=ControlStates.CANCELLED)
-
-    async def _complete_job(self, job_id: uuid.UUID, state: ControlStates, **kwargs):
-        await _set_internal_state(id=job_id, state=state, state_message=kwargs.get("state_message"))
-
-        emit_finish_job_event(experiment_id=self.experiment_id,
-                              component_id=self.component_id,
-                              job_id=job_id)
+    async def on_job_completion(self, job_id: uuid.UUID):
+        pass
