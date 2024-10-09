@@ -61,3 +61,6 @@ logger = logging.getLogger("nolabs")
 if settings.enable_structured_logging:
     for handler in logger.handlers:
         handler.setFormatter(JsonFormatter())
+
+def get_scheduler_logger():
+    return logging.getLogger("scheduler")

@@ -205,6 +205,12 @@ class ErrorCodes(Enum):
     string_is_not_correlation_id = ErrorCode(
         code=107, description="Passed string is not correlation id"
     )
+    execution_node_not_scheduled = ErrorCode(
+        code=108, description="Execution node not scheduled"
+    )
+    cannot_schedule_execution_node = ErrorCode(
+        code=109, description="Cannot schedule execution node"
+    )
 
 
 
