@@ -11,7 +11,7 @@ from nolabs.domain.models.folding import FoldingJob
 from workflow.component import Component, TInput, TOutput
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.microservices.esmfold_light.service.api_models import InferenceInput
-from workflow.logic.control import ComponentFlowHandler, Flow
+from workflow.logic.tasks import ComponentFlowHandler, Flow
 
 
 class FoldingComponentInput(BaseModel):
