@@ -33,7 +33,7 @@ from nolabs.domain.models.common import (
 )
 
 if TYPE_CHECKING:
-    from workflow.logic.control import ComponentFlowHandler
+    from workflow.logic.tasks import ComponentFlowHandler
 
 
 def is_assignable_to_generic(value, generic_type):

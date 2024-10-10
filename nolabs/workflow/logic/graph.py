@@ -5,20 +5,15 @@ from typing import List, Set, Dict, Optional, Any
 
 from celery.result import AsyncResult
 
-from infrastructure.cel import cel
-from infrastructure.log import get_scheduler_logger
-from infrastructure.red import redis_client, use_redis_pipe
-from workflow.component import Component
-from workflow.logic.control import _component_main_task, _complete_component_task
-from workflow.logic.job_execution_nodes import JobMainTaskExecutionNode
-from workflow.logic.states import ControlStates, celery_to_internal_mapping
-
-
-NON_PROPAGATE_STATES = [ControlStates.FAILURE, ControlStates.CANCELLED]
-PROPAGATE_STATES = [ControlStates.SUCCESS]
-PROGRESS_STATES = [ControlStates.STARTED]
+from nolabs.infrastructure.cel import cel
+from nolabs.infrastructure.log import get_scheduler_logger
+from nolabs.infrastructure.red import redis_client, use_redis_pipe
+from nolabs.workflow.component import Component
+from nolabs.workflow.logic.states import ControlStates, celery_to_internal_mapping
+from workflow.logic.component_execution_nodes import ComponentExecutionNode
 
 logger = get_scheduler_logger()
+
 
 class ExecutionNode(ABC):
     """
@@ -104,167 +99,49 @@ class CeleryExecutionNode(ExecutionNode, ABC):
                     await self.set_error(error=async_result.result)
                 await self.set_output(output=async_result.result)
 
-
     async def _prepare_for_execute(self) -> str:
         """
         :returns: celery_task_id
         """
-        pipe = redis_client.pipeline()
-        cid = f"{self._id}:state"
-        pipe.set(cid, ControlStates.STARTED)
-        cid = f"{self._id}:celery_task_id"
-        task_id = str(uuid.uuid4())
-        pipe.set(cid, task_id)
-        await pipe.execute()
-        return task_id
+        async with use_redis_pipe():
+            cid = f"{self._id}:state"
+            redis_client.set(cid, ControlStates.STARTED)
+            cid = f"{self._id}:celery_task_id"
+            task_id = str(uuid.uuid4())
+            redis_client.set(cid, task_id)
+            return task_id
 
 
-class ComponentExecutionNode(ExecutionNode):
-    def __init__(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
-        super().__init__(id=f"graph:{component_id}")
-        self.experiment_id = experiment_id
-        self.component_id = component_id
+class ExecutionGraph(ExecutionNode):
+    def __init__(self, experiment_id: uuid.UUID, id: str):
+        super().__init__(f"graph:{experiment_id}")
 
     async def synchronize(self):
-        main_task = ComponentMainTaskExecutionNode(experiment_id=self.experiment_id,
-                                                   component_id=self.component_id)
-        await main_task.synchronize()
-        complete_component_task = ComponentCompleteTaskExecutionNode(experiment_id=self.experiment_id,
-                                                                     component_id=self.component_id)
-        await complete_component_task.synchronize()
+        pass
 
-    async def get_state(self) -> ControlStates:
-        steps: List[ExecutionNode] = [
-            ComponentMainTaskExecutionNode(experiment_id=self.experiment_id,
-                                           component_id=self.component_id),
-            ComponentCompleteTaskExecutionNode(experiment_id=self.experiment_id,
-                                               component_id=self.component_id)
-        ]
-
-        states = []
-        for step in steps:
-            states.append(await step.get_state())
-
-        if ControlStates.FAILURE in states:
-            return ControlStates.FAILURE
+    async def execute(self, **kwargs):
+        graph = await self.get_input()
+        for component_id in graph.keys():
+            node = ComponentExecutionNode(uuid.UUID(component_id))
+            await node.execute()
 
     async def can_execute(self) -> bool:
-        main_task = ComponentMainTaskExecutionNode(experiment_id=self.experiment_id, component_id=self.component_id)
+        return await self.get_state() == ControlStates.SCHEDULED
 
-        job_ids = await main_task.get_jobs()
-        for job_id in job_ids:
-            job_task = JobMainTaskExecutionNode
+    async def schedule(self, components: List[Component]):
+        graph = {}
 
-        complete_task = ComponentCompleteTaskExecutionNode(experiment_id=self.experiment_id,
-                                                           component_id=self.component_id)
+        for component in components:
+            graph[str(component.id)] = set()
+            for component_2 in components:
+                if component_2.id == component.id:
+                    continue
+                if component_2.id in component.previous_component_ids:
+                    graph[str(component.id)].add(component_2.id)
 
-        return await main_task.can_execute() or await complete_task.can_execute()
-
-    async def move(self):
-        main_task = ComponentMainTaskExecutionNode(experiment_id=self.experiment_id, component_id=self.component_id)
-        if await main_task.should_move():
-            await main_task.move()
-            return
-
-        complete_task = ComponentCompleteTaskExecutionNode(experiment_id=self.experiment_id,
-                                                           component_id=self.component_id)
-        if await complete_task.should_move():
-            await complete_task.move()
-
-    async def allow_next(self):
-        complete_task = ComponentCompleteTaskExecutionNode(experiment_id=self.experiment_id,
-                                                           component_id=self.component_id)
-        return await complete_task.allow_next()
-
-    async def next(self) -> List['ExecutionNode']:
-        graph = await ExecutionGraph.get(experiment_id=self.experiment_id)
-        next_items = []
-        for item in graph[self.component_id]:
-            next_items.append(ComponentExecutionNode(experiment_id=self.experiment_id, component_id=item))
-        return next_items
-
-
-class ComponentMainTaskExecutionNode(CeleryExecutionNode):
-    def __init__(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
-        super().__init__(id=f"graph:{component_id}:{_component_main_task.name}")
-        self.component_id = component_id
-        self.experiment_id = experiment_id
-
-    async def should_move(self) -> bool:
-        state = await self.get_state()
-
-        if state in TERMINAL_STATES:
-            return False
-
-        if state == ControlStates.STARTED:
-            return False
-
-        previous_component_ids = await ExecutionGraph.get(experiment_id=self.experiment_id)
-        for prev_comp_id in previous_component_ids:
-            node = ComponentExecutionNode(experiment_id=self.experiment_id, component_id=prev_comp_id)
-            if not await node.allow_propagate():
-                return False
-        return True
-
-    async def move(self):
-        celery_task_id = await self._prepare_for_start()
-        _component_main_task.apply_async(
-            kwargs={"experiment_id": self.experiment_id, "component_id": self.component_id},
-            task_id=celery_task_id,
-            retry=False)
-
-    async def allow_propagate(self) -> bool:
-        ...
-
-    async def get_jobs(self) -> List[uuid.UUID]:
-        return ....
-
-
-class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
-    def __init__(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
-        super().__init__(id=f"graph:{component_id}:{_complete_component_task.name}")
-        self.component_id = component_id
-        self.experiment_id = experiment_id
-
-    async def should_execute(self) -> bool:
-        if await self.is_final():
-            return False
-
-        if await self.started():
-            return False
-
-        main_task = ComponentMainTaskExecutionNode(
-            experiment_id=self.experiment_id,
-            component_id=self.component_id
-        )
-
-        if not await main_task.is_final() or not await main_task.allow_propagate():
-            return False
-
-        for job_id in await main_task.get_jobs():
-            job_task = JobMainTaskExecutionNode(
-                experiment_id=self.experiment_id,
-                component_id=self.component_id,
-                job_id=job_id
-            )
-
-            if not await job_task.is_final() or not await job_task.allow_propagate():
-                return False
-
-        return True
-
-    async def execute(self):
-        main_task = ComponentMainTaskExecutionNode(
-            experiment_id=self.experiment_id,
-            component_id=self.component_id
-        )
-
-        job_ids = await main_task.get_jobs()
-        celery_task_id = await self._prepare_for_start()
-        _complete_component_task.apply_async(
-            kwargs={"experiment_id": self.experiment_id, "component_id": self.component_id, "job_ids": job_ids},
-            task_id=celery_task_id,
-            retry=False)
+        async with use_redis_pipe():
+            await self.set_input(execution_input=graph)
+            await self.set_state(state=ControlStates.SCHEDULED)
 
 
 class ExecutionGraph:
@@ -297,6 +174,17 @@ class ExecutionGraph:
 
         await redis_client.set(f"graph:{experiment_id}", json.dumps(graph))
         return ExecutionGraph(experiment_id, graph)
+
+    async def start(self):
+        pass
+
+    async def stop(self):
+        pass
+
+
+
+    async def monitor(self):
+        pass
 
     def __getitem__(self, component_id: uuid.UUID) -> Set[uuid.UUID]:
         if component_id not in self._graph:

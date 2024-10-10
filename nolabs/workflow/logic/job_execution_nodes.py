@@ -5,7 +5,7 @@ from domain.exceptions import NoLabsException, ErrorCodes
 from infrastructure.cel import cel
 from infrastructure.log import get_scheduler_logger
 from infrastructure.red import use_redis_pipe
-from workflow.logic.control import _job_main_task, _complete_job_task
+from workflow.logic.tasks import _job_main_task, _complete_job_task
 from workflow.logic.graph import CeleryExecutionNode, ExecutionNode
 from workflow.logic.states import ControlStates, TERMINAL_STATES, ERROR_STATES
 
@@ -28,6 +28,10 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
                     "job_id": input_data["job_id"]},
             task_id=celery_task_id,
             retry=False)
+        async with use_redis_pipe():
+            await self.set_state(ControlStates.STARTED)
+            await self.set_output(output={})
+            await self.set_error(error="")
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
         async with use_redis_pipe():
@@ -47,11 +51,15 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
         return await self.get_state() == ControlStates.SCHEDULED
 
     async def execute(self):
-        input_data = await self.get_input()
-        celery_task_name = input_data['celery_task_name']
-        kwargs = input_data['kwargs']
-        task_id = await self._prepare_for_execute()
-        cel.app.send_task(name=celery_task_name, task_id=task_id, retry=False, kwargs=kwargs)
+        async with use_redis_pipe():
+            input_data = await self.get_input()
+            celery_task_name = input_data['celery_task_name']
+            kwargs = input_data['kwargs']
+            task_id = await self._prepare_for_execute()
+            cel.app.send_task(name=celery_task_name, task_id=task_id, retry=False, kwargs=kwargs)
+            await self.set_state(ControlStates.STARTED)
+            await self.set_output(output={})
+            await self.set_error(error="")
 
     async def schedule(self, celery_task_name: str, arguments: Optional[Dict[str, Any]] = None):
         data = {
@@ -72,16 +80,20 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
         return await self.get_state() == ControlStates.SCHEDULED
 
     async def execute(self):
-        input_data = await self.get_input()
-        celery_task_id = await self._prepare_for_execute()
-        _complete_job_task.apply_async(
-            kwargs={"experiment_id": input_data["experiment_id"],
-                    "component_id": input_data["component_id"],
-                    "job_id": input_data["job_id"],
-                    "long_running_output": input_data["long_running_output"]
-                    },
-            task_id=celery_task_id,
-            retry=False)
+        async with use_redis_pipe():
+            input_data = await self.get_input()
+            celery_task_id = await self._prepare_for_execute()
+            _complete_job_task.apply_async(
+                kwargs={"experiment_id": input_data["experiment_id"],
+                        "component_id": input_data["component_id"],
+                        "job_id": input_data["job_id"],
+                        "long_running_output": input_data["long_running_output"]
+                        },
+                task_id=celery_task_id,
+                retry=False)
+            await self.set_state(ControlStates.STARTED)
+            await self.set_output(output={})
+            await self.set_error(error="")
 
     async def schedule(self,
                        experiment_id: uuid.UUID,
@@ -108,71 +120,6 @@ class JobExecutionNode(ExecutionNode):
         self.job_id = job_id
 
     async def synchronize(self):
-        async def process_main_task() -> bool:
-            """
-            :returns: move next?
-            """
-            main_task_state = await main_task.get_state()
-
-            if main_task_state == ControlStates.UNKNOWN:
-                inputs = await self.get_input()
-                await main_task.schedule(experiment_id=inputs["experiment_id"],
-                                         component_id=inputs["component_id"],
-                                         job_id=inputs["job_id"])
-                return False
-
-            if main_task_state == ControlStates.SUCCESS:
-                long_running_task_state = await long_running_task.get_state()
-                if long_running_task_state == ControlStates.UNKNOWN:
-                    # We did not schedule long-running task
-                    await self.set_state(state=ControlStates.SUCCESS)
-                    return False
-                return True
-            if main_task_state in ERROR_STATES:
-                async with use_redis_pipe():
-                    error = await main_task.get_error()
-                    await self.set_state(state=main_task_state)
-                    await self.set_error(error=error)
-                    await self.set_output(output={})
-            return False
-
-        async def process_long_running() -> bool:
-            """
-            This function is intended to start after process_main_task.
-            Assuming that main_task_state is OK
-            :returns: move next?
-            """
-            long_running_task_state = await long_running_task.get_state()
-
-            if long_running_task_state == ControlStates.SUCCESS:
-                return True
-
-            if long_running_task_state in ERROR_STATES:
-                async with use_redis_pipe():
-                    error = await long_running_task.get_error()
-                    await self.set_state(state=long_running_task_state)
-                    await self.set_error(error=error)
-                    await self.set_output(output={})
-            return False
-
-        async def process_complete() -> bool:
-            """
-            :returns: move next?
-            """
-            complete_task_state = await complete_task.get_state()
-
-            if complete_task_state in TERMINAL_STATES:
-                complete_task_output = await complete_task.get_output()
-                async with use_redis_pipe():
-                    await self.set_state(state=complete_task_state)
-                    await self.set_output(output=complete_task_output)
-                    if complete_task_state == ControlStates.SUCCESS:
-                        return True
-                    if complete_task_state in ERROR_STATES:
-                        error = await long_running_task.get_error()
-                        await self.set_error(error=error)
-            return False
-
         extra = {
             "job_id": self.job_id
         }
@@ -202,13 +149,13 @@ class JobExecutionNode(ExecutionNode):
         await complete_task.synchronize()
 
         if state in [ControlStates.SCHEDULED, ControlStates.STARTED]:
-            proceed = await process_main_task()
+            proceed = await self._process_main_task(main_task=main_task, long_running_task=long_running_task)
             if not proceed:
                 return
-            proceed = await process_long_running()
+            proceed = await self._process_long_running(long_running_task=long_running_task)
             if not proceed:
                 return
-            await process_complete()
+            await self._process_complete(complete_task=complete_task)
 
     async def can_execute(self) -> bool:
         t1 = JobMainTaskExecutionNode(self.job_id)
@@ -217,7 +164,7 @@ class JobExecutionNode(ExecutionNode):
 
         return await t1.can_execute() or await t2.can_execute() or t3.can_execute()
 
-    async def execute(self, **kwargs):
+    async def execute(self):
         tasks = [
             JobMainTaskExecutionNode(self.job_id),
             JobLongRunningTaskExecutionNode(self.job_id),
@@ -226,8 +173,10 @@ class JobExecutionNode(ExecutionNode):
 
         for task in tasks:
             if await task.get_state() == ControlStates.SCHEDULED:
-                await task.execute()
-                return
+                async with use_redis_pipe():
+                    await self.set_state(state=ControlStates.STARTED)
+                    await task.execute()
+                    return
 
     async def schedule(self,
                        experiment_id: uuid.UUID,
@@ -239,3 +188,68 @@ class JobExecutionNode(ExecutionNode):
             'job_id': job_id
         })
         await self.set_state(state=ControlStates.SCHEDULED)
+
+    async def _process_main_task(self, main_task: ExecutionNode, long_running_task) -> bool:
+        """
+        :returns: move next?
+        """
+        main_task_state = await main_task.get_state()
+
+        if main_task_state == ControlStates.UNKNOWN:
+            inputs = await self.get_input()
+            await main_task.schedule(experiment_id=inputs["experiment_id"],
+                                     component_id=inputs["component_id"],
+                                     job_id=inputs["job_id"])
+            return False
+
+        if main_task_state == ControlStates.SUCCESS:
+            long_running_task_state = await long_running_task.get_state()
+            if long_running_task_state == ControlStates.UNKNOWN:
+                # We did not schedule long-running task
+                await self.set_state(state=ControlStates.SUCCESS)
+                return False
+            return True
+        if main_task_state in ERROR_STATES:
+            async with use_redis_pipe():
+                error = await main_task.get_error()
+                await self.set_state(state=main_task_state)
+                await self.set_error(error=error)
+                await self.set_output(output={})
+        return False
+
+    async def _process_long_running(self, long_running_task: ExecutionNode) -> bool:
+        """
+        This function is intended to start after process_main_task.
+        Assuming that main_task_state is OK
+        :returns: move next?
+        """
+        long_running_task_state = await long_running_task.get_state()
+
+        if long_running_task_state == ControlStates.SUCCESS:
+            return True
+
+        if long_running_task_state in ERROR_STATES:
+            async with use_redis_pipe():
+                error = await long_running_task.get_error()
+                await self.set_state(state=long_running_task_state)
+                await self.set_error(error=error)
+                await self.set_output(output={})
+        return False
+
+    async def _process_complete(self, complete_task: ExecutionNode) -> bool:
+        """
+        :returns: move next?
+        """
+        complete_task_state = await complete_task.get_state()
+
+        if complete_task_state in TERMINAL_STATES:
+            complete_task_output = await complete_task.get_output()
+            async with use_redis_pipe():
+                await self.set_state(state=complete_task_state)
+                await self.set_output(output=complete_task_output)
+                if complete_task_state == ControlStates.SUCCESS:
+                    return True
+                if complete_task_state in ERROR_STATES:
+                    error = await complete_task.get_error()
+                    await self.set_error(error=error)
+        return False

@@ -1,11 +1,6 @@
-import json
-import uuid
 from enum import Enum
-from typing import Optional, Tuple
 
 import celery.states as celery_states
-
-from nolabs.infrastructure.red import redis_client
 
 
 class ControlStates(str, Enum):

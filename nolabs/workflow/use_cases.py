@@ -23,7 +23,7 @@ from workflow.api_models import (
     ResetWorkflowRequest,
     StartWorkflowComponentRequest,
 )
-from workflow.logic.control import Flow
+from workflow.logic.tasks import Flow
 from workflow.logic.states import _ready, _get_internal_state, TERMINAL_STATES, ControlStates
 from workflow.mappings import map_property
 from workflow.schema import (
