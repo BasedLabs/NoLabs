@@ -3,10 +3,10 @@ from contextlib import asynccontextmanager
 import redis.asyncio as redis
 from pottery import Redlock
 
-from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.log import nolabs_logger as logger
 from nolabs.infrastructure.settings import settings
 
-redis_client = redis.Redis.from_url(settings.celery_backend)
+redis_client = redis.Redis.from_url(settings.celery_backend, decode_responses=True)
 
 
 def redlock(key: str, auto_release_time=100) -> Redlock:

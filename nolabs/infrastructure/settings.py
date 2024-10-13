@@ -1,14 +1,7 @@
-from enum import Enum
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from nolabs.infrastructure.environment import Environment
-
-
-class RunModeEnum(str, Enum):
-    united = "united"
 
 
 class Settings(BaseSettings):
@@ -33,12 +26,20 @@ class Settings(BaseSettings):
     reinvent_directory: Path
     blast_email: str
     workflow_version: int
+    celery_worker_concurrency: int = 1
     mode: Literal["united", "fastapi", "workflow"] = "fastapi"
     environment: Literal["local", "test", "production"] = "local"
     logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
 
-    def get_environment(self) -> Environment:
-        return Environment[self.environment.upper()]
+
+settings: Optional[Settings] = None
 
 
-settings = Settings()  # type: ignore
+def init_settings() -> Settings:
+    global settings
+
+    if settings:
+        return settings
+
+    settings = Settings()
+    return settings

@@ -3,7 +3,7 @@ from typing import List, Type, Optional
 
 from pydantic import BaseModel
 
-from workflow.component import TInput, TOutput, Component
+from workflow.core.component import TInput, TOutput, Component
 from workflow.logic.tasks import ComponentFlowHandler
 
 

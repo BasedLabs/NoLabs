@@ -1,10 +1,4 @@
 services:
-  prefect-server:
-    image: 'prefecthq/prefect:3-python3.12-kubernetes'
-    command: prefect server start
-    env_file:
-      - nolabs/infrastructure/.env
-    network_mode: host
   mongo:
     image: 'mongo:latest'
     network_mode: host
@@ -108,7 +102,7 @@ services:
     image: 'ghcr.io/basedlabs/diffdock:2.0.1'
     network_mode: host
     build:
-      context: nolabs/microservices/diffdock
+      context: microservices/diffdock
       dockerfile: build/Dockerfile
     command: python api.py
     deploy:
@@ -119,7 +113,7 @@ services:
               count: 1
               capabilities: [ gpu ]
     env_file:
-      - nolabs/microservices/diffdock/service/.env
+      - microservices/diffdock/service/.env
     volumes:
       - ${DIFFDOCK_WEIGHTS_LOCATION}:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
   p2rank:
@@ -182,7 +176,7 @@ services:
     image: 'ghcr.io/basedlabs/reinvent:1.0.1'
     network_mode: host
     build:
-      context: nolabs/microservices/reinvent
+      context: microservices/reinvent
       dockerfile: build/Dockerfile
     command: python api.py
     deploy:
@@ -193,7 +187,7 @@ services:
               count: 1
               capabilities: [ gpu ]
     env_file:
-      - nolabs/microservices/reinvent/service/.env
+      - microservices/reinvent/service/.env
     volumes:
       - ${NOLABS_HOME}/reinvent/jobs_configs:/app/service/reinvent_configs/jobs_configs # nolabs.env.NOLABS_REINVENT_DIRECTORY / reinvent.env.CONFIGS_DIRECTORY
   blast_query:
@@ -212,3 +206,13 @@ services:
     environment:
       - ENABLE_BIOBUDDY=${ENABLE_BIOBUDDY:-false}
     command: --host=0.0.0.0
+  nolabs_worker:
+    image: 'ghcr.io/basedlabs/nolabs_worker:1.0.0'
+    network_mode: host
+    build:
+      context: .
+      dockerfile: nolabs/build/worker.Dockerfile
+    environment:
+      - ENABLE_BIOBUDDY=${ENABLE_BIOBUDDY:-false}
+    command: python workflow/worker.py
+

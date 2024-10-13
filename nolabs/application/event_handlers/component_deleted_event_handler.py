@@ -1,5 +1,6 @@
 from nolabs.application.diffdock import DiffDockComponent
-from nolabs.domain.models.common import ComponentData, ComponentDeletedEvent
+from workflow.core.component import ComponentDeletedEvent
+from domain.models.common import ComponentData
 from nolabs.domain.models.diffdock import DiffDockBindingJob
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler

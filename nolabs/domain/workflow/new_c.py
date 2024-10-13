@@ -26,7 +26,7 @@ from uuid import UUID
 from mongoengine import UUIDField, DictField, ListField, StringField, Document
 from pydantic import BaseModel, Field, ValidationError, TypeAdapter
 
-from nolabs.domain.models.common import (PropertyValidationError)
+from domain.models.common import PropertyValidationError
 
 if TYPE_CHECKING:
     pass

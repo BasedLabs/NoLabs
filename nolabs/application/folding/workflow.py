@@ -8,10 +8,10 @@ from pydantic import BaseModel
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
-from workflow.component import Component, TInput, TOutput
+from workflow.core.component import Component, TInput, TOutput
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.microservices.esmfold_light.service.api_models import InferenceInput
-from workflow.logic.tasks import ComponentFlowHandler, Flow
+from workflow.core.flow import ComponentFlowHandler
 
 
 class FoldingComponentInput(BaseModel):
@@ -82,8 +82,6 @@ class FoldingComponentFlow(ComponentFlowHandler):
         try:
             job_ids = []
 
-            experiment = Experiment.objects.with_id(self.experiment_id)
-
             for protein_id in inp.proteins_with_fasta:
                 protein = Protein.objects.with_id(protein_id)
 
@@ -98,7 +96,6 @@ class FoldingComponentFlow(ComponentFlowHandler):
                     job = FoldingJob.create(
                         id=job_id,
                         name=job_name,
-                        experiment=experiment,
                         component=self.component_id,
                     )
                     job.set_inputs(protein=protein, backend=self.backend)

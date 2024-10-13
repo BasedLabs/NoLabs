@@ -7,7 +7,7 @@ from nolabs.application.proteins import ProteinsComponent
 from nolabs.application.folding import EsmfoldLightComponent
 # from nolabs.application.ligands import LigandsComponent
 
-from nolabs.workflow.component import ComponentTypeFactory
+from workflow.core.component import ComponentTypeFactory
 
 # ComponentTypeFactory.add_type(SmallMoleculesDesignLearningComponent)
 ComponentTypeFactory.add_type(ProteinsComponent)
