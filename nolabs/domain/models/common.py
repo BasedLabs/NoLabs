@@ -18,7 +18,7 @@ import uuid
 from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union, Optional
 from uuid import UUID
 
 from Bio import SeqIO
@@ -31,14 +31,13 @@ from mongoengine import (
     Document,
     EmbeddedDocument,
     EmbeddedDocumentField,
-    EmbeddedDocumentListField,
     FloatField,
     IntField,
     ListField,
     Q,
     ReferenceField,
     StringField,
-    UUIDField,
+    UUIDField, EmbeddedDocumentListField,
 )
 from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
@@ -100,7 +99,6 @@ class Experiment(Document, Entity):
     schema: Dict[str, Any] = DictField()
 
     last_executed_at: datetime = DateTimeField()
-    flow_run_id: uuid.UUID = UUIDField()
 
     @classmethod
     def create(
@@ -165,11 +163,9 @@ class PropertyErrorData(EmbeddedDocument):
         return PropertyErrorData(loc=loc, msg=msg)
 
 
-class ComponentData(Document, Entity):
+class ComponentData(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
-    experiment: "Experiment" = ReferenceField(
-        "Experiment", required=True, reverse_delete_rule=CASCADE
-    )
+    experiment: Experiment = ReferenceField(Experiment, required=True)
 
     input_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
         PropertyErrorData, default=list
@@ -196,18 +192,20 @@ class ComponentData(Document, Entity):
     meta = {"collection": "components"}
 
     @classmethod
-    def create(cls, id: uuid.UUID, experiment: Union["Experiment", uuid.UUID]):
+    def create(cls, id: uuid.UUID, experiment: Union[Experiment, uuid.UUID]):
         return ComponentData(id=id, experiment=experiment)
 
-    async def delete(self, signal_kwargs=None, **write_concern):
-        self.register_event(ComponentDeletedEvent(component=self))
 
-        super().delete(signal_kwargs, **write_concern)
+@dataclass
+class PropertyValidationError:
+    msg: str
+    loc: List[str]
 
-        domain_events = self.collect_events()
+    def __repr__(self):
+        return self.__str__()
 
-        for e in domain_events:
-            await EventDispatcher.raise_event(e)
+    def __str__(self):
+        return f"{self.msg}: {self.loc}"
 
 
 @dataclass
@@ -827,9 +825,6 @@ class JobInputError(BaseModel):
 
 class Job(Document, Entity):
     id: UUID = UUIDField(db_field="_id", primary_key=True, required=True)
-    experiment: Experiment = ReferenceField(
-        Experiment, required=True, reverse_delete_rule=CASCADE
-    )
     component: "ComponentData" = ReferenceField(
         "ComponentData", required=False, reverse_delete_rule=CASCADE
     )
@@ -845,8 +840,7 @@ class Job(Document, Entity):
             cls,
             id: JobId,
             name: JobName,
-            experiment: Union[Experiment, uuid.UUID],
-            component: Union[ComponentData, uuid.UUID, None] = None,
+            component: Union["ComponentData", uuid.UUID, None] = None,
             *args,
             **kwargs,
     ):
@@ -854,13 +848,10 @@ class Job(Document, Entity):
             raise NoLabsException(ErrorCodes.invalid_job_id)
         if not name:
             raise NoLabsException(ErrorCodes.invalid_job_name)
-        if not experiment:
-            raise NoLabsException(ErrorCodes.invalid_experiment_id)
 
         instance = cls(
             id=id.value if isinstance(id, JobId) else id,
             name=name,
-            experiment=experiment,
             component=component,
             *args,
             **kwargs,
@@ -950,22 +941,5 @@ class ExperimentRemovedEvent(DomainEvent):
     def __init__(self, experiment: Experiment):
         self.experiment = experiment
 
-
-class ComponentDeletedEvent(DomainEvent):
-    component_data: "ComponentData"
-
-    def __init__(self, component: ComponentData):
-        self.component_data = component
-
-
 # endregion
-@dataclass
-class PropertyValidationError:
-    msg: str
-    loc: List[str]
 
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return f"{self.msg}: {self.loc}"

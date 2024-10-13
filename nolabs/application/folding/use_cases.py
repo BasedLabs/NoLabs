@@ -1,9 +1,11 @@
 __all__ = ["GetJobFeature", "RunJobFeature", "SetupJobFeature"]
 
+import asyncio
 import uuid
 from uuid import UUID
 
-from microservices.esmfold_light.service.api_models import InferenceInput
+from infrastructure.celery_app_factory import get_celery_app
+from microservices.esmfold_light.service.api_models import InferenceInput, InferenceOutput
 from mongoengine import Q
 
 from nolabs.application.folding.api_models import (
@@ -14,8 +16,7 @@ from nolabs.application.folding.api_models import (
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingBackendEnum, FoldingJob
-from nolabs.infrastructure.cel import cel as celery
-from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.log import nolabs_logger as logger
 
 
 def map_job_to_response(job: FoldingJob) -> JobResponse:
@@ -129,8 +130,8 @@ class RunJobFeature:
                 )
 
             if job.backend == FoldingBackendEnum.esmfold_light:
-                inference_result = await celery.esmfold_light_inference(
-                    task_id=job.id,
+                inference_result = await self.esmfold_light_inference(
+                    task_id=str(job.id),
                     payload=InferenceInput(fasta_sequence=protein.get_fasta()),
                 )
                 id = uuid.uuid4()
@@ -146,3 +147,19 @@ class RunJobFeature:
             if isinstance(e, NoLabsException):
                 raise e
             raise NoLabsException(ErrorCodes.run_folding_job_failed) from e
+
+    async def esmfold_light_inference(
+            self, task_id: str, payload: InferenceInput
+    ) -> InferenceOutput:
+        app = get_celery_app()
+        async_result = app.send_task(
+            id=task_id,
+            name="esmfold-light-service.inference",
+            queue="esmfold-light-service",
+            args=[payload.model_dump()],
+        )
+
+        while not async_result.ready():
+            await asyncio.sleep(0.5)
+        result = async_result.get()
+        return InferenceOutput(**result)

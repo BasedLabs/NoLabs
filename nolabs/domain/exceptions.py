@@ -211,6 +211,12 @@ class ErrorCodes(Enum):
     cannot_schedule_execution_node = ErrorCode(
         code=109, description="Cannot schedule execution node"
     )
+    invalid_states_transition = ErrorCode(
+        code=110, description="Invalid state transition"
+    )
+    celery_task_executed_but_task_id_not_found = ErrorCode(
+        code=111, description="Celery task executed, but task id not found"
+    )
 
 
 

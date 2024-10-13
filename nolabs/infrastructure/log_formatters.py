@@ -8,8 +8,6 @@ from typing import Optional, Tuple, Type, Union
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.infrastructure.settings import settings
 
-# imported from https://github.com/PrefectHQ/prefect/blob/main/src/prefect/logging/formatters.py
-
 ExceptionInfoType = Union[
     Tuple[Type[BaseException], BaseException, Optional[TracebackType]],
     Tuple[None, None, None],
