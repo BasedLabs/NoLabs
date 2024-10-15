@@ -8,10 +8,10 @@ from pydantic import BaseModel
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
-from workflow.core.component import Component, TInput, TOutput
+from nolabs.workflow.core.component import Component, TInput, TOutput
 from nolabs.infrastructure.cel import cel as celery
 from nolabs.microservices.esmfold_light.service.api_models import InferenceInput
-from workflow.core.flow import ComponentFlowHandler
+from nolabs.workflow.core.flow import ComponentFlowHandler
 
 
 class FoldingComponentInput(BaseModel):

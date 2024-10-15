@@ -2,15 +2,13 @@ import uuid
 from typing import Optional, Dict, Any
 
 from infrastructure.celery_app_factory import get_celery_app
-from infrastructure.log import get_worker_logger
 from infrastructure.redis_client_factory import use_redis_pipe
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
 from nolabs.workflow.core.states import ControlStates
 from nolabs.workflow.core.celery_tasks import _job_main_task, _complete_job_task
 from nolabs.workflow.core.states import ERROR_STATES, TERMINAL_STATES
-from workflow.core.socketio_events_emitter import emit_start_job_event, emit_finish_job_event
+from nolabs.workflow.core.socketio_events_emitter import emit_start_job_event, emit_finish_job_event
 
-logger = get_worker_logger()
 celery = get_celery_app()
 
 
@@ -24,9 +22,9 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
         self.component_id = component_id
         self.job_id = job_id
 
-    async def execute(self):
+    async def start(self):
         async with use_redis_pipe():
-            celery_task_id = await self._prepare_for_execute()
+            celery_task_id = await self._prepare_for_start()
             _job_main_task.apply_async(
                 kwargs={"experiment_id": self.experiment_id,
                         "component_id": self.component_id,
@@ -54,12 +52,12 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
                  job_id: uuid.UUID):
         super().__init__(id=f"execution_node:{experiment_id}:{component_id}:{job_id}:long_running_task")
 
-    async def execute(self):
+    async def start(self):
+        input_data = await self.get_input()
         async with use_redis_pipe():
-            input_data = await self.get_input()
             celery_task_name = input_data['celery_task_name']
             kwargs = input_data['kwargs']
-            task_id = await self._prepare_for_execute()
+            task_id = await self._prepare_for_start()
             celery.send_task(name=celery_task_name, task_id=task_id, retry=False, kwargs=kwargs)
             await self.set_state(ControlStates.STARTED)
             await self.set_output(output={})
@@ -84,10 +82,10 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
         self.component_id = component_id
         self.experiment_id = experiment_id
 
-    async def execute(self):
+    async def start(self):
         async with use_redis_pipe():
             input_data = await self.get_input()
-            celery_task_id = await self._prepare_for_execute()
+            celery_task_id = await self._prepare_for_start()
             _complete_job_task.apply_async(
                 kwargs={"experiment_id": self.experiment_id,
                         "component_id": self.component_id,
@@ -159,14 +157,12 @@ class JobExecutionNode(ExecutionNode):
 
         if await main_task.can_schedule():
             await main_task.schedule()
-            return
 
-        if await main_task.can_execute():
-            await main_task.execute()
+        if await main_task.can_start():
+            await main_task.start()
             emit_start_job_event(experiment_id=self.experiment_id,
                                  component_id=self.component_id,
                                  job_id=self.job_id)
-            return
 
         main_task_state = await main_task.get_state()
         if main_task_state in TERMINAL_STATES:
@@ -186,8 +182,8 @@ class JobExecutionNode(ExecutionNode):
             await self.set_state(main_task_state)
             return
 
-        if await long_running_task.can_execute():
-            await long_running_task.execute()
+        if await long_running_task.can_start():
+            await long_running_task.start()
             return
 
     async def sync_complete_task(self):
@@ -202,8 +198,8 @@ class JobExecutionNode(ExecutionNode):
             await self.complete_task.schedule(long_running_output=await long_running_task.get_output())
             return
 
-        if await self.complete_task.can_execute():
-            await self.complete_task.execute()
+        if await self.complete_task.can_start():
+            await self.complete_task.start()
             return
 
     async def set_final_state(self):
@@ -211,6 +207,10 @@ class JobExecutionNode(ExecutionNode):
 
         for task in [self.main_task, self.long_running_task, self.complete_task]:
             state = await task.get_state()
+
+            if state not in TERMINAL_STATES:
+                return
+
             if state in ERROR_STATES:
                 success = False
                 await self.set_state(state)
@@ -227,7 +227,7 @@ class JobExecutionNode(ExecutionNode):
                                   component_id=self.component_id,
                                   job_id=self.job_id)
 
-    async def execute(self):
+    async def start(self):
         await self.set_state(state=ControlStates.STARTED)
 
     async def schedule(self,

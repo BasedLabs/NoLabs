@@ -12,11 +12,11 @@ import uuid
 from typing import List, Optional
 from uuid import UUID
 
-from domain.exceptions import NoLabsException, ErrorCodes
-from domain.models.common import Job, ComponentData, Experiment
-from infrastructure.log import nolabs_logger as logger
+from nolabs.domain.exceptions import NoLabsException, ErrorCodes
+from nolabs.domain.models.common import Job, ComponentData, Experiment
+from infrastructure.log import logger
 from infrastructure.redis_client_factory import redlock
-from workflow.application.api_models import (
+from nolabs.workflow.application.api_models import (
     ComponentStateEnum,
     GetComponentRequest,
     GetComponentResponse,
@@ -27,15 +27,15 @@ from workflow.application.api_models import (
     ResetWorkflowRequest,
     StartWorkflowComponentRequest,
 )
-from workflow.core.states import TERMINAL_STATES, ControlStates
-from workflow.application.mappings import map_property
-from workflow.application.schema import (
+from nolabs.workflow.core.states import TERMINAL_STATES, ControlStates
+from nolabs.workflow.application.mappings import map_property
+from nolabs.workflow.application.schema import (
     ComponentSchema,
     ComponentSchemaTemplate,
     WorkflowSchema,
 )
-from workflow.core.component import Component, ComponentTypeFactory
-from workflow.core.graph import GraphExecutionNode
+from nolabs.workflow.core.component import Component, ComponentTypeFactory
+from nolabs.workflow.core.graph import GraphExecutionNode
 
 
 class CreateWorkflowSchemaFeature:
@@ -303,12 +303,12 @@ class StartWorkflowFeature:
                 },
             }
 
-            logger.info("Workflow schema execute", extra=extra)
+            logger.info("Workflow schema start", extra=extra)
 
             with redlock(key=str(experiment_id)):
                 await self._ensure_can_start(experiment_id=experiment_id)
                 await self.start_workflow(experiment_id=experiment.id, components_graph=components)
-            logger.info("Workflow schema executed", extra=extra)
+            logger.info("Workflow schema startd", extra=extra)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e
@@ -316,7 +316,7 @@ class StartWorkflowFeature:
 
     async def _ensure_can_start(self, experiment_id: uuid.UUID):
         graph = GraphExecutionNode(experiment_id=experiment_id)
-        if not await graph.started() or not await graph.can_execute():
+        if not await graph.started() or not await graph.can_start():
             raise NoLabsException(ErrorCodes.start_workflow_failed, "Cannot schedule this workflow")
 
     async def start_workflow(self, experiment_id: uuid.UUID, components_graph: List[Component]):

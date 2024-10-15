@@ -1,17 +1,14 @@
-import json
 import uuid
-from typing import List, Set, Dict, Optional
+from typing import List
 
-from infrastructure.log import get_worker_logger
+from infrastructure.redis_client_factory import use_redis_pipe
 from nolabs.workflow.core.component import Component
-from nolabs.workflow.core.states import ControlStates
 from nolabs.workflow.core.component_execution_nodes import ComponentExecutionNode
 from nolabs.workflow.core.node import ExecutionNode
-from infrastructure.redis_client_factory import use_redis_pipe, get_redis_client
-from workflow.core.job_execution_nodes import JobExecutionNode
+from nolabs.workflow.core.states import ControlStates
+from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
+from nolabs.workflow.core.states import TERMINAL_STATES
 
-logger = get_worker_logger()
-redis_client = get_redis_client()
 
 class GraphExecutionNode(ExecutionNode):
     def __init__(self, experiment_id: uuid.UUID):
@@ -20,26 +17,35 @@ class GraphExecutionNode(ExecutionNode):
 
     async def sync_started(self):
         graph = await self.get_input()
+
+        all_completed = True
+
         for component_id in graph.keys():
             node = ComponentExecutionNode(experiment_id=self.experiment_id, component_id=uuid.UUID(component_id))
             await node.sync_started()
+            if await node.get_state() not in TERMINAL_STATES:
+                all_completed = False
 
-    async def execute(self, **kwargs):
+        if all_completed:
+            await self.set_state(ControlStates.SUCCESS)
+
+    async def start(self, **kwargs):
+        await self.set_state(ControlStates.STARTED)
         graph = await self.get_input()
         for component_id in graph.keys():
             node = ComponentExecutionNode(experiment_id=self.experiment_id, component_id=uuid.UUID(component_id))
-            await node.execute()
+            await node.start()
 
     async def schedule(self, components: List[Component]):
         graph = {}
 
         for component in components:
-            graph[str(component.id)] = set()
+            graph[str(component.id)] = []
             for component_2 in components:
                 if component_2.id == component.id:
                     continue
                 if component_2.id in component.previous_component_ids:
-                    graph[str(component.id)].add(component_2.id)
+                    graph[str(component.id)].append(component_2.id)
 
         async with use_redis_pipe():
             await self.set_input(execution_input=graph)

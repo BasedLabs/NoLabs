@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=["infrastructure/.env"],
+        env_file=[".env"],
         case_sensitive=False,
         env_ignore_empty=True,
         extra="ignore",
@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     celery_broker: str
     celery_backend: str
     workflow_queue: str = 'workflow'
+    celery_worker_pool: str = 'prefork'
     connection_string: str
     socketio_broker: str
     enable_structured_logging: bool
@@ -32,14 +33,4 @@ class Settings(BaseSettings):
     logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
 
 
-settings: Optional[Settings] = None
-
-
-def init_settings() -> Settings:
-    global settings
-
-    if settings:
-        return settings
-
-    settings = Settings()
-    return settings
+settings = Settings()

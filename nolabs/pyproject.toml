@@ -10,8 +10,8 @@ python = ">=3.11,<3.13"
 python-socketio = {extras = ["asyncio"], version = "^5.11.4"}
 python-dotenv = "^1.0.1"
 celery = {extras = ["redis"], version = "^5.4.0"}
-biobuddy-microservice = {path = "microservices/biobuddy/client"}
-external-data-query-microservice = {path = "microservices/external_data_query/client"}
+biobuddy-microservice = {path = "../microservices/biobuddy/client"}
+external-data-query-microservice = {path = "../microservices/external_data_query/client"}
 rdkit = "^2024.3.5"
 pydantic-settings = "^2.5.2"
 mongoengine = "^0.29.1"
@@ -19,10 +19,12 @@ xmltodict = "^0.13.0"
 biopython = "^1.84"
 python-multipart = "^0.0.10"
 pottery = "^3.0.0"
+asgiref = "^3.8.1"
 
 [tool.poetry.group.dev.dependencies]
 deptry = "^0.19.1"
 flower = "^2.0.1"
+idna = "^3.10"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,5 +1,3 @@
-from multiprocessing import Process
-
 from dotenv import load_dotenv
 
 load_dotenv("infrastructure/.env")
@@ -14,16 +12,13 @@ from nolabs.application.middlewares.domain_exception_middleware import (
 from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.workflow.application.controller import router as workflow_router
 
-from nolabs.infrastructure.settings import init_settings
-from nolabs.infrastructure.log import init_logging, nolabs_logger as logger
+from nolabs.infrastructure.settings import settings
+from nolabs.infrastructure.log import logger
 import uvicorn
 
 import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-settings = init_settings()
-init_logging()
 
 app = FastAPI(title="NoLabs")
 

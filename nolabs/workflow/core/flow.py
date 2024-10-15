@@ -1,5 +1,5 @@
 import uuid
-from typing import Generic, List, Optional, Dict, Any
+from typing import Generic, List, Optional, Dict, Any, Union
 
 from pydantic import BaseModel
 
@@ -30,7 +30,15 @@ class ComponentFlowHandler(Generic[TInput, TOutput]):
     async def on_job_completion(self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]):
         pass
 
-    async def schedule_long_running(self, job_id: uuid.UUID, celery_task: Any, input: Optional[BaseModel]):
+    async def schedule_long_running(self, job_id: uuid.UUID, celery_task_name: Any, input: Optional[Union[BaseModel, Dict[str, Any]]] = None):
         node = JobLongRunningTaskExecutionNode(experiment_id=self.experiment_id, component_id=self.component_id, job_id=job_id)
-        if await node.can_schedule():
-            await node.schedule(celery_task_name=celery_task.name, arguments=input.model_dump() if input else {})
+        can_schedule = await node.can_schedule()
+        if can_schedule:
+            arguments = {}
+
+            if isinstance(input, dict):
+                arguments = input
+            elif input:
+                arguments = input.model_dump()
+
+            await node.schedule(celery_task_name=celery_task_name, arguments=arguments)
