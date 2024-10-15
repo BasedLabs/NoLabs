@@ -35,10 +35,10 @@ ERROR_STATES = [
 ]
 
 state_transitions = {
-    ControlStates.UNKNOWN: [ControlStates.SCHEDULED, ControlStates.CANCELLED],
-    ControlStates.SCHEDULED: [ControlStates.STARTED, ControlStates.CANCELLED],
+    ControlStates.UNKNOWN: [ControlStates.UNKNOWN, ControlStates.SCHEDULED, ControlStates.CANCELLED],
+    ControlStates.SCHEDULED: [ControlStates.SCHEDULED, ControlStates.STARTED, ControlStates.CANCELLED, ControlStates.SUCCESS],
     ControlStates.STARTED: [ControlStates.FAILURE, ControlStates.SUCCESS, ControlStates.CANCELLED],
-    ControlStates.FAILURE: [],
-    ControlStates.CANCELLED: [],
-    ControlStates.SUCCESS: []
+    ControlStates.FAILURE: [ControlStates.FAILURE],
+    ControlStates.CANCELLED: [ControlStates.CANCELLED],
+    ControlStates.SUCCESS: [ControlStates.SUCCESS]
 }

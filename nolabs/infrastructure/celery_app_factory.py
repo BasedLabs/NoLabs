@@ -1,23 +1,19 @@
+from functools import lru_cache
 from typing import Optional
 
 from celery import Celery
 
 from nolabs.infrastructure.settings import settings
 
-app: Optional[Celery] = None
 
-
+@lru_cache
 def get_celery_app() -> Celery:
-    global app
-
-    if app:
-        return app
-
     app = Celery(
         __name__, broker=settings.celery_broker, backend=settings.celery_backend
     )
     app.conf.update(
         enable_utc=True,
+        worker_pool=settings.celery_worker_pool,
         task_default_queue='workflow',
         task_track_started=True,
         worker_send_task_events=True,

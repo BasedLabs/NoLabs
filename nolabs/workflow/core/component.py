@@ -26,7 +26,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationError, TypeAdapter
 
-from domain.models.common import PropertyErrorData, ComponentData, PropertyValidationError
+from nolabs.domain.models.common import PropertyErrorData, ComponentData, PropertyValidationError
 
 if TYPE_CHECKING:
     from nolabs.workflow.core.flow import ComponentFlowHandler
@@ -399,7 +399,7 @@ class Component(Generic[TInput, TOutput]):
 
     @output_value.setter
     def output_value(self, value: Union[TOutput, Dict[str, Any]]):
-        if value is dict:
+        if isinstance(value, dict):
             self.output_value_dict = value
         else:
             self.output_value_dict = value.model_dump()
@@ -600,3 +600,7 @@ class ComponentTypeFactory:
             raise ValueError(f"Cannot find component with name {name}")
 
         return cls._types[name]
+
+    @classmethod
+    def clear(cls):
+        cls._types = {}

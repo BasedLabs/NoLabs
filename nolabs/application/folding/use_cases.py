@@ -16,7 +16,7 @@ from nolabs.application.folding.api_models import (
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingBackendEnum, FoldingJob
-from nolabs.infrastructure.log import nolabs_logger as logger
+from nolabs.infrastructure.log import logger
 
 
 def map_job_to_response(job: FoldingJob) -> JobResponse:

@@ -1,8 +1,7 @@
 import uuid
 from typing import List
 
-from domain.models.common import Job
-from infrastructure.log import get_worker_logger
+from nolabs.domain.models.common import Job
 from infrastructure.redis_client_factory import use_redis_pipe
 from nolabs.workflow.core.celery_tasks import _component_main_task, _complete_component_task
 from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
@@ -10,8 +9,7 @@ from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
 from nolabs.workflow.core.socketio_events_emitter import emit_start_component_event
 from nolabs.workflow.core.states import ControlStates
 from nolabs.workflow.core.states import TERMINAL_STATES
-
-logger = get_worker_logger()
+from nolabs.workflow.core.states import ERROR_STATES
 
 
 class ComponentMainTaskExecutionNode(CeleryExecutionNode):
@@ -22,9 +20,9 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
         self.experiment_id = experiment_id
         self.component_id = component_id
 
-    async def execute(self):
+    async def start(self):
         async with use_redis_pipe():
-            celery_task_id = await self._prepare_for_execute()
+            celery_task_id = await self._prepare_for_start()
             _component_main_task.apply_async(
                 kwargs={"experiment_id": self.experiment_id,
                         "component_id": self.component_id},
@@ -35,8 +33,7 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
             await self.set_message(message="")
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
-        async with use_redis_pipe():
-            await self.set_state(state=ControlStates.SCHEDULED)
+        await self.set_state(state=ControlStates.SCHEDULED)
 
 
 class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
@@ -45,19 +42,9 @@ class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
         self.experiment_id = experiment_id
         self.component_id = component_id
 
-    async def can_schedule(self, job_ids: List[uuid.UUID]):
-        states = []
-        for job_id in job_ids:
-            job_node = JobExecutionNode(experiment_id=self.experiment_id, component_id=self.component_id, job_id=job_id)
-            job_state = await job_node.get_state()
-            if job_state not in TERMINAL_STATES:
-                return False
-            states.append(job_state)
-        return await super().can_schedule() and any(s == ControlStates.SUCCESS for s in states)
-
-    async def execute(self):
+    async def start(self):
         async with use_redis_pipe():
-            celery_task_id = await self._prepare_for_execute()
+            celery_task_id = await self._prepare_for_start()
             _complete_component_task.apply_async(
                 kwargs={"experiment_id": self.experiment_id,
                         "component_id": self.component_id},
@@ -80,8 +67,8 @@ class ComponentExecutionNode(ExecutionNode):
         self.main_task = ComponentMainTaskExecutionNode(experiment_id, component_id)
         self.complete_task = ComponentCompleteTaskExecutionNode(experiment_id, component_id)
 
-    async def can_execute(self, previous_component_ids: List[uuid.UUID]):
-        if not super().can_execute():
+    async def can_start(self, previous_component_ids: List[uuid.UUID]):
+        if not super().can_start():
             return False
 
         for component_id in previous_component_ids:
@@ -91,7 +78,7 @@ class ComponentExecutionNode(ExecutionNode):
 
         return True
 
-    async def execute(self, **kwargs):
+    async def start(self, **kwargs):
         await self.set_state(state=ControlStates.STARTED)
         emit_start_component_event(experiment_id=self.experiment_id,
                                    component_id=self.component_id)
@@ -123,11 +110,11 @@ class ComponentExecutionNode(ExecutionNode):
                 component_id=self.component_id
             )
 
-        if await self.main_task.can_execute():
-            await self.main_task.execute()
+        if await self.main_task.can_start():
+            await self.main_task.start()
             emit_start_component_event(experiment_id=self.experiment_id, component_id=self.component_id)
 
-        if await self.main_task.get_state() in TERMINAL_STATES:
+        if await self.main_task.get_state() in ERROR_STATES:
             await self.set_state(await self.main_task.get_state())
             await self.set_message(await self.main_task.get_message())
 
@@ -135,8 +122,7 @@ class ComponentExecutionNode(ExecutionNode):
         """
         :returns: any jobs succeeded
         """
-        input_data = (await self.get_input()) or dict()
-        job_ids = input_data.get('job_ids', [])
+        job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
         active_jobs = 0
 
         # Track job nodes
@@ -155,12 +141,12 @@ class ComponentExecutionNode(ExecutionNode):
 
             if await job_node.can_schedule():
                 await job_node.schedule(
-                    experiment_id=input_data["experiment_id"],
-                    component_id=input_data["component_id"],
+                    experiment_id=self.experiment_id,
+                    component_id=self.component_id,
                     job_id=job_id
                 )
-            elif await job_node.can_execute():
-                await job_node.execute()
+            elif await job_node.can_start():
+                await job_node.start()
 
         # If no jobs are running and main task is completed, update component state
         if active_jobs == 0 and await self.main_task.get_state() in TERMINAL_STATES:
@@ -173,6 +159,10 @@ class ComponentExecutionNode(ExecutionNode):
         Update the component state based on the terminal states of all jobs.
         :returns: any jobs succeeded
         """
+
+        if not job_ids:
+            return True
+
         all_jobs_terminal = True
         any_success = False
 
@@ -188,30 +178,31 @@ class ComponentExecutionNode(ExecutionNode):
 
         # If all jobs are in terminal state, update component state
         if all_jobs_terminal:
-            if any_success:
-                await self.set_state(ControlStates.SUCCESS)
-            else:
+            if not any_success:
                 await self.set_state(ControlStates.FAILURE)
+                return any_success
 
         return any_success
 
     async def sync_complete_task(self):
-        """Synchronize and execute the complete task if all jobs are finished."""
+        """Synchronize and start the complete task if all jobs are finished."""
         if await self.complete_task.get_state() in TERMINAL_STATES:
             return
+
+        await self.complete_task.sync_started()
 
         job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
 
         # If all jobs are in terminal states and any is successful, run the complete task
-        if await self.complete_task.can_schedule(job_ids):
+        if await self.complete_task.can_schedule():
             await self.complete_task.schedule(
                 experiment_id=self.experiment_id,
                 component_id=self.component_id,
                 job_ids=job_ids
             )
 
-        if await self.complete_task.can_execute():
-            await self.complete_task.execute()
+        if await self.complete_task.can_start():
+            await self.complete_task.start()
 
         # Update the component state if the complete task finished
         if await self.complete_task.get_state() in TERMINAL_STATES:
