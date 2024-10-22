@@ -3,16 +3,20 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
-from infrastructure.log import worker_logger as logger
-from infrastructure.celery_app_factory import get_celery_app
-from infrastructure.settings import settings
-import workflow.core.celery_tasks # noqa: F401 Used for initializing celery tasks
+from nolabs.infrastructure.log import initialize_logging, logger
+from nolabs.infrastructure.settings import initialize_settings, settings
+from nolabs.workflow.core.celery_tasks import register_workflow_celery_tasks
+from nolabs.infrastructure.celery_app_factory import get_celery_app
 
 
 def start():
+    initialize_settings()
+    initialize_logging()
     logger.info("Starting celery")
     app = get_celery_app()
-    app.worker_main(["worker", f"--concurrency={settings.celery_worker_concurrency}"])
+    register_workflow_celery_tasks(app)
+    app.worker_main(["worker", f"--concurrency={settings.celery_worker_concurrency}", "-P", "threads"])
+    return app
 
 if __name__ == "__main__":
     start()

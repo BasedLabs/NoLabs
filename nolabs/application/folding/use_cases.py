@@ -4,7 +4,7 @@ import asyncio
 import uuid
 from uuid import UUID
 
-from infrastructure.celery_app_factory import get_celery_app
+from nolabs.infrastructure.celery_app_factory import get_celery_app
 from microservices.esmfold_light.service.api_models import InferenceInput, InferenceOutput
 from mongoengine import Q
 
@@ -28,7 +28,7 @@ def map_job_to_response(job: FoldingJob) -> JobResponse:
         result=JobResult(
             protein_id=job.folded_protein.id, pdb=job.folded_protein.get_pdb()
         ),
-        experiment_id=job.experiment.id,
+        experiment_id=job.component.experiment.id,
     )
 
 

@@ -14,8 +14,8 @@ from uuid import UUID
 
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import Job, ComponentData, Experiment
-from infrastructure.log import logger
-from infrastructure.redis_client_factory import redlock
+from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.redis_client_factory import redlock
 from nolabs.workflow.application.api_models import (
     ComponentStateEnum,
     GetComponentRequest,
@@ -99,7 +99,7 @@ class GetWorkflowSchemaFeature:
     async def handle(self, experiment_id: UUID) -> Optional[WorkflowSchema]:
         extra = {"experiment_id": experiment_id}
 
-        logger.info("Get workflow schema", extra=extra)
+        self.logger.info("Get workflow schema", extra=extra)
 
         try:
             data: Experiment = Experiment.objects.with_id(experiment_id)
@@ -123,7 +123,7 @@ class UpdateWorkflowSchemaFeature:
             "components_count": len(schema.components),
         }
 
-        logger.info("Update workflow schema", extra=extra)
+        self.logger.info("Update workflow schema", extra=extra)
 
         try:
             data: Experiment = Experiment.objects.with_id(schema.experiment_id)
@@ -275,7 +275,7 @@ class StartWorkflowFeature:
         extra = {"experiment_id": id}
 
         try:
-            logger.info("Starting workflow schema", extra=extra)
+            self.logger.info("Starting workflow schema", extra=extra)
 
             experiment: Experiment = Experiment.objects.get(id=experiment_id)
 
@@ -370,7 +370,7 @@ class GetComponentStateFeature:
         try:
             extra = {"component_id": request.id}
 
-            logger.info("Get component state", extra=extra)
+            self.logger.info("Get component state", extra=extra)
 
             data: ComponentData = ComponentData.objects.with_id(request.id)
 
@@ -436,7 +436,7 @@ class GetJobStateFeature:
         try:
             extra = {"job_id": request.job_id}
 
-            logger.info("Get job state", extra=extra)
+            self.logger.info("Get job state", extra=extra)
 
             job: Job = Job.objects.with_id(request.job_id)
 

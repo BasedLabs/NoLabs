@@ -5,12 +5,11 @@ from typing import List, Optional, Type
 
 from pydantic import BaseModel
 
+from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.workflow.core.component import Component, TInput, TOutput
-from nolabs.infrastructure.cel import cel as celery
-from nolabs.microservices.esmfold_light.service.api_models import InferenceInput
 from nolabs.workflow.core.flow import ComponentFlowHandler
 
 
@@ -133,9 +132,10 @@ class FoldingComponentFlow(ComponentFlowHandler):
                 await self.complete_job(job_id=job_id)
                 return
 
+            celery = get_celery_app()
             inference_result = await celery.esmfold_light_inference(
                 task_id=str(job.id),
-                payload=InferenceInput(fasta_sequence=job.protein.get_fasta()),
+                payload={'fasta_sequence': job.protein.get_fasta()}
             )
 
             id = uuid.uuid4()

@@ -1,8 +1,9 @@
 from nolabs.application.diffdock import DiffDockComponent
+
+from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.workflow.core.component import ComponentDeletedEvent
 from nolabs.domain.models.common import ComponentData
 from nolabs.domain.models.diffdock import DiffDockBindingJob
-from nolabs.infrastructure.cel import cel as celery
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler
 
 
@@ -15,4 +16,5 @@ class ComponentDeletedEventHandler(DomainEventHandler[ComponentDeletedEvent]):
         for job in DiffDockBindingJob.objects(
             component=component_data.id, celery_task_id__ne=None
         ).only("celery_task_id"):
+            celery = get_celery_app()
             await celery.cancel_task(task_id=job.celery_task_id)
