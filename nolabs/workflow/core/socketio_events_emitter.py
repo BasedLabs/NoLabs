@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from nolabs.infrastructure import socket_server
+from nolabs.infrastructure.socket_server import get_socket_server
 from nolabs.infrastructure.log import logger
 
 
@@ -17,7 +17,7 @@ def emit_start_job_event(experiment_id: UUID, component_id: UUID, job_id: UUID):
             "job_id": job_id,
         },
     )
-    socket_server.enqueue_event(
+    get_socket_server().enqueue_event(
         name=event_name,
         room_id=str(experiment_id),
         data={"component_id": str(component_id), "job_id": str(job_id)},
@@ -37,7 +37,7 @@ def emit_finish_job_event(experiment_id: UUID, component_id: UUID, job_id: UUID)
         },
     )
 
-    socket_server.enqueue_event(
+    get_socket_server().enqueue_event(
         name="job_finished",
         room_id=str(experiment_id),
         data={"component_id": str(component_id), "job_id": str(job_id)},
@@ -56,7 +56,7 @@ def emit_start_component_event(experiment_id: UUID, component_id: UUID):
         },
     )
 
-    socket_server.enqueue_event(
+    get_socket_server().enqueue_event(
         name="component_started",
         room_id=str(experiment_id),
         data={"component_id": str(component_id)},
@@ -75,7 +75,7 @@ def emit_finish_component_event(experiment_id: UUID, component_id: UUID):
         },
     )
 
-    socket_server.enqueue_event(
+    get_socket_server().enqueue_event(
         name="component_finished",
         room_id=str(experiment_id),
         data={"component_id": str(component_id)},
@@ -97,7 +97,7 @@ def emit_component_jobs_event(
         },
     )
 
-    socket_server.enqueue_event(
+    get_socket_server().enqueue_event(
         name="component_jobs",
         room_id=str(experiment_id),
         data={

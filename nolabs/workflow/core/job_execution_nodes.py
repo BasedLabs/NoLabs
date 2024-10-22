@@ -1,15 +1,12 @@
 import uuid
 from typing import Optional, Dict, Any
 
-from infrastructure.celery_app_factory import get_celery_app
-from infrastructure.redis_client_factory import use_redis_pipe
+from nolabs.infrastructure.redis_client_factory import get_redis_pipe
+from nolabs.workflow.core.celery_tasks import Tasks
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
+from nolabs.workflow.core.socketio_events_emitter import emit_finish_job_event
 from nolabs.workflow.core.states import ControlStates
-from nolabs.workflow.core.celery_tasks import _job_main_task, _complete_job_task
 from nolabs.workflow.core.states import ERROR_STATES, TERMINAL_STATES
-from nolabs.workflow.core.socketio_events_emitter import emit_start_job_event, emit_finish_job_event
-
-celery = get_celery_app()
 
 
 class JobMainTaskExecutionNode(CeleryExecutionNode):
@@ -23,26 +20,29 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
         self.job_id = job_id
 
     async def start(self):
-        async with use_redis_pipe():
-            celery_task_id = await self._prepare_for_start()
-            _job_main_task.apply_async(
-                kwargs={"experiment_id": self.experiment_id,
-                        "component_id": self.component_id,
-                        "job_id": self.job_id},
-                task_id=celery_task_id,
-                retry=False)
-            await self.set_state(ControlStates.STARTED)
+        pipe = get_redis_pipe()
+        celery_task_id = await self._prepare_for_start(pipe=pipe)
+        self.celery.send_task(name=Tasks.job_main_task,
+                              kwargs={"experiment_id": self.experiment_id,
+                                      "component_id": self.component_id,
+                                      "job_id": self.job_id},
+                              task_id=celery_task_id,
+                              retry=False
+                              )
+        await self.set_state(ControlStates.STARTED,pipe=pipe)
+        await pipe.execute()
 
     async def schedule(self):
-        async with use_redis_pipe():
-            await self.set_input(execution_input={
-                'experiment_id': self.experiment_id,
-                'component_id': self.component_id,
-                'job_id': self.job_id
-            })
-            await self.set_state(state=ControlStates.SCHEDULED)
-            await self.set_output(output={})
-            await self.set_message(message="")
+        pipe = get_redis_pipe()
+        await self.set_input(execution_input={
+            'experiment_id': self.experiment_id,
+            'component_id': self.component_id,
+            'job_id': self.job_id
+        }, pipe=pipe)
+        await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
+        await self.set_output(output={}, pipe=pipe)
+        await self.set_message(message="", pipe=pipe)
+        await pipe.execute()
 
 
 class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
@@ -54,14 +54,15 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
 
     async def start(self):
         input_data = await self.get_input()
-        async with use_redis_pipe():
-            celery_task_name = input_data['celery_task_name']
-            kwargs = input_data['kwargs']
-            task_id = await self._prepare_for_start()
-            celery.send_task(name=celery_task_name, task_id=task_id, retry=False, kwargs=kwargs)
-            await self.set_state(ControlStates.STARTED)
-            await self.set_output(output={})
-            await self.set_message(message="")
+        pipe = get_redis_pipe()
+        celery_task_name = input_data['celery_task_name']
+        kwargs = input_data['kwargs']
+        task_id = await self._prepare_for_start(pipe=pipe)
+        self.celery.send_task(name=celery_task_name, task_id=task_id, retry=False, kwargs=kwargs)
+        await self.set_state(ControlStates.STARTED, pipe=pipe)
+        await self.set_output(output={}, pipe=pipe)
+        await self.set_message(message="", pipe=pipe)
+        await pipe.execute()
 
     async def schedule(self, celery_task_name: str, arguments: Optional[Dict[str, Any]] = None):
         data = {
@@ -69,10 +70,11 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
             'kwargs': arguments or {}
         }
 
-        async with use_redis_pipe():
-            await self.set_input(execution_input=data)
-            await self.set_state(state=ControlStates.SCHEDULED)
-            await self.set_message(message="")
+        pipe = get_redis_pipe()
+        await self.set_input(execution_input=data, pipe=pipe)
+        await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
+        await self.set_message(message="", pipe=pipe)
+        await pipe.execute()
 
 
 class JobCompleteTaskExecutionNode(CeleryExecutionNode):
@@ -83,35 +85,38 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
         self.experiment_id = experiment_id
 
     async def start(self):
-        async with use_redis_pipe():
-            input_data = await self.get_input()
-            celery_task_id = await self._prepare_for_start()
-            _complete_job_task.apply_async(
-                kwargs={"experiment_id": self.experiment_id,
-                        "component_id": self.component_id,
-                        "job_id": self.job_id,
-                        "long_running_output": input_data['long_running_output']
-                        },
-                task_id=celery_task_id,
-                retry=False)
-            await self.set_state(ControlStates.STARTED)
+        input_data = await self.get_input()
+        pipe = get_redis_pipe()
+        celery_task_id = await self._prepare_for_start(pipe=pipe)
+        self.celery.send_task(name=Tasks.complete_job_task,
+                              kwargs={"experiment_id": self.experiment_id,
+                                      "component_id": self.component_id,
+                                      "job_id": self.job_id,
+                                      "long_running_output": input_data['long_running_output']
+                                      },
+                              task_id=celery_task_id,
+                              retry=False
+                              )
+        await self.set_state(ControlStates.STARTED, pipe=pipe)
+        await pipe.execute()
 
     async def schedule(self, long_running_output: Optional[Dict[str, Any]] = None):
-        async with use_redis_pipe():
-            await self.set_input(execution_input={
-                'experiment_id': self.experiment_id,
-                'component_id': self.component_id,
-                'job_id': self.job_id,
-                'long_running_output': long_running_output or {}
-            })
-            await self.set_state(state=ControlStates.SCHEDULED)
-            await self.set_output(output={})
-            await self.set_message(message="")
+        pipe = get_redis_pipe()
+        await self.set_input(execution_input={
+            'experiment_id': self.experiment_id,
+            'component_id': self.component_id,
+            'job_id': self.job_id,
+            'long_running_output': long_running_output or {}
+        }, pipe=pipe)
+        await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
+        await self.set_output(output={}, pipe=pipe)
+        await self.set_message(message="", pipe=pipe)
+        await pipe.execute()
 
 
 class JobExecutionNode(ExecutionNode):
     def __init__(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
-        super().__init__(id=f"execution_node:{experiment_id}:{component_id}:{job_id}:main_task")
+        super().__init__(id=f"execution_node:{experiment_id}:{component_id}:{job_id}")
         self.experiment_id = experiment_id
         self.component_id = component_id
         self.job_id = job_id
@@ -135,6 +140,9 @@ class JobExecutionNode(ExecutionNode):
         )
 
     async def sync_started(self):
+        if await self.get_state() != ControlStates.STARTED:
+            return
+
         await self.sync_main_task()
         if await self.get_state() in TERMINAL_STATES:
             return
@@ -150,57 +158,42 @@ class JobExecutionNode(ExecutionNode):
         await self.set_final_state()
 
     async def sync_main_task(self):
-        main_task = JobMainTaskExecutionNode(experiment_id=self.experiment_id,
-                                             component_id=self.component_id,
-                                             job_id=self.job_id)
-        await main_task.sync_started()
+        if await self.main_task.can_schedule():
+            await self.main_task.schedule()
 
-        if await main_task.can_schedule():
-            await main_task.schedule()
+        if await self.main_task.can_start():
+            await self.main_task.start()
 
-        if await main_task.can_start():
-            await main_task.start()
-            emit_start_job_event(experiment_id=self.experiment_id,
-                                 component_id=self.component_id,
-                                 job_id=self.job_id)
-
-        main_task_state = await main_task.get_state()
-        if main_task_state in TERMINAL_STATES:
-            await self.set_state(main_task_state)
-            await self.set_message(await main_task.get_message())
-            return
+        await self.main_task.sync_started()
 
     async def sync_long_running_task(self):
         main_task_state = await self.main_task.get_state()
 
-        long_running_task = JobLongRunningTaskExecutionNode(experiment_id=self.experiment_id,
-                                                            component_id=self.component_id,
-                                                            job_id=self.job_id)
-        await long_running_task.sync_started()
-
-        if main_task_state in TERMINAL_STATES and await long_running_task.get_state() == ControlStates.UNKNOWN:
-            await self.set_state(main_task_state)
+        # will not run
+        if main_task_state in TERMINAL_STATES and await self.long_running_task.get_state() == ControlStates.UNKNOWN:
             return
 
-        if await long_running_task.can_start():
-            await long_running_task.start()
+        if await self.long_running_task.can_start():
+            await self.long_running_task.start()
             return
+
+        await self.long_running_task.sync_started()
 
     async def sync_complete_task(self):
-        await self.complete_task.sync_started()
+        long_running_task_state = await self.long_running_task.get_state()
+        main_task_state = await self.main_task.get_state()
 
-        long_running_task = JobLongRunningTaskExecutionNode(experiment_id=self.experiment_id,
-                                                            component_id=self.component_id,
-                                                            job_id=self.job_id)
-        long_running_task_state = await long_running_task.get_state()
-
-        if long_running_task_state == ControlStates.SUCCESS and await self.complete_task.can_schedule():
-            await self.complete_task.schedule(long_running_output=await long_running_task.get_output())
-            return
+        if main_task_state == ControlStates.SUCCESS and long_running_task_state in [ControlStates.SUCCESS,
+                                                                                    ControlStates.UNKNOWN]:
+            if await self.complete_task.can_schedule():
+                await self.complete_task.schedule(long_running_output=await self.long_running_task.get_output())
+                return
 
         if await self.complete_task.can_start():
             await self.complete_task.start()
             return
+
+        await self.complete_task.sync_started()
 
     async def set_final_state(self):
         success = True
@@ -213,19 +206,20 @@ class JobExecutionNode(ExecutionNode):
 
             if state in ERROR_STATES:
                 success = False
-                await self.set_state(state)
                 await self.set_message(await task.get_message())
+                await self.set_state(state)
                 emit_finish_job_event(experiment_id=self.experiment_id,
                                       component_id=self.component_id,
                                       job_id=self.job_id)
-                return
+                break
 
         if success:
             await self.set_state(ControlStates.SUCCESS)
             await self.set_message("")
-            emit_finish_job_event(experiment_id=self.experiment_id,
-                                  component_id=self.component_id,
-                                  job_id=self.job_id)
+
+        emit_finish_job_event(experiment_id=self.experiment_id,
+                              component_id=self.component_id,
+                              job_id=self.job_id)
 
     async def start(self):
         await self.set_state(state=ControlStates.STARTED)

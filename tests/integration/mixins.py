@@ -6,7 +6,7 @@ from typing import Type
 from nolabs.domain.models.common import Experiment, ExperimentName, ExperimentId, ComponentData
 from nolabs.workflow.core.component import Component, ComponentTypeFactory
 from nolabs.workflow.core.graph import GraphExecutionNode
-from workflow.core.states import TERMINAL_STATES
+from nolabs.workflow.core.states import TERMINAL_STATES
 
 
 class SeedExperimentMixin:

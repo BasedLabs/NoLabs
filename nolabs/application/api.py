@@ -1,7 +1,10 @@
 from dotenv import load_dotenv
 
+
 load_dotenv("infrastructure/.env")
 
+from nolabs.infrastructure.mongo_connector import mongo_connect
+from nolabs.infrastructure.log import logger
 from nolabs.application.biobuddy.controller import router as biobuddy_controller
 from nolabs.application.experiments.controller import router as experiment_router
 from nolabs.application.folding.controller import router as folding_router
@@ -12,13 +15,14 @@ from nolabs.application.middlewares.domain_exception_middleware import (
 from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.workflow.application.controller import router as workflow_router
 
-from nolabs.infrastructure.settings import settings
-from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.settings import initialize_settings, settings
 import uvicorn
 
 import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+initialize_settings()
 
 app = FastAPI(title="NoLabs")
 
@@ -41,6 +45,13 @@ async def join_room(sid, data):
             "Client joined experiment",
             extra={"client_id": sid, "experiment_id": experiment_id},
         )
+
+
+# MongoDB connection on application startup
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Starting application and connecting to MongoDB")
+    await mongo_connect()
 
 
 app.include_router(experiment_router)

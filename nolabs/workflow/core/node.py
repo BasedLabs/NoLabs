@@ -4,15 +4,14 @@ from abc import abstractmethod, ABC
 from typing import Dict, Optional, Any
 
 from celery.result import AsyncResult
+from redis.client import Pipeline
 
+from infrastructure.redis_client_factory import get_redis_pipe
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
-from infrastructure.celery_app_factory import get_celery_app
-from infrastructure.redis_client_factory import Redis
-from nolabs.infrastructure.redis_client_factory import use_redis_pipe
+from nolabs.infrastructure.celery_app_factory import get_celery_app
+from nolabs.infrastructure.redis_client_factory import Redis
 from nolabs.workflow.core.states import ControlStates, celery_to_internal_mapping
 from nolabs.workflow.core.states import state_transitions
-
-celery = get_celery_app()
 
 class ExecutionNode(ABC):
     """
@@ -42,33 +41,33 @@ class ExecutionNode(ABC):
             return None
         return json.loads(execution_input)
 
-    async def set_input(self, execution_input: Dict[str, Any]):
+    async def set_input(self, execution_input: Dict[str, Any], pipe:Optional[Pipeline] = None):
         cid = f"{self._id}:input"
-        await Redis.client.set(cid, json.dumps(execution_input, default=str))
+        await (pipe or Redis.client).set(cid, json.dumps(execution_input, default=str))
 
-    async def set_output(self, output: Dict[str, Any]):
+    async def set_output(self, output: Dict[str, Any], pipe:Optional[Pipeline] = None):
         cid = f"{self._id}:output"
-        await Redis.client.set(cid, output or "")
+        await (pipe or Redis.client).set(cid, output or "")
 
     async def get_output(self) -> Dict[str, Any]:
         cid = f"{self._id}:output"
         return await Redis.client.get(cid)
 
-    async def set_message(self, message: str):
+    async def set_message(self, message: str, pipe:Optional[Pipeline] = None):
         cid = f"{self._id}:message"
-        await Redis.client.set(cid, message or "")
+        await (pipe or Redis.client).set(cid, message or "")
 
     async def get_message(self):
         cid = f"{self._id}:message"
         return await Redis.client.get(cid)
 
-    async def set_state(self, state: ControlStates):
+    async def set_state(self, state: ControlStates, pipe:Optional[Pipeline] = None):
         current_state = self._state_cache
         if current_state and state not in state_transitions[current_state]:
             raise NoLabsException(ErrorCodes.invalid_states_transition, f"Cannot move from {current_state} to {state}")
 
         cid = f"{self._id}:state"
-        await Redis.client.set(cid, state)
+        await (pipe or Redis.client).set(cid, state)
         self._state_cache = state
 
     @abstractmethod
@@ -97,6 +96,7 @@ class ExecutionNode(ABC):
 class CeleryExecutionNode(ExecutionNode, ABC):
     def __init__(self, id: str):
         super().__init__(id)
+        self.celery = get_celery_app()
 
     @property
     def celery_task_id_cid(self) -> str:
@@ -111,27 +111,28 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         if not celery_task_id:
             raise NoLabsException(ErrorCodes.celery_task_startd_but_task_id_not_found)
 
-        async_result = AsyncResult(id=celery_task_id, app=celery)
+        async_result = AsyncResult(id=celery_task_id, app=self.celery)
         celery_state = async_result.state
         new_state = celery_to_internal_mapping[celery_state]
 
         if new_state != state:
             result = async_result.result
-            async with use_redis_pipe():
-                await self.set_state(state=new_state)
-                if new_state in [ControlStates.FAILURE, ControlStates.CANCELLED]:
-                    await self.set_message(message=str(result))
-                    await self.set_output(output={})
-                else:
-                    await self.set_output(output=result)
+            pipe = get_redis_pipe()
+            await self.set_state(state=new_state, pipe=pipe)
+            if new_state in [ControlStates.FAILURE, ControlStates.CANCELLED]:
+                await self.set_message(message=str(result),pipe=pipe)
+                await self.set_output(output={},pipe=pipe)
+            else:
+                await self.set_output(output=result,pipe=pipe)
+            await pipe.execute()
 
         return new_state
 
-    async def _prepare_for_start(self) -> str:
+    async def _prepare_for_start(self, pipe:Optional[Pipeline] = None) -> str:
         """
         :returns: celery_task_id
         """
         cid = self.celery_task_id_cid
         task_id = str(uuid.uuid4())
-        await Redis.client.set(cid, task_id)
+        await (pipe or Redis.client).set(cid, task_id)
         return task_id

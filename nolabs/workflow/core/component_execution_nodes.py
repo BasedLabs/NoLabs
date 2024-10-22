@@ -2,14 +2,13 @@ import uuid
 from typing import List
 
 from nolabs.domain.models.common import Job
-from infrastructure.redis_client_factory import use_redis_pipe
-from nolabs.workflow.core.celery_tasks import _component_main_task, _complete_component_task
+from nolabs.infrastructure.redis_client_factory import get_redis_pipe
+from nolabs.workflow.core.celery_tasks import Tasks
 from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
 from nolabs.workflow.core.socketio_events_emitter import emit_start_component_event
 from nolabs.workflow.core.states import ControlStates
 from nolabs.workflow.core.states import TERMINAL_STATES
-from nolabs.workflow.core.states import ERROR_STATES
 
 
 class ComponentMainTaskExecutionNode(CeleryExecutionNode):
@@ -21,16 +20,18 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
         self.component_id = component_id
 
     async def start(self):
-        async with use_redis_pipe():
-            celery_task_id = await self._prepare_for_start()
-            _component_main_task.apply_async(
-                kwargs={"experiment_id": self.experiment_id,
-                        "component_id": self.component_id},
-                task_id=celery_task_id,
-                retry=False)
-            await self.set_state(ControlStates.STARTED)
-            await self.set_output(output={})
-            await self.set_message(message="")
+        pipe = get_redis_pipe()
+        celery_task_id = await self._prepare_for_start(pipe=pipe)
+        self.celery.send_task(name=Tasks.component_main_tasks,
+                              kwargs={"experiment_id": self.experiment_id,
+                                      "component_id": self.component_id},
+                              task_id=celery_task_id,
+                              retry=False
+                              )
+        await self.set_state(ControlStates.STARTED, pipe=pipe)
+        await self.set_output(output={}, pipe=pipe)
+        await self.set_message(message="", pipe=pipe)
+        await pipe.execute()
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
         await self.set_state(state=ControlStates.SCHEDULED)
@@ -43,20 +44,21 @@ class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
         self.component_id = component_id
 
     async def start(self):
-        async with use_redis_pipe():
-            celery_task_id = await self._prepare_for_start()
-            _complete_component_task.apply_async(
-                kwargs={"experiment_id": self.experiment_id,
-                        "component_id": self.component_id},
-                task_id=celery_task_id,
-                retry=False)
-            await self.set_state(ControlStates.STARTED)
-            await self.set_output(output={})
-            await self.set_message(message="")
+        pipe = get_redis_pipe()
+        celery_task_id = await self._prepare_for_start(pipe=pipe)
+        self.celery.send_task(name=Tasks.complete_component_task,
+                              kwargs={"experiment_id": self.experiment_id,
+                                      "component_id": self.component_id},
+                              task_id=celery_task_id,
+                              retry=False
+                              )
+        await self.set_state(ControlStates.STARTED, pipe=pipe)
+        await self.set_output(output={}, pipe=pipe)
+        await self.set_message(message="", pipe=pipe)
+        await pipe.execute()
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_ids: List[uuid.UUID]):
-        async with use_redis_pipe():
-            await self.set_state(state=ControlStates.SCHEDULED)
+        await self.set_state(state=ControlStates.SCHEDULED)
 
 
 class ComponentExecutionNode(ExecutionNode):
@@ -89,6 +91,7 @@ class ComponentExecutionNode(ExecutionNode):
             return
 
         await self.sync_main_task()
+
         if await self.get_state() in TERMINAL_STATES:
             return
 
@@ -98,12 +101,16 @@ class ComponentExecutionNode(ExecutionNode):
             if await self.get_state() in TERMINAL_STATES:
                 return
 
+        if await self.get_state() in TERMINAL_STATES:
+            return
+
         if await self.main_task.get_state() == ControlStates.SUCCESS and any_job_succeeded:
             await self.sync_complete_task()
 
-    async def sync_main_task(self):
-        await self.main_task.sync_started()
+        if await self.get_state() in TERMINAL_STATES:
+            return
 
+    async def sync_main_task(self):
         if await self.main_task.can_schedule():
             await self.main_task.schedule(
                 experiment_id=self.experiment_id,
@@ -114,7 +121,10 @@ class ComponentExecutionNode(ExecutionNode):
             await self.main_task.start()
             emit_start_component_event(experiment_id=self.experiment_id, component_id=self.component_id)
 
-        if await self.main_task.get_state() in ERROR_STATES:
+        await self.main_task.sync_started()
+
+        state = await self.main_task.get_state()
+        if state in TERMINAL_STATES and state != ControlStates.SUCCESS:
             await self.set_state(await self.main_task.get_state())
             await self.set_message(await self.main_task.get_message())
 

@@ -1,5 +1,4 @@
 from functools import lru_cache
-from typing import Optional
 
 from celery import Celery
 
@@ -19,7 +18,7 @@ def get_celery_app() -> Celery:
         worker_send_task_events=True,
         task_acks_late=True,
         task_reject_on_worker_lost=True,
-        worker_state_db="/tmp/celery-state.db",
+        #worker_state_db=settings.celery_worker_state_db,
         accept_content=["application/json", "application/x-python-serialize"],
         task_always_eager=False,
         task_eager_propagates=False

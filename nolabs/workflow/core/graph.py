@@ -1,7 +1,7 @@
 import uuid
 from typing import List
 
-from infrastructure.redis_client_factory import use_redis_pipe
+from nolabs.infrastructure.redis_client_factory import get_redis_pipe
 from nolabs.workflow.core.component import Component
 from nolabs.workflow.core.component_execution_nodes import ComponentExecutionNode
 from nolabs.workflow.core.node import ExecutionNode
@@ -47,9 +47,10 @@ class GraphExecutionNode(ExecutionNode):
                 if component_2.id in component.previous_component_ids:
                     graph[str(component.id)].append(component_2.id)
 
-        async with use_redis_pipe():
-            await self.set_input(execution_input=graph)
-            await self.set_state(state=ControlStates.SCHEDULED)
+        pipe = get_redis_pipe()
+        await self.set_input(execution_input=graph, pipe=pipe)
+        await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
+        await pipe.execute()
 
     def get_component_node(self, component_id: uuid.UUID) -> ComponentExecutionNode:
         return ComponentExecutionNode(experiment_id=self.experiment_id, component_id=component_id)
