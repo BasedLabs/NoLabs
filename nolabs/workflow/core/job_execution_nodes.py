@@ -2,7 +2,7 @@ import uuid
 from typing import Optional, Dict, Any
 
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe
-from nolabs.workflow.core.celery_tasks import Tasks
+from workflow.core import Tasks
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
 from nolabs.workflow.core.socketio_events_emitter import emit_finish_job_event
 from nolabs.workflow.core.states import ControlStates

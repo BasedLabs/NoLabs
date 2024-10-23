@@ -1,23 +1,26 @@
 import asyncio
-import threading
 import uuid
 from typing import Optional, List, Dict, Any, TYPE_CHECKING
 
 from asgiref.sync import async_to_sync
 from celery import Celery
 
+from nolabs.infrastructure.redis_client_factory import acquire_redlock
 from nolabs.domain.models.common import ComponentData, Job
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.settings import settings
 from nolabs.workflow.core.component import Component, ComponentTypeFactory, Parameter
+from nolabs.workflow.core.graph import GraphExecutionNode
+from nolabs.workflow.core.states import TERMINAL_STATES
+from workflow.core import Tasks
 
 if TYPE_CHECKING:
     from nolabs.workflow.core.flow import ComponentFlowHandler
 
 
 def register_workflow_celery_tasks(celery: Celery):
-    @celery.task(name="control._component_main_task", bind=True, queue=settings.workflow_queue)
-    def _component_main_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
+    @celery.task(name="workflow._component_main_task", bind=True, queue=settings.workflow_queue, max_retries=0)
+    def component_main_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
 
@@ -76,8 +79,8 @@ def register_workflow_celery_tasks(celery: Celery):
         #return loop.run_until_complete(_())
         async_to_sync(_)()
 
-    @celery.task(name="control._job_main_task", bind=True, queue=settings.workflow_queue)
-    def _job_main_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
+    @celery.task(name="workflow._job_main_task", bind=True, queue=settings.workflow_queue, max_retries=0)
+    def job_main_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
             component = Component.restore(data=data)
@@ -89,8 +92,8 @@ def register_workflow_celery_tasks(celery: Celery):
 
         async_to_sync(_)()
 
-    @celery.task(name="control._complete_job_task", bind=True, queue=settings.workflow_queue)
-    def _complete_job_task(bind,
+    @celery.task(name="workflow._complete_job_task", bind=True, queue=settings.workflow_queue, max_retries=0)
+    def complete_job_task(bind,
                            experiment_id: uuid.UUID,
                            component_id: uuid.UUID,
                            job_id: uuid.UUID,
@@ -107,8 +110,8 @@ def register_workflow_celery_tasks(celery: Celery):
         asyncio.run(_())
 
 
-    @celery.task(name="control._complete_component_task", bind=True, queue=settings.workflow_queue)
-    def _complete_component_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
+    @celery.task(name="workflow._complete_component_task", bind=True, queue=settings.workflow_queue, max_retries=0)
+    def complete_component_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
             component = Component.restore(data=data)
@@ -124,6 +127,31 @@ def register_workflow_celery_tasks(celery: Celery):
 
         async_to_sync(_)()
 
+    @celery.task(name=Tasks.sync_graph_task, bind=True, queue=settings.workflow_queue)
+    def sync_graph(bind, experiment_id: uuid.UUID):
+        async def _():
+            lock_key = f'{Tasks.sync_graph_task}-{str(experiment_id)}'
+            graph = GraphExecutionNode(experiment_id=experiment_id)
+
+            cycle_count = 0
+            while await graph.get_state() not in TERMINAL_STATES:
+                lock = acquire_redlock(key=lock_key)
+                if not lock:
+                    return
+
+                try:
+                    if await graph.can_start():
+                        await graph.start()
+
+                    await graph.sync_started()
+                    if cycle_count >= 1:
+                        await asyncio.sleep(2.0)
+                    cycle_count += 1
+                finally:
+                    lock.release()
+
+        async_to_sync(_)()
+
 def _get_component(from_state: ComponentData) -> Component:
     component = ComponentTypeFactory.get_type(from_state.name)(
         id=from_state.id,
@@ -136,8 +164,3 @@ def _get_component(from_state: ComponentData) -> Component:
 
     return component
 
-class Tasks:
-    component_main_tasks = 'control._component_main_task'
-    job_main_task = 'control._job_main_task'
-    complete_job_task = 'control._complete_job_task'
-    complete_component_task = 'control._complete_component_task'

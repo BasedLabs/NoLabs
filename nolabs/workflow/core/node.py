@@ -4,6 +4,7 @@ from abc import abstractmethod, ABC
 from typing import Dict, Optional, Any
 
 from celery.result import AsyncResult
+from pydantic import BaseModel
 from redis.client import Pipeline
 
 from infrastructure.redis_client_factory import get_redis_pipe
@@ -12,6 +13,8 @@ from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.infrastructure.redis_client_factory import Redis
 from nolabs.workflow.core.states import ControlStates, celery_to_internal_mapping
 from nolabs.workflow.core.states import state_transitions
+from workflow.core.states import ERROR_STATES
+
 
 class ExecutionNode(ABC):
     """
@@ -23,8 +26,8 @@ class ExecutionNode(ABC):
         self._state_cache = None
 
     async def get_state(self) -> Optional[ControlStates]:
-        if self._state_cache:
-            return self._state_cache
+        #if self._state_cache:
+        #    return self._state_cache
 
         cid = f"{self._id}:state"
         state = await Redis.client.get(cid)
@@ -41,9 +44,19 @@ class ExecutionNode(ABC):
             return None
         return json.loads(execution_input)
 
-    async def set_input(self, execution_input: Dict[str, Any], pipe:Optional[Pipeline] = None):
+    async def set_input(self, execution_input: Dict[str, Any] | str | BaseModel, pipe:Optional[Pipeline] = None):
         cid = f"{self._id}:input"
-        await (pipe or Redis.client).set(cid, json.dumps(execution_input, default=str))
+
+        data = ''
+
+        if isinstance(execution_input, dict):
+            data = json.dumps(execution_input, default=str)
+        if isinstance(execution_input, BaseModel):
+            data = execution_input.model_dump_json()
+        if isinstance(execution_input, str):
+            data = execution_input
+
+        await (pipe or Redis.client).set(cid, data)
 
     async def set_output(self, output: Dict[str, Any], pipe:Optional[Pipeline] = None):
         cid = f"{self._id}:output"
@@ -109,7 +122,7 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         cid = self.celery_task_id_cid
         celery_task_id = await Redis.client.get(cid)
         if not celery_task_id:
-            raise NoLabsException(ErrorCodes.celery_task_startd_but_task_id_not_found)
+            raise NoLabsException(ErrorCodes.celery_task_executed_but_task_id_not_found)
 
         async_result = AsyncResult(id=celery_task_id, app=self.celery)
         celery_state = async_result.state
@@ -119,7 +132,7 @@ class CeleryExecutionNode(ExecutionNode, ABC):
             result = async_result.result
             pipe = get_redis_pipe()
             await self.set_state(state=new_state, pipe=pipe)
-            if new_state in [ControlStates.FAILURE, ControlStates.CANCELLED]:
+            if new_state in ERROR_STATES:
                 await self.set_message(message=str(result),pipe=pipe)
                 await self.set_output(output={},pipe=pipe)
             else:

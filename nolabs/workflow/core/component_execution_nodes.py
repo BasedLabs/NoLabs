@@ -1,9 +1,9 @@
 import uuid
-from typing import List
+from typing import List, Iterable
 
 from nolabs.domain.models.common import Job
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe
-from nolabs.workflow.core.celery_tasks import Tasks
+from workflow.core import Tasks
 from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
 from nolabs.workflow.core.socketio_events_emitter import emit_start_component_event
@@ -22,7 +22,7 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
     async def start(self):
         pipe = get_redis_pipe()
         celery_task_id = await self._prepare_for_start(pipe=pipe)
-        self.celery.send_task(name=Tasks.component_main_tasks,
+        self.celery.send_task(name=Tasks.component_main_task,
                               kwargs={"experiment_id": self.experiment_id,
                                       "component_id": self.component_id},
                               task_id=celery_task_id,
@@ -69,8 +69,8 @@ class ComponentExecutionNode(ExecutionNode):
         self.main_task = ComponentMainTaskExecutionNode(experiment_id, component_id)
         self.complete_task = ComponentCompleteTaskExecutionNode(experiment_id, component_id)
 
-    async def can_start(self, previous_component_ids: List[uuid.UUID]):
-        if not super().can_start():
+    async def can_schedule(self, previous_component_ids: Iterable[uuid.UUID]) -> bool:
+        if not await super().can_schedule():
             return False
 
         for component_id in previous_component_ids:
@@ -189,7 +189,10 @@ class ComponentExecutionNode(ExecutionNode):
         # If all jobs are in terminal state, update component state
         if all_jobs_terminal:
             if not any_success:
-                await self.set_state(ControlStates.FAILURE)
+                pipe = get_redis_pipe()
+                await self.set_state(ControlStates.FAILURE, pipe=pipe)
+                await self.set_message(message="All jobs failed", pipe=pipe)
+                await pipe.execute()
                 return any_success
 
         return any_success
