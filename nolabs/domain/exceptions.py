@@ -217,6 +217,12 @@ class ErrorCodes(Enum):
     celery_task_executed_but_task_id_not_found = ErrorCode(
         code=111, description="Celery task executed, but task id not found"
     )
+    graph_scheduler_timeout = ErrorCode(
+        code=112, description="Graph scheduler timeout"
+    )
+    cannot_schedule_node = ErrorCode(
+        code=113, description="Cannot schedule node"
+    )
 
 
 

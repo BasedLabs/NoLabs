@@ -3,12 +3,14 @@ from typing import Type, List, Optional
 
 from pydantic import BaseModel
 
+from domain.models.common import Job, JobId, JobName
 from integration.mixins import SeedComponentsMixin, SeedExperimentMixin, GraphTestMixin
 from integration.setup import GlobalSetup
 from nolabs.workflow.core.component import Component, TOutput, TInput
 from nolabs.workflow.core.flow import ComponentFlowHandler
 from nolabs.workflow.core.graph import GraphExecutionNode
 from nolabs.workflow.core.states import ControlStates
+from nolabs.workflow.core.syncer import Syncer
 
 
 class TestComponent(GlobalSetup,
@@ -47,8 +49,8 @@ class TestComponent(GlobalSetup,
 
         # act
         await graph.schedule(components=[component])
-        await graph.start()
-        await self.sync_until_terminal(graph=graph)
+        scheduler = Syncer()
+        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.SUCCESS)
@@ -87,8 +89,8 @@ class TestComponent(GlobalSetup,
 
         # act
         await graph.schedule(components=[component])
-        await graph.start()
-        await self.sync_until_terminal(graph=graph)
+        scheduler = Syncer()
+        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
@@ -128,11 +130,59 @@ class TestComponent(GlobalSetup,
 
         # act
         await graph.schedule(components=[component])
-        await graph.start()
-        await self.sync_until_terminal(graph=graph)
+        scheduler = Syncer()
+        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_message(), "Hello")
 
+    async def test_should_fail_component_on_all_jobs_failure(self):
+        # arrange
+
+        class IO(BaseModel):
+            a: int = 10
+
+        class FlowHandler(ComponentFlowHandler):
+            async def on_component_task(self, inp: TInput) -> List[uuid.UUID]:
+                job1 = Job.create(id=JobId(uuid.uuid4()), name=JobName("hello 1"), component=self.component_id)
+                job2 = Job.create(id=JobId(uuid.uuid4()), name=JobName("hello 2"), component=self.component_id)
+                await job1.save()
+                await job2.save()
+
+                return [job1.id, job2.id]
+
+            def on_job_task(self, job_id: uuid.UUID):
+                raise ValueError("Exception")
+
+        class MockComponent(Component[IO, IO], ComponentFlowHandler):
+            name = "a"
+
+            @property
+            def input_parameter_type(self) -> Type[TInput]:
+                return IO
+
+            @property
+            def component_flow_type(self) -> Type["ComponentFlowHandler"]:
+                return FlowHandler
+
+            @property
+            def output_parameter_type(self) -> Type[TOutput]:
+                return IO
+
+        experiment_id = uuid.uuid4()
+        await self.seed_experiment(id=experiment_id)
+        component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
+        graph = GraphExecutionNode(experiment_id=experiment_id)
+
+        self.spin_up_celery()
+
+        # act
+        await graph.schedule(components=[component])
+        scheduler = Syncer()
+        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
+
+        # assert
+        self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
+        self.assertEqual(await graph.get_component_node(component_id=component.id).get_message(), "All jobs failed")
 

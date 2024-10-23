@@ -1,6 +1,6 @@
 import multiprocessing
 import os
-import threading
+import tracemalloc
 import unittest
 import uuid
 from pathlib import Path
@@ -16,9 +16,10 @@ from nolabs.workflow.core.celery_tasks import register_workflow_celery_tasks
 from nolabs.workflow.core.component import ComponentTypeFactory
 from nolabs.workflow.worker import start
 
-
 redis_container: Optional[RedisContainer] = None
 mongo_container: Optional[MongoDbContainer] = None
+
+tracemalloc.start()
 
 
 class GlobalSetup(unittest.IsolatedAsyncioTestCase):

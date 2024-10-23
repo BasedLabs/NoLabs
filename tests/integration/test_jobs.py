@@ -13,6 +13,7 @@ from nolabs.workflow.core.component import Component, TOutput, TInput
 from nolabs.workflow.core.flow import ComponentFlowHandler
 from nolabs.workflow.core.graph import GraphExecutionNode
 from nolabs.workflow.core.states import ControlStates
+from nolabs.workflow.core.syncer import Syncer
 
 
 class TestJobs(GlobalSetup,
@@ -78,8 +79,8 @@ class TestJobs(GlobalSetup,
 
         # act
         await graph.schedule(components=[component])
-        await graph.start()
-        await self.sync_until_terminal(graph=graph, timeout=10000)
+        scheduler = Syncer()
+        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
 
         # assert
         job1 = Job.objects.get(id=j1_id)
@@ -146,8 +147,8 @@ class TestJobs(GlobalSetup,
 
         # act
         await graph.schedule(components=[component])
-        await graph.start()
-        await self.sync_until_terminal(graph=graph, timeout=10000)
+        scheduler = Syncer()
+        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
@@ -214,8 +215,8 @@ class TestJobs(GlobalSetup,
 
         # act
         await graph.schedule(components=[component])
-        await graph.start()
-        await self.sync_until_terminal(graph=graph, timeout=10000)
+        scheduler = Syncer()
+        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)

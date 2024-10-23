@@ -247,7 +247,7 @@ class Parameter(BaseModel):
         if not issubclass(cls, BaseModel):
             raise ValueError(f"Schema must be a subclass of {BaseModel}")
 
-        schema = cls.schema()
+        schema = cls.model_json_schema()
 
         return Parameter(**schema)
 
