@@ -84,7 +84,10 @@ class RosettaService:
             msa_file.write_bytes(a3m)
             script = f'./run_RF2_msa.sh {msa_file.full_path} {os.path.join(models_dir.full_path, 'model')}'
         else:
-            self._root.add_file(self._fasta_file_name).write_bytes(fasta)
+            sequence = fasta.decode()
+            if '>' not in sequence:
+                sequence = f'>sequence\n{sequence}'
+            self._root.add_file(self._fasta_file_name).write_bytes(sequence.encode())
             runner = self._root.files.first_or_default(lambda o: o.name == 'run_RF2.sh')
             script = f'CPU={cpu_count} MEM={gb} ./{runner.name} {self._fasta_file_name} -o {self._fasta_name}'
 
