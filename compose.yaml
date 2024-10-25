@@ -117,6 +117,13 @@ services:
       context: microservices/p2rank
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5731
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
   msa_light:
     image: 'ghcr.io/basedlabs/msa-light:1.0.0'
     network_mode: host
@@ -151,7 +158,14 @@ services:
       - /media/jt/Local Disk/RoseTTAFold/bfd:/RoseTTAFold/bfd
       - /media/jt/Local Disk/RoseTTAFold/pdb100_2021Mar03:/RoseTTAFold/pdb100_2021Mar03
       - /media/jt/Local Disk/RoseTTAFold/UniRef30_2020_06:/RoseTTAFold/UniRef30_2020_06
-    command: --host=0.0.0.0 --port=5738
+    command: --host=0.0.0.0 --port=5737
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
   reinvent:
     image: 'ghcr.io/basedlabs/reinvent:1.0.1'
     network_mode: host
@@ -159,6 +173,13 @@ services:
       context: microservices/reinvent
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5790
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
   blast_query:
     image: 'ghcr.io/basedlabs/blast_query:1.0.0'
     network_mode: host

@@ -5,6 +5,7 @@ __all__ = [
     'GetJobStatusFeature'
 ]
 
+import tempfile
 from typing import List, Tuple, Optional
 from uuid import UUID
 
@@ -220,11 +221,13 @@ class RunJobFeature:
             return (response.pdb_content, [])
 
         if folding_backend == FoldingBackendEnum.rosettafold:
-            response = self._rosettafold.run_folding_run_folding_post(
-                job_id=job_id.value,
-                fasta=sequence,
-                _request_timeout=(1000.0, 1000.0)
-            )
-            return (response.pdb_content.anyof_schema_1_validator, response.errors)
+            with tempfile.NamedTemporaryFile(mode="w+t", delete=False) as temp_file:
+                temp_file.write(sequence)
+                temp_file.close()
+                response = self._rosettafold.run_folding_run_folding_post(
+                    fasta=temp_file.name,
+                    _request_timeout=(1000.0, 1000.0)
+                )
+                return (response.pdb_content.anyof_schema_1_validator, response.errors)
 
         raise NoLabsException(ErrorCodes.folding_method_unknown, [str(folding_backend)])
