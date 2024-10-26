@@ -314,7 +314,7 @@ Model: [RoseTTAFold](https://github.com/RosettaCommons/RoseTTAFold)
 docker compose up rosettafold
 ```
 
-Swagger UI will be available on http://localhost:5738/docs
+Swagger UI will be available on http://localhost:5737/docs
 
 or
 [Install as python package](microservices/rosettafold/client/README.md)
