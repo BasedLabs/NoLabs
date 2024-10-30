@@ -330,13 +330,14 @@ class TestGraph(GlobalSetup,
                 job1 = Job.create(id=JobId(uuid.uuid4()), name=JobName("hello 1"), component=self.component_id)
                 await job1.save()
 
+                print('Job created')
+
                 return [job1.id]
 
             async def on_job_task(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
                 await j.save()
-                print('Scheduled')
                 await self.schedule_long_running(job_id=job_id, celery_task_name=task_name,
                                                  input={"job_id": job_id})
 
@@ -370,10 +371,11 @@ class TestGraph(GlobalSetup,
         # act
         await graph.set_components_graph(components=[component1, component2])
         await graph.schedule(schedule=[component1])
-        await graph.sync()
+        task_id = await graph.sync()
 
         await graph.schedule(schedule=[component2])
-        await graph.sync(wait=True)
+
+        await self.await_for_celery_task(task_id=task_id)
 
         # assert
         self.assertEqual(await graph.get_state(), ControlStates.SUCCESS)

@@ -173,6 +173,7 @@ class JobExecutionNode(ExecutionNode):
 
         # will not run
         if main_task_state in TERMINAL_STATES and await self.long_running_task.get_state() == ControlStates.UNKNOWN:
+            await self.long_running_task.set_state(state=ControlStates.SUCCESS)
             return
 
         if await self.long_running_task.can_start():
@@ -246,14 +247,14 @@ class JobExecutionNode(ExecutionNode):
         await complete_task.reset(pipe=pipe)
 
     async def on_started(self):
-        emit_start_job_event(
+        await emit_start_job_event(
             experiment_id=self.experiment_id,
             component_id=self.component_id,
             job_id=self.job_id
         )
 
     async def on_finished(self):
-        emit_finish_job_event(
+        await emit_finish_job_event(
             experiment_id=self.experiment_id,
             component_id=self.component_id,
             job_id=self.job_id

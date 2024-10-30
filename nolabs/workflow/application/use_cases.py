@@ -15,7 +15,6 @@ from uuid import UUID
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import Job, ComponentData, Experiment
 from nolabs.infrastructure.log import logger
-from nolabs.infrastructure.redis_client_factory import redlock
 from nolabs.workflow.application.api_models import (
     ComponentStateEnum,
     GetComponentRequest,
@@ -155,7 +154,7 @@ class UpdateWorkflowSchemaFeature:
                     if c.id == old_comp.id:
                         found = True
                         break
-                if not found:
+                if not found and old_comp:
                     await old_comp.delete()
 
             schema_valid = True
@@ -322,7 +321,6 @@ class StartWorkflowFeature:
         graph = Graph(experiment_id=experiment_id)
         await graph.set_components_graph(components=components_graph)
         await graph.schedule(schedule=components_graph)
-        await graph.sync()
 
 
 class StartWorkflowComponentFeature:
@@ -442,7 +440,9 @@ class GetJobStateFeature:
             if not job:
                 raise NoLabsException(ErrorCodes.job_not_found, data={"job_id": job.id})
 
-            state, message = await self._get_state(experiment_id=job.component.experiment.id)
+            state, message = await self._get_state(experiment_id=job.component.experiment.id,
+                                                   component_id=job.component.id,
+                                                   job_id=job.id)
 
             response = GetJobState(
                 id=job.id,

@@ -8,7 +8,8 @@ from redis.client import Pipeline
 
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.celery_app_factory import get_celery_app
-from nolabs.infrastructure.redis_client_factory import acquire_redlock, get_redis_pipe
+from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.redis_client_factory import redlock, get_redis_pipe
 from nolabs.workflow.core import Tasks
 from nolabs.workflow.core.component import Component
 from nolabs.workflow.core.component_execution_nodes import ComponentExecutionNode
@@ -22,7 +23,6 @@ from nolabs.workflow.core.states import TERMINAL_STATES
 class GraphData(BaseModel):
     graph: Dict[uuid.UUID, List[uuid.UUID]]
     schedule: List[uuid.UUID]
-
 
 
 class Graph(ExecutionNode):
@@ -51,7 +51,8 @@ class Graph(ExecutionNode):
             # Cancel if node is not running and not terminal and any previous component is failed
             if state != ControlStates.STARTED and state not in TERMINAL_STATES:
                 for previous_component_id in previous_component_ids:
-                    prev_node = ComponentExecutionNode(experiment_id=self.experiment_id, component_id=previous_component_id)
+                    prev_node = ComponentExecutionNode(experiment_id=self.experiment_id,
+                                                       component_id=previous_component_id)
                     prev_node_state = await prev_node.get_state()
                     if prev_node_state in ERROR_STATES:
                         should_cancel = True
@@ -73,7 +74,8 @@ class Graph(ExecutionNode):
             await self.set_state(ControlStates.SUCCESS)
 
     async def start(self, **kwargs):
-        lock = acquire_redlock(key=self._id, blocking=True)
+        lock = redlock(key=self._id, blocking=True)
+        await lock.acquire()
 
         try:
             if not await self.can_start():
@@ -81,11 +83,13 @@ class Graph(ExecutionNode):
 
             await self.set_state(ControlStates.STARTED)
         finally:
-            lock.release()
+            if await lock.locked():
+                await lock.release()
 
     async def set_components_graph(self, components: List[Component]):
         # TODO ensure that is not running
-        lock = acquire_redlock(key=self._id, blocking=True)
+        lock = redlock(key=self._id, blocking=True)
+        await lock.acquire()
 
         try:
             state = await self.get_state()
@@ -109,19 +113,16 @@ class Graph(ExecutionNode):
             )
             await self.set_input(execution_input=model)
         finally:
-            lock.release()
+            if await lock.locked():
+                await lock.release()
 
     async def can_schedule(self) -> bool:
-        lock = acquire_redlock(key=self._id, blocking=True)
-
-        try:
-            state = await self.get_state()
-            return state != ControlStates.CANCELLING
-        finally:
-            lock.release()
+        state = await self.get_state()
+        return state != ControlStates.CANCELLING
 
     async def schedule(self, schedule: List[Component]):
-        lock = acquire_redlock(key=self._id, blocking=True)
+        lock = redlock(key=self._id, blocking=True)
+        await lock.acquire()
 
         try:
             if not await self.can_schedule():
@@ -154,7 +155,8 @@ class Graph(ExecutionNode):
                 await super().reset(pipe=pipe)
                 await super().schedule()
         finally:
-            lock.release()
+            if await lock.locked():
+                await lock.release()
 
     def get_component_node(self, component_id: uuid.UUID) -> ComponentExecutionNode:
         return ComponentExecutionNode(experiment_id=self.experiment_id, component_id=component_id)
@@ -193,17 +195,45 @@ class Graph(ExecutionNode):
         await super().reset(pipe=pipe)
         await pipe.execute()
 
-    async def sync(self, wait=False, timeout=604800):
-        task_id = str(uuid.uuid4())
-        celery = get_celery_app()
-        async_result = celery.send_task(name=Tasks.sync_graph_task,
-                                        task_id=task_id,
-                                        retry=False,
-                                        kwargs={'experiment_id': self.experiment_id})
-        if wait:
-            start_time = time.time()
-            while not async_result.ready():
-                if time.time() - start_time > timeout:
-                    raise NoLabsException(ErrorCodes.graph_scheduler_timeout)
-                await asyncio.sleep(0)
-        return task_id
+    async def sync(self):
+        logger.info('Graph sync check', extra={
+            'experiment_id': self.experiment_id
+        })
+        lock = redlock(key=self._id, blocking=False, auto_release_time=10.0)
+
+        if not await lock.acquire():
+            logger.info('Graph is already syncing, returning', extra={
+                'experiment_id': self.experiment_id
+            })
+            return
+
+        try:
+            state = await self.get_state()
+
+            if state in TERMINAL_STATES or state == ControlStates.UNKNOWN:
+                return
+
+            logger.info('Graph is syncing', extra={
+                'experiment_id': self.experiment_id
+            })
+
+            if await self.can_start():
+                await self.start()
+
+            if await self.get_state() in ControlStates.STARTED:
+                await self.sync_started()
+
+            if await self.get_state() in ControlStates.CANCELLING:
+                await self.sync_cancelling()
+        except Exception as e:
+            pipe = get_redis_pipe()
+            await self.set_state(state=ControlStates.FAILURE, pipe=pipe)
+            await self.set_message(message=str(e), pipe=pipe)
+            await pipe.execute()
+            logger.exception()
+        finally:
+            logger.info('Graph syncing finish', extra={
+                'experiment_id': self.experiment_id
+            })
+            if await lock.locked():
+                await lock.release()

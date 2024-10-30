@@ -4,7 +4,6 @@ from typing import Type, List, Optional, Dict, Any
 from asgiref.sync import async_to_sync
 from pydantic import BaseModel
 
-from nolabs.application.biobuddy.functions.generate_workflow import components
 from tests.integration.mixins import SeedComponentsMixin, SeedExperimentMixin, GraphTestMixin
 from tests.integration.setup import GlobalSetup
 from nolabs.domain.models.common import Job, JobId, JobName
@@ -20,6 +19,58 @@ class TestJobs(GlobalSetup,
                SeedComponentsMixin,
                SeedExperimentMixin,
                GraphTestMixin):
+    async def test_should_complete_without_long_running_job(self):
+        j1_id = uuid.uuid4()
+        j2_id = uuid.uuid4()
+
+        class IO(BaseModel):
+            a: int = 10
+
+        class FlowHandler(ComponentFlowHandler):
+            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+                job1 = Job.create(id=JobId(j1_id), name=JobName("hello 1"), component=self.component_id)
+                job2 = Job.create(id=JobId(j2_id), name=JobName("hello 2"), component=self.component_id)
+                await job1.save()
+                await job2.save()
+
+                return [job1.id, job2.id]
+
+            async def on_job_task(self, job_id: uuid.UUID):
+                j: Job = Job.objects.with_id(job_id)
+                j.name = JobName("Changed")
+                await j.save()
+
+        class MockComponent(Component[IO, IO], ComponentFlowHandler):
+            name = "a"
+
+            @property
+            def input_parameter_type(self) -> Type[TInput]:
+                return IO
+
+            @property
+            def component_flow_type(self) -> Type["ComponentFlowHandler"]:
+                return FlowHandler
+
+            @property
+            def output_parameter_type(self) -> Type[TOutput]:
+                return IO
+
+        # arrange
+        experiment_id = uuid.uuid4()
+        await self.seed_experiment(id=experiment_id)
+        component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
+        graph = Graph(experiment_id=experiment_id)
+        self.spin_up_celery()
+
+        # act
+        await graph.set_components_graph(components=[component])
+        await graph.schedule(schedule=[component])
+        await graph.sync(wait=True)
+
+        # assert
+        self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.SUCCESS)
+
+
     async def test_should_successfully_run_long_running_job(self):
         celery = get_celery_app()
 
@@ -52,7 +103,6 @@ class TestJobs(GlobalSetup,
             async def on_job_task(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
-                print('Scheduled')
                 await j.save()
                 await self.schedule_long_running(job_id=job_id, celery_task_name="long_running_job_test_success2",
                                                  input={"job_id": job_id})
@@ -80,7 +130,7 @@ class TestJobs(GlobalSetup,
         self.spin_up_celery()
 
         # act
-        await graph.set_components_graph(components=components)
+        await graph.set_components_graph(components=[component])
         await graph.schedule(schedule=[component])
         await graph.sync(wait=True)
 
@@ -148,7 +198,7 @@ class TestJobs(GlobalSetup,
         self.spin_up_celery()
 
         # act
-        await graph.set_components_graph(components=components)
+        await graph.set_components_graph(components=[component])
         await graph.schedule(schedule=[component])
         await graph.sync(wait=True)
 
@@ -216,7 +266,7 @@ class TestJobs(GlobalSetup,
         self.spin_up_celery()
 
         # act
-        await graph.set_components_graph(components=components)
+        await graph.set_components_graph(components=[component])
         await graph.schedule(schedule=[component])
         await graph.sync(wait=True)
 

@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     celery_worker_concurrency: int = 10
     mode: Literal["united", "fastapi", "workflow"] = "fastapi"
     environment: Literal["local", "test", "production"] = "local"
-    logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
+    logging_level: Literal["INFO", "WARNING", "ERROR"] = "ERROR"
 
 
 _settings: Optional[Settings] = None

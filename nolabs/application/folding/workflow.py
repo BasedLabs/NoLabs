@@ -119,40 +119,36 @@ class FoldingComponentFlow(ComponentFlowHandler):
         return FoldingComponentOutput(proteins_with_pdb=items)
 
     async def on_job_task(self, job_id: uuid.UUID):
-        try:
-            job: FoldingJob = FoldingJob.objects.with_id(job_id)
+        job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
-            input_errors = job.input_errors(throw=False)
+        input_errors = job.input_errors(throw=False)
 
-            if input_errors:
-                message = ", ".join(i.message for i in input_errors)
+        if input_errors:
+            message = ", ".join(i.message for i in input_errors)
 
-                raise NoLabsException(ErrorCodes.component_input_invalid, message=message)
+            raise NoLabsException(ErrorCodes.component_input_invalid, message=message)
 
-            if not job.processing_required:
-                return
+        if not job.processing_required:
+            return
 
-            celery = get_celery_app()
-            async_result = await celery.send_task(
-                name="esmfold-light-service.inference",
-                task_id=str(job.id),
-                payload={'fasta_sequence': job.protein.get_fasta()}
-            )
+        celery = get_celery_app()
+        async_result = celery.send_task(
+            name="esmfold-light-service.inference",
+            task_id=str(job.id),
+            queue="esmfold-light-service",
+            kwargs={'param': {'fasta_sequence': job.protein.get_fasta()}}
+        )
 
-            while not async_result.ready():
-                await asyncio.sleep(1.0)
+        while not async_result.ready():
+            await asyncio.sleep(1.0)
 
-            inference_result = async_result.get()
+        inference_result = async_result.get()
 
-            id = uuid.uuid4()
-            folded_protein = job.protein.copy(id=id)
-            folded_protein.set_pdb(inference_result.pdb_content)
-            job.set_result(protein=folded_protein)
-            await job.save(cascade=True)
-        except Exception as e:
-            if isinstance(e, NoLabsException):
-                raise e
-            raise NoLabsException(ErrorCodes.workflow_run_folding_job_failed) from e
+        id = uuid.uuid4()
+        folded_protein = job.protein.copy(id=id)
+        folded_protein.set_pdb(inference_result['pdb_content'])
+        job.set_result(protein=folded_protein)
+        await job.save(cascade=True)
 
 
 class EsmfoldLightComponentFlow(FoldingComponentFlow):

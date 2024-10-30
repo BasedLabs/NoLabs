@@ -4,15 +4,16 @@ from typing import Optional, List, Dict, Any, TYPE_CHECKING
 
 from asgiref.sync import async_to_sync
 from celery import Celery
+from celery.result import allow_join_result
 
-from nolabs.infrastructure.redis_client_factory import acquire_redlock, get_redis_pipe
-from nolabs.domain.models.common import ComponentData, Job
+from nolabs.domain.models.common import ComponentData, Job, Experiment
 from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.redis_client_factory import redlock, Redis, get_redis_pipe
 from nolabs.infrastructure.settings import settings
+from nolabs.workflow.core import Tasks
 from nolabs.workflow.core.component import Component, ComponentTypeFactory, Parameter
 from nolabs.workflow.core.graph import Graph
 from nolabs.workflow.core.states import TERMINAL_STATES, ControlStates
-from nolabs.workflow.core import Tasks
 
 if TYPE_CHECKING:
     from nolabs.workflow.core.flow import ComponentFlowHandler
@@ -75,8 +76,8 @@ def register_workflow_celery_tasks(celery: Celery):
             input_value = component.input_value
             await control_flow.on_component_task(inp=input_value)
 
-        #loop = asyncio.get_event_loop()
-        #return loop.run_until_complete(_())
+        # loop = asyncio.get_event_loop()
+        # return loop.run_until_complete(_())
         async_to_sync(_)()
 
     @celery.task(name="workflow._job_main_task", bind=True, queue=settings.workflow_queue, max_retries=0)
@@ -88,16 +89,17 @@ def register_workflow_celery_tasks(celery: Celery):
                 experiment_id=experiment_id,
                 component_id=component_id
             )
-            await control_flow.on_job_task(job_id=job_id)
+            with allow_join_result():
+                await control_flow.on_job_task(job_id=job_id)
 
         async_to_sync(_)()
 
     @celery.task(name="workflow._complete_job_task", bind=True, queue=settings.workflow_queue, max_retries=0)
     def complete_job_task(bind,
-                           experiment_id: uuid.UUID,
-                           component_id: uuid.UUID,
-                           job_id: uuid.UUID,
-                           long_running_output: Optional[Dict[str, Any]]):
+                          experiment_id: uuid.UUID,
+                          component_id: uuid.UUID,
+                          job_id: uuid.UUID,
+                          long_running_output: Optional[Dict[str, Any]]):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
             component = Component.restore(data=data)
@@ -108,7 +110,6 @@ def register_workflow_celery_tasks(celery: Celery):
             await control_flow.on_job_completion(job_id=job_id, long_running_output=long_running_output)
 
         asyncio.run(_())
-
 
     @celery.task(name="workflow._complete_component_task", bind=True, queue=settings.workflow_queue, max_retries=0)
     def complete_component_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
@@ -127,42 +128,29 @@ def register_workflow_celery_tasks(celery: Celery):
 
         async_to_sync(_)()
 
-    @celery.task(name=Tasks.sync_graph_task, bind=True, queue=settings.workflow_queue)
-    def sync_graph(bind, experiment_id: uuid.UUID):
+    @celery.task(name=Tasks.sync_graphs_task,
+                 bind=True,
+                 queue=settings.workflow_queue
+                 )
+    def sync_graphs(bind):
         async def _():
-            lock_key = f'{Tasks.sync_graph_task}-{str(experiment_id)}'
-            graph = Graph(experiment_id=experiment_id)
+            lock = redlock(key=Tasks.sync_graphs_task, auto_release_time=10.0)
+
+            if not await lock.acquire():
+                return
 
             try:
-                cycle_count = 0
-                while await graph.get_state() not in TERMINAL_STATES:
-                    lock = acquire_redlock(key=lock_key)
-                    if not lock:
-                        return
+                experiments = Experiment.objects.only('id')
 
-                    try:
-                        if await graph.can_start():
-                            await graph.start()
-
-                        if await graph.get_state() in ControlStates.STARTED:
-                            await graph.sync_started()
-
-                        if await graph.get_state() in ControlStates.CANCELLING:
-                            await graph.sync_cancelling()
-
-                        if cycle_count >= 1:
-                            await asyncio.sleep(0.1)
-                        cycle_count += 1
-                    finally:
-                        lock.release()
-            except Exception as e:
-                pipe = get_redis_pipe()
-                await graph.set_state(state=ControlStates.FAILURE, pipe=pipe)
-                await graph.set_message(message=str(e), pipe=pipe)
-                await pipe.execute()
-                raise
+                for experiment in experiments:
+                    graph = Graph(experiment_id=experiment.id)
+                    await graph.sync()
+            finally:
+                if await lock.locked():
+                    await lock.release()
 
         async_to_sync(_)()
+
 
 def _get_component(from_state: ComponentData) -> Component:
     component = ComponentTypeFactory.get_type(from_state.name)(
@@ -175,4 +163,3 @@ def _get_component(from_state: ComponentData) -> Component:
     )
 
     return component
-

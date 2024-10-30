@@ -35,10 +35,14 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
 
         # Start Redis container
         redis_container = RedisContainer()
+        redis_container.with_exposed_ports(6379)
+        redis_container.with_bind_ports(6379, 22555)
         redis_container.start()
 
         # Start MongoDB container
         mongo_container = MongoDbContainer(username="admin", password="admin", dbname="nolabs")
+        mongo_container.with_exposed_ports(27017)
+        mongo_container.with_bind_ports(27017, 22556)
         mongo_container.start()
 
         # Set environment variables

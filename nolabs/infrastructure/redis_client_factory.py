@@ -2,10 +2,9 @@ from functools import lru_cache
 from typing import Optional
 
 import redis.asyncio as redis
-from pottery import Redlock
 from redis.asyncio.client import Pipeline
+from redis.asyncio.lock import Lock
 
-from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.settings import settings
 
 
@@ -21,22 +20,18 @@ class Redis:
     def client(cls) -> redis.Redis:
         return cached_client()
 
+    @classmethod
+    def clear_cache(cls):
+        cached_client.cache_clear()
 
-def redlock(key: str, auto_release_time=100) -> Redlock:
-    redis_client = Redis.client
-    logger.info(f"Redlock captured", extra={"redlock_key": key, "redlock_auto_release_time": auto_release_time})
-    return Redlock(key=key, masters={redis_client}, auto_release_time=auto_release_time)
+    @classmethod
+    async def disconnect(cls):
+        client = cached_client()
+        await client.close()
 
 
-def acquire_redlock(key: str, blocking=False, auto_release_time=100) -> Optional[Redlock]:
-    redis_client = Redis.client
-    lock = Redlock(key=key, masters={redis_client}, auto_release_time=auto_release_time)
-    if lock.acquire(blocking=blocking):
-        logger.info(f"Redlock captured", extra={"redlock_key": key, "redlock_auto_release_time": auto_release_time})
-        return lock
-    else:
-        logger.info(f"Failed to acquire Redlock", extra={"redlock_key": key})
-        return None
+def redlock(key: str, blocking=False, auto_release_time=100) -> Optional[Lock]:
+    return Lock(Redis.client, name=key, blocking=blocking, timeout=auto_release_time, blocking_timeout=auto_release_time)
 
 
 def get_redis_pipe() -> Pipeline:

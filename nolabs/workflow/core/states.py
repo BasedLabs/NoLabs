@@ -40,7 +40,7 @@ PROGRESS_STATES = [
 
 state_transitions = {
     ControlStates.UNKNOWN: [ControlStates.UNKNOWN, ControlStates.SCHEDULED, ControlStates.CANCELLING,
-                            ControlStates.CANCELLED],
+                            ControlStates.CANCELLED, ControlStates.SUCCESS],
     ControlStates.CANCELLING: [ControlStates.CANCELLED],
     ControlStates.SCHEDULED: [ControlStates.SCHEDULED, ControlStates.STARTED, ControlStates.CANCELLED,
                               ControlStates.SUCCESS, ControlStates.CANCELLING],

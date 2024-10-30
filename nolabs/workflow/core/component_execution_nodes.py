@@ -42,7 +42,7 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
         await self.set_state(state=ControlStates.SCHEDULED)
 
     async def on_finished(self):
-        emit_component_jobs_event(
+        await emit_component_jobs_event(
             experiment_id=self.experiment_id,
             component_id=self.component_id,
             job_ids=[j.id for j in Job.objects(component=self.component_id).only('id')],
@@ -157,6 +157,8 @@ class ComponentExecutionNode(ExecutionNode):
                 component_id=self.component_id
             )
 
+        state = await self.main_task.get_state()
+        #print('STATE - ' + str(state) + ' - ' + str(self.experiment_id) + ' - ' + str(self.component_id))
         if await self.main_task.can_start():
             await self.main_task.start()
 
@@ -258,13 +260,13 @@ class ComponentExecutionNode(ExecutionNode):
             await self.set_message(await self.complete_task.get_message())
 
     async def on_started(self):
-        emit_start_component_event(
+        await emit_start_component_event(
             experiment_id=self.experiment_id,
             component_id=self.component_id
         )
 
     async def on_finished(self):
-        emit_finish_component_event(
+        await emit_finish_component_event(
             experiment_id=self.experiment_id,
             component_id=self.component_id
         )
