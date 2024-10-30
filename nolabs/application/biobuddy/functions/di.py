@@ -1,6 +1,7 @@
 from typing import Annotated
 
 import external_data_query_microservice
+from external_data_query_microservice.api.default_api import DefaultApi
 from fastapi import Depends
 
 from nolabs.application.biobuddy.functions.query_chembl import QueryChemblFunction
@@ -18,7 +19,7 @@ class FunctionDependencies:
     @staticmethod
     def query_chembl(
         chembl_miscroservice: Annotated[
-            external_data_query_microservice.DefaultApi,
+            DefaultApi,
             Depends(InfrastructureDependencies.external_query_microservice),
         ]
     ) -> QueryChemblFunction:
@@ -27,7 +28,7 @@ class FunctionDependencies:
     @staticmethod
     def query_chembl_by_disease(
         chembl_miscroservice: Annotated[
-            external_data_query_microservice.DefaultApi,
+            DefaultApi,
             Depends(InfrastructureDependencies.external_query_microservice),
         ]
     ) -> QueryChemblByConditionFunction:
@@ -36,7 +37,7 @@ class FunctionDependencies:
     @staticmethod
     def query_rcsb_pdb_by_id(
         rcsb_pdb_query_microservice: Annotated[
-            external_data_query_microservice.DefaultApi,
+            DefaultApi,
             Depends(InfrastructureDependencies.external_query_microservice),
         ]
     ) -> QueryRcsbPdbByIdFunction:
@@ -47,7 +48,7 @@ class FunctionDependencies:
     @staticmethod
     def query_rcsb_pdb(
         rcsb_pdb_query_microservice: Annotated[
-            external_data_query_microservice.DefaultApi,
+            DefaultApi,
             Depends(InfrastructureDependencies.external_query_microservice),
         ]
     ) -> QueryRCSBPDBFunction:

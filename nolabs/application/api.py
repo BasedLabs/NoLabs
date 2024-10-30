@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
 
 
@@ -24,7 +26,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 initialize_settings()
 
-app = FastAPI(title="NoLabs")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting application and connecting to MongoDB")
+    mongo_connect()
+    yield
+
+app = FastAPI(title="NoLabs", lifespan=lifespan)
 
 origins = ["*"]
 
@@ -45,13 +53,6 @@ async def join_room(sid, data):
             "Client joined experiment",
             extra={"client_id": sid, "experiment_id": experiment_id},
         )
-
-
-# MongoDB connection on application startup
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Starting application and connecting to MongoDB")
-    await mongo_connect()
 
 
 app.include_router(experiment_router)

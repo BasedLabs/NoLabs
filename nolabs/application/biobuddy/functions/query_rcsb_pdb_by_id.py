@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 import external_data_query_microservice
+from external_data_query_microservice.api.default_api import DefaultApi
 
 from nolabs.application.biobuddy.api_models import (
     FunctionCall,
@@ -17,7 +18,7 @@ from nolabs.application.biobuddy.functions.base_function import (
 
 class QueryRcsbPdbByIdFunction(BiobuddyFunction):
     def __init__(
-        self, rcsb_pdb_query_microservice: external_data_query_microservice.DefaultApi
+        self, rcsb_pdb_query_microservice: DefaultApi
     ):
         parameters = [
             FunctionParameterDefinition(

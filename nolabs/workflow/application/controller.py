@@ -31,12 +31,12 @@ router = APIRouter(
 @router.post("/{experiment_id}", summary="Create workflow schema")
 async def create_workflow_schema(experiment_id: UUID,
 ) -> WorkflowSchema:
-    return await CreateWorkflowSchemaFeature.handle(experiment_id=experiment_id)
+    return await CreateWorkflowSchemaFeature().handle(experiment_id=experiment_id)
 
 
 @router.get("/{experiment_id}", summary="Get workflow schema")
-async def get_schema() -> Optional[WorkflowSchema]:
-    return await GetWorkflowSchemaFeature().handle(id=experiment_id)
+async def get_schema(experiment_id: UUID) -> Optional[WorkflowSchema]:
+    return await GetWorkflowSchemaFeature().handle(experiment_id=experiment_id)
 
 
 @router.put("/", summary="Update workflow schema")
@@ -48,7 +48,7 @@ async def update_workflow_schema(schema: WorkflowSchema,
 @router.post("/{experiment_id}/start", summary="Start workflow")
 async def start_workflow(experiment_id: UUID,
 ):
-    return await StartWorkflowFeature().handle(id=experiment_id)
+    return await StartWorkflowFeature().handle(experiment_id=experiment_id)
 
 
 @router.post(

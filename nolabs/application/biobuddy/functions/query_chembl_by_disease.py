@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict
 
 import external_data_query_microservice
+from external_data_query_microservice.api.default_api import DefaultApi
 
 from nolabs.application.biobuddy.api_models import (
     ChemBLData,
@@ -19,7 +20,7 @@ from nolabs.utils.sdf import smiles_to_sdf_string
 
 class QueryChemblByConditionFunction(BiobuddyFunction):
     def __init__(
-        self, chembl_microservice: external_data_query_microservice.DefaultApi
+        self, chembl_microservice: DefaultApi
     ):
         parameters = [
             FunctionParameterDefinition(

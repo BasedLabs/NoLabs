@@ -1,14 +1,19 @@
 import uuid
 from typing import List, Iterable
 
+from redis.client import Pipeline
+
 from nolabs.domain.models.common import Job
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe
-from workflow.core import Tasks
 from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
-from nolabs.workflow.core.socketio_events_emitter import emit_start_component_event
-from nolabs.workflow.core.states import ControlStates
+from nolabs.workflow.core.states import ControlStates, PROGRESS_STATES
 from nolabs.workflow.core.states import TERMINAL_STATES
+from nolabs.workflow.core import Tasks
+from nolabs.workflow.core.states import ERROR_STATES
+from nolabs.workflow.core.socketio_events_emitter import (emit_start_component_event,
+                                                          emit_finish_component_event,
+                                                          emit_component_jobs_event)
 
 
 class ComponentMainTaskExecutionNode(CeleryExecutionNode):
@@ -35,6 +40,13 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
         await self.set_state(state=ControlStates.SCHEDULED)
+
+    async def on_finished(self):
+        emit_component_jobs_event(
+            experiment_id=self.experiment_id,
+            component_id=self.component_id,
+            job_ids=[j.id for j in Job.objects(component=self.component_id).only('id')],
+        )
 
 
 class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
@@ -69,8 +81,8 @@ class ComponentExecutionNode(ExecutionNode):
         self.main_task = ComponentMainTaskExecutionNode(experiment_id, component_id)
         self.complete_task = ComponentCompleteTaskExecutionNode(experiment_id, component_id)
 
-    async def can_schedule(self, previous_component_ids: Iterable[uuid.UUID]) -> bool:
-        if not await super().can_schedule():
+    async def can_start(self, previous_component_ids: Iterable[uuid.UUID]) -> bool:
+        if not await super().can_start():
             return False
 
         for component_id in previous_component_ids:
@@ -80,10 +92,38 @@ class ComponentExecutionNode(ExecutionNode):
 
         return True
 
+    async def can_schedule(self) -> bool:
+        state = await self.get_state()
+        return state == ControlStates.UNKNOWN or state in TERMINAL_STATES
+
+    async def schedule(self):
+        pipe = get_redis_pipe()
+        await self.reset(pipe=pipe)
+        await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
+        await pipe.execute()
+
+    async def reset(self, pipe: Pipeline):
+        state = await self.get_state()
+
+        if state not in TERMINAL_STATES:
+            return
+
+        await super().reset(pipe=pipe)
+        main_task = ComponentMainTaskExecutionNode(experiment_id=self.experiment_id, component_id=self.component_id)
+        await main_task.reset(pipe=pipe)
+        job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
+        for job_id in job_ids:
+            job_node = JobExecutionNode(self.experiment_id, self.component_id, job_id)
+            if state == ControlStates.SUCCESS:
+                await job_node.reset(pipe=pipe)
+            elif await job_node.get_state() in ERROR_STATES:
+                await job_node.reset(pipe=pipe)
+        complete_task = ComponentCompleteTaskExecutionNode(experiment_id=self.experiment_id,
+                                                           component_id=self.component_id)
+        await complete_task.reset(pipe=pipe)
+
     async def start(self, **kwargs):
         await self.set_state(state=ControlStates.STARTED)
-        emit_start_component_event(experiment_id=self.experiment_id,
-                                   component_id=self.component_id)
 
     async def sync_started(self):
         state = await self.get_state()
@@ -119,7 +159,6 @@ class ComponentExecutionNode(ExecutionNode):
 
         if await self.main_task.can_start():
             await self.main_task.start()
-            emit_start_component_event(experiment_id=self.experiment_id, component_id=self.component_id)
 
         await self.main_task.sync_started()
 
@@ -150,11 +189,7 @@ class ComponentExecutionNode(ExecutionNode):
             active_jobs += 1
 
             if await job_node.can_schedule():
-                await job_node.schedule(
-                    experiment_id=self.experiment_id,
-                    component_id=self.component_id,
-                    job_id=job_id
-                )
+                await job_node.schedule()
             elif await job_node.can_start():
                 await job_node.start()
 
@@ -221,3 +256,47 @@ class ComponentExecutionNode(ExecutionNode):
         if await self.complete_task.get_state() in TERMINAL_STATES:
             await self.set_state(await self.complete_task.get_state())
             await self.set_message(await self.complete_task.get_message())
+
+    async def on_started(self):
+        emit_start_component_event(
+            experiment_id=self.experiment_id,
+            component_id=self.component_id
+        )
+
+    async def on_finished(self):
+        emit_finish_component_event(
+            experiment_id=self.experiment_id,
+            component_id=self.component_id
+        )
+
+    async def sync_cancelling(self):
+        if await self.get_state() != ControlStates.CANCELLING:
+            return
+
+        if await self.main_task.can_cancel():
+            await self.main_task.cancel()
+
+        await self.main_task.sync_cancelling()
+
+        jobs_in_progress = True
+        job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
+        for job_id in job_ids:
+            job_node = JobExecutionNode(self.experiment_id, self.component_id, job_id)
+            if await job_node.can_cancel():
+                await job_node.cancel()
+            jobs_in_progress = await job_node.get_state() not in PROGRESS_STATES
+
+        if not jobs_in_progress:
+            return
+
+        if await self.complete_task.can_cancel():
+            await self.complete_task.cancel()
+
+        await self.complete_task.sync_cancelling()
+
+        if await self.main_task.get_state() not in PROGRESS_STATES and \
+            await self.complete_task.get_state() not in PROGRESS_STATES:
+            await self.set_cancelled()
+            return ControlStates.CANCELLED
+
+        return await self.get_state()

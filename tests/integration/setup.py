@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import time
 import tracemalloc
 import unittest
 import uuid
@@ -11,6 +12,7 @@ from testcontainers.redis import RedisContainer
 
 from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.infrastructure.mongo_connector import mongo_connect, mongo_disconnect
+from nolabs.infrastructure.redis_client_factory import Redis, cached_client
 from nolabs.infrastructure.settings import initialize_settings
 from nolabs.workflow.core.celery_tasks import register_workflow_celery_tasks
 from nolabs.workflow.core.component import ComponentTypeFactory
@@ -24,6 +26,7 @@ tracemalloc.start()
 
 class GlobalSetup(unittest.IsolatedAsyncioTestCase):
     worker_thread = None
+    setup_called = False
 
     @classmethod
     def setUpClass(cls):
@@ -68,8 +71,9 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
         initialize_settings()
         #initialize_logging()
 
-
         register_workflow_celery_tasks(get_celery_app())
+
+        time.sleep(5.0)
 
     @classmethod
     def tearDownClass(cls):
@@ -88,6 +92,8 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
 
         app = get_celery_app()
         app.control.shutdown()
+        get_celery_app.cache_clear()
+        cached_client.cache_clear()
 
         mongo_disconnect()
 

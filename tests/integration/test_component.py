@@ -1,16 +1,16 @@
+import asyncio
 import uuid
 from typing import Type, List, Optional
 
 from pydantic import BaseModel
 
-from domain.models.common import Job, JobId, JobName
-from integration.mixins import SeedComponentsMixin, SeedExperimentMixin, GraphTestMixin
-from integration.setup import GlobalSetup
+from nolabs.domain.models.common import Job, JobId, JobName
+from tests.integration.mixins import SeedComponentsMixin, SeedExperimentMixin, GraphTestMixin
+from tests.integration.setup import GlobalSetup
 from nolabs.workflow.core.component import Component, TOutput, TInput
 from nolabs.workflow.core.flow import ComponentFlowHandler
-from nolabs.workflow.core.graph import GraphExecutionNode
+from nolabs.workflow.core.graph import Graph
 from nolabs.workflow.core.states import ControlStates
-from nolabs.workflow.core.syncer import Syncer
 
 
 class TestComponent(GlobalSetup,
@@ -43,14 +43,14 @@ class TestComponent(GlobalSetup,
         experiment_id = uuid.uuid4()
         await self.seed_experiment(id=experiment_id)
         component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
-        graph = GraphExecutionNode(experiment_id=experiment_id)
+        graph = Graph(experiment_id=experiment_id)
 
         self.spin_up_celery()
 
         # act
-        await graph.schedule(components=[component])
-        scheduler = Syncer()
-        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
+        await graph.set_components_graph(components=[component])
+        await graph.schedule(schedule=[component])
+        await graph.sync(wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.SUCCESS)
@@ -83,14 +83,14 @@ class TestComponent(GlobalSetup,
         experiment_id = uuid.uuid4()
         await self.seed_experiment(id=experiment_id)
         component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
-        graph = GraphExecutionNode(experiment_id=experiment_id)
+        graph = Graph(experiment_id=experiment_id)
 
         self.spin_up_celery()
 
         # act
-        await graph.schedule(components=[component])
-        scheduler = Syncer()
-        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
+        await graph.set_components_graph(components=[component])
+        await graph.schedule(schedule=[component])
+        await graph.sync(wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
@@ -124,14 +124,14 @@ class TestComponent(GlobalSetup,
         experiment_id = uuid.uuid4()
         await self.seed_experiment(id=experiment_id)
         component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
-        graph = GraphExecutionNode(experiment_id=experiment_id)
+        graph = Graph(experiment_id=experiment_id)
 
         self.spin_up_celery()
 
         # act
-        await graph.schedule(components=[component])
-        scheduler = Syncer()
-        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
+        await graph.set_components_graph(components=[component])
+        await graph.schedule(schedule=[component])
+        await graph.sync(wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
@@ -173,16 +173,63 @@ class TestComponent(GlobalSetup,
         experiment_id = uuid.uuid4()
         await self.seed_experiment(id=experiment_id)
         component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
-        graph = GraphExecutionNode(experiment_id=experiment_id)
+        graph = Graph(experiment_id=experiment_id)
 
         self.spin_up_celery()
 
         # act
-        await graph.schedule(components=[component])
-        scheduler = Syncer()
-        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
+        await graph.set_components_graph(components=[component])
+        await graph.schedule(schedule=[component])
+        await graph.sync(wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_message(), "All jobs failed")
+
+    async def test_should_cancel_component(self):
+        # arrange
+
+        class IO(BaseModel):
+            a: int = 10
+
+        class FlowHandler(ComponentFlowHandler):
+            async def on_component_task(self, inp: TInput) -> List[uuid.UUID]:
+                await asyncio.sleep(1000)
+                return []
+
+            def on_job_task(self, job_id: uuid.UUID):
+                raise ValueError("Exception")
+
+        class MockComponent(Component[IO, IO], ComponentFlowHandler):
+            name = "a"
+
+            @property
+            def input_parameter_type(self) -> Type[TInput]:
+                return IO
+
+            @property
+            def component_flow_type(self) -> Type["ComponentFlowHandler"]:
+                return FlowHandler
+
+            @property
+            def output_parameter_type(self) -> Type[TOutput]:
+                return IO
+
+        experiment_id = uuid.uuid4()
+        await self.seed_experiment(id=experiment_id)
+        component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
+        graph = Graph(experiment_id=experiment_id)
+
+        self.spin_up_celery()
+
+        # act
+        await graph.set_components_graph(components=[component])
+        await graph.schedule(schedule=[component])
+        task_id = await graph.sync(wait=False)
+        await asyncio.sleep(3)
+        await graph.cancel()
+        await self.await_for_celery_task(task_id=task_id)
+
+        # assert
+        self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.CANCELLED)
 

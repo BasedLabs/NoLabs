@@ -20,11 +20,14 @@ biopython = "^1.84"
 python-multipart = "^0.0.10"
 pottery = "^3.0.0"
 asgiref = "^3.8.1"
+fastapi = "^0.115.4"
+uvicorn = "^0.32.0"
 
 [tool.poetry.group.dev.dependencies]
 deptry = "^0.19.1"
 flower = "^2.0.1"
 idna = "^3.10"
+testcontainers = "^4.8.2"
 
 [build-system]
 requires = ["poetry-core"]
@@ -32,6 +35,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.deptry]
 extend_exclude = ["microservices", ".*venv.*", "client"]
-
-[tool.poetry.extras]
-api = ["fastapi", "uvicorn"]

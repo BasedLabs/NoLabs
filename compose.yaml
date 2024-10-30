@@ -38,10 +38,10 @@ services:
     network_mode: host
     command: python api.py
     build:
-      context: nolabs/microservices/esmfold_light
+      context: microservices/esmfold_light
       dockerfile: build/Dockerfile
     env_file:
-      - nolabs/microservices/esmfold_light/service/.env
+      - microservices/esmfold_light/service/.env
   solubility:
     image: 'ghcr.io/basedlabs/solubility:1.1.0'
     network_mode: host
@@ -123,13 +123,6 @@ services:
       context: microservices/p2rank
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5731
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
   msa_light:
     image: 'ghcr.io/basedlabs/msa-light:1.0.0'
     network_mode: host
@@ -155,7 +148,7 @@ services:
       - TAVILY_API_KEY=${TAVILY_API_KEY}
     command: --host=0.0.0.0 --port=5738
   rosettafold:
-    image: 'ghcr.io/basedlabs/rosettafold:1.0.1'
+    image: 'ghcr.io/basedlabs/rosettafold:1.0.0'
     network_mode: host
     build:
       context: microservices/rosettafold
@@ -164,14 +157,7 @@ services:
       - ${ROSETTAFOLD_BFD_PATH}:/RoseTTAFold/bfd
       - ${ROSETTAFOLD_PDB_PATH}:/RoseTTAFold/pdb100_2021Mar03
       - ${ROSETTAFOLD_UNIREF_PATH}:/RoseTTAFold/UniRef30_2020_06
-    command: --host=0.0.0.0 --port=5737
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+    command: --host=0.0.0.0 --port=5738
   reinvent:
     image: 'ghcr.io/basedlabs/reinvent:1.0.1'
     network_mode: host
@@ -198,7 +184,7 @@ services:
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5740 --workers=1
   nolabs:
-    image: 'ghcr.io/basedlabs/nolabs:2.1.8'
+    image: 'ghcr.io/basedlabs/nolabs:2.1.7'
     network_mode: host
     build:
       context: .

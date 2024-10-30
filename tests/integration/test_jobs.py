@@ -4,16 +4,16 @@ from typing import Type, List, Optional, Dict, Any
 from asgiref.sync import async_to_sync
 from pydantic import BaseModel
 
-from integration.mixins import SeedComponentsMixin, SeedExperimentMixin, GraphTestMixin
-from integration.setup import GlobalSetup
+from nolabs.application.biobuddy.functions.generate_workflow import components
+from tests.integration.mixins import SeedComponentsMixin, SeedExperimentMixin, GraphTestMixin
+from tests.integration.setup import GlobalSetup
 from nolabs.domain.models.common import Job, JobId, JobName
 from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.infrastructure.settings import settings
 from nolabs.workflow.core.component import Component, TOutput, TInput
 from nolabs.workflow.core.flow import ComponentFlowHandler
-from nolabs.workflow.core.graph import GraphExecutionNode
+from nolabs.workflow.core.graph import Graph
 from nolabs.workflow.core.states import ControlStates
-from nolabs.workflow.core.syncer import Syncer
 
 
 class TestJobs(GlobalSetup,
@@ -25,13 +25,14 @@ class TestJobs(GlobalSetup,
 
         def long_running_job_success(bind, job_id: uuid.UUID):
             async def _():
+                print('Long running success')
                 job: Job = Job.objects.with_id(job_id)
                 job.set_name(JobName("long_running_job_test_success"))
                 await job.save()
 
             async_to_sync(_)()
 
-        celery.task(long_running_job_success, name="long_running_job_test_success", bind=True, queue=settings.workflow_queue)
+        celery.task(long_running_job_success, name="long_running_job_test_success2", bind=True, queue=settings.workflow_queue)
 
         j1_id = uuid.uuid4()
         j2_id = uuid.uuid4()
@@ -51,8 +52,9 @@ class TestJobs(GlobalSetup,
             async def on_job_task(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
+                print('Scheduled')
                 await j.save()
-                await self.schedule_long_running(job_id=job_id, celery_task_name="long_running_job_test_success",
+                await self.schedule_long_running(job_id=job_id, celery_task_name="long_running_job_test_success2",
                                                  input={"job_id": job_id})
 
         class MockComponent(Component[IO, IO], ComponentFlowHandler):
@@ -74,13 +76,13 @@ class TestJobs(GlobalSetup,
         experiment_id = uuid.uuid4()
         await self.seed_experiment(id=experiment_id)
         component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
-        graph = GraphExecutionNode(experiment_id=experiment_id)
+        graph = Graph(experiment_id=experiment_id)
         self.spin_up_celery()
 
         # act
-        await graph.schedule(components=[component])
-        scheduler = Syncer()
-        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
+        await graph.set_components_graph(components=components)
+        await graph.schedule(schedule=[component])
+        await graph.sync(wait=True)
 
         # assert
         job1 = Job.objects.get(id=j1_id)
@@ -142,13 +144,13 @@ class TestJobs(GlobalSetup,
         experiment_id = uuid.uuid4()
         await self.seed_experiment(id=experiment_id)
         component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
-        graph = GraphExecutionNode(experiment_id=experiment_id)
+        graph = Graph(experiment_id=experiment_id)
         self.spin_up_celery()
 
         # act
-        await graph.schedule(components=[component])
-        scheduler = Syncer()
-        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
+        await graph.set_components_graph(components=components)
+        await graph.schedule(schedule=[component])
+        await graph.sync(wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
@@ -210,13 +212,13 @@ class TestJobs(GlobalSetup,
         experiment_id = uuid.uuid4()
         await self.seed_experiment(id=experiment_id)
         component = self.seed_component(experiment_id=experiment_id, component_type=MockComponent)
-        graph = GraphExecutionNode(experiment_id=experiment_id)
+        graph = Graph(experiment_id=experiment_id)
         self.spin_up_celery()
 
         # act
-        await graph.schedule(components=[component])
-        scheduler = Syncer()
-        await scheduler.sync_graph(experiment_id=experiment_id, wait=True)
+        await graph.set_components_graph(components=components)
+        await graph.schedule(schedule=[component])
+        await graph.sync(wait=True)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)

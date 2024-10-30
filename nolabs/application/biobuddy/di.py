@@ -2,7 +2,7 @@ __all__ = ["BiobuddyDependencies"]
 
 from typing import Annotated
 
-from biobuddy_microservice import DefaultApi
+from biobuddy_microservice.api.default_api import DefaultApi
 from fastapi import Depends
 
 from nolabs.application.biobuddy.functions.di import FunctionDependencies

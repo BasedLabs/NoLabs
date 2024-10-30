@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from abc import ABC
 from enum import Enum
@@ -77,7 +78,7 @@ class FoldingComponentFlow(ComponentFlowHandler):
 
     backend: FoldingBackendEnum
 
-    async def on_started(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
+    async def on_component_task(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
         try:
             job_ids = []
 
@@ -129,22 +130,25 @@ class FoldingComponentFlow(ComponentFlowHandler):
                 raise NoLabsException(ErrorCodes.component_input_invalid, message=message)
 
             if not job.processing_required:
-                await self.complete_job(job_id=job_id)
                 return
 
             celery = get_celery_app()
-            inference_result = await celery.esmfold_light_inference(
+            async_result = await celery.send_task(
+                name="esmfold-light-service.inference",
                 task_id=str(job.id),
                 payload={'fasta_sequence': job.protein.get_fasta()}
             )
+
+            while not async_result.ready():
+                await asyncio.sleep(1.0)
+
+            inference_result = async_result.get()
 
             id = uuid.uuid4()
             folded_protein = job.protein.copy(id=id)
             folded_protein.set_pdb(inference_result.pdb_content)
             job.set_result(protein=folded_protein)
             await job.save(cascade=True)
-
-            await self.complete_job(job_id=job_id)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e

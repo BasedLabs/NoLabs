@@ -1,12 +1,16 @@
+import os
 from pathlib import Path
 from typing import Literal, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+directory = Path(__file__).resolve().parent
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=[".env"],
+        env_file=[directory / ".env"],
         case_sensitive=False,
         env_ignore_empty=True,
         extra="ignore",

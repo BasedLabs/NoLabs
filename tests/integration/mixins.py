@@ -3,9 +3,12 @@ import time
 import uuid
 from typing import Type, Dict, Tuple, List, Optional
 
+from celery.result import AsyncResult
+
 from nolabs.domain.models.common import Experiment, ExperimentName, ExperimentId, ComponentData
+from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.workflow.core.component import Component, ComponentTypeFactory
-from nolabs.workflow.core.graph import GraphExecutionNode
+from nolabs.workflow.core.graph import Graph
 from nolabs.workflow.core.states import TERMINAL_STATES
 
 
@@ -33,8 +36,11 @@ class SeedComponentsMixin:
         data.save()
 
 class GraphTestMixin:
-    async def sync_until_terminal(self, graph: GraphExecutionNode, timeout=20):
-        t = time.time()
-        while await graph.get_state() not in TERMINAL_STATES and time.time() - t < timeout:
-            await graph.sync_started()
+    async def await_for_celery_task(self, task_id: str):
+        celery = get_celery_app()
+        async_result = AsyncResult(id=task_id, app=celery)
+        while True:
+            ready = async_result.ready()
+            if ready:
+                return
             await asyncio.sleep(0.1)

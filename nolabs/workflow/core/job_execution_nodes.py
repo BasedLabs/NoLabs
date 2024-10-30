@@ -1,12 +1,14 @@
 import uuid
 from typing import Optional, Dict, Any
 
+from redis.client import Pipeline
+
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe
-from workflow.core import Tasks
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
-from nolabs.workflow.core.socketio_events_emitter import emit_finish_job_event
-from nolabs.workflow.core.states import ControlStates
+from nolabs.workflow.core.states import ControlStates, PROGRESS_STATES
 from nolabs.workflow.core.states import ERROR_STATES, TERMINAL_STATES
+from nolabs.workflow.core import Tasks
+from nolabs.workflow.core.socketio_events_emitter import emit_start_job_event, emit_finish_job_event
 
 
 class JobMainTaskExecutionNode(CeleryExecutionNode):
@@ -29,7 +31,7 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
                               task_id=celery_task_id,
                               retry=False
                               )
-        await self.set_state(ControlStates.STARTED,pipe=pipe)
+        await self.set_state(ControlStates.STARTED, pipe=pipe)
         await pipe.execute()
 
     async def schedule(self):
@@ -208,29 +210,79 @@ class JobExecutionNode(ExecutionNode):
                 success = False
                 await self.set_message(await task.get_message())
                 await self.set_state(state)
-                emit_finish_job_event(experiment_id=self.experiment_id,
-                                      component_id=self.component_id,
-                                      job_id=self.job_id)
                 break
 
         if success:
             await self.set_state(ControlStates.SUCCESS)
             await self.set_message("")
 
-        emit_finish_job_event(experiment_id=self.experiment_id,
-                              component_id=self.component_id,
-                              job_id=self.job_id)
-
     async def start(self):
         await self.set_state(state=ControlStates.STARTED)
 
-    async def schedule(self,
-                       experiment_id: uuid.UUID,
-                       component_id: uuid.UUID,
-                       job_id: uuid.UUID):
-        await self.set_input(execution_input={
-            'experiment_id': experiment_id,
-            'component_id': component_id,
-            'job_id': job_id
-        })
-        await self.set_state(state=ControlStates.SCHEDULED)
+    async def schedule(self):
+        pipe = get_redis_pipe()
+        await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
+        await self.reset(pipe=pipe)
+        await pipe.execute()
+
+    async def reset(self, pipe: Pipeline):
+        state = await self.get_state()
+
+        if state not in TERMINAL_STATES:
+            return
+
+        await super().reset(pipe=pipe)
+        main_task = JobMainTaskExecutionNode(experiment_id=self.experiment_id,
+                                             component_id=self.component_id,
+                                             job_id=self.job_id)
+        await main_task.reset(pipe=pipe)
+        long_running_task = JobLongRunningTaskExecutionNode(experiment_id=self.experiment_id,
+                                                            component_id=self.component_id,
+                                                            job_id=self.job_id)
+        await long_running_task.reset(pipe=pipe)
+        complete_task = JobCompleteTaskExecutionNode(experiment_id=self.experiment_id,
+                                                     component_id=self.component_id,
+                                                     job_id=self.job_id)
+        await complete_task.reset(pipe=pipe)
+
+    async def on_started(self):
+        emit_start_job_event(
+            experiment_id=self.experiment_id,
+            component_id=self.component_id,
+            job_id=self.job_id
+        )
+
+    async def on_finished(self):
+        emit_finish_job_event(
+            experiment_id=self.experiment_id,
+            component_id=self.component_id,
+            job_id=self.job_id
+        )
+
+    async def sync_cancelling(self):
+        if await self.get_state() != ControlStates.CANCELLING:
+            return
+
+        if await self.main_task.can_cancel():
+            await self.main_task.cancel()
+
+        await self.main_task.sync_cancelling()
+
+        if await self.long_running_task.can_cancel():
+            await self.long_running_task.cancel()
+
+        await self.long_running_task.sync_cancelling()
+
+        if await self.complete_task.can_cancel():
+            await self.complete_task.cancel()
+
+        await self.complete_task.sync_cancelling()
+
+        states = [
+            await self.main_task.get_state(),
+            await self.long_running_task.get_state(),
+            await self.complete_task.get_state()
+        ]
+
+        if all(s not in PROGRESS_STATES for s in states):
+            await self.set_cancelled()

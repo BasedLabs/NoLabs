@@ -16,3 +16,6 @@ ComponentTypeFactory.add_type(EsmfoldLightComponent)
 # ComponentTypeFactory.add_type(DiffDockComponent)
 
 EventHandlersDependencies.inject()
+
+def initialize():
+    pass

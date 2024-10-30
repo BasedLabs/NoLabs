@@ -13,6 +13,7 @@ import uuid
 from typing import List
 
 import biobuddy_microservice
+from biobuddy_microservice.api.default_api import DefaultApi
 
 from nolabs.application.biobuddy.api_models import (
     CheckBioBuddyEnabledResponse,
@@ -269,7 +270,7 @@ class GetAvailableFunctionCallsFeature:
 
 class SendActionQueryFeature:
     def __init__(
-        self, biobuddy_microservice: biobuddy_microservice.DefaultApi, functions: List
+        self, biobuddy_microservice: DefaultApi, functions: List
     ):
         self._biobuddy_microservice = biobuddy_microservice
         self._functions = {function.name: function for function in functions}

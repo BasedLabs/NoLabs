@@ -35,7 +35,7 @@ from nolabs.workflow.application.schema import (
     WorkflowSchema,
 )
 from nolabs.workflow.core.component import Component, ComponentTypeFactory
-from nolabs.workflow.core.graph import GraphExecutionNode
+from nolabs.workflow.core.graph import Graph
 
 
 class CreateWorkflowSchemaFeature:
@@ -99,7 +99,7 @@ class GetWorkflowSchemaFeature:
     async def handle(self, experiment_id: UUID) -> Optional[WorkflowSchema]:
         extra = {"experiment_id": experiment_id}
 
-        self.logger.info("Get workflow schema", extra=extra)
+        logger.info("Get workflow schema", extra=extra)
 
         try:
             data: Experiment = Experiment.objects.with_id(experiment_id)
@@ -123,7 +123,7 @@ class UpdateWorkflowSchemaFeature:
             "components_count": len(schema.components),
         }
 
-        self.logger.info("Update workflow schema", extra=extra)
+        logger.info("Update workflow schema", extra=extra)
 
         try:
             data: Experiment = Experiment.objects.with_id(schema.experiment_id)
@@ -266,7 +266,7 @@ class UpdateWorkflowSchemaFeature:
         return components
 
     async def _ensure_workflow_not_running(self, experiment_id: uuid.UUID):
-        graph = GraphExecutionNode(experiment_id=experiment_id)
+        graph = Graph(experiment_id=experiment_id)
         return not await graph.started()
 
 
@@ -275,7 +275,7 @@ class StartWorkflowFeature:
         extra = {"experiment_id": id}
 
         try:
-            self.logger.info("Starting workflow schema", extra=extra)
+            logger.info("Starting workflow schema", extra=extra)
 
             experiment: Experiment = Experiment.objects.get(id=experiment_id)
 
@@ -305,72 +305,71 @@ class StartWorkflowFeature:
 
             logger.info("Workflow schema start", extra=extra)
 
-            with redlock(key=str(experiment_id)):
-                await self._ensure_can_start(experiment_id=experiment_id)
-                await self.start_workflow(experiment_id=experiment.id, components_graph=components)
+            await self._can_schedule(experiment_id=experiment_id)
+            await self.start_workflow(experiment_id=experiment.id, components_graph=components)
             logger.info("Workflow schema startd", extra=extra)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e
             raise NoLabsException(ErrorCodes.start_workflow_failed) from e
 
-    async def _ensure_can_start(self, experiment_id: uuid.UUID):
-        graph = GraphExecutionNode(experiment_id=experiment_id)
-        if not await graph.started() or not await graph.can_start():
-            raise NoLabsException(ErrorCodes.start_workflow_failed, "Cannot schedule this workflow")
+    async def _can_schedule(self, experiment_id: uuid.UUID):
+        graph = Graph(experiment_id=experiment_id)
+        if not await graph.can_schedule():
+            raise NoLabsException(ErrorCodes.start_workflow_failed, "Cannot start this workflow")
 
     async def start_workflow(self, experiment_id: uuid.UUID, components_graph: List[Component]):
-        graph = GraphExecutionNode(experiment_id=experiment_id)
-
-        if not await graph.can_schedule():
-            raise NoLabsException(ErrorCodes.start_workflow_failed, message="Cannot")
-
-        await graph.schedule(components=components_graph)
+        graph = Graph(experiment_id=experiment_id)
+        await graph.set_components_graph(components=components_graph)
+        await graph.schedule(schedule=components_graph)
+        await graph.sync()
 
 
 class StartWorkflowComponentFeature:
     async def handle(self, request: StartWorkflowComponentRequest):
-        return
-        #try:
-        #    extra = {
-        #        "component_id": request.component_id,
-        #        "experiment_id": request.experiment_id,
-        #    }
-#
-        #    logger.info("Starting component", extra=extra)
-#
-        #    experiment: Experiment = Experiment.objects.with_id(request.experiment_id)
-#
-        #    schema = WorkflowSchema(**experiment.schema)
-#
-        #    if not schema.valid:
-        #        raise NoLabsException(ErrorCodes.invalid_workflow_schema)
-#
-        #    data = ComponentData.objects.with_id(request.component_id)
-#
-        #    await self._ensure_component_not_running(component_id=data.id)
-#
-        #    flow_run = await Flow.start_component(experiment_id=request.experiment_id, component_id=request.component_id)
-#
-        #    extra = {**extra, **{"experiment_id": experiment.id}}
-#
-        #    logger.info("Component execution", extra=extra)
-        #except Exception as e:
-        #    if isinstance(e, NoLabsException):
-        #        raise e
-        #    raise NoLabsException(ErrorCodes.start_component_failed) from e
+        try:
+            extra = {
+                "component_id": request.component_id,
+                "experiment_id": request.experiment_id,
+            }
 
-    #async def _ensure_component_not_running(self, component_id: uuid.UUID):
-    #    if not await _ready(id=component_id):
-    #        raise NoLabsException(ErrorCodes.component_running)
+            logger.info("Starting component", extra=extra)
 
+            experiment: Experiment = Experiment.objects.with_id(request.experiment_id)
+
+            schema = WorkflowSchema(**experiment.schema)
+
+            if not schema.valid:
+                raise NoLabsException(ErrorCodes.invalid_workflow_schema)
+
+            data = ComponentData.objects.with_id(request.component_id)
+
+            await self._ensure_can_schedule(experiment_id=request.experiment_id, component_id=request.component_id)
+
+            graph = Graph(experiment_id=request.experiment_id)
+            await graph.schedule(schedule=[Component.restore(data=data)])
+            await graph.sync()
+
+            extra = {**extra, **{"experiment_id": experiment.id}}
+
+            logger.info("Component execution", extra=extra)
+        except Exception as e:
+            if isinstance(e, NoLabsException):
+                raise e
+            raise NoLabsException(ErrorCodes.start_component_failed) from e
+
+    async def _ensure_can_schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
+        graph = Graph(experiment_id=experiment_id)
+        component_node = graph.get_component_node(component_id)
+        if not await graph.can_schedule() or not await component_node.can_schedule():
+            raise NoLabsException(ErrorCodes.cannot_start_component)
 
 class GetComponentStateFeature:
     async def handle(self, request: GetComponentRequest) -> GetComponentResponse:
         try:
             extra = {"component_id": request.id}
 
-            self.logger.info("Get component state", extra=extra)
+            logger.info("Get component state", extra=extra)
 
             data: ComponentData = ComponentData.objects.with_id(request.id)
 
@@ -379,7 +378,7 @@ class GetComponentStateFeature:
 
             job_ids = [j.id for j in Job.objects(component=request.id).only("id")]
 
-            state, message = await self._get_state(component_id=request.id)
+            state, message = await self._get_state(experiment_id=data.experiment.id, component_id=request.id)
 
             response = GetComponentResponse(
                 id=data.id,
@@ -410,7 +409,7 @@ class GetComponentStateFeature:
             raise NoLabsException(ErrorCodes.get_component_state_failed) from e
 
     async def _get_state(self, experiment_id: uuid.UUID, component_id: uuid.UUID) -> (ComponentStateEnum, str):
-        component = GraphExecutionNode(experiment_id=experiment_id).get_component_node(component_id=component_id)
+        component = Graph(experiment_id=experiment_id).get_component_node(component_id=component_id)
         internal_state = await component.get_state()
         state_message = await component.get_message()
 
@@ -436,7 +435,66 @@ class GetJobStateFeature:
         try:
             extra = {"job_id": request.job_id}
 
-            self.logger.info("Get job state", extra=extra)
+            logger.info("Get job state", extra=extra)
+
+            job: Job = Job.objects.with_id(request.job_id)
+
+            if not job:
+                raise NoLabsException(ErrorCodes.job_not_found, data={"job_id": job.id})
+
+            state, message = await self._get_state(experiment_id=job.component.experiment.id)
+
+            response = GetJobState(
+                id=job.id,
+                component_id=job.component.id,
+                state=state,
+                state_message=message,
+            )
+
+            extra = {
+                **extra,
+                **{"component_id": job.component.id, "job_state": state.name},
+            }
+
+            logger.info("Get job state success", extra=extra)
+
+            return response
+        except Exception as e:
+            if isinstance(e, NoLabsException):
+                raise e
+            raise NoLabsException(ErrorCodes.get_job_state_failed) from e
+
+    async def _get_state(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID) -> (JobStateEnum, Optional[str]):
+        job = Graph(experiment_id=experiment_id).get_job_node(
+            component_id=component_id,
+            job_id=job_id
+        )
+        internal_state = await job.get_state()
+        state_message = await job.get_message()
+
+        if internal_state == ControlStates.UNKNOWN:
+            return ComponentStateEnum.UNKNOWN, state_message
+
+        state = ComponentStateEnum.RUNNING
+
+        if internal_state in TERMINAL_STATES:
+            state = ComponentStateEnum.COMPLETED
+
+        if internal_state == ControlStates.CANCELLED:
+            state = ComponentStateEnum.CANCELLED
+
+        if internal_state == ControlStates.FAILURE:
+            state = ComponentStateEnum.FAILED
+
+        return state, state_message
+
+
+class StopWorkflowFeature:
+    async def handle(self, request: ResetWorkflowRequest):
+        try:
+            extra = {"job_id": request.job_id}
+
+            logger.info("Get job state", extra=extra)
 
             job: Job = Job.objects.with_id(request.job_id)
 
@@ -464,32 +522,3 @@ class GetJobStateFeature:
             if isinstance(e, NoLabsException):
                 raise e
             raise NoLabsException(ErrorCodes.get_job_state_failed) from e
-
-    async def _get_state(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID) -> (JobStateEnum, Optional[str]):
-        job = GraphExecutionNode(experiment_id=experiment_id).get_job_node(
-            component_id=component_id,
-            job_id=job_id
-        )
-        internal_state = await job.get_state()
-        state_message = await job.get_message()
-
-        if internal_state == ControlStates.UNKNOWN:
-            return ComponentStateEnum.UNKNOWN, state_message
-
-        state = ComponentStateEnum.RUNNING
-
-        if internal_state in TERMINAL_STATES:
-            state = ComponentStateEnum.COMPLETED
-
-        if internal_state == ControlStates.CANCELLED:
-            state = ComponentStateEnum.CANCELLED
-
-        if internal_state == ControlStates.FAILURE:
-            state = ComponentStateEnum.FAILED
-
-        return state, state_message
-
-
-class StopWorkflowFeature:
-    async def handle(self, request: ResetWorkflowRequest):
-        pass

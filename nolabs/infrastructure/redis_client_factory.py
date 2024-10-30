@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Optional
 
 import redis.asyncio as redis
@@ -8,12 +9,17 @@ from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.settings import settings
 
 
+@lru_cache
+def cached_client() -> redis.Redis:
+    redis_client = redis.Redis.from_url(settings.celery_backend, decode_responses=True)
+    return redis_client
+
+
 class Redis:
     @classmethod
     @property
     def client(cls) -> redis.Redis:
-        redis_client = redis.Redis.from_url(settings.celery_backend, decode_responses=True)
-        return redis_client
+        return cached_client()
 
 
 def redlock(key: str, auto_release_time=100) -> Redlock:
@@ -22,10 +28,10 @@ def redlock(key: str, auto_release_time=100) -> Redlock:
     return Redlock(key=key, masters={redis_client}, auto_release_time=auto_release_time)
 
 
-def acquire_redlock(key: str, auto_release_time=100) -> Optional[Redlock]:
+def acquire_redlock(key: str, blocking=False, auto_release_time=100) -> Optional[Redlock]:
     redis_client = Redis.client
     lock = Redlock(key=key, masters={redis_client}, auto_release_time=auto_release_time)
-    if lock.acquire(blocking=False):
+    if lock.acquire(blocking=blocking):
         logger.info(f"Redlock captured", extra={"redlock_key": key, "redlock_auto_release_time": auto_release_time})
         return lock
     else:
