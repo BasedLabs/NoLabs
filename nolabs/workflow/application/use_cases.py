@@ -304,7 +304,6 @@ class StartWorkflowFeature:
 
             logger.info("Workflow schema start", extra=extra)
 
-            await self._can_schedule(experiment_id=experiment_id)
             await self.start_workflow(experiment_id=experiment.id, components_graph=components)
             logger.info("Workflow schema startd", extra=extra)
         except Exception as e:
@@ -312,15 +311,10 @@ class StartWorkflowFeature:
                 raise e
             raise NoLabsException(ErrorCodes.start_workflow_failed) from e
 
-    async def _can_schedule(self, experiment_id: uuid.UUID):
-        graph = Graph(experiment_id=experiment_id)
-        if not await graph.can_schedule():
-            raise NoLabsException(ErrorCodes.start_workflow_failed, "Cannot start this workflow")
-
     async def start_workflow(self, experiment_id: uuid.UUID, components_graph: List[Component]):
         graph = Graph(experiment_id=experiment_id)
         await graph.set_components_graph(components=components_graph)
-        await graph.schedule(schedule=components_graph)
+        await graph.schedule(component_ids=[c.id for c in components_graph])
 
 
 class StartWorkflowComponentFeature:
@@ -340,12 +334,10 @@ class StartWorkflowComponentFeature:
             if not schema.valid:
                 raise NoLabsException(ErrorCodes.invalid_workflow_schema)
 
-            data = ComponentData.objects.with_id(request.component_id)
-
             await self._ensure_can_schedule(experiment_id=request.experiment_id, component_id=request.component_id)
 
             graph = Graph(experiment_id=request.experiment_id)
-            await graph.schedule(schedule=[Component.restore(data=data)])
+            await graph.schedule(component_ids=[request.component_id])
             await graph.sync()
 
             extra = {**extra, **{"experiment_id": experiment.id}}
@@ -359,7 +351,7 @@ class StartWorkflowComponentFeature:
     async def _ensure_can_schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
         graph = Graph(experiment_id=experiment_id)
         component_node = graph.get_component_node(component_id)
-        if not await graph.can_schedule() or not await component_node.can_schedule():
+        if not await component_node.can_schedule():
             raise NoLabsException(ErrorCodes.cannot_start_component)
 
 class GetComponentStateFeature:

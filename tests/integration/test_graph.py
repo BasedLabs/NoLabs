@@ -54,11 +54,11 @@ class TestGraph(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component])
-        await graph.schedule(schedule=[component])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
-        self.assertEqual(await graph.get_state(), ControlStates.SUCCESS)
+        self.assertEqual(await graph.get_component_node(component.id).get_state(), ControlStates.FAILURE)
 
     async def test_should_run_linear_workflow(self):
         class IO(BaseModel):
@@ -95,11 +95,10 @@ class TestGraph(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component1, component2])
-        await graph.schedule(schedule=[component1, component2])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component1.id, component2.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
-        self.assertEqual(await graph.get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component1.id).get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component2.id).get_state(), ControlStates.SUCCESS)
 
@@ -142,11 +141,10 @@ class TestGraph(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component1, component2, component3, component4])
-        await graph.schedule(schedule=[component1, component2, component3, component4])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component1.id, component2.id, component3.id, component4.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
-        self.assertEqual(await graph.get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component1.id).get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component2.id).get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component3.id).get_state(), ControlStates.SUCCESS)
@@ -195,11 +193,10 @@ class TestGraph(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component1, component2, component3, component4])
-        await graph.schedule(schedule=[component1, component2, component3, component4])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component1.id, component2.id, component3.id, component4.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
-        self.assertEqual(await graph.get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component1.id).get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component2.id).get_state(), ControlStates.FAILURE)
         self.assertEqual(await graph.get_component_node(component_id=component3.id).get_state(), ControlStates.SUCCESS)
@@ -242,14 +239,13 @@ class TestGraph(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component1, component2])
-        await graph.schedule(schedule=[component1])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component1.id])
+        await graph.sync()
 
-        await graph.schedule(schedule=[component2])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component2.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
-        self.assertEqual(await graph.get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component1.id).get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component2.id).get_state(), ControlStates.SUCCESS)
 
@@ -292,14 +288,13 @@ class TestGraph(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component1, component2])
-        await graph.schedule(schedule=[component1])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component1.id])
+        await graph.sync()
 
-        await graph.schedule(schedule=[component2])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component2.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
-        self.assertEqual(await graph.get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component1.id).get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component2.id).get_state(), ControlStates.SUCCESS)
         self.assertEqual(shared_counter.value, 2)
@@ -370,14 +365,13 @@ class TestGraph(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component1, component2])
-        await graph.schedule(schedule=[component1])
-        task_id = await graph.sync()
+        await graph.schedule(component_ids=[component1.id])
+        await graph.sync()
 
-        await graph.schedule(schedule=[component2])
+        await graph.schedule(component_ids=[component2.id])
 
-        await self.await_for_celery_task(task_id=task_id)
+        await self.spin_up_sync(graph=graph)
 
         # assert
-        self.assertEqual(await graph.get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component1.id).get_state(), ControlStates.SUCCESS)
         self.assertEqual(await graph.get_component_node(component_id=component2.id).get_state(), ControlStates.SUCCESS)

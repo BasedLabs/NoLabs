@@ -10,8 +10,9 @@ from nolabs.infrastructure.settings import settings
 
 class SocketServer:
     def __init__(self):
-        self.sio = socketio.AsyncServer(client_manager=socketio.AsyncRedisManager(settings.socketio_broker,
-                                                                                  write_only=True))
+        self.client = socketio.RedisManager(settings.socketio_broker,
+                                                 write_only=True)
+        self.sio = socketio.Server(client_manager=self.client)
         self.sync_queue = queue.Queue()
 
     def emit_event(self, name: str, room_id: str, data: Dict[str, Any]) -> Awaitable[None]:
@@ -35,6 +36,10 @@ class SocketServer:
 
     def start_queue_worker(self):
         asyncio.create_task(self.start_async_worker())
+
+    def disconnect(self):
+        self.client.redis.close()
+        get_socket_server.cache_clear()
 
 
 @lru_cache

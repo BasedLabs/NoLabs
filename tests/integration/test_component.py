@@ -49,8 +49,8 @@ class TestComponent(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component])
-        await graph.schedule(schedule=[component])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.SUCCESS)
@@ -89,8 +89,8 @@ class TestComponent(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component])
-        await graph.schedule(schedule=[component])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
@@ -130,8 +130,8 @@ class TestComponent(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component])
-        await graph.schedule(schedule=[component])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
@@ -179,8 +179,8 @@ class TestComponent(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component])
-        await graph.schedule(schedule=[component])
-        await graph.sync(wait=True)
+        await graph.schedule(component_ids=[component.id])
+        await self.spin_up_sync(graph=graph)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.FAILURE)
@@ -224,11 +224,11 @@ class TestComponent(GlobalSetup,
 
         # act
         await graph.set_components_graph(components=[component])
-        await graph.schedule(schedule=[component])
-        task_id = await graph.sync(wait=False)
-        await asyncio.sleep(3)
+        await graph.schedule(component_ids=[component.id])
+        await graph.sync()
+        await asyncio.sleep(1)
         await graph.cancel()
-        await self.await_for_celery_task(task_id=task_id)
+        await self.spin_up_sync(graph=graph)
 
         # assert
         self.assertEqual(await graph.get_component_node(component_id=component.id).get_state(), ControlStates.CANCELLED)

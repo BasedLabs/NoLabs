@@ -1,7 +1,6 @@
 import asyncio
-import time
 import uuid
-from typing import Type, Dict, Tuple, List, Optional
+from typing import Type, Tuple, List, Optional
 
 from celery.result import AsyncResult
 
@@ -9,7 +8,6 @@ from nolabs.domain.models.common import Experiment, ExperimentName, ExperimentId
 from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.workflow.core.component import Component, ComponentTypeFactory
 from nolabs.workflow.core.graph import Graph
-from nolabs.workflow.core.states import TERMINAL_STATES
 
 
 class SeedExperimentMixin:
@@ -44,3 +42,9 @@ class GraphTestMixin:
             if ready:
                 return
             await asyncio.sleep(0.1)
+
+    async def spin_up_sync(self, graph: Graph):
+        await graph.sync()
+        while await graph.started():
+            await asyncio.sleep(0.1)
+            await graph.sync()

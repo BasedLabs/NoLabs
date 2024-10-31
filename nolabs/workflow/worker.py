@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from nolabs.application import initialize
 from nolabs.infrastructure.mongo_connector import mongo_connect, mongo_disconnect
 from nolabs.infrastructure.redis_client_factory import Redis
+from nolabs.infrastructure.socket_server import get_socket_server
 from nolabs.workflow.core import Tasks
 
 load_dotenv(".env")
@@ -18,7 +19,6 @@ from nolabs.infrastructure.celery_app_factory import get_celery_app
 
 @signals.task_prerun.connect
 def task_prerun(**kwargs):
-    _ = Redis.client
     initialize()
     mongo_connect()
 
@@ -29,11 +29,12 @@ def task_postrun(**kwargs):
         await Redis.disconnect()
         Redis.clear_cache()
         mongo_disconnect()
+        get_socket_server().disconnect()
 
     async_to_sync(_)()
 
 
-def start():
+def start(beat=False):
     initialize_settings()
     initialize_logging()
     logger.info("Starting celery")
@@ -49,11 +50,13 @@ def start():
     )
     app.autodiscover_tasks(force=True)
     register_workflow_celery_tasks(app)
-    app.worker_main(
-        ["worker", f"--concurrency={settings.celery_worker_concurrency}", "-P", settings.celery_worker_pool, "-B",
-         f"--loglevel={settings.logging_level}"])
+    args = ["worker", f"--concurrency={settings.celery_worker_concurrency}", "-P", settings.celery_worker_pool,
+         f"--loglevel={settings.logging_level}"]
+    if beat:
+        args.append('-B')
+    app.worker_main(args)
     return app
 
 
 if __name__ == "__main__":
-    start()
+    start(beat=True)

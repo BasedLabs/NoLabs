@@ -8,12 +8,11 @@ from celery.result import allow_join_result
 
 from nolabs.domain.models.common import ComponentData, Job, Experiment
 from nolabs.infrastructure.log import logger
-from nolabs.infrastructure.redis_client_factory import redlock, Redis, get_redis_pipe
+from nolabs.infrastructure.redis_client_factory import redlock
 from nolabs.infrastructure.settings import settings
 from nolabs.workflow.core import Tasks
 from nolabs.workflow.core.component import Component, ComponentTypeFactory, Parameter
 from nolabs.workflow.core.graph import Graph
-from nolabs.workflow.core.states import TERMINAL_STATES, ControlStates
 
 if TYPE_CHECKING:
     from nolabs.workflow.core.flow import ComponentFlowHandler
