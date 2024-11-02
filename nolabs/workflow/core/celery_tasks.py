@@ -7,6 +7,7 @@ from celery import Celery
 from celery.result import allow_join_result
 
 from nolabs.domain.models.common import ComponentData, Job, Experiment
+from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.redis_client_factory import redlock
 from nolabs.infrastructure.settings import settings
@@ -93,7 +94,7 @@ def register_workflow_celery_tasks(celery: Celery):
 
         async_to_sync(_)()
 
-    @celery.task(name="workflow._complete_job_task", bind=True, queue=settings.workflow_queue, max_retries=0)
+    @celery.task(name=Tasks.complete_job_task, bind=True, queue=settings.workflow_queue, max_retries=0)
     def complete_job_task(bind,
                           experiment_id: uuid.UUID,
                           component_id: uuid.UUID,
@@ -110,7 +111,7 @@ def register_workflow_celery_tasks(celery: Celery):
 
         asyncio.run(_())
 
-    @celery.task(name="workflow._complete_component_task", bind=True, queue=settings.workflow_queue, max_retries=0)
+    @celery.task(name=Tasks.complete_component_task, bind=True, queue=settings.workflow_queue, max_retries=0)
     def complete_component_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
@@ -135,7 +136,7 @@ def register_workflow_celery_tasks(celery: Celery):
         async def _():
             lock = redlock(key=Tasks.sync_graphs_task, auto_release_time=10.0)
 
-            if not await lock.acquire():
+            if not lock.acquire():
                 return
 
             try:
@@ -145,11 +146,10 @@ def register_workflow_celery_tasks(celery: Celery):
                     graph = Graph(experiment_id=experiment.id)
                     await graph.sync()
             finally:
-                if await lock.locked():
-                    await lock.release()
+                if lock.locked():
+                    lock.release()
 
         async_to_sync(_)()
-
 
 def _get_component(from_state: ComponentData) -> Component:
     component = ComponentTypeFactory.get_type(from_state.name)(

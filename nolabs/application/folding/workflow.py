@@ -1,14 +1,12 @@
-import asyncio
 import uuid
 from abc import ABC
 from enum import Enum
-from typing import List, Optional, Type
+from typing import List, Optional, Type, Dict, Any
 
 from pydantic import BaseModel
 
-from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
+from nolabs.domain.models.common import JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingJob
 from nolabs.workflow.core.component import Component, TInput, TOutput
 from nolabs.workflow.core.flow import ComponentFlowHandler
@@ -131,22 +129,18 @@ class FoldingComponentFlow(ComponentFlowHandler):
         if not job.processing_required:
             return
 
-        celery = get_celery_app()
-        async_result = celery.send_task(
-            name="esmfold-light-service.inference",
-            task_id=str(job.id),
-            queue="esmfold-light-service",
-            kwargs={'param': {'fasta_sequence': job.protein.get_fasta()}}
+        return await self.schedule(
+            job_id=job.id,
+            celery_task_name="inference",
+            celery_queue="esmfold-light-service",
+            input={'param': {'fasta_sequence': job.protein.get_fasta()}}
         )
 
-        while not async_result.ready():
-            await asyncio.sleep(1.0)
-
-        inference_result = async_result.get()
-
+    async def on_job_completion(self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]):
+        job: FoldingJob = FoldingJob.objects.with_id(job_id)
         id = uuid.uuid4()
         folded_protein = job.protein.copy(id=id)
-        folded_protein.set_pdb(inference_result['pdb_content'])
+        folded_protein.set_pdb(long_running_output['pdb_content'])
         job.set_result(protein=folded_protein)
         await job.save(cascade=True)
 

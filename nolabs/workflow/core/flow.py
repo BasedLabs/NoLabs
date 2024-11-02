@@ -32,7 +32,11 @@ class ComponentFlowHandler(Generic[TInput, TOutput]):
     async def on_job_completion(self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]):
         pass
 
-    async def schedule_long_running(self, job_id: uuid.UUID, celery_task_name: Any, input: Optional[Union[BaseModel, Dict[str, Any]]] = None):
+    async def schedule(self,
+                       job_id: uuid.UUID,
+                       celery_task_name: str,
+                       input: Optional[Union[BaseModel, Dict[str, Any]]] = None,
+                       celery_queue: Optional[str] = None):
         node = JobLongRunningTaskExecutionNode(experiment_id=self.experiment_id, component_id=self.component_id, job_id=job_id)
         can_schedule = await node.can_schedule()
         if can_schedule:
@@ -43,4 +47,4 @@ class ComponentFlowHandler(Generic[TInput, TOutput]):
             elif input:
                 arguments = input.model_dump()
 
-            await node.schedule(celery_task_name=celery_task_name, arguments=arguments)
+            await node.schedule(celery_task_name=celery_task_name, arguments=arguments, celery_queue=celery_queue)

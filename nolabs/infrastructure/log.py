@@ -59,7 +59,12 @@ def initialize_logging():
                     "handlers": ["default"],
                     "level": settings.logging_level,
                     "propagate": False,
-                }
+                },
+                "celery": {  # Celery logger
+                    "handlers": ["default"],
+                    "level": settings.logging_level,
+                    "propagate": False,
+                },
             },
         }
 

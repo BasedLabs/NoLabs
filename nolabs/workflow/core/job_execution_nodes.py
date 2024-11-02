@@ -1,9 +1,11 @@
 import uuid
 from typing import Optional, Dict, Any
 
+from celery.result import AsyncResult
 from redis.client import Pipeline
 
-from nolabs.infrastructure.redis_client_factory import get_redis_pipe
+from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.redis_client_factory import get_redis_pipe, Redis
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
 from nolabs.workflow.core.states import ControlStates, PROGRESS_STATES
 from nolabs.workflow.core.states import ERROR_STATES, TERMINAL_STATES
@@ -22,6 +24,10 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
         self.job_id = job_id
 
     async def start(self):
+        logger.info('Starting job main task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
         pipe = get_redis_pipe()
         celery_task_id = await self._prepare_for_start(pipe=pipe)
         self.celery.send_task(name=Tasks.job_main_task,
@@ -32,9 +38,13 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
                               retry=False
                               )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
     async def schedule(self):
+        logger.info('Scheduling job main task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
         pipe = get_redis_pipe()
         await self.set_input(execution_input={
             'experiment_id': self.experiment_id,
@@ -42,9 +52,8 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
             'job_id': self.job_id
         }, pipe=pipe)
         await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
-        await self.set_output(output={}, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
 
 class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
@@ -53,22 +62,35 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
                  component_id: uuid.UUID,
                  job_id: uuid.UUID):
         super().__init__(id=f"execution_node:{experiment_id}:{component_id}:{job_id}:long_running_task")
+        self.experiment_id = experiment_id
+        self.component_id = component_id
+        self.job_id = job_id
 
     async def start(self):
+        logger.info('Starting job long running task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
+
         input_data = await self.get_input()
         pipe = get_redis_pipe()
         celery_task_name = input_data['celery_task_name']
+        celery_queue = input_data['celery_queue']
         kwargs = input_data['kwargs']
         task_id = await self._prepare_for_start(pipe=pipe)
-        self.celery.send_task(name=celery_task_name, task_id=task_id, retry=False, kwargs=kwargs)
+        self.celery.send_task(name=celery_task_name, task_id=task_id, queue=celery_queue, retry=False, kwargs=kwargs)
         await self.set_state(ControlStates.STARTED, pipe=pipe)
-        await self.set_output(output={}, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
-    async def schedule(self, celery_task_name: str, arguments: Optional[Dict[str, Any]] = None):
+    async def schedule(self, celery_task_name: str, arguments: Optional[Dict[str, Any]] = None, celery_queue: Optional[str] = None):
+        logger.info('Scheduling job long running task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
         data = {
             'celery_task_name': celery_task_name,
+            'celery_queue': celery_queue,
             'kwargs': arguments or {}
         }
 
@@ -76,7 +98,17 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
         await self.set_input(execution_input=data, pipe=pipe)
         await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
+
+    async def get_output(self) -> Dict[str, Any]:
+        cid = self.celery_task_id_cid
+        celery_task_id = Redis.client.get(cid)
+        if not celery_task_id:
+            return {}
+        async_result = AsyncResult(id=celery_task_id, app=self.celery)
+        if not async_result.ready():
+            return {}
+        return async_result.get()
 
 
 class JobCompleteTaskExecutionNode(CeleryExecutionNode):
@@ -87,6 +119,10 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
         self.experiment_id = experiment_id
 
     async def start(self):
+        logger.info('Starting job complete task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
         input_data = await self.get_input()
         pipe = get_redis_pipe()
         celery_task_id = await self._prepare_for_start(pipe=pipe)
@@ -100,9 +136,14 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
                               retry=False
                               )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
     async def schedule(self, long_running_output: Optional[Dict[str, Any]] = None):
+        logger.info('Scheduling job complete task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
+
         pipe = get_redis_pipe()
         await self.set_input(execution_input={
             'experiment_id': self.experiment_id,
@@ -111,9 +152,8 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
             'long_running_output': long_running_output or {}
         }, pipe=pipe)
         await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
-        await self.set_output(output={}, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
 
 class JobExecutionNode(ExecutionNode):
@@ -142,6 +182,11 @@ class JobExecutionNode(ExecutionNode):
         )
 
     async def sync_started(self):
+        logger.info('Syncing job node',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
+
         if await self.get_state() != ControlStates.STARTED:
             return
 
@@ -160,6 +205,11 @@ class JobExecutionNode(ExecutionNode):
         await self.set_final_state()
 
     async def sync_main_task(self):
+        logger.info('Syncing job main task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
+
         if await self.main_task.can_schedule():
             await self.main_task.schedule()
 
@@ -169,6 +219,10 @@ class JobExecutionNode(ExecutionNode):
         await self.main_task.sync_started()
 
     async def sync_long_running_task(self):
+        logger.info('Syncing job long running task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
         main_task_state = await self.main_task.get_state()
 
         # will not run
@@ -183,6 +237,10 @@ class JobExecutionNode(ExecutionNode):
         await self.long_running_task.sync_started()
 
     async def sync_complete_task(self):
+        logger.info('Syncing job complete task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'job_id': self.job_id})
         long_running_task_state = await self.long_running_task.get_state()
         main_task_state = await self.main_task.get_state()
 
@@ -224,7 +282,7 @@ class JobExecutionNode(ExecutionNode):
         pipe = get_redis_pipe()
         await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
         await self.reset(pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
     async def reset(self, pipe: Pipeline):
         state = await self.get_state()

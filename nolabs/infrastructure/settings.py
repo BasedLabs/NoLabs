@@ -33,9 +33,10 @@ class Settings(BaseSettings):
     blast_email: str
     workflow_version: int
     celery_worker_concurrency: int = 10
+    orphaned_tasks_check_interval: int = 40
     mode: Literal["united", "fastapi", "workflow"] = "fastapi"
     environment: Literal["local", "test", "production"] = "local"
-    logging_level: Literal["INFO", "WARNING", "ERROR"] = "ERROR"
+    logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
 
 
 _settings: Optional[Settings] = None

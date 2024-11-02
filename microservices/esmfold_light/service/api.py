@@ -1,3 +1,5 @@
+import uuid
+
 from dotenv import load_dotenv
 from log import logger
 from settings import settings
@@ -11,7 +13,7 @@ if mode == "celery":
 
     logger.info("Starting celery")
     app.worker_main(
-        ["worker", f"--concurrency={settings.celery_worker_concurrency}", "-E"]
+        ["worker", f"--concurrency={settings.celery_worker_concurrency}", "-E", "-n", f"esmfold-light-{str(uuid.uuid4())}"]
     )
 
 if mode == "fastapi":

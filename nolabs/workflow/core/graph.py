@@ -45,7 +45,7 @@ class Graph:
 
     async def set_components_graph(self, components: List[Component]):
         lock = redlock(key=self._id, blocking=True)
-        await lock.acquire()
+        lock.acquire()
 
         try:
             metadata = await self._get_metadata()
@@ -72,8 +72,8 @@ class Graph:
             )
             await self._set_metadata(data=metadata)
         finally:
-            if await lock.locked():
-                await lock.release()
+            if lock.locked():
+                lock.release()
 
     async def schedule(self, component_ids: List[uuid.UUID]):
         lock = redlock(key=self._id, blocking=True)
@@ -92,17 +92,17 @@ class Graph:
 
             await self._set_metadata(data=metadata)
         finally:
-            if await lock.locked():
-                await lock.release()
+            if lock.locked():
+                lock.release()
 
     async def _set_metadata(self, data: GraphMetadata):
         cid = f"{self._id}:input"
         v = data.model_dump_json()
-        await Redis.client.set(cid, v)
+        Redis.client.set(cid, v)
 
     async def _get_metadata(self) -> Optional[GraphMetadata]:
         cid = f"{self._id}:input"
-        metadata = await Redis.client.get(cid)
+        metadata = Redis.client.get(cid)
         if not metadata:
             return None
         return GraphMetadata(**json.loads(metadata))
@@ -122,7 +122,7 @@ class Graph:
         })
         lock = redlock(key=self._id, blocking=False, auto_release_time=10.0)
 
-        if not await lock.acquire():
+        if not lock.acquire():
             logger.info('Graph is already syncing, returning', extra={
                 'experiment_id': self.experiment_id
             })
@@ -173,5 +173,5 @@ class Graph:
             logger.info('Graph syncing finish', extra={
                 'experiment_id': self.experiment_id
             })
-            if await lock.locked():
-                await lock.release()
+            if lock.locked():
+                lock.release()

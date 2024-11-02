@@ -7,6 +7,7 @@ from celery.result import AsyncResult
 from pydantic import BaseModel
 from redis.client import Pipeline
 
+from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.celery_app_factory import get_celery_app
@@ -14,6 +15,7 @@ from nolabs.infrastructure.redis_client_factory import Redis
 from nolabs.workflow.core.states import ControlStates, celery_to_internal_mapping
 from nolabs.workflow.core.states import state_transitions
 from nolabs.workflow.core.states import ERROR_STATES, TERMINAL_STATES
+from nolabs.workflow.monitoring.tasks import OrphanedTasksTracker
 
 
 class ExecutionNode(ABC):
@@ -30,7 +32,7 @@ class ExecutionNode(ABC):
         #if self._state_cache:
         #    return self._state_cache
 
-        state = await Redis.client.get(self._state_key)
+        state = Redis.client.get(self._state_key)
         if not state:
             self._state_cache = ControlStates.UNKNOWN
             return self._state_cache
@@ -45,7 +47,7 @@ class ExecutionNode(ABC):
 
     async def get_input(self) -> Optional[Dict[str, Any]]:
         cid = f"{self._id}:input"
-        execution_input = await Redis.client.get(cid)
+        execution_input = Redis.client.get(cid)
         if not execution_input:
             return None
         return json.loads(execution_input)
@@ -62,36 +64,37 @@ class ExecutionNode(ABC):
         if isinstance(execution_input, str):
             data = execution_input
 
-        await (pipe or Redis.client).set(cid, data)
-
-    async def set_output(self, output: Dict[str, Any], pipe:Optional[Pipeline] = None):
-        cid = f"{self._id}:output"
-        await (pipe or Redis.client).set(cid, output or "")
+        (pipe or Redis.client).set(cid, data)
 
     async def get_output(self) -> Dict[str, Any]:
-        cid = f"{self._id}:output"
-        return await Redis.client.get(cid)
+        return {}
 
     async def set_message(self, message: str, pipe:Optional[Pipeline] = None):
         cid = f"{self._id}:message"
-        await (pipe or Redis.client).set(cid, message or "")
+        (pipe or Redis.client).set(cid, message or "")
 
     async def get_message(self):
         cid = f"{self._id}:message"
-        return await Redis.client.get(cid)
+        return Redis.client.get(cid)
 
     async def set_cancelled(self, reason: Optional[str] = None):
         pipe = get_redis_pipe()
         await self.set_state(state=ControlStates.CANCELLED, pipe=pipe)
         await self.set_message(message=reason or '', pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
     async def set_state(self, state: ControlStates, pipe:Optional[Pipeline] = None):
         current_state = self._state_cache
+
+        logger.info('Setting state',
+                    extra={'node_id': self._id,
+                           'from_state': current_state,
+                           'to_state': state})
+
         if current_state and state not in state_transitions[current_state]:
             raise NoLabsException(ErrorCodes.invalid_states_transition, f"Cannot move from {current_state} to {state}")
 
-        await (pipe or Redis.client).set(self._state_key, state)
+        (pipe or Redis.client).set(self._state_key, state)
         self._state_cache = state
 
         if state == ControlStates.STARTED:
@@ -132,7 +135,6 @@ class ExecutionNode(ABC):
 
     async def reset(self, pipe: Pipeline):
         await self.set_state(ControlStates.UNKNOWN, pipe=pipe)
-        await self.set_output(output={}, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
 
     async def cancel(self):
@@ -148,6 +150,7 @@ class CeleryExecutionNode(ExecutionNode, ABC):
     def __init__(self, id: str):
         super().__init__(id)
         self.celery = get_celery_app()
+        self._orphaned_tasks_tracker = OrphanedTasksTracker()
 
     @property
     def celery_task_id_cid(self) -> str:
@@ -158,11 +161,10 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         if state != ControlStates.CANCELLING:
             return state
         cid = self.celery_task_id_cid
-        celery_task_id = await Redis.client.get(cid)
+        celery_task_id = Redis.client.get(cid)
         if not celery_task_id:
             pipe = get_redis_pipe()
             await self.set_state(state=ControlStates.CANCELLED, pipe=pipe)
-            await self.set_output(output={}, pipe=pipe)
             await self.set_message(message="", pipe=pipe)
             return
 
@@ -176,18 +178,18 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         if new_state in TERMINAL_STATES:
             pipe = get_redis_pipe()
             await self.set_state(state=ControlStates.CANCELLED, pipe=pipe)
-            await self.set_output(output={}, pipe=pipe)
             await self.set_message(message="", pipe=pipe)
-            await pipe.execute()
+            pipe.execute()
 
     async def sync_started(self) -> ControlStates:
         state = await self.get_state()
         if state != ControlStates.STARTED:
             return state
         cid = self.celery_task_id_cid
-        celery_task_id = await Redis.client.get(cid)
+        celery_task_id = Redis.client.get(cid)
         if not celery_task_id:
             raise NoLabsException(ErrorCodes.celery_task_executed_but_task_id_not_found)
+        self._orphaned_tasks_tracker.track(task_id=celery_task_id)
 
         async_result = AsyncResult(id=celery_task_id, app=self.celery)
         celery_state = async_result.state
@@ -199,10 +201,9 @@ class CeleryExecutionNode(ExecutionNode, ABC):
             await self.set_state(state=new_state, pipe=pipe)
             if new_state in ERROR_STATES:
                 await self.set_message(message=str(result),pipe=pipe)
-                await self.set_output(output={},pipe=pipe)
-            else:
-                await self.set_output(output=result,pipe=pipe)
-            await pipe.execute()
+            pipe.execute()
+            self._orphaned_tasks_tracker.remove_task(task_id=celery_task_id)
+            return new_state
 
         return new_state
 
@@ -212,5 +213,6 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         """
         cid = self.celery_task_id_cid
         task_id = str(uuid.uuid4())
-        await (pipe or Redis.client).set(cid, task_id)
+        (pipe or Redis.client).set(cid, task_id)
+        self._orphaned_tasks_tracker.track(task_id=task_id)
         return task_id

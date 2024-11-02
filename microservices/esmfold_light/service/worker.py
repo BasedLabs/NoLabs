@@ -14,11 +14,12 @@ app.conf.update(
     task_acks_late=True,
     task_reject_on_worker_lost=True,
     worker_state_db="/opt/celery-state.db",
-    accept_content=["application/json", "application/x-python-serialize"]
+    accept_content=["application/json", "application/x-python-serialize"],
+    broker_transport_options={'heartbeat': 10}
 )
 
 
-@app.task(time_limit=10, name="esmfold-light-service.inference")
+@app.task(time_limit=10, name="inference")
 def inference(param: Dict[str, Any]) -> Dict[str, Any]:
     import application
 

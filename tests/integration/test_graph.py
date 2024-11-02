@@ -333,8 +333,8 @@ class TestGraph(GlobalSetup,
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
                 await j.save()
-                await self.schedule_long_running(job_id=job_id, celery_task_name=task_name,
-                                                 input={"job_id": job_id})
+                await self.schedule(job_id=job_id, celery_task_name=task_name,
+                                    input={"job_id": job_id})
 
             async def on_completion(self, inp: TInput, job_ids: List[uuid.UUID]) -> Optional[TOutput]:
                 return IO(a=145)

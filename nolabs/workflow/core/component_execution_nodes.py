@@ -4,6 +4,7 @@ from typing import List, Iterable
 from redis.client import Pipeline
 
 from nolabs.domain.models.common import Job
+from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe
 from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
@@ -25,6 +26,8 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
         self.component_id = component_id
 
     async def start(self):
+        logger.info('Starting component main task',
+                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
         pipe = get_redis_pipe()
         celery_task_id = await self._prepare_for_start(pipe=pipe)
         self.celery.send_task(name=Tasks.component_main_task,
@@ -34,11 +37,12 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
                               retry=False
                               )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
-        await self.set_output(output={}, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
+        logger.info('Scheduling component main task',
+                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
         await self.set_state(state=ControlStates.SCHEDULED)
 
     async def on_finished(self):
@@ -56,6 +60,8 @@ class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
         self.component_id = component_id
 
     async def start(self):
+        logger.info('Starting component complete task',
+                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
         pipe = get_redis_pipe()
         celery_task_id = await self._prepare_for_start(pipe=pipe)
         self.celery.send_task(name=Tasks.complete_component_task,
@@ -65,11 +71,12 @@ class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
                               retry=False
                               )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
-        await self.set_output(output={}, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_ids: List[uuid.UUID]):
+        logger.info('Scheduling component complete task',
+                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
         await self.set_state(state=ControlStates.SCHEDULED)
 
 
@@ -97,10 +104,12 @@ class ComponentExecutionNode(ExecutionNode):
         return state == ControlStates.UNKNOWN or state in TERMINAL_STATES
 
     async def schedule(self):
+        logger.info('Scheduling component node',
+                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
         pipe = get_redis_pipe()
         await self.reset(pipe=pipe)
         await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
-        await pipe.execute()
+        pipe.execute()
 
     async def reset(self, pipe: Pipeline):
         state = await self.get_state()
@@ -123,10 +132,16 @@ class ComponentExecutionNode(ExecutionNode):
         await complete_task.reset(pipe=pipe)
 
     async def start(self, **kwargs):
+        logger.info('Starting component node',
+                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
         await self.set_state(state=ControlStates.STARTED)
 
     async def sync_started(self):
         state = await self.get_state()
+        logger.info('Syncing component node',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'state': str(state)})
         if state != ControlStates.STARTED:
             return
 
@@ -151,14 +166,15 @@ class ComponentExecutionNode(ExecutionNode):
             return
 
     async def sync_main_task(self):
+        logger.info('Syncing component main task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id})
         if await self.main_task.can_schedule():
             await self.main_task.schedule(
                 experiment_id=self.experiment_id,
                 component_id=self.component_id
             )
 
-        state = await self.main_task.get_state()
-        #print('STATE - ' + str(state) + ' - ' + str(self.experiment_id) + ' - ' + str(self.component_id))
         if await self.main_task.can_start():
             await self.main_task.start()
 
@@ -174,6 +190,10 @@ class ComponentExecutionNode(ExecutionNode):
         :returns: any jobs succeeded
         """
         job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
+        logger.info('Syncing component jobs',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'jobs_count': len(job_ids)})
         active_jobs = 0
 
         # Track job nodes
@@ -206,6 +226,10 @@ class ComponentExecutionNode(ExecutionNode):
         Update the component state based on the terminal states of all jobs.
         :returns: any jobs succeeded
         """
+        logger.info('Updating component jobs states',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id,
+                           'jobs_count': len(job_ids)})
 
         if not job_ids:
             return True
@@ -229,14 +253,19 @@ class ComponentExecutionNode(ExecutionNode):
                 pipe = get_redis_pipe()
                 await self.set_state(ControlStates.FAILURE, pipe=pipe)
                 await self.set_message(message="All jobs failed", pipe=pipe)
-                await pipe.execute()
+                pipe.execute()
                 return any_success
 
         return any_success
 
     async def sync_complete_task(self):
         """Synchronize and start the complete task if all jobs are finished."""
+        logger.info('Syncing component complete task',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id})
         if await self.complete_task.get_state() in TERMINAL_STATES:
+            await self.set_state(await self.complete_task.get_state())
+            await self.set_message(await self.complete_task.get_message())
             return
 
         await self.complete_task.sync_started()
@@ -254,11 +283,6 @@ class ComponentExecutionNode(ExecutionNode):
         if await self.complete_task.can_start():
             await self.complete_task.start()
 
-        # Update the component state if the complete task finished
-        if await self.complete_task.get_state() in TERMINAL_STATES:
-            await self.set_state(await self.complete_task.get_state())
-            await self.set_message(await self.complete_task.get_message())
-
     async def on_started(self):
         await emit_start_component_event(
             experiment_id=self.experiment_id,
@@ -272,6 +296,9 @@ class ComponentExecutionNode(ExecutionNode):
         )
 
     async def sync_cancelling(self):
+        logger.info('Cancelling component',
+                    extra={'experiment_id': self.experiment_id,
+                           'component_id': self.component_id})
         if await self.get_state() != ControlStates.CANCELLING:
             return
 
@@ -297,7 +324,7 @@ class ComponentExecutionNode(ExecutionNode):
         await self.complete_task.sync_cancelling()
 
         if await self.main_task.get_state() not in PROGRESS_STATES and \
-            await self.complete_task.get_state() not in PROGRESS_STATES:
+                await self.complete_task.get_state() not in PROGRESS_STATES:
             await self.set_cancelled()
             return ControlStates.CANCELLED
 
