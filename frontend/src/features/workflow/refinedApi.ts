@@ -8,20 +8,19 @@ import {
   WorkflowService,
   BiobuddyService,
   GenerateMsaService,
-  AllWorkflowSchemasResponse,
   WorkflowSchema_Input,
   LigandContentResponse,
   LigandsService,
   Body_upload_ligand_api_v1_objects_ligands_post,
   BindingPocketsService,
   DiffdockService,
-  nolabs__application__use_cases__diffdock__api_models__JobResponse,
-  nolabs__application__use_cases__diffdock__api_models__SetupJobRequest, OpenAPI,
+  nolabs__application__diffdock__api_models__JobResponse,
+  nolabs__application__diffdock__api_models__SetupJobRequest, OpenAPI,
   nolabs__application__use_cases__msa_generation__api_models__JobResponse,
   Body_upload_protein_api_v1_proteins_post,
   Body_update_protein_api_v1_proteins_patch,
-  nolabs__application__use_cases__folding__api_models__JobResponse,
-  nolabs__application__use_cases__folding__api_models__SetupJobRequest,
+  nolabs__application__folding__api_models__JobResponse,
+  nolabs__application__folding__api_models__SetupJobRequest,
   nolabs__application__use_cases__binding_pockets__api_models__JobResponse,
   GetJobMetadataResponse,
   ProteinMetadataResponse,
@@ -55,7 +54,7 @@ export function getJobMetaData(jobId: string): CancelablePromise<GetJobMetadataR
   return JobsACommonControllerForJobsManagementService.jobMetadataApiV1JobsJobIdMetadataGet(jobId);
 }
 
-export function getFoldingJobApi(jobId: string): CancelablePromise<nolabs__application__use_cases__folding__api_models__JobResponse> {
+export function getFoldingJobApi(jobId: string): CancelablePromise<nolabs__application__folding__api_models__JobResponse> {
   return FoldingService.getJobApiV1FoldingJobsJobIdGet(jobId);
 }
 
@@ -63,7 +62,7 @@ export function getBindingPocketJobApi(jobId: string): CancelablePromise<nolabs_
   return BindingPocketsService.getJobApiV1BindingPocketsJobsJobIdGet(jobId);
 }
 
-export function getDiffDockJobApi(jobId: string): CancelablePromise<nolabs__application__use_cases__diffdock__api_models__JobResponse> {
+export function getDiffDockJobApi(jobId: string): CancelablePromise<nolabs__application__diffdock__api_models__JobResponse> {
   return DiffdockService.getJobApiV1DiffdockJobsJobIdGet(jobId);
 }
 
@@ -75,15 +74,15 @@ export function getJobStatus(jobId: string): CancelablePromise<GetJobState> {
   return WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet(jobId);
 }
 
-export function setupDiffDockJob(job: nolabs__application__use_cases__diffdock__api_models__SetupJobRequest): CancelablePromise<any> {
+export function setupDiffDockJob(job: nolabs__application__diffdock__api_models__SetupJobRequest): CancelablePromise<any> {
   return DiffdockService.setupJobApiV1DiffdockJobsPost(job)
 }
 
-export function setupFoldingJob(job: nolabs__application__use_cases__folding__api_models__SetupJobRequest): CancelablePromise<nolabs__application__use_cases__folding__api_models__JobResponse> {
+export function setupFoldingJob(job: nolabs__application__folding__api_models__SetupJobRequest): CancelablePromise<nolabs__application__folding__api_models__JobResponse> {
   return FoldingService.setupJobApiV1FoldingJobsPost(job);
 }
 
-export function startDiffDockJob(jobId: string): CancelablePromise<nolabs__application__use_cases__diffdock__api_models__JobResponse> {
+export function startDiffDockJob(jobId: string): CancelablePromise<nolabs__application__diffdock__api_models__JobResponse> {
   return DiffdockService.startJobApiV1DiffdockJobsRunJobIdPost(jobId);
 }
 
@@ -113,15 +112,11 @@ export function startWorkflow(experimentId: string): CancelablePromise<any> {
 }
 
 export function startWorkflowComponent(experimentId:string, componentId: string): CancelablePromise<any> {
-  return WorkflowService.startComponentApiV1WorkflowWorkflowIdStartComponentIdPost(experimentId, componentId);
+  return WorkflowService.startComponentApiV1WorkflowExperimentIdStartComponentIdPost(experimentId, componentId);
 }
 
 export function getComponentState(componentId: string): CancelablePromise<GetComponentResponse> {
   return WorkflowService.getComponentStateApiV1WorkflowComponentComponentIdStateGet(componentId);
-}
-
-export function deleteWorkflow(experimentId: string): CancelablePromise<any> {
-  return WorkflowService.createSchemaApiV1WorkflowWorkflowIdDelete(experimentId);
 }
 
 export function getAllProteinsMetadata(experimentId: string): CancelablePromise<Array<ProteinMetadataResponse>> {
