@@ -74,7 +74,7 @@ class FastaWriter:
     def write_multiple_fasta(
         self, sequence_ids: List[str], sequences: List[str], file_path: str
     ) -> None:
-        with open(file_path, "w") as f:
+        with open(file_path, "w"):
             for sequence_id, sequence in zip(sequence_ids, sequences):
                 self.write_single_fasta(sequence_id, sequence, file_path)
 

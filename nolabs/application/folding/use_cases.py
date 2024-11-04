@@ -4,10 +4,12 @@ import asyncio
 import uuid
 from uuid import UUID
 
-from nolabs.infrastructure.celery_app_factory import get_celery_app
-from microservices.esmfold_light.service.api_models import InferenceInput, InferenceOutput
 from mongoengine import Q
 
+from microservices.esmfold_light.service.api_models import (
+    InferenceInput,
+    InferenceOutput,
+)
 from nolabs.application.folding.api_models import (
     JobResponse,
     JobResult,
@@ -16,6 +18,7 @@ from nolabs.application.folding.api_models import (
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Experiment, JobId, JobName, Protein
 from nolabs.domain.models.folding import FoldingBackendEnum, FoldingJob
+from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.infrastructure.log import logger
 
 
@@ -149,7 +152,7 @@ class RunJobFeature:
             raise NoLabsException(ErrorCodes.run_folding_job_failed) from e
 
     async def esmfold_light_inference(
-            self, task_id: str, payload: InferenceInput
+        self, task_id: str, payload: InferenceInput
     ) -> InferenceOutput:
         app = get_celery_app()
         async_result = app.send_task(

@@ -19,9 +19,7 @@ from nolabs.utils.sdf import smiles_to_sdf_string
 
 
 class QueryChemblByConditionFunction(BiobuddyFunction):
-    def __init__(
-        self, chembl_microservice: DefaultApi
-    ):
+    def __init__(self, chembl_microservice: DefaultApi):
         parameters = [
             FunctionParameterDefinition(
                 name="filters",

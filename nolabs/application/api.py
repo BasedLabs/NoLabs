@@ -1,12 +1,10 @@
 from contextlib import asynccontextmanager
 
-from dotenv import load_dotenv
+import socketio
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-
-load_dotenv("infrastructure/.env")
-
-from nolabs.infrastructure.mongo_connector import mongo_connect
-from nolabs.infrastructure.log import logger
 from nolabs.application.biobuddy.controller import router as biobuddy_controller
 from nolabs.application.experiments.controller import router as experiment_router
 from nolabs.application.folding.controller import router as folding_router
@@ -15,22 +13,20 @@ from nolabs.application.middlewares.domain_exception_middleware import (
     add_domain_exception_middleware,
 )
 from nolabs.application.proteins.controller import router as proteins_router
+from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.mongo_connector import mongo_connect
+from nolabs.infrastructure.settings import initialize_settings, settings
 from nolabs.workflow.application.controller import router as workflow_router
 
-from nolabs.infrastructure.settings import initialize_settings, settings
-import uvicorn
-
-import socketio
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 initialize_settings()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting application and connecting to MongoDB")
     mongo_connect()
     yield
+
 
 app = FastAPI(title="NoLabs", lifespan=lifespan)
 
@@ -74,4 +70,4 @@ app.add_middleware(
 
 logger.info("Go to /docs to see Swagger")
 
-uvicorn.run(app)
+uvicorn.run(app, host=settings.uvicorn_host, port=settings.uvicorn_port)

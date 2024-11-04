@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC
 from enum import Enum
-from typing import List, Optional, Type, Dict, Any
+from typing import Any, Dict, List, Optional, Type
 
 from pydantic import BaseModel
 
@@ -107,7 +107,9 @@ class FoldingComponentFlow(ComponentFlowHandler):
                 raise e
             raise NoLabsException(ErrorCodes.workflow_get_folding_jobs_failed) from e
 
-    async def on_completion(self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]) -> FoldingComponentOutput:
+    async def on_completion(
+        self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]
+    ) -> FoldingComponentOutput:
         items = []
 
         for job_id in job_ids:
@@ -133,14 +135,16 @@ class FoldingComponentFlow(ComponentFlowHandler):
             job_id=job.id,
             celery_task_name="inference",
             celery_queue="esmfold-light-service",
-            input={'param': {'fasta_sequence': job.protein.get_fasta()}}
+            input={"param": {"fasta_sequence": job.protein.get_fasta()}},
         )
 
-    async def on_job_completion(self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]):
+    async def on_job_completion(
+        self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
+    ):
         job: FoldingJob = FoldingJob.objects.with_id(job_id)
         id = uuid.uuid4()
         folded_protein = job.protein.copy(id=id)
-        folded_protein.set_pdb(long_running_output['pdb_content'])
+        folded_protein.set_pdb(long_running_output["pdb_content"])
         job.set_result(protein=folded_protein)
         await job.save(cascade=True)
 

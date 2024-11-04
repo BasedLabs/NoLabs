@@ -9,11 +9,11 @@ __all__ = [
 ]
 
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from uuid import UUID
 
-from nolabs.domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.common import Job, ComponentData, Experiment
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.models.common import ComponentData, Experiment, Job
 from nolabs.infrastructure.log import logger
 from nolabs.workflow.application.api_models import (
     ComponentStateEnum,
@@ -26,7 +26,6 @@ from nolabs.workflow.application.api_models import (
     ResetWorkflowRequest,
     StartWorkflowComponentRequest,
 )
-from nolabs.workflow.core.states import TERMINAL_STATES, ControlStates
 from nolabs.workflow.application.mappings import map_property
 from nolabs.workflow.application.schema import (
     ComponentSchema,
@@ -35,6 +34,7 @@ from nolabs.workflow.application.schema import (
 )
 from nolabs.workflow.core.component import Component, ComponentTypeFactory
 from nolabs.workflow.core.graph import Graph
+from nolabs.workflow.core.states import TERMINAL_STATES, ControlStates
 
 
 class CreateWorkflowSchemaFeature:
@@ -141,8 +141,7 @@ class UpdateWorkflowSchemaFeature:
                 data.save(cascade=True)
 
                 logger.info(
-                    "Update workflow schema success, schema is cyclic",
-                    extra=extra
+                    "Update workflow schema success, schema is cyclic", extra=extra
                 )
                 return schema
 
@@ -304,14 +303,18 @@ class StartWorkflowFeature:
 
             logger.info("Workflow schema start", extra=extra)
 
-            await self.start_workflow(experiment_id=experiment.id, components_graph=components)
+            await self.start_workflow(
+                experiment_id=experiment.id, components_graph=components
+            )
             logger.info("Workflow schema startd", extra=extra)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e
             raise NoLabsException(ErrorCodes.start_workflow_failed) from e
 
-    async def start_workflow(self, experiment_id: uuid.UUID, components_graph: List[Component]):
+    async def start_workflow(
+        self, experiment_id: uuid.UUID, components_graph: List[Component]
+    ):
         graph = Graph(experiment_id=experiment_id)
         await graph.set_components_graph(components=components_graph)
         await graph.schedule(component_ids=[c.id for c in components_graph])
@@ -334,7 +337,9 @@ class StartWorkflowComponentFeature:
             if not schema.valid:
                 raise NoLabsException(ErrorCodes.invalid_workflow_schema)
 
-            await self._ensure_can_schedule(experiment_id=request.experiment_id, component_id=request.component_id)
+            await self._ensure_can_schedule(
+                experiment_id=request.experiment_id, component_id=request.component_id
+            )
 
             graph = Graph(experiment_id=request.experiment_id)
             await graph.schedule(component_ids=[request.component_id])
@@ -348,11 +353,14 @@ class StartWorkflowComponentFeature:
                 raise e
             raise NoLabsException(ErrorCodes.start_component_failed) from e
 
-    async def _ensure_can_schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
+    async def _ensure_can_schedule(
+        self, experiment_id: uuid.UUID, component_id: uuid.UUID
+    ):
         graph = Graph(experiment_id=experiment_id)
         component_node = graph.get_component_node(component_id)
         if not await component_node.can_schedule():
             raise NoLabsException(ErrorCodes.cannot_start_component)
+
 
 class GetComponentStateFeature:
     async def handle(self, request: GetComponentRequest) -> GetComponentResponse:
@@ -368,7 +376,9 @@ class GetComponentStateFeature:
 
             job_ids = [j.id for j in Job.objects(component=request.id).only("id")]
 
-            state, message = await self._get_state(experiment_id=data.experiment.id, component_id=request.id)
+            state, message = await self._get_state(
+                experiment_id=data.experiment.id, component_id=request.id
+            )
 
             response = GetComponentResponse(
                 id=data.id,
@@ -398,8 +408,12 @@ class GetComponentStateFeature:
                 raise e
             raise NoLabsException(ErrorCodes.get_component_state_failed) from e
 
-    async def _get_state(self, experiment_id: uuid.UUID, component_id: uuid.UUID) -> (ComponentStateEnum, str):
-        component = Graph(experiment_id=experiment_id).get_component_node(component_id=component_id)
+    async def _get_state(
+        self, experiment_id: uuid.UUID, component_id: uuid.UUID
+    ) -> (ComponentStateEnum, str):
+        component = Graph(experiment_id=experiment_id).get_component_node(
+            component_id=component_id
+        )
         internal_state = await component.get_state()
         state_message = await component.get_message()
 
@@ -432,9 +446,11 @@ class GetJobStateFeature:
             if not job:
                 raise NoLabsException(ErrorCodes.job_not_found, data={"job_id": job.id})
 
-            state, message = await self._get_state(experiment_id=job.component.experiment.id,
-                                                   component_id=job.component.id,
-                                                   job_id=job.id)
+            state, message = await self._get_state(
+                experiment_id=job.component.experiment.id,
+                component_id=job.component.id,
+                job_id=job.id,
+            )
 
             response = GetJobState(
                 id=job.id,
@@ -456,10 +472,11 @@ class GetJobStateFeature:
                 raise e
             raise NoLabsException(ErrorCodes.get_job_state_failed) from e
 
-    async def _get_state(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID) -> (JobStateEnum, Optional[str]):
+    async def _get_state(
+        self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID
+    ) -> Tuple[JobStateEnum, Optional[str]]:
         job = Graph(experiment_id=experiment_id).get_job_node(
-            component_id=component_id,
-            job_id=job_id
+            component_id=component_id, job_id=job_id
         )
         internal_state = await job.get_state()
         state_message = await job.get_message()

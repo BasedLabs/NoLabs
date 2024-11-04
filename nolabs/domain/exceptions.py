@@ -168,9 +168,7 @@ class ErrorCodes(Enum):
     update_workflow_schema_failed = ErrorCode(
         code=90, description="Update workflow schema failed"
     )
-    start_workflow_failed = ErrorCode(
-        code=91, description="Start workflow failed"
-    )
+    start_workflow_failed = ErrorCode(code=91, description="Start workflow failed")
     start_component_failed = ErrorCode(code=92, description="Start component failed")
     get_component_state_failed = ErrorCode(
         code=93, description="Get component state failed"
@@ -190,18 +188,12 @@ class ErrorCodes(Enum):
     workflow_run_folding_job_failed = ErrorCode(
         code=102, description="Run folding job in workflow failed"
     )
-    workflow_running = ErrorCode(
-        code=103, description="Workflow is running"
-    )
-    component_running = ErrorCode(
-        code=104, description="Component is running"
-    )
+    workflow_running = ErrorCode(code=103, description="Workflow is running")
+    component_running = ErrorCode(code=104, description="Component is running")
     invalid_workflow_timeouts = ErrorCode(
         code=105, description="Invalid workflow timeouts"
     )
-    job_running = ErrorCode(
-        code=106, description="Job is running"
-    )
+    job_running = ErrorCode(code=106, description="Job is running")
     string_is_not_correlation_id = ErrorCode(
         code=107, description="Passed string is not correlation id"
     )
@@ -217,12 +209,8 @@ class ErrorCodes(Enum):
     celery_task_executed_but_task_id_not_found = ErrorCode(
         code=111, description="Celery task executed, but task id not found"
     )
-    graph_scheduler_timeout = ErrorCode(
-        code=112, description="Graph scheduler timeout"
-    )
-    cannot_schedule_node = ErrorCode(
-        code=113, description="Cannot schedule node"
-    )
+    graph_scheduler_timeout = ErrorCode(code=112, description="Graph scheduler timeout")
+    cannot_schedule_node = ErrorCode(code=113, description="Cannot schedule node")
     scheduled_components_are_not_in_graph = ErrorCode(
         code=114, description="Scheduled components are not in graph"
     )

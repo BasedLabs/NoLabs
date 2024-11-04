@@ -1,21 +1,22 @@
 import asyncio
 import queue
-import threading
 from functools import lru_cache
-from typing import Any, Dict, Awaitable
+from typing import Any, Awaitable, Dict
 
 import socketio
+
 from nolabs.infrastructure.settings import settings
 
 
 class SocketServer:
     def __init__(self):
-        self.client = socketio.RedisManager(settings.socketio_broker,
-                                                 write_only=True)
+        self.client = socketio.RedisManager(settings.socketio_broker, write_only=True)
         self.sio = socketio.Server(client_manager=self.client)
         self.sync_queue = queue.Queue()
 
-    def emit_event(self, name: str, room_id: str, data: Dict[str, Any]) -> Awaitable[None]:
+    def emit_event(
+        self, name: str, room_id: str, data: Dict[str, Any]
+    ) -> Awaitable[None]:
         return self.sio.emit(event=name, room=room_id, data=data)
 
     async def queue_worker(self):
@@ -32,7 +33,7 @@ class SocketServer:
         loop.run_until_complete(self.queue_worker())
 
     def enqueue_event(self, name: str, room_id: str, data: Dict[str, Any]):
-        self.sync_queue.put({'name': name, 'room_id': room_id, 'data': data})
+        self.sync_queue.put({"name": name, "room_id": room_id, "data": data})
 
     def start_queue_worker(self):
         asyncio.create_task(self.start_async_worker())

@@ -1,8 +1,7 @@
 from typing import Any, Dict
 
-from celery import Celery
-
 from api_models import RunDiffDockPredictionRequest
+from celery import Celery
 from settings import settings
 
 app = Celery(
@@ -16,7 +15,7 @@ app.conf.update(
     worker_send_task_events=True,
     task_reject_on_worker_lost=True,
     worker_state_db="/opt/celery-state.db",
-    accept_content=["application/json", "application/x-python-serialize"]
+    accept_content=["application/json", "application/x-python-serialize"],
 )
 
 

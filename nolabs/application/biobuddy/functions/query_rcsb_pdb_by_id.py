@@ -17,9 +17,7 @@ from nolabs.application.biobuddy.functions.base_function import (
 
 
 class QueryRcsbPdbByIdFunction(BiobuddyFunction):
-    def __init__(
-        self, rcsb_pdb_query_microservice: DefaultApi
-    ):
+    def __init__(self, rcsb_pdb_query_microservice: DefaultApi):
         parameters = [
             FunctionParameterDefinition(
                 name="pdb_ids",

@@ -1,9 +1,7 @@
-import os
 from pathlib import Path
 from typing import Literal, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
 
 directory = Path(__file__).resolve().parent
 
@@ -23,18 +21,18 @@ class Settings(BaseSettings):
     diffdock_host: str
     celery_broker: str
     celery_backend: str
-    workflow_queue: str = 'workflow'
-    celery_worker_pool: str = 'prefork'
-    celery_worker_state_db: str = '/tmp/celery-state.db'
+    workflow_queue: str = "workflow"
+    celery_worker_pool: str = "prefork"
+    celery_worker_state_db: str = "/tmp/celery-state.db"
     connection_string: str
     socketio_broker: str
     enable_structured_logging: bool
     reinvent_directory: Path
     blast_email: str
-    workflow_version: int
-    celery_worker_concurrency: int = 10
+    uvicorn_host: str = "0.0.0.0"
+    uvicorn_port: int = 8000
+    celery_worker_concurrency: int = 20
     orphaned_tasks_check_interval: int = 40
-    mode: Literal["united", "fastapi", "workflow"] = "fastapi"
     environment: Literal["local", "test", "production"] = "local"
     logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
 
@@ -52,7 +50,7 @@ class SettingsProxy:
         return self._settings
 
 
-settings: Settings = SettingsProxy()
+settings: Settings = SettingsProxy()  # type: ignore
 
 
 def initialize_settings():

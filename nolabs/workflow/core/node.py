@@ -1,20 +1,23 @@
 import json
 import uuid
-from abc import abstractmethod, ABC
-from typing import Dict, Optional, Any
+from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
 
 from celery.result import AsyncResult
 from pydantic import BaseModel
 from redis.client import Pipeline
 
-from nolabs.infrastructure.log import logger
-from nolabs.infrastructure.redis_client_factory import get_redis_pipe
-from nolabs.domain.exceptions import NoLabsException, ErrorCodes
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.infrastructure.celery_app_factory import get_celery_app
-from nolabs.infrastructure.redis_client_factory import Redis
-from nolabs.workflow.core.states import ControlStates, celery_to_internal_mapping
-from nolabs.workflow.core.states import state_transitions
-from nolabs.workflow.core.states import ERROR_STATES, TERMINAL_STATES
+from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.redis_client_factory import get_redis_pipe, rd
+from nolabs.workflow.core.states import (
+    ERROR_STATES,
+    TERMINAL_STATES,
+    ControlStates,
+    celery_to_internal_mapping,
+    state_transitions,
+)
 from nolabs.workflow.monitoring.tasks import OrphanedTasksTracker
 
 
@@ -29,33 +32,32 @@ class ExecutionNode(ABC):
         self._state_key = f"{self._id}:state"
 
     async def get_state(self) -> Optional[ControlStates]:
-        #if self._state_cache:
-        #    return self._state_cache
-
-        state = Redis.client.get(self._state_key)
+        state = rd.get(self._state_key)
         if not state:
             self._state_cache = ControlStates.UNKNOWN
             return self._state_cache
         self._state_cache = ControlStates(state)
         return self._state_cache
 
-    async def on_started(self):
-        ...
+    async def on_started(self): ...
 
-    async def on_finished(self):
-        ...
+    async def on_finished(self): ...
 
     async def get_input(self) -> Optional[Dict[str, Any]]:
         cid = f"{self._id}:input"
-        execution_input = Redis.client.get(cid)
+        execution_input = rd.get(cid)
         if not execution_input:
             return None
         return json.loads(execution_input)
 
-    async def set_input(self, execution_input: Dict[str, Any] | str | BaseModel, pipe:Optional[Pipeline] = None):
+    async def set_input(
+        self,
+        execution_input: Dict[str, Any] | str | BaseModel,
+        pipe: Optional[Pipeline] = None,
+    ):
         cid = f"{self._id}:input"
 
-        data = ''
+        data = ""
 
         if isinstance(execution_input, dict):
             data = json.dumps(execution_input, default=str)
@@ -64,37 +66,40 @@ class ExecutionNode(ABC):
         if isinstance(execution_input, str):
             data = execution_input
 
-        (pipe or Redis.client).set(cid, data)
+        (pipe or rd).set(cid, data)
 
     async def get_output(self) -> Dict[str, Any]:
         return {}
 
-    async def set_message(self, message: str, pipe:Optional[Pipeline] = None):
+    async def set_message(self, message: str, pipe: Optional[Pipeline] = None):
         cid = f"{self._id}:message"
-        (pipe or Redis.client).set(cid, message or "")
+        (pipe or rd).set(cid, message or "")
 
     async def get_message(self):
         cid = f"{self._id}:message"
-        return Redis.client.get(cid)
+        return rd.get(cid)
 
     async def set_cancelled(self, reason: Optional[str] = None):
         pipe = get_redis_pipe()
         await self.set_state(state=ControlStates.CANCELLED, pipe=pipe)
-        await self.set_message(message=reason or '', pipe=pipe)
+        await self.set_message(message=reason or "", pipe=pipe)
         pipe.execute()
 
-    async def set_state(self, state: ControlStates, pipe:Optional[Pipeline] = None):
+    async def set_state(self, state: ControlStates, pipe: Optional[Pipeline] = None):
         current_state = self._state_cache
 
-        logger.info('Setting state',
-                    extra={'node_id': self._id,
-                           'from_state': current_state,
-                           'to_state': state})
+        logger.info(
+            "Setting state",
+            extra={"node_id": self._id, "from_state": current_state, "to_state": state},
+        )
 
         if current_state and state not in state_transitions[current_state]:
-            raise NoLabsException(ErrorCodes.invalid_states_transition, f"Cannot move from {current_state} to {state}")
+            raise NoLabsException(
+                ErrorCodes.invalid_states_transition,
+                f"Cannot move from {current_state} to {state}",
+            )
 
-        (pipe or Redis.client).set(self._state_key, state)
+        (pipe or rd).set(self._state_key, state)
         self._state_cache = state
 
         if state == ControlStates.STARTED:
@@ -104,12 +109,10 @@ class ExecutionNode(ABC):
             await self.on_finished()
 
     @abstractmethod
-    async def sync_started(self):
-        ...
+    async def sync_started(self): ...
 
     @abstractmethod
-    async def sync_cancelling(self):
-        ...
+    async def sync_cancelling(self): ...
 
     async def can_schedule(self, **kwargs) -> bool:
         """Schedule and start as soon as possible"""
@@ -117,14 +120,16 @@ class ExecutionNode(ABC):
         return state == ControlStates.UNKNOWN
 
     async def schedule(self, **kwargs):
-        await self.set_state(state=ControlStates.SCHEDULED, pipe=(kwargs['pipe'] if 'pipe' in kwargs else None))
+        await self.set_state(
+            state=ControlStates.SCHEDULED,
+            pipe=(kwargs["pipe"] if "pipe" in kwargs else None),
+        )
 
-    async def can_start(self, **kwargs):
+    async def can_start(self, **kwargs) -> bool:
         return await self.get_state() == ControlStates.SCHEDULED
 
     @abstractmethod
-    async def start(self, **kwargs):
-        ...
+    async def start(self, **kwargs): ...
 
     async def started(self) -> bool:
         return await self.get_state() == ControlStates.STARTED
@@ -161,7 +166,7 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         if state != ControlStates.CANCELLING:
             return state
         cid = self.celery_task_id_cid
-        celery_task_id = Redis.client.get(cid)
+        celery_task_id = rd.get(cid)
         if not celery_task_id:
             pipe = get_redis_pipe()
             await self.set_state(state=ControlStates.CANCELLED, pipe=pipe)
@@ -186,7 +191,7 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         if state != ControlStates.STARTED:
             return state
         cid = self.celery_task_id_cid
-        celery_task_id = Redis.client.get(cid)
+        celery_task_id = rd.get(cid)
         if not celery_task_id:
             raise NoLabsException(ErrorCodes.celery_task_executed_but_task_id_not_found)
         self._orphaned_tasks_tracker.track(task_id=celery_task_id)
@@ -200,19 +205,19 @@ class CeleryExecutionNode(ExecutionNode, ABC):
             pipe = get_redis_pipe()
             await self.set_state(state=new_state, pipe=pipe)
             if new_state in ERROR_STATES:
-                await self.set_message(message=str(result),pipe=pipe)
+                await self.set_message(message=str(result), pipe=pipe)
             pipe.execute()
             self._orphaned_tasks_tracker.remove_task(task_id=celery_task_id)
             return new_state
 
         return new_state
 
-    async def _prepare_for_start(self, pipe:Optional[Pipeline] = None) -> str:
+    async def _prepare_for_start(self, pipe: Optional[Pipeline] = None) -> str:
         """
         :returns: celery_task_id
         """
         cid = self.celery_task_id_cid
         task_id = str(uuid.uuid4())
-        (pipe or Redis.client).set(cid, task_id)
+        (pipe or rd).set(cid, task_id)
         self._orphaned_tasks_tracker.track(task_id=task_id)
         return task_id

@@ -15,7 +15,7 @@ app.conf.update(
     task_reject_on_worker_lost=True,
     worker_state_db="/opt/celery-state.db",
     accept_content=["application/json", "application/x-python-serialize"],
-    broker_transport_options={'heartbeat': 10}
+    broker_transport_options={"heartbeat": 10},
 )
 
 

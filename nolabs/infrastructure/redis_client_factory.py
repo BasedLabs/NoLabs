@@ -14,22 +14,26 @@ def cached_client() -> redis.Redis:
     return redis_client
 
 
-class Redis:
-    @classmethod
-    @property
-    def client(cls) -> redis.Redis:
+class RedisProxy:
+    def __getattr__(self, name):
+        return getattr(cached_client(), name)
+
+    def __call__(self):
         return cached_client()
 
-    @classmethod
-    async def disconnect(cls):
-        client = cached_client()
-        client.close()
-        cached_client.cache_clear()
+
+rd: redis.Redis = RedisProxy()  # type: ignore
 
 
 def redlock(key: str, blocking=False, auto_release_time=100) -> Optional[Lock]:
-    return Lock(Redis.client, name=key, blocking=blocking, timeout=auto_release_time, blocking_timeout=auto_release_time)
+    return Lock(
+        rd,
+        name=key,
+        blocking=blocking,
+        timeout=auto_release_time,
+        blocking_timeout=auto_release_time,
+    )
 
 
 def get_redis_pipe() -> Pipeline:
-    return Redis.client.pipeline()
+    return rd.pipeline()

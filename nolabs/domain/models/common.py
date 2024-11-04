@@ -18,7 +18,7 @@ import uuid
 from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from Bio import SeqIO
@@ -31,13 +31,14 @@ from mongoengine import (
     Document,
     EmbeddedDocument,
     EmbeddedDocumentField,
+    EmbeddedDocumentListField,
     FloatField,
     IntField,
     ListField,
     Q,
     ReferenceField,
     StringField,
-    UUIDField, EmbeddedDocumentListField,
+    UUIDField,
 )
 from pydantic import BaseModel, model_validator
 from pydantic.dataclasses import dataclass
@@ -102,10 +103,10 @@ class Experiment(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            id: ExperimentId,
-            name: ExperimentName,
-            created_at: datetime | None = None,
+        cls,
+        id: ExperimentId,
+        name: ExperimentName,
+        created_at: datetime | None = None,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_experiment_id)
@@ -271,14 +272,14 @@ class LocalisationProbability(EmbeddedDocument, ValueObject):
     extracellular: float = FloatField(required=True)
 
     def __init__(
-            self,
-            cytosolic: float,
-            mitochondrial: float,
-            nuclear: float,
-            other: float,
-            extracellular: float,
-            *args,
-            **kwargs,
+        self,
+        cytosolic: float,
+        mitochondrial: float,
+        nuclear: float,
+        other: float,
+        extracellular: float,
+        *args,
+        **kwargs,
     ):
         values = [cytosolic, mitochondrial, nuclear, other, extracellular]
 
@@ -436,38 +437,39 @@ class Protein(Document, Entity):
         self.binding_pockets = binding_pockets
 
     @classmethod
-    def create_complex(cls,
-                       protein: Protein,
-                       ligand: Ligand,
-                       minimized_affinity: float | None = None,
-                       scored_affinity: float | None = None,
-                       confidence: float | None = None,
-                       plddt_array: List[int] | None = None,
-                       ):
+    def create_complex(
+        cls,
+        protein: Protein,
+        ligand: Ligand,
+        minimized_affinity: float | None = None,
+        scored_affinity: float | None = None,
+        confidence: float | None = None,
+        plddt_array: List[int] | None = None,
+    ):
         if not protein:
             raise NoLabsException(ErrorCodes.protein_is_undefined)
 
         return Protein.create(
             experiment=protein.experiment,
-            name=ProteinName(f'{protein.name}-{ligand.name}-complex'),
+            name=ProteinName(f"{protein.name}-{ligand.name}-complex"),
             fasta_content=protein.fasta_content,
             pdb_content=protein.pdb_content,
             minimized_affinity=minimized_affinity,
             scored_affinity=scored_affinity,
             confidence=confidence,
             plddt_array=plddt_array,
-            binding_ligand=ligand
+            binding_ligand=ligand,
         )
 
     @classmethod
     def create(
-            cls,
-            experiment: Experiment,
-            name: ProteinName,
-            fasta_content: Union[bytes, str, None] = None,
-            pdb_content: Union[bytes, str, None] = None,
-            *args,
-            **kwargs,
+        cls,
+        experiment: Experiment,
+        name: ProteinName,
+        fasta_content: Union[bytes, str, None] = None,
+        pdb_content: Union[bytes, str, None] = None,
+        *args,
+        **kwargs,
     ):
         if not name:
             raise NoLabsException(ErrorCodes.invalid_protein_name)
@@ -712,14 +714,14 @@ class Ligand(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            experiment: Experiment | uuid.UUID,
-            name: LigandName | None = None,
-            smiles_content: Union[bytes, str, None] = None,
-            sdf_content: Union[bytes, str, None] = None,
-            link: LigandLink | None = None,
-            *args,
-            **kwargs,
+        cls,
+        experiment: Experiment | uuid.UUID,
+        name: LigandName | None = None,
+        smiles_content: Union[bytes, str, None] = None,
+        sdf_content: Union[bytes, str, None] = None,
+        link: LigandLink | None = None,
+        *args,
+        **kwargs,
     ) -> "Ligand":  # Added link parameter
         if not name:
             raise NoLabsException(ErrorCodes.invalid_ligand_name)
@@ -837,12 +839,12 @@ class Job(Document, Entity):
 
     @classmethod
     def create(
-            cls,
-            id: JobId,
-            name: JobName,
-            component: Union["ComponentData", uuid.UUID, None] = None,
-            *args,
-            **kwargs,
+        cls,
+        id: JobId,
+        name: JobName,
+        component: Union["ComponentData", uuid.UUID, None] = None,
+        *args,
+        **kwargs,
     ):
         if not id:
             raise NoLabsException(ErrorCodes.invalid_job_id)
@@ -871,12 +873,10 @@ class Job(Document, Entity):
         return JobId(self.id)
 
     @abstractmethod
-    def result_valid(self) -> bool:
-        ...
+    def result_valid(self) -> bool: ...
 
     @abstractmethod
-    def _input_errors(self) -> List[JobInputError]:
-        ...
+    def _input_errors(self) -> List[JobInputError]: ...
 
     def input_errors(self, throw: bool = False) -> List[JobInputError]:
         errors = self._input_errors()
@@ -941,5 +941,5 @@ class ExperimentRemovedEvent(DomainEvent):
     def __init__(self, experiment: Experiment):
         self.experiment = experiment
 
-# endregion
 
+# endregion

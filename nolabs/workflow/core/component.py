@@ -24,9 +24,13 @@ from typing import (
 )
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ValidationError, TypeAdapter
+from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
-from nolabs.domain.models.common import PropertyErrorData, ComponentData, PropertyValidationError
+from nolabs.domain.models.common import (
+    ComponentData,
+    PropertyErrorData,
+    PropertyValidationError,
+)
 
 if TYPE_CHECKING:
     from nolabs.workflow.core.flow import ComponentFlowHandler
@@ -83,7 +87,7 @@ class Parameter(BaseModel):
 
     @classmethod
     def _find_property(
-            cls, schema: "Parameter", target_path: List[str]
+        cls, schema: "Parameter", target_path: List[str]
     ) -> Optional["Property"]:
         if not target_path:
             return None
@@ -156,11 +160,11 @@ class Parameter(BaseModel):
         return ref.split("/")[-1]
 
     def try_set_mapping(
-            self,
-            source_schema: "Parameter",
-            component_id: UUID,
-            path_from: List[str],
-            target_path: List[str],
+        self,
+        source_schema: "Parameter",
+        component_id: UUID,
+        path_from: List[str],
+        target_path: List[str],
     ) -> Optional[PropertyValidationError]:
         if not path_from or not target_path:
             raise ValueError("Path from or path to are empty")
@@ -183,14 +187,14 @@ class Parameter(BaseModel):
 
         for any_of in source_property.anyOf:
             if any_of and (
-                    any_of.type == target_property.type
-                    or any_of.format == target_property.format
+                any_of.type == target_property.type
+                or any_of.format == target_property.format
             ):
                 validation_passed = True
 
         if (
-                source_property.type == target_property.type
-                or source_property.format == target_property.format
+            source_property.type == target_property.type
+            or source_property.format == target_property.format
         ):
             validation_passed = True
 
@@ -209,10 +213,10 @@ class Parameter(BaseModel):
         return None
 
     def try_set_default(
-            self,
-            input_type: Type[BaseModel],
-            target_path: List[str],
-            value: Optional[Any] = None,
+        self,
+        input_type: Type[BaseModel],
+        target_path: List[str],
+        value: Optional[Any] = None,
     ) -> Optional[PropertyValidationError]:
         if not target_path:
             raise ValueError("Path from or path two are empty")
@@ -260,7 +264,7 @@ class Parameter(BaseModel):
 
         for name, property in self.properties.items():
             if name in self.required and not (
-                    property.default or property.source_component_id
+                property.default or property.source_component_id
             ):
                 result.append(property)
 
@@ -273,14 +277,14 @@ class Parameter(BaseModel):
             for name, property in schema.properties.items():
                 # TODO check default value
                 if name in self.required and not (
-                        property.default or property.source_component_id
+                    property.default or property.source_component_id
                 ):
                     result.append(property)
 
         return result
 
     def _validate_dictionary(
-            self, t: Type, dictionary: Dict[str, Any]
+        self, t: Type, dictionary: Dict[str, Any]
     ) -> List[PropertyValidationError]:
         try:
             _ = t(**dictionary)
@@ -315,7 +319,7 @@ class Property(BaseModel):
     path_from: List[str] = Field(default_factory=list)
 
     def map(
-            self, source_component_id: UUID, path_from: List[str], target_path: List[str]
+        self, source_component_id: UUID, path_from: List[str], target_path: List[str]
     ):
         self.source_component_id = source_component_id
         self.path_from = path_from
@@ -365,13 +369,13 @@ class Component(Generic[TInput, TOutput]):
     meta = {"collection": "components"}
 
     def __init__(
-            self,
-            id: uuid.UUID,
-            input_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
-            output_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
-            input_value_dict: Optional[Dict[str, Any]] = None,
-            output_value_dict: Optional[Dict[str, Any]] = None,
-            previous_component_ids: Optional[List[uuid]] = None,
+        self,
+        id: uuid.UUID,
+        input_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
+        output_schema: Optional[Union[Parameter, Dict[str, Any]]] = None,
+        input_value_dict: Optional[Dict[str, Any]] = None,
+        output_value_dict: Optional[Dict[str, Any]] = None,
+        previous_component_ids: Optional[List[uuid]] = None,
     ):
         self.id = id
 
@@ -405,27 +409,29 @@ class Component(Generic[TInput, TOutput]):
             self.output_value_dict = value.model_dump()
 
     def output_errors(self) -> List[PropertyValidationError]:
-        return self.output_schema._validate_dictionary(t=self.output_parameter_type, dictionary=self.output_value_dict)
+        return self.output_schema._validate_dictionary(
+            t=self.output_parameter_type, dictionary=self.output_value_dict
+        )
 
     @property
     @abstractmethod
-    def input_parameter_type(self) -> Type[TInput]:
-        ...
+    def input_parameter_type(self) -> Type[TInput]: ...
 
     @property
     @abstractmethod
-    def output_parameter_type(self) -> Type[TOutput]:
-        ...
+    def output_parameter_type(self) -> Type[TOutput]: ...
 
     @property
     def input_value(self) -> TInput:
         return self.input_parameter_type(**self.input_value_dict)
 
     def input_errors(self):
-        return self.input_schema._validate_dictionary(t=self.input_parameter_type, dictionary=self.input_value_dict)
+        return self.input_schema._validate_dictionary(
+            t=self.input_parameter_type, dictionary=self.input_value_dict
+        )
 
     def try_map_property(
-            self, component: "Component", path_from: List[str], target_path: List[str]
+        self, component: "Component", path_from: List[str], target_path: List[str]
     ) -> Optional[PropertyValidationError]:
         return self.input_schema.try_set_mapping(
             source_schema=component.output_schema,
@@ -435,7 +441,7 @@ class Component(Generic[TInput, TOutput]):
         )
 
     def try_set_default(
-            self, target_path: List[str], value: Any
+        self, target_path: List[str], value: Any
     ) -> Optional[PropertyValidationError]:
         error = self.input_schema.try_set_default(
             target_path=target_path, value=value, input_type=self.input_parameter_type
@@ -532,8 +538,8 @@ class Component(Generic[TInput, TOutput]):
                         current_level = current_level[key]
 
                     if (
-                            path[-1] not in current_level
-                            or current_level[path[-1]] != input_parameter
+                        path[-1] not in current_level
+                        or current_level[path[-1]] != input_parameter
                     ):
                         changed = True
 
@@ -545,8 +551,7 @@ class Component(Generic[TInput, TOutput]):
 
     @property
     @abstractmethod
-    def component_flow_type(self) -> Type["ComponentFlowHandler"]:
-        ...
+    def component_flow_type(self) -> Type["ComponentFlowHandler"]: ...
 
     @classmethod
     def restore(cls, data: ComponentData) -> "Component":

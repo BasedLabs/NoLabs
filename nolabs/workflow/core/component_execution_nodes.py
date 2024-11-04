@@ -1,82 +1,118 @@
 import uuid
-from typing import List, Iterable
+from typing import Iterable, List
 
 from redis.client import Pipeline
 
 from nolabs.domain.models.common import Job
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe
+from nolabs.workflow.core import Tasks
 from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
-from nolabs.workflow.core.states import ControlStates, PROGRESS_STATES
-from nolabs.workflow.core.states import TERMINAL_STATES
-from nolabs.workflow.core import Tasks
-from nolabs.workflow.core.states import ERROR_STATES
-from nolabs.workflow.core.socketio_events_emitter import (emit_start_component_event,
-                                                          emit_finish_component_event,
-                                                          emit_component_jobs_event)
+from nolabs.workflow.core.socketio_events_emitter import (
+    emit_component_jobs_event,
+    emit_finish_component_event,
+    emit_start_component_event,
+)
+from nolabs.workflow.core.states import (
+    ERROR_STATES,
+    PROGRESS_STATES,
+    TERMINAL_STATES,
+    ControlStates,
+)
 
 
 class ComponentMainTaskExecutionNode(CeleryExecutionNode):
-    def __init__(self,
-                 experiment_id: uuid.UUID,
-                 component_id: uuid.UUID):
+    def __init__(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
         super().__init__(id=f"execution_node:{experiment_id}:{component_id}:main_task")
         self.experiment_id = experiment_id
         self.component_id = component_id
 
     async def start(self):
-        logger.info('Starting component main task',
-                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
+        logger.info(
+            "Starting component main task",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         pipe = get_redis_pipe()
         celery_task_id = await self._prepare_for_start(pipe=pipe)
-        self.celery.send_task(name=Tasks.component_main_task,
-                              kwargs={"experiment_id": self.experiment_id,
-                                      "component_id": self.component_id},
-                              task_id=celery_task_id,
-                              retry=False
-                              )
+        self.celery.send_task(
+            name=Tasks.component_main_task,
+            kwargs={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+            task_id=celery_task_id,
+            retry=False,
+        )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
         pipe.execute()
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
-        logger.info('Scheduling component main task',
-                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
+        logger.info(
+            "Scheduling component main task",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         await self.set_state(state=ControlStates.SCHEDULED)
 
     async def on_finished(self):
         await emit_component_jobs_event(
             experiment_id=self.experiment_id,
             component_id=self.component_id,
-            job_ids=[j.id for j in Job.objects(component=self.component_id).only('id')],
+            job_ids=[j.id for j in Job.objects(component=self.component_id).only("id")],
         )
 
 
 class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
     def __init__(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
-        super().__init__(id=f"execution_node:{experiment_id}:{component_id}:complete_task")
+        super().__init__(
+            id=f"execution_node:{experiment_id}:{component_id}:complete_task"
+        )
         self.experiment_id = experiment_id
         self.component_id = component_id
 
     async def start(self):
-        logger.info('Starting component complete task',
-                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
+        logger.info(
+            "Starting component complete task",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         pipe = get_redis_pipe()
         celery_task_id = await self._prepare_for_start(pipe=pipe)
-        self.celery.send_task(name=Tasks.complete_component_task,
-                              kwargs={"experiment_id": self.experiment_id,
-                                      "component_id": self.component_id},
-                              task_id=celery_task_id,
-                              retry=False
-                              )
+        self.celery.send_task(
+            name=Tasks.complete_component_task,
+            kwargs={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+            task_id=celery_task_id,
+            retry=False,
+        )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
         pipe.execute()
 
-    async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID, job_ids: List[uuid.UUID]):
-        logger.info('Scheduling component complete task',
-                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
+    async def schedule(
+        self,
+        experiment_id: uuid.UUID,
+        component_id: uuid.UUID,
+        job_ids: List[uuid.UUID],
+    ):
+        logger.info(
+            "Scheduling component complete task",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         await self.set_state(state=ControlStates.SCHEDULED)
 
 
@@ -86,14 +122,18 @@ class ComponentExecutionNode(ExecutionNode):
         self.component_id = component_id
         self.experiment_id = experiment_id
         self.main_task = ComponentMainTaskExecutionNode(experiment_id, component_id)
-        self.complete_task = ComponentCompleteTaskExecutionNode(experiment_id, component_id)
+        self.complete_task = ComponentCompleteTaskExecutionNode(
+            experiment_id, component_id
+        )
 
     async def can_start(self, previous_component_ids: Iterable[uuid.UUID]) -> bool:
         if not await super().can_start():
             return False
 
         for component_id in previous_component_ids:
-            component_node = ComponentExecutionNode(experiment_id=self.experiment_id, component_id=component_id)
+            component_node = ComponentExecutionNode(
+                experiment_id=self.experiment_id, component_id=component_id
+            )
             if await component_node.get_state() != ControlStates.SUCCESS:
                 return False
 
@@ -104,8 +144,13 @@ class ComponentExecutionNode(ExecutionNode):
         return state == ControlStates.UNKNOWN or state in TERMINAL_STATES
 
     async def schedule(self):
-        logger.info('Scheduling component node',
-                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
+        logger.info(
+            "Scheduling component node",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         pipe = get_redis_pipe()
         await self.reset(pipe=pipe)
         await self.set_state(state=ControlStates.SCHEDULED, pipe=pipe)
@@ -118,30 +163,42 @@ class ComponentExecutionNode(ExecutionNode):
             return
 
         await super().reset(pipe=pipe)
-        main_task = ComponentMainTaskExecutionNode(experiment_id=self.experiment_id, component_id=self.component_id)
+        main_task = ComponentMainTaskExecutionNode(
+            experiment_id=self.experiment_id, component_id=self.component_id
+        )
         await main_task.reset(pipe=pipe)
-        job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
+        job_ids = [j.id for j in Job.objects(component=self.component_id).only("id")]
         for job_id in job_ids:
             job_node = JobExecutionNode(self.experiment_id, self.component_id, job_id)
             if state == ControlStates.SUCCESS:
                 await job_node.reset(pipe=pipe)
             elif await job_node.get_state() in ERROR_STATES:
                 await job_node.reset(pipe=pipe)
-        complete_task = ComponentCompleteTaskExecutionNode(experiment_id=self.experiment_id,
-                                                           component_id=self.component_id)
+        complete_task = ComponentCompleteTaskExecutionNode(
+            experiment_id=self.experiment_id, component_id=self.component_id
+        )
         await complete_task.reset(pipe=pipe)
 
     async def start(self, **kwargs):
-        logger.info('Starting component node',
-                    extra={'experiment_id': self.experiment_id, 'component_id': self.component_id})
+        logger.info(
+            "Starting component node",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         await self.set_state(state=ControlStates.STARTED)
 
     async def sync_started(self):
         state = await self.get_state()
-        logger.info('Syncing component node',
-                    extra={'experiment_id': self.experiment_id,
-                           'component_id': self.component_id,
-                           'state': str(state)})
+        logger.info(
+            "Syncing component node",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+                "state": str(state),
+            },
+        )
         if state != ControlStates.STARTED:
             return
 
@@ -159,20 +216,26 @@ class ComponentExecutionNode(ExecutionNode):
         if await self.get_state() in TERMINAL_STATES:
             return
 
-        if await self.main_task.get_state() == ControlStates.SUCCESS and any_job_succeeded:
+        if (
+            await self.main_task.get_state() == ControlStates.SUCCESS
+            and any_job_succeeded
+        ):
             await self.sync_complete_task()
 
         if await self.get_state() in TERMINAL_STATES:
             return
 
     async def sync_main_task(self):
-        logger.info('Syncing component main task',
-                    extra={'experiment_id': self.experiment_id,
-                           'component_id': self.component_id})
+        logger.info(
+            "Syncing component main task",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         if await self.main_task.can_schedule():
             await self.main_task.schedule(
-                experiment_id=self.experiment_id,
-                component_id=self.component_id
+                experiment_id=self.experiment_id, component_id=self.component_id
             )
 
         if await self.main_task.can_start():
@@ -189,11 +252,15 @@ class ComponentExecutionNode(ExecutionNode):
         """
         :returns: any jobs succeeded
         """
-        job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
-        logger.info('Syncing component jobs',
-                    extra={'experiment_id': self.experiment_id,
-                           'component_id': self.component_id,
-                           'jobs_count': len(job_ids)})
+        job_ids = [j.id for j in Job.objects(component=self.component_id).only("id")]
+        logger.info(
+            "Syncing component jobs",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+                "jobs_count": len(job_ids),
+            },
+        )
         active_jobs = 0
 
         # Track job nodes
@@ -226,10 +293,14 @@ class ComponentExecutionNode(ExecutionNode):
         Update the component state based on the terminal states of all jobs.
         :returns: any jobs succeeded
         """
-        logger.info('Updating component jobs states',
-                    extra={'experiment_id': self.experiment_id,
-                           'component_id': self.component_id,
-                           'jobs_count': len(job_ids)})
+        logger.info(
+            "Updating component jobs states",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+                "jobs_count": len(job_ids),
+            },
+        )
 
         if not job_ids:
             return True
@@ -260,9 +331,13 @@ class ComponentExecutionNode(ExecutionNode):
 
     async def sync_complete_task(self):
         """Synchronize and start the complete task if all jobs are finished."""
-        logger.info('Syncing component complete task',
-                    extra={'experiment_id': self.experiment_id,
-                           'component_id': self.component_id})
+        logger.info(
+            "Syncing component complete task",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         if await self.complete_task.get_state() in TERMINAL_STATES:
             await self.set_state(await self.complete_task.get_state())
             await self.set_message(await self.complete_task.get_message())
@@ -270,14 +345,14 @@ class ComponentExecutionNode(ExecutionNode):
 
         await self.complete_task.sync_started()
 
-        job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
+        job_ids = [j.id for j in Job.objects(component=self.component_id).only("id")]
 
         # If all jobs are in terminal states and any is successful, run the complete task
         if await self.complete_task.can_schedule():
             await self.complete_task.schedule(
                 experiment_id=self.experiment_id,
                 component_id=self.component_id,
-                job_ids=job_ids
+                job_ids=job_ids,
             )
 
         if await self.complete_task.can_start():
@@ -285,20 +360,22 @@ class ComponentExecutionNode(ExecutionNode):
 
     async def on_started(self):
         await emit_start_component_event(
-            experiment_id=self.experiment_id,
-            component_id=self.component_id
+            experiment_id=self.experiment_id, component_id=self.component_id
         )
 
     async def on_finished(self):
         await emit_finish_component_event(
-            experiment_id=self.experiment_id,
-            component_id=self.component_id
+            experiment_id=self.experiment_id, component_id=self.component_id
         )
 
     async def sync_cancelling(self):
-        logger.info('Cancelling component',
-                    extra={'experiment_id': self.experiment_id,
-                           'component_id': self.component_id})
+        logger.info(
+            "Cancelling component",
+            extra={
+                "experiment_id": self.experiment_id,
+                "component_id": self.component_id,
+            },
+        )
         if await self.get_state() != ControlStates.CANCELLING:
             return
 
@@ -308,7 +385,7 @@ class ComponentExecutionNode(ExecutionNode):
         await self.main_task.sync_cancelling()
 
         jobs_in_progress = True
-        job_ids = [j.id for j in Job.objects(component=self.component_id).only('id')]
+        job_ids = [j.id for j in Job.objects(component=self.component_id).only("id")]
         for job_id in job_ids:
             job_node = JobExecutionNode(self.experiment_id, self.component_id, job_id)
             if await job_node.can_cancel():
@@ -323,8 +400,10 @@ class ComponentExecutionNode(ExecutionNode):
 
         await self.complete_task.sync_cancelling()
 
-        if await self.main_task.get_state() not in PROGRESS_STATES and \
-                await self.complete_task.get_state() not in PROGRESS_STATES:
+        if (
+            await self.main_task.get_state() not in PROGRESS_STATES
+            and await self.complete_task.get_state() not in PROGRESS_STATES
+        ):
             await self.set_cancelled()
             return ControlStates.CANCELLED
 

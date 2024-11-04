@@ -50,7 +50,7 @@ class ProteinDesignJob(Job):
             raise NoLabsException(ErrorCodes.protein_is_undefined)
 
         if not protein.pdb_content:
-            raise NoLabsException
+            raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
 
         self.protein = protein
         self.inputs_updated_at = datetime.datetime.utcnow()

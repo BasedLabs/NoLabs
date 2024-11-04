@@ -13,7 +13,13 @@ if mode == "celery":
 
     logger.info("Starting celery")
     app.worker_main(
-        ["worker", f"--concurrency={settings.celery_worker_concurrency}", "-E", "-n", f"esmfold-light-{str(uuid.uuid4())}"]
+        [
+            "worker",
+            f"--concurrency={settings.celery_worker_concurrency}",
+            "-E",
+            "-n",
+            f"esmfold-light-{str(uuid.uuid4())}",
+        ]
     )
 
 if mode == "fastapi":

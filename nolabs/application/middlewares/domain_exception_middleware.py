@@ -7,7 +7,7 @@ from nolabs.infrastructure.log import logger
 
 def add_domain_exception_middleware(app: FastAPI):
     @app.exception_handler(NoLabsException)
-    async def handle(request: Request, exc: NoLabsException):
+    async def handle_nolabs_exception(request: Request, exc: NoLabsException):
         logger.exception(
             exc.message,
             exc_info=exc,
@@ -24,7 +24,7 @@ def add_domain_exception_middleware(app: FastAPI):
         )
 
     @app.exception_handler(Exception)
-    async def handle(request: Request, exc: Exception):
+    async def handle_exception(request: Request, exc: Exception):
         logger.exception(
             str(exc),
             exc_info=exc,

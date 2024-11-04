@@ -1,13 +1,12 @@
 import asyncio
 import uuid
-from typing import Optional, List, Dict, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from asgiref.sync import async_to_sync
 from celery import Celery
 from celery.result import allow_join_result
 
-from nolabs.domain.models.common import ComponentData, Job, Experiment
-from nolabs.infrastructure.celery_app_factory import get_celery_app
+from nolabs.domain.models.common import ComponentData, Experiment, Job
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.redis_client_factory import redlock
 from nolabs.infrastructure.settings import settings
@@ -20,19 +19,25 @@ if TYPE_CHECKING:
 
 
 def register_workflow_celery_tasks(celery: Celery):
-    @celery.task(name=Tasks.component_main_task, bind=True, queue=settings.workflow_queue, max_retries=0)
+    @celery.task(
+        name=Tasks.component_main_task,
+        bind=True,
+        queue=settings.workflow_queue,
+        max_retries=0,
+    )
     def component_main_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
 
-            extra = {"component_id": component_id,
-                     "celery_task_id": bind.request.id}
+            extra = {"component_id": component_id, "celery_task_id": bind.request.id}
 
             component = Component.restore(data=data)
             prev_components: List[Component] = []
 
             for previous_component_id in data.previous_component_ids:
-                previous_component_state = ComponentData.objects.with_id(previous_component_id)
+                previous_component_state = ComponentData.objects.with_id(
+                    previous_component_id
+                )
                 previous_component = _get_component(from_state=previous_component_state)
 
                 errors = previous_component.output_errors()
@@ -69,8 +74,7 @@ def register_workflow_celery_tasks(celery: Celery):
                     return
 
             control_flow: ComponentFlowHandler = component.component_flow_type(
-                experiment_id=experiment_id,
-                component_id=component_id
+                experiment_id=experiment_id, component_id=component_id
             )
 
             input_value = component.input_value
@@ -80,46 +84,70 @@ def register_workflow_celery_tasks(celery: Celery):
         # return loop.run_until_complete(_())
         async_to_sync(_)()
 
-    @celery.task(name="workflow._job_main_task", bind=True, queue=settings.workflow_queue, max_retries=0)
-    def job_main_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID):
+    @celery.task(
+        name="workflow._job_main_task",
+        bind=True,
+        queue=settings.workflow_queue,
+        max_retries=0,
+    )
+    def job_main_task(
+        bind, experiment_id: uuid.UUID, component_id: uuid.UUID, job_id: uuid.UUID
+    ):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
             component = Component.restore(data=data)
             control_flow: ComponentFlowHandler = component.component_flow_type(
-                experiment_id=experiment_id,
-                component_id=component_id
+                experiment_id=experiment_id, component_id=component_id
             )
             with allow_join_result():
                 await control_flow.on_job_task(job_id=job_id)
 
         async_to_sync(_)()
 
-    @celery.task(name=Tasks.complete_job_task, bind=True, queue=settings.workflow_queue, max_retries=0)
-    def complete_job_task(bind,
-                          experiment_id: uuid.UUID,
-                          component_id: uuid.UUID,
-                          job_id: uuid.UUID,
-                          long_running_output: Optional[Dict[str, Any]]):
+    @celery.task(
+        name=Tasks.complete_job_task,
+        bind=True,
+        queue=settings.workflow_queue,
+        max_retries=0,
+    )
+    def complete_job_task(
+        bind,
+        experiment_id: uuid.UUID,
+        component_id: uuid.UUID,
+        job_id: uuid.UUID,
+        long_running_output: Optional[Dict[str, Any]],
+    ):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
             component = Component.restore(data=data)
             control_flow: ComponentFlowHandler = component.component_flow_type(
-                experiment_id=experiment_id,
-                component_id=component_id
+                experiment_id=experiment_id, component_id=component_id
             )
-            await control_flow.on_job_completion(job_id=job_id, long_running_output=long_running_output)
+            await control_flow.on_job_completion(
+                job_id=job_id, long_running_output=long_running_output
+            )
 
         asyncio.run(_())
 
-    @celery.task(name=Tasks.complete_component_task, bind=True, queue=settings.workflow_queue, max_retries=0)
-    def complete_component_task(bind, experiment_id: uuid.UUID, component_id: uuid.UUID):
+    @celery.task(
+        name=Tasks.complete_component_task,
+        bind=True,
+        queue=settings.workflow_queue,
+        max_retries=0,
+    )
+    def complete_component_task(
+        bind, experiment_id: uuid.UUID, component_id: uuid.UUID
+    ):
         async def _():
             data: ComponentData = ComponentData.objects.with_id(component_id)
             component = Component.restore(data=data)
-            flow: ComponentFlowHandler = component.component_flow_type(experiment_id=experiment_id,
-                                                                       component_id=component_id)
-            jobs = Job.objects(component=component_id).only('id')
-            output = await flow.on_completion(inp=component.input_value, job_ids=[j.id for j in jobs])
+            flow: ComponentFlowHandler = component.component_flow_type(
+                experiment_id=experiment_id, component_id=component_id
+            )
+            jobs = Job.objects(component=component_id).only("id")
+            output = await flow.on_completion(
+                inp=component.input_value, job_ids=[j.id for j in jobs]
+            )
             component.output_value = output or {}
             component.dump(data=data)
             data.save()
@@ -128,10 +156,7 @@ def register_workflow_celery_tasks(celery: Celery):
 
         async_to_sync(_)()
 
-    @celery.task(name=Tasks.sync_graphs_task,
-                 bind=True,
-                 queue=settings.workflow_queue
-                 )
+    @celery.task(name=Tasks.sync_graphs_task, bind=True, queue=settings.workflow_queue)
     def sync_graphs(bind):
         async def _():
             lock = redlock(key=Tasks.sync_graphs_task, auto_release_time=10.0)
@@ -140,7 +165,7 @@ def register_workflow_celery_tasks(celery: Celery):
                 return
 
             try:
-                experiments = Experiment.objects.only('id')
+                experiments = Experiment.objects.only("id")
 
                 for experiment in experiments:
                     graph = Graph(experiment_id=experiment.id)
@@ -150,6 +175,7 @@ def register_workflow_celery_tasks(celery: Celery):
                     lock.release()
 
         async_to_sync(_)()
+
 
 def _get_component(from_state: ComponentData) -> Component:
     component = ComponentTypeFactory.get_type(from_state.name)(

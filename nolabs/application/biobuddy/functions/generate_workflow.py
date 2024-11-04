@@ -2,7 +2,10 @@ import json
 from typing import Any, Dict
 
 from nolabs.application.biobuddy.api_models import FunctionCall, FunctionCallReturnData
-from nolabs.application.biobuddy.functions.base_function import BiobuddyFunction, FunctionParameterDefinition
+from nolabs.application.biobuddy.functions.base_function import (
+    BiobuddyFunction,
+    FunctionParameterDefinition,
+)
 from nolabs.domain.models.common import ExperimentId
 from nolabs.infrastructure.settings import Settings
 

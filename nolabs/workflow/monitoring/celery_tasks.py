@@ -10,7 +10,9 @@ from nolabs.workflow.monitoring.tasks import OrphanedTasksTracker
 
 
 def register_monitoring_celery_tasks(celery: Celery):
-    @celery.task(name=Tasks.remove_orphaned_tasks, queue=settings.workflow_queue, max_retries=0)
+    @celery.task(
+        name=Tasks.remove_orphaned_tasks, queue=settings.workflow_queue, max_retries=0
+    )
     def remove_orphaned_tasks():
         lock = redlock(key=Tasks.remove_orphaned_tasks, auto_release_time=10.0)
 
@@ -37,13 +39,15 @@ def register_monitoring_celery_tasks(celery: Celery):
                     tracker.remove_task(task_id=task_id)
                     continue
 
-                worker_name = async_result.info.get('hostname')
+                worker_name = async_result.info.get("hostname")
                 if not worker_name:
                     tracker.remove_task(task_id)
                     continue
 
                 if worker_name not in workers:
-                    celery.backend.store_result(task_id, Exception('Task worker is down'), state=FAILURE)
+                    celery.backend.store_result(
+                        task_id, Exception("Task worker is down"), state=FAILURE
+                    )
 
         finally:
             if lock.locked():

@@ -15,6 +15,7 @@ from nolabs.infrastructure.settings import settings
 
 logger = logging.getLogger("nolabs")
 
+
 def initialize_logging():
     global logger
 
@@ -71,4 +72,3 @@ def initialize_logging():
         logging.config.dictConfig(LOGGING_CONFIG)
 
     logger = logging.getLogger("nolabs")
-

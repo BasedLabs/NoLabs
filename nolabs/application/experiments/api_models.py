@@ -1,7 +1,6 @@
 __all__ = [
     "ExperimentMetadataResponse",
     "UpdateExperimentRequest",
-    "ExperimentMetadataResponse",
     "TimelineResponse",
 ]
 
@@ -23,13 +22,6 @@ class ExperimentMetadataResponse:
 class UpdateExperimentRequest:
     id: UUID
     name: str
-
-
-@dataclass
-class ExperimentMetadataResponse:
-    id: UUID
-    name: str
-    date: datetime.datetime
 
 
 @dataclass

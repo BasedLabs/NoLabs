@@ -1,19 +1,21 @@
 import json
-import json
 import uuid
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
-from nolabs.domain.exceptions import NoLabsException, ErrorCodes
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.infrastructure.log import logger
-from nolabs.infrastructure.redis_client_factory import redlock, Redis
+from nolabs.infrastructure.redis_client_factory import rd, redlock
 from nolabs.workflow.core.component import Component
 from nolabs.workflow.core.component_execution_nodes import ComponentExecutionNode
 from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
-from nolabs.workflow.core.states import ControlStates, PROGRESS_STATES
-from nolabs.workflow.core.states import ERROR_STATES
-from nolabs.workflow.core.states import TERMINAL_STATES
+from nolabs.workflow.core.states import (
+    ERROR_STATES,
+    PROGRESS_STATES,
+    TERMINAL_STATES,
+    ControlStates,
+)
 
 
 class GraphMetadata(BaseModel):
@@ -27,10 +29,16 @@ class Graph:
         self.experiment_id = experiment_id
 
     def get_component_node(self, component_id: uuid.UUID) -> ComponentExecutionNode:
-        return ComponentExecutionNode(experiment_id=self.experiment_id, component_id=component_id)
+        return ComponentExecutionNode(
+            experiment_id=self.experiment_id, component_id=component_id
+        )
 
-    def get_job_node(self, component_id: uuid.UUID, job_id: uuid.UUID) -> JobExecutionNode:
-        return JobExecutionNode(experiment_id=self.experiment_id, component_id=component_id, job_id=job_id)
+    def get_job_node(
+        self, component_id: uuid.UUID, job_id: uuid.UUID
+    ) -> JobExecutionNode:
+        return JobExecutionNode(
+            experiment_id=self.experiment_id, component_id=component_id, job_id=job_id
+        )
 
     async def started(self) -> bool:
         metadata = await self._get_metadata()
@@ -66,10 +74,7 @@ class Graph:
                     if component_2.id in component.previous_component_ids:
                         graph[component.id].append(component_2.id)
 
-            metadata = GraphMetadata(
-                graph=graph,
-                schedule=[]
-            )
+            metadata = GraphMetadata(graph=graph, schedule=[])
             await self._set_metadata(data=metadata)
         finally:
             if lock.locked():
@@ -86,7 +91,9 @@ class Graph:
                 raise NoLabsException(ErrorCodes.scheduled_components_are_not_in_graph)
 
             for component_id in component_ids:
-                node = ComponentExecutionNode(experiment_id=self.experiment_id, component_id=component_id)
+                node = ComponentExecutionNode(
+                    experiment_id=self.experiment_id, component_id=component_id
+                )
                 if await node.can_schedule():
                     await node.schedule()
 
@@ -98,11 +105,11 @@ class Graph:
     async def _set_metadata(self, data: GraphMetadata):
         cid = f"{self._id}:input"
         v = data.model_dump_json()
-        Redis.client.set(cid, v)
+        rd.set(cid, v)
 
     async def _get_metadata(self) -> Optional[GraphMetadata]:
         cid = f"{self._id}:input"
-        metadata = Redis.client.get(cid)
+        metadata = rd.get(cid)
         if not metadata:
             return None
         return GraphMetadata(**json.loads(metadata))
@@ -117,28 +124,27 @@ class Graph:
                 await node.cancel()
 
     async def sync(self):
-        logger.info('Graph sync check', extra={
-            'experiment_id': self.experiment_id
-        })
+        logger.info("Graph sync check", extra={"experiment_id": self.experiment_id})
         lock = redlock(key=self._id, blocking=False, auto_release_time=10.0)
 
         if not lock.acquire():
-            logger.info('Graph is already syncing, returning', extra={
-                'experiment_id': self.experiment_id
-            })
+            logger.info(
+                "Graph is already syncing, returning",
+                extra={"experiment_id": self.experiment_id},
+            )
             return
 
         try:
-            logger.info('Graph is syncing', extra={
-                'experiment_id': self.experiment_id
-            })
+            logger.info("Graph is syncing", extra={"experiment_id": self.experiment_id})
 
             metadata = await self._get_metadata()
             if not metadata:
                 return
 
             for component_id in metadata.graph:
-                node = ComponentExecutionNode(experiment_id=self.experiment_id, component_id=component_id)
+                node = ComponentExecutionNode(
+                    experiment_id=self.experiment_id, component_id=component_id
+                )
 
                 state = await node.get_state()
 
@@ -170,8 +176,8 @@ class Graph:
 
                 await node.sync_started()
         finally:
-            logger.info('Graph syncing finish', extra={
-                'experiment_id': self.experiment_id
-            })
+            logger.info(
+                "Graph syncing finish", extra={"experiment_id": self.experiment_id}
+            )
             if lock.locked():
                 lock.release()

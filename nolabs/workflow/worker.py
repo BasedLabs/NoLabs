@@ -1,24 +1,23 @@
-import uuid
-
-from asgiref.sync import async_to_sync
-from celery import signals, Celery
-from celery.schedules import crontab
-from celery.signals import after_setup_logger
 from dotenv import load_dotenv
-
-from nolabs.application import initialize
-from nolabs.infrastructure.mongo_connector import mongo_connect, mongo_disconnect
-from nolabs.infrastructure.redis_client_factory import Redis
-from nolabs.infrastructure.socket_server import get_socket_server
-from nolabs.workflow.core import Tasks
-from nolabs.workflow.monitoring.celery_tasks import register_monitoring_celery_tasks
 
 load_dotenv(".env")
 
-from nolabs.infrastructure.log import initialize_logging, logger
-from nolabs.infrastructure.settings import initialize_settings, settings
-from nolabs.workflow.core.celery_tasks import register_workflow_celery_tasks
+import uuid
+
+from asgiref.sync import async_to_sync
+from celery import signals
+from celery.signals import after_setup_logger
+
+from nolabs.application import initialize
 from nolabs.infrastructure.celery_app_factory import get_celery_app
+from nolabs.infrastructure.log import initialize_logging, logger
+from nolabs.infrastructure.mongo_connector import mongo_connect, mongo_disconnect
+from nolabs.infrastructure.redis_client_factory import rd
+from nolabs.infrastructure.settings import initialize_settings, settings
+from nolabs.infrastructure.socket_server import get_socket_server
+from nolabs.workflow.core import Tasks
+from nolabs.workflow.core.celery_tasks import register_workflow_celery_tasks
+from nolabs.workflow.monitoring.celery_tasks import register_monitoring_celery_tasks
 
 
 @signals.worker_ready.connect
@@ -30,7 +29,7 @@ def task_prerun(**kwargs):
 @signals.worker_shutting_down.connect
 def task_postrun(**kwargs):
     async def _():
-        await Redis.disconnect()
+        await rd.disconnect()
         mongo_disconnect()
         get_socket_server().disconnect()
 
@@ -50,25 +49,31 @@ def start(beat=False):
     app.conf.update(
         beat_schedule={
             Tasks.sync_graphs_task: {
-                'task': Tasks.sync_graphs_task,
-                'schedule': 1.0,
-                'args': ()
+                "task": Tasks.sync_graphs_task,
+                "schedule": 1.0,
+                "args": (),
             },
             Tasks.remove_orphaned_tasks: {
-                'task': Tasks.remove_orphaned_tasks,
-                'schedule': settings.orphaned_tasks_check_interval,
-                'args': ()
-            }
+                "task": Tasks.remove_orphaned_tasks,
+                "schedule": settings.orphaned_tasks_check_interval,
+                "args": (),
+            },
         },
-        task_acks_late=True
+        task_acks_late=True,
     )
     app.autodiscover_tasks(force=True)
     register_workflow_celery_tasks(app)
     register_monitoring_celery_tasks(app)
-    args = ["worker", f"--concurrency={settings.celery_worker_concurrency}", "-P", settings.celery_worker_pool,
-            "-n", f"workflow-{str(uuid.uuid4())}"]
+    args = [
+        "worker",
+        f"--concurrency={settings.celery_worker_concurrency}",
+        "-P",
+        settings.celery_worker_pool,
+        "-n",
+        f"workflow-{str(uuid.uuid4())}",
+    ]
     if beat:
-        args.append('-B')
+        args.append("-B")
     app.worker_main(args)
     return app
 

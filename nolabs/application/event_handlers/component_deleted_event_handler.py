@@ -1,10 +1,9 @@
 from nolabs.application.diffdock import DiffDockComponent
-
-from nolabs.infrastructure.celery_app_factory import get_celery_app
-from nolabs.workflow.core.component import ComponentDeletedEvent
 from nolabs.domain.models.common import ComponentData
 from nolabs.domain.models.diffdock import DiffDockBindingJob
+from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.seedwork.domain.event_handlers import DomainEventHandler
+from nolabs.workflow.core.component import ComponentDeletedEvent
 
 
 class ComponentDeletedEventHandler(DomainEventHandler[ComponentDeletedEvent]):

@@ -1,9 +1,9 @@
 import uuid
-from typing import List, Type, Optional
+from typing import List, Optional, Type
 
 from pydantic import BaseModel
 
-from nolabs.workflow.core.component import TInput, TOutput, Component
+from nolabs.workflow.core.component import Component, TInput, TOutput
 from nolabs.workflow.core.flow import ComponentFlowHandler
 
 
@@ -33,5 +33,7 @@ class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutpu
 
 
 class ProteinsFlow(ComponentFlowHandler):
-    async def on_completion(self, inp: ProteinsComponentInput, job_ids: List[uuid.UUID]) -> Optional[ProteinsComponentOutput]:
+    async def on_completion(
+        self, inp: ProteinsComponentInput, job_ids: List[uuid.UUID]
+    ) -> Optional[ProteinsComponentOutput]:
         return ProteinsComponentOutput(proteins=inp.proteins)

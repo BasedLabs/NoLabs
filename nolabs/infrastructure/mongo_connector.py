@@ -10,7 +10,7 @@ connection = None
 def get_connection():
     try:
         return get_db()
-    except ConnectionFailure as e:
+    except ConnectionFailure:
         return None
 
 

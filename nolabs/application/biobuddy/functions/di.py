@@ -1,6 +1,5 @@
 from typing import Annotated
 
-import external_data_query_microservice
 from external_data_query_microservice.api.default_api import DefaultApi
 from fastapi import Depends
 

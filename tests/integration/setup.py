@@ -12,7 +12,7 @@ from testcontainers.redis import RedisContainer
 
 from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.infrastructure.mongo_connector import mongo_connect, mongo_disconnect
-from nolabs.infrastructure.redis_client_factory import Redis, cached_client
+from nolabs.infrastructure.redis_client_factory import cached_client
 from nolabs.infrastructure.settings import initialize_settings
 from nolabs.workflow.core.celery_tasks import register_workflow_celery_tasks
 from nolabs.workflow.core.component import ComponentTypeFactory
@@ -40,7 +40,9 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
         redis_container.start()
 
         # Start MongoDB container
-        mongo_container = MongoDbContainer(username="admin", password="admin", dbname="nolabs")
+        mongo_container = MongoDbContainer(
+            username="admin", password="admin", dbname="nolabs"
+        )
         mongo_container.with_exposed_ports(27017)
         mongo_container.with_bind_ports(27017, 22556)
         mongo_container.start()
@@ -60,8 +62,9 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
         os.environ["NOLABS_CELERY_BACKEND"] = f"redis://{redis_host}:{redis_port}/0"
         os.environ["NOLABS_CELERY_WORKER_STATE_DB"] = f"/tmp/{str(uuid.uuid4())}.db"
         os.environ["NOLABS_CELERY_EAGER"] = "False"
-        os.environ[
-            "NOLABS_CONNECTION_STRING"] = f"mongodb://admin:admin@{mongo_host}:{mongo_port}/nolabs?authSource=admin"
+        os.environ["NOLABS_CONNECTION_STRING"] = (
+            f"mongodb://admin:admin@{mongo_host}:{mongo_port}/nolabs?authSource=admin"
+        )
         os.environ["NOLABS_SOCKETIO_BROKER"] = f"redis://{redis_host}:{redis_port}/0"
         os.environ["NOLABS_CELERY_WORKER_POOL"] = "prefork"
         os.environ["NOLABS_REINVENT_DIRECTORY"] = str(Path("/tmp/reinvent/dir"))
@@ -73,7 +76,7 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
         os.environ["NOLABS_LOGGING_LEVEL"] = "ERROR"
 
         initialize_settings()
-        #initialize_logging()
+        # initialize_logging()
 
         register_workflow_celery_tasks(get_celery_app())
 
@@ -106,10 +109,12 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
             self.worker_process = None
 
     def spin_up_celery(self):
-        #self.worker_thread = threading.Thread(target=start)
-        #self.worker_thread.daemon = True
-        #self.worker_thread.start()
+        # self.worker_thread = threading.Thread(target=start)
+        # self.worker_thread.daemon = True
+        # self.worker_thread.start()
 
         self.worker_process = multiprocessing.Process(target=start)
-        self.worker_process.daemon = True  # If needed, the process will exit when the main program does
+        self.worker_process.daemon = (
+            True  # If needed, the process will exit when the main program does
+        )
         self.worker_process.start()

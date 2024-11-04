@@ -269,9 +269,7 @@ class GetAvailableFunctionCallsFeature:
 
 
 class SendActionQueryFeature:
-    def __init__(
-        self, biobuddy_microservice: DefaultApi, functions: List
-    ):
+    def __init__(self, biobuddy_microservice: DefaultApi, functions: List):
         self._biobuddy_microservice = biobuddy_microservice
         self._functions = {function.name: function for function in functions}
         self._tools = self.construct_tools_object()
