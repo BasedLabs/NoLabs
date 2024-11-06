@@ -18,10 +18,10 @@ RUN pip install --default-timeout=100 -r requirements.txt
 RUN git clone https://github.com/dauparas/ProteinMPNN.git /app/ProtMPNN
 
 # Copy the application files into the container
-COPY ./prot_mpnn /app/prot_mpnn
+COPY ./protmpnn /app/protmpnn
 
 # Expose the port (if needed)
 EXPOSE 8000
 
 # Set the entrypoint to start the FastAPI app
-ENTRYPOINT ["uvicorn", "prot_mpnn.api:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uvicorn", "protmpnn.api:app", "--host", "0.0.0.0", "--port", "8000"]
