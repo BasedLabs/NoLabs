@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-json-logger
+numpy
+pandas
+scipy
+biopython
+tqdm
+mdtraj
+matplotlib
+dataclasses
