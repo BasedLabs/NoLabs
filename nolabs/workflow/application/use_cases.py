@@ -159,10 +159,13 @@ class UpdateWorkflowSchemaFeature:
             schema_valid = True
 
             workflow_component: ComponentSchema
+            components_graph: List[Component] = []
             for workflow_component in schema.components:
                 component = [
                     c for c in components if c.id == workflow_component.component_id
                 ][0]
+
+                components_graph.append(component)
 
                 # Validate mappings
                 for mapping in workflow_component.mappings:
@@ -212,6 +215,9 @@ class UpdateWorkflowSchemaFeature:
             schema.valid = schema_valid
             data.set_schema(schema=schema.model_dump())
             data.save()
+
+            graph = Graph(experiment_id=schema.experiment_id)
+            await graph.set_components_graph(components=components_graph)
 
             logger.info(
                 "Update workflow schema success",
@@ -316,7 +322,6 @@ class StartWorkflowFeature:
         self, experiment_id: uuid.UUID, components_graph: List[Component]
     ):
         graph = Graph(experiment_id=experiment_id)
-        await graph.set_components_graph(components=components_graph)
         await graph.schedule(component_ids=[c.id for c in components_graph])
 
 

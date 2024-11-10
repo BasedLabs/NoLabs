@@ -29,7 +29,7 @@ def task_prerun(**kwargs):
 @signals.worker_shutting_down.connect
 def task_postrun(**kwargs):
     async def _():
-        await rd.disconnect()
+        rd.close()
         mongo_disconnect()
         get_socket_server().disconnect()
 

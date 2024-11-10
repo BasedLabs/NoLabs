@@ -166,7 +166,7 @@ class PropertyErrorData(EmbeddedDocument):
 
 class ComponentData(Document):
     id: uuid.UUID = UUIDField(primary_key=True)
-    experiment: Experiment = ReferenceField(Experiment, required=True)
+    experiment: Experiment = ReferenceField(Experiment, required=True, reverse_delete_rule=CASCADE)
 
     input_errors: List[PropertyErrorData] = EmbeddedDocumentListField(
         PropertyErrorData, default=list

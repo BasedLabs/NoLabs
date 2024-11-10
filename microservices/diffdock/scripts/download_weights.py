@@ -39,4 +39,4 @@ def download_model_weights(dir: str, model1_url: str, model2_url: str):
     print("Finished")
 
 
-download_model_weights(os.environ[""])
+download_model_weights(os.environ["DIFFDOCK_WEIGHTS_LOCATION"], os.environ["DIFFDOCK_MODEL1_URL"], os.environ["DIFFDOCK_MODEL2_URL"])

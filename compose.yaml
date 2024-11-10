@@ -20,12 +20,12 @@ services:
               count: 1
               capabilities: [ gpu ]
   esmfold:
-    image: 'ghcr.io/basedlabs/esmfold:1.0.0'
+    image: 'ghcr.io/basedlabs/esmfold:2.0.0'
     network_mode: host
     build:
       context: microservices/esmfold
       dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5736
+    command: python3 worker.py
     deploy:
       resources:
         reservations:

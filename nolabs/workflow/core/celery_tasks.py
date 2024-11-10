@@ -6,6 +6,7 @@ from asgiref.sync import async_to_sync
 from celery import Celery
 from celery.result import allow_join_result
 
+from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import ComponentData, Experiment, Job
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.redis_client_factory import redlock
@@ -71,7 +72,10 @@ def register_workflow_celery_tasks(celery: Celery):
                             **{"input_errors": [(e.msg, e.loc) for e in input_errors]},
                         },
                     )
-                    return
+                    raise NoLabsException(ErrorCodes.component_input_invalid, 'Invalid component input')
+
+                component.dump(data=data)
+                data.save()
 
             control_flow: ComponentFlowHandler = component.component_flow_type(
                 experiment_id=experiment_id, component_id=component_id

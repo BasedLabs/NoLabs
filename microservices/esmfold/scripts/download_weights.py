@@ -1,0 +1,2 @@
+from transformers import EsmForProteinFolding
+EsmForProteinFolding.from_pretrained('facebook/esmfold_v1', low_cpu_mem_usage=True)

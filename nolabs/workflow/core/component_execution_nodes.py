@@ -170,9 +170,8 @@ class ComponentExecutionNode(ExecutionNode):
         job_ids = [j.id for j in Job.objects(component=self.component_id).only("id")]
         for job_id in job_ids:
             job_node = JobExecutionNode(self.experiment_id, self.component_id, job_id)
-            if state == ControlStates.SUCCESS:
-                await job_node.reset(pipe=pipe)
-            elif await job_node.get_state() in ERROR_STATES:
+            job_state = await job_node.get_state()
+            if job_state in ERROR_STATES and job_state != ControlStates.SUCCESS:
                 await job_node.reset(pipe=pipe)
         complete_task = ComponentCompleteTaskExecutionNode(
             experiment_id=self.experiment_id, component_id=self.component_id

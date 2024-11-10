@@ -26,6 +26,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
+from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import (
     ComponentData,
     PropertyErrorData,
@@ -397,6 +398,12 @@ class Component(Generic[TInput, TOutput]):
         self.output_value_dict = output_value_dict or {}
         self.previous_component_ids = previous_component_ids or []
 
+        if not self.input_value_dict and not self.input_errors() and self.input_value:
+            self.input_value_dict = self.input_value.model_dump()
+
+        if not self.output_value_dict and not self.output_errors() and self.output_value:
+            self.output_value_dict = self.output_value.model_dump()
+
     @property
     def output_value(self) -> TOutput:
         return self.output_parameter_type(**self.output_value_dict)
@@ -546,6 +553,11 @@ class Component(Generic[TInput, TOutput]):
                     current_level[path[-1]] = input_parameter
 
                     continue
+
+        input_errors = self.input_errors()
+        if input_errors:
+            message = str([(e.msg, e.loc) for e in input_errors])
+            raise NoLabsException(ErrorCodes.component_input_invalid, message=message)
 
         return changed
 

@@ -1,4 +1,5 @@
 import uuid
+from multiprocessing import Value
 from typing import Any, Dict, List, Optional, Type
 
 from asgiref.sync import async_to_sync
@@ -319,7 +320,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
                 )
 
             async def on_job_completion(
-                self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
+                    self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
             ):
                 raise ValueError("Failed completion")
 
@@ -407,7 +408,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
                 )
 
             async def on_job_completion(
-                self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
+                    self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
             ):
                 if not long_running_output or not long_running_output.get("a"):
                     raise ValueError("Output is empty")
@@ -445,4 +446,101 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
         self.assertEqual(
             await graph.get_component_node(component_id=component.id).get_state(),
             ControlStates.SUCCESS,
+        )
+
+    async def test_should_not_rerun_jobs_after_next_component_failed(self):
+        called_counter = Value("i", 0)
+        component1_id = uuid.uuid4()
+        component2_id = uuid.uuid4()
+        j1 = Job.create(
+            id=JobId(uuid.uuid4()),
+            name=JobName("hello 1"),
+            component=component1_id,
+        )
+        j2 = Job.create(
+            id=JobId(uuid.uuid4()),
+            name=JobName("hello 2"),
+            component=component2_id,
+        )
+
+        class IO(BaseModel):
+            a: int = 10
+
+        class Fh1(ComponentFlowHandler):
+            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+                return [j1.id]
+
+            async def on_job_task(self, job_id: uuid.UUID):
+                called_counter.value += 1
+
+        class Fh2(ComponentFlowHandler):
+            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+                return [j2.id]
+
+            async def on_job_completion(
+                    self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
+            ):
+                raise ValueError("Expected")
+
+        class MockComponent1(Component[IO, IO], ComponentFlowHandler):
+            name = "MockComponent1"
+
+            @property
+            def input_parameter_type(self) -> Type[IO]:
+                return IO
+
+            @property
+            def component_flow_type(self) -> Type["ComponentFlowHandler"]:
+                return Fh1
+
+            @property
+            def output_parameter_type(self) -> Type[IO]:
+                return IO
+
+        class MockComponent2(Component[IO, IO], ComponentFlowHandler):
+            name = "MockComponent2"
+
+            @property
+            def input_parameter_type(self) -> Type[IO]:
+                return IO
+
+            @property
+            def component_flow_type(self) -> Type["ComponentFlowHandler"]:
+                return Fh2
+
+            @property
+            def output_parameter_type(self) -> Type[IO]:
+                return IO
+
+        # arrange
+        experiment_id = uuid.uuid4()
+        await self.seed_experiment(id=experiment_id)
+        component1 = self.seed_component(
+            experiment_id=experiment_id,
+            component_type=MockComponent1,
+            component_id=component1_id
+        )
+        component2 = self.seed_component(
+            experiment_id=experiment_id,
+            component_type=MockComponent2,
+            component_id=component2_id
+        )
+        self.seed_mappings(component2, previous_components=[(component1, ["a"], ["a"])])
+        graph = Graph(experiment_id=experiment_id)
+        self.spin_up_celery()
+        await j1.save()
+        await j2.save()
+
+        # act
+        await graph.set_components_graph(components=[component1, component2])
+        await graph.schedule(component_ids=[component1.id, component2.id])
+        await self.spin_up_sync(graph=graph)
+
+        await graph.schedule(component_ids=[component1.id, component2.id])
+        await self.spin_up_sync(graph=graph)
+
+        # assert
+        self.assertEqual(
+            1,
+            called_counter.value
         )

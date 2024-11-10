@@ -1,6 +1,9 @@
+import asyncio
 from functools import lru_cache
+from typing import Any
 
 from celery import Celery
+from celery.result import AsyncResult
 
 from nolabs.infrastructure.settings import settings
 
@@ -26,3 +29,13 @@ def get_celery_app() -> Celery:
     app.autodiscover_tasks(force=True)
 
     return app
+
+async def wait_for_task(task_id: str) -> Any:
+    celery = get_celery_app()
+    async_result = AsyncResult(id=task_id, app=celery)
+    while True:
+        ready = async_result.ready()
+        if ready:
+            break
+        await asyncio.sleep(0.1)
+    return async_result.get()

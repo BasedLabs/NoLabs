@@ -1,7 +1,14 @@
+from dotenv import load_dotenv
+
+load_dotenv(".env")
+
+import uuid
 from typing import Any, Dict
 
 from api_models import InferenceInput
 from celery import Celery
+
+from log import logger
 from settings import settings
 
 app = Celery(
@@ -25,3 +32,15 @@ def inference(param: Dict[str, Any]) -> Dict[str, Any]:
 
     result = application.inference(param=InferenceInput(**param))
     return result.model_dump()
+
+
+logger.info("Starting celery")
+app.worker_main(
+    [
+        "worker",
+        f"--concurrency={settings.celery_worker_concurrency}",
+        "-E",
+        "-n",
+        f"esmfold-{str(uuid.uuid4())}",
+    ]
+)

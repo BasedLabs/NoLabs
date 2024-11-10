@@ -1,7 +1,7 @@
 import uuid
 from typing import Any, Dict, Optional
 
-from celery.result import AsyncResult
+from celery.result import AsyncResult, allow_join_result
 from redis.client import Pipeline
 
 from nolabs.infrastructure.log import logger
@@ -150,7 +150,8 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
         async_result = AsyncResult(id=celery_task_id, app=self.celery)
         if not async_result.ready():
             return {}
-        return async_result.get()
+        with allow_join_result():
+            return async_result.get()
 
 
 class JobCompleteTaskExecutionNode(CeleryExecutionNode):

@@ -16,10 +16,11 @@ app.conf.update(
     task_reject_on_worker_lost=True,
     worker_state_db="/opt/celery-state.db",
     accept_content=["application/json", "application/x-python-serialize"],
+    broker_transport_options={"heartbeat": 10}
 )
 
 
-@app.task(time_limit=600, name="diffdock.inference")
+@app.task(time_limit=1000, name="inference")
 def inference(param: Dict[str, Any]) -> Dict[str, Any]:
     import application
 

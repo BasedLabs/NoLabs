@@ -88,6 +88,9 @@ You can ignore OPENAI_API_KEY warnings when running other services using docker 
 # Clone this project
 $ git clone https://github.com/BasedLabs/nolabs
 $ cd nolabs
+# Create .env files (you will be able to adjust them)
+$ chmod +x scripts/copy_env_files.sh
+$ make copy-env-files
 ```
 
 Generate a new token for docker registry
@@ -101,8 +104,8 @@ $ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 If you want to run a single feature **(recommended)**
 
 ```bash
-$ docker compose up nolabs mongo redis
-# mongo and redis are required
+$ docker compose up nolabs nolabs-worker mongo redis
+# mongo, redis and worker are required
 $ docker compose up esmfold_light
 $ docker compose up diffdock
 $ docker compose up p2rank
@@ -298,6 +301,9 @@ or
 Model: [DiffDock](https://github.com/gcorso/DiffDock)
 
 ```shell
+cd microservices/diffdock
+make download-weights # Download weights before model run
+cd ../..
 docker compose up diffdock
 ```
 
