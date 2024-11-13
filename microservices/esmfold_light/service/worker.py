@@ -1,8 +1,14 @@
+from dotenv import load_dotenv
+
+load_dotenv(".env")
+
+import uuid
 from typing import Any, Dict
 
 from api_models import InferenceInput
 from celery import Celery
 from settings import settings
+from log import logger
 
 app = Celery(
     __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
@@ -25,3 +31,14 @@ def inference(param: Dict[str, Any]) -> Dict[str, Any]:
 
     result = application.inference(param=InferenceInput(**param))
     return result.model_dump()
+
+logger.info("Starting celery")
+app.worker_main(
+    [
+        "worker",
+        f"--concurrency={settings.celery_worker_concurrency}",
+        "-E",
+        "-n",
+        f"esmfold-light-{str(uuid.uuid4())}",
+    ]
+)

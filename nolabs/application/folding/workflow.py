@@ -1,5 +1,5 @@
 import uuid
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Type
 
@@ -46,7 +46,7 @@ class EsmfoldComponent(FoldingComponent):
 
     @property
     def component_flow_type(self) -> Optional[Type["FoldingComponentFlow"]]:
-        return FoldingComponentFlow
+        return EsmfoldComponentFlow
 
 
 class EsmfoldLightComponent(FoldingComponent):
@@ -63,10 +63,6 @@ class RosettafoldComponent(FoldingComponent):
     description = "Protein folding using Rosettafold"
 
     @property
-    def backend(self) -> FoldingBackendEnum:
-        return FoldingBackendEnum.rosettafold
-
-    @property
     def component_flow_type(self) -> Optional[Type["FoldingComponentFlow"]]:
         return FoldingComponentFlow
 
@@ -74,7 +70,6 @@ class RosettafoldComponent(FoldingComponent):
 class FoldingComponentFlow(ComponentFlowHandler):
     job_timeout_seconds = 10.0
     component_timeout_seconds = 120.0
-
     backend: FoldingBackendEnum
 
     async def on_component_task(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
@@ -133,12 +128,11 @@ class FoldingComponentFlow(ComponentFlowHandler):
             fasta_sequence=job.protein.get_fasta()
         )
 
-        return await self.schedule(
-            job_id=job.id,
-            celery_task_name="inference",
-            celery_queue="esmfold-light-service",
-            input={"param": inp.model_dump()}
-        )
+        return await self._schedule(job_id=job.iid.value, inp=inp)
+
+    @abstractmethod
+    def _schedule(self, job_id: uuid.UUID, inp: BaseModel):
+        ...
 
     async def on_job_completion(
         self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
@@ -154,3 +148,23 @@ class FoldingComponentFlow(ComponentFlowHandler):
 
 class EsmfoldLightComponentFlow(FoldingComponentFlow):
     backend = FoldingBackendEnum.esmfold_light
+
+    async def _schedule(self, job_id: uuid.UUID, inp: BaseModel):
+        return await self.schedule(
+            job_id=job_id,
+            celery_task_name="inference",
+            celery_queue="esmfold-light",
+            input={"param": inp.model_dump()}
+        )
+
+
+class EsmfoldComponentFlow(FoldingComponentFlow):
+    backend = FoldingBackendEnum.esmfold
+
+    async def _schedule(self, job_id: uuid.UUID, inp: BaseModel):
+        return await self.schedule(
+            job_id=job_id,
+            celery_task_name="inference",
+            celery_queue="esmfold",
+            input={"param": inp.model_dump()}
+        )

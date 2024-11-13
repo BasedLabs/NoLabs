@@ -1,8 +1,13 @@
+import uuid
 from typing import Any, Dict
+from dotenv import load_dotenv
+
+load_dotenv(".env")
 
 from api_models import RunDiffDockPredictionRequest
 from celery import Celery
 from settings import settings
+
 
 app = Celery(
     __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
@@ -26,3 +31,13 @@ def inference(param: Dict[str, Any]) -> Dict[str, Any]:
 
     result = application.run_docking(request=RunDiffDockPredictionRequest(**param))
     return result.model_dump()
+
+app.worker_main(
+        [
+            "worker",
+            f"--concurrency={settings.celery_worker_concurrency}",
+            "-E",
+            "-n",
+            f"diffdock-{str(uuid.uuid4())}",
+        ]
+    )

@@ -1,0 +1,30 @@
+// app global css in SCSS form
+
+.grid-style-transition:hover {
+  transition: transform 0.28s, background-color 0.28s;
+  border-radius: 4px;
+  background-color: #5c5c5c;
+}
+
+.transition-all-tenth-sec{
+  transition: all 0.1s linear;
+}
+
+#tooltip {
+  background: cornsilk;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.hover-finger {
+  cursor:pointer;
+}
+
+header {
+  position: relative !important;
+}
+
+.q-page-container {
+  padding-top: 10px !important;
+}

@@ -43,6 +43,7 @@ from nolabs.domain.models.biobuddy import (
     TextMessage,
     UserRoleEnum,
 )
+from nolabs.infrastructure.settings import settings
 
 
 class CheckBioBuddyEnabledFeature:
@@ -50,8 +51,7 @@ class CheckBioBuddyEnabledFeature:
         pass
 
     def handle(self) -> CheckBioBuddyEnabledResponse:
-        enable_biobuddy = os.getenv("ENABLE_BIOBUDDY", "false").lower() == "true"
-        return CheckBioBuddyEnabledResponse(enabled=enable_biobuddy)
+        return CheckBioBuddyEnabledResponse(enabled=settings.enable_biobuddy)
 
 
 class EditMessageFeature:

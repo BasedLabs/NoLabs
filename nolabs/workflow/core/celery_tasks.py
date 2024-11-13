@@ -57,25 +57,21 @@ def register_workflow_celery_tasks(celery: Celery):
 
                 prev_components.append(previous_component)
 
-            input_changed = component.set_input_from_previous(prev_components)
+            component.set_input_from_previous(prev_components)
+            input_errors = component.input_errors()
 
-            if input_changed:
-                logger.info("Input changed, checking input", extra=extra)
+            if input_errors:
+                logger.info(
+                    "Input errors",
+                    extra={
+                        **extra,
+                        **{"input_errors": [(e.msg, e.loc) for e in input_errors]},
+                    },
+                )
+                raise NoLabsException(ErrorCodes.component_input_invalid, 'Invalid component input')
 
-                input_errors = component.input_errors()
-
-                if input_errors:
-                    logger.info(
-                        "Input errors",
-                        extra={
-                            **extra,
-                            **{"input_errors": [(e.msg, e.loc) for e in input_errors]},
-                        },
-                    )
-                    raise NoLabsException(ErrorCodes.component_input_invalid, 'Invalid component input')
-
-                component.dump(data=data)
-                data.save()
+            component.dump(data=data)
+            data.save()
 
             control_flow: ComponentFlowHandler = component.component_flow_type(
                 experiment_id=experiment_id, component_id=component_id
@@ -84,8 +80,6 @@ def register_workflow_celery_tasks(celery: Celery):
             input_value = component.input_value
             await control_flow.on_component_task(inp=input_value)
 
-        # loop = asyncio.get_event_loop()
-        # return loop.run_until_complete(_())
         async_to_sync(_)()
 
     @celery.task(

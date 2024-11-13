@@ -31,6 +31,3 @@ RUN pip install -r requirements.txt
 # Copy application files
 COPY service /app/service
 WORKDIR /app/service
-
-# Run model loading step within the environment
-RUN python -c "from transformers import EsmForProteinFolding; EsmForProteinFolding.from_pretrained('facebook/esmfold_v1', low_cpu_mem_usage=True)"

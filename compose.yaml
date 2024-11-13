@@ -5,20 +5,6 @@ services:
   redis:
     image: 'redis:latest'
     network_mode: host
-  conformations:
-    image: 'ghcr.io/basedlabs/conformations:1.1.0'
-    network_mode: host
-    build:
-      context: microservices/conformations
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5785
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
   esmfold:
     image: 'ghcr.io/basedlabs/esmfold:2.0.0'
     network_mode: host
@@ -26,6 +12,8 @@ services:
       context: microservices/esmfold
       dockerfile: build/Dockerfile
     command: python3 worker.py
+    env_file:
+      - microservices/esmfold/service/.env
     deploy:
       resources:
         reservations:
@@ -33,30 +21,16 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-  esmfold_light:
+  esmfold-light:
     image: 'ghcr.io/basedlabs/esmfold-light:2.0.0'
     network_mode: host
-    command: python api.py
+    command: python worker.py
     build:
       context: microservices/esmfold_light
       dockerfile: build/Dockerfile
     env_file:
       - microservices/esmfold_light/service/.env
-  solubility:
-    image: 'ghcr.io/basedlabs/solubility:1.1.0'
-    network_mode: host
-    build:
-      context: microservices/solubility
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5786
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
-  protein_design:
+  protein-design:
     image: 'ghcr.io/basedlabs/protein-design:1.1.0'
     network_mode: host
     build:
@@ -70,41 +44,13 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-  localisation:
-    image: 'ghcr.io/basedlabs/localisation:1.1.0'
-    network_mode: host
-    build:
-      context: microservices/localisation
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5787
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
-  gene_ontology:
-    image: 'ghcr.io/basedlabs/gene-ontology:1.1.0'
-    network_mode: host
-    build:
-      context: microservices/gene_ontology
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5788
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
   diffdock:
     image: 'ghcr.io/basedlabs/diffdock:2.0.1'
     network_mode: host
     build:
       context: microservices/diffdock
       dockerfile: build/Dockerfile
-    command: python api.py
+    command: python worker.py
     deploy:
       resources:
         reservations:
@@ -116,21 +62,7 @@ services:
       - microservices/diffdock/service/.env
     volumes:
       - ${DIFFDOCK_WEIGHTS_LOCATION}:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
-  p2rank:
-    image: 'ghcr.io/basedlabs/p2rank:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/p2rank
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5731
-  msa_light:
-    image: 'ghcr.io/basedlabs/msa-light:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/msa_light
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5734
-  external_data_query:
+  external-data-query:
     image: 'ghcr.io/basedlabs/external-data-query:1.0.3'
     network_mode: host
     build:
@@ -143,9 +75,8 @@ services:
     build:
       context: microservices/biobuddy
       dockerfile: build/Dockerfile
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - TAVILY_API_KEY=${TAVILY_API_KEY}
+    env_file:
+      - microservices/diffdock/service/.env
     command: --host=0.0.0.0 --port=5738
   rosettafold:
     image: 'ghcr.io/basedlabs/rosettafold:1.0.0'
@@ -158,47 +89,18 @@ services:
       - ${ROSETTAFOLD_PDB_PATH}:/RoseTTAFold/pdb100_2021Mar03
       - ${ROSETTAFOLD_UNIREF_PATH}:/RoseTTAFold/UniRef30_2020_06
     command: --host=0.0.0.0 --port=5738
-  reinvent:
-    image: 'ghcr.io/basedlabs/reinvent:1.0.1'
-    network_mode: host
-    build:
-      context: microservices/reinvent
-      dockerfile: build/Dockerfile
-    command: python api.py
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
-    env_file:
-      - microservices/reinvent/service/.env
-    volumes:
-      - ${NOLABS_HOME}/reinvent/jobs_configs:/app/service/reinvent_configs/jobs_configs # nolabs.env.NOLABS_REINVENT_DIRECTORY / reinvent.env.CONFIGS_DIRECTORY
-  blast_query:
-    image: 'ghcr.io/basedlabs/blast_query:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/blast_query
-      dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5740 --workers=1
-  nolabs:
+  nolabs-api:
     image: 'ghcr.io/basedlabs/nolabs:2.1.7'
     network_mode: host
     build:
       context: .
       dockerfile: build/Dockerfile
-    environment:
-      - ENABLE_BIOBUDDY=${ENABLE_BIOBUDDY:-false}
     command: --host=0.0.0.0
-  nolabs_worker:
-    image: 'ghcr.io/basedlabs/nolabs_worker:1.0.0'
+  nolabs-worker:
+    image: 'ghcr.io/basedlabs/nolabs-worker:1.0.0'
     network_mode: host
     build:
       context: .
       dockerfile: nolabs/build/worker.Dockerfile
-    environment:
-      - ENABLE_BIOBUDDY=${ENABLE_BIOBUDDY:-false}
     command: python workflow/worker.py
 

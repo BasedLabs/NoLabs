@@ -1,30 +1,12 @@
-import uuid
-
 from dotenv import load_dotenv
-from log import logger
-from settings import settings
-
-mode = settings.mode
 
 load_dotenv(".env")
 
-if mode == "celery":
-    from worker import app
+from log import logger
+from settings import settings
 
-    logger.info("Starting celery")
-    app.worker_main(
-        [
-            "worker",
-            f"--concurrency={settings.celery_worker_concurrency}",
-            "-E",
-            "-n",
-            f"esmfold-light-{str(uuid.uuid4())}",
-        ]
-    )
+import uvicorn
+from fastapi_api import app
 
-if mode == "fastapi":
-    import uvicorn
-    from fastapi_api import app
-
-    logger.info("Starting fastapi")
-    uvicorn.run(app, host=settings.fastapi_host, port=settings.fastapi_port)
+logger.info("Starting fastapi")
+uvicorn.run(app, host=settings.fastapi_host, port=settings.fastapi_port)

@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv('.env')
+
 import json
 from typing import Dict
 

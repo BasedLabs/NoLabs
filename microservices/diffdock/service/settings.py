@@ -19,7 +19,6 @@ class Settings(BaseSettings):
     model1_url: str
     model2_url: str
     logging_level: Literal["DEBUG", "WARNING", "ERROR", "INFO"] = "INFO"
-    mode: Literal["fastapi", "celery"] = "celery"
     environment: Literal["local", "test", "production"] = "local"
 
 
