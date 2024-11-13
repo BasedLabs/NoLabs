@@ -89,8 +89,8 @@ You can ignore OPENAI_API_KEY warnings when running other services using docker 
 $ git clone https://github.com/BasedLabs/nolabs
 $ cd nolabs
 # Create .env files (you will be able to adjust them)
-$ chmod +x scripts/copy_env_files.sh
-$ make copy-env-files
+$ chmod +x scripts/prepare_nolabs.sh
+$ make prepare-nolabs
 ```
 
 Generate a new token for docker registry
