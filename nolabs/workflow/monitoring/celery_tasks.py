@@ -29,7 +29,12 @@ def register_monitoring_celery_tasks(celery: Celery):
                 return
 
             active_workers = inspect.active() or {}
+            active_queues = inspect.active_queues()
             workers = set(active_workers.keys())
+            queues = set()
+            for l in active_queues.values():
+                for queue in l:
+                    queues.add(queue['name'])
 
             for task_id in task_ids:
                 async_result = AsyncResult(id=task_id, app=celery)

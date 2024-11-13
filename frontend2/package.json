@@ -26,7 +26,7 @@
     "uuid": "^11.0.3",
     "vue": "^3.4.18",
     "vue-router": "^4.0.12",
-    "vuedraggable": "^2.24.3"
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@quasar/app-vite": "^1.9.0",

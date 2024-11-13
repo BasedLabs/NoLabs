@@ -111,6 +111,9 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
             queue=celery_queue,
             retry=False,
             kwargs=kwargs,
+            headers={
+                'queue': celery_queue
+            }
         )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
