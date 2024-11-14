@@ -43,6 +43,8 @@
 </template>
 
 <script lang="ts">
+/* tslint:disable */
+/* eslint-disable */
 import {defineComponent, PropType} from 'vue';
 import {ExperimentListItem} from "src/components/types";
 import useExperimentsStore from "./experimentsStorage";

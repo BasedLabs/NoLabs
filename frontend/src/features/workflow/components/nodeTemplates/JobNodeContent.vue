@@ -58,6 +58,8 @@ export default defineComponent({
           return '/msa_pic.png';
         case 'Blast':
           return '/blast_icon.png';
+        case 'ProteinMPNN':
+          return '/protmpnn_icon.png';
         default:
           return '/protein_folding.png';
       }

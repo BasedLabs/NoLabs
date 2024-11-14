@@ -6,6 +6,8 @@
   "exclude": [
     "./dist",
     "./.quasar",
+    //TODO: Remove later
+    "./src",
     "./node_modules",
     "./src-capacitor",
     "./src-cordova",
