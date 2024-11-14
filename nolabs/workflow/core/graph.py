@@ -107,6 +107,10 @@ class Graph:
         v = data.model_dump_json()
         rd.set(cid, v)
 
+    async def metadata_empty(self):
+        cid = f"{self._id}:input"
+        return rd.exists(cid)
+
     async def _get_metadata(self) -> Optional[GraphMetadata]:
         cid = f"{self._id}:input"
         metadata = rd.get(cid)

@@ -1,6 +1,7 @@
 import json
 import uuid
 from abc import ABC, abstractmethod
+import datetime
 from typing import Any, Dict, Optional
 
 from celery.result import AsyncResult
@@ -161,12 +162,17 @@ class CeleryExecutionNode(ExecutionNode, ABC):
     def celery_task_id_cid(self) -> str:
         return f"{self._id}:celery_task_id"
 
+    def _get_task_id(self) -> Optional[str]:
+        mapping = rd.hgetall(name=self.celery_task_id_cid)
+        if mapping:
+            return mapping["task_id"]
+        return None
+
     async def sync_cancelling(self):
         state = await self.get_state()
         if state != ControlStates.CANCELLING:
             return state
-        cid = self.celery_task_id_cid
-        celery_task_id = rd.get(cid)
+        celery_task_id = self._get_task_id()
         if not celery_task_id:
             pipe = get_redis_pipe()
             await self.set_state(state=ControlStates.CANCELLED, pipe=pipe)
@@ -191,12 +197,11 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         if state != ControlStates.STARTED:
             return state
         cid = self.celery_task_id_cid
-        celery_task_id = rd.get(cid)
-        if not celery_task_id:
+        task_id = self._get_task_id()
+        if not task_id:
             raise NoLabsException(ErrorCodes.celery_task_executed_but_task_id_not_found)
-        self._orphaned_tasks_tracker.track(task_id=celery_task_id)
 
-        async_result = AsyncResult(id=celery_task_id, app=self.celery)
+        async_result = AsyncResult(id=task_id, app=self.celery)
         celery_state = async_result.state
         new_state = celery_to_internal_mapping[celery_state]
 
@@ -207,17 +212,24 @@ class CeleryExecutionNode(ExecutionNode, ABC):
             if new_state in ERROR_STATES:
                 await self.set_message(message=str(result), pipe=pipe)
             pipe.execute()
-            self._orphaned_tasks_tracker.remove_task(task_id=celery_task_id)
             return new_state
 
         return new_state
 
-    async def _prepare_for_start(self, pipe: Optional[Pipeline] = None) -> str:
+    async def _prepare_for_start(self, queue: str, pipe: Optional[Pipeline] = None) -> str:
         """
         :returns: celery_task_id
         """
-        cid = self.celery_task_id_cid
         task_id = str(uuid.uuid4())
-        (pipe or rd).set(cid, task_id)
-        self._orphaned_tasks_tracker.track(task_id=task_id)
+        timestamp = datetime.datetime.now(datetime.UTC).timestamp()
+        (pipe or rd).hset(self.celery_task_id_cid, mapping={
+            'task_id': task_id,
+            'queue': queue,
+            'timestamp': timestamp
+        })
+
+        OrphanedTasksTracker().track(task_id=task_id,
+                                     queue=queue,
+                                     timestamp=timestamp)
+
         return task_id

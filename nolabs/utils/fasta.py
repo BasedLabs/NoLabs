@@ -3,7 +3,7 @@ from typing import List
 
 from fastapi import UploadFile
 
-from nolabs.domain.amino_acid import AminoAcid
+from nolabs.domain.models.amino_acid import AminoAcid
 
 
 class FastaReader:

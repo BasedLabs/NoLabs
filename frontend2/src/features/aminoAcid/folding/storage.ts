@@ -123,7 +123,7 @@ const useFoldingStore = defineStore("folding", {
       }
 
       const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
-        ids: [job.protein_id]
+        ids: [job.result.protein_id]
       })
 
       return {

@@ -133,6 +133,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
                 await j.save()
                 await self.schedule(
                     job_id=job_id,
+                    celery_queue=settings.workflow_queue,
                     celery_task_name="long_running_job_test_success2",
                     input={"job_id": job_id},
                 )
@@ -222,6 +223,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
                 await j.save()
                 await self.schedule(
                     job_id=job_id,
+                    celery_queue=settings.workflow_queue,
                     celery_task_name="long_running_job_test_failed",
                     input={"job_id": job_id},
                 )
@@ -315,6 +317,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
                 await j.save()
                 await self.schedule(
                     job_id=job_id,
+                    celery_queue=settings.workflow_queue,
                     celery_task_name="long_running_job_test_success",
                     input={"job_id": job_id},
                 )
@@ -404,7 +407,10 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
                 j.name = JobName("Changed")
                 await j.save()
                 await self.schedule(
-                    job_id=job_id, celery_task_name=task_name, input={"job_id": job_id}
+                    job_id=job_id,
+                    celery_queue=settings.workflow_queue,
+                    celery_task_name=task_name,
+                    input={"job_id": job_id}
                 )
 
             async def on_job_completion(

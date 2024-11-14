@@ -450,7 +450,10 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
                 j.name = JobName("Changed")
                 await j.save()
                 await self.schedule(
-                    job_id=job_id, celery_task_name=task_name, input={"job_id": job_id}
+                    job_id=job_id,
+                    celery_queue=settings.workflow_queue,
+                    celery_task_name=task_name,
+                    input={"job_id": job_id}
                 )
 
             async def on_completion(

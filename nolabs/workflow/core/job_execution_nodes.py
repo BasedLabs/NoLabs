@@ -6,6 +6,7 @@ from redis.client import Pipeline
 
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe, rd
+from nolabs.infrastructure.settings import settings
 from nolabs.workflow.core import Tasks
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
 from nolabs.workflow.core.socketio_events_emitter import (
@@ -41,7 +42,8 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
             },
         )
         pipe = get_redis_pipe()
-        celery_task_id = await self._prepare_for_start(pipe=pipe)
+        queue = settings.workflow_queue
+        celery_task_id = await self._prepare_for_start(queue=queue, pipe=pipe)
         self.celery.send_task(
             name=Tasks.job_main_task,
             kwargs={
@@ -104,16 +106,13 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
         celery_task_name = input_data["celery_task_name"]
         celery_queue = input_data["celery_queue"]
         kwargs = input_data["kwargs"]
-        task_id = await self._prepare_for_start(pipe=pipe)
+        task_id = await self._prepare_for_start(queue=celery_queue, pipe=pipe)
         self.celery.send_task(
             name=celery_task_name,
             task_id=task_id,
             queue=celery_queue,
             retry=False,
-            kwargs=kwargs,
-            headers={
-                'queue': celery_queue
-            }
+            kwargs=kwargs
         )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
@@ -146,8 +145,7 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
         pipe.execute()
 
     async def get_output(self) -> Dict[str, Any]:
-        cid = self.celery_task_id_cid
-        celery_task_id = rd.get(cid)
+        celery_task_id = self._get_task_id()
         if not celery_task_id:
             return {}
         async_result = AsyncResult(id=celery_task_id, app=self.celery)
@@ -179,7 +177,8 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
         )
         input_data = await self.get_input()
         pipe = get_redis_pipe()
-        celery_task_id = await self._prepare_for_start(pipe=pipe)
+        queue = settings.workflow_queue
+        celery_task_id = await self._prepare_for_start(queue=queue, pipe=pipe)
         self.celery.send_task(
             name=Tasks.complete_job_task,
             kwargs={

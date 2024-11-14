@@ -6,6 +6,7 @@ from redis.client import Pipeline
 from nolabs.domain.models.common import Job
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.redis_client_factory import get_redis_pipe
+from nolabs.infrastructure.settings import settings
 from nolabs.workflow.core import Tasks
 from nolabs.workflow.core.job_execution_nodes import JobExecutionNode
 from nolabs.workflow.core.node import CeleryExecutionNode, ExecutionNode
@@ -37,13 +38,15 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
             },
         )
         pipe = get_redis_pipe()
-        celery_task_id = await self._prepare_for_start(pipe=pipe)
+        queue = settings.workflow_queue
+        celery_task_id = await self._prepare_for_start(queue=queue, pipe=pipe)
         self.celery.send_task(
             name=Tasks.component_main_task,
             kwargs={
                 "experiment_id": self.experiment_id,
                 "component_id": self.component_id,
             },
+            queue=queue,
             task_id=celery_task_id,
             retry=False,
         )
@@ -86,13 +89,15 @@ class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
             },
         )
         pipe = get_redis_pipe()
-        celery_task_id = await self._prepare_for_start(pipe=pipe)
+        queue = settings.workflow_queue
+        celery_task_id = await self._prepare_for_start(queue=queue, pipe=pipe)
         self.celery.send_task(
             name=Tasks.complete_component_task,
             kwargs={
                 "experiment_id": self.experiment_id,
                 "component_id": self.component_id,
             },
+            queue=queue,
             task_id=celery_task_id,
             retry=False,
         )

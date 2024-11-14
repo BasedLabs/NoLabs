@@ -125,7 +125,7 @@ def register_workflow_celery_tasks(celery: Celery):
                 job_id=job_id, long_running_output=long_running_output
             )
 
-        asyncio.run(_())
+        async_to_sync(_)()
 
     @celery.task(
         name=Tasks.complete_component_task,

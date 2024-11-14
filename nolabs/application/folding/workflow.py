@@ -1,8 +1,10 @@
+import io
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Type
 
+from Bio import SeqIO
 from pydantic import BaseModel
 
 from nolabs.application.folding.worker_models import InferenceInput, InferenceOutput
@@ -124,8 +126,12 @@ class FoldingComponentFlow(ComponentFlowHandler):
         if not job.processing_required:
             return
 
+        fasta = ""
+        for chain in SeqIO.parse(io.StringIO(job.protein.get_fasta()), "fasta"):
+            fasta += str(chain.seq)
+
         inp = InferenceInput(
-            fasta_sequence=job.protein.get_fasta()
+            fasta_sequence=fasta
         )
 
         return await self._schedule(job_id=job.iid.value, inp=inp)

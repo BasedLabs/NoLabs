@@ -20,7 +20,7 @@ class ComponentFlowHandler(Generic[TInput, TOutput]):
         return []
 
     async def on_completion(
-        self, inp: TInput, job_ids: List[uuid.UUID]
+            self, inp: TInput, job_ids: List[uuid.UUID]
     ) -> Optional[TOutput]:
         return None
 
@@ -28,16 +28,16 @@ class ComponentFlowHandler(Generic[TInput, TOutput]):
         pass
 
     async def on_job_completion(
-        self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
+            self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         pass
 
     async def schedule(
-        self,
-        job_id: uuid.UUID,
-        celery_task_name: str,
-        input: Optional[Union[BaseModel, Dict[str, Any]]] = None,
-        celery_queue: Optional[str] = None,
+            self,
+            job_id: uuid.UUID,
+            celery_task_name: str,
+            celery_queue: str,
+            input: Optional[Union[BaseModel, Dict[str, Any]]] = None
     ):
         node = JobLongRunningTaskExecutionNode(
             experiment_id=self.experiment_id,

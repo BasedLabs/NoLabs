@@ -1,6 +1,8 @@
+import datetime
+
 from celery import Celery
 from celery.result import AsyncResult
-from celery.states import FAILURE, UNREADY_STATES
+from celery.states import FAILURE, READY_STATES
 
 from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.infrastructure.redis_client_factory import redlock
@@ -22,10 +24,9 @@ def register_monitoring_celery_tasks(celery: Celery):
         try:
             celery = get_celery_app()
             inspect = celery.control.inspect()
-            tracker = OrphanedTasksTracker()
-            task_ids = list(tracker.get_task_ids())
+            tasks = list(OrphanedTasksTracker.get_task_data())
 
-            if not task_ids:
+            if not tasks:
                 return
 
             active_workers = inspect.active() or {}
@@ -36,24 +37,34 @@ def register_monitoring_celery_tasks(celery: Celery):
                 for queue in l:
                     queues.add(queue['name'])
 
-            for task_id in task_ids:
+            for task in tasks:
+                task_id = task['task_id']
+                task_queue = task['queue']
+                timestamp = task['timestamp']
                 async_result = AsyncResult(id=task_id, app=celery)
-                if async_result.state not in UNREADY_STATES:
-                    continue
-                if not async_result.info:
-                    tracker.remove_task(task_id=task_id)
+
+                if async_result.state in READY_STATES:
+                    OrphanedTasksTracker.remove_task(task_id)
                     continue
 
-                worker_name = async_result.info.get("hostname")
-                if not worker_name:
-                    tracker.remove_task(task_id)
+                if datetime.datetime.now(datetime.UTC).timestamp() - timestamp < 60.0:
                     continue
 
-                if worker_name not in workers:
+                if async_result.info:
+                    worker_name = async_result.info.get('hostname')
+                    if worker_name and worker_name not in workers:
+                        celery.backend.store_result(
+                            task_id, Exception("Task worker is down (failed in progress)"), state=FAILURE
+                        )
+                        OrphanedTasksTracker.remove_task(task_id)
+                        continue
+
+                if task_queue not in queues:
                     celery.backend.store_result(
-                        task_id, Exception("Task worker is down"), state=FAILURE
+                        task_id, Exception("Task worker is down (not started)"), state=FAILURE
                     )
-
+                    OrphanedTasksTracker.remove_task(task_id)
+                    continue
         finally:
             if lock.locked():
                 lock.release()
