@@ -89,15 +89,15 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QSpinner, QInput, QBtn } from 'quasar';
+import { QBtn } from 'quasar';
 import DiffDockResult from './DiffDockResult.vue';
 import {
-  nolabs__application__use_cases__diffdock__api_models__JobResponse,
+  nolabs__application__diffdock__api_models__JobResponse,
   ProteinContentResponse,
-  nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse,
-  nolabs__application__use_cases__diffdock__api_models__SetupJobRequest
+  nolabs__application__diffdock__api_models__GetJobStatusResponse,
+  nolabs__application__diffdock__api_models__SetupJobRequest
 } from "src/refinedApi/client";
-import { getDiffDockJobApi, getProteinContent, getJobStatus, changeJobName, setupDiffDockJob, startDiffDockJob } from "src/features/workflow/refinedApi";
+import { getDiffDockJobApi, getProteinContent, changeJobName, setupDiffDockJob, startDiffDockJob } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
   name: 'DiffDockJob',
@@ -107,9 +107,9 @@ export default defineComponent({
   data() {
     return {
       experimentId: null as string | null,
-      job: null as nolabs__application__use_cases__diffdock__api_models__JobResponse | null,
+      job: null as nolabs__application__diffdock__api_models__JobResponse | null,
       protein: null as ProteinContentResponse | null,
-      jobStatus: null as nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse | null,
+      jobStatus: null as nolabs__application__diffdock__api_models__GetJobStatusResponse | null,
       editableJobName: '' as string,
       samplesPerComplex: null as number | null
     };
@@ -158,7 +158,7 @@ export default defineComponent({
     },
     async updateNumberOfSamples() {
       if (this.job && this.samplesPerComplex !== this.job.samples_per_complex) {
-        const request: nolabs__application__use_cases__diffdock__api_models__SetupJobRequest = {
+        const request: nolabs__application__diffdock__api_models__SetupJobRequest = {
           experiment_id: this.experimentId as string,
           protein_id: this.job.protein_id,
           ligand_id: this.job.ligand_id,
