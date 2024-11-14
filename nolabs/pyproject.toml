@@ -22,6 +22,7 @@ pottery = "^3.0.0"
 asgiref = "^3.8.1"
 fastapi = "^0.115.4"
 uvicorn = "^0.32.0"
+celery-redbeat = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 deptry = "^0.19.1"

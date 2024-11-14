@@ -210,13 +210,13 @@ RFdiffusion is an open source method for structure generation, with or without c
 etc).
 
 ```shell
-docker compose up protein_design
+docker compose up rfdiffusion
 ```
 
 Swagger UI will be available on http://localhost:5789/docs
 
 or
-[install as a python package](microservices/protein_design/client/README.md)
+[install as a python package](microservices/rfdiffusion/client/README.md)
 
 ### 2) ESMFold docker API
 

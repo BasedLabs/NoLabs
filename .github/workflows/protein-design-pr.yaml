@@ -1,5 +1,5 @@
-name: protein_design-pr
-run-name: protein_design-pr
+name: rfdiffusion-pr
+run-name: rfdiffusion-pr
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
@@ -9,7 +9,7 @@ on:
     branches:
       - master
     paths:
-      - 'microservices/protein_design/**'
+      - '../../microservices/rfdiffusion/**'
 
 jobs:
   build:
@@ -19,4 +19,4 @@ jobs:
 
     uses: ./.github/workflows/build-docker.yaml
     with:
-      microservice_name: "protein_design"
+      microservice_name: "rfdiffusion"

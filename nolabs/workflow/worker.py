@@ -71,6 +71,8 @@ def start(beat=False):
         settings.celery_worker_pool,
         "-n",
         f"workflow-{str(uuid.uuid4())}",
+        "--scheduler",
+        "redbeat.RedBeatScheduler"
     ]
     if beat:
         args.append("-B")
