@@ -86,6 +86,15 @@ const smallMoleculeDesignRoutes = [
   }
 ]
 
+const proteinMpnnRoutes = [
+  {
+    path: 'proteinMpnn/job/:jobId',
+    component: () => import('../features/workflow/components/jobs/ProteinMpnnJob.vue'),
+    name: 'ProteinMPNN',
+    props: true
+  }
+]
+
 const routes = [
   {
     path: '/',
@@ -101,7 +110,8 @@ const routes = [
       ...geneOntologyRoutes,
       ...foldingRoutes,
       ...blastRoutes,
-      ...smallMoleculeDesignRoutes
+      ...smallMoleculeDesignRoutes,
+      ...proteinMpnnRoutes
     ]
   },
   {

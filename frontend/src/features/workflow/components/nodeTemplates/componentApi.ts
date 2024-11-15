@@ -63,6 +63,10 @@ const componentApi = {
   smallMoleculesDesign: {
     getJob: SmallMoleculesDesignService.getJobApiV1SmallMoleculesDesignJobsJobIdGet,
     executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
+  },
+  proteinMpnn: {
+    getJob: null,
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   }
 }
 

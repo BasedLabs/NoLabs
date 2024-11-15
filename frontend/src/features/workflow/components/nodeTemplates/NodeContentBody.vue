@@ -251,6 +251,12 @@ export default defineComponent({
       tab: true,
       routeName: "Small molecules design",
       api: componentApi.smallMoleculesDesign
+    },
+    {
+      name: "ProteinMPNN",
+      tab: true,
+      routeName: "ProteinMPNN",
+      api: componentApi.proteinMpnn
     }
   ],
   data() {
