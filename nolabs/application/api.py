@@ -16,6 +16,7 @@ from nolabs.application.middlewares.domain_exception_middleware import (
 from nolabs.application.rfdiffusion.controller import router as rfdiffusion_router
 from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.application.diffdock.controller import router as diffdock_router
+from nolabs.application.proteinmpnn.controller import router as proteinmpnn_router
 from nolabs.application.ligands.controller import router as ligand_router
 from nolabs.infrastructure.log import logger
 from nolabs.infrastructure.mongo_connector import mongo_connect
@@ -59,6 +60,7 @@ async def join_room(sid, data):
 app.include_router(experiment_router)
 app.include_router(diffdock_router)
 app.include_router(folding_router)
+app.include_router(proteinmpnn_router)
 app.include_router(job_router)
 app.include_router(ligand_router)
 app.include_router(proteins_router)
