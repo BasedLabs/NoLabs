@@ -17,6 +17,7 @@ from nolabs.workflow.core.flow import ComponentFlowHandler
 class DiffDockComponentInput(BaseModel):
     proteins_with_pdb: List[uuid.UUID]
     ligands: List[uuid.UUID]
+    number_of_complexes: int = 3
 
 
 class DiffDockComponentOutput(BaseModel):
@@ -70,7 +71,7 @@ class DiffdockComponentFlowHandler(ComponentFlowHandler):
                         name=JobName("Diffdock binding job"),
                         component=self.component_id
                     )
-                    job.set_input(protein=protein, ligand=ligand)
+                    job.set_input(protein=protein, ligand=ligand, samples_per_complex=inp.number_of_complexes)
                     await job.save()
 
                 job_ids.append(job.id)
@@ -88,7 +89,9 @@ class DiffdockComponentFlowHandler(ComponentFlowHandler):
             raise NoLabsException(ErrorCodes.invalid_job_input, message=message)
 
         request = RunDiffDockPredictionInput(
-            pdb_contents=job.protein.get_pdb(), sdf_contents=job.ligand.get_sdf()
+            pdb_contents=job.protein.get_pdb(),
+            sdf_contents=job.ligand.get_sdf(),
+            samples_per_complex=job.samples_per_complex
         )
         task_id = uuid.uuid4()
         job.set_task_id(task_id=str(task_id))

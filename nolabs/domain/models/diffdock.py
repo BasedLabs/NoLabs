@@ -28,7 +28,7 @@ class DiffDockBindingJob(Job):
     def set_task_id(self, task_id: str):
         self.celery_task_id = task_id
 
-    def set_input(self, protein: Protein, ligand: Ligand, samples_per_complex: int = 1):
+    def set_input(self, protein: Protein, ligand: Ligand, samples_per_complex: int = 2):
         self.complexes = []
 
         self.protein = protein

@@ -11,7 +11,7 @@ from nolabs.application.proteinmpnn.worker_models import (
 )
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import JobId, JobName, Protein
-from nolabs.domain.models.proteinmpnn import ProteinMPNNJob
+from nolabs.domain.models.proteinmpnn import ProteinMPNNJob, ProteinMPNNResult
 from nolabs.infrastructure.mongo_connector import get_connection
 from nolabs.workflow.core.component import Component
 from nolabs.workflow.core.flow import ComponentFlowHandler
