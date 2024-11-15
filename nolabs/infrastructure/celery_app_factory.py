@@ -14,6 +14,7 @@ def get_celery_app() -> Celery:
         __name__, broker=settings.celery_broker, backend=settings.celery_backend
     )
     app.conf.update(
+        timezone = 'Europe/London',
         enable_utc=True,
         worker_pool=settings.celery_worker_pool,
         task_default_queue="workflow",

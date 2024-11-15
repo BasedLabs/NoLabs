@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "Proteinmpnn"
+version = "1.0.0"
+description = ""
+authors = ["Igor Bruev <jaktenstid1@gmail.com>","Timur Ishmuratov <ishmuratov7timur7@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+celery = {extras = ["redis"], version = "^5.4.0"}
+fastapi = "^0.115.4"
+uvicorn = "^0.32.0"
+python-dotenv = "^1.0.1"
+pydantic = "^2.9.2"
+pydantic-settings = "^2.6.1"
+pandas = "^2.2.3"
+scipy = "^1.14.1"
+biopython = "^1.84"
+tqdm = "^4.67.0"
+mdtraj = "^1.10.1"
+matplotlib = "^3.9.2"
+numpy = "<2.0.0a0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

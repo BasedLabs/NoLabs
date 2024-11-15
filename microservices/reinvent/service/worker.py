@@ -14,6 +14,7 @@ app = Celery(
     __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
 )
 app.conf.update(
+    timezone = 'Europe/London',
     enable_utc=True,
     task_default_queue=settings.celery_worker_queue,
     task_track_started=True,

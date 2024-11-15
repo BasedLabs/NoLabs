@@ -1,4 +1,0 @@
-from nolabs.application.rfdiffusion.workflow import RfDiffusionComponent
-from nolabs.workflow.core.component import ComponentTypeFactory
-
-ComponentTypeFactory.add_type(RfDiffusionComponent)

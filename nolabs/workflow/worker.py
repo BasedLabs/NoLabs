@@ -44,7 +44,6 @@ def setup_logger(logger, *args, **kwargs):
 def start(beat=False):
     initialize_settings()
     initialize_logging()
-    logger.info("Starting celery")
     app = get_celery_app()
     app.conf.update(
         beat_schedule={
@@ -60,6 +59,7 @@ def start(beat=False):
             },
         },
         task_acks_late=True,
+        broker_transport_options={"heartbeat": 10}
     )
     app.autodiscover_tasks(force=True)
     register_workflow_celery_tasks(app)

@@ -13,15 +13,6 @@ class RunProteinMPNNPredictionInput(BaseModel):
     batch_size: int = 1
 
 
-class SequenceResult(BaseModel):
-    sequence: str
-    fasta_content: str
-    score: Optional[float] = None
-    global_score: Optional[float] = None
-    T: Optional[float] = None
-    sample: Optional[int] = None
-    seq_recovery: Optional[float] = None
-
-
 class RunProteinMPNNPredictionOutput(BaseModel):
-    sequences: List[SequenceResult]
+    sequences: List[str]
+    fasta_contents: List[str]

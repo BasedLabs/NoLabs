@@ -9,8 +9,6 @@ from typing import Optional, Tuple, Type, Union
 
 from settings import settings
 
-# imported from https://github.com/PrefectHQ/prefect/blob/main/src/prefect/logging/formatters.py
-
 ExceptionInfoType = Union[
     Tuple[Type[BaseException], BaseException, Optional[TracebackType]],
     Tuple[None, None, None],

@@ -1,14 +1,15 @@
 __all__ = ["ProteinMPNNComponent"]
 
+import re
 import uuid
-from typing import List, Type, Optional, Dict, Any
+from itertools import chain
+from typing import List, Type, Optional, Dict, Any, Union
 
 from pydantic import BaseModel
 
 from nolabs.application.proteinmpnn.worker_models import (
     RunProteinMPNNPredictionInput,
-    RunProteinMPNNPredictionOutput,
-)
+    RunProteinMPNNPredictionOutput, )
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import JobId, JobName, Protein
 from nolabs.domain.models.proteinmpnn import ProteinMPNNJob, ProteinMPNNResult
@@ -18,8 +19,7 @@ from nolabs.workflow.core.flow import ComponentFlowHandler
 
 
 class ProteinMPNNComponentInput(BaseModel):
-    proteins_with_pdb: List[uuid.UUID]
-    # Additional inputs if needed
+    proteins_with_pdb: Union[List[uuid.UUID], List[List[uuid.UUID]]]
 
 
 class ProteinMPNNComponentOutput(BaseModel):
@@ -46,6 +46,12 @@ class ProteinMPNNComponent(Component[ProteinMPNNComponentInput, ProteinMPNNCompo
 class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
     async def on_component_task(self, inp: ProteinMPNNComponentInput) -> List[uuid.UUID]:
         job_ids = []
+
+        if not inp.proteins_with_pdb:
+            return []
+
+        if isinstance(inp.proteins_with_pdb[0], list):
+            inp.proteins_with_pdb = list(chain.from_iterable(inp.proteins_with_pdb))
 
         for protein_id in inp.proteins_with_pdb:
             protein: Protein = Protein.objects.with_id(protein_id)
@@ -95,7 +101,7 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
 
         return await self.schedule(
             job_id=job.id,
-            celery_task_name="run_protmpnn",
+            celery_task_name="design",
             celery_queue="proteinmpnn",
             input={"param": request.model_dump()},
         )
@@ -114,19 +120,29 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
         session = db.client.start_session()
         with session.start_transaction():
             results = []
-            for seq_data in job_result.sequences:
-                sequence_result = ProteinMPNNResult(
-                    id=uuid.uuid4(),
-                    sequence=seq_data.sequence,
-                    fasta_content=seq_data.fasta_content,
-                    score=seq_data.score,
-                    global_score=seq_data.global_score,
-                    T=seq_data.T,
-                    sample=seq_data.sample,
-                    seq_recovery=seq_data.seq_recovery,
-                )
-                sequence_result.save(session=session)
-                results.append(sequence_result)
+            for item in job_result.fasta_contents:
+                fasta_contents = ['>' + i.strip() for i in item.split('>') if i]
+                for fasta_content in fasta_contents:
+                    sequence = fasta_content.split('\n')[-1] # get sequence
+                    upper_part = fasta_content[1:].split('\n')[0].split(', ') # get parts without sequence
+                    d = {} # dictionary of upper parts
+                    for comma_separated_part in upper_part:
+                        if '=' in comma_separated_part:
+                            name, value = comma_separated_part.split('=')
+                            d[name] = value
+
+                    sequence_result = ProteinMPNNResult(
+                        id=uuid.uuid4(),
+                        fasta_content=fasta_content,
+                        sequence=sequence,
+                        score= float(d.get("score")),
+                        global_score=float(d.get("global_score")),
+                        T=float(d.get("T")) if 'T' in d else None,
+                        sample=float(d.get("sample")) if 'T' in d else None,
+                        seq_recovery=float(d.get("seq_recovery")) if 'seq_recovery' in d else None
+                    )
+                    sequence_result.save(session=session)
+                    results.append(sequence_result)
 
             job.set_result(results=results)
             await job.save(session=session, cascade=True)
