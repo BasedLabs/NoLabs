@@ -1,7 +1,7 @@
-__all__ = ["ProteinDesignJob"]
+__all__ = ["RfdiffusionJob"]
 
 import datetime
-from typing import List
+from typing import List, Optional
 
 from mongoengine import CASCADE, PULL, IntField, ListField, ReferenceField, StringField
 
@@ -9,10 +9,10 @@ from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, JobInputError, Protein
 
 
-class ProteinDesignJob(Job):
+class RfdiffusionJob(Job):
     # region Inputs
 
-    protein: Protein | None = ReferenceField(
+    protein: Optional[Protein] = ReferenceField(
         Protein, required=True, reverse_delete_rule=CASCADE
     )
     binders: List[Protein] = ListField(
@@ -43,8 +43,6 @@ class ProteinDesignJob(Job):
 
         self.input_errors(throw=True)
 
-        self.inputs_updated_at = datetime.datetime.utcnow()
-
     def set_protein(self, protein: Protein):
         if not protein:
             raise NoLabsException(ErrorCodes.protein_is_undefined)
@@ -53,22 +51,15 @@ class ProteinDesignJob(Job):
             raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
 
         self.protein = protein
-        self.inputs_updated_at = datetime.datetime.utcnow()
 
     def result_valid(self) -> bool:
         return not not self.binders
 
-    def set_result(self, protein: Protein, binders: List[Protein]):
+    def set_result(self, binders: List[Protein]):
         self.binders = []
 
         if not self.protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
-
-        if protein != self.protein:
-            raise NoLabsException(ErrorCodes.protein_not_found_in_job_inputs)
-
-        if not protein.pdb_content:
-            raise NoLabsException(ErrorCodes.protein_pdb_is_empty)
 
         self.binders = binders
 

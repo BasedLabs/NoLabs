@@ -1,23 +1,17 @@
 [tool.poetry]
-name = "Esmfold"
+name = "Rfdiffusion"
 version = "1.0.0"
 description = ""
 authors = ["Igor Bruev <jaktenstid1@gmail.com>","Timur Ishmuratov <ishmuratov7timur7@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10"
+python = ">=3.9"
 celery = {extras = ["redis"], version = "^5.4.0"}
 fastapi = "^0.115.4"
 uvicorn = "^0.32.0"
-torch = "1.13.1"
-torchaudio = "0.13.1"
-torchvision = "0.14.1"
-accelerate = "^1.1.1"
-pandas = "*"
-numpy = "*"
-transformers = "^4.46.2"
 python-dotenv = "^1.0.1"
+pydantic-settings = "^2.4.0"
 
 [build-system]
 requires = ["poetry-core"]

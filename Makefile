@@ -17,11 +17,18 @@ start-mock-server:
 prepare-nolabs:
 	scripts/prepare-nolabs.sh
 download-diffdock-weights:
-	@echo "Downloading model weights..."
+	@echo "Downloading diffdock model weights..."
+	mkdir -p ${DIFFDOCK_WEIGHTS_LOCATION}
 	python3 microservices/diffdock/scripts/download_weights.py
 	@echo "Download complete!"
 download-esmfold-weights:
-	@echo "Downloading model weights..."
+	@echo "Downloading esmfold model weights..."
+	mkdir -p ${ESMFOLD_WEIGHTS_LOCATION}
 	pip3 install transformers[torch] --verbose
 	python3 microservices/esmfold/scripts/download_weights.py
+	@echo "Download complete!"
+download-rfdiffusion-weights:
+	@echo "Downloading rfdiffusion model weights..."
+	mkdir -p ${RFDIFFUSION_WEIGHTS_LOCATION}
+	python3 microservices/rfdiffusion/scripts/download_weights.py
 	@echo "Download complete!"

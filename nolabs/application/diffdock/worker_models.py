@@ -7,7 +7,7 @@ class RunDiffDockPredictionInput(BaseModel):
     pdb_contents: str  # Protein contents in PDB format
     sdf_contents: str  # Ligand contents in SDF format
     inference_steps: int = 20
-    samples_per_complex: int = 40
+    samples_per_complex: int = 3
     batch_size: int = 10
     actual_steps: int = 18
     no_final_step_noise: bool = True

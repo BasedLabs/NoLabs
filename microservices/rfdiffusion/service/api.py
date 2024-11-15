@@ -10,7 +10,7 @@ from fastapi import FastAPI
 
 import uvicorn
 
-app = FastAPI(title="Esmfold")
+app = FastAPI(title="Rfdiffusion")
 
 
 @app.post("/design")

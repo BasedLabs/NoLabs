@@ -464,7 +464,7 @@ class Protein(Document, Entity):
     @classmethod
     def create(
         cls,
-        experiment: Experiment,
+        experiment: Union[Experiment, uuid.UUID],
         name: ProteinName,
         fasta_content: Union[bytes, str, None] = None,
         pdb_content: Union[bytes, str, None] = None,

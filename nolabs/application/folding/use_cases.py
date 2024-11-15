@@ -157,8 +157,8 @@ class RunJobFeature:
         app = get_celery_app()
         async_result = app.send_task(
             id=task_id,
-            name="esmfold-light-service.inference",
-            queue="esmfold-light-service",
+            name="inference",
+            queue="esmfold-light",
             args=[payload.model_dump()],
         )
 

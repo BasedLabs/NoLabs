@@ -13,6 +13,7 @@ from nolabs.application.jobs.controller import router as job_router
 from nolabs.application.middlewares.domain_exception_middleware import (
     add_domain_exception_middleware,
 )
+from nolabs.application.rfdiffusion.controller import router as rfdiffusion_router
 from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.application.diffdock.controller import router as diffdock_router
 from nolabs.application.ligands.controller import router as ligand_router
@@ -61,6 +62,7 @@ app.include_router(folding_router)
 app.include_router(job_router)
 app.include_router(ligand_router)
 app.include_router(proteins_router)
+app.include_router(rfdiffusion_router)
 app.include_router(workflow_router)
 app.include_router(biobuddy_controller)
 add_domain_exception_middleware(app)

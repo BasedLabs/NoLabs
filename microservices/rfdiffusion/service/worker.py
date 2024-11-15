@@ -41,6 +41,6 @@ app.worker_main(
         f"--concurrency={settings.celery_worker_concurrency}",
         "-E",
         "-n",
-        f"esmfold-{str(uuid.uuid4())}",
+        f"rfdiffusion-{str(uuid.uuid4())}",
     ]
 )

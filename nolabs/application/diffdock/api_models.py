@@ -1,14 +1,13 @@
-__all__ = ["JobResult", "JobResponse", "RunJobRequest"]
+__all__ = ["JobResult", "JobResponse"]
 
 
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class JobResult:
+class JobResult(BaseModel):
     complex_id: UUID
     sdf_content: str
     minimized_affinity: Optional[float] = None
@@ -16,8 +15,7 @@ class JobResult:
     confidence: Optional[float] = None
 
 
-@dataclass
-class JobResponse:
+class JobResponse(BaseModel):
     job_id: UUID
     job_name: str
     samples_per_complex: int
@@ -26,16 +24,10 @@ class JobResponse:
     result: List[JobResult]
 
 
-@dataclass
-class SetupJobRequest:
+class SetupJobRequest(BaseModel):
     experiment_id: UUID
     protein_id: UUID
     ligand_id: UUID
     samples_per_complex: Optional[int] = 2
     job_id: Optional[UUID] = None
     job_name: Optional[str] = None
-
-
-@dataclass
-class RunJobRequest:
-    job_id: UUID

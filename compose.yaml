@@ -30,20 +30,17 @@ services:
       dockerfile: build/Dockerfile
     env_file:
       - microservices/esmfold_light/service/.env
-  protein-design:
-    image: 'ghcr.io/basedlabs/protein-design:1.1.0'
+  rfdiffusion:
+    image: 'ghcr.io/basedlabs/rfdiffusion:1.0.0'
     network_mode: host
     build:
       context: microservices/rfdiffusion
       dockerfile: build/Dockerfile
-    command: --host=0.0.0.0 --port=5789
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+    command: python3.9 worker.py
+    env_file:
+      - microservices/rfdiffusion/service/.env
+    volumes:
+      - ${RFDIFFUSION_WEIGHTS_LOCATION}:/app/RFdiffusion/models
   diffdock:
     image: 'ghcr.io/basedlabs/diffdock:2.0.1'
     network_mode: host

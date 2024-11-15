@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     celery_worker_queue: str
     fastapi_host: str
     fastapi_port: int
+    rfdiffusion_path: str
     logging_level: Literal["DEBUG", "WARNING", "ERROR", "INFO"] = "INFO"
     environment: Literal["local", "test", "production"] = "local"
 

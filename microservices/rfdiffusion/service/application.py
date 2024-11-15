@@ -2,13 +2,13 @@ import glob
 import os
 import subprocess
 from log import logger
+from settings import settings
 
 from api_models import RunRfdiffusionRequest, RunRfdiffusionResponse
 
 
 def design(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    rfdiffusion_dir = os.path.join(current_dir, 'RFdiffusion')
+    rfdiffusion_dir = settings.rfdiffusion_path
     input_pdbs_dir = 'input_pdbs'
     output_files_dir = 'output_pdbs'
     tmp_pdb_file = 'tmp.pdb'
