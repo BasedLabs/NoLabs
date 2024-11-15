@@ -2,7 +2,7 @@
   <div class="protein-mpnn-result">
     <div class="generated-sequences-table">
       <h3>Generated Sequences</h3>
-      <q-table :rows="sequences" :columns="sequenceColumns" row-key="id">
+      <q-table :rows="sequences" :columns="sequenceColumns" row-key="sequence_id">
         <!-- Custom body slot for better control -->
         <template v-slot:body="props">
           <q-tr :props="props">
@@ -22,29 +22,25 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { QTable, QTr, QTd, QBtn } from 'quasar';
-
-interface SequenceEntry {
-  id: number;
-  sequence: string;
-  score?: number;
-  global_score?: number;
-  T?: number;
-  sample?: number;
-  seq_recovery?: number;
-  [key: string]: number | string | undefined; // For any additional parameters
-}
+import {
+  nolabs__application__proteinmpnn__api_models__JobResponse,
+  nolabs__application__proteinmpnn__api_models__JobResult,
+} from 'src/refinedApi/client';
 
 export default defineComponent({
   name: 'ProteinMPNNResult',
   props: {
-    job: Object as () => { fasta_contents: string[] },
+    job: {
+      type: Object as () => nolabs__application__proteinmpnn__api_models__JobResponse,
+      required: true,
+    },
     protein: Object,
   },
   data() {
     return {
-      sequences: [] as SequenceEntry[],
+      sequences: [] as nolabs__application__proteinmpnn__api_models__JobResult[],
       sequenceColumns: [
-        { name: 'id', label: 'ID', field: 'id', align: 'left' },
+        { name: 'sequence_id', label: 'ID', field: 'sequence_id', align: 'left' },
         { name: 'score', label: 'Score', field: 'score', align: 'left' },
         { name: 'global_score', label: 'Global Score', field: 'global_score', align: 'left' },
         { name: 'T', label: 'Temperature', field: 'T', align: 'left' },
@@ -55,58 +51,21 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.parseFastaContents();
+    this.loadSequences();
   },
   methods: {
-    parseFastaContents() {
-      const fastaContents = this.job.fasta_contents;
-      const sequences = [];
-
-      fastaContents.forEach((content) => {
-        // Split the content by '>'
-        const entries = content.split('>').filter(entry => entry.trim() !== '');
-        entries.forEach((entry, index) => {
-          const lines = entry.split('\n').filter(line => line.trim() !== '');
-          const header = lines[0];
-          const sequence = lines.slice(1).join('').replace(/\s+/g, '');
-
-          // Parse parameters from header
-          const params = this.parseHeader(header);
-
-          sequences.push({
-            id: index + 1,
-            sequence,
-            ...params,
-          });
-        });
-      });
-
-      this.sequences = sequences;
-    },
-    parseHeader(header: string) {
-      const params: { [key: string]: number | string } = {};
-
-      // Use regular expressions to extract key-value pairs
-      const regex = /(\w+)=([^\s,]+)/g;
-      let match;
-      while ((match = regex.exec(header)) !== null) {
-        params[match[1]] = match[2].replace(/^\[|\]$/g, ''); // Remove brackets if present
+    loadSequences() {
+      if (this.job && this.job.result) {
+        this.sequences = this.job.result;
       }
-
-      // Additionally, extract 'T', 'sample', etc., which might be at the start without keys
-      const additionalParamsRegex = /^(T=[^\s,]+|sample=[^\s,]+)/g;
-      const additionalParams = header.match(additionalParamsRegex);
-      if (additionalParams) {
-        additionalParams.forEach(param => {
-          const [key, value] = param.split('=');
-          params[key] = value;
-        });
-      }
-
-      return params;
     },
     downloadFasta() {
-      const fastaContent = this.job.fasta_contents.join('\n');
+      if (!this.job || !this.job.result) return;
+
+      const fastaContent = this.job.result
+        .map((result) => result.fasta_content)
+        .join('\n');
+
       const blob = new Blob([fastaContent], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
 

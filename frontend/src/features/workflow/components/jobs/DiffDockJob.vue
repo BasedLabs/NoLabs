@@ -92,10 +92,10 @@ import { defineComponent } from 'vue';
 import { QSpinner, QInput, QBtn } from 'quasar';
 import DiffDockResult from './DiffDockResult.vue';
 import {
-  nolabs__application__use_cases__diffdock__api_models__JobResponse,
+  nolabs__application__diffdock__api_models__JobResponse,
   ProteinContentResponse,
-  nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse,
-  nolabs__application__use_cases__diffdock__api_models__SetupJobRequest
+  JobStateEnum,
+  nolabs__application__diffdock__api_models__SetupJobRequest
 } from "src/refinedApi/client";
 import { getDiffDockJobApi, getProteinContent, getJobStatus, changeJobName, setupDiffDockJob, startDiffDockJob } from "src/features/workflow/refinedApi";
 
@@ -107,9 +107,9 @@ export default defineComponent({
   data() {
     return {
       experimentId: null as string | null,
-      job: null as nolabs__application__use_cases__diffdock__api_models__JobResponse | null,
+      job: null as nolabs__application__diffdock__api_models__JobResponse | null,
       protein: null as ProteinContentResponse | null,
-      jobStatus: null as nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse | null,
+      jobStatus: null as JobStateEnum | null,
       editableJobName: '' as string,
       samplesPerComplex: null as number | null
     };
@@ -136,7 +136,7 @@ export default defineComponent({
 
     this.protein = await getProteinContent(this.job?.protein_id);
 
-    this.jobStatus = await getDiffDockJobStatus(this.jobId as string);
+    this.jobStatus = await getJobStatus(this.jobId as string);
   },
   methods: {
     async updateJobName() {
@@ -158,7 +158,7 @@ export default defineComponent({
     },
     async updateNumberOfSamples() {
       if (this.job && this.samplesPerComplex !== this.job.samples_per_complex) {
-        const request: nolabs__application__use_cases__diffdock__api_models__SetupJobRequest = {
+        const request: nolabs__application__diffdock__api_models__SetupJobRequest = {
           experiment_id: this.experimentId as string,
           protein_id: this.job.protein_id,
           ligand_id: this.job.ligand_id,
@@ -187,7 +187,7 @@ export default defineComponent({
           type: 'positive',
           message: 'Job started successfully.',
         });
-        this.jobStatus = await getDiffDockJobStatus(this.jobId as string);
+        this.jobStatus = await getJobStatus(this.jobId as string);
       } catch (error) {
         this.$q.notify({
           type: 'negative',

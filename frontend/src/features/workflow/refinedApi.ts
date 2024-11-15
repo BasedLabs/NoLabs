@@ -7,26 +7,29 @@ import {
   UpdateJobRequest,
   WorkflowService,
   BiobuddyService,
-  GenerateMsaService,
   WorkflowSchema_Input,
   LigandContentResponse,
   LigandsService,
   Body_upload_ligand_api_v1_objects_ligands_post,
-  BindingPocketsService,
   DiffdockService,
   nolabs__application__diffdock__api_models__JobResponse,
-  nolabs__application__diffdock__api_models__SetupJobRequest, OpenAPI,
-  nolabs__application__use_cases__msa_generation__api_models__JobResponse,
+  nolabs__application__diffdock__api_models__SetupJobRequest,
+  OpenAPI,
   Body_upload_protein_api_v1_proteins_post,
   Body_update_protein_api_v1_proteins_patch,
   nolabs__application__folding__api_models__JobResponse,
   nolabs__application__folding__api_models__SetupJobRequest,
-  nolabs__application__use_cases__binding_pockets__api_models__JobResponse,
   GetJobMetadataResponse,
   ProteinMetadataResponse,
   LigandMetadataResponse,
   LigandSearchMetadataQuery,
-  ProteinSearchMetadataQuery, type WorkflowSchema_Output, type GetComponentResponse, GetJobState
+  ProteinSearchMetadataQuery,
+  type WorkflowSchema_Output,
+  type GetComponentResponse,
+  GetJobState,
+  ProteinMpnnService,
+  nolabs__application__proteinmpnn__api_models__JobResponse,
+  nolabs__application__proteinmpnn__api_models__SetupJobRequest
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
@@ -58,17 +61,14 @@ export function getFoldingJobApi(jobId: string): CancelablePromise<nolabs__appli
   return FoldingService.getJobApiV1FoldingJobsJobIdGet(jobId);
 }
 
-export function getBindingPocketJobApi(jobId: string): CancelablePromise<nolabs__application__use_cases__binding_pockets__api_models__JobResponse> {
-  return BindingPocketsService.getJobApiV1BindingPocketsJobsJobIdGet(jobId);
-}
-
 export function getDiffDockJobApi(jobId: string): CancelablePromise<nolabs__application__diffdock__api_models__JobResponse> {
   return DiffdockService.getJobApiV1DiffdockJobsJobIdGet(jobId);
 }
 
-export function getMsaJobApi(jobId: string): CancelablePromise<nolabs__application__use_cases__msa_generation__api_models__JobResponse> {
-  return GenerateMsaService.getJobApiV1MsaGenerationJobsJobIdGet(jobId);
+export function getProteinMPNNJobApi(jobId: string): CancelablePromise<nolabs__application__proteinmpnn__api_models__JobResponse> {
+  return ProteinMpnnService.getJobApiV1ProteinmpnnJobsJobIdGet(jobId);
 }
+
 
 export function getJobStatus(jobId: string): CancelablePromise<GetJobState> {
   return WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet(jobId);
@@ -76,6 +76,10 @@ export function getJobStatus(jobId: string): CancelablePromise<GetJobState> {
 
 export function setupDiffDockJob(job: nolabs__application__diffdock__api_models__SetupJobRequest): CancelablePromise<any> {
   return DiffdockService.setupJobApiV1DiffdockJobsPost(job)
+}
+
+export function setupProteinMPNNJob(job: nolabs__application__proteinmpnn__api_models__SetupJobRequest): CancelablePromise<any> {
+  return ProteinMpnnService.setupJobApiV1ProteinmpnnJobsPost(job)
 }
 
 export function setupFoldingJob(job: nolabs__application__folding__api_models__SetupJobRequest): CancelablePromise<nolabs__application__folding__api_models__JobResponse> {
@@ -86,8 +90,8 @@ export function startDiffDockJob(jobId: string): CancelablePromise<nolabs__appli
   return DiffdockService.startJobApiV1DiffdockJobsRunJobIdPost(jobId);
 }
 
-export function startMsaJob(jobId: string): CancelablePromise<any> {
-  return GenerateMsaService.runJobApiV1MsaGenerationJobsRunJobIdPost(jobId);
+export function startProteinMPNNJob(jobId: string): CancelablePromise<nolabs__application__proteinmpnn__api_models__JobResponse> {
+  return ProteinMpnnService.startJobApiV1ProteinmpnnJobsRunJobIdPost(jobId);
 }
 
 export function changeJobName(jobId: string, newName: string): CancelablePromise<any> {

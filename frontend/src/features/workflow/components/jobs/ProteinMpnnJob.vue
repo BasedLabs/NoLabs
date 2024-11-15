@@ -37,9 +37,9 @@
                   Loading...
                 </template>
                 <template v-else>
-                  <q-spinner v-if="jobStatus.running" color="primary" size="20px" />
-                  {{ jobStatusText }}
-                  <q-btn v-if="!jobStatus.running" @click="startJob" color="info" label="Start" />
+                  <q-spinner v-if="jobStatus.state === 'RUNNING'" color="primary" size="20px" />
+                  {{ jobStatus.state }}
+                  <q-btn v-if="jobStatus.state !== 'RUNNING'" @click="startJob" color="info" label="Start" />
                 </template>
               </q-item-section>
             </q-item>
@@ -55,15 +55,6 @@
         </q-card-section>
         <q-card-section>
           <q-list>
-            <!-- Protein PDB Content -->
-            <q-item>
-              <q-item-section>
-                <q-item-label>Protein PDB Content</q-item-label>
-              </q-item-section>
-              <q-item-section class="pdb-content-container">
-                <div class="pdb-content">{{ protein?.pdb_content }}</div>
-              </q-item-section>
-            </q-item>
             <!-- Temperature -->
             <q-item>
               <q-item-section>
@@ -114,22 +105,21 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { QBtn, QToggle } from 'quasar';
-import ProteinMPNNResult from './ProteinMPNNResult.vue';
+import ProteinMPNNResult from 'src/features/workflow/components/jobs/ProteinMpnnResult.vue';
 import {
-  ProteinMPNNJobResponse,
+  nolabs__application__proteinmpnn__api_models__JobResponse,
   ProteinContentResponse,
-  GetJobStatusResponse,
-  SetupProteinMPNNJobRequest
+  GetJobState,
+  nolabs__application__proteinmpnn__api_models__SetupJobRequest
 } from 'src/refinedApi/client';
 import {
   getProteinMPNNJobApi,
   getProteinContent,
-  getProteinMPNNJobStatus,
+  getJobStatus,
   changeProteinMPNNJobName,
   setupProteinMPNNJob,
   startProteinMPNNJob
 } from 'src/features/workflow/refinedApi';
-
 
 export default defineComponent({
   name: 'ProteinMPNNJob',
@@ -139,9 +129,9 @@ export default defineComponent({
   data() {
     return {
       experimentId: null as string | null,
-      job: null as ProteinMPNNJobResponse | null,
+      job: null as nolabs__application__proteinmpnn__api_models__JobResponse | null,
       protein: null as ProteinContentResponse | null,
-      jobStatus: null as GetJobStatusResponse | null,
+      jobStatus: null as GetJobState | null,
       editableJobName: '' as string,
       samplingTemp: null as number | null,
       numSeqPerTarget: null as number | null,
@@ -149,14 +139,8 @@ export default defineComponent({
     };
   },
   computed: {
-    jobHasGeneratedData(): boolean {
+    jobHasGeneratedData(): boolean | null {
       return this.job && this.job.result && this.job.result.length > 0;
-    },
-    jobStatusText(): string {
-      if (this.jobStatus === null) {
-        return '';
-      }
-      return this.jobStatus.running ? 'Running...' : 'Not running';
     },
   },
   async mounted() {
@@ -172,7 +156,7 @@ export default defineComponent({
 
     this.protein = await getProteinContent(this.job?.protein_id);
 
-    this.jobStatus = await getProteinMPNNJobStatus(this.jobId as string);
+    this.jobStatus = await getJobStatus(this.jobId as string);
   },
   methods: {
     async updateJobName() {
@@ -194,7 +178,7 @@ export default defineComponent({
     },
     async updateSamplingTemp() {
       if (this.job && this.samplingTemp !== this.job.sampling_temp) {
-        const request: SetupProteinMPNNJobRequest = {
+        const request: nolabs__application__proteinmpnn__api_models__SetupJobRequest = {
           experiment_id: this.experimentId as string,
           protein_id: this.job.protein_id,
           sampling_temp: this.samplingTemp,
@@ -219,7 +203,7 @@ export default defineComponent({
     },
     async updateNumSeqPerTarget() {
       if (this.job && this.numSeqPerTarget !== this.job.num_seq_per_target) {
-        const request: SetupProteinMPNNJobRequest = {
+        const request: nolabs__application__proteinmpnn__api_models__SetupJobRequest = {
           experiment_id: this.experimentId as string,
           protein_id: this.job.protein_id,
           sampling_temp: this.samplingTemp,
@@ -244,7 +228,7 @@ export default defineComponent({
     },
     async updateIsHomomer() {
       if (this.job && this.isHomomer !== this.job.is_homomer) {
-        const request: SetupProteinMPNNJobRequest = {
+        const request: nolabs__application__proteinmpnn__api_models__SetupJobRequest = {
           experiment_id: this.experimentId as string,
           protein_id: this.job.protein_id,
           sampling_temp: this.samplingTemp,
@@ -274,7 +258,8 @@ export default defineComponent({
           type: 'positive',
           message: 'Job started successfully.',
         });
-        this.jobStatus = await getProteinMPNNJobStatus(this.jobId as string);
+        // Refresh the job status
+        this.jobStatus = await getJobStatus(this.jobId as string);
       } catch (error) {
         this.$q.notify({
           type: 'negative',
@@ -290,16 +275,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-.pdb-content-container {
-  width: 100%;
-  overflow: hidden;
-}
-
-.pdb-content {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  word-break: break-all;
-}
-</style>
