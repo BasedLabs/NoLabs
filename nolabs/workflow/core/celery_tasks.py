@@ -154,7 +154,9 @@ def register_workflow_celery_tasks(celery: Celery):
 
         async_to_sync(_)()
 
-    @celery.task(name=Tasks.sync_graphs_task, bind=True, queue=settings.workflow_queue)
+    @celery.task(name=Tasks.sync_graphs_task,
+                 bind=True,
+                 queue=settings.workflow_queue)
     def sync_graphs(bind):
         async def _():
             lock = redlock(key=Tasks.sync_graphs_task, auto_release_time=10.0)

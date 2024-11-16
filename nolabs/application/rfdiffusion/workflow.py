@@ -14,10 +14,10 @@ from nolabs.workflow.core.flow import ComponentFlowHandler
 
 class RfDiffusionInput(BaseModel):
     contig: str
-    hotspots: str
     timesteps: int
     proteins_with_pdb: List[uuid.UUID]
     number_of_designs: int = 1
+    hotspots: Optional[str] = None
 
 
 class RfDiffusionOutput(BaseModel):
@@ -98,14 +98,15 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
         return await self.schedule(job_id=job_id,
                                    celery_task_name="design",
                                    celery_queue="rfdiffusion",
-                                   input=input)
+                                   input={'param': input.model_dump()}) # TODO move names of tasks and queues, remove param (single input)
+
 
     async def on_job_completion(
             self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         job: RfdiffusionJob = RfdiffusionJob.objects.with_id(job_id)
         output = RunRfdiffusionResponse(**long_running_output)
-        if output.errors:
+        if output.errors and not output.pdbs_content:
             raise NoLabsException(ErrorCodes.job_execution_failed, ", ".join(output.errors))
         proteins = []
         db = get_connection()

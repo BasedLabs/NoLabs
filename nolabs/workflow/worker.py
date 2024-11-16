@@ -59,7 +59,10 @@ def start(beat=False):
             },
         },
         task_acks_late=True,
-        broker_transport_options={"heartbeat": 10}
+        broker_transport_options={"heartbeat": 10},
+        task_soft_time_limit=10,
+        task_time_limit=15,
+        redbeat_lock_timeout=20
     )
     app.autodiscover_tasks(force=True)
     register_workflow_celery_tasks(app)

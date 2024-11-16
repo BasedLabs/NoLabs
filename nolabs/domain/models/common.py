@@ -405,7 +405,7 @@ class Protein(Document, Entity):
             pdb_content if isinstance(pdb_content, str) else pdb_content.decode("utf-8")
         )
 
-        if not as_str.lstrip().startswith("HEADER"):
+        if not as_str.lstrip().startswith("HEADER") and 'ATOM' not in as_str:
             raise NoLabsException(
                 ErrorCodes.invalid_protein_content, data={"pdb_content": as_str[:20]}
             )
@@ -479,7 +479,7 @@ class Protein(Document, Entity):
         if fasta_content and isinstance(fasta_content, str):
             fasta_content = fasta_content.encode("utf-8")
 
-        if pdb_content and isinstance(fasta_content, str):
+        if pdb_content and isinstance(pdb_content, str):
             pdb_content = pdb_content.encode("utf-8")
 
         if not fasta_content and not pdb_content:

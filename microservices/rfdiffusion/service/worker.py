@@ -8,7 +8,6 @@ from typing import Any, Dict
 from api_models import RunRfdiffusionRequest
 from celery import Celery
 
-from log import logger
 from settings import settings
 
 app = Celery(
@@ -27,7 +26,7 @@ app.conf.update(
 )
 
 
-@app.task(time_limit=10, name="design")
+@app.task(time_limit=1000, name="design")
 def design(param: Dict[str, Any]) -> Dict[str, Any]:
     import application
 
@@ -42,5 +41,6 @@ app.worker_main(
         "-E",
         "-n",
         f"rfdiffusion-{str(uuid.uuid4())}",
+        "--loglevel","INFO"
     ]
 )

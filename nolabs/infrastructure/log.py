@@ -8,7 +8,7 @@ def handler(exctype, value, traceback_):
     logging.root.error("".join(traceback.format_exception(exctype, value, traceback_)))
 
 
-sys.excepthook = handler
+sys.excepthook = handler # TODO remove it
 
 
 from nolabs.infrastructure.settings import settings
@@ -28,13 +28,13 @@ def initialize_logging():
             LOGGING_CONFIG["formatters"]["json"] = {
                 "()": JsonFormatter,
             }
+
+            # Update Uvicorn handlers to use the new formatter
+            for handler in LOGGING_CONFIG["handlers"].values():
+                if "formatter" in handler:
+                    handler["formatter"] = "json"
         except ModuleNotFoundError:
             pass
-
-        # Update Uvicorn handlers to use the new formatter
-        for handler in LOGGING_CONFIG["handlers"].values():
-            if "formatter" in handler:
-                handler["formatter"] = "json"
 
         for handler in logging.root.handlers:
             handler.setFormatter(JsonFormatter())

@@ -40,7 +40,7 @@ services:
     env_file:
       - microservices/rfdiffusion/service/.env
     volumes:
-      - ${RFDIFFUSION_WEIGHTS_LOCATION}:/app/RFdiffusion/models
+      - ${RFDIFFUSION_WEIGHTS_LOCATION}:/app/RFdiffusion/models:ro
   diffdock:
     image: 'ghcr.io/basedlabs/diffdock:2.0.1'
     network_mode: host

@@ -154,7 +154,7 @@ class UpdateWorkflowSchemaFeature:
                         found = True
                         break
                 if not found and old_comp:
-                    await old_comp.delete()
+                    old_comp.delete()
 
             schema_valid = True
 
@@ -189,6 +189,8 @@ class UpdateWorkflowSchemaFeature:
                     if error:
                         mapping.error = error.msg
                         schema_valid = False
+                    else:
+                        mapping.error = None
 
                 # Validate defaults
                 for default in workflow_component.defaults:
@@ -198,6 +200,8 @@ class UpdateWorkflowSchemaFeature:
                     if error:
                         default.error = error.msg
                         schema_valid = False
+                    else:
+                        default.error = None
 
                 component_data = ComponentData.objects.with_id(component.id)
 
@@ -306,7 +310,7 @@ class StartWorkflowFeature:
             await self.start_workflow(
                 experiment_id=experiment.id, components_graph=components
             )
-            logger.info("Workflow schema startd", extra=extra)
+            logger.info("Workflow schema started", extra=extra)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e

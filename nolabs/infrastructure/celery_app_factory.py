@@ -26,7 +26,8 @@ def get_celery_app() -> Celery:
         accept_content=["application/json", "application/x-python-serialize"],
         task_always_eager=False,
         task_eager_propagates=False,
-        redbeat_redis_url=settings.celery_backend
+        redbeat_redis_url=settings.celery_backend,
+        redbeat_lock_timeout=20
     )
     app.autodiscover_tasks(force=True)
 

@@ -1,13 +1,15 @@
 import glob
 import os
 import subprocess
-from log import logger
+import logging
+
 from settings import settings
 
 from api_models import RunRfdiffusionRequest, RunRfdiffusionResponse
 
 
 def design(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
+    logger = logging.getLogger(__name__)
     rfdiffusion_dir = settings.rfdiffusion_path
     input_pdbs_dir = 'input_pdbs'
     output_files_dir = 'output_pdbs'
@@ -20,7 +22,7 @@ def design(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
         os.mkdir(output_files_dir)
 
     inference_path = os.path.join(rfdiffusion_dir, 'scripts', 'run_inference.py')
-    program = ['python3.10', inference_path, f'inference.model_directory_path={rfdiffusion_dir}/models',
+    program = ['python3.9', inference_path, f'inference.model_directory_path={rfdiffusion_dir}/models',
                f'inference.num_designs={request.number_of_designs}',
                f'inference.output_prefix={output_files_dir}/result']
 
@@ -28,6 +30,9 @@ def design(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
         with open(tmp_pdb_file, 'w') as f:
             f.write(request.pdb_content)
         program.append(f'inference.input_pdb={tmp_pdb_file}')
+
+    if '[' in request.contig:
+        request.contig = request.contig.lstrip('[').rstrip(']')
 
     program.append(f'contigmap.contigs=[{request.contig}]')
 
@@ -40,12 +45,15 @@ def design(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
 
     res = subprocess.run(program, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
+    stdout = res.stdout.decode('utf-8')
     stderr = res.stderr.decode('utf-8')
+
+    logger.info(stdout)
+    logger.error(stderr)
 
     pdbs = []
     files = glob.glob(os.path.join(output_files_dir, '*.pdb'))
     for file_name in files:
         with open(file_name, 'r') as f:
             pdbs.append(f.read())
-    logger.error(msg=stderr)
     return RunRfdiffusionResponse(pdbs_content=pdbs, errors=[f'Unknown error, try to fix contig or hotspots input, {stderr}'])

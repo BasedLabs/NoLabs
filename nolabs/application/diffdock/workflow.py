@@ -95,7 +95,7 @@ class DiffdockComponentFlowHandler(ComponentFlowHandler):
         )
         task_id = uuid.uuid4()
         job.set_task_id(task_id=str(task_id))
-        await job.save()
+        await job.save(input)
 
         return await self.schedule(
             job_id=job.id,

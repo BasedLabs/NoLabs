@@ -13,7 +13,7 @@
       >
         <q-input
           v-model="currentInputValues[key]"
-          @update:model-value="onInputChange(key, $event)"
+          @update:model-value="onInputChange(key, $event, input.type)"
           :type="input.type === 'string' ? 'text' : 'number'"
           hide-spin-buttons
           dense
@@ -138,8 +138,11 @@ export default defineComponent({
       });
       return values;
     },
-    onInputChange(key, value) {
+    onInputChange(key, value, type) {
       const workflowStore = useWorkflowStore();
+      if(type !== 'string'){
+        value = Number(value);
+      }
       this.currentInputValues[key] = value;
       workflowStore.setInputValue(this.nodeId, key, value);
     },
