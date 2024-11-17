@@ -127,8 +127,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       experimentId: string,
       nodeId: string,
       name?: string,
-      fastaFile?: Blob,
-      pdbFile?: Blob,
+      file?: File,
       metaData?: Record<string, string>
     ) {
       try {
@@ -140,8 +139,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
         const uploadedProtein = await uploadProtein(
           experimentId,
           name,
-          fastaFile,
-          pdbFile,
+          file.name.endsWith('.fasta') ? file : undefined,
+          file.name.endsWith('.pdb') ? file : undefined,
           link // Pass the link if it exists
         );
 

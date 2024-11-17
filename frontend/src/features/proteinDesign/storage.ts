@@ -6,7 +6,7 @@ import {obtainErrorResponse} from "src/refinedApi/errorWrapper";
 import {
   JobsACommonControllerForJobsManagementService,
   OpenAPI,
-  ProteinDesignService,
+  RfdiffusionService,
   ProteinsService
 } from "src/refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
@@ -22,7 +22,7 @@ const useProteinDesignStore = defineStore("proteinDesign", {
         pdb: request.pdbFile
       });
 
-      await ProteinDesignService.setupJobApiV1ProteinDesignJobsPost(
+      await RfdiffusionService.setupJobApiV1RfdiffusionJobsPost(
         {
           experiment_id: experimentId,
           protein_id: protein.id,
@@ -39,11 +39,11 @@ const useProteinDesignStore = defineStore("proteinDesign", {
       job: Job | null,
       errors: string[]
     }> {
-      let job = await ProteinDesignService.getJobApiV1ProteinDesignJobsJobIdGet(request.jobId!);
+      let job = await RfdiffusionService.getJobApiV1RfdiffusionJobsJobIdGet(request.jobId!);
 
       await this.setupJob(job.experiment_id, request);
 
-      job = await ProteinDesignService.runJobApiV1ProteinDesignJobsRunJobIdPost(
+      job = await RfdiffusionService.runJobApiV1RfdiffusionJobsRunJobIdPost(
         request.jobId!
       );
       const errorResponse = obtainErrorResponse(job);
@@ -81,7 +81,7 @@ const useProteinDesignStore = defineStore("proteinDesign", {
       job: Job | null,
       errors: string[]
     }> {
-      const response = await ProteinDesignService.getJobApiV1ProteinDesignJobsJobIdGet(jobId);
+      const response = await RfdiffusionService.getJobApiV1RfdiffusionJobsJobIdGet(jobId);
       const errorResponse = obtainErrorResponse(response);
       if (errorResponse) {
         if (errorResponse.error_code === ErrorCodes.job_not_found) {
