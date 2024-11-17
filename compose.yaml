@@ -98,22 +98,25 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-  nolabs-api:
-    image: 'ghcr.io/basedlabs/nolabs:2.1.7'
+  nolabs-base:
+    image: 'ghcr.io/basedlabs/nolabs:3.0.0'
     network_mode: host
+    working_dir: /app
     build:
       context: .
       dockerfile: build/Dockerfile
-    command: python application/api.py
+    environment:
+      - PYTHONPATH=/app
     env_file:
       - nolabs/infrastructure/.env
+
+  nolabs-api:
+    extends:
+      service: nolabs-base
+    command: python nolabs/application/api.py
+
   nolabs-worker:
-    image: 'ghcr.io/basedlabs/nolabs-worker:1.0.0'
-    network_mode: host
-    build:
-      context: .
-      dockerfile: nolabs/build/worker.Dockerfile
-    command: python workflow/worker.py
-    env_file:
-      - nolabs/infrastructure/.env
+    extends:
+      service: nolabs-base
+    command: python nolabs/workflow/worker.py
 
