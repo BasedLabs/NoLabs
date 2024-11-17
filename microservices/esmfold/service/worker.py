@@ -8,15 +8,12 @@ from typing import Any, Dict
 from api_models import InferenceInput
 from celery import Celery
 
-from log import logger
 from settings import settings
 
 app = Celery(
     __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
 )
 app.conf.update(
-    timezone = 'Europe/London',
-    enable_utc=True,
     task_default_queue=settings.celery_worker_queue,
     task_track_started=True,
     task_acks_late=True,
@@ -24,6 +21,8 @@ app.conf.update(
     worker_state_db="/opt/celery-state.db",
     accept_content=["application/json", "application/x-python-serialize"],
     broker_transport_options={"heartbeat": 10},
+    broker_connection_retry_on_startup=True,
+    worker_send_task_events=True
 )
 
 
@@ -42,5 +41,6 @@ app.worker_main(
         "-E",
         "-n",
         f"esmfold-{str(uuid.uuid4())}",
+        "--loglevel", settings.logging_level
     ]
 )

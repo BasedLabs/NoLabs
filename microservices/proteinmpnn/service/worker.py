@@ -21,7 +21,8 @@ app.conf.update(
     worker_state_db="/opt/celery-state.db",
     accept_content=["application/json", "application/x-python-serialize"],
     broker_transport_options={"heartbeat": 10},
-    broker_connection_retry_on_startup=True
+    broker_connection_retry_on_startup=True,
+    worker_send_task_events=True
 )
 
 
@@ -40,5 +41,6 @@ app.worker_main(
         "-E",
         "-n",
         f"proteinmpnn-{str(uuid.uuid4())}",
+        "--loglevel", settings.logging_level
     ]
 )

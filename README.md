@@ -64,7 +64,7 @@ For example, you can ask
 
 <img src="media/Biobuddy_pic.png" width="100%">
 
-To enable biobuddy run this command when starting nolabs:
+To enable biobuddy change 
 
 ```shell
 $ ENABLE_BIOBUDDY=true docker compose up nolabs mongo redis

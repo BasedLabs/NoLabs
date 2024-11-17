@@ -6,11 +6,9 @@ import uuid
 
 from asgiref.sync import async_to_sync
 from celery import signals
-from celery.signals import after_setup_logger
 
 from nolabs.application import initialize
 from nolabs.infrastructure.celery_app_factory import get_celery_app
-from nolabs.infrastructure.log import initialize_logging, logger
 from nolabs.infrastructure.mongo_connector import mongo_connect, mongo_disconnect
 from nolabs.infrastructure.redis_client_factory import rd
 from nolabs.infrastructure.settings import initialize_settings, settings
@@ -36,14 +34,8 @@ def task_postrun(**kwargs):
     async_to_sync(_)()
 
 
-@after_setup_logger.connect
-def setup_logger(logger, *args, **kwargs):
-    initialize_logging()  # Initialize JSON logging
-
-
 def start(beat=False):
     initialize_settings()
-    initialize_logging()
     app = get_celery_app()
     app.conf.update(
         beat_schedule={
@@ -54,7 +46,7 @@ def start(beat=False):
             },
             Tasks.remove_orphaned_tasks: {
                 "task": Tasks.remove_orphaned_tasks,
-                "schedule": settings.orphaned_tasks_check_interval,
+                "schedule": 30.0,
                 "args": (),
             },
         },
@@ -63,7 +55,11 @@ def start(beat=False):
         task_soft_time_limit=10,
         task_time_limit=15,
         redbeat_lock_timeout=20,
-        broker_connection_retry_on_startup=True
+        broker_connection_retry_on_startup=True,
+        task_track_started=True,
+        task_reject_on_worker_lost=True,
+        accept_content=["application/json", "application/x-python-serialize"],
+        worker_send_task_events=True
     )
     app.autodiscover_tasks(force=True)
     register_workflow_celery_tasks(app)

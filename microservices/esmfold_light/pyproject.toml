@@ -2,7 +2,7 @@
 name = "Esmfold-light"
 version = "1.0.0"
 description = ""
-authors = ["JaktensTid <jaktenstid1@gmail.cosam>","iT"]
+authors = ["Igor Bruev <jaktenstid1@gmail.com>","Timur Ishmuratov <ishmuratov7timur7@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

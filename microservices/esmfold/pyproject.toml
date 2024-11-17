@@ -3,7 +3,6 @@ name = "Esmfold"
 version = "1.0.0"
 description = ""
 authors = ["Igor Bruev <jaktenstid1@gmail.com>","Timur Ishmuratov <ishmuratov7timur7@gmail.com>"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10"

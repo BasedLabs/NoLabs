@@ -41,6 +41,13 @@ services:
       - microservices/rfdiffusion/service/.env
     volumes:
       - ${RFDIFFUSION_WEIGHTS_LOCATION}:/app/RFdiffusion/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
   diffdock:
     image: 'ghcr.io/basedlabs/diffdock:2.0.1'
     network_mode: host
@@ -75,31 +82,31 @@ services:
     env_file:
       - microservices/diffdock/service/.env
     command: --host=0.0.0.0 --port=5738
-  rosettafold:
-    image: 'ghcr.io/basedlabs/rosettafold:1.0.0'
-    network_mode: host
-    build:
-      context: microservices/rosettafold
-      dockerfile: build/Dockerfile
-    volumes:
-      - ${ROSETTAFOLD_BFD_PATH}:/RoseTTAFold/bfd
-      - ${ROSETTAFOLD_PDB_PATH}:/RoseTTAFold/pdb100_2021Mar03
-      - ${ROSETTAFOLD_UNIREF_PATH}:/RoseTTAFold/UniRef30_2020_06
-    command: --host=0.0.0.0 --port=5738
   proteinmpnn:
     image: 'ghcr.io/basedlabs/proteinmpnn:1.0.0'
     network_mode: host
     build:
       context: microservices/proteinmpnn
       dockerfile: build/Dockerfile
+    env_file:
+      - microservices/proteinmpnn/service/.env
     command: python worker.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
   nolabs-api:
     image: 'ghcr.io/basedlabs/nolabs:2.1.7'
     network_mode: host
     build:
       context: .
       dockerfile: build/Dockerfile
-    command: --host=0.0.0.0
+    command: python application/api.py
+    env_file:
+      - nolabs/infrastructure/.env
   nolabs-worker:
     image: 'ghcr.io/basedlabs/nolabs-worker:1.0.0'
     network_mode: host
@@ -107,4 +114,6 @@ services:
       context: .
       dockerfile: nolabs/build/worker.Dockerfile
     command: python workflow/worker.py
+    env_file:
+      - nolabs/infrastructure/.env
 

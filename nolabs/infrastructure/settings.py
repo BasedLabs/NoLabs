@@ -28,11 +28,9 @@ class Settings(BaseSettings):
     socketio_broker: str
     enable_biobuddy: bool
     reinvent_directory: Path
-    blast_email: str
     uvicorn_host: str = "0.0.0.0"
     uvicorn_port: int = 8000
     celery_worker_concurrency: int = 20
-    orphaned_tasks_check_interval: int = 40
     environment: Literal["local", "test", "production"] = "local"
     logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
 

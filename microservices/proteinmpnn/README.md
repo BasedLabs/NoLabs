@@ -1,1 +1,0 @@
-Proteinmpnn microservice
