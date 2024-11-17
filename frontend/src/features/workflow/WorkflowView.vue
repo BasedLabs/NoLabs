@@ -88,7 +88,8 @@ import {
   startWorkflow,
   checkBiobuddyEnabled,
   createWorkflow,
-  getWorkflow
+  getWorkflow,
+  getComponentState,
 } from './refinedApi';
 import { useWorkflowStore, Edge, Node } from './components/storage';
 import { useBioBuddyStore } from "src/features/biobuddy/storage";
@@ -196,7 +197,10 @@ export default defineComponent({
     // Listen for 'component_finished' event
     this.socket.on('component_finished', async (data: { component_id: string }) => {
       if (data.component_id) {
-        workflowStore.updateComponentState(data.component_id, ComponentStateEnum.COMPLETED);
+        const componentStatus = await getComponentState(data.component_id);
+        if (componentStatus) {
+          workflowStore.updateComponentState(data.component_id, componentStatus.state, componentStatus.state_message);
+        }
       }
     });
 

@@ -53,11 +53,14 @@ export default {
   },
   data() {
     return {
-      nodeData: null,
       isLocallyRunning: false
     };
   },
   computed: {
+    nodeData() {
+      const workflowStore = useWorkflowStore();
+      return workflowStore.getNodeById(this.nodeId);
+    },
     isRunning() {
       const workflowStore = useWorkflowStore();
       return workflowStore.runningComponentIds.includes(this.nodeId);
@@ -69,11 +72,6 @@ export default {
         this.isLocallyRunning = newVal;
       }
     }
-  },
-  mounted() {
-    const workflowStore = useWorkflowStore();
-    this.nodeData = workflowStore.getNodeById(this.nodeId);
-    console.log(this.nodeData.name);
   },
   methods: {
     async startWorkflow() {

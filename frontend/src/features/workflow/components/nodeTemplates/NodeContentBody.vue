@@ -210,7 +210,6 @@ export default defineComponent({
   data() {
     return {
       error: null as string | null,
-      nodeData: null as Node | null,
       jobs: [] as Array<GetJobMetadataResponse & {
         executionStatus: JobStateEnum | null
       }>,
@@ -240,9 +239,13 @@ export default defineComponent({
     };
   },
   async mounted() {
-    const workflowStore = useWorkflowStore();
-    this.nodeData = workflowStore.getNodeById(this.nodeId);
     await this.updateJobs();
+  },
+  computed: {
+    nodeData(): Node | null {
+      const workflowStore = useWorkflowStore();
+      return workflowStore.getNodeById(this.nodeId);
+    },
   },
   watch: {
     'nodeData.data.jobIdsToUpdate': {

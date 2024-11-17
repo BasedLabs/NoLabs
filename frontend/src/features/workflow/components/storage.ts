@@ -139,8 +139,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
         const uploadedProtein = await uploadProtein(
           experimentId,
           name,
-          file.name.endsWith('.fasta') ? file : undefined,
-          file.name.endsWith('.pdb') ? file : undefined,
+          file?.name.endsWith('.fasta') ? file : undefined,
+          file?.name.endsWith('.pdb') ? file : undefined,
           link // Pass the link if it exists
         );
 
@@ -513,6 +513,10 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.elements.nodes = nodes;
         this.elements.edges = edges;
 
+        for (const component of this.elements.nodes) {
+          this.updateComponentState(component.id, component.data.state);
+        }
+
         this.componentOptions = workflow.component_templates.map(component => ({
           name: component.name,
           type: component.name,
@@ -520,6 +524,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
           outputs: component.output,
           description: component.description as string
         }));
+
       } catch (error) {
         console.error("Error fetching workflow:", error);
       }
@@ -669,22 +674,23 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.sendWorkflowUpdate();
       }
     },
-    updateComponentState(componentId: string, newState: ComponentStateEnum) {
-      const component = this.getNodeById(componentId);  // Assuming you have getNodeById method to find the component
+    updateComponentState(componentId: string, newState: ComponentStateEnum, errorMessage?: string) {
+      const component = this.getNodeById(componentId);
 
       if (component) {
         // Update the state of the component
         component.data.state = newState;
 
+        // Update the error message
+        component.data.stateMessage = errorMessage || null;
+
         // Manage the runningComponentIds list based on the new state
         if (newState === ComponentStateEnum.RUNNING) {
-          // Add the component to the list of running components if it's not already there
           if (!this.runningComponentIds.includes(componentId)) {
             this.runningComponentIds.push(componentId);
             console.log(`Component ${componentId} added to running components.`);
           }
-        } else if (newState === ComponentStateEnum.COMPLETED) {
-          // Remove the component from the running list once it has completed
+        } else if (newState === ComponentStateEnum.COMPLETED || newState === ComponentStateEnum.FAILED) {
           this.runningComponentIds = this.runningComponentIds.filter(id => id !== componentId);
           console.log(`Component ${componentId} removed from running components.`);
         }
