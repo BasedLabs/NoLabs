@@ -27,7 +27,6 @@ class Settings(BaseSettings):
     connection_string: str
     socketio_broker: str
     enable_biobuddy: bool
-    enable_structured_logging: bool
     reinvent_directory: Path
     blast_email: str
     uvicorn_host: str = "0.0.0.0"

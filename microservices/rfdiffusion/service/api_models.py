@@ -7,7 +7,6 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 class RunRfdiffusionRequest(BaseModel):
-    job_id: UUID
     pdb_content: str
     contig: str
     hotspots: Optional[str] = ''

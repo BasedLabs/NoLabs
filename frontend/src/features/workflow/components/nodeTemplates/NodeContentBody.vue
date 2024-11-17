@@ -148,12 +148,10 @@ import {
   ComponentStateEnum, // Import ComponentStateEnum
 } from 'src/refinedApi/client';
 import EsmFoldJob from '../jobs/EsmFoldJob.vue';
-import P2RankJob from '../jobs/P2RankJob.vue';
 import DiffDockJob from '../jobs/DiffDockJob.vue';
 import draggable from 'vuedraggable';
 import { Notify } from 'quasar';
 import componentApi from './componentApi';
-import MsaJob from '../jobs/MsaJob.vue';
 import ComponentExceptionsModal from './ComponentExceptionsModal.vue';
 
 export default defineComponent({
@@ -161,8 +159,6 @@ export default defineComponent({
   components: {
     ComponentExceptionsModal,
     EsmFoldJob,
-    P2RankJob,
-    MsaJob,
     draggable,
     DiffDockJob,
   },
@@ -193,64 +189,16 @@ export default defineComponent({
       api: componentApi.rosettafold
     },
     {
-      name: "Binding pockets",
-      tab: false,
-      component: P2RankJob,
-      api: componentApi.bindingPockets
-    },
-    {
       name: "DiffDock",
       tab: false,
       component: DiffDockJob,
       api: componentApi.diffdock
     },
     {
-      name: "Blast",
-      tab: true,
-      routeName: "Blast",
-      api: componentApi.blast
-    },
-    {
-      name: "Msa generation",
-      tab: false,
-      component: MsaJob,
-      api: componentApi.msaGeneration
-    },
-    {
-      name: "Localisation",
-      tab: true,
-      routeName: "Localisation",
-      api: componentApi.localisation
-    },
-    {
-      name: "Solubility",
-      tab: true,
-      routeName: "Solubility",
-      api: componentApi.solubility
-    },
-    {
-      name: "Gene ontology",
-      tab: true,
-      routeName: "Gene ontology",
-      api: componentApi.geneOntology
-    },
-    {
-      name: "Conformations",
-      tab: true,
-      routeName: "Conformations",
-      api: componentApi.conformations
-    },
-    {
       name: "Protein binder design",
       tab: true,
-      routeName: "Protein design",
+      routeName: "Rfdiffusion",
       api: componentApi.proteinDesign
-    },
-    {
-      name: "Small molecules design",
-      tab: true,
-      routeName: "Small molecules design",
-      api: componentApi.smallMoleculesDesign
     },
     {
       name: "ProteinMPNN",

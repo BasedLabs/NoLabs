@@ -64,13 +64,13 @@
 
 <script lang="ts">
 import LigandDetail from "./LigandDetail.vue";
-import { useWorkflowStore } from "src/features/drug_discovery/components/workflow/storage";
+import { useWorkflowStore } from "../../../../../components/workflow/storage";
 import { QSpinnerOrbit } from "quasar";
 import { defineComponent } from "vue";
 import { LigandMetadataResponse, LigandContentResponse } from "src/refinedApi/client";
 import { useBioBuddyStore } from "src/features/biobuddy/storage";
 import { ChemBLData } from "src/refinedApi/client";
-import { getLigandContent } from "src/features/drug_discovery/refinedApi";
+import { getLigandContent } from "../../../../../refinedApi";
 
 export default defineComponent({
     name: "LigandsList",

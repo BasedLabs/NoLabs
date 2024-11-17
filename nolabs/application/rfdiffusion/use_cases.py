@@ -12,11 +12,12 @@ from uuid import UUID
 from mongoengine import Q
 
 from nolabs.application.rfdiffusion.api_models import JobResponse, SetupJobRequest
+from nolabs.application.rfdiffusion.worker_models import RunRfdiffusionRequest, RunRfdiffusionResponse
 from nolabs.application.rfdiffusion.workflow import RfDiffusionInput, RfDiffusionOutput
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.domain.models.common import JobId, JobName, Experiment, Protein, ProteinName
 from nolabs.domain.models.protein_design import RfdiffusionJob
-from nolabs.infrastructure.celery_app_factory import get_celery_app
+from nolabs.infrastructure.celery_app_factory import get_celery_app, wait_for_task
 
 
 def map_job_to_response(job: RfdiffusionJob) -> JobResponse:
@@ -100,22 +101,23 @@ class RunJobFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        response = self._api.run_rfdiffusion_endpoint_run_post(
-            run_rfdiffusion_request=protein_design_microservice.RunRfdiffusionRequest(
-                pdb_content=job.protein.get_pdb(),
-                hotspots=job.hotspots,
-                contig=job.contig,
-                timesteps=job.timesteps,
-                number_of_designs=job.number_of_designs,
-                job_id=job_id
-            )
-        )
+        task_id = get_celery_app().send_task(name='design', queue='rfdiffusion',
+                                             kwargs={'param': RunRfdiffusionRequest(
+                                                pdb_content=job.protein.get_pdb(),
+                                                 contig=job.contig,
+                                                 hotspots=job.hotspots,
+                                                 timesteps=job.timesteps,
+                                                 number_of_designs=job.number_of_designs
+                                             )})
 
-        if response.errors and not response.pdbs_content:
-            raise NoLabsException(ErrorCodes.protein_design_run_error, response.errors)
+        job_result = await wait_for_task(task_id=task_id)
+        job_result = RunRfdiffusionResponse(**job_result)
+
+        if job_result.errors and not job_result.pdbs_content:
+            raise NoLabsException(ErrorCodes.protein_design_run_error, ', '.join(job_result.errors))
 
         binders: List[Protein] = []
-        for i, pdb in enumerate(response.pdbs_content):
+        for i, pdb in enumerate(job_result.pdbs_content):
             binder = Protein.create(
                 experiment=job.component.experiment.id,
                 name=ProteinName(f'{job.protein.name.value}-binder'),

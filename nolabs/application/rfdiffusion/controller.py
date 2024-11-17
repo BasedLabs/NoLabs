@@ -12,7 +12,6 @@ from nolabs.application.rfdiffusion.use_cases import RunJobFeature, GetJobFeatur
 router = APIRouter(
     prefix='/api/v1/rfdiffusion',
     tags=['Rfdiffusion'],
-
 )
 
 

@@ -87,7 +87,6 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
             raise NoLabsException(ErrorCodes.component_input_invalid, message=message)
 
         input = RunRfdiffusionRequest(
-            job_id=job_id,
             pdb_content=job.protein.get_pdb(),
             contig=job.contig,
             hotspots=job.hotspots,

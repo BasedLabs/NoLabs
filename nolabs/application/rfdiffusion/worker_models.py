@@ -5,11 +5,10 @@ from pydantic import BaseModel, Field
 
 
 class RunRfdiffusionRequest(BaseModel):
-    job_id: UUID
     pdb_content: str
     contig: str
     hotspots: Optional[str] = ''
-    timesteps: Optional[int] = 10
+    timesteps: Optional[int] = 50
     number_of_designs: Optional[int] = 1
 
 
