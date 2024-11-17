@@ -348,7 +348,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       const idMapping = new Map<string, string>();
 
       // Process new nodes and generate UUIDs
-      const newNodes = data.components.map(component => {
+      const newNodes = data.workflow_components.map(component => {
         if (existingNodeIds.includes(component.id)) {
           return component; // Retain existing component
         } else {
@@ -394,7 +394,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       });
 
       // Adjust connections (edges)
-      const newEdges = data.components.flatMap(component =>
+      const newEdges = data.workflow_components.flatMap(component =>
         component.connections.map(conn => {
           // Adjust source_component_id if it matches an old ID
           const adjustedSourceId = idMapping.get(conn.source_component_id) || conn.source_component_id;

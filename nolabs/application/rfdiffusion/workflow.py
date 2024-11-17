@@ -21,12 +21,12 @@ class RfDiffusionInput(BaseModel):
 
 
 class RfDiffusionOutput(BaseModel):
-    binder_proteins: List[uuid.UUID]
+    proteins_with_pdb: List[uuid.UUID]
 
 
 class RfDiffusionComponent(Component[RfDiffusionInput, RfDiffusionOutput]):
-    name = 'Protein binder design'
-    description = 'Protein binder prediction using Rfdiffusion'
+    name = 'RFDiffusion Binder Design'
+    description = 'Protein binder prediction using RFDiffusion (generates PDBs of binders)'
 
     @property
     def input_parameter_type(self) -> Type[TInput]:

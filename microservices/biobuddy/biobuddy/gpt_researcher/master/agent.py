@@ -2,7 +2,7 @@ import time
 
 from ..config import Config
 from ..context.compression import ContextCompressor
-from ..memory import Memory
+from ..memory.embeddings import Memory
 from .functions import (
     asyncio,
     choose_agent,
