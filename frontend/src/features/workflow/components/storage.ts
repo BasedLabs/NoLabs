@@ -435,6 +435,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
     },
     async fetchWorkflow(experimentId: string) {
       this.experimentId = experimentId;
+      this.runningComponentIds = [];
       try {
         const workflow = await getWorkflow(experimentId);
         if (!workflow) {
@@ -514,7 +515,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.elements.edges = edges;
 
         for (const component of this.elements.nodes) {
-          this.updateComponentState(component.id, component.data.state);
+          this.updateComponentState(component.id, component.data.state, component.data.stateMessage);
         }
 
         this.componentOptions = workflow.component_templates.map(component => ({
