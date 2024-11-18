@@ -55,6 +55,10 @@ jobs:
         run: |
           echo "BUILD_CONTEXT=$(python .github/scripts/parse_compose_service_build_context.py ${{ inputs.microservice_name }})" >> $GITHUB_ENV
 
+      - name: Get image build Dockerfile
+        run: |
+          echo "DOCKERFILE=$(python .github/scripts/parse_compose_service_dockerfile.py ${{ inputs.microservice_name }})" >> $GITHUB_ENV
+
       - name: Image name
         run: echo "$IMAGE_TAG"
 
@@ -65,7 +69,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ env.BUILD_CONTEXT }}
-          file: ${{ env.BUILD_CONTEXT }}/build/Dockerfile
+          file: ${{ env.BUILD_CONTEXT }}/${{ env.DOCKERFILE }}
           push: true
           tags: ${{ env.IMAGE_TAG }}
           cache-from: type=gha
