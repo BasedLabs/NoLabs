@@ -73,7 +73,8 @@ def start(beat=False):
         "-n",
         f"workflow-{str(uuid.uuid4())}",
         "--scheduler",
-        "redbeat.RedBeatScheduler"
+        "redbeat.RedBeatScheduler",
+        "--loglevel", settings.logging_level
     ]
     if beat:
         args.append("-B")

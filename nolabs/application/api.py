@@ -80,4 +80,4 @@ app.add_middleware(
 
 logger.info("Go to /docs to see Swagger")
 
-uvicorn.run(app, host=settings.uvicorn_host, port=settings.uvicorn_port)
+uvicorn.run(app, host=settings.uvicorn_host, port=settings.uvicorn_port, log_level=settings.logging_level.lower())

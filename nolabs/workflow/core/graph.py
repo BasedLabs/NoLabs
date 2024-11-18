@@ -128,7 +128,6 @@ class Graph:
                 await node.cancel()
 
     async def sync(self):
-        logger.info("Graph sync check", extra={"experiment_id": self.experiment_id})
         lock = redlock(key=self._id, blocking=False, auto_release_time=10.0)
 
         if not lock.acquire():
@@ -139,8 +138,6 @@ class Graph:
             return
 
         try:
-            logger.info("Graph is syncing", extra={"experiment_id": self.experiment_id})
-
             metadata = await self._get_metadata()
             if not metadata:
                 return
@@ -180,8 +177,5 @@ class Graph:
 
                 await node.sync_started()
         finally:
-            logger.info(
-                "Graph syncing finish", extra={"experiment_id": self.experiment_id}
-            )
             if lock.owned():
                 lock.release()
