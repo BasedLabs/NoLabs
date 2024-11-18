@@ -50,6 +50,7 @@ def generate_strategy_prompt(
         f'Do not come up with your own inputs, outputs, or components. Use only the data from available components. '
         f"Your response should include the plan and the adjusted workflow if necessary. Add a short summary of changes before the JSON if you are adjusting the workflow (but don't add 'Adjusted workflow:' before the json. The workflow should be in the JSON format: "
         f'<WORKFLOW> {{"workflow_components": [{{"id": "newId_1", "name": "component_name", "description": "component_description", "connections": [{{"source_output": ["source_output_name"], "target_input": ["target_input_name"], "source_component_id": "source_id"}}]}}]}} <END_WORKFLOW>.'
+        f'For an arbitrary protein design workflow it is reasonable to connect protein compomnent to RF diffusion (you can connect "proteins" output to "proteins_with_pdb" input), then rf diffusion to proteinmpnn and proteinmpnn to esmfold_light (make sure to check their inputs and outputs).'
     )
 
 
