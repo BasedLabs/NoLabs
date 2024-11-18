@@ -195,7 +195,7 @@ export default defineComponent({
       api: componentApi.diffdock
     },
     {
-      name: "Protein binder design",
+      name: "RFDiffusion Binder Design",
       tab: true,
       routeName: "Rfdiffusion",
       api: componentApi.proteinDesign
