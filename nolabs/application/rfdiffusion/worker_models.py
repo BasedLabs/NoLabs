@@ -1,5 +1,4 @@
 from typing import Optional, List
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -11,6 +10,7 @@ class RunRfdiffusionRequest(BaseModel):
     inpaint: Optional[str] = ''
     timesteps: Optional[int] = 50
     number_of_designs: Optional[int] = 1
+    remove_chain: Optional[str] = ''
 
 
 class RunRfdiffusionResponse(BaseModel):

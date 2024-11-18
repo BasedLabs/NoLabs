@@ -415,10 +415,18 @@ class Component(Generic[TInput, TOutput]):
         else:
             self.output_value_dict = value.model_dump()
 
-    def output_errors(self) -> List[PropertyValidationError]:
-        return self.output_schema._validate_dictionary(
+    def output_errors(self, rse=False) -> List[PropertyValidationError]:
+        errors = self.output_schema._validate_dictionary(
             t=self.output_parameter_type, dictionary=self.output_value_dict
         )
+        if rse and errors:
+            messages = []
+            for error in errors:
+                message = f'{error.msg}: '
+                message += ', '.join(x for x in error.loc)
+                messages.append(message)
+            raise NoLabsException(ErrorCodes.component_input_invalid, message='; '.join(messages))
+        return errors
 
     @property
     @abstractmethod
@@ -432,10 +440,18 @@ class Component(Generic[TInput, TOutput]):
     def input_value(self) -> TInput:
         return self.input_parameter_type(**self.input_value_dict)
 
-    def input_errors(self):
-        return self.input_schema._validate_dictionary(
+    def input_errors(self, rse=False) -> List[PropertyValidationError]:
+        errors = self.input_schema._validate_dictionary(
             t=self.input_parameter_type, dictionary=self.input_value_dict
         )
+        if rse and errors:
+            messages = []
+            for error in errors:
+                message = f'Msg: {error.msg}'
+                message += ', '.join(x for x in error.loc)
+                messages.append(message)
+            raise NoLabsException(ErrorCodes.component_input_invalid, message='; '.join(messages))
+        return errors
 
     def try_map_property(
         self, component: "Component", path_from: List[str], target_path: List[str]

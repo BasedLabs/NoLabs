@@ -40,21 +40,7 @@ def register_workflow_celery_tasks(celery: Celery):
                     previous_component_id
                 )
                 previous_component = _get_component(from_state=previous_component_state)
-
-                errors = previous_component.output_errors()
-                if errors:
-                    logger.info(
-                        "Previous component output errors",
-                        extra={
-                            **extra,
-                            **{
-                                "previous_component_id": previous_component_id,
-                                "errors": [(e.msg, e.loc) for e in errors],
-                            },
-                        },
-                    )
-                    return
-
+                previous_component.output_errors(rse=True)
                 prev_components.append(previous_component)
 
             component.set_input_from_previous(prev_components)
@@ -148,17 +134,7 @@ def register_workflow_celery_tasks(celery: Celery):
             )
             component.output_value = output or {}
 
-            output_errors = component.output_errors()
-            if output_errors:
-                errors = []
-                for output_error in output_errors:
-                    msg = output_error.msg
-                    for loc in output_error.loc:
-                        msg += f', loc: {loc}'
-                    errors.append(msg)
-                raise NoLabsException(ErrorCodes.component_output_invalid,
-                                      message=", ".join(errors))
-
+            component.output_errors(rse=True)
             component.dump(data=data)
             data.save()
 

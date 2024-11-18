@@ -26,6 +26,7 @@ class RfdiffusionJob(Job):
     hotspots: str = StringField(required=False)
     timesteps: int = IntField(required=False, default=50)
     inpaint: str = StringField(required=False)
+    remove_chain: str = StringField(required=False)
 
     def set_input(
         self,
@@ -34,7 +35,8 @@ class RfdiffusionJob(Job):
         number_of_designs: int,
         hotspots: str,
         timesteps: int,
-        inpaint: str
+        inpaint: str,
+        remove_chain: str,
     ):
         self.binders = []
         self.contig = contig
@@ -43,6 +45,7 @@ class RfdiffusionJob(Job):
         self.timesteps = timesteps
         self.inpaint = inpaint
         self.protein = protein
+        self.remove_chain = remove_chain.strip()
 
         self.input_errors(throw=True)
 

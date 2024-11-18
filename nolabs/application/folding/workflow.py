@@ -111,7 +111,7 @@ class FoldingComponentFlow(ComponentFlowHandler):
             if job and job.folded_protein:
                 items.append(job.folded_protein.id)
 
-        return FoldingComponentOutput(proteins_with_pdb=items)
+        return FoldingComponentOutput(proteins_with_pdb=2)
 
     async def on_job_task(self, job_id: uuid.UUID):
         job: FoldingJob = FoldingJob.objects.with_id(job_id)

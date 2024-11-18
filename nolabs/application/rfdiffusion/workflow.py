@@ -1,4 +1,5 @@
 import uuid
+from io import StringIO
 from typing import List, Type, Optional, Dict, Any
 
 from pydantic import BaseModel
@@ -10,6 +11,7 @@ from nolabs.domain.models.protein_design import RfdiffusionJob
 from nolabs.infrastructure.mongo_connector import get_connection
 from nolabs.workflow.core.component import Component, TOutput, TInput
 from nolabs.workflow.core.flow import ComponentFlowHandler
+from Bio.PDB import PDBParser, PDBIO
 
 
 class RfDiffusionInput(BaseModel):
@@ -19,6 +21,7 @@ class RfDiffusionInput(BaseModel):
     number_of_designs: int = 1
     hotspots: str = ''
     inpaint: str = ''
+    remove_chain: str = ''
 
 
 class RfDiffusionOutput(BaseModel):
@@ -61,18 +64,13 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
                     name=job_name,
                     component=self.component_id,
                 )
-                job.set_input(protein=protein,
-                              contig=inp.contig,
-                              number_of_designs=inp.number_of_designs,
-                              hotspots=inp.hotspots,
-                              timesteps=inp.timesteps,
-                              inpaint=inp.inpaint)
             job.set_input(protein=protein,
                           contig=inp.contig,
                           number_of_designs=inp.number_of_designs,
                           hotspots=inp.hotspots,
                           timesteps=inp.timesteps,
-                          inpaint=inp.inpaint)
+                          inpaint=inp.inpaint,
+                          remove_chain=inp.remove_chain)
             await job.save(cascade=True)
 
             job_ids.append(job.id)
@@ -116,6 +114,9 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
         session = db.client.start_session()
         with session.start_transaction():
             for pdb_content in output.pdbs_content:
+                if job.remove_chain:
+                    pdb_content = self._remove_chain_from_pdb(pdb_content=pdb_content,
+                                                              chain_id_to_remove=job.remove_chain)
                 protein = Protein.create(
                     experiment=self.experiment_id,
                     name=ProteinName(f"{job.protein.name.value}-binder"),
@@ -125,6 +126,41 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
                 proteins.append(protein)
             job.set_result(binders=proteins)
             await job.save()
+
+    def _remove_chain_from_pdb(self, pdb_content, chain_id_to_remove):
+        """
+        Remove a specified chain from PDB content provided as a string.
+
+        Parameters:
+        - pdb_content (str): The content of the PDB file as a string.
+        - chain_id_to_remove (str): The ID of the chain to remove.
+
+        Returns:
+        - str: The modified PDB content as a string without the specified chain.
+        """
+        # Create a file-like object from the input string
+        pdb_io = StringIO(pdb_content)
+
+        parser = PDBParser(QUIET=True)
+        structure = parser.get_structure('protein_structure', pdb_io)
+
+        for model in structure:
+            # Collect chains to remove
+            chains_to_remove = []
+            for chain in model:
+                # Check if the chain ID matches the one to remove
+                if chain.id == chain_id_to_remove:
+                    chains_to_remove.append(chain)
+            for chain in chains_to_remove:
+                model.detach_child(chain.id)
+
+        output_io = StringIO()
+        io = PDBIO()
+        io.set_structure(structure)
+        io.save(output_io)
+        modified_pdb_content = output_io.getvalue()
+
+        return modified_pdb_content
 
     async def on_completion(
             self, inp: RfDiffusionInput, job_ids: List[uuid.UUID]
