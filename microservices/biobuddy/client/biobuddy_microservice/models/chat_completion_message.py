@@ -13,35 +13,43 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel
-from typing import Any, ClassVar, Dict, List, Optional
-from biobuddy_microservice.models.chat_completion_message_function_call import ChatCompletionMessageFunctionCall
+from biobuddy_microservice.models.chat_completion_message_function_call import (
+    ChatCompletionMessageFunctionCall,
+)
 from biobuddy_microservice.models.content import Content
 from biobuddy_microservice.models.tool_calls import ToolCalls
-from typing import Optional, Set
+from pydantic import BaseModel
 from typing_extensions import Self
+
 
 class ChatCompletionMessage(BaseModel):
     """
     ChatCompletionMessage
-    """ # noqa: E501
+    """  # noqa: E501
+
     content: Optional[Content] = None
     role: Optional[Any]
     function_call: Optional[ChatCompletionMessageFunctionCall] = None
     tool_calls: Optional[ToolCalls] = None
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["content", "role", "function_call", "tool_calls"]
+    __properties: ClassVar[List[str]] = [
+        "content",
+        "role",
+        "function_call",
+        "tool_calls",
+    ]
 
     model_config = {
         "populate_by_name": True,
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -68,9 +76,11 @@ class ChatCompletionMessage(BaseModel):
           are ignored.
         * Fields in `self.additional_properties` are added to the output dict.
         """
-        excluded_fields: Set[str] = set([
-            "additional_properties",
-        ])
+        excluded_fields: Set[str] = set(
+            [
+                "additional_properties",
+            ]
+        )
 
         _dict = self.model_dump(
             by_alias=True,
@@ -79,13 +89,13 @@ class ChatCompletionMessage(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of content
         if self.content:
-            _dict['content'] = self.content.to_dict()
+            _dict["content"] = self.content.to_dict()
         # override the default output from pydantic by calling `to_dict()` of function_call
         if self.function_call:
-            _dict['function_call'] = self.function_call.to_dict()
+            _dict["function_call"] = self.function_call.to_dict()
         # override the default output from pydantic by calling `to_dict()` of tool_calls
         if self.tool_calls:
-            _dict['tool_calls'] = self.tool_calls.to_dict()
+            _dict["tool_calls"] = self.tool_calls.to_dict()
         # puts key-value pairs in additional_properties in the top level
         if self.additional_properties is not None:
             for _key, _value in self.additional_properties.items():
@@ -94,7 +104,7 @@ class ChatCompletionMessage(BaseModel):
         # set to None if role (nullable) is None
         # and model_fields_set contains the field
         if self.role is None and "role" in self.model_fields_set:
-            _dict['role'] = None
+            _dict["role"] = None
 
         return _dict
 
@@ -107,17 +117,29 @@ class ChatCompletionMessage(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "content": Content.from_dict(obj["content"]) if obj.get("content") is not None else None,
-            "role": obj.get("role"),
-            "function_call": ChatCompletionMessageFunctionCall.from_dict(obj["function_call"]) if obj.get("function_call") is not None else None,
-            "tool_calls": ToolCalls.from_dict(obj["tool_calls"]) if obj.get("tool_calls") is not None else None
-        })
+        _obj = cls.model_validate(
+            {
+                "content": (
+                    Content.from_dict(obj["content"])
+                    if obj.get("content") is not None
+                    else None
+                ),
+                "role": obj.get("role"),
+                "function_call": (
+                    ChatCompletionMessageFunctionCall.from_dict(obj["function_call"])
+                    if obj.get("function_call") is not None
+                    else None
+                ),
+                "tool_calls": (
+                    ToolCalls.from_dict(obj["tool_calls"])
+                    if obj.get("tool_calls") is not None
+                    else None
+                ),
+            }
+        )
         # store additional fields in additional_properties
         for _key in obj.keys():
             if _key not in cls.__properties:
                 _obj.additional_properties[_key] = obj.get(_key)
 
         return _obj
-
-

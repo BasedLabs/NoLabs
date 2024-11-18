@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from pydantic import dataclasses as pcdataclass
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from biobuddy.mixins import BaseModelMixin
+from pydantic import dataclasses as pcdataclass
 
 
 @pcdataclass.dataclass
@@ -13,11 +13,13 @@ class Component:
     inputs = List[str]
     outputs = List[str]
 
+
 @pcdataclass.dataclass
 class Connection:
     source_path: List[str]
     target_path: List[str]
     source_component_id: str
+
 
 @pcdataclass.dataclass
 class WorkflowComponent:
@@ -25,6 +27,7 @@ class WorkflowComponent:
     name: str
     description: str
     connections: List[Connection]
+
 
 @pcdataclass.dataclass
 class SendMessageToBioBuddyRequest(BaseModelMixin):
@@ -36,6 +39,7 @@ class SendMessageToBioBuddyRequest(BaseModelMixin):
     tools: List[Dict[str, Any]]
     current_workflow: List[WorkflowComponent] = None
     job_id: Optional[str] = None
+
 
 @pcdataclass.dataclass
 class SendActionCallRequest(BaseModelMixin):

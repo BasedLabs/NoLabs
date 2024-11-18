@@ -1,9 +1,10 @@
 # Tavily API Retriever
 
 # libraries
-import os
-import requests
 import json
+import os
+
+import requests
 from tavily import TavilyClient
 
 
@@ -11,6 +12,7 @@ class GoogleSearch:
     """
     Tavily API Retriever
     """
+
     def __init__(self, query):
         """
         Initializes the TavilySearch object
@@ -18,8 +20,8 @@ class GoogleSearch:
             query:
         """
         self.query = query
-        self.api_key = self.get_api_key() #GOOGLE_API_KEY
-        self.cx_key = self.get_cx_key() #GOOGLE_CX_KEY
+        self.api_key = self.get_api_key()  # GOOGLE_API_KEY
+        self.cx_key = self.get_cx_key()  # GOOGLE_CX_KEY
         self.client = TavilyClient(self.api_key)
 
     def get_api_key(self):
@@ -32,8 +34,10 @@ class GoogleSearch:
         try:
             api_key = os.environ["GOOGLE_API_KEY"]
         except:
-            raise Exception("Google API key not found. Please set the GOOGLE_API_KEY environment variable. "
-                            "You can get a key at https://developers.google.com/custom-search/v1/overview")
+            raise Exception(
+                "Google API key not found. Please set the GOOGLE_API_KEY environment variable. "
+                "You can get a key at https://developers.google.com/custom-search/v1/overview"
+            )
         return api_key
 
     def get_cx_key(self):
@@ -46,8 +50,10 @@ class GoogleSearch:
         try:
             api_key = os.environ["GOOGLE_CX_KEY"]
         except:
-            raise Exception("Google CX key not found. Please set the GOOGLE_CX_KEY environment variable. "
-                            "You can get a key at https://developers.google.com/custom-search/v1/overview")
+            raise Exception(
+                "Google CX key not found. Please set the GOOGLE_CX_KEY environment variable. "
+                "You can get a key at https://developers.google.com/custom-search/v1/overview"
+            )
         return api_key
 
     def search(self, max_results=7):

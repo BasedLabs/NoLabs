@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y wget git build-essential
 WORKDIR /app
 
 # Copy the requirements file and install Python dependencies
-COPY ./requirements.txt /app/
+COPY requirements.txt /app
+
 # Ensure pip is up-to-date
 RUN pip install --upgrade pip
 # Install dependencies from requirements.txt
@@ -30,10 +31,11 @@ RUN pip install --upgrade pip && \
                         e3nn==0.5.0 \
                         spyrmsd==0.5.2 \
                         pandas==1.5.3 \
-                        biopandas==0.4.1
+                        biopandas==0.4.1 \
+                        scikit-learn
 
 # Install PyTorch Geometric and its dependencies
-RUN pip install git+https://github.com/pyg-team/pytorch_geometric.git
+RUN pip install git+https://github.com/pyg-team/pytorch_geometric.git@2.4.0
 RUN pip install --no-index torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-1.11.0+cu113.html
 
 # Clone the ESM repository, check out the specified commit, and install
@@ -45,16 +47,6 @@ RUN if [ ! -d "DiffDock/esm" ]; then \
         pip install -e .; \
     fi
 
-# Set up environment variables for ESM model weights
-ENV HOME=/app/DiffDock/esm/model_weights
-
-# Create directories for model weights and cache
-RUN mkdir -p $HOME/.cache/torch/hub/checkpoints
-
-# Download ESM model weights
-RUN wget -P $HOME/.cache/torch/hub/checkpoints/ https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t33_650M_UR50D.pt && \
-    wget -P $HOME/.cache/torch/hub/checkpoints/ https://dl.fbaipublicfiles.com/fair-esm/regression/esm2_t33_650M_UR50D-contact-regression.pt
-
 RUN wget https://sourceforge.net/projects/smina/files/smina.static/download -O /app/DiffDock/smina && \
     chmod +x /app/DiffDock/smina
 
@@ -62,7 +54,6 @@ RUN wget https://sourceforge.net/projects/smina/files/smina.static/download -O /
 RUN wget https://github.com/gnina/gnina/releases/download/v1.0.3/gnina -O /app/DiffDock/gnina && \
     chmod +x /app/DiffDock/gnina
 
-# Copy the application files into the container
-COPY ./diffdock /app/diffdock
+ADD service /app/service
 
-ENTRYPOINT ["uvicorn", "diffdock.api:app"]
+WORKDIR /app/service

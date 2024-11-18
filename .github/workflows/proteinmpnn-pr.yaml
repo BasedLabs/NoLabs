@@ -1,0 +1,22 @@
+name: proteinmpnn-pr
+run-name: proteinmpnn-pr
+
+# Build and push nolabs image using GitHub Cache API
+# Only if relevant files were changed
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '../../microservices/proteinmpnn/**'
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/build-docker.yaml
+    with:
+      microservice_name: "proteinmpnn"

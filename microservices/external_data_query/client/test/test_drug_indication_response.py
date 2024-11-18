@@ -14,7 +14,10 @@
 
 import unittest
 
-from external_data_query_microservice.models.drug_indication_response import DrugIndicationResponse
+from external_data_query_microservice.models.drug_indication_response import (
+    DrugIndicationResponse,
+)
+
 
 class TestDrugIndicationResponse(unittest.TestCase):
     """DrugIndicationResponse unit test stubs"""
@@ -27,9 +30,9 @@ class TestDrugIndicationResponse(unittest.TestCase):
 
     def make_instance(self, include_optional) -> DrugIndicationResponse:
         """Test DrugIndicationResponse
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `DrugIndicationResponse`
         """
         model = DrugIndicationResponse()
@@ -74,5 +77,6 @@ class TestDrugIndicationResponse(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

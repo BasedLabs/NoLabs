@@ -1,15 +1,17 @@
 # SerpApi Retriever
 
 # libraries
-import os
-import requests
 import json
+import os
+
+import requests
 
 
-class SerpApiSearch():
+class SerpApiSearch:
     """
     SerpApi Retriever
     """
+
     def __init__(self, query):
         """
         Initializes the SerpApiSearch object
@@ -29,8 +31,10 @@ class SerpApiSearch():
         try:
             api_key = os.environ["SERPAPI_API_KEY"]
         except:
-            raise Exception("SerpApi API key not found. Please set the SERPAPI_API_KEY environment variable. "
-                            "You can get a key at https://serpapi.com/")
+            raise Exception(
+                "SerpApi API key not found. Please set the SERPAPI_API_KEY environment variable. "
+                "You can get a key at https://serpapi.com/"
+            )
         return api_key
 
     def search(self, max_results=7):
@@ -42,12 +46,16 @@ class SerpApiSearch():
         print("Searching with query {0}...".format(self.query))
         """Useful for general internet search queries using SerpApi."""
 
-
         # Perform the search
         # TODO: query needs to be url encoded, so the code won't work as is.
         # Encoding should look something like this (but this is untested):
         # url_encoded_query = self.query.replace(" ", "+")
-        url = "https://serpapi.com/search.json?engine=google&q=" + self.query + "&api_key=" + self.api_key
+        url = (
+            "https://serpapi.com/search.json?engine=google&q="
+            + self.query
+            + "&api_key="
+            + self.api_key
+        )
         resp = requests.request("GET", url)
 
         # Preprocess the results

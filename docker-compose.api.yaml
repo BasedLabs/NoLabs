@@ -1,0 +1,24 @@
+services:
+  esmfold-api:
+    extends:
+      service: esmfold
+      file: docker-compose.yaml
+    command: python api.py
+
+  rfdiffusion-api:
+    extends:
+      service: rfdiffusion
+      file: docker-compose.yaml
+    command: python3.9 api.py
+
+  diffdock-api:
+    extends:
+      service: diffdock
+      file: docker-compose.yaml
+    command: python api.py
+
+  proteinmpnn-api:
+    extends:
+      service: proteinmpnn
+      file: docker-compose.yaml
+    command: python api.py

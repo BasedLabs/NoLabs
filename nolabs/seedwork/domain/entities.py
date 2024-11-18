@@ -1,6 +1,4 @@
-__all__ = [
-    'Entity'
-]
+__all__ = ["Entity"]
 
 from typing import List
 

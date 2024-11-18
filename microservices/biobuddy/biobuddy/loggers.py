@@ -1,7 +1,10 @@
 import logging
-from pythonjsonlogger import jsonlogger
 
-from biobuddy.api_models import *
+from biobuddy.api_models import (
+    SendMessageToBioBuddyRequest,
+    SendMessageToBioBuddyResponse,
+)
+from pythonjsonlogger import jsonlogger
 
 _logger = logging.getLogger()
 
@@ -17,15 +20,16 @@ class Log:
     @staticmethod
     def send_message_request(request: SendMessageToBioBuddyRequest):
         d = request.as_log_dict()
-        _logger.info('Send message to biobuddy request', extra=d)
+        _logger.info("Send message to biobuddy request", extra=d)
 
     @staticmethod
     def folding_response(response: SendMessageToBioBuddyResponse):
         d = response.as_log_dict()
-        _logger.info('Send message to biobuddy response', extra=d)
+        _logger.info("Send message to biobuddy response", extra=d)
 
     @staticmethod
     def exception():
-        _logger.exception('Exception occurred in Bio buddy')
+        _logger.exception("Exception occurred in Bio buddy")
+
 
 logger = Log()

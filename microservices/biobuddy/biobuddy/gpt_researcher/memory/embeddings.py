@@ -1,4 +1,3 @@
-from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 
 
@@ -8,4 +7,3 @@ class Memory:
 
     def get_embeddings(self):
         return self._embeddings
-

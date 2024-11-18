@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "Rfdiffusion"
+version = "1.0.0"
+description = ""
+authors = ["Igor Bruev <jaktenstid1@gmail.com>","Timur Ishmuratov <ishmuratov7timur7@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+celery = {extras = ["redis"], version = "^5.4.0"}
+fastapi = "^0.115.4"
+uvicorn = "^0.32.0"
+python-dotenv = "^1.0.1"
+pydantic-settings = "^2.4.0"
+numpy = "1.26.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

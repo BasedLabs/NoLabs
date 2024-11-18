@@ -8,36 +8,36 @@
       </q-btn>
     </q-item>
     <q-expansion-item popup expand-separator :content-inset-level="1" v-for="protein in filteredProteins"
-      :key="protein.id" :label="protein.name" @show="loadProteinDetails(protein.id)">
+                      :key="protein.id" :label="protein.name" @show="loadProteinDetails(protein.id)">
       <q-btn color="negative" @click="deleteProtein(protein)" icon="delete" flat>
         Delete protein
       </q-btn>
-      <ProteinDetail v-if="protein.loadDetails" :experiment-id="experimentId" :protein-id="protein.id" />
+      <ProteinDetail v-if="protein.loadDetails" :experiment-id="experimentId" :protein-id="protein.id"/>
     </q-expansion-item>
   </q-list>
   <q-dialog v-model="uploadProteinDialog">
     <q-card>
       <q-card-section>
         <div class="text-h6">Upload Protein Files</div>
-        <q-file v-model="proteinFileModel" ref="proteinFileInput" accept=".fasta" multiple label="Choose files" />
+        <q-file v-model="proteinFileModel" ref="proteinFileInput" accept=".fasta,.pdb" multiple label="Choose files"/>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Close" color="negative" @click="uploadProteinDialog = false" />
-        <q-btn flat label="Upload" color="info" @click="uploadProteinFiles" />
+        <q-btn flat label="Close" color="negative" @click="uploadProteinDialog = false"/>
+        <q-btn flat label="Upload" color="info" @click="uploadProteinFiles"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script lang="ts">
-import { QSpinnerOrbit } from "quasar";
-import { defineComponent } from "vue";
-import { useWorkflowStore } from "src/features/workflow/components/storage";
-import { ProteinMetadataResponse } from "src/refinedApi/client";
+import {QSpinnerOrbit} from "quasar";
+import {defineComponent} from "vue";
+import {useWorkflowStore} from "src/features/workflow/components/storage";
+import {ProteinMetadataResponse} from "src/refinedApi/client";
 import ProteinDetail from "./ProteinDetail.vue";
-import { FunctionCallReturnData, RcsbPdbData } from "src/refinedApi/client";
-import { useBioBuddyStore } from "src/features/biobuddy/storage";
+import {FunctionCallReturnData, RcsbPdbData} from "src/refinedApi/client";
+import {useBioBuddyStore} from "src/features/biobuddy/storage";
 
 interface ExtendedProteinMetadataResponse extends ProteinMetadataResponse {
   loadDetails: boolean;
@@ -70,7 +70,7 @@ export default defineComponent({
   async mounted() {
     const workflowStore = useWorkflowStore();
     await workflowStore.getAllProteins(this.experimentId);
-    this.proteins = workflowStore.proteins.map(protein => ({ ...protein, loadDetails: false }));
+    this.proteins = workflowStore.proteins.map(protein => ({...protein, loadDetails: false}));
 
     const bioBuddyStore = useBioBuddyStore();
     this.rscbQueryCallBack = async (data: { files: RcsbPdbData[] }) => {
@@ -124,12 +124,13 @@ export default defineComponent({
         for (let index = 0; index < files.length; index++) {
           const file = files[index];
           const metaData = additionalMetaDataArray ? additionalMetaDataArray[index] : undefined;
-          await workflowStore.uploadProteinToExperiment(this.experimentId, this.nodeId, '', file, undefined, metaData);
+
+          await workflowStore.uploadProteinToExperiment(this.experimentId, this.nodeId, undefined, file, metaData);
         }
 
         // Re-fetch proteins after upload
         await workflowStore.getAllProteins(this.experimentId);
-        this.proteins = workflowStore.proteins.map(protein => ({ ...protein, loadDetails: false }));
+        this.proteins = workflowStore.proteins.map(protein => ({...protein, loadDetails: false}));
 
         // Check for duplicates in filtered proteins
         const filteredProteinIds = new Set();
@@ -162,7 +163,7 @@ export default defineComponent({
       });
       try {
         await workflowStore.deleteProteinFromExperiment(this.nodeId, proteinToDelete.id);
-        this.proteins = workflowStore.proteins.map(protein => ({ ...protein, loadDetails: false })); // Re-fetch proteins after deletion
+        this.proteins = workflowStore.proteins.map(protein => ({...protein, loadDetails: false})); // Re-fetch proteins after deletion
       } catch (error) {
         console.error('Error deleting protein:', error);
       } finally {

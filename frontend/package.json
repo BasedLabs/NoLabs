@@ -26,6 +26,7 @@
     "node-fetch": "^3.3.2",
     "pinia": "^2.0.11",
     "quasar": "^2.6.0",
+    "socket.io-client": "^4.8.1",
     "uuid": "^9.0.1",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0",

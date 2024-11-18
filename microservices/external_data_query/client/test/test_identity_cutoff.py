@@ -16,6 +16,7 @@ import unittest
 
 from external_data_query_microservice.models.identity_cutoff import IdentityCutoff
 
+
 class TestIdentityCutoff(unittest.TestCase):
     """IdentityCutoff unit test stubs"""
 
@@ -27,9 +28,9 @@ class TestIdentityCutoff(unittest.TestCase):
 
     def make_instance(self, include_optional) -> IdentityCutoff:
         """Test IdentityCutoff
-            include_option is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_option is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `IdentityCutoff`
         """
         model = IdentityCutoff()
@@ -46,5 +47,6 @@ class TestIdentityCutoff(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

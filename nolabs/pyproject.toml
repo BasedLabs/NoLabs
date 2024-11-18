@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "nolabs"
+version = "1.2.1"
+description = ""
+authors = ["JaktensTid <jaktenstid1@gmail.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+python-socketio = {extras = ["asyncio"], version = "^5.11.4"}
+python-dotenv = "^1.0.1"
+celery = {extras = ["redis"], version = "^5.4.0"}
+biobuddy-microservice = {path = "../microservices/biobuddy/client"}
+external-data-query-microservice = {path = "../microservices/external_data_query/client"}
+rdkit = "^2024.3.5"
+pydantic-settings = "^2.5.2"
+mongoengine = "^0.29.1"
+xmltodict = "^0.13.0"
+biopython = "^1.84"
+python-multipart = "^0.0.10"
+pottery = "^3.0.0"
+asgiref = "^3.8.1"
+fastapi = "^0.115.4"
+uvicorn = "^0.32.0"
+celery-redbeat = "^2.2.0"
+
+[tool.poetry.group.dev.dependencies]
+deptry = "^0.19.1"
+flower = "^2.0.1"
+idna = "^3.10"
+testcontainers = "^4.8.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.deptry]
+extend_exclude = ["microservices", ".*venv.*", "client"]

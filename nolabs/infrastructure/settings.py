@@ -1,59 +1,56 @@
-__all__ = [
-    'Settings'
-]
+from pathlib import Path
+from typing import Literal, Optional
 
-import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from pydantic import BaseModel
-from pydantic_settings import BaseSettings
-
-from nolabs.infrastructure.environment import Environment
-
-
-class MicroserviceSettings(BaseModel):
-    microservice: str = ''
-
-
-class MsaLightMicroserviceSettings(MicroserviceSettings):
-    msa_server_url: str = ''
-
-
-class RedisSettings(BaseModel):
-    host: str
-    port: int
-
-
-settings_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                                             f'appsettings.{os.environ["NOLABS_ENVIRONMENT"]}.json')
+directory = Path(__file__).resolve().parent
 
 
 class Settings(BaseSettings):
-    redis: RedisSettings
-    localisation: MicroserviceSettings = MicroserviceSettings()
-    biobuddy: MicroserviceSettings = MicroserviceSettings()
-    external_query: MicroserviceSettings = MicroserviceSettings()
-    esmfold: MicroserviceSettings = MicroserviceSettings()
-    esmfold_light: MicroserviceSettings = MicroserviceSettings()
-    rosettafold: MicroserviceSettings = MicroserviceSettings()
-    gene_ontology: MicroserviceSettings = MicroserviceSettings()
-    solubility: MicroserviceSettings = MicroserviceSettings()
-    reinvent: MicroserviceSettings = MicroserviceSettings()
-    protein_design: MicroserviceSettings = MicroserviceSettings()
-    conformations: MicroserviceSettings = MicroserviceSettings()
-    p2rank: MicroserviceSettings = MicroserviceSettings()
-    msa_light: MsaLightMicroserviceSettings = MsaLightMicroserviceSettings()
-    umol: MicroserviceSettings = MicroserviceSettings()
-    diffdock: MicroserviceSettings = MicroserviceSettings()
-    blast: MicroserviceSettings = MicroserviceSettings()
+    model_config = SettingsConfigDict(
+        env_file=[directory / ".env"],
+        case_sensitive=False,
+        env_ignore_empty=True,
+        extra="ignore",
+        env_prefix="NOLABS_",
+    )
+    biobuddy_host: str
+    external_query_host: str
+    esmfold_light_host: str
+    reinvent_host: str
+    diffdock_host: str
+    redis_url: str
+    workflow_queue: str = "workflow"
+    celery_worker_pool: str = "prefork"
+    celery_worker_state_db: str = "/tmp/celery-state.db"
     connection_string: str
+    enable_biobuddy: bool
+    reinvent_directory: Path
+    uvicorn_host: str = "0.0.0.0"
+    uvicorn_port: int = 8000
+    celery_worker_concurrency: int = 20
+    environment: Literal["local", "test", "production"] = "local"
+    logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
+    logging_structured: bool = False
 
-    @classmethod
-    def load(cls):
-        return cls.parse_file(settings_path)
 
-    def get_environment(self) -> Environment:
-        key = 'NOLABS_ENVIRONMENT'
-        if key not in os.environ:
-            return Environment.LOCAL
+_settings: Optional[Settings] = None
 
-        return Environment[key]
+
+class SettingsProxy:
+    def __getattr__(self, name):
+        global _settings
+        return getattr(_settings, name)
+
+    def __call__(self):
+        global _settings
+        return self._settings
+
+
+settings: Settings = SettingsProxy()  # type: ignore
+
+
+def initialize_settings():
+    global _settings
+
+    _settings = Settings()

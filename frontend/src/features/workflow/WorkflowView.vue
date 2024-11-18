@@ -22,20 +22,6 @@
         <q-spinner color="white" size="20px" />
         Running...
       </q-btn>
-      <q-btn-dropdown icon="more_vert" class="q-ma-sm" color="primary" dense>
-        <q-list>
-          <q-item clickable v-close-popup @click="confirmDeleteWorkflow">
-            <q-item-section>
-              <q-btn color="red" icon="delete">Delete workflow</q-btn>
-            </q-item-section>
-          </q-item>
-          <q-item clickable v-close-popup @click="confirmResetWorkflow">
-            <q-item-section>
-              <q-btn color="orange" icon="refresh">Reset workflow</q-btn>
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-btn-dropdown>
     </div>
 
     <div class="map-container">
@@ -63,29 +49,6 @@
       </VueFlow>
     </div>
 
-    <!-- Delete Confirmation Dialog -->
-    <q-dialog v-model="showDeleteDialog" persistent>
-      <q-card>
-        <q-card-section class="text-h6">Are you sure you want to delete the workflow?</q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Delete" color="negative" @click="deleteWorkflowConfirmed" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Reset Confirmation Dialog -->
-    <q-dialog v-model="showResetDialog" persistent>
-      <q-card>
-        <q-card-section class="text-h6">Are you sure you want to reset the workflow? All jobs will be
-          deleted</q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Reset" color="orange" @click="resetWorkflowConfirmed" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <q-dialog v-model="modalOpen" persistent>
       <q-card style="min-width: 70vw; min-height: 70vh;">
         <q-card-actions align="right">
@@ -109,6 +72,8 @@
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 
+import { io } from 'socket.io-client';
+
 import BioBuddyChat from "src/features/biobuddy/BioBuddyChat.vue";
 import ProteinListNode from "./components/nodeTemplates/dataSourceNodes/proteins/ProteinListNode.vue";
 import ProteinListNodeContent from "./components/nodeTemplates/dataSourceNodes/proteins/ProteinListNodeContent.vue";
@@ -116,25 +81,19 @@ import LigandListNode from "./components/nodeTemplates/dataSourceNodes/ligands/L
 import LigandListNodeContent from "./components/nodeTemplates/dataSourceNodes/ligands/LigandListNodeContent.vue";
 import ErrorEdge from "./components/nodeTemplates/ErrorEdge.vue"
 import { defineComponent, onBeforeUnmount } from "vue";
-import { Edge, Node as FlowNode } from '@vue-flow/core';
 import { VueFlow } from '@vue-flow/core';
 import JobNode from "./components/nodeTemplates/JobNode.vue";
 import JobNodeContent from "./components/nodeTemplates/JobNodeContent.vue";
-import { startWorkflow, checkBiobuddyEnabled, getExistingWorkflows, createWorkflow, deleteWorkflow, resetWorkflow } from './refinedApi';
-import { useWorkflowStore } from './components/storage';
+import {
+  startWorkflow,
+  checkBiobuddyEnabled,
+  createWorkflow,
+  getWorkflow,
+  getComponentState,
+} from './refinedApi';
+import { useWorkflowStore, Edge, Node } from './components/storage';
 import { useBioBuddyStore } from "src/features/biobuddy/storage";
-
-// Define custom Node type
-interface Node extends FlowNode {
-  id: string;
-  name: string;
-  type: string;
-  inputs: string[];
-  outputs: string[];
-  jobIds: string[];
-  description: string;
-  error: string;
-}
+import {ComponentStateEnum, JobStateEnum} from "../../refinedApi/client";
 
 export default defineComponent({
   name: "WorkflowView",
@@ -170,9 +129,6 @@ export default defineComponent({
       splitterModel: 20,
       bioBuddyEnabled: false,
       biobuddyWorkflowCallBack: null as ((data: any) => void) | null,
-      workflowId: "", // Set initially to empty
-      showDeleteDialog: false, // State for delete confirmation dialog
-      showResetDialog: false,  // State for reset confirmation dialog
       pollIntervalId: null as number | null, // Interval ID for polling
       isLocallyRunning: false // Local running state
     };
@@ -209,7 +165,7 @@ export default defineComponent({
 
     const workflowStore = useWorkflowStore();
     await workflowStore.getAllProteins(this.experiment.experimentId);
-    await workflowStore.fetchWorkflow(this.workflowId);
+    await workflowStore.fetchWorkflow(this.experiment.experimentId);
     this.elements = workflowStore.elements;
 
 
@@ -223,33 +179,73 @@ export default defineComponent({
 
     this.connectWebSocket();
 
-    this.pollIntervalId = window.setInterval(() => {
-      workflowStore.pollWorkflow();
-    }, 2000); // Poll every 2 seconds
+    // Set up listener for 'component_jobs' event
+    this.socket?.on('component_jobs', async (data: { component_id: string; job_ids: string[] }) => {
+      if (data.component_id && data.job_ids) {
+        // Call workflowStore method to adjust the component's job list
+        workflowStore.adjustComponentJobsList(data.component_id, data.job_ids);
+      }
+    });
+
+    // Listen for 'component_started' event
+    this.socket.on('component_started', async (data: { component_id: string }) => {
+      if (data.component_id) {
+        workflowStore.updateComponentState(data.component_id, ComponentStateEnum.RUNNING);
+      }
+    });
+
+    // Listen for 'component_finished' event
+    this.socket.on('component_finished', async (data: { component_id: string }) => {
+      if (data.component_id) {
+        const componentStatus = await getComponentState(data.component_id);
+        if (componentStatus) {
+          workflowStore.updateComponentState(data.component_id, componentStatus.state, componentStatus.state_message);
+        }
+      }
+    });
+
+    // Listen for job_started event
+    this.socket.on('job_started', async (data: { component_id: string, job_id: string }) => {
+      if (data.component_id && data.job_id) {
+        // Call workflowStore to update job status to RUNNING
+        workflowStore.updateJobStatus(data.component_id, data.job_id, JobStateEnum.RUNNING);
+      }
+    });
+
+    // Listen for job_finished event
+    this.socket.on('job_finished', async (data: { component_id: string, job_id: string }) => {
+      if (data.component_id && data.job_id) {
+        // Call workflowStore to update job status to COMPLETED
+        workflowStore.updateJobStatus(data.component_id, data.job_id, JobStateEnum.COMPLETED);
+      }
+    });
+
   },
   methods: {
     connectWebSocket() {
       const workflowStore = useWorkflowStore();
-      this.socket = new WebSocket('ws://127.0.0.1:8000/ws');
-      this.socket.onopen = () => {
-        console.log('Connected to WebSocket server');
-      };
-      this.socket.onmessage = async (event) => {
-        const message = JSON.parse(event.data);
-        if (message.job_id) {
-          workflowStore.addJobIdToUpdate(message.job_id);
+
+      // Create a new socket connection using Socket.IO
+      this.socket = io('ws://127.0.0.1:8000', {transports: ['websocket', 'polling']});
+
+      // When connected, join a room using the experimentId
+      this.socket.on('connect', () => {
+        console.log('Connected to Socket.IO server');
+        if (this.experiment.experimentId) {
+          this.socket.emit('join_room', { experiment_id: this.experiment.experimentId });
         }
-      }
+      });
+
+      // Handle disconnection
+      this.socket.on('disconnect', () => {
+        console.log('Disconnected from Socket.IO server');
+      });
     },
     async checkAndCreateWorkflow() {
-      const existingWorkflows = await getExistingWorkflows(this.experiment.experimentId as string);
+      const existingWorkflow = await getWorkflow(this.experiment.experimentId as string);
 
-      if (existingWorkflows.ids.length === 0) {
+      if (!existingWorkflow) {
         await createWorkflow(this.experiment.experimentId as string);
-        const workflows = await getExistingWorkflows(this.experiment.experimentId as string);
-        this.workflowId = workflows.ids[0];
-      } else {
-        this.workflowId = existingWorkflows.ids[0];
       }
     },
     addComponent(option: any) {
@@ -280,7 +276,7 @@ export default defineComponent({
     },
     async startWorkflow() {
       this.isLocallyRunning = true;
-      await startWorkflow(this.workflowId);
+      await startWorkflow(this.experiment.experimentId);
       setTimeout(() => {
         this.isLocallyRunning = false;
       }, 5000); // Reset isLocallyRunning after 5 seconds
@@ -301,36 +297,6 @@ export default defineComponent({
         this.modalOpen = true;
       }
     },
-    confirmDeleteWorkflow() {
-      this.showDeleteDialog = true;
-    },
-    confirmResetWorkflow() {
-      this.showResetDialog = true;
-    },
-    async deleteWorkflowConfirmed() {
-      await deleteWorkflow(this.workflowId);
-      this.workflowId = ""; // Reset workflowId
-      this.elements.nodes = [];
-      this.elements.edges = [];
-      this.$q.notify({
-        type: 'info',
-        message: 'Workflow deleted successfully'
-      });
-      await this.checkAndCreateWorkflow();
-      const workflowStore = useWorkflowStore();
-      await workflowStore.getAllProteins(this.experiment.experimentId as string);
-      await workflowStore.fetchWorkflow(this.workflowId);
-      this.elements = workflowStore.elements;
-    },
-    async resetWorkflowConfirmed() {
-      await resetWorkflow(this.workflowId);
-      this.elements.nodes = [];
-      this.elements.edges = [];
-      this.$q.notify({
-        type: 'info',
-        message: 'Workflow reset successfully'
-      });
-    }
   },
   beforeUnmount() {
     if (this.pollIntervalId !== null) {

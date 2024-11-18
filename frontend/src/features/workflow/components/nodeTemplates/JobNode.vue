@@ -2,7 +2,7 @@
   <q-card dark bordered :class="{'pulsating-border': isRunning || isLocallyRunning}" v-if="!nodeData">
     <q-spinner color="primary" size="3em" />
   </q-card>
-  <q-card dark bordered :class="{'pulsating-border': isRunning || isLocallyRunning}" v-if="nodeData" style="max-width: 400px">
+  <q-card dark bordered :class="{'pulsating-border': isRunning || isLocallyRunning}" v-if="nodeData" style="width: 600px">
     <q-card-section v-if="nodeData?.data.error">
       <div class="row no-wrap items-center">
         <q-space />
@@ -53,11 +53,14 @@ export default {
   },
   data() {
     return {
-      nodeData: null,
       isLocallyRunning: false
     };
   },
   computed: {
+    nodeData() {
+      const workflowStore = useWorkflowStore();
+      return workflowStore.getNodeById(this.nodeId);
+    },
     isRunning() {
       const workflowStore = useWorkflowStore();
       return workflowStore.runningComponentIds.includes(this.nodeId);
@@ -70,19 +73,14 @@ export default {
       }
     }
   },
-  mounted() {
-    const workflowStore = useWorkflowStore();
-    this.nodeData = workflowStore.getNodeById(this.nodeId);
-    console.log(this.nodeData.name);
-  },
   methods: {
     async startWorkflow() {
       const workflowStore = useWorkflowStore();
-      const workflowId = workflowStore.workflowId;
+      const experimentId = workflowStore.experimentId;
       try {
         this.isLocallyRunning = true;
-        await startWorkflowComponent(workflowId, this.nodeId);
-        console.log(`Started workflow component with workflowId: ${workflowId} and nodeId: ${this.nodeId}`);
+        await startWorkflowComponent(experimentId, this.nodeId);
+        console.log(`Started workflow component with experiment id: ${experimentId} and nodeId: ${this.nodeId}`);
         setTimeout(() => {
           this.isLocallyRunning = false;
         }, 5000); // Reset isLocallyRunning after 5 seconds

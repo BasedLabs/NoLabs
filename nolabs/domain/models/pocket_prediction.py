@@ -1,28 +1,26 @@
-__all__ = [
-    'PocketPredictionJob'
-]
+__all__ = ["PocketPredictionJob"]
 
 import datetime
 from typing import List
 
-from mongoengine import ReferenceField, ListField, CASCADE, IntField
+from mongoengine import CASCADE, IntField, ListField, ReferenceField
 
-from nolabs.domain.models.common import Job, Protein, JobInputError
-from nolabs.exceptions import NoLabsException, ErrorCodes
+from nolabs.domain.exceptions import ErrorCodes, NoLabsException
+from nolabs.domain.models.common import Job, JobInputError, Protein
 
 
 class PocketPredictionJob(Job):
     # region Inputs
 
-    protein: Protein | None = ReferenceField(Protein, required=True, reverse_delete_rule=CASCADE)
+    protein: Protein | None = ReferenceField(
+        Protein, required=True, reverse_delete_rule=CASCADE
+    )
 
     # endregion
 
     pocket_ids: List[int] = ListField(IntField())
 
-    def set_input(self,
-                  protein: Protein
-                  ):
+    def set_input(self, protein: Protein):
         self.pocket_ids = []
         self.protein = protein
 
@@ -33,9 +31,7 @@ class PocketPredictionJob(Job):
     def result_valid(self) -> bool:
         return not not self.pocket_ids
 
-    def set_result(self,
-                   protein: Protein,
-                   pocket_ids: List[int]):
+    def set_result(self, protein: Protein, pocket_ids: List[int]):
         if not self.protein:
             raise NoLabsException(ErrorCodes.invalid_job_input)
 
@@ -51,11 +47,19 @@ class PocketPredictionJob(Job):
         errors = []
 
         if not self.protein:
-            errors.append(JobInputError(message='Protein is not defined',
-                                        error_code=ErrorCodes.protein_is_undefined))
+            errors.append(
+                JobInputError(
+                    message="Protein is not defined",
+                    error_code=ErrorCodes.protein_is_undefined,
+                )
+            )
 
         if not self.protein.pdb_content:
-            errors.append(JobInputError(message='Protein pdb content is empty',
-                                  error_code=ErrorCodes.protein_pdb_is_empty))
+            errors.append(
+                JobInputError(
+                    message="Protein pdb content is empty",
+                    error_code=ErrorCodes.protein_pdb_is_empty,
+                )
+            )
 
         return errors

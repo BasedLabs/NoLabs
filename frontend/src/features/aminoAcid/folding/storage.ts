@@ -19,6 +19,15 @@ OpenAPI.BASE = apiConstants.hostname;
 const useFoldingStore = defineStore("folding", {
   actions: {
     async setupJob(experimentId: string, request: InferenceRequest){
+      if(request.fastas.length > 1){
+        Notify.create({
+          type: "negative",
+          closeBtn: 'Close',
+          message: "You can run only one protein folding per job"
+        });
+        throw new Error("You can run only one protein folding per job")
+      }
+
       let proteins: ProteinContentResponse[] = [];
       for(const fasta of request.fastas){
         const protein = await ProteinsService.uploadProteinApiV1ProteinsPost({
@@ -34,7 +43,7 @@ const useFoldingStore = defineStore("folding", {
           experiment_id: experimentId,
           job_id: request.jobId,
           job_name: request.jobName,
-          protein_ids: proteins.map(p => p.id),
+          protein_id: proteins.map(p => p.id)[0],
           backend: FoldingBackendEnum.ESMFOLD_LIGHT
         }
       );
@@ -64,7 +73,7 @@ const useFoldingStore = defineStore("folding", {
       }
 
       const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
-        ids: job.protein_ids
+        ids: [job.protein_id]
       });
 
       return {
@@ -114,7 +123,7 @@ const useFoldingStore = defineStore("folding", {
       }
 
       const proteins = await ProteinsService.searchProteinsApiV1ProteinsSearchContentPost({
-        ids: job.protein_ids
+        ids: [job.result.protein_id]
       })
 
       return {
@@ -137,7 +146,7 @@ const useFoldingStore = defineStore("folding", {
       };
     },
     async changeJobName(jobId: string, newName: string) {
-      await JobsACommonControllerForJobsManagementService.updateApiV1JobsJobsJobIdPatch(jobId, {
+      await JobsACommonControllerForJobsManagementService.updateApiV1JobsJobIdPatch(jobId, {
         job_name: newName
       });
     }

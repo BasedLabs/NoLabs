@@ -1,0 +1,137 @@
+version: '3.5'
+
+services:
+  mongo:
+    image: 'mongo:latest'
+    network_mode: host
+
+  redis:
+    image: 'redis:latest'
+    network_mode: host
+
+  esmfold:
+    image: 'ghcr.io/basedlabs/esmfold:2.0.0'
+    network_mode: host
+    build:
+      context: microservices/esmfold
+      dockerfile: build/Dockerfile
+    command: python worker.py
+    env_file:
+      - microservices/esmfold/service/.env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  esmfold-light:
+    image: 'ghcr.io/basedlabs/esmfold-light:2.0.0'
+    network_mode: host
+    command: python worker.py
+    build:
+      context: microservices/esmfold_light
+      dockerfile: build/Dockerfile
+    env_file:
+      - microservices/esmfold_light/service/.env
+
+  rfdiffusion:
+    image: 'ghcr.io/basedlabs/rfdiffusion:2.0.0'
+    network_mode: host
+    build:
+      context: microservices/rfdiffusion
+      dockerfile: build/Dockerfile
+    command: python3.9 worker.py
+    env_file:
+      - microservices/rfdiffusion/service/.env
+    volumes:
+      - ${RFDIFFUSION_WEIGHTS_LOCATION}:/app/RFdiffusion/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  diffdock:
+    image: 'ghcr.io/basedlabs/diffdock:2.0.0'
+    network_mode: host
+    build:
+      context: microservices/diffdock
+      dockerfile: build/Dockerfile
+    command: python worker.py
+    env_file:
+      - microservices/diffdock/service/.env
+    volumes:
+      - ${DIFFDOCK_WEIGHTS_LOCATION}:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  external-data-query:
+    image: 'ghcr.io/basedlabs/external-data-query:1.0.3'
+    network_mode: host
+    build:
+      context: microservices/external_data_query
+      dockerfile: build/Dockerfile
+    command: --host=0.0.0.0 --port=5739
+
+  biobuddy:
+    image: 'ghcr.io/basedlabs/biobuddy:1.2.1'
+    network_mode: host
+    build:
+      context: microservices/biobuddy
+      dockerfile: build/Dockerfile
+    env_file:
+      - microservices/diffdock/service/.env
+    command: --host=0.0.0.0 --port=5738
+
+  proteinmpnn:
+    image: 'ghcr.io/basedlabs/proteinmpnn:1.0.0'
+    network_mode: host
+    build:
+      context: microservices/proteinmpnn
+      dockerfile: build/Dockerfile
+    env_file:
+      - microservices/proteinmpnn/service/.env
+    command: python worker.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  nolabs-backend:
+    image: 'ghcr.io/basedlabs/nolabs-backend:1.0.0'
+    network_mode: host
+    working_dir: /app
+    build:
+      context: .
+      dockerfile: build/backend.Dockerfile
+    command: python nolabs/application/api.py
+    environment:
+      - PYTHONPATH=/app
+    env_file:
+      - nolabs/infrastructure/.env
+
+  nolabs-worker:
+    extends:
+      service: nolabs-backend
+    command: python nolabs/workflow/worker.py
+
+  nolabs-frontend:
+    image: 'ghcr.io/basedlabs/nolabs-frontend:1.0.0'
+    network_mode: host
+    working_dir: /app
+    build:
+      context: .
+      dockerfile: build/frontend.Dockerfile
+    command: npm --prefix frontend run dev -- --host

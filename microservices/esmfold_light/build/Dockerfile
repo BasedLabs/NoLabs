@@ -1,21 +1,21 @@
-# Use a PyTorch base image with CUDA support
-FROM python:3.8
+# Generate workable requirements.txt from Poetry dependencies
+FROM python:3.10-slim as requirements
 
-# Install Python 3.8 and curl
-RUN apt-get update && apt-get install -y curl python3-pip
+RUN pip install poetry poetry-plugin-export
 
-# Set a working directory
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_VIRTUALENVS_CREATE=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
 WORKDIR /app
+COPY pyproject.toml /app
+RUN poetry lock --no-update
+RUN poetry export -f requirements.txt --without-hashes -o requirements.txt
 
-# Copy only the requirements.txt first to leverage Docker cache
-COPY ./requirements.txt /app/
-
-# Install dependencies
-RUN python3.8 -m pip install --upgrade pip
-RUN python3.8 -m pip install --default-timeout=100 -r requirements.txt
-
-# Now copy the rest of the application files into the container
-COPY ./esmfold_light /app/esmfold_light
-
-# Set the command to run the FastAPI app
-ENTRYPOINT ["uvicorn", "esmfold_light.api:app"]
+FROM python:3.11-alpine
+WORKDIR /app
+COPY --from=requirements /app/requirements.txt /app/requirements.txt
+RUN pip install -r /app/requirements.txt
+COPY service /app/service
+WORKDIR /app/service

@@ -181,3 +181,5 @@ nolabs/ai/custom_models/drug_target/p2rank_2.4.1
 nolabs/experiments/**/*
 
 conformations/client/**
+
+celerybeat-schedule

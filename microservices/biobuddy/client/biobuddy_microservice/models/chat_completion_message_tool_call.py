@@ -13,20 +13,22 @@
 
 
 from __future__ import annotations
+
+import json
 import pprint
 import re  # noqa: F401
-import json
+from typing import Any, ClassVar, Dict, List, Optional, Set
 
-from pydantic import BaseModel, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
 from biobuddy_microservice.models.function import Function
-from typing import Optional, Set
+from pydantic import BaseModel, StrictStr
 from typing_extensions import Self
+
 
 class ChatCompletionMessageToolCall(BaseModel):
     """
     ChatCompletionMessageToolCall
-    """ # noqa: E501
+    """  # noqa: E501
+
     id: StrictStr
     function: Function
     type: Optional[Any]
@@ -38,7 +40,6 @@ class ChatCompletionMessageToolCall(BaseModel):
         "validate_assignment": True,
         "protected_namespaces": (),
     }
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -65,9 +66,11 @@ class ChatCompletionMessageToolCall(BaseModel):
           are ignored.
         * Fields in `self.additional_properties` are added to the output dict.
         """
-        excluded_fields: Set[str] = set([
-            "additional_properties",
-        ])
+        excluded_fields: Set[str] = set(
+            [
+                "additional_properties",
+            ]
+        )
 
         _dict = self.model_dump(
             by_alias=True,
@@ -76,7 +79,7 @@ class ChatCompletionMessageToolCall(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of function
         if self.function:
-            _dict['function'] = self.function.to_dict()
+            _dict["function"] = self.function.to_dict()
         # puts key-value pairs in additional_properties in the top level
         if self.additional_properties is not None:
             for _key, _value in self.additional_properties.items():
@@ -85,7 +88,7 @@ class ChatCompletionMessageToolCall(BaseModel):
         # set to None if type (nullable) is None
         # and model_fields_set contains the field
         if self.type is None and "type" in self.model_fields_set:
-            _dict['type'] = None
+            _dict["type"] = None
 
         return _dict
 
@@ -98,16 +101,20 @@ class ChatCompletionMessageToolCall(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "id": obj.get("id"),
-            "function": Function.from_dict(obj["function"]) if obj.get("function") is not None else None,
-            "type": obj.get("type")
-        })
+        _obj = cls.model_validate(
+            {
+                "id": obj.get("id"),
+                "function": (
+                    Function.from_dict(obj["function"])
+                    if obj.get("function") is not None
+                    else None
+                ),
+                "type": obj.get("type"),
+            }
+        )
         # store additional fields in additional_properties
         for _key in obj.keys():
             if _key not in cls.__properties:
                 _obj.additional_properties[_key] = obj.get(_key)
 
         return _obj
-
-

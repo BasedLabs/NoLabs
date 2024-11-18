@@ -31,29 +31,25 @@ class TestDefaultApi(unittest.TestCase):
 
         Fetch
         """
-        pass
 
     def test_fetch_fetch_fastas_by_search_query_post(self) -> None:
         """Test case for fetch_fetch_fastas_by_search_query_post
 
         Fetch
         """
-        pass
 
     def test_get_running_jobs_jobs_running_get(self) -> None:
         """Test case for get_running_jobs_jobs_running_get
 
         Get Running Jobs
         """
-        pass
 
     def test_is_job_running_job_job_id_is_running_get(self) -> None:
         """Test case for is_job_running_job_job_id_is_running_get
 
         Is Job Running
         """
-        pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

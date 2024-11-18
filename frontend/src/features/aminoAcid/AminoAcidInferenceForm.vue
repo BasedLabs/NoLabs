@@ -16,6 +16,19 @@ export default defineComponent({
     properties: {
       type: Object as PropType<AminoAcidJobProperties>,
       required: true
+    },
+    multiple: {
+      type: Boolean,
+      required: false,
+      default: true
+    }
+  },
+  computed: {
+    inputLabel() {
+      return this.multiple ? ".fasta files (multiple)" : "fasta file"
+    },
+    hintLabel(){
+      return this.multiple ? "Upload .fasta files with amino acid sequences" : "Upload .fasta file with amino acid sequences"
     }
   },
   data(): AminoAcidJobProperties {
@@ -36,9 +49,9 @@ export default defineComponent({
 
 <template>
   <q-form @submit="_onSubmit" class="q-gutter-md">
-    <q-file filled multiple bottom-slots accept=".fasta" v-model="fastas"
+    <q-file filled :multiple="multiple" bottom-slots accept=".fasta" v-model="fastas"
             :rules="[validateAminoAcid]"
-            label=".fasta files (multiple)" counter>
+            :label="inputLabel" counter>
       <template v-slot:prepend>
         <q-icon name="cloud_upload" @click.stop.prevent/>
       </template>
@@ -47,7 +60,7 @@ export default defineComponent({
       </template>
 
       <template v-slot:hint>
-        Upload .fasta files with amino acid sequences
+        {{ hintLabel }}
       </template>
     </q-file>
     <div>

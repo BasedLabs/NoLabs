@@ -91,7 +91,7 @@ import {
   nolabs__application__use_cases__folding__api_models__GetJobStatusResponse,
   nolabs__application__use_cases__folding__api_models__SetupJobRequest
 } from "src/refinedApi/client";
-import { getFoldingJobApi, getProteinContent, getFoldingJobStatus, setupFoldingJob, changeJobName } from "src/features/workflow/refinedApi";
+import { getFoldingJobApi, getProteinContent, getJobStatus, setupFoldingJob, changeJobName } from "src/features/workflow/refinedApi";
 
 export default defineComponent({
   name: 'EsmFoldJob',
@@ -136,7 +136,7 @@ export default defineComponent({
       this.protein = await getProteinContent(this.job.protein_ids[0]);
     }
 
-    this.jobStatus = await getFoldingJobStatus(this.jobId as string);
+    this.jobStatus = await getJobStatus(this.jobId as string);
   },
   methods: {
     async updateJobName() {

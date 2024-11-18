@@ -14,3 +14,4 @@ duckduckgo_search
 tavily-python==0.3.1
 arxiv==2.0.0
 PyMuPDF==1.23.6
+pydantic-settings

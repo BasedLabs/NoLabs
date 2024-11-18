@@ -16,9 +16,9 @@ const workflowRoutes = [
 
 const proteinDesignRoutes = [
   {
-    path: 'protein-design/job/:jobId',
+    path: 'rfdiffusion/job/:jobId',
     component: () => import('../features/proteinDesign/ProteinDesignJobView.vue'),
-    name: 'Protein design',
+    name: 'Rfdiffusion',
     props: true
   },
 ];
@@ -32,56 +32,11 @@ const foldingRoutes = [
   },
 ];
 
-const blastRoutes = [
+const proteinMpnnRoutes = [
   {
-    path: ':experimentId/blast/job/:jobId',
-    component: () => import('src/features/workflow/components/jobs/BlastJob.vue'),
-    name: 'Blast',
-    props: true
-  },
-];
-
-const localisationRoutes = [
-  {
-    path: 'localisation/job/:jobId',
-    component: () => import('../features/aminoAcid/localisation/LocalisationJobView.vue'),
-    name: 'Localisation',
-    props: true
-  },
-];
-
-const geneOntologyRoutes = [
-  {
-    path: 'gene-ontology/job/:jobId',
-    component: () => import('src/features/aminoAcid/geneOntology/GeneOntologyJobView.vue'),
-    name: 'Gene ontology',
-    props: true
-  },
-];
-
-const solubilityRoutes = [
-  {
-    path: 'solubility/job/:jobId',
-    component: () => import('../features/aminoAcid/solubility/SolubilityJobView.vue'),
-    name: 'Solubility',
-    props: true
-  },
-];
-
-const conformationsRoutes = [
-  {
-    path: 'conformations/job/:jobId',
-    component: () => import('../features/conformations/ConformationsJobView.vue'),
-    name: 'Conformations',
-    props: true
-  }
-]
-
-const smallMoleculeDesignRoutes = [
-  {
-    path: 'small-molecules/job/:jobId',
-    component: () => import('../features/smallMoleculeDesign/SmallMoleculesDesignJobView.vue'),
-    name: 'Small molecules design',
+    path: 'proteinMpnn/job/:jobId',
+    component: () => import('../features/workflow/components/jobs/ProteinMpnnJob.vue'),
+    name: 'ProteinMPNN',
     props: true
   }
 ]
@@ -95,15 +50,14 @@ const routes = [
       ...experimentsRoutes,
       ...workflowRoutes,
       ...proteinDesignRoutes,
-      ...conformationsRoutes,
-      ...localisationRoutes,
-      ...solubilityRoutes,
-      ...geneOntologyRoutes,
       ...foldingRoutes,
-      ...blastRoutes,
-      ...smallMoleculeDesignRoutes
+      ...proteinMpnnRoutes
     ]
-  }
+  },
+  {
+    path: '/:catchAll(.*)*',
+    component: () => import('pages/ErrorNotFound.vue'),
+  },
 ];
 
 export default routes

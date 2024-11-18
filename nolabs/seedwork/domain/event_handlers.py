@@ -1,9 +1,9 @@
 from abc import abstractmethod
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 
 from nolabs.seedwork.domain.events import DomainEvent
 
-TDomainEvent = TypeVar('TDomainEvent', bound=DomainEvent)
+TDomainEvent = TypeVar("TDomainEvent", bound=DomainEvent)
 
 
 class DomainEventHandler(Generic[TDomainEvent]):

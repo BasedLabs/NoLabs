@@ -11,26 +11,40 @@
     Do not edit the class manually.
 """  # noqa: E501
 
-import warnings
-from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
-from typing_extensions import Annotated
-
-from pydantic import StrictStr
-from typing import Any, Dict
-from external_data_query_microservice.models.ch_embl_molecule_request import ChEMBLMoleculeRequest
-from external_data_query_microservice.models.ch_embl_molecule_response import ChEMBLMoleculeResponse
-from external_data_query_microservice.models.drug_indication_request import DrugIndicationRequest
-from external_data_query_microservice.models.drug_indication_response import DrugIndicationResponse
-from external_data_query_microservice.models.get_fasta_files_by_ids_request import GetFastaFilesByIdsRequest
-from external_data_query_microservice.models.get_fasta_files_by_search_query_request import GetFastaFilesBySearchQueryRequest
-from external_data_query_microservice.models.get_fasta_files_response import GetFastaFilesResponse
-from external_data_query_microservice.models.is_job_running_response import IsJobRunningResponse
-from external_data_query_microservice.models.sequence_query_request import SequenceQueryRequest
 
 from external_data_query_microservice.api_client import ApiClient, RequestSerialized
 from external_data_query_microservice.api_response import ApiResponse
+from external_data_query_microservice.models.ch_embl_molecule_request import (
+    ChEMBLMoleculeRequest,
+)
+from external_data_query_microservice.models.ch_embl_molecule_response import (
+    ChEMBLMoleculeResponse,
+)
+from external_data_query_microservice.models.drug_indication_request import (
+    DrugIndicationRequest,
+)
+from external_data_query_microservice.models.drug_indication_response import (
+    DrugIndicationResponse,
+)
+from external_data_query_microservice.models.get_fasta_files_by_ids_request import (
+    GetFastaFilesByIdsRequest,
+)
+from external_data_query_microservice.models.get_fasta_files_by_search_query_request import (
+    GetFastaFilesBySearchQueryRequest,
+)
+from external_data_query_microservice.models.get_fasta_files_response import (
+    GetFastaFilesResponse,
+)
+from external_data_query_microservice.models.is_job_running_response import (
+    IsJobRunningResponse,
+)
+from external_data_query_microservice.models.sequence_query_request import (
+    SequenceQueryRequest,
+)
 from external_data_query_microservice.rest import RESTResponseType
+from pydantic import Field, StrictFloat, StrictInt, StrictStr, validate_call
+from typing_extensions import Annotated
 
 
 class DefaultApi:
@@ -45,7 +59,6 @@ class DefaultApi:
             api_client = ApiClient.get_default()
         self.api_client = api_client
 
-
     @validate_call
     def fetch_fetch_fastas_by_complex_query_post(
         self,
@@ -54,9 +67,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -88,30 +100,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_complex_query_post_serialize(
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         ).data
-
 
     @validate_call
     def fetch_fetch_fastas_by_complex_query_post_with_http_info(
@@ -121,9 +131,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -155,30 +164,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_complex_query_post_serialize(
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         )
-
 
     @validate_call
     def fetch_fetch_fastas_by_complex_query_post_without_preload_content(
@@ -188,9 +195,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -222,26 +228,24 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_complex_query_post_serialize(
             body=body,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         return response_data.response
-
 
     def _fetch_fetch_fastas_by_complex_query_post_serialize(
         self,
@@ -254,8 +258,7 @@ class DefaultApi:
 
         _host = None
 
-        _collection_formats: Dict[str, str] = {
-        }
+        _collection_formats: Dict[str, str] = {}
 
         _path_params: Dict[str, str] = {}
         _query_params: List[Tuple[str, str]] = []
@@ -272,35 +275,27 @@ class DefaultApi:
         if body is not None:
             _body_params = body
 
-
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
+        _header_params["Accept"] = self.api_client.select_header_accept(
+            ["application/json"]
         )
 
         # set the HTTP header `Content-Type`
         if _content_type:
-            _header_params['Content-Type'] = _content_type
+            _header_params["Content-Type"] = _content_type
         else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
+            _default_content_type = self.api_client.select_header_content_type(
+                ["application/json"]
             )
             if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
+                _header_params["Content-Type"] = _default_content_type
 
         # authentication setting
-        _auth_settings: List[str] = [
-        ]
+        _auth_settings: List[str] = []
 
         return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/fetch-fastas-by-complex-query',
+            method="POST",
+            resource_path="/fetch-fastas-by-complex-query",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -310,11 +305,8 @@ class DefaultApi:
             auth_settings=_auth_settings,
             collection_formats=_collection_formats,
             _host=_host,
-            _request_auth=_request_auth
+            _request_auth=_request_auth,
         )
-
-
-
 
     @validate_call
     def fetch_fetch_fastas_by_ids_post(
@@ -324,9 +316,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -358,30 +349,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_ids_post_serialize(
             get_fasta_files_by_ids_request=get_fasta_files_by_ids_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         ).data
-
 
     @validate_call
     def fetch_fetch_fastas_by_ids_post_with_http_info(
@@ -391,9 +380,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -425,30 +413,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_ids_post_serialize(
             get_fasta_files_by_ids_request=get_fasta_files_by_ids_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         )
-
 
     @validate_call
     def fetch_fetch_fastas_by_ids_post_without_preload_content(
@@ -458,9 +444,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -492,26 +477,24 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_ids_post_serialize(
             get_fasta_files_by_ids_request=get_fasta_files_by_ids_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         return response_data.response
-
 
     def _fetch_fetch_fastas_by_ids_post_serialize(
         self,
@@ -524,8 +507,7 @@ class DefaultApi:
 
         _host = None
 
-        _collection_formats: Dict[str, str] = {
-        }
+        _collection_formats: Dict[str, str] = {}
 
         _path_params: Dict[str, str] = {}
         _query_params: List[Tuple[str, str]] = []
@@ -542,35 +524,27 @@ class DefaultApi:
         if get_fasta_files_by_ids_request is not None:
             _body_params = get_fasta_files_by_ids_request
 
-
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
+        _header_params["Accept"] = self.api_client.select_header_accept(
+            ["application/json"]
         )
 
         # set the HTTP header `Content-Type`
         if _content_type:
-            _header_params['Content-Type'] = _content_type
+            _header_params["Content-Type"] = _content_type
         else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
+            _default_content_type = self.api_client.select_header_content_type(
+                ["application/json"]
             )
             if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
+                _header_params["Content-Type"] = _default_content_type
 
         # authentication setting
-        _auth_settings: List[str] = [
-        ]
+        _auth_settings: List[str] = []
 
         return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/fetch-fastas-by-ids',
+            method="POST",
+            resource_path="/fetch-fastas-by-ids",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -580,11 +554,8 @@ class DefaultApi:
             auth_settings=_auth_settings,
             collection_formats=_collection_formats,
             _host=_host,
-            _request_auth=_request_auth
+            _request_auth=_request_auth,
         )
-
-
-
 
     @validate_call
     def fetch_fetch_fastas_by_search_query_post(
@@ -594,9 +565,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -628,30 +598,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_search_query_post_serialize(
             get_fasta_files_by_search_query_request=get_fasta_files_by_search_query_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         ).data
-
 
     @validate_call
     def fetch_fetch_fastas_by_search_query_post_with_http_info(
@@ -661,9 +629,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -695,30 +662,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_search_query_post_serialize(
             get_fasta_files_by_search_query_request=get_fasta_files_by_search_query_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         )
-
 
     @validate_call
     def fetch_fetch_fastas_by_search_query_post_without_preload_content(
@@ -728,9 +693,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -762,26 +726,24 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_search_query_post_serialize(
             get_fasta_files_by_search_query_request=get_fasta_files_by_search_query_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         return response_data.response
-
 
     def _fetch_fetch_fastas_by_search_query_post_serialize(
         self,
@@ -794,8 +756,7 @@ class DefaultApi:
 
         _host = None
 
-        _collection_formats: Dict[str, str] = {
-        }
+        _collection_formats: Dict[str, str] = {}
 
         _path_params: Dict[str, str] = {}
         _query_params: List[Tuple[str, str]] = []
@@ -812,35 +773,27 @@ class DefaultApi:
         if get_fasta_files_by_search_query_request is not None:
             _body_params = get_fasta_files_by_search_query_request
 
-
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
+        _header_params["Accept"] = self.api_client.select_header_accept(
+            ["application/json"]
         )
 
         # set the HTTP header `Content-Type`
         if _content_type:
-            _header_params['Content-Type'] = _content_type
+            _header_params["Content-Type"] = _content_type
         else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
+            _default_content_type = self.api_client.select_header_content_type(
+                ["application/json"]
             )
             if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
+                _header_params["Content-Type"] = _default_content_type
 
         # authentication setting
-        _auth_settings: List[str] = [
-        ]
+        _auth_settings: List[str] = []
 
         return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/fetch-fastas-by-search-query',
+            method="POST",
+            resource_path="/fetch-fastas-by-search-query",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -850,11 +803,8 @@ class DefaultApi:
             auth_settings=_auth_settings,
             collection_formats=_collection_formats,
             _host=_host,
-            _request_auth=_request_auth
+            _request_auth=_request_auth,
         )
-
-
-
 
     @validate_call
     def fetch_fetch_fastas_by_sequence_post(
@@ -864,9 +814,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -898,30 +847,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_sequence_post_serialize(
             sequence_query_request=sequence_query_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         ).data
-
 
     @validate_call
     def fetch_fetch_fastas_by_sequence_post_with_http_info(
@@ -931,9 +878,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -965,30 +911,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_sequence_post_serialize(
             sequence_query_request=sequence_query_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         )
-
 
     @validate_call
     def fetch_fetch_fastas_by_sequence_post_without_preload_content(
@@ -998,9 +942,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1032,26 +975,24 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._fetch_fetch_fastas_by_sequence_post_serialize(
             sequence_query_request=sequence_query_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "GetFastaFilesResponse",
-            '422': "HTTPValidationError",
+            "200": "GetFastaFilesResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         return response_data.response
-
 
     def _fetch_fetch_fastas_by_sequence_post_serialize(
         self,
@@ -1064,8 +1005,7 @@ class DefaultApi:
 
         _host = None
 
-        _collection_formats: Dict[str, str] = {
-        }
+        _collection_formats: Dict[str, str] = {}
 
         _path_params: Dict[str, str] = {}
         _query_params: List[Tuple[str, str]] = []
@@ -1082,35 +1022,27 @@ class DefaultApi:
         if sequence_query_request is not None:
             _body_params = sequence_query_request
 
-
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
+        _header_params["Accept"] = self.api_client.select_header_accept(
+            ["application/json"]
         )
 
         # set the HTTP header `Content-Type`
         if _content_type:
-            _header_params['Content-Type'] = _content_type
+            _header_params["Content-Type"] = _content_type
         else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
+            _default_content_type = self.api_client.select_header_content_type(
+                ["application/json"]
             )
             if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
+                _header_params["Content-Type"] = _default_content_type
 
         # authentication setting
-        _auth_settings: List[str] = [
-        ]
+        _auth_settings: List[str] = []
 
         return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/fetch-fastas-by-sequence',
+            method="POST",
+            resource_path="/fetch-fastas-by-sequence",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1120,11 +1052,8 @@ class DefaultApi:
             auth_settings=_auth_settings,
             collection_formats=_collection_formats,
             _host=_host,
-            _request_auth=_request_auth
+            _request_auth=_request_auth,
         )
-
-
-
 
     @validate_call
     def get_running_jobs_jobs_running_get(
@@ -1133,9 +1062,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1165,28 +1093,26 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._get_running_jobs_jobs_running_get_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            "200": "object",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         ).data
-
 
     @validate_call
     def get_running_jobs_jobs_running_get_with_http_info(
@@ -1195,9 +1121,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1227,28 +1152,26 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._get_running_jobs_jobs_running_get_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            "200": "object",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         )
-
 
     @validate_call
     def get_running_jobs_jobs_running_get_without_preload_content(
@@ -1257,9 +1180,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1289,24 +1211,22 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._get_running_jobs_jobs_running_get_serialize(
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "object",
+            "200": "object",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         return response_data.response
-
 
     def _get_running_jobs_jobs_running_get_serialize(
         self,
@@ -1318,8 +1238,7 @@ class DefaultApi:
 
         _host = None
 
-        _collection_formats: Dict[str, str] = {
-        }
+        _collection_formats: Dict[str, str] = {}
 
         _path_params: Dict[str, str] = {}
         _query_params: List[Tuple[str, str]] = []
@@ -1334,22 +1253,17 @@ class DefaultApi:
         # process the form parameters
         # process the body parameter
 
-
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
+        _header_params["Accept"] = self.api_client.select_header_accept(
+            ["application/json"]
         )
 
-
         # authentication setting
-        _auth_settings: List[str] = [
-        ]
+        _auth_settings: List[str] = []
 
         return self.api_client.param_serialize(
-            method='GET',
-            resource_path='/jobs/running',
+            method="GET",
+            resource_path="/jobs/running",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1359,11 +1273,8 @@ class DefaultApi:
             auth_settings=_auth_settings,
             collection_formats=_collection_formats,
             _host=_host,
-            _request_auth=_request_auth
+            _request_auth=_request_auth,
         )
-
-
-
 
     @validate_call
     def is_job_running_job_job_id_is_running_get(
@@ -1373,9 +1284,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1407,30 +1317,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._is_job_running_job_job_id_is_running_get_serialize(
             job_id=job_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "IsJobRunningResponse",
-            '422': "HTTPValidationError",
+            "200": "IsJobRunningResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         ).data
-
 
     @validate_call
     def is_job_running_job_job_id_is_running_get_with_http_info(
@@ -1440,9 +1348,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1474,30 +1381,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._is_job_running_job_job_id_is_running_get_serialize(
             job_id=job_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "IsJobRunningResponse",
-            '422': "HTTPValidationError",
+            "200": "IsJobRunningResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         )
-
 
     @validate_call
     def is_job_running_job_job_id_is_running_get_without_preload_content(
@@ -1507,9 +1412,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1541,26 +1445,24 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._is_job_running_job_job_id_is_running_get_serialize(
             job_id=job_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "IsJobRunningResponse",
-            '422': "HTTPValidationError",
+            "200": "IsJobRunningResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         return response_data.response
-
 
     def _is_job_running_job_job_id_is_running_get_serialize(
         self,
@@ -1573,8 +1475,7 @@ class DefaultApi:
 
         _host = None
 
-        _collection_formats: Dict[str, str] = {
-        }
+        _collection_formats: Dict[str, str] = {}
 
         _path_params: Dict[str, str] = {}
         _query_params: List[Tuple[str, str]] = []
@@ -1585,28 +1486,23 @@ class DefaultApi:
 
         # process the path parameters
         if job_id is not None:
-            _path_params['job_id'] = job_id
+            _path_params["job_id"] = job_id
         # process the query parameters
         # process the header parameters
         # process the form parameters
         # process the body parameter
 
-
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
+        _header_params["Accept"] = self.api_client.select_header_accept(
+            ["application/json"]
         )
 
-
         # authentication setting
-        _auth_settings: List[str] = [
-        ]
+        _auth_settings: List[str] = []
 
         return self.api_client.param_serialize(
-            method='GET',
-            resource_path='/job/{job_id}/is-running',
+            method="GET",
+            resource_path="/job/{job_id}/is-running",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1616,11 +1512,8 @@ class DefaultApi:
             auth_settings=_auth_settings,
             collection_formats=_collection_formats,
             _host=_host,
-            _request_auth=_request_auth
+            _request_auth=_request_auth,
         )
-
-
-
 
     @validate_call
     def query_query_chembl_by_condition_post(
@@ -1630,9 +1523,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1664,30 +1556,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._query_query_chembl_by_condition_post_serialize(
             drug_indication_request=drug_indication_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DrugIndicationResponse",
-            '422': "HTTPValidationError",
+            "200": "DrugIndicationResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         ).data
-
 
     @validate_call
     def query_query_chembl_by_condition_post_with_http_info(
@@ -1697,9 +1587,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1731,30 +1620,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._query_query_chembl_by_condition_post_serialize(
             drug_indication_request=drug_indication_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DrugIndicationResponse",
-            '422': "HTTPValidationError",
+            "200": "DrugIndicationResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         )
-
 
     @validate_call
     def query_query_chembl_by_condition_post_without_preload_content(
@@ -1764,9 +1651,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1798,26 +1684,24 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._query_query_chembl_by_condition_post_serialize(
             drug_indication_request=drug_indication_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "DrugIndicationResponse",
-            '422': "HTTPValidationError",
+            "200": "DrugIndicationResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         return response_data.response
-
 
     def _query_query_chembl_by_condition_post_serialize(
         self,
@@ -1830,8 +1714,7 @@ class DefaultApi:
 
         _host = None
 
-        _collection_formats: Dict[str, str] = {
-        }
+        _collection_formats: Dict[str, str] = {}
 
         _path_params: Dict[str, str] = {}
         _query_params: List[Tuple[str, str]] = []
@@ -1848,35 +1731,27 @@ class DefaultApi:
         if drug_indication_request is not None:
             _body_params = drug_indication_request
 
-
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
+        _header_params["Accept"] = self.api_client.select_header_accept(
+            ["application/json"]
         )
 
         # set the HTTP header `Content-Type`
         if _content_type:
-            _header_params['Content-Type'] = _content_type
+            _header_params["Content-Type"] = _content_type
         else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
+            _default_content_type = self.api_client.select_header_content_type(
+                ["application/json"]
             )
             if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
+                _header_params["Content-Type"] = _default_content_type
 
         # authentication setting
-        _auth_settings: List[str] = [
-        ]
+        _auth_settings: List[str] = []
 
         return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/query-chembl-by-condition',
+            method="POST",
+            resource_path="/query-chembl-by-condition",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -1886,11 +1761,8 @@ class DefaultApi:
             auth_settings=_auth_settings,
             collection_formats=_collection_formats,
             _host=_host,
-            _request_auth=_request_auth
+            _request_auth=_request_auth,
         )
-
-
-
 
     @validate_call
     def query_query_chembl_post(
@@ -1900,9 +1772,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -1934,30 +1805,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._query_query_chembl_post_serialize(
             ch_embl_molecule_request=ch_embl_molecule_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ChEMBLMoleculeResponse",
-            '422': "HTTPValidationError",
+            "200": "ChEMBLMoleculeResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         ).data
-
 
     @validate_call
     def query_query_chembl_post_with_http_info(
@@ -1967,9 +1836,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -2001,30 +1869,28 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._query_query_chembl_post_serialize(
             ch_embl_molecule_request=ch_embl_molecule_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ChEMBLMoleculeResponse",
-            '422': "HTTPValidationError",
+            "200": "ChEMBLMoleculeResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         response_data.read()
         return self.api_client.response_deserialize(
             response_data=response_data,
             response_types_map=_response_types_map,
         )
-
 
     @validate_call
     def query_query_chembl_post_without_preload_content(
@@ -2034,9 +1900,8 @@ class DefaultApi:
             None,
             Annotated[StrictFloat, Field(gt=0)],
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
-            ]
+                Annotated[StrictFloat, Field(gt=0)], Annotated[StrictFloat, Field(gt=0)]
+            ],
         ] = None,
         _request_auth: Optional[Dict[StrictStr, Any]] = None,
         _content_type: Optional[StrictStr] = None,
@@ -2068,26 +1933,24 @@ class DefaultApi:
                             in the spec for a single request.
         :type _host_index: int, optional
         :return: Returns the result object.
-        """ # noqa: E501
+        """  # noqa: E501
 
         _param = self._query_query_chembl_post_serialize(
             ch_embl_molecule_request=ch_embl_molecule_request,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
-            _host_index=_host_index
+            _host_index=_host_index,
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "ChEMBLMoleculeResponse",
-            '422': "HTTPValidationError",
+            "200": "ChEMBLMoleculeResponse",
+            "422": "HTTPValidationError",
         }
         response_data = self.api_client.call_api(
-            *_param,
-            _request_timeout=_request_timeout
+            *_param, _request_timeout=_request_timeout
         )
         return response_data.response
-
 
     def _query_query_chembl_post_serialize(
         self,
@@ -2100,8 +1963,7 @@ class DefaultApi:
 
         _host = None
 
-        _collection_formats: Dict[str, str] = {
-        }
+        _collection_formats: Dict[str, str] = {}
 
         _path_params: Dict[str, str] = {}
         _query_params: List[Tuple[str, str]] = []
@@ -2118,35 +1980,27 @@ class DefaultApi:
         if ch_embl_molecule_request is not None:
             _body_params = ch_embl_molecule_request
 
-
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            [
-                'application/json'
-            ]
+        _header_params["Accept"] = self.api_client.select_header_accept(
+            ["application/json"]
         )
 
         # set the HTTP header `Content-Type`
         if _content_type:
-            _header_params['Content-Type'] = _content_type
+            _header_params["Content-Type"] = _content_type
         else:
-            _default_content_type = (
-                self.api_client.select_header_content_type(
-                    [
-                        'application/json'
-                    ]
-                )
+            _default_content_type = self.api_client.select_header_content_type(
+                ["application/json"]
             )
             if _default_content_type is not None:
-                _header_params['Content-Type'] = _default_content_type
+                _header_params["Content-Type"] = _default_content_type
 
         # authentication setting
-        _auth_settings: List[str] = [
-        ]
+        _auth_settings: List[str] = []
 
         return self.api_client.param_serialize(
-            method='POST',
-            resource_path='/query-chembl',
+            method="POST",
+            resource_path="/query-chembl",
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -2156,7 +2010,5 @@ class DefaultApi:
             auth_settings=_auth_settings,
             collection_formats=_collection_formats,
             _host=_host,
-            _request_auth=_request_auth
+            _request_auth=_request_auth,
         )
-
-

@@ -1,55 +1,69 @@
-import { defineStore } from 'pinia';
+import {defineStore} from 'pinia';
 import {
-  InputPropertyErrorResponse,
-  JobErrorResponse,
+  ComponentSchema,
+  ComponentSchemaTemplate_Input,
+  ComponentSchemaTemplate_Output, ComponentStateEnum,
+  DefaultSchema,
   JobsACommonControllerForJobsManagementService,
   LigandMetadataResponse,
+  MappingSchema,
+  PropertyErrorResponse,
+  PropertySchema_Input,
+  PropertySchema_Output,
   ProteinMetadataResponse,
+  WorkflowSchema_Input,
 } from 'src/refinedApi/client';
 import {
-  deleteProtein,
-  getAllProteinsMetadata,
-  uploadProtein,
-  updateProteinName,
-  uploadLigand,
+  createExperimentApi,
+  deleteExperimentApi,
   deleteLigand,
+  deleteProtein,
   getAllLigandsMetadata,
-  getComponentState
-} from 'src/features/workflow/refinedApi';
-import { Edge, Node as FlowNode } from '@vue-flow/core';
-import { v4 as uuidv4 } from 'uuid';
-import { Notify } from 'quasar';
-import {
+  getAllProteinsMetadata,
+  getComponentState,
+  getExperimentsApi,
   getWorkflow,
   sendWorkflowUpdate,
-  getExperimentsApi,
-  createExperimentApi,
-  deleteExperimentApi
+  updateProteinName,
+  uploadLigand,
+  uploadProtein
 } from 'src/features/workflow/refinedApi';
-import {
-  ComponentModel_Output,
-  WorkflowSchemaModel_Input,
-  ComponentModel_Input,
-  PropertyModel_Output,
-  WorkflowComponentModel,
-  MappingModel,
-  DefaultWorkflowComponentModelValue
-} from 'src/refinedApi/client';
+import {Node as FlowNode} from '@vue-flow/core';
+import {v4 as uuidv4} from 'uuid';
+import {Notify} from 'quasar';
+import {BiobuddyWorkflowAdjustmentData} from "../../biobuddy/biobuddyTypes";
 
-// Define custom Node type
+// Define a new NodeData type
+interface NodeData {
+  description: string;
+  inputs: Record<string, PropertySchema_Input>;
+  outputs: Record<string, PropertySchema_Output>;
+  jobIds: string[];
+  jobIdsToUpdate?: string[];
+  input_property_errors: PropertyErrorResponse[];
+  state: ComponentStateEnum | null,
+  stateMessage: string;
+  draggable: boolean;
+  defaults?: DefaultSchema[];
+  error?: string | null;
+}
+
+// Update the Node interface to use the new NodeData type
 export interface Node extends FlowNode {
   id: string;
   name: string;
   type: string;
-  inputs: string[];
-  outputs: string[];
-  description: string;
-  jobIds: string[];
-  jobs_errors: JobErrorResponse[];
-  input_property_errors: InputPropertyErrorResponse[];
-  last_exceptions: string[];
-  error: string;
-  defaults: Array<DefaultWorkflowComponentModelValue>;
+  data: NodeData; // Use the new NodeData type here
+}
+
+export interface Edge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle: string;
+  targetHandle: string;
+  type: string;
+  data?: { text: string | null | undefined; };
 }
 
 export const useWorkflowStore = defineStore('workflowStore', {
@@ -60,14 +74,13 @@ export const useWorkflowStore = defineStore('workflowStore', {
       nodes: [] as Node[],
       edges: [] as Edge[]
     },
-    jobIdsToUpdate: [] as string[],
-    workflowId: "" as string,
+    experimentId: "" as string,
     allowedTypes: ["Proteins", "Ligands", "DNA"],
     componentOptions: [] as Array<{
       name: string;
       type: string;
-      inputs: Record<string, PropertyModel_Output>,
-      outputs: Record<string, PropertyModel_Output>,
+      inputs: Record<string, PropertySchema_Input>,
+      outputs: Record<string, PropertySchema_Output>,
       description: string
     }>,
     runningComponentIds: [] as string[]
@@ -88,29 +101,33 @@ export const useWorkflowStore = defineStore('workflowStore', {
       return await getExperimentsApi();
     },
     async getAllProteins(experimentId: string) {
-      const response = await getAllProteinsMetadata(experimentId);
-      this.proteins = response;
+      this.proteins = await getAllProteinsMetadata(experimentId);
     },
-    addRunningComponentId(componentId: string) {
-      if (!this.runningComponentIds.includes(componentId)) {
-        this.runningComponentIds.push(componentId);
+    async deleteJob(jobId: string, componentId: string) {
+      try {
+        // Delete the job via the API
+        await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJodIdDelete(jobId);
+        console.log(`Job ${jobId} deleted successfully`);
+
+        // Find the component by componentId
+        const component = this.getNodeById(componentId);
+
+        if (component && component.data && component.data.jobIds) {
+          // Remove the jobId from component.data.jobIds
+          component.data.jobIds = component.data.jobIds.filter((id: string) => id !== jobId);
+          console.log(`Job ${jobId} removed from component ${componentId}`);
+        } else {
+          console.error(`Component with ID ${componentId} not found or has no jobIds`);
+        }
+      } catch (error) {
+        console.error(`Error deleting job ${jobId}:`, error);
       }
-    },
-    removeRunningComponentId(componentId: string) {
-      this.runningComponentIds = this.runningComponentIds.filter(id => id !== componentId);
-    },
-    clearRunningComponentIds() {
-      this.runningComponentIds = [];
-    },
-    async deleteJob(jobId: string) {
-      await JobsACommonControllerForJobsManagementService.deleteJobApiV1JobsJodIdDelete(jobId);
     },
     async uploadProteinToExperiment(
       experimentId: string,
       nodeId: string,
       name?: string,
-      fastaFile?: Blob,
-      pdbFile?: Blob,
+      file?: File,
       metaData?: Record<string, string>
     ) {
       try {
@@ -122,8 +139,8 @@ export const useWorkflowStore = defineStore('workflowStore', {
         const uploadedProtein = await uploadProtein(
           experimentId,
           name,
-          fastaFile,
-          pdbFile,
+          file?.name.endsWith('.fasta') ? file : undefined,
+          file?.name.endsWith('.pdb') ? file : undefined,
           link // Pass the link if it exists
         );
 
@@ -140,7 +157,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             // Initialize defaults if it doesn't exist or is not an array
             existingNode.data.defaults = [{
               target_path: Object.keys(existingNode.data.inputs || {}), value: [uploadedProtein.id]
-            }] as DefaultWorkflowComponentModelValue[];
+            }] as Array<DefaultSchema>;
           } else {
             // Find the default entry, if it exists
             const defaultEntry = existingNode.data.defaults.find(entry =>
@@ -207,7 +224,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
           );
 
           if (defaultEntry) {
-            defaultEntry.value = defaultEntry.value.filter(id => id !== proteinId);
+            defaultEntry.value = defaultEntry.value.filter((id: string) => id !== proteinId);
           }
         }
         this.sendWorkflowUpdate();
@@ -227,8 +244,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
       }
     },
     async getAllLigands(experimentId: string) {
-      const response = await getAllLigandsMetadata(experimentId);
-      this.ligands = response;
+      this.ligands = await getAllLigandsMetadata(experimentId);
     },
     async uploadLigandToExperiment(
       experimentId: string,
@@ -259,6 +275,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
             existingNode.data.defaults = [];
           }
 
+          // Find or create the default entry
           let defaultEntry = existingNode.data.defaults.find(entry =>
             Array.isArray(entry.target_path) &&
             entry.target_path.every((path, index) => path === Object.keys(existingNode.data.inputs || {})[index])
@@ -268,15 +285,22 @@ export const useWorkflowStore = defineStore('workflowStore', {
             defaultEntry = {
               target_path: Object.keys(existingNode.data.inputs || {}),
               value: []
-            } as DefaultWorkflowComponentModelValue;
+            } as DefaultSchema;
             existingNode.data.defaults.push(defaultEntry);
+          }
+
+          // Initialize the value array if it's not an array
+          if (!Array.isArray(defaultEntry.value)) {
+            defaultEntry.value = [];
           }
 
           // Check if the ligand id already exists in the defaultEntry value array
           if (!defaultEntry.value.includes(uploadedLigand.id)) {
+            // Push the new id to the existing value array
             defaultEntry.value.push(uploadedLigand.id);
           }
         }
+
         this.sendWorkflowUpdate();
       } catch (error) {
         console.error('Error uploading ligand:', error);
@@ -296,7 +320,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
           );
 
           if (defaultEntry) {
-            defaultEntry.value = defaultEntry.value.filter(id => id !== ligandId);
+            defaultEntry.value = defaultEntry?.value.filter((id: string) => id !== ligandId);
           }
         }
         this.sendWorkflowUpdate();
@@ -304,7 +328,19 @@ export const useWorkflowStore = defineStore('workflowStore', {
         console.error('Error deleting ligand:', error);
       }
     },
-    async adjustWorkflow(data: any) {
+    updateJobStatus(componentId: string, jobId: string) {
+      const component = this.getNodeById(componentId);
+
+      if (component && component.data && component.data.jobIdsToUpdate) {
+        // Find the job in the component's jobIds and update its status
+        if (!component.data.jobIdsToUpdate.includes(jobId)) {
+          component.data.jobIdsToUpdate.push(jobId);
+        }
+      } else {
+        console.error(`Component ${componentId} not found or has no jobIds`);
+      }
+    },
+    async adjustWorkflow(data: BiobuddyWorkflowAdjustmentData) {
       // Retain existing nodes
       const existingNodeIds = this.elements.nodes.map(node => node.id);
 
@@ -336,13 +372,15 @@ export const useWorkflowStore = defineStore('workflowStore', {
               inputs: componentOptions ? componentOptions.inputs : {},
               outputs: componentOptions ? componentOptions.outputs : {},
               jobIds: [],
+              jobIdsToUpdate: [],
               jobs_errors: [],
               input_property_errors: [],
-              last_exceptions: [],
+              state: null,
+              stateMessage: '',
               draggable: false,
               defaults: [],
               error: null
-            },
+            } as NodeData,
             position: {
               x: component.x !== undefined ? component.x : 100,
               y: component.y !== undefined ? component.y : 100
@@ -377,11 +415,11 @@ export const useWorkflowStore = defineStore('workflowStore', {
         .map(id => newEdges.find(edge => edge.id === id));
 
       // Remove edges that are no longer present
-      this.elements.edges = this.elements.edges.filter(edge => uniqueEdges.some(newEdge => newEdge.id === edge.id));
+      this.elements.edges = this.elements.edges.filter(edge => uniqueEdges.some(newEdge => newEdge?.id === edge.id));
 
       // Add new edges
       uniqueEdges.forEach(edge => {
-        if (!this.elements.edges.some(existingEdge => existingEdge.id === edge.id)) {
+        if (edge && !this.elements.edges.some(existingEdge => existingEdge.id === edge?.id)) {
           this.elements.edges.push(edge);
         }
       });
@@ -393,16 +431,13 @@ export const useWorkflowStore = defineStore('workflowStore', {
       // Update the state
       await this.sendWorkflowUpdate();
 
-      await this.fetchWorkflow(this.workflowId);
+      await this.fetchWorkflow(this.experimentId);
     },
-    // Helper function to fetch component options
-    getComponentOptionsByName(name: string) {
-      return this.componentOptions.find(opt => opt.name === name) || {};
-    },
-    async fetchWorkflow(workflowId: string) {
-      this.workflowId = workflowId;
+    async fetchWorkflow(experimentId: string) {
+      this.experimentId = experimentId;
+      this.runningComponentIds = [];
       try {
-        const workflow = await getWorkflow(workflowId);
+        const workflow = await getWorkflow(experimentId);
         if (!workflow) {
           console.error("Failed to load workflow");
           return;
@@ -413,20 +448,20 @@ export const useWorkflowStore = defineStore('workflowStore', {
 
         const componentIOMap: {
           [key: string]: {
-            inputs: Record<string, PropertyModel_Output>,
-            outputs: Record<string, PropertyModel_Output>,
+            inputs: Record<string, PropertySchema_Output>,
+            outputs: Record<string, PropertySchema_Output>,
             type: string,
             description: string
           }
         } = {};
-        workflow.components.forEach(component => {
+        workflow.component_templates.forEach(component => {
           const inputs = component.input;
           const outputs = component.output;
           const description = this.getDescriptionString(component);
           componentIOMap[component.name] = { inputs, outputs, type: component.name, description };
         });
 
-        for (const component of workflow.workflow_components) {
+        for (const component of workflow.components) {
           const { inputs, outputs, type, description } = componentIOMap[component.name] || {
             inputs: [],
             outputs: [],
@@ -440,20 +475,20 @@ export const useWorkflowStore = defineStore('workflowStore', {
           const nodeData: Node = {
             id: component.component_id,
             name: component.name,
-            description: '',
             type: nodeType,
-            jobIds: componentState.job_ids,
-            jobs_errors: componentState.jobs_errors,
-            input_property_errors: componentState.input_property_errors,
-            last_exceptions: componentState.last_exceptions,
             data: {
               description: description,
               inputs,
               outputs,
               draggable: false,
               defaults: component.defaults,
-              error: component.error
-            },
+              error: component.error,
+              jobIds: componentState.job_ids,
+              jobIdsToUpdate: [],
+              input_property_errors: componentState.input_errors,
+              state: componentState.state,
+              stateMessage: componentState.state_message,
+            } as NodeData,
             position: {
               x: component.x !== undefined ? component.x : 100,
               y: component.y !== undefined ? component.y : 100
@@ -462,7 +497,7 @@ export const useWorkflowStore = defineStore('workflowStore', {
           nodes.push(nodeData);
         }
 
-        workflow.workflow_components.forEach(component => {
+        workflow.components.forEach(component => {
           component.mappings?.forEach(mapping => {
             edges.push({
               id: `e${mapping.source_component_id}-to-${component.component_id}`,
@@ -479,31 +514,36 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.elements.nodes = nodes;
         this.elements.edges = edges;
 
-        this.componentOptions = workflow.components.map(component => ({
+        for (const component of this.elements.nodes) {
+          this.updateComponentState(component.id, component.data.state, component.data.stateMessage);
+        }
+
+        this.componentOptions = workflow.component_templates.map(component => ({
           name: component.name,
           type: component.name,
           inputs: component.input,
           outputs: component.output,
-          description: component.description
+          description: component.description as string
         }));
+
       } catch (error) {
         console.error("Error fetching workflow:", error);
       }
     },
-    getDescriptionString(component: ComponentModel_Output): string {
+    getDescriptionString(component: ComponentSchemaTemplate_Output): string {
       const inputKeys = Object.keys(component.input || {});
       const description = inputKeys.length > 0 ? component.input[inputKeys[0]].description : null;
       return description || "No description available";
     },
     async sendWorkflowUpdate() {
-      const workflowUpdate: WorkflowSchemaModel_Input = {
-        workflow_id: this.workflowId,
-        components: this.componentOptions.map(option => ({
+      const workflowUpdate: WorkflowSchema_Input = {
+        experiment_id: this.experimentId,
+        component_templates: this.componentOptions.map(option => ({
           name: option.name,
           input: option.inputs,
           output: option.outputs
-        }) as ComponentModel_Input),
-        workflow_components: this.elements.nodes.map(node => ({
+        }) as ComponentSchemaTemplate_Input),
+        components: this.elements.nodes.map(node => ({
           name: node.name,
           component_id: node.id,
           error: node.data.error,
@@ -516,9 +556,9 @@ export const useWorkflowStore = defineStore('workflowStore', {
               target_path: [edge.targetHandle?.split('-input-')[1]],
               source_component_id: edge.sourceHandle?.split('-output-')[0],
               error: edge.data?.text
-            }) as MappingModel),
+            }) as MappingSchema),
           defaults: node.data.defaults,
-        }) as WorkflowComponentModel),
+        }) as ComponentSchema),
         error: null,
         valid: true
       };
@@ -544,9 +584,10 @@ export const useWorkflowStore = defineStore('workflowStore', {
           inputs: option.inputs,
           outputs: option.outputs,
           jobIds: [],
-          jobs_errors: [],
+          jobIdsToUpdate: [],
           input_property_errors: [],
-          last_exceptions: [],
+          state: null,
+          stateMessage: '',
           draggable: false,
           defaults: [],
           error: null
@@ -634,6 +675,32 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.sendWorkflowUpdate();
       }
     },
+    updateComponentState(componentId: string, newState: ComponentStateEnum, errorMessage?: string) {
+      const component = this.getNodeById(componentId);
+
+      if (component) {
+        // Update the state of the component
+        component.data.state = newState;
+
+        // Update the error message
+        component.data.stateMessage = errorMessage || null;
+
+        // Manage the runningComponentIds list based on the new state
+        if (newState === ComponentStateEnum.RUNNING) {
+          if (!this.runningComponentIds.includes(componentId)) {
+            this.runningComponentIds.push(componentId);
+            console.log(`Component ${componentId} added to running components.`);
+          }
+        } else if (newState === ComponentStateEnum.COMPLETED || newState === ComponentStateEnum.FAILED) {
+          this.runningComponentIds = this.runningComponentIds.filter(id => id !== componentId);
+          console.log(`Component ${componentId} removed from running components.`);
+        }
+
+        console.log(`Component ${componentId} updated to state: ${newState}`);
+      } else {
+        console.error(`Component with ID ${componentId} not found`);
+      }
+    },
     onNodeDragStopHandler(event: { node: Node }) {
       const id = event.node.id;
       const newPosition = event.node.position;
@@ -646,53 +713,35 @@ export const useWorkflowStore = defineStore('workflowStore', {
         this.sendWorkflowUpdate();
       }
     },
-    getNodeById(nodeId: string) {
-      const node = this.elements.nodes.find(node => node.id === nodeId) || null;
-      return node;
+    getNodeById(nodeId: string): Node | null {
+      return this.elements.nodes.find(node => node.id === nodeId) || null;
     },
-    addJobIdToUpdate(jobId: string) {
-      if (!this.jobIdsToUpdate.includes(jobId)) {
-        this.jobIdsToUpdate.push(jobId);
+    removeJobIdToUpdate(componentId: string, jobId: string) {
+      const component = this.getNodeById(componentId);
+      if (component && component.data && component.data.jobIdsToUpdate){
+        component.data.jobIdsToUpdate = component.data.jobIdsToUpdate.filter(id => id !== jobId);
       }
     },
-    removeJobIdToUpdate(jobId: string) {
-      this.jobIdsToUpdate = this.jobIdsToUpdate.filter(id => id !== jobId);
-    },
-    async pollWorkflow() {
+    async adjustComponentJobsList(componentId: string, jobIds: string[]) {
       try {
-        const workflow = await getWorkflow(this.workflowId);
-        if (!workflow) {
-          console.error("Failed to load workflow");
+        // Find the node by componentId
+        const existingNode = this.getNodeById(componentId);
+
+        if (!existingNode) {
+          console.error(`Component with ID ${componentId} not found`);
           return;
         }
 
-        for (const workflow_component of workflow.workflow_components) {
-          const existingNode = this.getNodeById(workflow_component.component_id);
-          if (existingNode) {
-            const componentState = await getComponentState(workflow_component.component_id);
-            existingNode.data.jobIds = componentState.job_ids;
-            existingNode.data.jobs_errors = componentState.jobs_errors;
-            existingNode.data.input_property_errors = componentState.input_property_errors;
-            existingNode.data.last_exceptions = componentState.last_exceptions;
-            existingNode.data.error = workflow_component.error;
-          }
-        }
+        // Update the jobIds of the existing node's data
+        existingNode.data.jobIds = jobIds;
 
-        const updatedEdges: Edge[] = [];
-        workflow.workflow_components.forEach(component => {
-          component.mappings?.forEach(mapping => {
-            const existingEdge = this.elements.edges.find(edge => edge.source === mapping.source_component_id && edge.target === component.component_id);
-            if (existingEdge && existingEdge.data) {
-              existingEdge.data.text = mapping.error;
-            }
-          });
-        });
+        // Optionally, you can trigger any reactivity updates or other logic here
+        console.log(`Updated job list for component ${componentId}:`, jobIds);
 
-        // Re-assign edges to ensure the VueFlow component updates
-        this.elements.edges = [...this.elements.edges.filter(edge => !updatedEdges.some(updatedEdge => updatedEdge.id === edge.id)), ...updatedEdges];
       } catch (error) {
-        console.error('Error polling workflow:', error);
+        console.error(`Error adjusting component jobs list for component ${componentId}:`, error);
       }
     }
+
   },
 });

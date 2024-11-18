@@ -1,10 +1,9 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse } from '../models/nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse';
-import type { nolabs__application__use_cases__diffdock__api_models__JobResponse } from '../models/nolabs__application__use_cases__diffdock__api_models__JobResponse';
-import type { nolabs__application__use_cases__diffdock__api_models__SetupJobRequest } from '../models/nolabs__application__use_cases__diffdock__api_models__SetupJobRequest';
+import type { nolabs__application__diffdock__api_models__JobResponse } from '../models/nolabs__application__diffdock__api_models__JobResponse';
+import type { nolabs__application__diffdock__api_models__SetupJobRequest } from '../models/nolabs__application__diffdock__api_models__SetupJobRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -12,12 +11,12 @@ export class DiffdockService {
     /**
      * Start diffdock job
      * @param jobId
-     * @returns nolabs__application__use_cases__diffdock__api_models__JobResponse Successful Response
+     * @returns nolabs__application__diffdock__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static startJobApiV1DiffdockJobsRunJobIdPost(
         jobId: string,
-    ): CancelablePromise<nolabs__application__use_cases__diffdock__api_models__JobResponse> {
+    ): CancelablePromise<nolabs__application__diffdock__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/diffdock/jobs/run/{job_id}',
@@ -32,12 +31,12 @@ export class DiffdockService {
     /**
      * Get job
      * @param jobId
-     * @returns nolabs__application__use_cases__diffdock__api_models__JobResponse Successful Response
+     * @returns nolabs__application__diffdock__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static getJobApiV1DiffdockJobsJobIdGet(
         jobId: string,
-    ): CancelablePromise<nolabs__application__use_cases__diffdock__api_models__JobResponse> {
+    ): CancelablePromise<nolabs__application__diffdock__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/diffdock/jobs/{job_id}',
@@ -50,34 +49,14 @@ export class DiffdockService {
         });
     }
     /**
-     * Get job execution status
-     * @param jobId
-     * @returns nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse Successful Response
-     * @throws ApiError
-     */
-    public static getJobStatusApiV1DiffdockJobsJobIdStatusGet(
-        jobId: string,
-    ): CancelablePromise<nolabs__application__use_cases__diffdock__api_models__GetJobStatusResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/diffdock/jobs/{job_id}/status',
-            path: {
-                'job_id': jobId,
-            },
-            errors: {
-                422: `Validation Error`,
-            },
-        });
-    }
-    /**
      * Setup job
      * @param requestBody
-     * @returns nolabs__application__use_cases__diffdock__api_models__JobResponse Successful Response
+     * @returns nolabs__application__diffdock__api_models__JobResponse Successful Response
      * @throws ApiError
      */
     public static setupJobApiV1DiffdockJobsPost(
-        requestBody: nolabs__application__use_cases__diffdock__api_models__SetupJobRequest,
-    ): CancelablePromise<nolabs__application__use_cases__diffdock__api_models__JobResponse> {
+        requestBody: nolabs__application__diffdock__api_models__SetupJobRequest,
+    ): CancelablePromise<nolabs__application__diffdock__api_models__JobResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/diffdock/jobs',

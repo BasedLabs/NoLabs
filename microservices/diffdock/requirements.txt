@@ -1,3 +1,9 @@
-fastapi
-uvicorn
+# Standard Python dependencies
+pydantic==2.8.2
+fastapi==0.112.2
+requests==2.32.3
+pydantic-settings==2.4.0
+uvicorn==0.30.6
+python-dotenv==1.0.1
+celery[redis]==5.4.0
 python-json-logger
