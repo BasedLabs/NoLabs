@@ -24,9 +24,9 @@ variable_name=$HOME/.nolabs
 sed -i "s|^${variable_name}=.*|${variable_name}=${home}|" '.env'
     echo "Updated ${variable_name} in '.env' to ${home}"
 
-if [ ! -d "$NOLABS_HOME" ]; then
-    mkdir -p "$NOLABS_HOME"
-    echo "Created directory at $NOLABS_HOME"
+if [ ! -d "${variable_name}" ]; then
+    mkdir -p "${variable_name}"
+    echo "Created directory at ${variable_name}"
 else
-    echo "Directory $NOLABS_HOME already exists, skipping creation."
+    echo "Directory ${variable_name} already exists, skipping creation."
 fi
