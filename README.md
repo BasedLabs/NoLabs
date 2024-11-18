@@ -65,8 +65,8 @@ If you want to run a single feature **(recommended)**
 # use gpu or no-gpu profile
 $ docker compose up nolabs-frontend nolabs-api nolabs-worker mongo redis
 # mongo, redis and worker are required
-$ docker compose up esmfold_light_gpu
-$ docker compose up diffdock_gpu
+$ docker compose up esmfold-light-gpu
+$ docker compose up diffdock-gpu
 ...
 ```
 
