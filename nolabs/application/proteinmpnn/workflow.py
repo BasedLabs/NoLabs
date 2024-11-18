@@ -58,7 +58,7 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
                 protein_ids.append(result.protein.id)
 
         return ProteinMPNNComponentOutput(
-            generated_sequences=protein_ids
+            proteins_with_fasta=protein_ids
         )
 
     async def on_component_task(self, inp: ProteinMPNNComponentInput) -> List[uuid.UUID]:
