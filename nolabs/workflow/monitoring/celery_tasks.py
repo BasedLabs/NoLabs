@@ -66,5 +66,5 @@ def register_monitoring_celery_tasks(celery: Celery):
                     OrphanedTasksTracker.remove_task(task_id)
                     continue
         finally:
-            if lock.locked():
+            if lock.owned():
                 lock.release()

@@ -183,7 +183,7 @@ def register_workflow_celery_tasks(celery: Celery):
                     graph = Graph(experiment_id=experiment.id)
                     await graph.sync()
             finally:
-                if lock.locked():
+                if lock.owned():
                     lock.release()
 
         async_to_sync(_)()

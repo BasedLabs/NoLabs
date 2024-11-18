@@ -353,7 +353,7 @@ class StartWorkflowComponentFeature:
             graph = Graph(experiment_id=request.experiment_id)
 
             components = []
-            for component_data in ComponentData.objects(request.experiment_id):
+            for component_data in ComponentData.objects(experiment_id=request.experiment_id):
                 component = Component.restore(component_data)
                 components.append(component)
 

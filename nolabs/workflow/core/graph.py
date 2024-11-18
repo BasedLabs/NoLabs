@@ -77,7 +77,7 @@ class Graph:
             metadata = GraphMetadata(graph=graph, schedule=[])
             await self._set_metadata(data=metadata)
         finally:
-            if lock.locked():
+            if lock.owned():
                 lock.release()
 
     async def schedule(self, component_ids: List[uuid.UUID]):
@@ -99,7 +99,7 @@ class Graph:
 
             await self._set_metadata(data=metadata)
         finally:
-            if lock.locked():
+            if lock.owned():
                 lock.release()
 
     async def _set_metadata(self, data: GraphMetadata):
@@ -183,5 +183,5 @@ class Graph:
             logger.info(
                 "Graph syncing finish", extra={"experiment_id": self.experiment_id}
             )
-            if lock.locked():
+            if lock.owned():
                 lock.release()
