@@ -6,7 +6,7 @@ on:
       microservice_name:
         required: true
         type: string
-        description: "Specify microservice name from compose.yaml"
+        description: "Specify microservice name from docker-compose.yaml"
 
 env:
   IMAGE_TAG: ''

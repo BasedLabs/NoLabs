@@ -31,6 +31,7 @@ class ProteinMPNNResult(Document):
     T = FloatField()
     sample = IntField()
     seq_recovery = FloatField()
+    protein: Protein = ReferenceField(Protein, reverse_delete_rule=CASCADE)
     # Removed the job reference
 
     def save(self, *args, **kwargs):

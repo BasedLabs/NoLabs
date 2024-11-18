@@ -1,5 +1,5 @@
-name: nolabs-master
-run-name: nolabs-master
+name: esmfold-light-master
+run-name: esmfold-light-master
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
@@ -14,7 +14,7 @@ jobs:
 
     uses: ./.github/workflows/build-docker.yaml
     with:
-      microservice_name: "nolabs"
+      microservice_name: "esmfold-light"
 
   push:
     if: github.repository == 'BasedLabs/NoLabs'
@@ -26,4 +26,4 @@ jobs:
 
     uses: ./.github/workflows/push-docker.yaml
     with:
-      microservice_name: "nolabs"
+      microservice_name: "esmfold-light"

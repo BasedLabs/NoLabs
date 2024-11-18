@@ -503,9 +503,9 @@ class Protein(Document, Entity):
 
         return protein
 
-    def copy(self, id: uuid.UUID) -> Protein:
+    def copy(self, id: Union[uuid.UUID, ProteinId]) -> Protein:
         return Protein(
-            id=id,
+            id=id if isinstance(id, uuid.UUID) else id.value,
             experiment=self.experiment,
             name=self.name,
             fasta_content=self.fasta_content,

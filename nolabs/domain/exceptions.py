@@ -214,6 +214,10 @@ class ErrorCodes(Enum):
     scheduled_components_are_not_in_graph = ErrorCode(
         code=114, description="Scheduled components are not in graph"
     )
+    component_output_invalid = ErrorCode(
+        code=115, description="Component output is invalid"
+    )
+
 
 
 if len([e.value.code for e in ErrorCodes]) != len(

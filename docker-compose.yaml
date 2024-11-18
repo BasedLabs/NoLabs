@@ -2,9 +2,11 @@ services:
   mongo:
     image: 'mongo:latest'
     network_mode: host
+
   redis:
     image: 'redis:latest'
     network_mode: host
+
   esmfold:
     image: 'ghcr.io/basedlabs/esmfold:2.0.0'
     network_mode: host
@@ -14,6 +16,12 @@ services:
     command: python3 worker.py
     env_file:
       - microservices/esmfold/service/.env
+    profiles:
+      - cpu
+
+  esmfold-gpu:
+    extends:
+      service: esmfold
     deploy:
       resources:
         reservations:
@@ -21,6 +29,9 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+    profiles:
+      - gpu
+
   esmfold-light:
     image: 'ghcr.io/basedlabs/esmfold-light:2.0.0'
     network_mode: host
@@ -30,8 +41,9 @@ services:
       dockerfile: build/Dockerfile
     env_file:
       - microservices/esmfold_light/service/.env
+
   rfdiffusion:
-    image: 'ghcr.io/basedlabs/rfdiffusion:1.0.0'
+    image: 'ghcr.io/basedlabs/rfdiffusion:2.0.0'
     network_mode: host
     build:
       context: microservices/rfdiffusion
@@ -41,6 +53,12 @@ services:
       - microservices/rfdiffusion/service/.env
     volumes:
       - ${RFDIFFUSION_WEIGHTS_LOCATION}:/app/RFdiffusion/models
+    profiles:
+      - cpu
+
+  rfdiffusion-gpu:
+    extends:
+      service: rfdiffusion
     deploy:
       resources:
         reservations:
@@ -48,6 +66,9 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+    profiles:
+      - gpu
+
   diffdock:
     image: 'ghcr.io/basedlabs/diffdock:2.0.1'
     network_mode: host
@@ -55,6 +76,16 @@ services:
       context: microservices/diffdock
       dockerfile: build/Dockerfile
     command: python worker.py
+    env_file:
+      - microservices/diffdock/service/.env
+    volumes:
+      - ${DIFFDOCK_WEIGHTS_LOCATION}:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
+    profiles:
+      - cpu
+
+  diffdock-gpu:
+    extends:
+      service: diffdock
     deploy:
       resources:
         reservations:
@@ -62,10 +93,9 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    env_file:
-      - microservices/diffdock/service/.env
-    volumes:
-      - ${DIFFDOCK_WEIGHTS_LOCATION}:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
+    profiles:
+      - gpu
+
   external-data-query:
     image: 'ghcr.io/basedlabs/external-data-query:1.0.3'
     network_mode: host
@@ -73,6 +103,7 @@ services:
       context: microservices/external_data_query
       dockerfile: build/Dockerfile
     command: --host=0.0.0.0 --port=5739
+
   biobuddy:
     image: 'ghcr.io/basedlabs/biobuddy:1.2.1'
     network_mode: host
@@ -82,6 +113,7 @@ services:
     env_file:
       - microservices/diffdock/service/.env
     command: --host=0.0.0.0 --port=5738
+
   proteinmpnn:
     image: 'ghcr.io/basedlabs/proteinmpnn:1.0.0'
     network_mode: host
@@ -91,6 +123,12 @@ services:
     env_file:
       - microservices/proteinmpnn/service/.env
     command: python worker.py
+    profiles:
+      - cpu
+
+  proteinmpnn-gpu:
+    extends:
+      service: proteinmpnn
     deploy:
       resources:
         reservations:
@@ -98,13 +136,16 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-  nolabs-base:
-    image: 'ghcr.io/basedlabs/nolabs:3.0.0'
+    profiles:
+      - gpu
+
+  nolabs-backend:
+    image: 'ghcr.io/basedlabs/nolabs-backend:3.0.0'
     network_mode: host
     working_dir: /app
     build:
       context: .
-      dockerfile: build/Dockerfile
+      dockerfile: build/backend.Dockerfile
     environment:
       - PYTHONPATH=/app
     env_file:
@@ -112,11 +153,19 @@ services:
 
   nolabs-api:
     extends:
-      service: nolabs-base
+      service: nolabs-backend
     command: python nolabs/application/api.py
 
   nolabs-worker:
     extends:
-      service: nolabs-base
+      service: nolabs-backend
     command: python nolabs/workflow/worker.py
 
+  nolabs-frontend:
+    image: 'ghcr.io/basedlabs/nolabs-frontend:1.0.0'
+    network_mode: host
+    working_dir: /app
+    build:
+      context: .
+      dockerfile: build/frontend.Dockerfile
+    command: npm --prefix frontend run dev -- --host

@@ -72,7 +72,6 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
         os.environ["NOLABS_WORKFLOW_VERSION"] = "2"
         os.environ["NOLABS_MODE"] = "united"
         os.environ["NOLABS_ENVIRONMENT"] = "test"
-        os.environ["NOLABS_ENABLE_STRUCTURED_LOGGING"] = "False"
         os.environ["NOLABS_LOGGING_LEVEL"] = "ERROR"
 
         initialize_settings()

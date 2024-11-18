@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 import subprocess
 import logging
 
@@ -15,11 +16,11 @@ def design(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
     output_files_dir = 'output_pdbs'
     tmp_pdb_file = 'tmp.pdb'
 
-    if not os.path.exists(input_pdbs_dir):
-        os.mkdir(input_pdbs_dir)
+    shutil.rmtree(input_pdbs_dir, ignore_errors=True)
+    shutil.rmtree(output_files_dir, ignore_errors=True)
 
-    if not os.path.exists(output_files_dir):
-        os.mkdir(output_files_dir)
+    os.mkdir(input_pdbs_dir)
+    os.mkdir(output_files_dir)
 
     inference_path = os.path.join(rfdiffusion_dir, 'scripts', 'run_inference.py')
     program = ['python3.9', inference_path, f'inference.model_directory_path={rfdiffusion_dir}/models',

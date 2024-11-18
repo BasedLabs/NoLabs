@@ -147,6 +147,18 @@ def register_workflow_celery_tasks(celery: Celery):
                 inp=component.input_value, job_ids=[j.id for j in jobs]
             )
             component.output_value = output or {}
+
+            output_errors = component.output_errors()
+            if output_errors:
+                errors = []
+                for output_error in output_errors:
+                    msg = output_error.msg
+                    for loc in output_error.loc:
+                        msg += f', loc: {loc}'
+                    errors.append(msg)
+                raise NoLabsException(ErrorCodes.component_output_invalid,
+                                      message=", ".join(errors))
+
             component.dump(data=data)
             data.save()
 

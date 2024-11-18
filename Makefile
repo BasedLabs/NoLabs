@@ -14,8 +14,8 @@ install-mock-server:
 	npm install -g @stoplight/prism-cli
 start-mock-server:
 	prism mock http://127.0.0.1:${UVICORN_HOST}/openapi.json
-prepare-nolabs:
-	scripts/prepare-nolabs.sh
+gen-envs:
+	scripts/gen-envs.sh
 download-diffdock-weights:
 	@echo "Downloading diffdock model weights..."
 	mkdir -p ${DIFFDOCK_WEIGHTS_LOCATION}

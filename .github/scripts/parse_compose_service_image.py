@@ -5,7 +5,7 @@ import yaml
 
 
 def parse_compose_service_image(microservice_name):
-    compose = yaml.safe_load(Path("compose.yaml").read_text())
+    compose = yaml.safe_load(Path("docker-compose.yaml").read_text())
     image = compose["services"][microservice_name]["image"]
     print(image)
 

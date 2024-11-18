@@ -1,6 +1,5 @@
 __all__ = ["ProteinMPNNComponent"]
 
-import re
 import uuid
 from itertools import chain
 from typing import List, Type, Optional, Dict, Any, Union
@@ -11,14 +10,18 @@ from nolabs.application.proteinmpnn.worker_models import (
     RunProteinMPNNPredictionInput,
     RunProteinMPNNPredictionOutput, )
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
-from nolabs.domain.models.common import JobId, JobName, Protein
+from nolabs.domain.models.common import JobId, JobName, Protein, ProteinName, ProteinId
 from nolabs.domain.models.proteinmpnn import ProteinMPNNJob, ProteinMPNNResult
 from nolabs.infrastructure.mongo_connector import get_connection
-from nolabs.workflow.core.component import Component
+from nolabs.workflow.core.component import Component, TInput, TOutput
 from nolabs.workflow.core.flow import ComponentFlowHandler
 
 
 class ProteinMPNNComponentInput(BaseModel):
+    num_seq_per_target: int = 2
+    sampling_temp: float = 0.1
+    seed: int = 37
+    batch_size: int = 1
     proteins_with_pdb: Union[List[uuid.UUID], List[List[uuid.UUID]]]
 
 
@@ -44,6 +47,20 @@ class ProteinMPNNComponent(Component[ProteinMPNNComponentInput, ProteinMPNNCompo
 
 
 class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
+    async def on_completion(
+            self, inp: ProteinMPNNComponentInput, job_ids: List[uuid.UUID]
+    ) -> Optional[ProteinMPNNComponentOutput]:
+        protein_ids = []
+
+        for job_id in job_ids:
+            job: ProteinMPNNJob = ProteinMPNNJob.objects.with_id(job_id)
+            for result in job.results:
+                protein_ids.append(result.protein.id)
+
+        return ProteinMPNNComponentOutput(
+            generated_sequences=protein_ids
+        )
+
     async def on_component_task(self, inp: ProteinMPNNComponentInput) -> List[uuid.UUID]:
         job_ids = []
 
@@ -69,7 +86,10 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
                     name=JobName("ProteinMPNN design job"),
                     component=self.component_id,
                 )
-                job.set_input(protein=protein)
+                job.set_input(protein=protein,
+                              sampling_temp=inp.sampling_temp,
+                              seed=inp.seed,
+                              batch_size=inp.batch_size)
                 await job.save()
 
             job_ids.append(job.id)
@@ -131,6 +151,11 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
                             name, value = comma_separated_part.split('=')
                             d[name] = value
 
+                    protein_id = ProteinId(uuid.uuid4())
+                    protein = job.protein.copy(id=protein_id)
+                    protein.set_fasta(fasta_content=fasta_content)
+                    protein.save(session=session)
+
                     sequence_result = ProteinMPNNResult(
                         id=uuid.uuid4(),
                         fasta_content=fasta_content,
@@ -139,7 +164,8 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
                         global_score=float(d.get("global_score")),
                         T=float(d.get("T")) if 'T' in d else None,
                         sample=float(d.get("sample")) if 'T' in d else None,
-                        seq_recovery=float(d.get("seq_recovery")) if 'seq_recovery' in d else None
+                        seq_recovery=float(d.get("seq_recovery")) if 'seq_recovery' in d else None,
+                        protein=protein.id
                     )
                     sequence_result.save(session=session)
                     results.append(sequence_result)

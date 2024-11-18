@@ -17,7 +17,7 @@ class RfDiffusionInput(BaseModel):
     timesteps: int
     proteins_with_pdb: List[uuid.UUID]
     number_of_designs: int = 1
-    hotspots: Optional[str] = None
+    hotspots: str = ''
 
 
 class RfDiffusionOutput(BaseModel):

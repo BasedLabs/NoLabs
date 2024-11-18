@@ -26,7 +26,7 @@ app.conf.update(
 )
 
 
-@app.task(time_limit=1000, name="design")
+@app.task(time_limit=86400, name="design")
 def design(param: Dict[str, Any]) -> Dict[str, Any]:
     import application
 

@@ -116,7 +116,7 @@ import {
   getProteinMPNNJobApi,
   getProteinContent,
   getJobStatus,
-  changeProteinMPNNJobName,
+  changeJobName,
   setupProteinMPNNJob,
   startProteinMPNNJob
 } from 'src/features/workflow/refinedApi';
@@ -162,7 +162,7 @@ export default defineComponent({
     async updateJobName() {
       if (this.job && this.editableJobName !== this.job.job_name) {
         try {
-          await changeProteinMPNNJobName(this.job.job_id, this.editableJobName);
+          await changeJobName(this.job.job_id, this.editableJobName);
           this.$q.notify({
             type: 'positive',
             message: 'Job name updated successfully.',
