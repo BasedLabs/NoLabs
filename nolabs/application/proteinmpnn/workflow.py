@@ -23,12 +23,12 @@ class ProteinMPNNComponentInput(BaseModel):
 
 
 class ProteinMPNNComponentOutput(BaseModel):
-    generated_sequences: List[uuid.UUID]
+    proteins_with_fasta: List[uuid.UUID]
 
 
 class ProteinMPNNComponent(Component[ProteinMPNNComponentInput, ProteinMPNNComponentOutput]):
     name = "ProteinMPNN"
-    description = "Protein design using ProteinMPNN"
+    description = "Protein design using ProteinMPNN. Predicts sequences from PDB backbones."
 
     @property
     def input_parameter_type(self) -> Type[ProteinMPNNComponentInput]:

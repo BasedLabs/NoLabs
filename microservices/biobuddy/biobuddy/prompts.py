@@ -14,9 +14,9 @@ def generate_strategy_prompt(
     tools_description: str, query: str, available_components: str, current_workflow: str
 ) -> str:
     return (
-        f"Given the available tools ({tools_description}), decide whether a direct reply or a research is sufficient "
+        f"Given the available tools ({tools_description}), decide whether a direct reply or research is sufficient "
         f"or if a specific plan involving these tools is necessary."
-        f"If a user asks to do some online literature research directly, such as 'Could you find me some information about latest research on GFP' or 'What are the latest news abuot rhodopsins?' or 'Can you search me some information about vaccines' etc., "
+        f"If a user asks to do some online literature research directly, such as 'Could you find me some information about latest research on GFP' or 'What are the latest news about rhodopsins?' or 'Can you search me some information about vaccines' etc., "
         f"then reply just with one word-tag '<RESEARCH>'. Do it only if they ask you to search the information, search the Internet or some up-to-date info."
         f"Otherwise, follow these instructions:"
         f"If calling function calls are not needed, provide the direct reply (without stating that it's a direct reply, just the text of the reply). "
@@ -32,11 +32,12 @@ def generate_strategy_prompt(
         f'\n\nQuery: "{query}"\n\n'
         f"Available Components: {available_components}\n\n"
         f"Current Workflow: {current_workflow}\n\n"
-        f"Like if the query tells to do something with proteins or ligands, make sure that these data holder components are present."
-        f"Your response should include the plan and the adjusted workflow if necessary. Add a short summary of changes before the JSON if you are adjusting the workflow (but don't add 'Adjusted workflow:' before the json. The workflow should be in the JSON format: "
-        f'<WORKFLOW> {{"workflow_components": [{{"id": "newId_1", "name": "component_name", "description": "component_description", "connections": [{{"source_output": ["source_output_name"], "target_input": ["input_name"], "source_component_id": "source_id"}}]}}]}} <END_WORKFLOW>.'
-        f"input_name and output_name come from the list of inputs and outputs specified in the component. For instance, esmfold_light has 'proteins_with_fasta' as input and 'proteins_with_pdb' as output. So source_component_id should be the id of proteins component,"
-        f" the source_output should be 'proteins' since it's an output for proteins component and target_input should be 'proteins_with_fasta' "
+        f"IMPORTANT: When generating workflows, strictly adhere to the inputs and outputs provided in the available components. Validate each connection to ensure:"
+        f"1. The source output exists in the specified component."
+        f"2. The target input exists in the target component."
+        f"3. Use only the specified inputs and outputs from the available components."
+        f"If an input or output is not explicitly listed in the available components, do not create or use it. "
+        f"All components should have valid connections, and no assumptions should be made about unspecified inputs or outputs. "
         f"Example of a good workflow freshly generated for docking: "
         f'{{"workflow_components": ['
         f'{{"id": "newId_1", "name": "Proteins", "description": "Proteins datasource", "connections": []}}, '
@@ -46,7 +47,11 @@ def generate_strategy_prompt(
         f'{{"id": "newId_4", "name": "DiffDock", "description": "Prediction of protein-ligand complexes", "connections": ['
         f'{{"source_output": ["proteins_with_pdb"], "target_input": ["proteins_with_pdb"], "source_component_id": "newId_2"}}, '
         f'{{"source_output": ["ligands"], "target_input": ["ligands"], "source_component_id": "newId_3"}}]}}]}}'
+        f'Do not come up with your own inputs, outputs, or components. Use only the data from available components. '
+        f"Your response should include the plan and the adjusted workflow if necessary. Add a short summary of changes before the JSON if you are adjusting the workflow (but don't add 'Adjusted workflow:' before the json. The workflow should be in the JSON format: "
+        f'<WORKFLOW> {{"workflow_components": [{{"id": "newId_1", "name": "component_name", "description": "component_description", "connections": [{{"source_output": ["source_output_name"], "target_input": ["target_input_name"], "source_component_id": "source_id"}}]}}]}} <END_WORKFLOW>.'
     )
+
 
 
 workflow_json = """

@@ -42,7 +42,7 @@ export default defineComponent({
           return '/docking_pic.png';
         case 'Small molecules design':
           return '/small_molecule.jpg';
-        case 'Protein binder design':
+        case 'RFDiffusion Binder Design':
           return '/rf_diffusion_pic.png';
         case 'Localisation':
           return '/localisation_pic.png';
