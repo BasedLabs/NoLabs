@@ -1,5 +1,5 @@
-name: external_data_query-pr
-run-name: external_data_query-pr
+name: external-data-query-pr
+run-name: external-data-query-pr
 
 # Build and push nolabs image using GitHub Cache API
 # Only if relevant files were changed
@@ -9,7 +9,7 @@ on:
     branches:
       - master
     paths:
-      - 'microservices/biobuddy/**'
+      - 'microservices/external_data_query/**'
 
 jobs:
   build:
@@ -19,4 +19,4 @@ jobs:
 
     uses: ./.github/workflows/build-docker.yaml
     with:
-      microservice_name: "external_data_query"
+      microservice_name: "external-data-query"
