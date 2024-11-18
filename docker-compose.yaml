@@ -1,3 +1,5 @@
+version: '3.5'
+
 services:
   mongo:
     image: 'mongo:latest'
@@ -13,15 +15,9 @@ services:
     build:
       context: microservices/esmfold
       dockerfile: build/Dockerfile
-    command: python3 worker.py
+    command: python worker.py
     env_file:
       - microservices/esmfold/service/.env
-    profiles:
-      - cpu
-
-  esmfold-gpu:
-    extends:
-      service: esmfold
     deploy:
       resources:
         reservations:
@@ -29,8 +25,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    profiles:
-      - gpu
 
   esmfold-light:
     image: 'ghcr.io/basedlabs/esmfold-light:2.0.0'
@@ -53,12 +47,6 @@ services:
       - microservices/rfdiffusion/service/.env
     volumes:
       - ${RFDIFFUSION_WEIGHTS_LOCATION}:/app/RFdiffusion/models
-    profiles:
-      - cpu
-
-  rfdiffusion-gpu:
-    extends:
-      service: rfdiffusion
     deploy:
       resources:
         reservations:
@@ -66,11 +54,9 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    profiles:
-      - gpu
 
   diffdock:
-    image: 'ghcr.io/basedlabs/diffdock:2.0.1'
+    image: 'ghcr.io/basedlabs/diffdock:2.0.0'
     network_mode: host
     build:
       context: microservices/diffdock
@@ -80,12 +66,6 @@ services:
       - microservices/diffdock/service/.env
     volumes:
       - ${DIFFDOCK_WEIGHTS_LOCATION}:/app/DiffDock/esm/model_weights/.cache/torch/hub/checkpoints
-    profiles:
-      - cpu
-
-  diffdock-gpu:
-    extends:
-      service: diffdock
     deploy:
       resources:
         reservations:
@@ -93,8 +73,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    profiles:
-      - gpu
 
   external-data-query:
     image: 'ghcr.io/basedlabs/external-data-query:1.0.3'
@@ -123,12 +101,6 @@ services:
     env_file:
       - microservices/proteinmpnn/service/.env
     command: python worker.py
-    profiles:
-      - cpu
-
-  proteinmpnn-gpu:
-    extends:
-      service: proteinmpnn
     deploy:
       resources:
         reservations:
@@ -136,25 +108,19 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    profiles:
-      - gpu
 
   nolabs-backend:
-    image: 'ghcr.io/basedlabs/nolabs-backend:3.0.0'
+    image: 'ghcr.io/basedlabs/nolabs-backend:1.0.0'
     network_mode: host
     working_dir: /app
     build:
       context: .
       dockerfile: build/backend.Dockerfile
+    command: python nolabs/application/api.py
     environment:
       - PYTHONPATH=/app
     env_file:
       - nolabs/infrastructure/.env
-
-  nolabs-api:
-    extends:
-      service: nolabs-backend
-    command: python nolabs/application/api.py
 
   nolabs-worker:
     extends:

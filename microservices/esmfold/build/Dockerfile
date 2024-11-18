@@ -14,19 +14,10 @@ RUN poetry lock --no-update
 RUN poetry export -f requirements.txt --without-hashes -o requirements.txt
 
 FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
-
-# Create a Conda environment with Python 3.10
-RUN conda create -n myenv python=3.10 && conda clean -a -y
-
-# Activate the environment and install packages
-SHELL ["conda", "run", "-n", "myenv", "/bin/bash", "-c"]
-RUN pip install poetry poetry-plugin-export
-
-# Set up poetry and dependencies
+RUN apt-get update && apt-get install -y wget git build-essential
 WORKDIR /app
 COPY --from=requirements /app/requirements.txt /app/requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -r /app/requirements.txt --verbose
+COPY service /app
 
-# Copy application files
-COPY service /app/service
-WORKDIR /app/service
+ENTRYPOINT []

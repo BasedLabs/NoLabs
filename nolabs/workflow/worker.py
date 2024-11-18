@@ -1,4 +1,7 @@
+from celery.signals import after_setup_logger
 from dotenv import load_dotenv
+
+from nolabs.infrastructure.log import initialize_logging
 
 load_dotenv(".env")
 
@@ -22,6 +25,10 @@ from nolabs.workflow.monitoring.celery_tasks import register_monitoring_celery_t
 def task_prerun(**kwargs):
     initialize()
     mongo_connect()
+
+@after_setup_logger.connect
+def setup_logger(logger, *args, **kwargs):
+    initialize_logging()  # Initialize JSON logging
 
 
 @signals.worker_shutting_down.connect

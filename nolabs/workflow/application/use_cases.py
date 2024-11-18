@@ -41,7 +41,7 @@ class CreateWorkflowSchemaFeature:
     async def handle(self, experiment_id: UUID) -> WorkflowSchema:
         extra = {"experiment_id": experiment_id}
 
-        logger.info("Staring workflow creation", extra=extra)
+        logger.debug("Staring workflow creation", extra=extra)
 
         try:
             id = uuid.uuid4()
@@ -85,7 +85,7 @@ class CreateWorkflowSchemaFeature:
             experiment.set_schema(schema=schema.model_dump())
             experiment.save(cascade=True)
 
-            logger.info("Saved schema to experiment %s", id, extra=extra)
+            logger.debug("Saved schema to experiment %s", id, extra=extra)
 
             return schema
         except Exception as e:
@@ -98,7 +98,7 @@ class GetWorkflowSchemaFeature:
     async def handle(self, experiment_id: UUID) -> Optional[WorkflowSchema]:
         extra = {"experiment_id": experiment_id}
 
-        logger.info("Get workflow schema", extra=extra)
+        logger.debug("Get workflow schema", extra=extra)
 
         try:
             data: Experiment = Experiment.objects.with_id(experiment_id)
@@ -106,7 +106,7 @@ class GetWorkflowSchemaFeature:
             if not data or not data.schema:
                 return None
 
-            logger.info("Get workflow schema success", extra=extra)
+            logger.debug("Get workflow schema success", extra=extra)
 
             return WorkflowSchema(**data.schema)
         except Exception as e:
@@ -122,7 +122,7 @@ class UpdateWorkflowSchemaFeature:
             "components_count": len(schema.components),
         }
 
-        logger.info("Update workflow schema", extra=extra)
+        logger.debug("Update workflow schema", extra=extra)
 
         try:
             data: Experiment = Experiment.objects.with_id(schema.experiment_id)
@@ -140,7 +140,7 @@ class UpdateWorkflowSchemaFeature:
                 data.schema = schema.model_dump()
                 data.save(cascade=True)
 
-                logger.info(
+                logger.debug(
                     "Update workflow schema success, schema is cyclic", extra=extra
                 )
                 return schema
@@ -217,7 +217,7 @@ class UpdateWorkflowSchemaFeature:
             data.set_schema(schema=schema.model_dump())
             data.save()
 
-            logger.info(
+            logger.debug(
                 "Update workflow schema success",
                 extra={**extra, **{"schema_valid": schema.valid}},
             )
@@ -277,7 +277,7 @@ class StartWorkflowFeature:
         extra = {"experiment_id": id}
 
         try:
-            logger.info("Starting workflow schema", extra=extra)
+            logger.debug("Starting workflow schema", extra=extra)
 
             experiment: Experiment = Experiment.objects.get(id=experiment_id)
 
@@ -305,12 +305,12 @@ class StartWorkflowFeature:
                 },
             }
 
-            logger.info("Workflow schema start", extra=extra)
+            logger.debug("Workflow schema start", extra=extra)
 
             await self.start_workflow(
                 experiment_id=experiment.id, components_graph=components
             )
-            logger.info("Workflow schema started", extra=extra)
+            logger.debug("Workflow schema started", extra=extra)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e
@@ -337,7 +337,7 @@ class StartWorkflowComponentFeature:
                 "experiment_id": request.experiment_id,
             }
 
-            logger.info("Starting component", extra=extra)
+            logger.debug("Starting component", extra=extra)
 
             experiment: Experiment = Experiment.objects.with_id(request.experiment_id)
 
@@ -363,7 +363,7 @@ class StartWorkflowComponentFeature:
 
             extra = {**extra, **{"experiment_id": experiment.id}}
 
-            logger.info("Component execution", extra=extra)
+            logger.debug("Component execution", extra=extra)
         except Exception as e:
             if isinstance(e, NoLabsException):
                 raise e
@@ -383,7 +383,7 @@ class GetComponentStateFeature:
         try:
             extra = {"component_id": request.id}
 
-            logger.info("Get component state", extra=extra)
+            logger.debug("Get component state", extra=extra)
 
             data: ComponentData = ComponentData.objects.with_id(request.id)
 
@@ -416,7 +416,7 @@ class GetComponentStateFeature:
                 job_ids=job_ids,
             )
 
-            logger.info("Get component state success", extra=extra)
+            logger.debug("Get component state success", extra=extra)
 
             return response
         except Exception as e:
@@ -455,7 +455,7 @@ class GetJobStateFeature:
         try:
             extra = {"job_id": request.job_id}
 
-            logger.info("Get job state", extra=extra)
+            logger.debug("Get job state", extra=extra)
 
             job: Job = Job.objects.with_id(request.job_id)
 
@@ -480,7 +480,7 @@ class GetJobStateFeature:
                 **{"component_id": job.component.id, "job_state": state.name},
             }
 
-            logger.info("Get job state success", extra=extra)
+            logger.debug("Get job state success", extra=extra)
 
             return response
         except Exception as e:
@@ -519,7 +519,7 @@ class StopWorkflowFeature:
         try:
             extra = {"job_id": request.job_id}
 
-            logger.info("Get job state", extra=extra)
+            logger.debug("Get job state", extra=extra)
 
             job: Job = Job.objects.with_id(request.job_id)
 
@@ -540,7 +540,7 @@ class StopWorkflowFeature:
                 **{"component_id": job.component.id, "job_state": state.name},
             }
 
-            logger.info("Get job state success", extra=extra)
+            logger.debug("Get job state success", extra=extra)
 
             return response
         except Exception as e:

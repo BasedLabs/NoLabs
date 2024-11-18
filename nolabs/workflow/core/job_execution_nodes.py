@@ -33,7 +33,7 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
         self.job_id = job_id
 
     async def start(self):
-        logger.info(
+        logger.debug(
             "Starting job main task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -58,7 +58,7 @@ class JobMainTaskExecutionNode(CeleryExecutionNode):
         pipe.execute()
 
     async def schedule(self):
-        logger.info(
+        logger.debug(
             "Scheduling job main task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -92,7 +92,7 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
         self.job_id = job_id
 
     async def start(self):
-        logger.info(
+        logger.debug(
             "Starting job long running task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -112,7 +112,7 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
             task_id=task_id,
             queue=celery_queue,
             retry=False,
-            kwargs=kwargs
+            args=[kwargs[list(kwargs.keys())[0]]],
         )
         await self.set_state(ControlStates.STARTED, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
@@ -124,7 +124,7 @@ class JobLongRunningTaskExecutionNode(CeleryExecutionNode):
         arguments: Optional[Dict[str, Any]] = None,
         celery_queue: Optional[str] = None,
     ):
-        logger.info(
+        logger.debug(
             "Scheduling job long running task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -167,7 +167,7 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
         self.experiment_id = experiment_id
 
     async def start(self):
-        logger.info(
+        logger.debug(
             "Starting job complete task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -194,7 +194,7 @@ class JobCompleteTaskExecutionNode(CeleryExecutionNode):
         pipe.execute()
 
     async def schedule(self, long_running_output: Optional[Dict[str, Any]] = None):
-        logger.info(
+        logger.debug(
             "Scheduling job complete task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -246,7 +246,7 @@ class JobExecutionNode(ExecutionNode):
         )
 
     async def sync_started(self):
-        logger.info(
+        logger.debug(
             "Syncing job node",
             extra={
                 "experiment_id": self.experiment_id,
@@ -273,7 +273,7 @@ class JobExecutionNode(ExecutionNode):
         await self.set_final_state()
 
     async def sync_main_task(self):
-        logger.info(
+        logger.debug(
             "Syncing job main task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -291,7 +291,7 @@ class JobExecutionNode(ExecutionNode):
         await self.main_task.sync_started()
 
     async def sync_long_running_task(self):
-        logger.info(
+        logger.debug(
             "Syncing job long running task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -316,7 +316,7 @@ class JobExecutionNode(ExecutionNode):
         await self.long_running_task.sync_started()
 
     async def sync_complete_task(self):
-        logger.info(
+        logger.debug(
             "Syncing job complete task",
             extra={
                 "experiment_id": self.experiment_id,

@@ -40,9 +40,11 @@ class ExecutionNode(ABC):
         self._state_cache = ControlStates(state)
         return self._state_cache
 
-    async def on_started(self): ...
+    async def on_started(self):
+        ...
 
-    async def on_finished(self): ...
+    async def on_finished(self):
+        ...
 
     async def get_input(self) -> Optional[Dict[str, Any]]:
         cid = f"{self._id}:input"
@@ -52,9 +54,9 @@ class ExecutionNode(ABC):
         return json.loads(execution_input)
 
     async def set_input(
-        self,
-        execution_input: Dict[str, Any] | str | BaseModel,
-        pipe: Optional[Pipeline] = None,
+            self,
+            execution_input: Dict[str, Any] | str | BaseModel,
+            pipe: Optional[Pipeline] = None,
     ):
         cid = f"{self._id}:input"
 
@@ -89,10 +91,15 @@ class ExecutionNode(ABC):
     async def set_state(self, state: ControlStates, pipe: Optional[Pipeline] = None):
         current_state = self._state_cache
 
-        logger.info(
-            "Setting state",
-            extra={"node_id": self._id, "from_state": current_state, "to_state": state},
-        )
+        if current_state != state:
+            logger.info(
+                "State transition",
+                extra={
+                    "node_name": self.__class__.__name__,
+                    "node_id": self._id,
+                    "from_state": current_state,
+                    "to_state": state},
+            )
 
         if current_state and state not in state_transitions[current_state]:
             raise NoLabsException(
@@ -110,10 +117,12 @@ class ExecutionNode(ABC):
             await self.on_finished()
 
     @abstractmethod
-    async def sync_started(self): ...
+    async def sync_started(self):
+        ...
 
     @abstractmethod
-    async def sync_cancelling(self): ...
+    async def sync_cancelling(self):
+        ...
 
     async def can_schedule(self, **kwargs) -> bool:
         """Schedule and start as soon as possible"""
@@ -130,7 +139,8 @@ class ExecutionNode(ABC):
         return await self.get_state() == ControlStates.SCHEDULED
 
     @abstractmethod
-    async def start(self, **kwargs): ...
+    async def start(self, **kwargs):
+        ...
 
     async def started(self) -> bool:
         return await self.get_state() == ControlStates.STARTED
@@ -196,7 +206,6 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         state = await self.get_state()
         if state != ControlStates.STARTED:
             return state
-        cid = self.celery_task_id_cid
         task_id = self._get_task_id()
         if not task_id:
             raise NoLabsException(ErrorCodes.celery_task_executed_but_task_id_not_found)

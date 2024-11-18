@@ -8,7 +8,7 @@ from nolabs.infrastructure.socket_server import get_socket_server
 async def emit_start_job_event(experiment_id: UUID, component_id: UUID, job_id: UUID):
     event_name = "job_started"
 
-    logger.info(
+    logger.debug(
         "Emitting event",
         extra={
             "event_name": event_name,
@@ -27,7 +27,7 @@ async def emit_start_job_event(experiment_id: UUID, component_id: UUID, job_id: 
 async def emit_finish_job_event(experiment_id: UUID, component_id: UUID, job_id: UUID):
     event_name = "job_finished"
 
-    logger.info(
+    logger.debug(
         "Emitting event",
         extra={
             "event_name": event_name,
@@ -47,7 +47,7 @@ async def emit_finish_job_event(experiment_id: UUID, component_id: UUID, job_id:
 async def emit_start_component_event(experiment_id: UUID, component_id: UUID):
     event_name = "component_started"
 
-    logger.info(
+    logger.debug(
         "Emitting event",
         extra={
             "event_name": event_name,
@@ -66,7 +66,7 @@ async def emit_start_component_event(experiment_id: UUID, component_id: UUID):
 async def emit_finish_component_event(experiment_id: UUID, component_id: UUID):
     event_name = "component_finished"
 
-    logger.info(
+    logger.debug(
         "Emitting event",
         extra={
             "event_name": event_name,
@@ -87,7 +87,7 @@ async def emit_component_jobs_event(
 ):
     event_name = "component_jobs"
 
-    logger.info(
+    logger.debug(
         "Emitting event",
         extra={
             "event_name": event_name,

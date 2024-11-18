@@ -42,6 +42,8 @@ def format_exception_info(exc_info: ExceptionInfoType) -> dict:
     else:
         d["error_code"] = ErrorCodes.unknown_exception.value.code
 
+    del d['pathname']
+
     return d
 
 
@@ -68,5 +70,7 @@ class JsonFormatter(logging.Formatter):
 
         if record.exc_info:
             record_dict["exc_info"] = format_exception_info(record.exc_info)
+
+        del record_dict["pathname"]
 
         return json.dumps(record_dict, default=lambda o: str(o))

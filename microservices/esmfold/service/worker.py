@@ -1,4 +1,3 @@
-import redis
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -10,6 +9,8 @@ from api_models import InferenceInput
 from celery import Celery
 
 from settings import settings
+import redis
+
 
 app = Celery(
     __name__, backend=settings.redis_url, broker=settings.redis_url

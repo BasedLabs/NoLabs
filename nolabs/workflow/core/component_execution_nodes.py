@@ -30,12 +30,12 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
         self.component_id = component_id
 
     async def start(self):
-        logger.info(
+        logger.debug(
             "Starting component main task",
             extra={
                 "experiment_id": self.experiment_id,
                 "component_id": self.component_id,
-            },
+            }
         )
         pipe = get_redis_pipe()
         queue = settings.workflow_queue
@@ -55,7 +55,7 @@ class ComponentMainTaskExecutionNode(CeleryExecutionNode):
         pipe.execute()
 
     async def schedule(self, experiment_id: uuid.UUID, component_id: uuid.UUID):
-        logger.info(
+        logger.debug(
             "Scheduling component main task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -81,7 +81,7 @@ class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
         self.component_id = component_id
 
     async def start(self):
-        logger.info(
+        logger.debug(
             "Starting component complete task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -111,7 +111,7 @@ class ComponentCompleteTaskExecutionNode(CeleryExecutionNode):
         component_id: uuid.UUID,
         job_ids: List[uuid.UUID],
     ):
-        logger.info(
+        logger.debug(
             "Scheduling component complete task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -149,7 +149,7 @@ class ComponentExecutionNode(ExecutionNode):
         return state == ControlStates.UNKNOWN or state in TERMINAL_STATES
 
     async def schedule(self):
-        logger.info(
+        logger.debug(
             "Scheduling component node",
             extra={
                 "experiment_id": self.experiment_id,
@@ -184,7 +184,7 @@ class ComponentExecutionNode(ExecutionNode):
         await complete_task.reset(pipe=pipe)
 
     async def start(self, **kwargs):
-        logger.info(
+        logger.debug(
             "Starting component node",
             extra={
                 "experiment_id": self.experiment_id,
@@ -195,7 +195,7 @@ class ComponentExecutionNode(ExecutionNode):
 
     async def sync_started(self):
         state = await self.get_state()
-        logger.info(
+        logger.debug(
             "Syncing component node",
             extra={
                 "experiment_id": self.experiment_id,
@@ -230,7 +230,7 @@ class ComponentExecutionNode(ExecutionNode):
             return
 
     async def sync_main_task(self):
-        logger.info(
+        logger.debug(
             "Syncing component main task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -257,7 +257,7 @@ class ComponentExecutionNode(ExecutionNode):
         :returns: any jobs succeeded
         """
         job_ids = [j.id for j in Job.objects(component=self.component_id).only("id")]
-        logger.info(
+        logger.debug(
             "Syncing component jobs",
             extra={
                 "experiment_id": self.experiment_id,
@@ -297,7 +297,7 @@ class ComponentExecutionNode(ExecutionNode):
         Update the component state based on the terminal states of all jobs.
         :returns: any jobs succeeded
         """
-        logger.info(
+        logger.debug(
             "Updating component jobs states",
             extra={
                 "experiment_id": self.experiment_id,
@@ -335,7 +335,7 @@ class ComponentExecutionNode(ExecutionNode):
 
     async def sync_complete_task(self):
         """Synchronize and start the complete task if all jobs are finished."""
-        logger.info(
+        logger.debug(
             "Syncing component complete task",
             extra={
                 "experiment_id": self.experiment_id,
@@ -373,7 +373,7 @@ class ComponentExecutionNode(ExecutionNode):
         )
 
     async def sync_cancelling(self):
-        logger.info(
+        logger.debug(
             "Cancelling component",
             extra={
                 "experiment_id": self.experiment_id,

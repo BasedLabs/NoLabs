@@ -15,8 +15,6 @@ class Settings(BaseSettings):
     use_max_power: bool
     omp_num_threads: int
     mkl_num_threads: int
-    model1_url: str
-    model2_url: str
     logging_level: Literal["DEBUG", "WARNING", "ERROR", "INFO"] = "INFO"
     environment: Literal["local", "test", "production"] = "local"
 

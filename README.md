@@ -29,7 +29,7 @@ NoLabs is an open source biolab that lets you run experiments with the latest st
 
 # Features
 
-**Workflow Engine**
+### Workflow engine
 
 <br>
 <img src="media/Workflow_UI_demo.png" width="100%">
@@ -37,6 +37,23 @@ NoLabs is an open source biolab that lets you run experiments with the latest st
 - Create workflows combining different models and data
 - Schedule jobs and observe results for big data processing
 - Adjust input parameters for particular jobs
+
+### Bio Buddy - lab assistant agent
+
+BioBuddy is a drug discovery copilot that supports:
+
+- Downloading data from [ChemBL](https://www.ebi.ac.uk/chembl/)
+- Downloading data from [RcsbPDB](https://www.rcsb.org/)
+- Questions about drug discovery process, targets, chemical components etc
+- Writing review reports based on published papers
+- Creating a workflow schema for you
+
+For example, you can ask
+- "Can you pull me some latest approved drugs?"
+- "Can you download me 1000 rhodopsins?"
+- "How does an aspirin molecule look like?" and it will do this and answer other questions.
+
+<img src="media/Biobuddy_pic.png" width="100%">
 
 # Starting
 
@@ -62,20 +79,17 @@ $ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 If you want to run a single feature **(recommended)**
 
 ```bash
-# use gpu or no-gpu profile
 $ docker compose up nolabs-frontend nolabs-api nolabs-worker mongo redis
 # mongo, redis and worker are required
-$ docker compose up esmfold-light-gpu
-$ docker compose up diffdock-gpu
+$ docker compose up esmfold-light
+$ docker compose up diffdock
 ...
 ```
 
 OR if you want to run everything on one machine:
 
 ```bash
-$ docker compose --profile gpu up
-# or
-$ docker compose --profile cpu up
+$ docker compose up
 ```
 Server will be available on http://localhost:9000
 
@@ -109,8 +123,6 @@ For example, to run the `esmfold` service, you can use Docker Compose:
 
 ```bash
 $ docker compose up esmfold-api
-# or
-$ docker compose up esmfold-gpu-api
 ```
 
 Once the service is up, you can make a POST request to perform a task, such as predicting a protein's folded structure.
@@ -152,7 +164,7 @@ On machine with a GPU do the following steps:
 `   1) Adjust `microservices/diffdock/service/.env` file with `REDIS_URL` pointing to your Redis deployment
 2) Run following command
 ```bash
-$ docker compose up diffdock-gpu
+$ docker compose up diffdock
 ```
 
 You should see celery start log message.
@@ -161,39 +173,11 @@ And now you are ready to use this service hosted on a separate machine!
 In case you want to start just an API (there is no integration in NoLabs, however you can use service separately):
 
 ```bash
-$ docker compose up diffdock-api-gpu
+$ docker compose up diffdock-api
 ```
 
 Once the service is up, you can check that you can access it from your computer by navigating to `http://<
 gpu_machine_ip>:5737/docs`
-
-## Bio Buddy - drug discovery co-pilot
-
-BioBuddy is a drug discovery copilot that supports:
-
-- Downloading data from [ChemBL](https://www.ebi.ac.uk/chembl/)
-- Downloading data from [RcsbPDB](https://www.rcsb.org/)
-- Questions about drug discovery process, targets, chemical components etc
-- Writing review reports based on published papers
-
-For example, you can ask
-- "Can you pull me some latest approved drugs?"
-- "Can you download me 1000 rhodopsins?"
-- "How does an aspirin molecule look like?" and it will do this and answer other questions.
-
-<img src="media/Biobuddy_pic.png" width="100%">
-
-To enable biobuddy:
-
-1) Adjust `NOLABS_ENABLE_BIOBUDDY` environment variable in `nolabs/infrastructure/.env`
-2) Adjust `OPENAI_API_KEY` and `TAVILY_API_KEY` in `microservices/biobuddy/biobuddy/.env`
-3) Start docker compose
-```shell
-$ docker compose up --profile gpu biobuddy nolabs-frontend nolabs-worker nolabs-api mongo redis
-```
-
-Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
-
 
 ## How-to run workers
 
@@ -206,7 +190,7 @@ etc).
 
 ```shell
 make download-rfdiffusion-weights
-docker compose up rfdiffusion-gpu
+docker compose up rfdiffusion
 ```
 
 ### 2) ESMFold (folding)
@@ -215,7 +199,7 @@ Model: [ESMFold](https://github.com/facebookresearch/esm) - Evolutionary Scale M
 
 ```shell
 make download-esmfold-weights
-docker compose up esmfold-gpu
+docker compose up esmfold
 ```
 
 ### 3) ESMAtlas (folding)
@@ -232,16 +216,30 @@ Model: [DiffDock](https://github.com/gcorso/DiffDock)
 
 ```shell
 make download-diffdock-weights
-docker compose up diffdock-gpu
+docker compose up diffdock
 ```
 
-### 4) Proteinmpnn (design fasta from pdb)
+### 5) Proteinmpnn (design fasta from pdb)
 
 Model: [Proteinmpnn](https://github.com/dauparas/ProteinMPNN)
 
 ```shell
-docker compose up proteinmpnn-gpu
+docker compose up proteinmpnn
 ```
+
+### 6) Biobuddy
+
+To enable biobuddy:
+
+1) Adjust `NOLABS_ENABLE_BIOBUDDY` environment variable in `nolabs/infrastructure/.env`
+2) Adjust `OPENAI_API_KEY` and `TAVILY_API_KEY` in `microservices/biobuddy/biobuddy/.env`
+3) Start docker compose
+```shell
+$ docker compose up biobuddy nolabs-frontend nolabs-worker nolabs-api mongo redis
+```
+
+Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
+
 
 ## Requirements ##
 

@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     celery_worker_concurrency: int = 20
     environment: Literal["local", "test", "production"] = "local"
     logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
+    logging_structured: bool = False
 
 
 _settings: Optional[Settings] = None

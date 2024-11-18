@@ -17,6 +17,7 @@ pandas = "*"
 numpy = "*"
 transformers = "^4.46.2"
 python-dotenv = "^1.0.1"
+pydantic-settings = "^2.6.1"
 
 [build-system]
 requires = ["poetry-core"]

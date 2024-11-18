@@ -131,7 +131,7 @@ class Graph:
         lock = redlock(key=self._id, blocking=False, auto_release_time=10.0)
 
         if not lock.acquire():
-            logger.info(
+            logger.debug(
                 "Graph is already syncing, returning",
                 extra={"experiment_id": self.experiment_id},
             )

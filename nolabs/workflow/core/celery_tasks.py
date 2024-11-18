@@ -47,7 +47,7 @@ def register_workflow_celery_tasks(celery: Celery):
             input_errors = component.input_errors()
 
             if input_errors:
-                logger.info(
+                logger.debug(
                     "Input errors",
                     extra={
                         **extra,
@@ -138,7 +138,7 @@ def register_workflow_celery_tasks(celery: Celery):
             component.dump(data=data)
             data.save()
 
-            logger.info("Component finished", extra={"component_id": component_id})
+            logger.debug("Component finished", extra={"component_id": component_id})
 
         async_to_sync(_)()
 

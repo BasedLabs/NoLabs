@@ -8,6 +8,7 @@ import csv
 import glob
 import re
 import shutil
+from pathlib import Path
 
 from api_models import (
     RunDiffDockPredictionRequest,
@@ -35,10 +36,7 @@ def clear_results_directory(directory):
 
 
 def run_docking(request: RunDiffDockPredictionRequest) -> RunDiffDockPredictionResponse:
-    mw1_path = settings.weights_path / settings.model1_url.split("/")[-1]
-    mw2_path = settings.weights_path / settings.model2_url.split("/")[-1]
-
-    if not mw1_path.exists() or not mw2_path.exists():
+    if not Path(settings.weights_path).exists():
         raise RuntimeError("Weights do not exist. Download weights first")
 
     results_dir = "/app/DiffDock/results/user_predictions_small_new"

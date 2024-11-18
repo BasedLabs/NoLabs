@@ -11,6 +11,7 @@ from testcontainers.mongodb import MongoDbContainer
 from testcontainers.redis import RedisContainer
 
 from nolabs.infrastructure.celery_app_factory import get_celery_app
+from nolabs.infrastructure.log import initialize_logging
 from nolabs.infrastructure.mongo_connector import mongo_connect, mongo_disconnect
 from nolabs.infrastructure.redis_client_factory import cached_client
 from nolabs.infrastructure.settings import initialize_settings
@@ -72,10 +73,10 @@ class GlobalSetup(unittest.IsolatedAsyncioTestCase):
         os.environ["NOLABS_WORKFLOW_VERSION"] = "2"
         os.environ["NOLABS_MODE"] = "united"
         os.environ["NOLABS_ENVIRONMENT"] = "test"
-        os.environ["NOLABS_LOGGING_LEVEL"] = "ERROR"
+        os.environ["NOLABS_LOGGING_LEVEL"] = "INFO"
 
         initialize_settings()
-        # initialize_logging()
+        initialize_logging()
 
         register_workflow_celery_tasks(get_celery_app())
 

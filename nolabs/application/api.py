@@ -18,13 +18,13 @@ from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.application.diffdock.controller import router as diffdock_router
 from nolabs.application.proteinmpnn.controller import router as proteinmpnn_router
 from nolabs.application.ligands.controller import router as ligand_router
-from nolabs.infrastructure.log import logger
+from nolabs.infrastructure.log import logger, initialize_logging
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import initialize_settings, settings
 from nolabs.workflow.application.controller import router as workflow_router
 
 initialize_settings()
-
+initialize_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

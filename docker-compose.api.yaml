@@ -3,23 +3,11 @@ services:
     extends:
       service: esmfold
       file: docker-compose.yaml
-    command: python3 api.py
-
-  esmfold-gpu-api:
-    extends:
-      service: esmfold-gpu
-      file: docker-compose.yaml
-    command: python3 api.py
+    command: python api.py
 
   rfdiffusion-api:
     extends:
       service: rfdiffusion
-      file: docker-compose.yaml
-    command: python3.9 api.py
-
-  rfdiffusion-gpu-api:
-    extends:
-      service: rfdiffusion-gpu
       file: docker-compose.yaml
     command: python3.9 api.py
 
@@ -29,20 +17,8 @@ services:
       file: docker-compose.yaml
     command: python api.py
 
-  diffdock-gpu-api:
-    extends:
-      service: diffdock-gpu
-      file: docker-compose.yaml
-    command: python api.py
-
   proteinmpnn-api:
     extends:
       service: proteinmpnn
-      file: docker-compose.yaml
-    command: python api.py
-
-  proteinmpnn-gpu-api:
-    extends:
-      service: proteinmpnn-gpu
       file: docker-compose.yaml
     command: python api.py
