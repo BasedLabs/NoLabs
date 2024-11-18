@@ -35,6 +35,12 @@ def design(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
     if '[' in request.contig:
         request.contig = request.contig.lstrip('[').rstrip(']')
 
+    if request.hotspots and '[' in request.hotspots:
+        request.hotspots = request.hotspots.lstrip('[').rstrip(']')
+
+    if request.inpaint and '[' in request.inpaint:
+        request.inpaint = request.inpaint.lstrip('[').rstrip(']')
+
     program.append(f'contigmap.contigs=[{request.contig}]')
 
     program.append('denoiser.noise_scale_ca=0')
@@ -43,6 +49,9 @@ def design(request: RunRfdiffusionRequest) -> RunRfdiffusionResponse:
 
     if request.hotspots:
         program.append(f'ppi.hotspot_res=[{request.hotspots}]')
+
+    if request.inpaint:
+        program.append(f'contigmap.inpaint_str=[{request.inpaint}]')
 
     res = subprocess.run(program, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 

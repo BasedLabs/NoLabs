@@ -11,7 +11,7 @@ from nolabs.infrastructure.settings import settings
 @lru_cache
 def get_celery_app() -> Celery:
     app = Celery(
-        __name__, broker=settings.celery_broker, backend=settings.celery_backend
+        __name__, broker=settings.redis_url, backend=settings.redis_url
     )
     app.conf.update(
         timezone = 'UTC',
@@ -26,7 +26,7 @@ def get_celery_app() -> Celery:
         accept_content=["application/json", "application/x-python-serialize"],
         task_always_eager=False,
         task_eager_propagates=False,
-        redbeat_redis_url=settings.celery_backend,
+        redbeat_redis_url=settings.redis_url,
         redbeat_lock_timeout=20
     )
     app.autodiscover_tasks(force=True)

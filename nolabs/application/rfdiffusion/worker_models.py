@@ -8,6 +8,7 @@ class RunRfdiffusionRequest(BaseModel):
     pdb_content: str
     contig: str
     hotspots: Optional[str] = ''
+    inpaint: Optional[str] = ''
     timesteps: Optional[int] = 50
     number_of_designs: Optional[int] = 1
 

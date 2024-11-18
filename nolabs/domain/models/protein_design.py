@@ -25,6 +25,7 @@ class RfdiffusionJob(Job):
     number_of_designs: int = IntField(required=False, default=2)
     hotspots: str = StringField(required=False)
     timesteps: int = IntField(required=False, default=50)
+    inpaint: str = StringField(required=False)
 
     def set_input(
         self,
@@ -33,12 +34,14 @@ class RfdiffusionJob(Job):
         number_of_designs: int,
         hotspots: str,
         timesteps: int,
+        inpaint: str
     ):
         self.binders = []
         self.contig = contig
         self.number_of_designs = number_of_designs
         self.hotspots = hotspots
         self.timesteps = timesteps
+        self.inpaint = inpaint
         self.protein = protein
 
         self.input_errors(throw=True)

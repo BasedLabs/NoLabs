@@ -18,6 +18,7 @@ class RfDiffusionInput(BaseModel):
     proteins_with_pdb: List[uuid.UUID]
     number_of_designs: int = 1
     hotspots: str = ''
+    inpaint: str = ''
 
 
 class RfDiffusionOutput(BaseModel):
@@ -64,12 +65,14 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
                               contig=inp.contig,
                               number_of_designs=inp.number_of_designs,
                               hotspots=inp.hotspots,
-                              timesteps=inp.timesteps)
+                              timesteps=inp.timesteps,
+                              inpaint=inp.inpaint)
             job.set_input(protein=protein,
                           contig=inp.contig,
                           number_of_designs=inp.number_of_designs,
                           hotspots=inp.hotspots,
-                          timesteps=inp.timesteps)
+                          timesteps=inp.timesteps,
+                          inpaint=inp.inpaint)
             await job.save(cascade=True)
 
             job_ids.append(job.id)
@@ -91,6 +94,7 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
             contig=job.contig,
             hotspots=job.hotspots,
             timesteps=job.timesteps,
+            inpaint=job.inpaint,
             number_of_designs=job.number_of_designs
         )
 
@@ -130,6 +134,6 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
             job: RfdiffusionJob = RfdiffusionJob.objects.with_id(job_id)
             for binder in job.binders:
                 protein_ids.append(binder.id)
-        return RfDiffusionOutput(binder_proteins=protein_ids)
+        return RfDiffusionOutput(proteins_with_pdb=protein_ids)
 
 

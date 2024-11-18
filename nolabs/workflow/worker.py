@@ -10,7 +10,7 @@ from celery import signals
 from nolabs.application import initialize
 from nolabs.infrastructure.celery_app_factory import get_celery_app
 from nolabs.infrastructure.mongo_connector import mongo_connect, mongo_disconnect
-from nolabs.infrastructure.redis_client_factory import rd
+from nolabs.infrastructure.redis_client_factory import rd, ensure_redis_available
 from nolabs.infrastructure.settings import initialize_settings, settings
 from nolabs.infrastructure.socket_server import get_socket_server
 from nolabs.workflow.core import Tasks
@@ -36,6 +36,7 @@ def task_postrun(**kwargs):
 
 def start(beat=False):
     initialize_settings()
+    ensure_redis_available()
     app = get_celery_app()
     app.conf.update(
         beat_schedule={

@@ -149,7 +149,7 @@ For instance, to run the `diffdock` service, use Docker Compose on the VM or com
 
 On machine with a GPU do the following steps:
 
-1) Adjust `microservices/diffdock/service/.env` file with `CELERY_BROKER_URL`, `CELERY_BACKEND_URL` pointing to your Redis deployment
+`   1) Adjust `microservices/diffdock/service/.env` file with `REDIS_URL` pointing to your Redis deployment
 2) Run following command
 ```bash
 $ docker compose up diffdock-gpu
@@ -195,7 +195,7 @@ $ docker compose up --profile gpu biobuddy nolabs-frontend nolabs-worker nolabs-
 Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
 
 
-## Supported components list
+## How-to run workers
 
 ### 1) RFdiffusion (protein design)
 

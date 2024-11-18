@@ -5,7 +5,7 @@ ifneq (,$(wildcard ./.env))
 endif
 
 flower:
-	celery --broker=${CELERY_BROKER_URL} flower --port=5555
+	celery --broker=${REDIS_URL} flower --port=5555
 install-openapi-generator:
 	npm install -g openapi-typescript-codegen
 generate-client:

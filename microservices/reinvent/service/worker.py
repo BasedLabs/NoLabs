@@ -11,7 +11,7 @@ from celery import Celery
 from settings import settings
 
 app = Celery(
-    __name__, backend=settings.celery_backend_url, broker=settings.celery_broker_url
+    __name__, backend=settings.redis_url, broker=settings.redis_url
 )
 app.conf.update(
     task_default_queue=settings.celery_worker_queue,

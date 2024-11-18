@@ -41,7 +41,7 @@ origins = ["*"]
 sio = socketio.AsyncServer(
     cors_allowed_origins="*",
     async_mode="asgi",
-    client_manager=socketio.AsyncRedisManager(settings.socketio_broker),
+    client_manager=socketio.AsyncRedisManager(settings.redis_url),
 )
 socket_app = socketio.ASGIApp(sio)
 

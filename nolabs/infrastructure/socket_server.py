@@ -10,7 +10,7 @@ from nolabs.infrastructure.settings import settings
 
 class SocketServer:
     def __init__(self):
-        self.client = socketio.RedisManager(settings.socketio_broker, write_only=True)
+        self.client = socketio.RedisManager(settings.redis_url, write_only=True)
         self.sio = socketio.Server(client_manager=self.client)
         self.sync_queue = queue.Queue()
 

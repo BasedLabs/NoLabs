@@ -19,13 +19,11 @@ class Settings(BaseSettings):
     esmfold_light_host: str
     reinvent_host: str
     diffdock_host: str
-    celery_broker: str
-    celery_backend: str
+    redis_url: str
     workflow_queue: str = "workflow"
     celery_worker_pool: str = "prefork"
     celery_worker_state_db: str = "/tmp/celery-state.db"
     connection_string: str
-    socketio_broker: str
     enable_biobuddy: bool
     reinvent_directory: Path
     uvicorn_host: str = "0.0.0.0"

@@ -10,7 +10,7 @@ from nolabs.infrastructure.settings import settings
 
 @lru_cache
 def cached_client() -> redis.Redis:
-    redis_client = redis.Redis.from_url(settings.celery_backend, decode_responses=True)
+    redis_client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
     return redis_client
 
 
@@ -37,3 +37,12 @@ def redlock(key: str, blocking=False, auto_release_time=100) -> Optional[Lock]:
 
 def get_redis_pipe() -> Pipeline:
     return rd.pipeline()
+
+def ensure_redis_available():
+    try:
+        client = redis.from_url(settings.redis_url, socket_connect_timeout=5)
+        if client.ping():
+            return
+    except redis.ConnectionError as e:
+        raise Exception('Redis is not connected. Fix REDIS_URL in corresponding .env file.')
+
