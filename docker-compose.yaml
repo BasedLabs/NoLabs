@@ -75,7 +75,7 @@ services:
               capabilities: [ gpu ]
 
   external-data-query:
-    image: 'ghcr.io/basedlabs/external-data-query:1.0.3'
+    image: 'ghcr.io/basedlabs/external-data-query:1.1.3'
     network_mode: host
     build:
       context: microservices/external_data_query
@@ -83,7 +83,7 @@ services:
     command: --host=0.0.0.0 --port=5739
 
   biobuddy:
-    image: 'ghcr.io/basedlabs/biobuddy:1.2.1'
+    image: 'ghcr.io/basedlabs/biobuddy:1.3.1'
     network_mode: host
     build:
       context: microservices/biobuddy
