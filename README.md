@@ -25,8 +25,6 @@
 
 NoLabs is an open source biolab that lets you run experiments with the latest state-of-the-art models, bioinformatics tools and scalable no-code workflow engine for bio research.
 
-<img src="media/NoLabs_Architecture.png" width="100%">
-
 # Features
 
 ### Workflow engine
@@ -49,8 +47,8 @@ BioBuddy is a drug discovery copilot that supports:
 - Creating a workflow schema for you
 
 For example, you can ask
-- "Can you pull me some latest approved drugs?"
-- "Can you download me 1000 rhodopsins?"
+- "Can you pull some latest approved drugs?"
+- "Can you download 1000 rhodopsins?"
 - "How does an aspirin molecule look like?" and it will do this and answer other questions.
 
 <img src="media/Biobuddy_pic.png" width="100%">
@@ -168,7 +166,7 @@ $ docker compose up diffdock
 ```
 
 You should see celery start log message.
-And now you are ready to use this service hosted on a separate machine!
+Now you are ready to use this service hosted on a separate machine!
 
 In case you want to start just an API (there is no integration in NoLabs, however you can use service separately):
 
@@ -179,7 +177,7 @@ $ docker compose up diffdock-api
 Once the service is up, you can check that you can access it from your computer by navigating to `http://<
 gpu_machine_ip>:5737/docs`
 
-## How-to run workers
+## How to run workers
 
 ### 1) RFdiffusion (protein design)
 
