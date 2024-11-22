@@ -73,8 +73,8 @@ class ProteinAffinityCharacterizationFlowHandler(ComponentFlowHandler):
 
 class ProteinAffinityCharacterizationComponent(
     Component[ProteinAffinityCharacterizationInput, ProteinAffinityCharacterizationOutput]):
-    name = 'Adaptyv bio protein affinity characterization component'
-    description = 'Paid adaptyv bio component for protein affinity characterization'
+    name = 'Protein affinity characterization'
+    description = 'Protein affinity characterization (Adaptyv bio)'
 
     @property
     def input_parameter_type(self) -> Type[TInput]:
