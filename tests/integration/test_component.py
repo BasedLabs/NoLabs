@@ -67,7 +67,7 @@ class TestComponent(
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: TInput) -> List[uuid.UUID]:
+            async def on_start(self, inp: TInput) -> List[uuid.UUID]:
                 raise ValueError("Hello")
 
         class MockComponent(Component[IO, IO], ComponentFlowHandler):
@@ -117,7 +117,7 @@ class TestComponent(
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_completion(
+            async def on_finish(
                 self, inp: IO, job_ids: List[uuid.UUID]
             ) -> Optional[TOutput]:
                 raise ValueError("Hello")
@@ -168,7 +168,7 @@ class TestComponent(
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: TInput) -> List[uuid.UUID]:
+            async def on_start(self, inp: TInput) -> List[uuid.UUID]:
                 job1 = Job.create(
                     id=JobId(uuid.uuid4()),
                     name=JobName("hello 1"),
@@ -184,7 +184,7 @@ class TestComponent(
 
                 return [job1.id, job2.id]
 
-            def on_job_task(self, job_id: uuid.UUID):
+            def on_job_start(self, job_id: uuid.UUID):
                 raise ValueError("Exception")
 
         class MockComponent(Component[IO, IO], ComponentFlowHandler):
@@ -233,11 +233,11 @@ class TestComponent(
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 await asyncio.sleep(1000)
                 return []
 
-            def on_job_task(self, job_id: uuid.UUID):
+            def on_job_start(self, job_id: uuid.UUID):
                 raise ValueError("Exception")
 
         class MockComponent(Component[IO, IO], ComponentFlowHandler):

@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     enable_biobuddy: bool
     reinvent_directory: Path
     uvicorn_host: str = "0.0.0.0"
+    adaptyv_bio_api_token: Optional[str] = None
+    adaptyv_bio_api_base: Optional[str] = None
     uvicorn_port: int = 8000
     celery_worker_concurrency: int = 20
     environment: Literal["local", "test", "production"] = "local"

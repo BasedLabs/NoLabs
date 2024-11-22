@@ -33,7 +33,7 @@ class LigandsComponent(Component[LigandsComponentInput, LigandsComponentOutput])
 
 
 class LigandsFlow(ComponentFlowHandler):
-    async def on_completion(
+    async def on_finish(
         self, inp: LigandsComponentInput, job_ids: List[uuid.UUID]
     ) -> Optional[LigandsComponentOutput]:
         return LigandsComponentOutput(ligands=inp.ligands)

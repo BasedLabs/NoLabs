@@ -64,7 +64,7 @@ def register_workflow_celery_tasks(celery: Celery):
             )
 
             input_value = component.input_value
-            await control_flow.on_component_task(inp=input_value)
+            await control_flow.on_start(inp=input_value)
 
         async_to_sync(_)()
 
@@ -84,7 +84,7 @@ def register_workflow_celery_tasks(celery: Celery):
                 experiment_id=experiment_id, component_id=component_id
             )
             with allow_join_result():
-                await control_flow.on_job_task(job_id=job_id)
+                await control_flow.on_job_start(job_id=job_id)
 
         async_to_sync(_)()
 
@@ -107,7 +107,7 @@ def register_workflow_celery_tasks(celery: Celery):
             control_flow: ComponentFlowHandler = component.component_flow_type(
                 experiment_id=experiment_id, component_id=component_id
             )
-            await control_flow.on_job_completion(
+            await control_flow.on_job_finish(
                 job_id=job_id, long_running_output=long_running_output
             )
 
@@ -129,7 +129,7 @@ def register_workflow_celery_tasks(celery: Celery):
                 experiment_id=experiment_id, component_id=component_id
             )
             jobs = Job.objects(component=component_id).only("id")
-            output = await flow.on_completion(
+            output = await flow.on_finish(
                 inp=component.input_value, job_ids=[j.id for j in jobs]
             )
             component.output_value = output or {}

@@ -27,7 +27,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 raise ValueError("Exception")
 
         class MockComponent(Component[IO, IO], ComponentFlowHandler):
@@ -71,7 +71,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_completion(
+            async def on_finish(
                 self, inp: IO, job_ids: List[uuid.UUID]
             ) -> Optional[IO]:
                 return IO(a=15)
@@ -125,7 +125,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_completion(
+            async def on_finish(
                 self, inp: IO, job_ids: List[uuid.UUID]
             ) -> Optional[IO]:
                 return IO(a=15)
@@ -207,7 +207,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_completion(
+            async def on_finish(
                 self, inp: IO, job_ids: List[uuid.UUID]
             ) -> Optional[IO]:
                 if self.component_id == component2_id:
@@ -293,7 +293,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_completion(
+            async def on_finish(
                 self, inp: IO, job_ids: List[uuid.UUID]
             ) -> Optional[IO]:
                 return IO(a=15)
@@ -355,7 +355,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_completion(
+            async def on_finish(
                 self, inp: IO, job_ids: List[uuid.UUID]
             ) -> Optional[IO]:
                 shared_counter.value += 1
@@ -433,7 +433,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
         celery.task(task, name=task_name, bind=True, queue=settings.workflow_queue)
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 job1 = Job.create(
                     id=JobId(uuid.uuid4()),
                     name=JobName("hello 1"),
@@ -445,7 +445,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
 
                 return [job1.id]
 
-            async def on_job_task(self, job_id: uuid.UUID):
+            async def on_job_start(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
                 await j.save()
@@ -456,7 +456,7 @@ class TestGraph(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTest
                     input={"job_id": job_id}
                 )
 
-            async def on_completion(
+            async def on_finish(
                 self, inp: IO, job_ids: List[uuid.UUID]
             ) -> Optional[IO]:
                 return IO(a=145)
