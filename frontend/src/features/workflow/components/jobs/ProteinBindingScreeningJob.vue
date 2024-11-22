@@ -5,20 +5,6 @@
     </q-card-section>
     <q-card-section>
       <q-list>
-        <!-- Experiment Type -->
-        <q-item>
-          <q-item-section>
-            <q-item-label>Choose Experiment Type</q-item-label>
-          </q-item-section>
-          <q-item-section>
-            <q-select
-              v-model="experimentType"
-              :options="experimentTypes"
-              outlined
-              dense
-            />
-          </q-item-section>
-        </q-item>
         <!-- Designs -->
         <q-item>
           <q-item-section>
@@ -86,19 +72,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QBtn, QSelect, QSlider, QInput } from 'quasar';
+import { QBtn, QSlider, QInput } from 'quasar';
 
 export default defineComponent({
-  name: 'AdaptyvBioJob',
+  name: 'ProteinBindingScreeningJob',
   data() {
     return {
-      experimentType: 'Protein Affinity Characterization',
-      experimentTypes: [
-        'Protein Affinity Characterization',
-        'Enzyme Activity',
-        'Structural Analysis',
-        'Other',
-      ],
       numDesigns: 1,
       numAA: 178,
       replicatesPerDesign: 1,
@@ -117,7 +96,6 @@ export default defineComponent({
 
       // Here you can send the data to your API
       const jobData = {
-        experimentType: this.experimentType,
         numDesigns: this.numDesigns,
         numAA: this.numAA,
         replicatesPerDesign: this.replicatesPerDesign,
@@ -135,7 +113,6 @@ export default defineComponent({
   },
   components: {
     QBtn,
-    QSelect,
     QSlider,
     QInput,
   },
