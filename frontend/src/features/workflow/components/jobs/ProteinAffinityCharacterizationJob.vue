@@ -1,5 +1,6 @@
 <template>
   <q-card>
+    <!-- Job Title with Icon -->
     <q-card-section>
       <div class="row items-center">
         <q-img
@@ -12,6 +13,8 @@
         </div>
       </div>
     </q-card-section>
+
+    <!-- Job Configuration -->
     <q-card-section>
       <q-list>
         <!-- Designs -->
@@ -23,8 +26,8 @@
             <div>
               <q-slider
                 v-model="numDesigns"
-                :min="1"
-                :max="4"
+                :min="24"
+                :max="500"
                 dense
                 @change="updateJob"
                 label-always
@@ -33,8 +36,8 @@
                 color="info"
               />
               <div class="row justify-between text-caption">
-                <div>{{ 1 }}</div>
-                <div>{{ 4 }}</div>
+                <div>{{ 24 }}</div>
+                <div>{{ 500 }}</div>
               </div>
             </div>
           </q-item-section>
@@ -102,6 +105,7 @@
               dense
               clearable
               placeholder="example@gmail.com"
+              @change="updateJob"
             />
           </q-item-section>
         </q-item>
@@ -126,6 +130,7 @@
               clearable
               input-debounce="1000"
               placeholder="Search target..."
+              @update:model-value="updateJob"
             />
           </q-item-section>
         </q-item>
@@ -140,6 +145,8 @@
         </q-item>
       </q-list>
     </q-card-section>
+
+    <!-- Submit Button -->
     <q-card-section>
       <q-btn
         label="Submit for Review"
@@ -148,10 +155,18 @@
         :disable="!readyForSubmission"
       />
     </q-card-section>
+
+    <!-- Collaboration Phrase -->
     <q-card-section>
       <div class="text-caption text-center">
         For protein synthesis, we are collaborating with
-        <a href="https://www.adaptyvbio.com/" target="_blank">Adaptyv Bio</a>.
+        <a
+          href="https://www.adaptyvbio.com/"
+          target="_blank"
+          class="text-info"
+        >
+          Adaptyv Bio
+        </a>.
       </div>
     </q-card-section>
   </q-card>
@@ -159,7 +174,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QBtn, QInput, QSelect, QSlider, debounce } from 'quasar';
+import { QBtn, QInput, QSelect, QSlider, debounce, QImg } from 'quasar';
 import {
   getAdaptyvBioEstimates,
   listAvailableAdaptyvBioTargets,
@@ -171,13 +186,13 @@ export default defineComponent({
   name: 'AdaptyvBioJob',
   data() {
     return {
-      jobId: 'your-job-id', // Replace with the actual job ID
+      jobId: '', // Replace with the actual job ID
       numDesigns: 1,
       numAA: 178,
       replicatesPerDesign: 1,
       email: '',
       targetOptions: [],
-      selectedTarget: null,
+      selectedTarget: '',
       priceEstimate: 'Loading...',
       readyForSubmission: false,
       isFetchingTargets: false,
@@ -194,13 +209,6 @@ export default defineComponent({
       }
     },
     async updateJob() {
-      if (!this.email || !this.selectedTarget) {
-        this.$q.notify({
-          type: 'negative',
-          message: 'Email and target must be set to update the job.',
-        });
-        return;
-      }
       try {
         await setupProteinAffinityCharacterizationJob(
           this.jobId,
@@ -276,6 +284,7 @@ export default defineComponent({
   },
   async mounted() {
     // Fetch the initial price estimate when the component mounts
+    this.jobId = this.$route.params.jobId as string;
     await this.fetchPriceEstimate();
   },
   components: {
@@ -283,6 +292,7 @@ export default defineComponent({
     QSlider,
     QInput,
     QSelect,
+    QImg,
   },
 });
 </script>
