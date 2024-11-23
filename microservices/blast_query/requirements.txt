@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+biopython
+xmltodict
+celery[redis]
+pydantic
+pydantic-settings

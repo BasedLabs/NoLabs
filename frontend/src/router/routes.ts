@@ -23,6 +23,16 @@ const proteinDesignRoutes = [
   },
 ];
 
+const blastRoutes = [
+  {
+    path: ':experimentId/blast/job/:jobId',
+    component: () => import('src/features/workflow/components/jobs/BlastJob.vue'),
+    name: 'Blast',
+    props: true
+  },
+];
+
+
 const foldingRoutes = [
   {
     path: 'folding/job/:jobId',
@@ -51,7 +61,8 @@ const routes = [
       ...workflowRoutes,
       ...proteinDesignRoutes,
       ...foldingRoutes,
-      ...proteinMpnnRoutes
+      ...proteinMpnnRoutes,
+      ...blastRoutes
     ]
   },
   {

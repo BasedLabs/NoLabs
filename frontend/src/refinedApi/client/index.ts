@@ -33,6 +33,8 @@ export type { GetAvailableFunctionCallsResponse } from './models/GetAvailableFun
 export type { GetComponentResponse } from './models/GetComponentResponse';
 export type { GetJobMetadataResponse } from './models/GetJobMetadataResponse';
 export type { GetJobState } from './models/GetJobState';
+export type { HitModel } from './models/HitModel';
+export type { HspModel } from './models/HspModel';
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { ItemsSchema_Input } from './models/ItemsSchema_Input';
 export type { ItemsSchema_Output } from './models/ItemsSchema_Output';
@@ -44,6 +46,9 @@ export type { LigandSearchMetadataQuery } from './models/LigandSearchMetadataQue
 export type { LoadConversationResponse } from './models/LoadConversationResponse';
 export type { MappingSchema } from './models/MappingSchema';
 export type { Message } from './models/Message';
+export type { nolabs__application__blast__api_models__JobResponse } from './models/nolabs__application__blast__api_models__JobResponse';
+export type { nolabs__application__blast__api_models__JobResult } from './models/nolabs__application__blast__api_models__JobResult';
+export type { nolabs__application__blast__api_models__SetupJobRequest } from './models/nolabs__application__blast__api_models__SetupJobRequest';
 export type { nolabs__application__diffdock__api_models__JobResponse } from './models/nolabs__application__diffdock__api_models__JobResponse';
 export type { nolabs__application__diffdock__api_models__JobResult } from './models/nolabs__application__diffdock__api_models__JobResult';
 export type { nolabs__application__diffdock__api_models__SetupJobRequest } from './models/nolabs__application__diffdock__api_models__SetupJobRequest';
@@ -76,6 +81,7 @@ export type { WorkflowSchema_Input } from './models/WorkflowSchema_Input';
 export type { WorkflowSchema_Output } from './models/WorkflowSchema_Output';
 
 export { BiobuddyService } from './services/BiobuddyService';
+export { BlastService } from './services/BlastService';
 export { DiffdockService } from './services/DiffdockService';
 export { ExperimentsService } from './services/ExperimentsService';
 export { FoldingService } from './services/FoldingService';

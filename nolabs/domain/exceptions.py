@@ -217,8 +217,9 @@ class ErrorCodes(Enum):
     component_output_invalid = ErrorCode(
         code=115, description="Component output is invalid"
     )
-
-
+    blast_query_exception = ErrorCode(
+        code=116, description="Blast query exception"
+    )
 
 if len([e.value.code for e in ErrorCodes]) != len(
     set([e.value.code for e in ErrorCodes])

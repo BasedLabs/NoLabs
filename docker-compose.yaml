@@ -36,6 +36,16 @@ services:
     env_file:
       - microservices/esmfold_light/service/.env
 
+  blast-query:
+    image: 'ghcr.io/basedlabs/blast-query:1.0.0'
+    network_mode: host
+    command: python worker.py
+    build:
+      context: microservices/blast_query
+      dockerfile: build/Dockerfile
+    env_file:
+      - microservices/blast_query/service/.env
+
   rfdiffusion:
     image: 'ghcr.io/basedlabs/rfdiffusion:2.0.0'
     network_mode: host

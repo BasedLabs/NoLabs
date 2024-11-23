@@ -3,7 +3,7 @@ import {
   FoldingService,
   WorkflowService,
   OpenAPI,
-  RfdiffusionService
+  RfdiffusionService, BlastService
 } from "src/refinedApi/client";
 import apiConstants from "src/refinedApi/constants";
 
@@ -12,6 +12,10 @@ OpenAPI.BASE = apiConstants.hostname;
 const componentApi = {
   esmfoldLight: {
     getJob: FoldingService.getJobApiV1FoldingJobsJobIdGet,
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
+  },
+  blast: {
+    getJob: BlastService.getJobApiV1BlastJobsJobIdGet,
     executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   },
   esmfold: {
