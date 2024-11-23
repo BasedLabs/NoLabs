@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do not edit */
+/* generated using openapi-typescript-codegen -- do no edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -75,11 +75,11 @@ export class ProteinAffinityCharacterizationService {
      * @returns TargetResponse Successful Response
      * @throws ApiError
      */
-    public static listTargetsApiV1AdaptyvBioProteinAffinityListTargetsSearchQueryPost(
+    public static listTargetsApiV1AdaptyvBioProteinAffinityListTargetsSearchQueryGet(
         searchQuery: string,
     ): CancelablePromise<Array<TargetResponse>> {
         return __request(OpenAPI, {
-            method: 'POST',
+            method: 'GET',
             url: '/api/v1/adaptyv-bio/protein-affinity/list-targets/{search_query}',
             path: {
                 'search_query': searchQuery,
@@ -95,11 +95,11 @@ export class ProteinAffinityCharacterizationService {
      * @returns EstimatesResponse Successful Response
      * @throws ApiError
      */
-    public static getEstimatesApiV1AdaptyvBioProteinAffinityJobsJobIdEstimatesPost(
+    public static getEstimatesApiV1AdaptyvBioProteinAffinityJobsJobIdEstimatesGet(
         jobId: string,
     ): CancelablePromise<EstimatesResponse> {
         return __request(OpenAPI, {
-            method: 'POST',
+            method: 'GET',
             url: '/api/v1/adaptyv-bio/protein-affinity/jobs/{job_id}/estimates',
             path: {
                 'job_id': jobId,

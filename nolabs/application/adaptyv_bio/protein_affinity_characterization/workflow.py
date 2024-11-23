@@ -29,7 +29,7 @@ class ProteinAffinityCharacterizationFlowHandler(ComponentFlowHandler):
         if not settings.adaptyv_bio_api_base:
             raise NoLabsException(ErrorCodes.adaptyv_bio_token_not_set)
 
-        protein_ids = [ObjectId(str(p)) for p in inp.protein_ids]
+        protein_ids = inp.protein_ids
         job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.objects(
             proteins__in=protein_ids).first()
         if not job:

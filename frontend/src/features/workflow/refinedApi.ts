@@ -12,6 +12,7 @@ import {
   LigandsService,
   Body_upload_ligand_api_v1_objects_ligands_post,
   DiffdockService,
+  ProteinAffinityCharacterizationService,
   nolabs__application__diffdock__api_models__JobResponse,
   nolabs__application__diffdock__api_models__SetupJobRequest,
   OpenAPI,
@@ -29,7 +30,11 @@ import {
   GetJobState,
   ProteinMpnnService,
   nolabs__application__proteinmpnn__api_models__JobResponse,
-  nolabs__application__proteinmpnn__api_models__SetupJobRequest, BlastService
+  nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse,
+  TargetResponse,
+  EstimatesResponse,
+  nolabs__application__proteinmpnn__api_models__SetupJobRequest,
+  BlastService
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
@@ -99,6 +104,51 @@ export function startDiffDockJob(jobId: string): CancelablePromise<nolabs__appli
 
 export function startProteinMPNNJob(jobId: string): CancelablePromise<nolabs__application__proteinmpnn__api_models__JobResponse> {
   return ProteinMpnnService.startJobApiV1ProteinmpnnJobsRunJobIdPost(jobId);
+}
+
+export function sendProteinAffinityCharacterizationRequest(jobId: string): CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse> {
+  return ProteinAffinityCharacterizationService.startJobApiV1AdaptyvBioProteinAffinityJobsRunJobIdPost(
+    jobId
+  );
+}
+
+export function listAvailableAdaptyvBioTargets(targetSearch: string): CancelablePromise<Array<TargetResponse>> {
+  return ProteinAffinityCharacterizationService.listTargetsApiV1AdaptyvBioProteinAffinityListTargetsSearchQueryGet(
+    targetSearch
+  );
+}
+
+export function getAdaptyvBioEstimates(jobId: string): CancelablePromise<EstimatesResponse> {
+  return ProteinAffinityCharacterizationService.getEstimatesApiV1AdaptyvBioProteinAffinityJobsJobIdEstimatesGet(
+    jobId
+  );
+}
+
+export function setupProteinAffinityCharacterizationJob(jobId: string,
+                                                        numDesigns: number,
+                                                        numAA: number,
+                                                        replicatesPerDesign: number,
+                                                        email: string,
+                                                        selectedTarget: string,
+                                                        cartTotal: number,
+                                                        sessionUrl: string,
+                                                        swissProtId: string):
+  CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse>{
+  const requestBody = {
+    job_id: jobId,
+    number_of_designs: numDesigns,
+    dna_length: numAA,
+    replicates: replicatesPerDesign,
+    report_email: email,
+    target_id: selectedTarget,
+    cart_total: cartTotal, // This can be updated with real value later
+    session_url: sessionUrl,
+    swissprot_id: swissProtId,
+  };
+
+  return ProteinAffinityCharacterizationService.setupJobApiV1AdaptyvBioProteinAffinityJobsPost(
+      requestBody
+  );
 }
 
 export function changeJobName(jobId: string, newName: string): CancelablePromise<any> {

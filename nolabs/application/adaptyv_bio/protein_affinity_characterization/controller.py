@@ -30,10 +30,10 @@ async def get_job(job_id: UUID,) -> JobResponse:
 async def setup_job(request: SetupJobRequest) -> JobResponse:
     return await SetupJobFeature().handle(request=request)
 
-@router.post("/list-targets/{search_query}", summary="List targets for the experiment")
+@router.get("/list-targets/{search_query}", summary="List targets for the experiment")
 async def list_targets(search_query: str) -> List[TargetResponse]:
     return await ListTargetsFeature().handle(search_query=search_query)
 
-@router.post('/jobs/{job_id}/estimates', summary="Get experiment estimates")
+@router.get('/jobs/{job_id}/estimates', summary="Get experiment estimates")
 async def get_estimates(job_id: uuid.UUID) -> EstimatesResponse:
     return await GetEstimatesFeature().handle(job_id=job_id)

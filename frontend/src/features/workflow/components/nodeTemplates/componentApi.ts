@@ -37,6 +37,10 @@ const componentApi = {
   proteinMpnn: {
     getJob: null,
     executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
+  },
+  proteinAffinity: {
+    getJob: null,
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   }
 }
 

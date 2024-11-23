@@ -16,9 +16,9 @@ class ProteinAffinityCharacterizationJob(Job):
         min_value=1,
         max_value=5,
         help_message="A replicate is a single test for a protein design. The more replicates you select the more confidence you can have in your data.")
-    report_email: str = EmailField(required=True, help_message="Email address to send the report")
+    report_email: str = EmailField(help_message="Email address to send the report")
     proteins: List[Protein] = ListField(
-        ReferenceField(Protein, required=True, reverse_delete_rule=PULL)
+        ReferenceField(Protein, reverse_delete_rule=PULL)
     )
     target_id: str = StringField(
         help_message="Target id of the experiment"
