@@ -1,0 +1,22 @@
+name: blast-query-pr
+run-name: blast-query-pr
+
+# Build and push nolabs image using GitHub Cache API
+# Only if relevant files were changed
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'microservices/blast_query/**'
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/build-docker.yaml
+    with:
+      microservice_name: "blast-query"

@@ -1,5 +1,6 @@
 __all__ = ["initialize"]
 
+from nolabs.application.blast.workflow import BlastComponent
 from nolabs.application.diffdock.workflow import DiffDockComponent
 from nolabs.application.proteinmpnn.workflow import ProteinMPNNComponent
 from nolabs.application.event_handlers.di import EventHandlersDependencies
@@ -18,5 +19,6 @@ def initialize():
     ComponentTypeFactory.add_type(DiffDockComponent)
     ComponentTypeFactory.add_type(ProteinMPNNComponent)
     ComponentTypeFactory.add_type(RfDiffusionComponent)
+    ComponentTypeFactory.add_type(BlastComponent)
 
     EventHandlersDependencies.inject()

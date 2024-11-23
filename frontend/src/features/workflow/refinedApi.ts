@@ -29,7 +29,7 @@ import {
   GetJobState,
   ProteinMpnnService,
   nolabs__application__proteinmpnn__api_models__JobResponse,
-  nolabs__application__proteinmpnn__api_models__SetupJobRequest
+  nolabs__application__proteinmpnn__api_models__SetupJobRequest, BlastService
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
@@ -65,10 +65,17 @@ export function getDiffDockJobApi(jobId: string): CancelablePromise<nolabs__appl
   return DiffdockService.getJobApiV1DiffdockJobsJobIdGet(jobId);
 }
 
+export function getBlastJobApi(jobId: string): CancelablePromise<nolabs__application__use_cases__blast__api_models__JobResponse> {
+  return BlastService.getJobApiV1BlastJobsJobIdGet(jobId);
+}
+
+export function setupBlastJob(job: nolabs__application__use_cases__blast__api_models__SetupJobRequest): CancelablePromise<any> {
+  return BlastService.setupJobApiV1BlastJobsPost(job);
+}
+
 export function getProteinMPNNJobApi(jobId: string): CancelablePromise<nolabs__application__proteinmpnn__api_models__JobResponse> {
   return ProteinMpnnService.getJobApiV1ProteinmpnnJobsJobIdGet(jobId);
 }
-
 
 export function getJobStatus(jobId: string): CancelablePromise<GetJobState> {
   return WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet(jobId);

@@ -195,6 +195,12 @@ export default defineComponent({
       api: componentApi.diffdock
     },
     {
+      name: "Blast",
+      tab: true,
+      routeName: "Blast",
+      api: componentApi.blast
+    },
+    {
       name: "RFDiffusion Binder Design",
       tab: true,
       routeName: "Rfdiffusion",

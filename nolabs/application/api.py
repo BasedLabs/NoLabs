@@ -18,6 +18,7 @@ from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.application.diffdock.controller import router as diffdock_router
 from nolabs.application.proteinmpnn.controller import router as proteinmpnn_router
 from nolabs.application.ligands.controller import router as ligand_router
+from nolabs.application.blast.controller import router as blast_router
 from nolabs.infrastructure.log import logger, initialize_logging
 from nolabs.infrastructure.mongo_connector import mongo_connect
 from nolabs.infrastructure.settings import initialize_settings, settings
@@ -63,6 +64,7 @@ app.include_router(folding_router)
 app.include_router(proteinmpnn_router)
 app.include_router(job_router)
 app.include_router(ligand_router)
+app.include_router(blast_router)
 app.include_router(proteins_router)
 app.include_router(rfdiffusion_router)
 app.include_router(workflow_router)
