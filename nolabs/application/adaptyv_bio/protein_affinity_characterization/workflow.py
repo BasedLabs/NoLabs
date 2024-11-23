@@ -14,7 +14,7 @@ from nolabs.workflow.core.flow import ComponentFlowHandler
 
 
 class ProteinAffinityCharacterizationInput(BaseModel):
-    protein_ids: List[uuid.UUID]
+    proteins_with_fasta: List[uuid.UUID]
 
 
 class ProteinAffinityCharacterizationOutput(BaseModel):
@@ -29,24 +29,24 @@ class ProteinAffinityCharacterizationFlowHandler(ComponentFlowHandler):
         if not settings.adaptyv_bio_api_base:
             raise NoLabsException(ErrorCodes.adaptyv_bio_token_not_set)
 
-        protein_ids = inp.protein_ids
+        protein_ids = inp.proteins_with_fasta
         job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.objects(
             proteins__in=protein_ids).first()
         if not job:
             # create a job
             job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.create(
                 id=JobId(uuid.uuid4()),
-                name=JobName(f"{str(len(inp.protein_ids))} proteins"),
+                name=JobName(f"{str(len(protein_ids))} proteins"),
                 component=self.component_id
             )
-            proteins = Protein.objects(id__in=inp.protein_ids)
+            proteins = Protein.objects(id__in=protein_ids)
             job.set_proteins(proteins=proteins)
             await job.save()
 
-        if len(job.proteins) == len(inp.protein_ids):
+        if len(job.proteins) == len(protein_ids):
             return [job.id]
 
-        raise NoLabsException(ErrorCodes.proteins_are_part_of_another_job, "Proteins some or all of the proteins are used in another job\experiment")
+        raise NoLabsException(ErrorCodes.proteins_are_part_of_another_job, "Proteins some or all of the proteins are used in another job/experiment")
 
     async def on_job_start(self, job_id: uuid.UUID):
         job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.objects.with_id(job_id)
