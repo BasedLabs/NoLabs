@@ -250,7 +250,7 @@ $ docker compose up biobuddy nolabs-frontend nolabs-worker nolabs-api mongo redi
 
 Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
 
-### 6) Blast (using [this api](https://blast.ncbi.nlm.nih.gov/Blast.cgi))
+### 9) Blast (using [this api](https://blast.ncbi.nlm.nih.gov/Blast.cgi))
 
 ```shell
 docker compose up blast-query
