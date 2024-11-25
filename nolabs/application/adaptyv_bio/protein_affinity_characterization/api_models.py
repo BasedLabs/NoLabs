@@ -30,14 +30,15 @@ class GetEstimatesRequest(BaseModel):
 class JobResponse(BaseModel):
     job_id: UUID
     job_name: str
-    number_of_designs: int
-    dna_length: int
-    replicates: int
-    report_email: EmailStr
-    target_id: str
-    swissprot_id: str
-    cart_total: int
-    session_url: str
+    number_of_designs: Optional[int]
+    dna_length: Optional[int]
+    replicates: Optional[int]
+    report_email: Optional[EmailStr]
+    target_id: Optional[str]
+    swissprot_id: Optional[str]
+    cart_total: Optional[int]
+    session_url: Optional[str]
+    submitted: bool = False
 
 
 class SetupJobRequest(BaseModel):

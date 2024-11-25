@@ -1,6 +1,6 @@
 from typing import List
 
-from mongoengine import IntField, ListField, ReferenceField, PULL, EmailField, StringField
+from mongoengine import IntField, ListField, ReferenceField, PULL, EmailField, StringField, BooleanField
 
 from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, Protein, JobInputError
@@ -31,6 +31,7 @@ class ProteinAffinityCharacterizationJob(Job):
         help_message="URL of the session where the experiment is located"
     )
     swissprot_id: str = StringField()
+    submitted: bool = BooleanField(default=False)
 
     def set_input(self,
                   number_of_designs: int,
@@ -50,6 +51,9 @@ class ProteinAffinityCharacterizationJob(Job):
         self.cart_total = cart_total
         self.swissprot_id = swissprot_id
         self.session_url = session_url
+
+    def set_submitted(self):
+        self.submitted = True
 
     def set_proteins(self, proteins: List[Protein]):
         if not proteins:

@@ -17,8 +17,8 @@ router = APIRouter(prefix="/api/v1/adaptyv-bio/protein-affinity", tags=["Protein
 
 
 @router.post("/jobs/run/{job_id}", summary="Run job")
-async def start_job(job_id: UUID) -> JobResponse:
-    return await StartJobFeature().handle(job_id)
+async def start_job(job_id: UUID):
+    await StartJobFeature().handle(job_id)
 
 
 @router.get("/jobs/{job_id}", summary="Get job")

@@ -16,10 +16,30 @@ class StartJobFeature:
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        job.input_errors(throw=True)
+        if job.submitted:
+            raise NoLabsException(ErrorCodes.adaptyv_bio_job_submitted, "Job already submitted")
 
         experiment_id = job.component.experiment.id
         component_id = job.component.id
+
+        job.input_errors(throw=True)
+
+        sequences = [p.get_fasta() for p in job.proteins]
+
+        api = AdaptyvBioProteinAffinityCharacterizationApi()
+        api.submit_experiment(
+            sequences=sequences,
+            target_id=job.target_id,
+            email=job.report_email,
+            session_url=job.session_url,
+            n_replicates=job.replicates,
+            cart_total=job.cart_total,
+            avg_length=job.dna_length,
+            n_designs=job.number_of_designs
+        )
+        job.set_submitted()
+        await job.save()
+
         graph = Graph(experiment_id=experiment_id)
         await graph.schedule(component_ids=[component_id])
 
@@ -41,7 +61,8 @@ class GetJobFeature:
             target_id=job.target_id,
             cart_total=job.cart_total,
             session_url=job.session_url,
-            swissprot_id=job.swissprot_id
+            swissprot_id=job.swissprot_id,
+            submitted=job.submitted
         )
 
 class SetupJobFeature:

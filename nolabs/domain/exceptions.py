@@ -145,8 +145,14 @@ class ErrorCodes(Enum):
     adaptyv_bio_api_error = ErrorCode(
         code=121, description="Adaptyv bio api error"
     )
+    adaptyv_bio_job_submitted = ErrorCode(
+        code=122, description="Adaptyv bio job was already submitted"
+    )
+    adaptyv_bio_job_was_not_submitted = ErrorCode(
+        code=123, description="Adaptyv bio job was not submitted"
+    )
     blast_query_exception = ErrorCode(
-        code=122, description="Blast query exception"
+        code=124, description="Blast query exception"
     )
 
 if len([e.value.code for e in ErrorCodes]) != len(

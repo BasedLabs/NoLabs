@@ -54,21 +54,8 @@ class ProteinAffinityCharacterizationFlowHandler(ComponentFlowHandler):
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
 
-        job.input_errors(throw=True)
-
-        sequences = [p.get_fasta() for p in job.proteins]
-
-        api = AdaptyvBioProteinAffinityCharacterizationApi()
-        api.submit_experiment(
-            sequences=sequences,
-            target_id=job.target_id,
-            email=job.report_email,
-            session_url=job.session_url,
-            n_replicates=job.replicates,
-            cart_total=job.cart_total,
-            avg_length=job.dna_length,
-            n_designs=job.number_of_designs
-        )
+        if not job.submitted:
+            raise NoLabsException(ErrorCodes.adaptyv_bio_job_was_not_submitted, "Open job and submit it manually")
 
 
 class ProteinAffinityCharacterizationComponent(

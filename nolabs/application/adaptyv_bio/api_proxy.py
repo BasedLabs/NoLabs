@@ -31,11 +31,10 @@ class AdaptyvBioApi:
                       method: Literal['GET', 'POST'],
                       endpoint: str,
                       json: Optional[Dict[str, Any]] = None,
-                      params: Optional[Dict[str, Any]] = None):
+                      params: Optional[Dict[str, Any]] = None,
+                      expect_response=True):
         url = f"{settings.adaptyv_bio_api_base}/{endpoint}"
         headers = {"Authorization": f"Bearer {settings.adaptyv_bio_api_token}"}
-
-        print(json)
 
         try:
             s = requests.Session()
@@ -51,7 +50,8 @@ class AdaptyvBioApi:
                 timeout=10.0
             )
             response.raise_for_status()
-            return response.json()
+            if expect_response:
+                return response.json()
         except requests.exceptions.HTTPError as http_err:
             if http_err.response.status_code in {401, 403}:
                 raise NoLabsException(ErrorCodes.adaptyv_bio_api_unauthorized)
@@ -128,4 +128,5 @@ class AdaptyvBioProteinAffinityCharacterizationApi(AdaptyvBioApi):
                                    'avg_length': avg_length,
                                    'n_designs': n_designs
                                }
-                           })
+                           },
+                           expect_response=False)
