@@ -20,7 +20,7 @@ logger = logging.getLogger("nolabs")
 def initialize_logging():
     global logger
 
-    if not settings.logging_structured:
+    if not settings.structured_logging:
         return
 
     try:

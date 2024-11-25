@@ -53,7 +53,7 @@ class ProteinAffinityCharacterizationFlowHandler(ComponentFlowHandler):
             raise NoLabsException(ErrorCodes.job_not_found)
 
         if not job.submitted:
-            raise NoLabsException(ErrorCodes.adaptyv_bio_job_was_not_submitted, "Open job and submit it manually")
+            return await self.cancel_job(job_id=job_id, reason="Open job and submit it manually")
 
 
 class ProteinAffinityCharacterizationComponent(

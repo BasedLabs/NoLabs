@@ -4,7 +4,8 @@ from typing import Any, Dict, Generic, List, Optional, Union
 from pydantic import BaseModel
 
 from nolabs.workflow.core.component import TInput, TOutput
-from nolabs.workflow.core.job_execution_nodes import JobLongRunningTaskExecutionNode
+from nolabs.workflow.core.job_execution_nodes import JobLongRunningTaskExecutionNode, JobMainTaskExecutionNode, \
+    JobExecutionNode
 
 
 class ComponentFlowHandler(Generic[TInput, TOutput]):
@@ -31,6 +32,15 @@ class ComponentFlowHandler(Generic[TInput, TOutput]):
             self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         pass
+
+    async def cancel_job(self, job_id: uuid.UUID, reason: Optional[str] = None):
+        node = JobExecutionNode(
+            experiment_id=self.experiment_id,
+            component_id=self.component_id,
+            job_id=job_id,
+        )
+        if await node.can_cancel():
+            await node.cancel(message=reason)
 
     async def schedule(
             self,
