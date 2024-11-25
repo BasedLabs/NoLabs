@@ -5,5 +5,6 @@ build/Dockerfile
 .github
 .git
 **/.git
-**/.env**
+.env
+nolabs/infrastructure/.env
 
