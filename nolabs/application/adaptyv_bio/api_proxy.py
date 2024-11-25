@@ -1,12 +1,13 @@
 from typing import Literal, Dict, Any, List, Optional
 
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from requests.adapters import HTTPAdapter, Retry
 
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
 from nolabs.infrastructure.log import logger
-from nolabs.infrastructure.settings import settings
+from nolabs.infrastructure.settings import settings, Environment
+
 
 class Target(BaseModel):
     id: str
@@ -14,9 +15,10 @@ class Target(BaseModel):
     description: str
     swissprot_id: str
 
+
 class GetExperimentEstimatesResponse(BaseModel):
-    total_price: int
-    turnaround_time: int
+    total_price: int = Field(..., alias='totalPrice')
+    turnaround_time: int = Field(..., alias='turnaroundTime')
 
 
 class GetExperimentsTypesResponse(BaseModel):
@@ -32,6 +34,8 @@ class AdaptyvBioApi:
                       params: Optional[Dict[str, Any]] = None):
         url = f"{settings.adaptyv_bio_api_base}/{endpoint}"
         headers = {"Authorization": f"Bearer {settings.adaptyv_bio_api_token}"}
+
+        print(json)
 
         try:
             s = requests.Session()
@@ -72,7 +76,7 @@ class AdaptyvBioProteinAffinityCharacterizationApi(AdaptyvBioApi):
     experiment_type_id: str = '2c17531c-5a8b-45a7-9b3f-5f82e34c050d'
 
     def get_experiment_estimates(self, n_designs: int, avg_length: int, n_replicates: int):
-        response = self._make_request('GET', 'get_experiment_estimates',
+        response = self._make_request('POST', 'get_experiment_estimates',
                                       json={
                                           'experiment_type_id': self.experiment_type_id,
                                           'params': {
@@ -93,6 +97,23 @@ class AdaptyvBioProteinAffinityCharacterizationApi(AdaptyvBioApi):
                           avg_length: int,
                           n_designs: int
                           ):
+        json_data = {
+            'sequences': sequences,
+            'target_id': target_id,
+            'email': email,
+            'experiment_type_id': self.experiment_type_id,
+            'session_url': session_url,
+            'n_replicates': n_replicates,
+            'cart_total': cart_total,
+            'data': {
+                'avg_length': avg_length,
+                'n_designs': n_designs
+            }
+        }
+
+        if settings.environment != Environment.production:
+            json_data['data']['env'] = 'test'
+
         self._make_request(method='POST',
                            endpoint='submit_experiment',
                            json={

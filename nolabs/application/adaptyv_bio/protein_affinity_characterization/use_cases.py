@@ -45,7 +45,7 @@ class GetJobFeature:
         )
 
 class SetupJobFeature:
-    async def handle(self, request: SetupJobRequest):
+    async def handle(self, request: SetupJobRequest, session_url: str) -> JobResponse:
         job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.objects.with_id(request.job_id)
 
         if not job:
@@ -58,7 +58,23 @@ class SetupJobFeature:
             report_email=request.report_email,
             target_id=request.target_id,
             cart_total=request.cart_total,
-            swissprot_id=request.swissprot_id
+            swissprot_id=request.swissprot_id,
+            session_url=session_url
+        )
+
+        await job.save()
+
+        return JobResponse(
+            job_id=request.job_id,
+            job_name=job.name.value,
+            number_of_designs=job.number_of_designs,
+            dna_length=job.dna_length,
+            replicates=job.replicates,
+            report_email=job.report_email,
+            target_id=job.target_id,
+            cart_total=job.cart_total,
+            session_url=session_url,
+            swissprot_id=job.swissprot_id
         )
 
 class ListTargetsFeature:

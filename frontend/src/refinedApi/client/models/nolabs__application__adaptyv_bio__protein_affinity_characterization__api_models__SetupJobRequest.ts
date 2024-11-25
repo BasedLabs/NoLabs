@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -28,10 +28,6 @@ export type nolabs__application__adaptyv_bio__protein_affinity_characterization_
      * Total price of the experiment
      */
     cart_total: number;
-    /**
-     * URL of the session where the experiment is located
-     */
-    session_url: string;
     swissprot_id: string;
 };
 

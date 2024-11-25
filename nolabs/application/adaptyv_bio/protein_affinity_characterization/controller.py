@@ -6,7 +6,7 @@ import uuid
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from nolabs.application.adaptyv_bio.protein_affinity_characterization.api_models import TargetResponse, \
     EstimatesResponse, JobResponse, SetupJobRequest
@@ -22,13 +22,13 @@ async def start_job(job_id: UUID) -> JobResponse:
 
 
 @router.get("/jobs/{job_id}", summary="Get job")
-async def get_job(job_id: UUID,) -> JobResponse:
+async def get_job(job_id: UUID) -> JobResponse:
     return await GetJobFeature().handle(job_id=job_id)
 
 
 @router.post("/jobs", summary="Setup job")
-async def setup_job(request: SetupJobRequest) -> JobResponse:
-    return await SetupJobFeature().handle(request=request)
+async def setup_job(request: SetupJobRequest, http_request: Request) -> JobResponse:
+    return await SetupJobFeature().handle(request=request, session_url=http_request.url.path)
 
 @router.get("/list-targets/{search_query}", summary="List targets for the experiment")
 async def list_targets(search_query: str) -> List[TargetResponse]:

@@ -1,9 +1,16 @@
+from enum import Enum
 from pathlib import Path
 from typing import Literal, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 directory = Path(__file__).resolve().parent
+
+
+class Environment(str, Enum):
+    local = 'local'
+    test = 'test'
+    production = 'production'
 
 
 class Settings(BaseSettings):

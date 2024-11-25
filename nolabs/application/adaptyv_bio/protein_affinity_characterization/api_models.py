@@ -72,9 +72,5 @@ class SetupJobRequest(BaseModel):
         ge=0,
         description="Total price of the experiment"
     )
-    session_url: str = Field(
-        ...,
-        description="URL of the session where the experiment is located"
-    )
     swissprot_id: str = Field(...)
 

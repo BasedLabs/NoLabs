@@ -39,7 +39,8 @@ class ProteinAffinityCharacterizationJob(Job):
                   report_email: str,
                   target_id: str,
                   cart_total: int,
-                  swissprot_id: str
+                  swissprot_id: str,
+                  session_url: str
                   ):
         self.number_of_designs = number_of_designs
         self.dna_length = dna_length
@@ -48,6 +49,7 @@ class ProteinAffinityCharacterizationJob(Job):
         self.target_id = target_id
         self.cart_total = cart_total
         self.swissprot_id = swissprot_id
+        self.session_url = session_url
 
     def set_proteins(self, proteins: List[Protein]):
         if not proteins:
