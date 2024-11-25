@@ -62,7 +62,8 @@ class GetJobFeature:
             cart_total=job.cart_total,
             session_url=job.session_url,
             swissprot_id=job.swissprot_id,
-            submitted=job.submitted
+            submitted=job.submitted,
+            target_name=job.target_name
         )
 
 class SetupJobFeature:
