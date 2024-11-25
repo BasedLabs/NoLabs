@@ -152,7 +152,7 @@
     </q-card-section>
 
     <!-- Submit Button -->
-    <q-card-section>
+    <q-card-section v-if="!isJobSubmitted">
       <q-btn
         label="Submit for Review"
         color="primary"
@@ -231,6 +231,7 @@ export default defineComponent({
       estimateValue: 0, // Stores the numeric estimate
       isFetchingTargets: false,
       isFetchingEstimate: true, // Indicates if estimates are being fetched
+      isJobSubmitted: false
     };
   },
   computed: {
@@ -264,10 +265,11 @@ export default defineComponent({
         this.priceEstimate = `$${job.cart_total} / estimate fetched`;
         this.selectedTarget = {
           id: job.target_id,
-          name: 'Fetched Target', // Replace with the target name if available
+          name: job.target_id, // Replace with the target name if available
           description: '',
           swissprot_id: job.swissprot_id,
         };
+        this.isJobSubmitted = job.submitted;
       } catch (error) {
         console.error('Failed to fetch job parameters:', error);
         this.$q.notify({
@@ -344,6 +346,7 @@ export default defineComponent({
     async submitJob() {
       try {
         await sendProteinAffinityCharacterizationRequest(this.jobId);
+        this.isJobSubmitted = true;
         this.$q.notify({
           type: 'positive',
           message: 'Job submitted successfully!',
