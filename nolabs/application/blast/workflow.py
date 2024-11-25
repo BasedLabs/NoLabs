@@ -59,7 +59,7 @@ def create_hits_and_hsps(blast_output: dict) -> List[Hit]:
 
 
 class BlastComponentFlowHandler(ComponentFlowHandler):
-    async def on_component_task(self, inp: BlastComponentInput) -> List[uuid.UUID]:
+    async def on_start(self, inp: BlastComponentInput) -> List[uuid.UUID]:
         jobs = []
         for protein_id in inp.proteins_with_fasta:
             job: BlastJob = BlastJob.objects(protein=protein_id).first()
@@ -82,7 +82,7 @@ class BlastComponentFlowHandler(ComponentFlowHandler):
             jobs.append(job.id)
         return jobs
 
-    async def on_job_task(self, job_id: uuid.UUID):
+    async def on_job_start(self, job_id: uuid.UUID):
         job: BlastJob = BlastJob.objects.with_id(job_id)
 
         if not job:
@@ -103,7 +103,7 @@ class BlastComponentFlowHandler(ComponentFlowHandler):
             }
         )
 
-    async def on_job_completion(
+    async def on_job_finish(
             self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         job: BlastJob = BlastJob.objects.with_id(job_id)
