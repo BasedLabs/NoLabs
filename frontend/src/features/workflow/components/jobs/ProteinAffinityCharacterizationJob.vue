@@ -106,6 +106,10 @@
               clearable
               placeholder="example@gmail.com"
               @change="updateJob"
+              :rules="[
+                val => !!val || 'Email is required',
+                val => /.+@.+\..+/.test(val) || 'Invalid email',
+              ]"
             />
           </q-item-section>
         </q-item>
@@ -203,7 +207,7 @@ export default defineComponent({
   data() {
     return {
       jobId: '', // Replace with the actual job ID
-      numDesigns: 1,
+      numDesigns: 24,
       numAA: 178,
       replicatesPerDesign: 1,
       email: '',
@@ -211,10 +215,24 @@ export default defineComponent({
       selectedTarget: null as TargetResponse | null,
       priceEstimate: 'Loading...',
       estimateValue: 0, // Stores the numeric estimate
-      readyForSubmission: false,
       isFetchingTargets: false,
       isFetchingEstimate: true, // Indicates if estimates are being fetched
     };
+  },
+  computed: {
+    isEmailValid() {
+      const email = this.email;
+      if (!email) return false;
+      const emailRegex = /.+@.+\..+/;
+      return emailRegex.test(email);
+    },
+    readyForSubmission() {
+      return (
+        !this.isFetchingEstimate &&
+        this.isEmailValid &&
+        this.selectedTarget != null
+      );
+    },
   },
   methods: {
     async fetchPriceEstimate() {
@@ -237,12 +255,11 @@ export default defineComponent({
           this.numDesigns,
           this.numAA,
           this.replicatesPerDesign,
-          this.email,
-          this.selectedTarget?.id || '',
+          this.email || null,
+          this.selectedTarget?.id || null,
           this.estimateValue,
-          this.selectedTarget?.swissprot_id || ''
+          this.selectedTarget?.swissprot_id || null
         );
-        this.readyForSubmission = true;
         this.$q.notify({
           type: 'positive',
           message: 'Job updated successfully.',
@@ -306,7 +323,7 @@ export default defineComponent({
   async mounted() {
     // Fetch the initial price estimate when the component mounts
     this.jobId = this.$route.params.jobId as string;
-    await this.fetchPriceEstimate();
+    await this.updateJob();
   },
   components: {
     QBtn,
