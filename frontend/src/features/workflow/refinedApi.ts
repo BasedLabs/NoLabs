@@ -106,6 +106,10 @@ export function startProteinMPNNJob(jobId: string): CancelablePromise<nolabs__ap
   return ProteinMpnnService.startJobApiV1ProteinmpnnJobsRunJobIdPost(jobId);
 }
 
+export function getProteinAffinityCharacterizationJob(jobId: string): CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse> {
+  return ProteinAffinityCharacterizationService.getJobApiV1AdaptyvBioProteinAffinityJobsJobIdGet(jobId);
+}
+
 export function sendProteinAffinityCharacterizationRequest(jobId: string): CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse> {
   return ProteinAffinityCharacterizationService.startJobApiV1AdaptyvBioProteinAffinityJobsRunJobIdPost(
     jobId

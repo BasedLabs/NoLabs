@@ -29,7 +29,7 @@
                 :min="24"
                 :max="500"
                 dense
-                @change="updateJob"
+                @change="fetchPriceEstimate"
                 label-always
                 markers
                 :step="1"
@@ -54,7 +54,7 @@
                 :min="1"
                 :max="300"
                 dense
-                @change="updateJob"
+                @change="fetchPriceEstimate"
                 label-always
                 markers
                 :step="1"
@@ -79,7 +79,7 @@
                 :min="1"
                 :max="5"
                 dense
-                @change="updateJob"
+                @change="fetchPriceEstimate"
                 label-always
                 markers
                 :step="1"
@@ -132,7 +132,7 @@
               clearable
               input-debounce="1000"
               placeholder="Search target..."
-              @update:model-value="updateJob"
+              @update:model-value="fetchPriceEstimate"
             />
           </q-item-section>
         </q-item>
@@ -190,6 +190,7 @@ import {
 } from 'quasar';
 import {
   getAdaptyvBioEstimates,
+  getProteinAffinityCharacterizationJob,
   listAvailableAdaptyvBioTargets,
   sendProteinAffinityCharacterizationRequest,
   setupProteinAffinityCharacterizationJob,
@@ -200,6 +201,19 @@ export type TargetResponse = {
   name: string;
   description: string;
   swissprot_id: string;
+};
+
+export type JobResponse = {
+  job_id: string;
+  job_name: string;
+  number_of_designs: number;
+  dna_length: number;
+  replicates: number;
+  report_email: string;
+  target_id: string;
+  swissprot_id: string;
+  cart_total: number;
+  session_url: string;
 };
 
 export default defineComponent({
@@ -235,12 +249,40 @@ export default defineComponent({
     },
   },
   methods: {
+    async fetchJobParameters() {
+      try {
+        const job: JobResponse = await getProteinAffinityCharacterizationJob(
+          this.jobId
+        );
+
+        // Set the component's state based on the fetched job parameters
+        this.numDesigns = job.number_of_designs;
+        this.numAA = job.dna_length;
+        this.replicatesPerDesign = job.replicates;
+        this.email = job.report_email;
+        this.estimateValue = job.cart_total;
+        this.priceEstimate = `$${job.cart_total} / estimate fetched`;
+        this.selectedTarget = {
+          id: job.target_id,
+          name: 'Fetched Target', // Replace with the target name if available
+          description: '',
+          swissprot_id: job.swissprot_id,
+        };
+      } catch (error) {
+        console.error('Failed to fetch job parameters:', error);
+        this.$q.notify({
+          type: 'negative',
+          message: 'Failed to fetch job parameters.',
+        });
+      }
+    },
     async fetchPriceEstimate() {
       this.isFetchingEstimate = true;
       try {
         const response = await getAdaptyvBioEstimates(this.jobId);
         this.priceEstimate = `$${response.total_price} / ${response.turnaround_time} weeks`;
         this.estimateValue = response.total_price;
+        await this.updateJob();
       } catch (error) {
         this.priceEstimate = 'Failed to fetch estimate';
         console.error(error);
@@ -260,11 +302,6 @@ export default defineComponent({
           this.estimateValue,
           this.selectedTarget?.swissprot_id || null
         );
-        this.$q.notify({
-          type: 'positive',
-          message: 'Job updated successfully.',
-        });
-        await this.fetchPriceEstimate();
       } catch (error) {
         this.$q.notify({
           type: 'negative',
@@ -321,9 +358,11 @@ export default defineComponent({
     },
   },
   async mounted() {
-    // Fetch the initial price estimate when the component mounts
+    // Fetch job parameters and then estimates
     this.jobId = this.$route.params.jobId as string;
-    await this.updateJob();
+
+    await this.fetchJobParameters(); // Fetch job details
+    await this.fetchPriceEstimate(); // Fetch estimates based on the fetched job parameters
   },
   components: {
     QBtn,
