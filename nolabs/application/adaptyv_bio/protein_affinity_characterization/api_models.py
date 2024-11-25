@@ -1,6 +1,7 @@
 __all__ = ["TargetResponse", "JobResponse","EstimatesResponse", "GetEstimatesRequest","SetupJobRequest"]
 
 import uuid
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, EmailStr
@@ -41,36 +42,36 @@ class JobResponse(BaseModel):
 
 class SetupJobRequest(BaseModel):
     job_id: uuid.UUID
-    number_of_designs: int = Field(
-        ...,
+    number_of_designs: Optional[int] = Field(
+        None,
         ge=24,
         le=500,
         description="Every protein counts as one design. The more designs you test the cheaper it becomes."
     )
-    dna_length: int = Field(
-        ...,
+    dna_length: Optional[int] = Field(
+        None,
         ge=0,
         le=300,
         description="AA (avg. protein length)"
     )
-    replicates: int = Field(
-        ...,
+    replicates: Optional[int] = Field(
+        None,
         ge=1,
         le=5,
         description="A replicate is a single test for a protein design. The more replicates you select the more confidence you can have in your data."
     )
-    report_email: EmailStr = Field(
-        ...,
+    report_email: Optional[EmailStr] = Field(
+        None,
         description="Email address to send the report"
     )
-    target_id: str = Field(
-        ...,
+    target_id: Optional[str] = Field(
+        None,
         description="Target id of the experiment"
     )
-    cart_total: int = Field(
-        ...,
+    cart_total: Optional[int] = Field(
+        None,
         ge=0,
         description="Total price of the experiment"
     )
-    swissprot_id: str = Field(...)
+    swissprot_id: Optional[str] = Field(None)
 
