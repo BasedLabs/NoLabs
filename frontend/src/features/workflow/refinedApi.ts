@@ -131,7 +131,6 @@ export function setupProteinAffinityCharacterizationJob(jobId: string,
                                                         email: string,
                                                         selectedTarget: string,
                                                         cartTotal: number,
-                                                        sessionUrl: string,
                                                         swissProtId: string):
   CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse>{
   const requestBody = {
@@ -142,7 +141,6 @@ export function setupProteinAffinityCharacterizationJob(jobId: string,
     report_email: email,
     target_id: selectedTarget,
     cart_total: cartTotal, // This can be updated with real value later
-    session_url: sessionUrl,
     swissprot_id: swissProtId,
   };
 

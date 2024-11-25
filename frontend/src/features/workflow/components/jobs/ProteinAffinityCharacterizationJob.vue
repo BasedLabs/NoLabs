@@ -120,9 +120,7 @@
               use-input
               :options="targetOptions"
               option-label="name"
-              option-value="id"
-              emit-value
-              map-options
+              option-value="name"
               outlined
               dense
               @filter="onTargetFilter"
@@ -140,7 +138,10 @@
             <q-item-label>Price Estimate</q-item-label>
           </q-item-section>
           <q-item-section>
-            <div>{{ priceEstimate }}</div>
+            <div v-if="isFetchingEstimate">
+              <q-spinner size="24px" color="info" />
+            </div>
+            <div v-else>{{ priceEstimate }}</div>
           </q-item-section>
         </q-item>
       </q-list>
@@ -152,7 +153,7 @@
         label="Submit for Review"
         color="primary"
         @click="submitJob"
-        :disable="!readyForSubmission"
+        :disable="!readyForSubmission || isFetchingEstimate"
       />
     </q-card-section>
 
@@ -174,13 +175,28 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { QBtn, QInput, QSelect, QSlider, debounce, QImg } from 'quasar';
+import {
+  QBtn,
+  QInput,
+  QSelect,
+  QSlider,
+  debounce,
+  QImg,
+  QSpinner,
+} from 'quasar';
 import {
   getAdaptyvBioEstimates,
   listAvailableAdaptyvBioTargets,
   sendProteinAffinityCharacterizationRequest,
   setupProteinAffinityCharacterizationJob,
 } from '../../refinedApi';
+
+export type TargetResponse = {
+  id: string;
+  name: string;
+  description: string;
+  swissprot_id: string;
+};
 
 export default defineComponent({
   name: 'AdaptyvBioJob',
@@ -191,21 +207,27 @@ export default defineComponent({
       numAA: 178,
       replicatesPerDesign: 1,
       email: '',
-      targetOptions: [],
-      selectedTarget: '',
+      targetOptions: [] as TargetResponse[],
+      selectedTarget: null as TargetResponse | null,
       priceEstimate: 'Loading...',
+      estimateValue: 0, // Stores the numeric estimate
       readyForSubmission: false,
       isFetchingTargets: false,
+      isFetchingEstimate: true, // Indicates if estimates are being fetched
     };
   },
   methods: {
     async fetchPriceEstimate() {
+      this.isFetchingEstimate = true;
       try {
         const response = await getAdaptyvBioEstimates(this.jobId);
         this.priceEstimate = `$${response.total_price} / ${response.turnaround_time} weeks`;
+        this.estimateValue = response.total_price;
       } catch (error) {
         this.priceEstimate = 'Failed to fetch estimate';
         console.error(error);
+      } finally {
+        this.isFetchingEstimate = false;
       }
     },
     async updateJob() {
@@ -216,10 +238,9 @@ export default defineComponent({
           this.numAA,
           this.replicatesPerDesign,
           this.email,
-          this.selectedTarget,
-          0,
-          '',
-          ''
+          this.selectedTarget?.id || '',
+          this.estimateValue,
+          this.selectedTarget?.swissprot_id || ''
         );
         this.readyForSubmission = true;
         this.$q.notify({
@@ -247,7 +268,7 @@ export default defineComponent({
     },
     fetchTargets(val, update) {
       listAvailableAdaptyvBioTargets(val)
-        .then((options) => {
+        .then((options: TargetResponse[]) => {
           update(() => {
             this.targetOptions = options;
           });
@@ -293,6 +314,7 @@ export default defineComponent({
     QInput,
     QSelect,
     QImg,
+    QSpinner,
   },
 });
 </script>
