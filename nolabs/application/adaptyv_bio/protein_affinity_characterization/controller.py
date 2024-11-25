@@ -28,7 +28,7 @@ async def get_job(job_id: UUID) -> JobResponse:
 
 @router.post("/jobs", summary="Setup job")
 async def setup_job(request: SetupJobRequest, http_request: Request) -> JobResponse:
-    return await SetupJobFeature().handle(request=request, session_url=http_request.url.path)
+    return await SetupJobFeature().handle(request=request, session_url=http_request.url.path + f'/{str(request.job_id)}')
 
 @router.get("/list-targets/{search_query}", summary="List targets for the experiment")
 async def list_targets(search_query: str) -> List[TargetResponse]:
