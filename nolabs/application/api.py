@@ -17,6 +17,8 @@ from nolabs.application.rfdiffusion.controller import router as rfdiffusion_rout
 from nolabs.application.proteins.controller import router as proteins_router
 from nolabs.application.diffdock.controller import router as diffdock_router
 from nolabs.application.proteinmpnn.controller import router as proteinmpnn_router
+from nolabs.application.adaptyv_bio.protein_affinity_characterization.controller import router as protein_affinity_characterization_router
+from nolabs.application.adaptyv_bio.protein_binding_screening.controller import router as protein_binding_screening_router
 from nolabs.application.ligands.controller import router as ligand_router
 from nolabs.application.blast.controller import router as blast_router
 from nolabs.infrastructure.log import logger, initialize_logging
@@ -60,6 +62,7 @@ async def join_room(sid, data):
 
 app.include_router(experiment_router)
 app.include_router(diffdock_router)
+app.include_router(protein_binding_screening_router)
 app.include_router(folding_router)
 app.include_router(proteinmpnn_router)
 app.include_router(job_router)
@@ -68,6 +71,7 @@ app.include_router(blast_router)
 app.include_router(proteins_router)
 app.include_router(rfdiffusion_router)
 app.include_router(workflow_router)
+app.include_router(protein_affinity_characterization_router)
 app.include_router(biobuddy_controller)
 add_domain_exception_middleware(app)
 app.mount("/", socket_app)

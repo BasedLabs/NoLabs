@@ -37,6 +37,14 @@ const componentApi = {
   proteinMpnn: {
     getJob: null,
     executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
+  },
+  proteinAffinity: {
+    getJob: null,
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
+  },
+  proteinBindingScreening: {
+    getJob: null,
+    executionStatus: WorkflowService.getJobStateApiV1WorkflowJobJobIdStateGet
   }
 }
 

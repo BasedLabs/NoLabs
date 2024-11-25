@@ -211,6 +211,18 @@ export default defineComponent({
       tab: true,
       routeName: "ProteinMPNN",
       api: componentApi.proteinMpnn
+    },
+    {
+      name: "Protein affinity characterization",
+      tab: true,
+      routeName: "ProteinAffinityCharacterization",
+      api: componentApi.proteinAffinity
+    },
+    {
+      name: "Protein binding screening",
+      tab: true,
+      routeName: "ProteinBindingScreening",
+      api: componentApi.proteinBindingScreening
     }
   ],
   data() {

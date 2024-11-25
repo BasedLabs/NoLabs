@@ -45,7 +45,7 @@ class RfDiffusionComponent(Component[RfDiffusionInput, RfDiffusionOutput]):
         return RfDiffusionFlowHandler
 
 class RfDiffusionFlowHandler(ComponentFlowHandler):
-    async def on_component_task(self, inp: RfDiffusionInput) -> List[uuid.UUID]:
+    async def on_start(self, inp: RfDiffusionInput) -> List[uuid.UUID]:
         job_ids = []
 
         for protein_id in inp.proteins_with_pdb:
@@ -77,7 +77,7 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
 
         return [i for i in job_ids]
 
-    async def on_job_task(self, job_id: uuid.UUID):
+    async def on_job_start(self, job_id: uuid.UUID):
         job: RfdiffusionJob = RfdiffusionJob.objects.with_id(job_id)
 
         input_errors = job.input_errors(throw=False)
@@ -102,7 +102,7 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
                                    input={'param': input.model_dump()}) # TODO move names of tasks and queues, remove param (single input)
 
 
-    async def on_job_completion(
+    async def on_job_finish(
             self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         job: RfdiffusionJob = RfdiffusionJob.objects.with_id(job_id)
@@ -162,7 +162,7 @@ class RfDiffusionFlowHandler(ComponentFlowHandler):
 
         return modified_pdb_content
 
-    async def on_completion(
+    async def on_finish(
             self, inp: RfDiffusionInput, job_ids: List[uuid.UUID]
     ) -> Optional[RfDiffusionOutput]:
         protein_ids = []

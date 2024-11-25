@@ -12,6 +12,7 @@ import {
   LigandsService,
   Body_upload_ligand_api_v1_objects_ligands_post,
   DiffdockService,
+  ProteinAffinityCharacterizationService,
   nolabs__application__diffdock__api_models__JobResponse,
   nolabs__application__diffdock__api_models__SetupJobRequest,
   OpenAPI,
@@ -29,10 +30,15 @@ import {
   GetJobState,
   ProteinMpnnService,
   nolabs__application__proteinmpnn__api_models__JobResponse,
-  nolabs__application__proteinmpnn__api_models__SetupJobRequest, BlastService
+  nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse,
+  TargetResponse,
+  EstimatesResponse, ProteinBindingScreeningService,
+  nolabs__application__proteinmpnn__api_models__SetupJobRequest,
+  BlastService
 } from 'src/refinedApi/client';
 import {CancelablePromise, ExperimentMetadataResponse} from "../../refinedApi/client";
 import apiConstants from "../../refinedApi/constants";
+import ProteinBindingScreeningJob from "./components/jobs/ProteinBindingScreeningJob.vue";
 
 OpenAPI.BASE = apiConstants.hostname;
 
@@ -100,6 +106,105 @@ export function startDiffDockJob(jobId: string): CancelablePromise<nolabs__appli
 export function startProteinMPNNJob(jobId: string): CancelablePromise<nolabs__application__proteinmpnn__api_models__JobResponse> {
   return ProteinMpnnService.startJobApiV1ProteinmpnnJobsRunJobIdPost(jobId);
 }
+
+export function getProteinAffinityCharacterizationJob(jobId: string): CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse> {
+  return ProteinAffinityCharacterizationService.getJobApiV1AdaptyvBioProteinAffinityJobsJobIdGet(jobId);
+}
+
+export function sendProteinAffinityCharacterizationRequest(jobId: string): CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse> {
+  return ProteinAffinityCharacterizationService.startJobApiV1AdaptyvBioProteinAffinityJobsRunJobIdPost(
+    jobId
+  );
+}
+
+export function listProteinAffinityCharacterizationTargets(targetSearch: string): CancelablePromise<Array<TargetResponse>> {
+  return ProteinAffinityCharacterizationService.listTargetsApiV1AdaptyvBioProteinAffinityListTargetsSearchQueryGet(
+    targetSearch
+  );
+}
+
+export function getProteinAffinityCharacterizationEstimates(jobId: string): CancelablePromise<EstimatesResponse> {
+  return ProteinAffinityCharacterizationService.getEstimatesApiV1AdaptyvBioProteinAffinityJobsJobIdEstimatesGet(
+    jobId
+  );
+}
+
+export function setupProteinAffinityCharacterizationJob(jobId: string,
+                                                        numDesigns: number,
+                                                        numAA: number,
+                                                        replicatesPerDesign: number,
+                                                        email: string,
+                                                        selectedTargetId: string,
+                                                        selectedTargetName: string,
+                                                        cartTotal: number,
+                                                        swissProtId: string):
+  CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse>{
+  const requestBody = {
+    job_id: jobId,
+    number_of_designs: numDesigns,
+    dna_length: numAA,
+    replicates: replicatesPerDesign,
+    report_email: email,
+    target_id: selectedTargetId,
+    target_name: selectedTargetName,
+    cart_total: cartTotal, // This can be updated with real value later
+    swissprot_id: swissProtId,
+  };
+
+  return ProteinAffinityCharacterizationService.setupJobApiV1AdaptyvBioProteinAffinityJobsPost(
+      requestBody
+  );
+}
+
+export function getProteinBindingScreeningJob(jobId: string): CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse> {
+  return ProteinBindingScreeningService.getJobApiV1AdaptyvBioProteinBindingScreeningJobsJobIdGet(jobId);
+}
+
+export function sendProteinBindingScreeningRequest(jobId: string): CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse> {
+  return ProteinBindingScreeningService.startJobApiV1AdaptyvBioProteinBindingScreeningJobsRunJobIdPost(
+    jobId
+  );
+}
+
+export function listProteinBindingScreeningTargets(targetSearch: string): CancelablePromise<Array<TargetResponse>> {
+  return ProteinBindingScreeningService.listTargetsApiV1AdaptyvBioProteinBindingScreeningListTargetsSearchQueryGet(
+    targetSearch
+  );
+}
+
+export function getProteinBindingScreeningEstimates(jobId: string): CancelablePromise<EstimatesResponse> {
+  return ProteinBindingScreeningService.getEstimatesApiV1AdaptyvBioProteinBindingScreeningJobsJobIdEstimatesGet(
+    jobId
+  );
+}
+
+export function setupProteinBindingScreeningJob(jobId: string,
+                                                        numDesigns: number,
+                                                        numAA: number,
+                                                        replicatesPerDesign: number,
+                                                        email: string,
+                                                        selectedTargetId: string,
+                                                        selectedTargetName: string,
+                                                        cartTotal: number,
+                                                        swissProtId: string):
+  CancelablePromise<nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse>{
+  const requestBody = {
+    job_id: jobId,
+    number_of_designs: numDesigns,
+    dna_length: numAA,
+    replicates: replicatesPerDesign,
+    report_email: email,
+    target_id: selectedTargetId,
+    target_name: selectedTargetName,
+    cart_total: cartTotal, // This can be updated with real value later
+    swissprot_id: swissProtId,
+  };
+
+  return ProteinBindingScreeningService.setupJobApiV1AdaptyvBioProteinBindingScreeningJobsPost(
+    requestBody
+  );
+}
+
 
 export function changeJobName(jobId: string, newName: string): CancelablePromise<any> {
   const jobRequest = { job_name: newName } as UpdateJobRequest;

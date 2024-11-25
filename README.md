@@ -225,7 +225,19 @@ Model: [Proteinmpnn](https://github.com/dauparas/ProteinMPNN)
 docker compose up proteinmpnn
 ```
 
-### 6) Biobuddy
+### 6) Adaptyv bio Protein Affinity Characterization component
+
+Uses [adaptyv bio](https://www.adaptyvbio.com/) api
+
+To enable real data flow to adaptyv bio change `ENVIRONMENT` environment variable in `nolabs/infrastructure/.env` to `production`
+
+### 7) Adaptyv bio Protein Binding Screening component
+
+Uses [adaptyv-bio](https://www.adaptyvbio.com/) api
+
+To enable real data flow to adaptyv bio change `ENVIRONMENT` environment variable in `nolabs/infrastructure/.env` to `production`
+
+### 8) Biobuddy
 
 To enable biobuddy:
 

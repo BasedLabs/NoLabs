@@ -23,6 +23,8 @@ asgiref = "^3.8.1"
 fastapi = "^0.115.4"
 uvicorn = "^0.32.0"
 celery-redbeat = "^2.2.0"
+requests = "^2.32.3"
+pydantic = {extras = ["email"], version = "^2.10.1"}
 
 [tool.poetry.group.dev.dependencies]
 deptry = "^0.19.1"

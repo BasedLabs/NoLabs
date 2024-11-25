@@ -4,7 +4,8 @@ from typing import Any, Dict, Generic, List, Optional, Union
 from pydantic import BaseModel
 
 from nolabs.workflow.core.component import TInput, TOutput
-from nolabs.workflow.core.job_execution_nodes import JobLongRunningTaskExecutionNode
+from nolabs.workflow.core.job_execution_nodes import JobLongRunningTaskExecutionNode, JobMainTaskExecutionNode, \
+    JobExecutionNode
 
 
 class ComponentFlowHandler(Generic[TInput, TOutput]):
@@ -16,21 +17,30 @@ class ComponentFlowHandler(Generic[TInput, TOutput]):
         self.component_id = component_id
         self.experiment_id = experiment_id
 
-    async def on_component_task(self, inp: TInput) -> List[uuid.UUID]:
+    async def on_start(self, inp: TInput) -> List[uuid.UUID]:
         return []
 
-    async def on_completion(
+    async def on_finish(
             self, inp: TInput, job_ids: List[uuid.UUID]
     ) -> Optional[TOutput]:
         return None
 
-    async def on_job_task(self, job_id: uuid.UUID):
+    async def on_job_start(self, job_id: uuid.UUID):
         pass
 
-    async def on_job_completion(
+    async def on_job_finish(
             self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         pass
+
+    async def cancel_job(self, job_id: uuid.UUID, reason: Optional[str] = None):
+        node = JobExecutionNode(
+            experiment_id=self.experiment_id,
+            component_id=self.component_id,
+            job_id=job_id,
+        )
+        if await node.can_cancel():
+            await node.cancel(message=reason)
 
     async def schedule(
             self,

@@ -74,7 +74,7 @@ class FoldingComponentFlow(ComponentFlowHandler):
     component_timeout_seconds = 120.0
     backend: FoldingBackendEnum
 
-    async def on_component_task(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
+    async def on_start(self, inp: FoldingComponentInput) -> List[uuid.UUID]:
         job_ids = []
 
         for protein_id in inp.proteins_with_fasta:
@@ -100,7 +100,7 @@ class FoldingComponentFlow(ComponentFlowHandler):
 
         return [i for i in job_ids]
 
-    async def on_completion(
+    async def on_finish(
         self, inp: FoldingComponentInput, job_ids: List[uuid.UUID]
     ) -> FoldingComponentOutput:
         items = []
@@ -113,7 +113,7 @@ class FoldingComponentFlow(ComponentFlowHandler):
 
         return FoldingComponentOutput(proteins_with_pdb=items)
 
-    async def on_job_task(self, job_id: uuid.UUID):
+    async def on_job_start(self, job_id: uuid.UUID):
         job: FoldingJob = FoldingJob.objects.with_id(job_id)
 
         input_errors = job.input_errors(throw=False)
@@ -140,7 +140,7 @@ class FoldingComponentFlow(ComponentFlowHandler):
     def _schedule(self, job_id: uuid.UUID, inp: BaseModel):
         ...
 
-    async def on_job_completion(
+    async def on_job_finish(
         self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         output = InferenceOutput(**long_running_output)

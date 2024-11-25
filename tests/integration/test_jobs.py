@@ -29,7 +29,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 job1 = Job.create(
                     id=JobId(j1_id),
                     name=JobName("hello 1"),
@@ -45,7 +45,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
 
                 return [job1.id, job2.id]
 
-            async def on_job_task(self, job_id: uuid.UUID):
+            async def on_job_start(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
                 await j.save()
@@ -111,7 +111,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 job1 = Job.create(
                     id=JobId(j1_id),
                     name=JobName("hello 1"),
@@ -127,7 +127,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
 
                 return [job1.id, job2.id]
 
-            async def on_job_task(self, job_id: uuid.UUID):
+            async def on_job_start(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
                 await j.save()
@@ -201,7 +201,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 job1 = Job.create(
                     id=JobId(j1_id),
                     name=JobName("hello 1"),
@@ -217,7 +217,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
 
                 return [job1.id, job2.id]
 
-            async def on_job_task(self, job_id: uuid.UUID):
+            async def on_job_start(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
                 await j.save()
@@ -295,7 +295,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 job1 = Job.create(
                     id=JobId(j1_id),
                     name=JobName("hello 1"),
@@ -311,7 +311,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
 
                 return [job1.id, job2.id]
 
-            async def on_job_task(self, job_id: uuid.UUID):
+            async def on_job_start(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
                 await j.save()
@@ -322,7 +322,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
                     input={"job_id": job_id},
                 )
 
-            async def on_job_completion(
+            async def on_job_finish(
                     self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
             ):
                 raise ValueError("Failed completion")
@@ -392,7 +392,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
             a: int = 10
 
         class FlowHandler(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 job1 = Job.create(
                     id=JobId(j1_id),
                     name=JobName("hello 1"),
@@ -402,7 +402,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
 
                 return [job1.id]
 
-            async def on_job_task(self, job_id: uuid.UUID):
+            async def on_job_start(self, job_id: uuid.UUID):
                 j: Job = Job.objects.with_id(job_id)
                 j.name = JobName("Changed")
                 await j.save()
@@ -413,7 +413,7 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
                     input={"job_id": job_id}
                 )
 
-            async def on_job_completion(
+            async def on_job_finish(
                     self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
             ):
                 if not long_running_output or not long_running_output.get("a"):
@@ -454,6 +454,61 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
             ControlStates.SUCCESS,
         )
 
+    async def test_should_cancel_job(self):
+        j1_id = uuid.uuid4()
+
+        class IO(BaseModel):
+            a: int = 10
+
+        class FlowHandler(ComponentFlowHandler):
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
+                job1 = Job.create(
+                    id=JobId(j1_id),
+                    name=JobName("hello 1"),
+                    component=self.component_id,
+                )
+                await job1.save()
+
+                return [job1.id]
+
+            async def on_job_start(self, job_id: uuid.UUID):
+                return await self.cancel_job(job_id=job_id, reason="Hello")
+
+        class MockComponent(Component[IO, IO], ComponentFlowHandler):
+            name = "a"
+
+            @property
+            def input_parameter_type(self) -> Type[IO]:
+                return IO
+
+            @property
+            def component_flow_type(self) -> Type["ComponentFlowHandler"]:
+                return FlowHandler
+
+            @property
+            def output_parameter_type(self) -> Type[IO]:
+                return IO
+
+        # arrange
+        experiment_id = uuid.uuid4()
+        await self.seed_experiment(id=experiment_id)
+        component = self.seed_component(
+            experiment_id=experiment_id, component_type=MockComponent
+        )
+        graph = Graph(experiment_id=experiment_id)
+        self.spin_up_celery()
+
+        # act
+        await graph.set_components_graph(components=[component])
+        await graph.schedule(component_ids=[component.id])
+        await self.spin_up_sync(graph=graph)
+
+        # assert
+        self.assertEqual(
+            await graph.get_job_node(component_id=component.id, job_id=j1_id).get_state(),
+            ControlStates.CANCELLED,
+        )
+
     async def test_should_not_rerun_jobs_after_next_component_failed(self):
         called_counter = Value("i", 0)
         component1_id = uuid.uuid4()
@@ -473,17 +528,17 @@ class TestJobs(GlobalSetup, SeedComponentsMixin, SeedExperimentMixin, GraphTestM
             a: int = 10
 
         class Fh1(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 return [j1.id]
 
-            async def on_job_task(self, job_id: uuid.UUID):
+            async def on_job_start(self, job_id: uuid.UUID):
                 called_counter.value += 1
 
         class Fh2(ComponentFlowHandler):
-            async def on_component_task(self, inp: IO) -> List[uuid.UUID]:
+            async def on_start(self, inp: IO) -> List[uuid.UUID]:
                 return [j2.id]
 
-            async def on_job_completion(
+            async def on_job_finish(
                     self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
             ):
                 raise ValueError("Expected")

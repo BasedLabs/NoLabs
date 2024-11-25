@@ -1,9 +1,16 @@
+from enum import Enum
 from pathlib import Path
 from typing import Literal, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 directory = Path(__file__).resolve().parent
+
+
+class Environment(str, Enum):
+    local = 'local'
+    test = 'test'
+    production = 'production'
 
 
 class Settings(BaseSettings):
@@ -27,11 +34,13 @@ class Settings(BaseSettings):
     enable_biobuddy: bool
     reinvent_directory: Path
     uvicorn_host: str = "0.0.0.0"
+    adaptyv_bio_api_token: Optional[str] = None
+    adaptyv_bio_api_base: Optional[str] = None
     uvicorn_port: int = 8000
     celery_worker_concurrency: int = 20
     environment: Literal["local", "test", "production"] = "local"
     logging_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
-    logging_structured: bool = False
+    structured_logging: bool = False
 
 
 _settings: Optional[Settings] = None

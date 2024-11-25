@@ -153,9 +153,12 @@ class ExecutionNode(ABC):
         await self.set_state(ControlStates.UNKNOWN, pipe=pipe)
         await self.set_message(message="", pipe=pipe)
 
-    async def cancel(self):
+    async def cancel(self, message: Optional[str] = None):
         if await self.can_cancel():
+            pipe = get_redis_pipe()
             await self.set_state(state=ControlStates.CANCELLING)
+            await self.set_message(message=message or "", pipe=pipe)
+            pipe.execute()
 
     async def can_cancel(self):
         state = await self.get_state()
@@ -199,7 +202,6 @@ class CeleryExecutionNode(ExecutionNode, ABC):
         if new_state in TERMINAL_STATES:
             pipe = get_redis_pipe()
             await self.set_state(state=ControlStates.CANCELLED, pipe=pipe)
-            await self.set_message(message="", pipe=pipe)
             pipe.execute()
 
     async def sync_started(self) -> ControlStates:

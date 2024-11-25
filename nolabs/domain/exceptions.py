@@ -17,16 +17,7 @@ class ErrorCode:
 class ErrorCodes(Enum):
     unknown_exception = ErrorCode(code=0, description="Unknown exception")
     experiment_not_found = ErrorCode(code=4, description="Experiment not found")
-    amino_acid_localisation_run_error = ErrorCode(
-        code=5, description="Amino acid localisation run error"
-    )
     protein_design_run_error = ErrorCode(code=6, description="Protein design run error")
-    protein_design_update_metadata_error = ErrorCode(
-        code=7, description="Error while updating protein design metadata"
-    )
-    drug_discovery_folding_error = ErrorCode(
-        code=8, description="Drug discovery folding error"
-    )
     folding_method_unknown = ErrorCode(code=9, description="Folding method is unknown")
     job_not_found = ErrorCode(code=10, description="Job not found")
     invalid_protein_name = ErrorCode(code=13, description="Invalid protein name")
@@ -35,31 +26,14 @@ class ErrorCodes(Enum):
     invalid_experiment_id = ErrorCode(code=17, description="Invalid experiment id")
     invalid_experiment_name = ErrorCode(code=18, description="Experiment not found")
     invalid_job_id = ErrorCode(code=19, description="Invalid job id")
-    invalid_root_directory = ErrorCode(code=20, description="Invalid root directory")
     invalid_job_input = ErrorCode(code=21, description="Invalid job input")
     invalid_job_name = ErrorCode(code=22, description="Invalid job name")
-    invalid_job_type = ErrorCode(code=23, description="Invalid job type")
-    invalid_job_context_id = ErrorCode(code=24, description="Invalid job context id")
     invalid_job_result = ErrorCode(code=25, description="Invalid job result")
-    duplicate_amino_acid = ErrorCode(code=26, description="Duplicate amino acid")
-    unknown_localisation_error = ErrorCode(
-        code=27, description="Unknown localisation job error"
-    )
-    duplicate_protein = ErrorCode(code=28, description="Duplicate protein")
-    invalid_localisation_job_output = ErrorCode(
-        code=29, description="Invalid localisation job output"
-    )
-    invalid_protein_solubility_probability = ErrorCode(
-        code=30, description="Invalid protein solubility probability value"
-    )
     no_domain_event_handler = ErrorCode(
         code=31, description="No domain event handler for this event"
     )
     biobuddy_error_generating_response = ErrorCode(
         code=32, description="Biobuddy error generating response"
-    )
-    biobuddy_unexpected_message_type = ErrorCode(
-        code=33, description="Biobuddy unexpected message type"
     )
     invalid_localisation_probability = ErrorCode(
         code=34, description="Invalid localisation probability value"
@@ -67,27 +41,13 @@ class ErrorCodes(Enum):
     protein_not_found_in_job_inputs = ErrorCode(
         code=35, description="Protein not found in job inputs"
     )
-    protein_amino_acid_sequence_not_found = ErrorCode(
-        code=36, description="Protein amino acid sequence not found"
-    )
     invalid_folding_backend = ErrorCode(code=37, description="Invalid folding backend")
     invalid_gene_ontology = ErrorCode(code=38, description="Invalid gene ontology")
-    gene_ontology_run_error = ErrorCode(code=39, description="Gene ontology run error")
     invalid_solubility_probability = ErrorCode(
         code=40, description="Invalid solubility probability"
     )
-    unknown_solubility_error = ErrorCode(
-        code=41, description="Unknown error in solubility job"
-    )
-    unknown_gene_ontology_error = ErrorCode(
-        code=42, description="Unknown error in gene ontology job"
-    )
-    unknown_folding_error = ErrorCode(
-        code=43, description="Unknown error in folding job"
-    )
     invalid_ligand_name = ErrorCode(code=44, description="Invalid ligand name")
     invalid_ligand_id = ErrorCode(code=45, description="Invalid ligand id")
-    duplicate_ligand = ErrorCode(code=46, description="Duplicate ligand")
     invalid_smiles = ErrorCode(code=47, description="Invalid smiles")
     small_molecules_design_empty_output = ErrorCode(
         code=48, description="Empty output in small molecules design job"
@@ -99,13 +59,9 @@ class ErrorCodes(Enum):
     protein_cannot_be_binder_to_itself = ErrorCode(
         code=51, description="Protein cannot be binder to itself"
     )
-    empty_binding_pockets = ErrorCode(code=52, description="Empty binding pockets")
     protein_not_found = ErrorCode(code=53, description="Protein not found")
     invalid_msa = ErrorCode(code=54, description="Invalid msa")
     protein_fasta_is_empty = ErrorCode(code=55, description="Protein fasta is empty")
-    binding_pockets_prediction_run_error = ErrorCode(
-        code=56, description="Binding pockets prediction run error"
-    )
     invalid_drug_likeness_score = ErrorCode(
         code=57, description="Invalid drug likeness score"
     )
@@ -117,20 +73,9 @@ class ErrorCodes(Enum):
     sdf_content_is_undefined = ErrorCode(
         code=61, description="Sdf content is undefined"
     )
-    binding_backend_is_undefined = ErrorCode(
-        code=62, description="Binding backend is undefined"
-    )
     ligand_not_found = ErrorCode(code=63, description="Ligand not found")
     ligand_initialization_error = ErrorCode(
         code=64, description="Ligand initialization error"
-    )
-    diffdock_api_error = ErrorCode(
-        code=65, description="Diffdock microservice api error"
-    )
-    protein_msa_is_empty = ErrorCode(code=66, description="Protein msa is empty")
-    ligand_smiles_is_empty = ErrorCode(code=67, description="Ligand smiles is empty")
-    ligand_not_found_in_job_inputs = ErrorCode(
-        code=68, description="Ligand not found in job inputs"
     )
     protein_initialization_error = ErrorCode(
         code=69, description="Protein initialization error"
@@ -140,28 +85,14 @@ class ErrorCodes(Enum):
     invalid_ligand_content = ErrorCode(code=72, description="Invalid ligand content")
     smiles_file_is_invalid = ErrorCode(code=73, description="Smiles file is invalid")
     sdf_file_is_invalid = ErrorCode(code=74, description="Sdf file is invalid")
-    reinvent_cannot_run_sampling = ErrorCode(code=75, description="Cannot run sampling")
-    workflow_not_found = ErrorCode(code=77, description="Workflow not found")
-    same_component_already_registered = ErrorCode(
-        code=78, description="Same component was already registered"
-    )
-    component_has_unmapped_properties = ErrorCode(
-        code=79, description="Component has unmapped properties"
-    )
     cannot_start_component = ErrorCode(code=80, description="Cannot start component")
     invalid_workflow_schema = ErrorCode(code=81, description="Invalid workflow schema")
     component_not_found = ErrorCode(code=82, description="Component not found")
     component_input_invalid = ErrorCode(
         code=83, description="Component input is invalid"
     )
-    flow_run_id_not_found = ErrorCode(code=84, description="Flow run id not found")
-    blast_api_error = ErrorCode(code=85, description="Blast api error")
-
     create_workflow_failed = ErrorCode(code=86, description="Create workflow failed")
     delete_workflow_failed = ErrorCode(code=87, description="Delete workflow failed")
-    get_all_workflows_failed = ErrorCode(
-        code=88, description="Get all workflows failed"
-    )
     get_workflow_schema_failed = ErrorCode(
         code=89, description="Get workflow schema failed"
     )
@@ -175,34 +106,13 @@ class ErrorCodes(Enum):
     )
     get_job_state_failed = ErrorCode(code=94, description="Get job state failed")
     job_execution_failed = ErrorCode(code=95, description="Job execution failed")
-    get_job_metadata_failed = ErrorCode(code=96, description="Get job metadata failed")
-    job_run_not_found = ErrorCode(code=97, description="Job run not found")
     get_folding_job_failed = ErrorCode(code=98, description="Get folding job failed")
     setup_folding_job_failed = ErrorCode(
         code=99, description="Setup folding job failed"
     )
     run_folding_job_failed = ErrorCode(code=100, description="Run folding job failed")
-    workflow_get_folding_jobs_failed = ErrorCode(
-        code=101, description="Get folding jobs in workflow failed"
-    )
-    workflow_run_folding_job_failed = ErrorCode(
-        code=102, description="Run folding job in workflow failed"
-    )
     workflow_running = ErrorCode(code=103, description="Workflow is running")
     component_running = ErrorCode(code=104, description="Component is running")
-    invalid_workflow_timeouts = ErrorCode(
-        code=105, description="Invalid workflow timeouts"
-    )
-    job_running = ErrorCode(code=106, description="Job is running")
-    string_is_not_correlation_id = ErrorCode(
-        code=107, description="Passed string is not correlation id"
-    )
-    execution_node_not_scheduled = ErrorCode(
-        code=108, description="Execution node not scheduled"
-    )
-    cannot_schedule_execution_node = ErrorCode(
-        code=109, description="Cannot schedule execution node"
-    )
     invalid_states_transition = ErrorCode(
         code=110, description="Invalid state transition"
     )
@@ -217,8 +127,32 @@ class ErrorCodes(Enum):
     component_output_invalid = ErrorCode(
         code=115, description="Component output is invalid"
     )
+    proteins_are_part_of_another_job = ErrorCode(
+        code=116, description="Proteins are used in another job already"
+    )
+    adaptyv_bio_token_not_set = ErrorCode(
+        code=117, description="NOLABS_ADAPTYV_BIO_API_TOKEN not set"
+    )
+    adaptyv_bio_api_base_not_set = ErrorCode(
+        code=118, description="NOLABS_ADAPTYV_BIO_API_BASE not set"
+    )
+    adaptyv_bio_api_unauthorized = ErrorCode(
+        code=119, description="Adaptyv bio api unauthorized exception"
+    )
+    adaptyv_bio_api_too_many_requests = ErrorCode(
+        code=120, description="Adaptyv bio api too many requests"
+    )
+    adaptyv_bio_api_error = ErrorCode(
+        code=121, description="Adaptyv bio api error"
+    )
+    adaptyv_bio_job_submitted = ErrorCode(
+        code=122, description="Adaptyv bio job was already submitted"
+    )
+    adaptyv_bio_job_was_not_submitted = ErrorCode(
+        code=123, description="Adaptyv bio job was not submitted"
+    )
     blast_query_exception = ErrorCode(
-        code=116, description="Blast query exception"
+        code=124, description="Blast query exception"
     )
 
 if len([e.value.code for e in ErrorCodes]) != len(

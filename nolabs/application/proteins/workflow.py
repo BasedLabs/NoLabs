@@ -33,7 +33,7 @@ class ProteinsComponent(Component[ProteinsComponentInput, ProteinsComponentOutpu
 
 
 class ProteinsFlow(ComponentFlowHandler):
-    async def on_completion(
+    async def on_finish(
         self, inp: ProteinsComponentInput, job_ids: List[uuid.UUID]
     ) -> Optional[ProteinsComponentOutput]:
         return ProteinsComponentOutput(proteins=inp.proteins)

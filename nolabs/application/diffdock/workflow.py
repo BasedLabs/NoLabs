@@ -42,7 +42,7 @@ class DiffDockComponent(Component[DiffDockComponentInput, DiffDockComponentOutpu
 
 
 class DiffdockComponentFlowHandler(ComponentFlowHandler):
-    async def on_component_task(self, inp: DiffDockComponentInput) -> List[uuid.UUID]:
+    async def on_start(self, inp: DiffDockComponentInput) -> List[uuid.UUID]:
         job_ids = []
 
         for protein_id in inp.proteins_with_pdb:
@@ -78,7 +78,7 @@ class DiffdockComponentFlowHandler(ComponentFlowHandler):
 
         return job_ids
 
-    async def on_job_task(self, job_id: uuid.UUID):
+    async def on_job_start(self, job_id: uuid.UUID):
         job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id)
 
         input_errors = job.input_errors(throw=False)
@@ -104,7 +104,7 @@ class DiffdockComponentFlowHandler(ComponentFlowHandler):
             input={"param": request.model_dump()}
         )
 
-    async def on_job_completion(
+    async def on_job_finish(
         self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         job: DiffDockBindingJob = DiffDockBindingJob.objects.with_id(job_id)

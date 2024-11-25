@@ -47,7 +47,7 @@ class ProteinMPNNComponent(Component[ProteinMPNNComponentInput, ProteinMPNNCompo
 
 
 class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
-    async def on_completion(
+    async def on_finish(
             self, inp: ProteinMPNNComponentInput, job_ids: List[uuid.UUID]
     ) -> Optional[ProteinMPNNComponentOutput]:
         protein_ids = []
@@ -61,7 +61,7 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
             proteins_with_fasta=protein_ids
         )
 
-    async def on_component_task(self, inp: ProteinMPNNComponentInput) -> List[uuid.UUID]:
+    async def on_start(self, inp: ProteinMPNNComponentInput) -> List[uuid.UUID]:
         job_ids = []
 
         if not inp.proteins_with_pdb:
@@ -96,7 +96,7 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
 
         return job_ids
 
-    async def on_job_task(self, job_id: uuid.UUID):
+    async def on_job_start(self, job_id: uuid.UUID):
         job: ProteinMPNNJob = ProteinMPNNJob.objects.with_id(job_id)
 
         input_errors = job.input_errors(throw=False)
@@ -126,7 +126,7 @@ class ProteinMPNNComponentFlowHandler(ComponentFlowHandler):
             input={"param": request.model_dump()},
         )
 
-    async def on_job_completion(
+    async def on_job_finish(
         self, job_id: uuid.UUID, long_running_output: Optional[Dict[str, Any]]
     ):
         job: ProteinMPNNJob = ProteinMPNNJob.objects.with_id(job_id)

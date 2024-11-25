@@ -51,6 +51,24 @@ const proteinMpnnRoutes = [
   }
 ]
 
+const proteinAffinityCharacterizationRoutes = [
+  {
+    path: 'proteinAffinityCharacterization/job/:jobId',
+    component: () => import('../features/workflow/components/jobs/ProteinAffinityCharacterizationJob.vue'),
+    name: 'ProteinAffinityCharacterization',
+    props: true
+  }
+]
+
+const proteinBindingScreeningRoutes = [
+  {
+    path: 'proteinBindingScreening/job/:jobId',
+    component: () => import('../features/workflow/components/jobs/ProteinBindingScreeningJob.vue'),
+    name: 'ProteinBindingScreening',
+    props: true
+  }
+]
+
 const routes = [
   {
     path: '/',
@@ -61,8 +79,10 @@ const routes = [
       ...workflowRoutes,
       ...proteinDesignRoutes,
       ...foldingRoutes,
+      ...blastRoutes,
       ...proteinMpnnRoutes,
-      ...blastRoutes
+      ...proteinAffinityCharacterizationRoutes,
+      ...proteinBindingScreeningRoutes
     ]
   },
   {

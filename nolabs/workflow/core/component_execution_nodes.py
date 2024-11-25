@@ -271,6 +271,7 @@ class ComponentExecutionNode(ExecutionNode):
         for job_id in job_ids:
             job_node = JobExecutionNode(self.experiment_id, self.component_id, job_id)
             await job_node.sync_started()
+            await job_node.sync_cancelling()
 
             job_state = await job_node.get_state()
             if job_state in TERMINAL_STATES:
@@ -310,17 +311,25 @@ class ComponentExecutionNode(ExecutionNode):
             return True
 
         all_jobs_terminal = True
+        all_jobs_cancelled = True
         any_success = False
 
         for job_id in job_ids:
             job_node = JobExecutionNode(self.experiment_id, self.component_id, job_id)
             job_state = await job_node.get_state()
 
+            if job_state != ControlStates.CANCELLED:
+                all_jobs_cancelled = False
+
             if job_state in TERMINAL_STATES:
                 if job_state == ControlStates.SUCCESS:
                     any_success = True
             else:
                 all_jobs_terminal = False
+
+        if all_jobs_cancelled:
+            await self.set_state(ControlStates.SUCCESS)
+            return any_success
 
         # If all jobs are in terminal state, update component state
         if all_jobs_terminal:
@@ -394,6 +403,7 @@ class ComponentExecutionNode(ExecutionNode):
             job_node = JobExecutionNode(self.experiment_id, self.component_id, job_id)
             if await job_node.can_cancel():
                 await job_node.cancel()
+            await job_node.sync_cancelling()
             jobs_in_progress = await job_node.get_state() not in PROGRESS_STATES
 
         if not jobs_in_progress:
