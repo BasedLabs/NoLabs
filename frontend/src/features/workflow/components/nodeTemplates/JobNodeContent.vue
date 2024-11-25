@@ -62,6 +62,8 @@ export default defineComponent({
           return '/protmpnn_icon.png';
         case 'Protein affinity characterization':
           return '/Adaptyvbio_small_logo.png';
+        case 'Protein binding screening':
+          return '/Adaptyvbio_small_logo.png';
         default:
           return '/protein_folding.png';
       }

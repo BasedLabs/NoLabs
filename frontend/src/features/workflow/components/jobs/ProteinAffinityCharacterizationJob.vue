@@ -169,9 +169,7 @@
           href="https://www.adaptyvbio.com/"
           target="_blank"
           class="text-info"
-        >
-          Adaptyv Bio
-        </a>.
+        >Adaptyv Bio</a>.
       </div>
     </q-card-section>
   </q-card>
@@ -189,9 +187,9 @@ import {
   QSpinner,
 } from 'quasar';
 import {
-  getAdaptyvBioEstimates,
+  getProteinAffinityCharacterizationEstimates,
   getProteinAffinityCharacterizationJob,
-  listAvailableAdaptyvBioTargets,
+  listProteinAffinityCharacterizationTargets,
   sendProteinAffinityCharacterizationRequest,
   setupProteinAffinityCharacterizationJob,
 } from '../../refinedApi';
@@ -217,7 +215,7 @@ export type JobResponse = {
 };
 
 export default defineComponent({
-  name: 'AdaptyvBioJob',
+  name: 'ProteinAffinityCharacterizationJob',
   data() {
     return {
       jobId: '', // Replace with the actual job ID
@@ -265,7 +263,7 @@ export default defineComponent({
         this.priceEstimate = `$${job.cart_total} / estimate fetched`;
         this.selectedTarget = {
           id: job.target_id,
-          name: job.target_id, // Replace with the target name if available
+          name: job.target_name, // Replace with the target name if available
           description: '',
           swissprot_id: job.swissprot_id,
         };
@@ -281,7 +279,7 @@ export default defineComponent({
     async fetchPriceEstimate() {
       this.isFetchingEstimate = true;
       try {
-        const response = await getAdaptyvBioEstimates(this.jobId);
+        const response = await getProteinAffinityCharacterizationEstimates(this.jobId);
         this.priceEstimate = `$${response.total_price} / ${response.turnaround_time} weeks`;
         this.estimateValue = response.total_price;
         await this.updateJob();
@@ -301,6 +299,7 @@ export default defineComponent({
           this.replicatesPerDesign,
           this.email || null,
           this.selectedTarget?.id || null,
+          this.selectedTarget?.name || null,
           this.estimateValue,
           this.selectedTarget?.swissprot_id || null
         );
@@ -323,7 +322,7 @@ export default defineComponent({
       }
     },
     fetchTargets(val, update) {
-      listAvailableAdaptyvBioTargets(val)
+      listProteinAffinityCharacterizationTargets(val)
         .then((options: TargetResponse[]) => {
           update(() => {
             this.targetOptions = options;
