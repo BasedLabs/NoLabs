@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__SetupJobRequest = {
+export type nolabs__application__adaptyv_bio__protein_binding_screening__api_models__SetupJobRequest = {
     job_id: string;
     /**
      * Every protein counts as one design. The more designs you test the cheaper it becomes.

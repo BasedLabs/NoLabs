@@ -52,6 +52,8 @@ export type { nolabs__application__blast__api_models__JobResult } from './models
 export type { nolabs__application__blast__api_models__SetupJobRequest } from './models/nolabs__application__blast__api_models__SetupJobRequest';
 export type { nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse } from './models/nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse';
 export type { nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__SetupJobRequest } from './models/nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__SetupJobRequest';
+export type { nolabs__application__adaptyv_bio__protein_binding_screening__api_models__JobResponse } from './models/nolabs__application__adaptyv_bio__protein_binding_screening__api_models__JobResponse';
+export type { nolabs__application__adaptyv_bio__protein_binding_screening__api_models__SetupJobRequest } from './models/nolabs__application__adaptyv_bio__protein_binding_screening__api_models__SetupJobRequest';
 export type { nolabs__application__diffdock__api_models__JobResponse } from './models/nolabs__application__diffdock__api_models__JobResponse';
 export type { nolabs__application__diffdock__api_models__JobResult } from './models/nolabs__application__diffdock__api_models__JobResult';
 export type { nolabs__application__diffdock__api_models__SetupJobRequest } from './models/nolabs__application__diffdock__api_models__SetupJobRequest';
@@ -92,6 +94,7 @@ export { FoldingService } from './services/FoldingService';
 export { JobsACommonControllerForJobsManagementService } from './services/JobsACommonControllerForJobsManagementService';
 export { LigandsService } from './services/LigandsService';
 export { ProteinAffinityCharacterizationService } from './services/ProteinAffinityCharacterizationService';
+export { ProteinBindingScreeningService } from './services/ProteinBindingScreeningService';
 export { ProteinMpnnService } from './services/ProteinMpnnService';
 export { ProteinsService } from './services/ProteinsService';
 export { RfdiffusionService } from './services/RfdiffusionService';

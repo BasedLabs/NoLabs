@@ -8,12 +8,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Request
 
-from nolabs.application.adaptyv_bio.protein_affinity_characterization.api_models import TargetResponse, \
+from nolabs.application.adaptyv_bio.protein_binding_screening.api_models import TargetResponse, \
     EstimatesResponse, JobResponse, SetupJobRequest
-from nolabs.application.adaptyv_bio.protein_affinity_characterization.use_cases import StartJobFeature, GetJobFeature, \
+from nolabs.application.adaptyv_bio.protein_binding_screening.use_cases import StartJobFeature, GetJobFeature, \
     SetupJobFeature, ListTargetsFeature, GetEstimatesFeature
 
-router = APIRouter(prefix="/api/v1/adaptyv-bio/protein-affinity", tags=["Protein affinity characterization"])
+router = APIRouter(prefix="/api/v1/adaptyv-bio/protein-binding-screening", tags=["Protein Binding Screening"])
 
 
 @router.post("/jobs/run/{job_id}", summary="Run job")

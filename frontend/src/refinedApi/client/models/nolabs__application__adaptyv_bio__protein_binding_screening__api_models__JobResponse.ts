@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type nolabs__application__adaptyv_bio__protein_affinity_characterization__api_models__JobResponse = {
+export type nolabs__application__adaptyv_bio__protein_binding_screening__api_models__JobResponse = {
     job_id: string;
     job_name: string;
     number_of_designs: (number | null);

@@ -6,7 +6,7 @@ from nolabs.domain.exceptions import ErrorCodes, NoLabsException
 from nolabs.domain.models.common import Job, Protein, JobInputError
 
 
-class ProteinAffinityCharacterizationJob(Job):
+class ProteinBindingScreeningJob(Job):
     number_of_designs: int = IntField(
         min_value=24,
         max_value=500,

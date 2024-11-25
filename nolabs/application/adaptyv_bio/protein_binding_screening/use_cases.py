@@ -2,16 +2,16 @@ import uuid
 from typing import List
 
 from nolabs.application.adaptyv_bio.api_proxy import AdaptyvBioProteinAffinityCharacterizationApi
-from nolabs.application.adaptyv_bio.protein_affinity_characterization.api_models import JobResponse, SetupJobRequest, \
+from nolabs.application.adaptyv_bio.protein_binding_screening.api_models import JobResponse, SetupJobRequest, \
     TargetResponse, EstimatesResponse
 from nolabs.domain.exceptions import NoLabsException, ErrorCodes
-from nolabs.domain.models.adaptyv_bio.protein_affinity_characterization_job import ProteinAffinityCharacterizationJob
+from nolabs.domain.models.adaptyv_bio.protein_binding_screening_job import ProteinBindingScreeningJob
 from nolabs.workflow.core.graph import Graph
 
 
 class StartJobFeature:
     async def handle(self, job_id: uuid.UUID):
-        job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.objects.with_id(job_id)
+        job: ProteinBindingScreeningJob = ProteinBindingScreeningJob.objects.with_id(job_id)
 
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
@@ -46,7 +46,7 @@ class StartJobFeature:
 
 class GetJobFeature:
     async def handle(self, job_id: uuid.UUID) -> JobResponse:
-        job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.objects.with_id(job_id)
+        job: ProteinBindingScreeningJob = ProteinBindingScreeningJob.objects.with_id(job_id)
 
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
@@ -62,12 +62,13 @@ class GetJobFeature:
             cart_total=job.cart_total,
             session_url=job.session_url,
             swissprot_id=job.swissprot_id,
-            submitted=job.submitted
+            submitted=job.submitted,
+            target_name=job.target_name
         )
 
 class SetupJobFeature:
     async def handle(self, request: SetupJobRequest, session_url: str) -> JobResponse:
-        job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.objects.with_id(request.job_id)
+        job: ProteinBindingScreeningJob = ProteinBindingScreeningJob.objects.with_id(request.job_id)
 
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
@@ -111,7 +112,7 @@ class ListTargetsFeature:
 
 class GetEstimatesFeature:
     async def handle(self, job_id: uuid.UUID) -> EstimatesResponse:
-        job: ProteinAffinityCharacterizationJob = ProteinAffinityCharacterizationJob.objects.with_id(job_id)
+        job: ProteinBindingScreeningJob = ProteinBindingScreeningJob.objects.with_id(job_id)
 
         if not job:
             raise NoLabsException(ErrorCodes.job_not_found)
