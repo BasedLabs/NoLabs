@@ -9,10 +9,14 @@ from nolabs.domain.models.common import Job, Protein, JobInputError
 class ProteinBindingScreeningJob(Job):
     number_of_designs: int = IntField(
         min_value=24,
+        default=24,
         max_value=500,
         help_message="Every protein counts as one design. The more designs you test the cheaper it becomes.")
-    dna_length: int = IntField(min_value=0, max_value=300, help_message="AA (avg. protein length)")
+    dna_length: int = IntField(
+        default=20,
+        min_value=0, max_value=300, help_message="AA (avg. protein length)")
     replicates: int = IntField(
+        default=1,
         min_value=1,
         max_value=5,
         help_message="A replicate is a single test for a protein design. The more replicates you select the more confidence you can have in your data.")

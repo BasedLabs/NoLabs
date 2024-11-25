@@ -8,13 +8,17 @@ from nolabs.domain.models.common import Job, Protein, JobInputError
 
 class ProteinAffinityCharacterizationJob(Job):
     number_of_designs: int = IntField(
+        default=24,
         min_value=24,
         max_value=500,
         help_message="Every protein counts as one design. The more designs you test the cheaper it becomes.")
-    dna_length: int = IntField(min_value=0, max_value=300, help_message="AA (avg. protein length)")
+    dna_length: int = IntField(
+        default=20,
+        min_value=0, max_value=300, help_message="AA (avg. protein length)")
     replicates: int = IntField(
         min_value=1,
         max_value=5,
+        default=1,
         help_message="A replicate is a single test for a protein design. The more replicates you select the more confidence you can have in your data.")
     report_email: str = EmailField(help_message="Email address to send the report")
     proteins: List[Protein] = ListField(
