@@ -120,7 +120,7 @@ services:
               capabilities: [ gpu ]
 
   nolabs-backend:
-    image: 'ghcr.io/basedlabs/nolabs-backend:1.0.0'
+    image: 'ghcr.io/basedlabs/nolabs-backend:1.1.0'
     network_mode: host
     working_dir: /app
     build:
@@ -138,7 +138,7 @@ services:
     command: python nolabs/workflow/worker.py
 
   nolabs-frontend:
-    image: 'ghcr.io/basedlabs/nolabs-frontend:1.0.0'
+    image: 'ghcr.io/basedlabs/nolabs-frontend:1.1.0'
     network_mode: host
     working_dir: /app
     build:
