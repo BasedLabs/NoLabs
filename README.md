@@ -231,12 +231,15 @@ Uses [adaptyv bio](https://www.adaptyvbio.com/) api
 
 To enable real data flow to adaptyv bio change `ENVIRONMENT` environment variable in `nolabs/infrastructure/.env` to `production`
 
+Also you need to change `NOLABS_ADAPTYV_BIO_API_TOKEN` to actual token. You must request it on [adaptyv bio](https://www.adaptyvbio.com/)
+
 ### 7) Adaptyv bio Protein Binding Screening component
 
 Uses [adaptyv-bio](https://www.adaptyvbio.com/) api
 
 To enable real data flow to adaptyv bio change `ENVIRONMENT` environment variable in `nolabs/infrastructure/.env` to `production`
 
+Also you need to change `NOLABS_ADAPTYV_BIO_API_TOKEN` to actual token. You must request it on [adaptyv bio](https://www.adaptyvbio.com/)
 ### 8) Biobuddy
 
 To enable biobuddy:
