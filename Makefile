@@ -32,3 +32,8 @@ download-rfdiffusion-weights:
 	mkdir -p ${RFDIFFUSION_WEIGHTS_LOCATION}
 	python3 microservices/rfdiffusion/scripts/download_weights.py
 	@echo "Download complete!"
+download-arxiv-abstracts-db:
+	@echo "Downloading arxiv abstracts"
+	curl -L -o ${ARXIV_ABSTRACTS_DB} "https://drive.google.com/uc?export=download&id=$file_id" --progress-bar
+	tar -xzf "${ARXIV_ABSTRACTS_DB}"
+	@echo "Download complete!"
