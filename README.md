@@ -279,6 +279,9 @@ How to use this docker image:
 1) Generate a new token for docker registry
 https://github.com/settings/tokens/new?scopes=read:packages
 Select 'read:packages' (should be automatically selected when navigating link above).
+```bash
+$ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # generated token
+```
 2) Download ChromaDb for vector search
 ```bash
 $ make gen-envs
@@ -287,7 +290,6 @@ $ make download-arxiv-abstracts-db
 3) You must set your openai api key either in `microservices/arxiv_abstracts/service/.env` or on UI
 4) Start docker
 ```bash
-$ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 $ docker compose -f docker-compose.api.yaml up arxiv-ai-abstractions-search-api
 ```
 5) Wait until fastapi messages appear
