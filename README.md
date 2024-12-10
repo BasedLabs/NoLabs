@@ -66,9 +66,19 @@ $ chmod +x scripts/gen-envs.sh
 $ make gen-envs
 ```
 
+OR if you use Windows (untested!)
+
+```
+# Clone this project
+$ git clone https://github.com/BasedLabs/nolabs
+$ cd nolabs
+# Create .env files (you will be able to adjust them)
+$ Makefile.bat gen-envs
+```
+
 Generate a new token for docker registry
-https://github.com/settings/tokens/new
-Select 'read:packages'
+https://github.com/settings/tokens/new?scopes=read:packages
+Select 'read:packages' (should be automatically selected when navigating)
 
 ```bash
 $ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -258,6 +268,30 @@ Nolabs is running on GPT4 for the best performance. You can adjust the model you
 ```shell
 docker compose up blast-query
 ```
+
+### 10) Arxiv abstracts AI search (Standalone)
+
+<img src="media/arxiv-abstracts-search.png" width="100%">
+
+This microservice contains LLM RAG search over arXiv abstracts (up to 01/12/2024).
+How to use this docker image:
+
+1) Generate a new token for docker registry
+https://github.com/settings/tokens/new?scopes=read:packages
+Select 'read:packages' (should be automatically selected when navigating link above).
+2) Download ChromaDb for vector search
+```bash
+$ make gen-envs
+$ make download-arxiv-abstracts-db 
+```
+3) You must set your openai api key either in `microservices/arxiv_abstracts/service/.env` or on UI
+4) Start docker
+```bash
+$ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+$ docker compose -f docker-compose.api.yaml up arxiv-ai-abstractions-search-api
+```
+5) Wait until fastapi messages appear
+6) You can access UI in browser `http://0.0.0.0:8001/chat`
 
 ## Requirements ##
 

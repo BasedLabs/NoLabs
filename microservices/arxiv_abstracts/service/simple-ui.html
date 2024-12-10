@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <title>ArXiv abstracts search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: #1e1e1e;
+            color: #ddd;
+        }
+
+        #sidebar {
+            width: 30%;
+            border-right: 1px solid #444;
+            padding: 10px;
+            overflow-y: auto;
+            background: #2e2e2e;
+        }
+
+        #sidebar h3 {
+            margin-top: 0;
+            font-size: 1.2em;
+            color: #fff;
+        }
+
+        #sidebar h4 {
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        #chat {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e1e;
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #input-area {
+            display: flex;
+            border-top: 1px solid #444;
+            padding: 10px;
+            background: #2e2e2e;
+        }
+
+        #input-area input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #1e1e1e;
+            color: #ddd;
+        }
+
+        #input-area button {
+            margin-left: 10px;
+            padding: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            border-radius: 5px;
+            color: #ddd;
+        }
+
+        #input-area button:hover {
+            background: #4c4c4c;
+        }
+
+        .message {
+            font-size: 1.1em;
+            line-height: 1.4em;
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* AI messages on the left */
+        .message.ai {
+            align-self: flex-start;
+            background: #333;
+        }
+
+        /* Human messages on the right */
+        .message.human {
+            align-self: flex-end;
+            background: #444;
+            text-align: right;
+        }
+
+        /* Tool messages (if needed), subtle style */
+        .message.tool {
+            align-self: center;
+            background: #2e2e2e;
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .document-link {
+            background: #3a3a3a;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .document-link a {
+            font-weight: bold;
+            text-decoration: none;
+            color: #fff;
+            font-size: 1em;
+        }
+
+        .document-link a:hover {
+            text-decoration: underline;
+        }
+
+        .document-snippet {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        /* Loading overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        #loading-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        #loading-overlay .spinner {
+            width: 50px;
+            height: 50px;
+            border: 6px solid #fff;
+            border-top: 6px solid #888;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* API Key input at top */
+        #api-key-area {
+            padding: 10px;
+            border-bottom: 1px solid #444;
+            background: #2e2e2e;
+            display: flex;
+            align-items: center;
+        }
+
+        #api-key-area input {
+            padding: 10px;
+            font-size: 1em;
+            flex: 1;
+            margin-right: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background: #1e1e1e;
+            color: #ddd;
+        }
+
+        #api-key-area button {
+            padding: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            border-radius: 5px;
+            color: #ddd;
+        }
+
+        #api-key-area button:hover {
+            background: #4c4c4c;
+        }
+    </style>
+</head>
+<body>
+<div id="sidebar">
+    <h3>NoLabs - ArXiv AI abstracts search <a href="https://github.com/BasedLabs/NoLabs" target="_blank" class="icon">
+        <i class="fab fa-github"></i>
+    </a></h3>
+    <h4>Links</h4>
+    <div id="documents"></div>
+</div>
+<div id="chat">
+    <div id="api-key-area">
+        <input type="text" id="api-key-input" placeholder="Enter OpenAI API key... (optional if .env is set)"/>
+        <button id="api-key-btn">Set API Key</button>
+    </div>
+    <div id="messages"></div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Type your message..."/>
+        <button id="send-btn">Send</button>
+        <button id="clear-btn">Clear History</button>
+    </div>
+</div>
+
+<div id="loading-overlay">
+    <div class="spinner"></div>
+</div>
+
+<script>
+    const messagesDiv = document.getElementById('messages');
+    const documentsDiv = document.getElementById('documents');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const apiKeyInput = document.getElementById('api-key-input');
+    const apiKeyBtn = document.getElementById('api-key-btn');
+
+    // Show/hide loading overlay
+    function showLoading() {
+        loadingOverlay.classList.add('show');
+    }
+
+    function hideLoading() {
+        loadingOverlay.classList.remove('show');
+    }
+
+    // Load chat history on page load
+    window.addEventListener('load', async () => {
+        await loadHistory();
+    });
+
+    async function loadHistory() {
+        messagesDiv.innerHTML = '';
+        documentsDiv.innerHTML = '';
+
+        showLoading();
+        try {
+            const res = await fetch('/api/chat/history');
+            const history = await res.json();
+            for (const msg of history) {
+                renderMessage(msg);
+            }
+        } catch (err) {
+            console.error('Error loading history:', err);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function renderMessage(msg) {
+        // msg: { id, context, message_type, content }
+        // We have documents in msg.context
+        if (msg.context && msg.context.length > 0) {
+            renderDocuments(msg.context);
+        }
+        const div = document.createElement('div');
+        div.className = `message ${msg.message_type}`;
+        div.innerHTML = msg.content || '';
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        // Trigger MathJax to typeset LaTeX
+        if (window.MathJax) {
+            debugger;
+            MathJax.typesetPromise([div]).catch((err) => console.error('MathJax typeset error:', err));
+        }
+    }
+
+    function renderDocuments(docs) {
+        // Prepend new documents to the top
+        for (const doc of docs) {
+            const docDiv = document.createElement('div');
+            docDiv.className = 'document-link';
+
+            const link = document.createElement('a');
+            link.href = `https://arxiv.org/abs/${doc.id}`;
+            link.textContent = doc.title;
+            link.target = '_blank';
+            docDiv.appendChild(link);
+
+            const snippet = document.createElement('div');
+            snippet.className = 'document-snippet';
+            snippet.textContent = doc.page_content.slice(0, 100) + '...';
+            docDiv.appendChild(snippet);
+
+            if (documentsDiv.firstChild) {
+                documentsDiv.insertBefore(docDiv, documentsDiv.firstChild);
+            } else {
+                documentsDiv.appendChild(docDiv);
+            }
+        }
+    }
+
+    sendBtn.addEventListener('click', () => {
+        sendMessage();
+    });
+
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    clearBtn.addEventListener('click', async () => {
+        showLoading();
+        try {
+            await fetch('/api/chat/history', {method: 'DELETE'});
+            messagesDiv.innerHTML = '';
+            documentsDiv.innerHTML = '';
+        } catch (err) {
+            console.error('Error clearing history:', err);
+        } finally {
+            hideLoading();
+        }
+    });
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        userInput.value = '';
+        renderMessage({message_type: 'human', content: text});
+
+        showLoading();
+        const controller = new AbortController();
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: text}),
+                signal: controller.signal
+            });
+
+            if (!response.ok) {
+                console.error('Error sending message', response.statusText);
+                return;
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, {stream: true});
+
+                let lines = buffer.split('\n');
+                buffer = lines.pop();
+                for (let line of lines) {
+                    if (line.trim() === '') continue;
+                    try {
+                        const msg = JSON.parse(line);
+                        renderMessage(msg);
+                    } catch (e) {
+                        console.error('Failed to parse line: ', e);
+                    }
+                }
+            }
+            if (buffer.trim() !== '') {
+                try {
+                    const msg = JSON.parse(buffer.trim());
+                    renderMessage(msg);
+                } catch (e) {
+                    console.error('Failed to parse leftover buffer: ', e);
+                }
+            }
+        } catch (err) {
+            console.error('Error during fetch:', err);
+        } finally {
+            controller.abort();
+            hideLoading();
+        }
+    }
+
+    apiKeyBtn.addEventListener('click', async () => {
+        const key = apiKeyInput.value.trim();
+        if (!key) return;
+
+        showLoading();
+        try {
+            const response = await fetch('/api/openai-api-key', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({api_key: key})
+            });
+
+            if (!response.ok) {
+                console.error('Error setting API key', await response.text());
+                return;
+            }
+
+            apiKeyInput.value = '';
+            alert('API Key set successfully!');
+        } catch (err) {
+            console.error('Error setting API key:', err);
+        } finally {
+            hideLoading();
+        }
+    });
+</script>
+</body>
+</html>

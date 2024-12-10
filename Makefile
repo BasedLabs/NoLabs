@@ -15,7 +15,7 @@ install-mock-server:
 start-mock-server:
 	prism mock http://127.0.0.1:${UVICORN_HOST}/openapi.json
 gen-envs:
-	scripts/gen-envs.sh
+	python3 scripts/gen_envs.py
 download-diffdock-weights:
 	@echo "Downloading diffdock model weights..."
 	mkdir -p ${DIFFDOCK_WEIGHTS_LOCATION}
@@ -31,4 +31,11 @@ download-rfdiffusion-weights:
 	@echo "Downloading rfdiffusion model weights..."
 	mkdir -p ${RFDIFFUSION_WEIGHTS_LOCATION}
 	python3 microservices/rfdiffusion/scripts/download_weights.py
+	@echo "Download complete!"
+download-arxiv-abstracts-db:
+	@echo "Downloading arxiv abstracts"
+	! command -v unzip &> /dev/null && echo 'You have to install unzip: $ sudo apt-get install unzip OR $ brew install unzip (for macos)'
+	mkdir -p ${ARXIV_ABSTRACTS_DB}
+	curl -L -o ${ARXIV_ABSTRACTS_DB}/chroma_db.zip https://www.kaggle.com/api/v1/datasets/download/timurishmuratov/nolabs-arxiv-abstract-vector-db
+	unzip "${ARXIV_ABSTRACTS_DB}/chroma_db.zip" -d "${ARXIV_ABSTRACTS_DB}" && rm ${ARXIV_ABSTRACTS_DB}/chroma_db.zip
 	@echo "Download complete!"

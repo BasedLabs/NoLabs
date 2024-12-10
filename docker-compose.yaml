@@ -26,6 +26,18 @@ services:
               count: 1
               capabilities: [ gpu ]
 
+  arxiv-ai-abstractions-search:
+    image: 'ghcr.io/basedlabs/arxiv-ai-abstractions-search:1.0.0'
+    network_mode: host
+    command: python worker.py
+    build:
+      context: microservices/arxiv_abstracts
+      dockerfile: build/Dockerfile
+    env_file:
+      - microservices/arxiv_abstracts/service/.env
+    volumes:
+      - ${ARXIV_ABSTRACTS_DB}:/app/chroma_db
+
   esmfold-light:
     image: 'ghcr.io/basedlabs/esmfold-light:2.0.0'
     network_mode: host

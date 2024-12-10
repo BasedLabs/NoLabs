@@ -182,4 +182,5 @@ nolabs/experiments/**/*
 
 conformations/client/**
 
-celerybeat-schedule
+checkpoint.db
+history.json

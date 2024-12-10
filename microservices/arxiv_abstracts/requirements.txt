@@ -1,0 +1,17 @@
+uvicorn
+aiosqlite
+fastapi
+celery==5.4.0
+langchain==0.3.10
+langchain-chroma==0.1.4
+langchain-community==0.3.10
+langchain-huggingface==0.1.2
+langchain-openai==0.2.11
+langgraph==0.2.56
+langgraph-checkpoint-sqlite==2.0.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-dotenv==1.0.1
+redis==5.2.1
+sentence-transformers==3.3.1
+paper-qa[local]>=5
