@@ -14,3 +14,4 @@ pydantic-settings==2.6.1
 python-dotenv==1.0.1
 redis==5.2.1
 sentence-transformers==3.3.1
+paper-qa[local]>=5

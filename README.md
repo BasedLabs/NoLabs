@@ -66,6 +66,16 @@ $ chmod +x scripts/gen-envs.sh
 $ make gen-envs
 ```
 
+OR if use Windows (untested!)
+
+```
+# Clone this project
+$ git clone https://github.com/BasedLabs/nolabs
+$ cd nolabs
+# Create .env files (you will be able to adjust them)
+$ Makefile.bat gen-envs
+```
+
 Generate a new token for docker registry
 https://github.com/settings/tokens/new?scopes=read:packages
 Select 'read:packages' (should be automatically selected when navigating)
@@ -239,7 +249,7 @@ $ docker compose up biobuddy nolabs-frontend nolabs-worker nolabs-api mongo redi
 Nolabs is running on GPT4 for the best performance. You can adjust the model you use in `microservices/biobuddy/biobuddy/services.py`
 
 
-### 10) Arxiv abstracts AI search
+### 10) Arxiv abstracts AI search (Standalone)
 
 <img src="media/arxiv-abstracts-search.png" width="100%">
 
@@ -251,16 +261,17 @@ https://github.com/settings/tokens/new?scopes=read:packages
 Select 'read:packages' (should be automatically selected when navigating link above).
 2) Download ChromaDb for vector search
 ```bash
+$ make gen-envs
 $ make download-arxiv-abstracts-db 
 ```
-3) Start docker
+3) You must set your openai api key either in `microservices/arxiv_abstracts/service/.env` or on UI
+4) Start docker
 ```bash
 $ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-$ docker compose up arxiv-ai-abstractions-search
+$ docker compose -f docker-compose.api.yaml up arxiv-ai-abstractions-search-api
 ```
-4) You must provide your openai api key either in `.env` file in microservice or on UI
-
-If you're running api.py then you can access UI in browser `http://0.0.0.0:8001/chat`
+5) Wait until fastapi messages appear
+6) You can access UI in browser `http://0.0.0.0:8001/chat`
 
 ## Requirements ##
 

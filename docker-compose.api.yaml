@@ -22,3 +22,9 @@ services:
       service: proteinmpnn
       file: docker-compose.yaml
     command: python api.py
+
+  arxiv-ai-abstractions-search-api:
+    extends:
+      service: arxiv-ai-abstractions-search
+      file: docker-compose.yaml
+    command: python -u api.py

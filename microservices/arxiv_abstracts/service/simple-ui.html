@@ -4,6 +4,17 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
     <title>ArXiv abstracts search</title>
     <style>
         body {
@@ -277,15 +288,20 @@
 
     function renderMessage(msg) {
         // msg: { id, context, message_type, content }
-        if (msg.message_type === 'tool') {
-            // We have documents in msg.context
+        // We have documents in msg.context
+        if (msg.context && msg.context.length > 0) {
             renderDocuments(msg.context);
-        } else {
-            const div = document.createElement('div');
-            div.className = `message ${msg.message_type}`;
-            div.textContent = msg.content || '';
-            messagesDiv.appendChild(div);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        const div = document.createElement('div');
+        div.className = `message ${msg.message_type}`;
+        div.innerHTML = msg.content || '';
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        // Trigger MathJax to typeset LaTeX
+        if (window.MathJax) {
+            debugger;
+            MathJax.typesetPromise([div]).catch((err) => console.error('MathJax typeset error:', err));
         }
     }
 

@@ -6,7 +6,7 @@ from starlette.responses import HTMLResponse, FileResponse, StreamingResponse
 load_dotenv(".env")
 
 from settings import settings
-import application
+import application_paper_qa as application
 from api_models import ChatRequest, ChatResponse, SetOpenAiApiKey
 from fastapi import FastAPI
 import uvicorn

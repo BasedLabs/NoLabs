@@ -29,7 +29,7 @@ services:
   arxiv-ai-abstractions-search:
     image: 'ghcr.io/basedlabs/arxiv-ai-abstractions-search:1.0.0'
     network_mode: host
-    command: python api.py
+    command: python worker.py
     build:
       context: microservices/arxiv_abstracts
       dockerfile: build/Dockerfile

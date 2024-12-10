@@ -183,3 +183,4 @@ nolabs/experiments/**/*
 conformations/client/**
 
 checkpoint.db
+history.json

@@ -90,3 +90,5 @@ venv/
 
 build/Dockerfile
 chroma_db
+checkpoint.db
+history.json
