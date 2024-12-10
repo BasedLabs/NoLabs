@@ -271,7 +271,7 @@ $ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 $ docker compose -f docker-compose.api.yaml up arxiv-ai-abstractions-search-api
 ```
 5) Wait until fastapi messages appear
-6) You can access UI in browser `http://0.0.0.0:8001/chat`
+6) You can access UI in browser `http://0.0.0.0:8003/chat`
 
 ## Requirements ##
 
