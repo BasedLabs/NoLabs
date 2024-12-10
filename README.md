@@ -280,7 +280,7 @@ How to use this docker image:
 https://github.com/settings/tokens/new?scopes=read:packages
 Select 'read:packages' (should be automatically selected when navigating link above).
 ```bash
-$ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+$ docker login ghcr.io -u username -p ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx # generated token
 ```
 2) Download ChromaDb for vector search
 ```bash
